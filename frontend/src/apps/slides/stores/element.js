@@ -9,7 +9,7 @@ import {
 	currentSlide,
 	slideIndex,
 } from './slide'
-import { useTextEditor } from '@/composables/useTextEditor'
+import { useTextEditor } from '@/apps/slides/composables/useTextEditor'
 
 import { generateUniqueId, cloneObj } from '../utils/helpers'
 import { guessTextColorFromBackground } from '../utils/color'
@@ -18,13 +18,13 @@ import { getCommandsToInitElementRefId, getCommandsToUpdateElementRefId } from '
 import { commandHistory } from './historyMeta'
 
 import { generateHTML } from '@tiptap/core'
-import { extensions, patchEmptyParagraphs } from '@/stores/tiptapSetup'
+import { extensions, patchEmptyParagraphs } from '@/apps/slides/stores/tiptapSetup'
 import {
 	editElementCommand,
 	batchCommand,
 	addElementCommand,
 	removeElementCommand,
-} from '@/stores/commands'
+} from '@/apps/slides/stores/commands'
 
 const activeElementIds = ref([])
 const focusElementId = ref(null)
@@ -310,7 +310,7 @@ const addTextElement = async (text, position) => {
 }
 
 const savePoster = createResource({
-	url: 'slides.slides.doctype.presentation.presentation.save_base64_image',
+	url: 'suite.slides.doctype.presentation.presentation.save_base64_image',
 	makeParams: (posterDataUrl) => ({
 		presentation_name: presentationId.value,
 		base64_data: posterDataUrl,

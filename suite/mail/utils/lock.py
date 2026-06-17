@@ -6,7 +6,7 @@ from frappe import _
 from frappe.utils import cint
 from redis.exceptions import WatchError
 
-from mail.utils import get_config
+from suite.mail.utils import get_config
 
 
 def acquire_lock(

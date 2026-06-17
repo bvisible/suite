@@ -9,13 +9,13 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, today
 
-from mail.client.doctype.address_book.address_book import validate_address_book_name_format
-from mail.jmap import get_contact_card_service, parse_account
-from mail.storage import get_data_store
-from mail.storage.data_store import Entity
-from mail.utils import parse_filters
-from mail.utils.dt import parse_iso_datetime
-from mail.utils.validation import has_permission_for_user
+from suite.client.doctype.address_book.address_book import validate_address_book_name_format
+from suite.mail.jmap import get_contact_card_service, parse_account
+from suite.mail.storage import get_data_store
+from suite.mail.storage.data_store import Entity
+from suite.mail.utils import parse_filters
+from suite.mail.utils.dt import parse_iso_datetime
+from suite.mail.utils.validation import has_permission_for_user
 
 
 class ContactCard(Document):

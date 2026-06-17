@@ -9,9 +9,9 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, today
 
-from mail.jmap import get_mailbox_service, parse_account
-from mail.utils import parse_filters
-from mail.utils.validation import has_permission_for_user
+from suite.mail.jmap import get_mailbox_service, parse_account
+from suite.mail.utils import parse_filters
+from suite.mail.utils.validation import has_permission_for_user
 
 DEFAULT_MAILBOX_GAP = 1000
 MINIMUM_MAILBOX_GAP = 1

@@ -2,7 +2,7 @@ import time
 
 import frappe
 
-from mail.jmap import get_push_subscription_service
+from suite.mail.jmap import get_push_subscription_service
 
 
 def execute() -> None:

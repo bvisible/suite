@@ -9,13 +9,13 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from mail.client.doctype.account_settings.account_settings import sync_account_settings
-from mail.jmap import get_jmap_session_manager
-from mail.jmap.connection import JMAPConnection, JMAPConnectionInfo
-from mail.jmap.services.mail.identity import IdentityService
-from mail.utils import get_config
-from mail.utils.dt import timestamp_to_datetime
-from mail.utils.user import is_system_manager
+from suite.client.doctype.account_settings.account_settings import sync_account_settings
+from suite.mail.jmap import get_jmap_session_manager
+from suite.mail.jmap.connection import JMAPConnection, JMAPConnectionInfo
+from suite.mail.jmap.services.mail.identity import IdentityService
+from suite.mail.utils import get_config
+from suite.mail.utils.dt import timestamp_to_datetime
+from suite.mail.utils.user import is_system_manager
 
 
 class UserSettings(Document):

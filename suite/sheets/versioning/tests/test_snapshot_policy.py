@@ -13,7 +13,7 @@ import unittest
 from datetime import datetime, timedelta
 from unittest import mock
 
-from sheets.versioning import snapshots as snap_mod
+from suite.sheets.versioning import snapshots as snap_mod
 
 
 def _last(seq: int, mins_ago: float) -> dict:
@@ -33,7 +33,7 @@ class ShouldSnapshotPolicy(unittest.TestCase):
 		self.addCleanup(patcher.stop)
 		patcher.start()
 		# Ignore site-config overrides during tests.
-		conf_patch = mock.patch("sheets.versioning.snapshots.frappe.conf", {})
+		conf_patch = mock.patch("suite.sheets.versioning.snapshots.frappe.conf", {})
 		self.addCleanup(conf_patch.stop)
 		conf_patch.start()
 

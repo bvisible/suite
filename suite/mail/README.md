@@ -87,7 +87,7 @@ The first step is to install the Frappe Mail app. You can choose between using D
    ```
 
 4. **Access the Frappe Mail site:**
-   Visit http://mail.localhost in your browser.
+   Visit http://suite.localhost in your browser.
 
    **Default Credentials:**
    - **Username:** `administrator`
@@ -103,9 +103,9 @@ The first step is to install the Frappe Mail app. You can choose between using D
    Run the following commands to install the Mail app and set up a new Frappe site:
 
    ```bash
-     bench get-app mail
-     bench new-site mail.localhost --install-app mail
-     bench browse mail.localhost --user Administrator
+     bench get-app suite
+     bench new-site suite.localhost --install-app suite
+     bench browse suite.localhost --user Administrator
    ```
 
 #### Step 2: Installing & Configuring Stalwart Mail Server
@@ -578,7 +578,7 @@ For inviting individuals to create an account on the platform.
 This app uses `pre-commit` for code formatting and linting. Please [install pre-commit](https://pre-commit.com/#installation) and enable it for this repository:
 
 ```bash
-cd apps/mail
+cd apps/suite
 pre-commit install
 ```
 

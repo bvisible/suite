@@ -1,5 +1,5 @@
 version: "3.7"
-name: mail
+name: suite
 services:
   mariadb:
     image: mariadb:10.8

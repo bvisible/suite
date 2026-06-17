@@ -1,6 +1,6 @@
 from typing import ClassVar
 
-from mail.jmap.services.mail.mail import MailService
+from suite.mail.jmap.services.mail.mail import MailService
 
 
 class ThreadService(MailService):

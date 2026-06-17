@@ -77,9 +77,9 @@
           v-for="[title, group] in Object.entries(groupedVersions)"
           v-else
           :key="title"
-          class="flex flex-col gap-1 mb-2 justify-start bg-surface-white"
+          class="flex flex-col gap-1 mb-2 justify-start bg-surface-base"
         >
-          <div v-if="title !== 'Manual'" class="text-ink-gray-5 text-sm font-medium mb-1 my-2">
+          <div v-if="title !== 'Manual'" class="text-ink-gray-5 text-sm-medium mb-1 my-2">
             {{ title }}
           </div>
           <div class="grid grid-cols-3 gap-0.5">
@@ -130,9 +130,9 @@
   </div>
 </template>
 <script setup>
-import { COMMON_EXTENSIONS } from '@/utils'
+import { COMMON_EXTENSIONS } from '@/apps/writer/utils'
 import { diff_match_patch } from 'diff-match-patch'
-import DiffTag from '@/extensions/diff-tag'
+import DiffTag from '@/apps/writer/extensions/diff-tag'
 const dmp = new diff_match_patch()
 
 function generateHTMLDiff(newHTML, oldHTML = '') {
@@ -210,9 +210,9 @@ import LucideX from '~icons/lucide/x'
 import LucidePlus from '~icons/lucide/plus'
 import { onKeyDown } from '@vueuse/core'
 import { computed, ref, h, watch, inject } from 'vue'
-import emitter from '@/emitter'
-import { createResource, Tabs, TextEditor, toast, useList } from 'frappe-ui'
-import { clearDialogs, createDialog } from '@/utils/dialogs'
+import emitter from '@/apps/writer/emitter'
+import { Button, createResource, Tabs, TextEditor, toast, useList } from 'frappe-ui'
+import { clearDialogs, createDialog } from '@/apps/writer/utils/dialogs'
 import NewVersionDialog from './NewVersionDialog.vue'
 import { EditorContent } from '@tiptap/vue-3'
 
@@ -227,7 +227,7 @@ const showVersions = defineModel('showVersions')
 
 const file = inject('file')
 const versions = createResource({
-  url: 'writer.api.general.get_versions',
+  url: 'suite.writer.api.general.get_versions',
   params: { id: file.doc.name },
   cache: ['versions', file.doc?.name],
   initialData: [],
@@ -312,7 +312,7 @@ const restore = (version) => {
 onKeyDown('Escape', () => (showVersions.value = false))
 </script>
 <style>
-@import url('@/styles/fonts.css');
+@import url('@/apps/writer/styles/fonts.css');
 
 .diff-view ins,
 .diff-view s {

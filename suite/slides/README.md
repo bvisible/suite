@@ -21,27 +21,27 @@
 1. Open a new terminal session and cd into `frappe-bench` directory and run following commands:
 
 ```bash
-bench get-app slides
-bench new-site slides.localhost --install-app slides
-bench browse slides.localhost --user Administrator
-bench --site slides.localhost set-config ignore_csrf 1 # prevents CSRFToken errors while using the vite dev server
+bench get-app suite
+bench new-site suite.localhost --install-app suite
+bench browse suite.localhost --user Administrator
+bench --site suite.localhost set-config ignore_csrf 1 # prevents CSRFToken errors while using the vite dev server
 ```
 
-1. Access the slides page at `slides.localhost:8000/slides` in your web browser.
+1. Access the slides page at `suite.localhost:8000/slides` in your web browser.
 
 **For Frontend Development**
 
 1. Open a new terminal session and run the following commands:
 
 ```bash
-cd frappe-bench/apps/slides
+cd frappe-bench/apps/suite
 yarn install
 yarn dev --host
 ```
 
-1. Now, you can access the site on vite dev server at `http://slides.localhost:8080`
+1. Now, you can access the site on vite dev server at `http://suite.localhost:8080`
 
-**Note:** You'll find all the code related to slides's frontend inside `frappe-bench/apps/slides/frontend`
+**Note:** You'll find all the code related to slides's frontend inside `frappe-bench/apps/suite/frontend`
 
 <h2></h2>
 

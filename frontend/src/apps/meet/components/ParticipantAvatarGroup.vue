@@ -26,7 +26,7 @@
 					v-if="extraCount > 0"
 					:style="{ zIndex: 0 }"
 				>
-					<div class="ring-2 ring-white rounded-full h-10 w-10 bg-surface-gray-2 flex items-center justify-center text-ink-gray-5 text-base font-semibold">
+					<div class="ring-2 ring-white rounded-full h-10 w-10 bg-surface-gray-2 flex items-center justify-center text-ink-gray-5 text-base-semibold">
 						+{{ extraCount }}
 					</div>
 				</div>

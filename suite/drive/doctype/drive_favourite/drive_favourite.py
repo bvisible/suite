@@ -2,7 +2,7 @@
 # For license information, please see license.txt
 
 # import frappe
-from drive.api.permissions import user_has_permission
+from suite.drive.api.permissions import user_has_permission
 from frappe.model.document import Document
 import frappe
 

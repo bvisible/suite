@@ -17,9 +17,9 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { useScreenSize } from '@/utils/composables'
-import { userStore } from '@/stores/user'
-import AppSidebar from '@/components/AppSidebar.vue'
+import { useScreenSize } from '@/apps/mail/utils/composables'
+import { userStore } from '@/apps/mail/stores/user'
+import AppSidebar from '@/apps/mail/components/AppSidebar.vue'
 
 const { userResource } = userStore()
 

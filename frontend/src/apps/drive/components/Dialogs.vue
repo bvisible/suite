@@ -72,21 +72,20 @@
 </template>
 <script setup>
 import { ref, watch, computed } from 'vue'
-import { useStore } from 'vuex'
+import store from '@/apps/drive/store'
 import { useTimeAgo } from '@vueuse/core'
-import { openEntity } from '@/utils/files'
+import { openEntity } from '@/apps/drive/utils/files'
 
-import emitter from '@/emitter'
+import emitter from '@/apps/drive/emitter'
 
-import NewFolderDialog from '@/components/NewFolderDialog.vue'
-import NewLinkDialog from '@/components/NewLinkDialog.vue'
-import { ShareDialog, MoveDialog, RenameDialog, InfoDialog } from '@/ui/drive'
-import ConfirmDialog from '@/components/ConfirmDialog.vue'
+import NewFolderDialog from '@/apps/drive/components/NewFolderDialog.vue'
+import NewLinkDialog from '@/apps/drive/components/NewLinkDialog.vue'
+import { ShareDialog, MoveDialog, RenameDialog, InfoDialog } from '@/apps/drive/ui/drive'
+import ConfirmDialog from '@/apps/drive/components/ConfirmDialog.vue'
 
 const props = defineProps({
   entities: Array,
 })
-const store = useStore()
 const listResource = computed(() => store.state.listResource)
 const resource = computed(() =>
   store.state.currentResource && Object.keys(store.state.currentResource).length

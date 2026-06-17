@@ -27,7 +27,7 @@
 <script setup lang="ts">
 import { Badge, Breadcrumbs, Button } from 'frappe-ui'
 
-import { useScreenSize, useSidebar } from '@/utils/composables'
+import { useScreenSize, useSidebar } from '@/apps/mail/utils/composables'
 
 const { removeSpacing = false } = defineProps<{
 	breadcrumbs: { label: string; route?: string }[]

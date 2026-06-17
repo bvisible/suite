@@ -1,7 +1,7 @@
 from typing import ClassVar
 from uuid import uuid7
 
-from mail.jmap.services.mail.mail import MailService
+from suite.mail.jmap.services.mail.mail import MailService
 
 
 class MailboxService(MailService):

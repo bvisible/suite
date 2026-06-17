@@ -3,9 +3,9 @@ import re
 import frappe
 from frappe import _
 
-from mail.client.doctype.blocked_email_address.blocked_email_address import get_blocked_email_addresses
-from mail.client.doctype.sieve_script.sieve_script import SieveScript
-from mail.jmap import get_mailbox_id_by_name, get_mailbox_name_by_id, get_mailboxes
+from suite.client.doctype.blocked_email_address.blocked_email_address import get_blocked_email_addresses
+from suite.client.doctype.sieve_script.sieve_script import SieveScript
+from suite.mail.jmap import get_mailbox_id_by_name, get_mailbox_name_by_id, get_mailboxes
 
 AUTOMATION_SCRIPT_NAME = "frappe_mail_automation"
 AUTOMATION_SCRIPT_REQUIRE = 'require ["fileinto", "imap4flags"];'

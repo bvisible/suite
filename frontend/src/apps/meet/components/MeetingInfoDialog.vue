@@ -3,12 +3,12 @@
 		<template #body-content>
 			<div class="space-y-4">
 				<div class="space-y-2">
-					<label class="text-sm font-medium text-gray-700">Meeting ID</label>
+					<label class="text-sm-medium text-gray-700">Meeting ID</label>
 					<ClickToCopyField :textContent="meetingId" :breakLines="false" />
 				</div>
 
 				<div class="space-y-2">
-					<label class="text-sm font-medium text-gray-700">Meeting URL</label>
+					<label class="text-sm-medium text-gray-700">Meeting URL</label>
 					<ClickToCopyField :textContent="meetingUrl" :breakLines="false" />
 				</div>
 			</div>

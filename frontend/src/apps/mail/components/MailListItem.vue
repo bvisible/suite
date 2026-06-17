@@ -1,7 +1,7 @@
 <template>
 	<router-link
 		:to="{
-			name: 'Mail',
+			name: 'mail-mail',
 			params: { accountId: $route.params.accountId, mailbox, threadID: mail.thread_id },
 			query: $route.query,
 		}"
@@ -30,10 +30,10 @@
 			</div>
 			<div
 				v-else-if="isSelected"
-				class="bg-surface-gray-7 hitbox flex h-8 w-8 shrink-0 rounded-full"
+				class="bg-surface-gray-10 hitbox flex h-8 w-8 shrink-0 rounded-full"
 				@click.stop.prevent="emit('setSelected', false)"
 			>
-				<Check class="text-ink-white m-auto h-5 w-5 stroke-[3px]" />
+				<Check class="text-ink-base m-auto h-5 w-5 stroke-[3px]" />
 			</div>
 			<Avatar
 				v-show="!isSelected && isMobile"
@@ -213,16 +213,16 @@ import { computed, inject, ref } from 'vue'
 import { Check, Download, Loader } from 'lucide-vue-next'
 import { Avatar, Badge, Checkbox, Popover, Tooltip } from 'frappe-ui'
 
-import { getAttachmentUrl } from '@/resources'
-import { downloadUrlAsFile, getFileIcon, getFirstAlphabet, getFormattedRecipients } from '@/utils'
-import { useScreenSize } from '@/utils/composables'
-import { userStore } from '@/stores/user'
-import AttachmentCapsule from '@/components/AttachmentCapsule.vue'
-import AttachmentViewer from '@/components/AttachmentViewer.vue'
-import MailDate from '@/components/MailDate.vue'
-import MailListItemActions from '@/components/MailListItemActions.vue'
+import { getAttachmentUrl } from '@/apps/mail/resources'
+import { downloadUrlAsFile, getFileIcon, getFirstAlphabet, getFormattedRecipients } from '@/apps/mail/utils'
+import { useScreenSize } from '@/apps/mail/utils/composables'
+import { userStore } from '@/apps/mail/stores/user'
+import AttachmentCapsule from '@/apps/mail/components/AttachmentCapsule.vue'
+import AttachmentViewer from '@/apps/mail/components/AttachmentViewer.vue'
+import MailDate from '@/apps/mail/components/MailDate.vue'
+import MailListItemActions from '@/apps/mail/components/MailListItemActions.vue'
 
-import type { Attachment, Thread } from '@/types'
+import type { Attachment, Thread } from '@/apps/mail/types'
 
 const { mailbox, mail, isSelected } = defineProps<{
 	mailbox: string
@@ -342,6 +342,7 @@ const onTouchMove = (e: TouchEvent) => {
 }
 
 .checkbox-hitbox:hover :deep(input[type='checkbox']) {
-	@apply border-outline-gray-5 shadow-sm;
+	@apply shadow-sm;
+	border-color: var(--outline-gray-7);
 }
 </style>

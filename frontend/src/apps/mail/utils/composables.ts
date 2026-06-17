@@ -1,6 +1,6 @@
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 
-import { userStore } from '@/stores/user'
+import { userStore } from '@/apps/mail/stores/user'
 
 export const useScreenSize = () => {
 	const size = reactive({ width: window.innerWidth, height: window.innerHeight })

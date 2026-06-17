@@ -6,7 +6,7 @@
       :class="[
         row.name === selectedName || selections.has(row.name)
           ? 'bg-surface-gray-2 hover:!bg-surface-gray-3'
-          : 'bg-surface-white',
+          : 'bg-surface-base',
         draggedItem === row.name ? 'opacity-60 hover:shadow-none' : '',
         dragOverItem === row.name ? '!bg-surface-gray-3' : '',
       ]"
@@ -52,9 +52,9 @@
 <script setup>
 import { ListRow } from 'frappe-ui'
 import CustomListRowItem from './CustomListRowItem.vue'
-import { openEntity, isModKey } from '@/utils/files'
+import { openEntity, isModKey } from '@/apps/drive/utils/files'
 import { useRoute } from 'vue-router'
-import { useStore } from 'vuex'
+import store from '@/apps/drive/store'
 import { computed, ref } from 'vue'
 
 defineProps({
@@ -68,7 +68,6 @@ const draggedItem = ref()
 const dragOverItem = ref()
 
 const route = useRoute()
-const store = useStore()
 
 // Used as right-click doesn't trigger active in frappe-ui
 const selectedName = computed(() => store.state.activeEntity?.name)

@@ -16,7 +16,7 @@ import json
 import unittest
 from unittest import mock
 
-from sheets.sheets.doctype.sheet import storage
+from suite.sheets.doctype.sheet import storage
 
 
 def _envelope(payload: bytes) -> str:

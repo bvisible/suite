@@ -136,20 +136,20 @@ export function useMeetingHandlers(deps: MeetingHandlersDeps) {
 	const leaveWaitingRoom = () => {
 		deps.lobbyStore.isWaitingForApproval = false;
 		deps.lobbyStore.isJoinRequestRejected = false;
-		deps.router.push({ name: "Home" });
+		deps.router.push({ name: "meet-home" });
 	};
 
 	const leaveLobby = async () => {
 		deps.lobbyStore.isInLobby = false;
 		deps.lobbyStore.isWaitingForApproval = false;
 		deps.lobbyStore.lobbyParticipantCount = 0;
-		deps.router.push({ name: "Home" });
+		deps.router.push({ name: "meet-home" });
 	};
 
 	const goHome = () => {
 		deps.lobbyStore.isJoinRequestRejected = false;
 		deps.lobbyStore.isInLobby = false;
-		deps.router.push({ name: "Home" });
+		deps.router.push({ name: "meet-home" });
 	};
 
 	const tryJoinAgain = async () => {
@@ -234,7 +234,7 @@ export function useMeetingHandlers(deps: MeetingHandlersDeps) {
 	const handlePromoteToCohost = async (participantId: string) => {
 		try {
 			const response = await frappeRequest({
-				url: "meet.api.meeting.promote_to_cohost",
+				url: "suite.meet.api.meeting.promote_to_cohost",
 				params: {
 					meeting_id: deps.meetingId,
 					user_id: participantId,

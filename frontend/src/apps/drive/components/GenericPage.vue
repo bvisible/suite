@@ -14,7 +14,7 @@
     v-else
     id="drop-area"
     ref="container"
-    class="flex flex-col overflow-auto min-h-full bg-surface-white"
+    class="flex flex-col overflow-auto min-h-full bg-surface-base"
   >
     <DriveToolBar
       v-model:sort-order="sortOrder"
@@ -72,13 +72,13 @@
   </Transition>
 </template>
 <script setup>
-import ListView from '@/components/ListView.vue'
-import GridView from '@/components/GridView.vue'
-import DriveToolBar from '@/components/DriveToolBar.vue'
-import Navbar from '@/components/Navbar.vue'
-import NoFilesSection from '@/components/NoFilesSection.vue'
-import UploadTracker from '@/components/UploadTracker.vue'
-import ErrorPage from '@/components/ErrorPage.vue'
+import ListView from '@/apps/drive/components/ListView.vue'
+import GridView from '@/apps/drive/components/GridView.vue'
+import DriveToolBar from '@/apps/drive/components/DriveToolBar.vue'
+import Navbar from '@/apps/drive/components/Navbar.vue'
+import NoFilesSection from '@/apps/drive/components/NoFilesSection.vue'
+import UploadTracker from '@/apps/drive/components/UploadTracker.vue'
+import ErrorPage from '@/apps/drive/components/ErrorPage.vue'
 import {
   pasteObj,
   openEntity,
@@ -88,19 +88,19 @@ import {
   isManaged,
   isAttachmentRef,
   isSiteFile,
-} from '@/utils/files'
-import { toggleFav, clearRecent } from '@/resources/files'
-import { entitiesDownload } from '@/utils/download'
+} from '@/apps/drive/utils/files'
+import { toggleFav, clearRecent } from '@/apps/drive/resources/files'
+import { entitiesDownload } from '@/apps/drive/utils/download'
 import { ref, computed, watch, watchEffect, provide, inject } from 'vue'
 import { useRoute } from 'vue-router'
 import { useEventListener } from '@vueuse/core'
-import { useStore } from 'vuex'
-import { toast } from '@/utils/toasts'
-import { move } from '@/resources/files'
+import store from '@/apps/drive/store'
+import { toast } from '@/apps/drive/utils/toasts'
+import { move } from '@/apps/drive/resources/files'
 import { LoadingIndicator } from 'frappe-ui'
-import { settings } from '@/resources/permissions'
-import emitter from '@/emitter'
-import { getFileLink } from '@/ui/drive/js/utils'
+import { settings } from '@/apps/drive/resources/permissions'
+import emitter from '@/apps/drive/emitter'
+import { getFileLink } from '@/apps/drive/ui/drive/js/utils'
 
 import LucideClock from '~icons/lucide/clock'
 import LucideDownload from '~icons/lucide/download'
@@ -126,13 +126,12 @@ const props = defineProps({
   getEntities: Object,
 })
 const route = useRoute()
-const store = useStore()
 
 const dialog = ref('')
 provide('dialog', dialog)
 
 const team = ref(
-  ['Recents', 'Favourites', 'Trash'].includes(route.name)
+  ['drive-Recents', 'drive-Favourites', 'drive-Trash'].includes(route.name)
     ? 'all'
     : route.params.team
 )
@@ -278,7 +277,7 @@ emitter.on('remove-file-ui', removeFile)
 
 // Action Items
 const actionItems = computed(() => {
-  if (route.name === 'Trash') {
+  if (route.name === 'drive-Trash') {
     return [
       {
         label: 'Restore',
@@ -291,7 +290,7 @@ const actionItems = computed(() => {
         label: 'Delete forever',
         icon: LucideTrash,
         action: () => (dialog.value = 'd'),
-        isEnabled: () => route.name === 'Trash',
+        isEnabled: () => route.name === 'drive-Trash',
         multi: true,
         danger: true,
       },
@@ -346,7 +345,7 @@ const actionItems = computed(() => {
         icon: LucideCornerLeftUp,
         action: ([entity]) => {
           window.open(
-            '/api/method/drive.api.files.redirect_to_original?file_id=' +
+            '/api/method/suite.drive.api.files.redirect_to_original?file_id=' +
               entity.name,
             '_blank'
           )
@@ -398,7 +397,7 @@ const actionItems = computed(() => {
       {
         label: __('Unfavourite'),
         icon: LucideStar,
-        class: 'text-ink-amber-3 stroke-current fill-current',
+        class: 'text-ink-amber-6 stroke-current fill-current',
         action: (entities) => {
           entities.forEach((e) => (e.is_favourite = false))
           props.getEntities.setData(props.getEntities.data)
@@ -416,7 +415,7 @@ const actionItems = computed(() => {
             entities,
           })
         },
-        isEnabled: () => route.name == 'Recents',
+        isEnabled: () => route.name == 'drive-Recents',
         important: true,
         multi: true,
       },

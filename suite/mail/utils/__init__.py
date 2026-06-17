@@ -157,7 +157,7 @@ def get_storage_logger() -> "Logger":
 
 	max_size = cint(config["storage_log_max_file_size"])
 	file_count = cint(config["storage_log_file_count"])
-	logger = frappe.logger("mail.storage", allow_site=True, max_size=max_size, file_count=file_count)
+	logger = frappe.logger("suite.mail.storage", allow_site=True, max_size=max_size, file_count=file_count)
 
 	log_level = config["storage_log_level"].upper()
 	logger.setLevel(log_level)
@@ -172,7 +172,7 @@ def get_push_logger() -> "Logger":
 
 	max_size = cint(config["push_log_max_file_size"])
 	file_count = cint(config["push_log_file_count"])
-	logger = frappe.logger("mail.push", allow_site=True, max_size=max_size, file_count=file_count)
+	logger = frappe.logger("suite.mail.push", allow_site=True, max_size=max_size, file_count=file_count)
 
 	log_level = config["push_log_level"].upper()
 	logger.setLevel(log_level)
@@ -829,9 +829,9 @@ def generate_uuid_style_hash(input_str: str) -> str:
 
 
 def get_mail_app_path() -> str:
-	"""Returns the path to the Mail app directory."""
+	"""Returns the path to the Suite app directory."""
 
-	return os.path.join(get_bench_path(), "apps/mail")
+	return os.path.join(get_bench_path(), "apps/suite")
 
 
 def get_messages_directory() -> str:

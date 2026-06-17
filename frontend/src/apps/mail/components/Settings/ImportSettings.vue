@@ -61,7 +61,7 @@
 import { computed, inject, onMounted, reactive, watch } from 'vue'
 import { Button, ErrorMessage, FileUploader, FormControl, createResource } from 'frappe-ui'
 
-import { userStore } from '@/stores/user'
+import { userStore } from '@/apps/mail/stores/user'
 
 const { account, mailboxes } = userStore()
 
@@ -104,7 +104,7 @@ watch(
 )
 
 const createMailImport = createResource({
-	url: 'mail.api.account.create_mail_import',
+	url: 'suite.mail.api.account.create_mail_import',
 	makeParams: () => ({ account, ...mailImport }),
 	onSuccess: () => ongoingImport.reload(),
 })

@@ -3,7 +3,7 @@
     <template #body-content>
       <div v-focus class="w-full grid grid-cols-2 gap-10 py-1">
         <div v-for="group in shortcutGroups" :key="group.title" class="border-b pb-4">
-          <h2 class="text-lg font-semibold text-ink-gray-8 mb-4">
+          <h2 class="text-xl-semibold text-ink-gray-8 mb-4">
             {{ group.title }}
           </h2>
           <ul class="space-y-2">
@@ -32,6 +32,7 @@
   </Dialog>
 </template>
 <script setup>
+import { default as vFocus } from '@/apps/drive/utils/focus'
 import { Dialog } from 'frappe-ui'
 import { computed } from 'vue'
 const props = defineProps({

@@ -12,7 +12,7 @@ from __future__ import annotations
 import unittest
 from datetime import datetime, timedelta
 
-from sheets.versioning import tasks as tasks_mod
+from suite.sheets.versioning import tasks as tasks_mod
 
 
 def _snap(name: str, hours_ago: float) -> dict:

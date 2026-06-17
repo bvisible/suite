@@ -1,6 +1,6 @@
 import { h, defineAsyncComponent } from 'vue'
 
-import ManageFont from '@/components/ManageFont.vue'
+import ManageFont from '@/apps/writer/components/ManageFont.vue'
 
 import LucidePaintRoller from '~icons/lucide/paint-roller'
 import LucideBrushCleaning from '~icons/lucide/brush-cleaning'
@@ -88,7 +88,7 @@ export function buildMenuButtons({ editor, settings, isPainting, openSettings })
       label: 'Custom Spacing',
       icon: LucideAlignVerticalSpacingAround,
       component: h(
-        defineAsyncComponent(() => import('@/components/SpacingDialog.vue')),
+        defineAsyncComponent(() => import('@/apps/writer/components/SpacingDialog.vue')),
         { settings, editor },
       ),
     },

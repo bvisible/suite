@@ -1,12 +1,12 @@
 import { createResource } from 'frappe-ui'
 
-import { raiseToast } from '@/utils'
-import { userStore } from '@/stores/user'
+import { raiseToast } from '@/apps/mail/utils'
+import { userStore } from '@/apps/mail/stores/user'
 
 const store = userStore()
 
 export const fetchAttachment = createResource({
-	url: 'mail.api.mail.fetch_attachment',
+	url: 'suite.mail.api.mail.fetch_attachment',
 	makeParams: (blobID: string) => ({ account: store.account, blob_id: blobID }),
 	onError: (error) => raiseToast(error.message, 'error'),
 	cache: ['attachment'],

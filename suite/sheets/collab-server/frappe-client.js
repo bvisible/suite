@@ -1,6 +1,6 @@
 // Thin wrapper around the three Frappe endpoints that back collab:
 //
-//   * checkAccess(sid, sheet)  — POST /api/method/spreadsheet.collab.check_collab_access
+//   * checkAccess(sid, sheet)  — POST /api/method/suite.sheets.collab.check_collab_access
 //                                forwarding the user's session cookie
 //   * loadState(sheet)         — GET-equivalent for the persisted Y.Doc binary
 //   * persistState(sheet, b64) — debounced write of the Y.Doc binary
@@ -34,7 +34,7 @@ async function call(method, params = {}, { headers = {} } = {}) {
 export async function checkAccess(sid, sheetName) {
 	if (!sid) throw new Error('checkAccess: missing sid')
 	return call(
-		'spreadsheet.collab.check_collab_access',
+		'suite.sheets.collab.check_collab_access',
 		{ name: sheetName },
 		{ headers: { Cookie: `sid=${sid}` } },
 	)
@@ -42,7 +42,7 @@ export async function checkAccess(sid, sheetName) {
 
 export async function loadState(sheetName) {
 	return call(
-		'spreadsheet.collab.load_collab_state',
+		'suite.sheets.collab.load_collab_state',
 		{ name: sheetName },
 		{ headers: { 'X-Collab-Secret': config.collabSecret } },
 	)
@@ -50,7 +50,7 @@ export async function loadState(sheetName) {
 
 export async function persistState(sheetName, ydocStateB64, byteSize) {
 	return call(
-		'spreadsheet.collab.persist_collab_state',
+		'suite.sheets.collab.persist_collab_state',
 		{ name: sheetName, ydoc_state: ydocStateB64, byte_size: byteSize },
 		{ headers: { 'X-Collab-Secret': config.collabSecret } },
 	)

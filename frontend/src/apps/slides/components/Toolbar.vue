@@ -53,13 +53,13 @@ import { ref } from 'vue'
 import { Type, ImagePlus, Trash, Copy, Square } from 'lucide-vue-next'
 
 import { Tooltip, FileUploader, toast } from 'frappe-ui'
-import { isPublicPresentation, presentationId } from '@/stores/presentation'
-import { addTextElement, addMediaElement } from '@/stores/element'
-import { allowedImageFileTypes } from '@/utils/constants'
+import { isPublicPresentation, presentationId } from '@/apps/slides/stores/presentation'
+import { addTextElement, addMediaElement } from '@/apps/slides/stores/element'
+import { allowedImageFileTypes } from '@/apps/slides/utils/constants'
 
-import ShapesPopover from '@/components/ShapesPopover.vue'
+import ShapesPopover from '@/apps/slides/components/ShapesPopover.vue'
 
-import { handleScrollBarWheelEvent } from '@/utils/helpers'
+import { handleScrollBarWheelEvent } from '@/apps/slides/utils/helpers'
 
 const emit = defineEmits(['openLayoutDialog', 'delete', 'duplicate', 'setHighlight'])
 

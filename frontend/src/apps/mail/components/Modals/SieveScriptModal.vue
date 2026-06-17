@@ -66,10 +66,10 @@
 import { computed, reactive, watch } from 'vue'
 import { Alert, Dialog, FormControl, Switch, createResource } from 'frappe-ui'
 
-import { getScriptName, isSystemScript, raiseToast } from '@/utils'
-import { userStore } from '@/stores/user'
+import { getScriptName, isSystemScript, raiseToast } from '@/apps/mail/utils'
+import { userStore } from '@/apps/mail/stores/user'
 
-import type { SieveScript } from '@/types'
+import type { SieveScript } from '@/apps/mail/types'
 
 const show = defineModel<boolean>()
 const { selectedScript } = defineProps<{ selectedScript?: SieveScript }>()
@@ -90,7 +90,7 @@ const isNotDirty = computed(
 )
 
 const createScript = createResource({
-	url: 'mail.api.sieve.create_sieve_script',
+	url: 'suite.mail.api.sieve.create_sieve_script',
 	makeParams: () => ({ account: store.account, ...script }),
 	onSuccess: () => {
 		raiseToast(__('Sieve script created.'))
@@ -101,7 +101,7 @@ const createScript = createResource({
 })
 
 const updateScript = createResource({
-	url: 'mail.api.sieve.update_sieve_script',
+	url: 'suite.mail.api.sieve.update_sieve_script',
 	makeParams: () => ({ account: store.account, id: selectedScript!.id, ...script }),
 	onSuccess: () => {
 		raiseToast(__('Sieve script updated.'))

@@ -93,7 +93,7 @@ export function useSFUConnection(deps: {
 	const joiningInProgress = shallowRef(false);
 
 	const joinMeetingAPI = createResource({
-		url: "meet.api.meeting.join_meeting",
+		url: "suite.meet.api.meeting.join_meeting",
 		method: "POST",
 		makeParams: () => ({ meeting_id: meetingId }),
 	});
@@ -378,7 +378,7 @@ export function useSFUConnection(deps: {
 	const fetchExistingWaitingRoomUsers = async () => {
 		try {
 			const result = (await frappeRequest({
-				url: "meet.api.meeting.get_waiting_room",
+				url: "suite.meet.api.meeting.get_waiting_room",
 				params: { meeting_id: meetingId },
 			})) as WaitingRoomResponse;
 
@@ -433,7 +433,7 @@ export function useSFUConnection(deps: {
 				const resolvedGuestName =
 					guestName || sessionStorage.getItem("guest_name") || "Guest";
 				const response = await frappeRequest({
-					url: "meet.api.meeting.get_approved_guest_connection_details",
+					url: "suite.meet.api.meeting.get_approved_guest_connection_details",
 					params: {
 						meeting_id: meetingId,
 						guest_id: guestId,
@@ -536,7 +536,7 @@ export function useSFUConnection(deps: {
 
 			try {
 				const sfuResult = await frappeRequest({
-					url: "meet.api.meeting.get_sfu_connection_details",
+					url: "suite.meet.api.meeting.get_sfu_connection_details",
 					params: {
 						meeting_id: meetingId,
 					},
@@ -727,10 +727,10 @@ export function useSFUConnection(deps: {
 
 			sfuManager.value = null;
 
-			router.push({ name: "Home" });
+			router.push({ name: "meet-home" });
 		} catch (error) {
 			console.error("Error ending call:", error);
-			router.push({ name: "Home" });
+			router.push({ name: "meet-home" });
 		}
 	};
 

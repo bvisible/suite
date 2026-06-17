@@ -4,9 +4,9 @@ import shutil
 import frappe
 from frappe.utils import get_bench_path
 
-from mail.storage.blob_store import BlobStore
-from mail.storage.data_store import DataStore
-from mail.utils import get_config
+from suite.mail.storage.blob_store import BlobStore
+from suite.mail.storage.data_store import DataStore
+from suite.mail.utils import get_config
 
 
 def _get_data_base_path() -> str:
@@ -43,7 +43,7 @@ def get_data_store(user: str, account_id: str | None = None) -> DataStore:
 def destroy_data_store() -> None:
 	"""Utility function to destroy the data store."""
 
-	from mail.utils.user import is_system_manager
+	from suite.mail.utils.user import is_system_manager
 
 	if is_system_manager(frappe.session.user):
 		base_path = _get_data_base_path()
@@ -69,7 +69,7 @@ def get_blob_store(user: str, account_id: str | None = None) -> "BlobStore":
 def destroy_blob_store() -> None:
 	"""Utility function to destroy the blob store."""
 
-	from mail.utils.user import is_system_manager
+	from suite.mail.utils.user import is_system_manager
 
 	if is_system_manager(frappe.session.user):
 		base_path = _get_blob_base_path()

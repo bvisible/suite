@@ -41,8 +41,8 @@ import { reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Dialog, FormControl, createResource } from 'frappe-ui'
 
-import { raiseToast } from '@/utils'
-import { userStore } from '@/stores/user'
+import { raiseToast } from '@/apps/mail/utils'
+import { userStore } from '@/apps/mail/stores/user'
 
 const show = defineModel<boolean>()
 
@@ -59,13 +59,13 @@ const defaultAddressBook = {
 const addressBook = reactive({ ...defaultAddressBook })
 
 const createAddressBook = createResource({
-	url: 'mail.client.doctype.address_book.address_book.add_address_book',
+	url: 'suite.client.doctype.address_book.address_book.add_address_book',
 	makeParams: () => addressBook,
 	onSuccess: (data: string) => {
 		raiseToast(__('Address book created.'))
 		show.value = false
 		store.addressBooks.reload()
-		router.push({ name: 'AddressBook', params: { addressBookName: data } })
+		router.push({ name: 'mail-address-book', params: { addressBookName: data } })
 	},
 	onError: (error) => raiseToast(error.message, 'error'),
 })

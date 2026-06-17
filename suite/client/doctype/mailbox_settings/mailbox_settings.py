@@ -7,9 +7,9 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from mail.jmap import parse_account
-from mail.utils.user import is_system_manager
-from mail.utils.validation import has_permission_for_user
+from suite.mail.jmap import parse_account
+from suite.mail.utils.user import is_system_manager
+from suite.mail.utils.validation import has_permission_for_user
 
 
 class MailboxSettings(Document):

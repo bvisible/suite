@@ -1,9 +1,9 @@
 <template>
-	<div class="bg-surface-white sticky top-0 flex items-center border-b p-2.5 sm:px-5">
+	<div class="bg-surface-base sticky top-0 flex items-center border-b p-2.5 sm:px-5">
 		<Button
 			variant="ghost"
 			class="mr-2 shrink-0"
-			@click="$router.push({ name: 'Mailbox', params: { mailbox }, query: route.query })"
+			@click="$router.push({ name: 'mail-mailbox', params: { mailbox }, query: route.query })"
 		>
 			<template #icon>
 				<ChevronLeft class="text-ink-gray-7 icon" />
@@ -108,12 +108,12 @@ import {
 } from 'lucide-vue-next'
 import { Button, Dropdown, Tooltip } from 'frappe-ui'
 
-import { FOLDER_ICON_COLOR_MAP } from '@/constants'
-import { getIcon } from '@/utils'
-import { useScreenSize } from '@/utils/composables'
-import { userStore } from '@/stores/user'
+import { FOLDER_ICON_COLOR_MAP } from '@/apps/mail/constants'
+import { getIcon } from '@/apps/mail/utils'
+import { useScreenSize } from '@/apps/mail/utils/composables'
+import { userStore } from '@/apps/mail/stores/user'
 
-import type { Mail, MailboxData } from '@/types'
+import type { Mail, MailboxData } from '@/apps/mail/types'
 
 const { thread, threads, canGoPrev, canGoNext } = defineProps<{
 	thread: Mail[]
@@ -179,7 +179,7 @@ const threadActions = computed((): Action[] => [
 				thread.map((m) => m.id),
 				false,
 			),
-		icon: h(Star, { class: 'fill-ink-amber-2 text-ink-amber-2 stroke-ink-amber-2' }),
+		icon: h(Star, { class: 'fill-ink-amber-5 text-ink-amber-5 stroke-ink-amber-5' }),
 		condition: () => thread.every((m) => m.flagged),
 	},
 	{

@@ -1,6 +1,6 @@
 import frappe
 
-from mail.client.doctype.account_settings.account_settings import create_archive_mailbox
+from suite.client.doctype.account_settings.account_settings import create_archive_mailbox
 
 
 def execute() -> None:

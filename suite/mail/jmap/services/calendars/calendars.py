@@ -1,6 +1,6 @@
 from typing import ClassVar
 
-from mail.jmap.services.core import CoreService
+from suite.mail.jmap.services.core import CoreService
 
 
 class CalendarsService(CoreService):

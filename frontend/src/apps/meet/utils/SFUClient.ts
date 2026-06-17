@@ -170,7 +170,7 @@ export class SFUClient {
 
 			try {
 				const response = (await frappeRequest({
-					url: "meet.api.meeting.get_guest_sfu_connection_details",
+					url: "suite.meet.api.meeting.get_guest_sfu_connection_details",
 					params: {
 						meeting_id: meetingId,
 						guest_token: guestAuthToken,
@@ -197,7 +197,7 @@ export class SFUClient {
 		}
 
 		const response = (await frappeRequest({
-			url: "meet.api.meeting.get_sfu_connection_details",
+			url: "suite.meet.api.meeting.get_sfu_connection_details",
 			params: { meeting_id: meetingId },
 		})) as SFUConnectionDetailsResponse;
 
@@ -304,7 +304,7 @@ export class SFUClient {
 			this.isRefreshingToken = true;
 
 			const response = (await frappeRequest({
-				url: "meet.api.meeting.refresh_sfu_token",
+				url: "suite.meet.api.meeting.refresh_sfu_token",
 				params: { meeting_id: this.connectionDetails.meetingId },
 			})) as SFUTokenRefreshResponse;
 

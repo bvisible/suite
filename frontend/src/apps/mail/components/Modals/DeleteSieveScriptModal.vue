@@ -15,10 +15,10 @@
 <script setup lang="ts">
 import { Dialog, createResource } from 'frappe-ui'
 
-import { raiseToast } from '@/utils'
-import { userStore } from '@/stores/user'
+import { raiseToast } from '@/apps/mail/utils'
+import { userStore } from '@/apps/mail/stores/user'
 
-import type { SieveScript } from '@/types'
+import type { SieveScript } from '@/apps/mail/types'
 
 const show = defineModel<boolean>()
 const { script } = defineProps<{ script: SieveScript }>()
@@ -26,7 +26,7 @@ const { script } = defineProps<{ script: SieveScript }>()
 const store = userStore()
 
 const deleteScript = createResource({
-	url: 'mail.api.sieve.delete_sieve_script',
+	url: 'suite.mail.api.sieve.delete_sieve_script',
 	makeParams: () => ({ account: store.account, id: script.id }),
 	onSuccess: () => {
 		raiseToast(__('Sieve script deleted.'))

@@ -44,12 +44,12 @@
 <script setup>
 import { inject, watch } from 'vue'
 
-import SliderInput from '@/components/controls/SliderInput.vue'
-import ColorPicker from '@/components/controls/ColorPicker.vue'
-import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
+import SliderInput from '@/apps/slides/components/controls/SliderInput.vue'
+import ColorPicker from '@/apps/slides/components/controls/ColorPicker.vue'
+import CollapsibleSection from '@/apps/slides/components/controls/CollapsibleSection.vue'
 
-import { activeElement } from '@/stores/element'
-import { fieldLabelClasses } from '@/utils/constants'
+import { activeElement } from '@/apps/slides/stores/element'
+import { fieldLabelClasses } from '@/apps/slides/utils/constants'
 
 const setPropertyDeferred = inject('setPropertyDeferred')
 

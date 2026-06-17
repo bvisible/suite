@@ -35,7 +35,7 @@
 <script setup lang="ts">
 import { Badge, ListHeader, ListRow, ListRowItem, ListRows, ListView, Tooltip } from 'frappe-ui'
 
-import { copyToClipBoard } from '@/utils'
+import { copyToClipBoard } from '@/apps/mail/utils'
 
 const { title, description, records } = defineProps<{
 	title: string

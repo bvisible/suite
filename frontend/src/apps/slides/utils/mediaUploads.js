@@ -4,7 +4,7 @@ import { presentationId, isPublicPresentation, presentationDoc } from '../stores
 import { currentSlide } from '../stores/slide'
 import { addMediaElement, replaceMediaElement } from '../stores/element'
 
-import { session } from '@/stores/session'
+import { session } from '@/apps/slides/stores/session'
 
 const fileUploadHandler = new FileUploadHandler()
 
@@ -55,7 +55,7 @@ const getFileObject = (file) => {
 }
 
 const getWebPDoc = async (fileDoc) => {
-	return await call('slides.slides.doctype.presentation.presentation.get_webp_doc', {
+	return await call('suite.slides.doctype.presentation.presentation.get_webp_doc', {
 		presentation_name: presentationId.value,
 		file_doc: fileDoc,
 	})
@@ -111,6 +111,6 @@ export const getAttachmentUrl = (fileUrl) => {
 		if (presentationDoc.value?.owner === session.user || session.user === 'Administrator') {
 			return fileUrl
 		}
-		return `/api/method/slides.api.file.get_media_file?src=${fileUrl}&public=${isPublicPresentation.value}`
+		return `/api/method/suite.slides.api.file.get_media_file?src=${fileUrl}&public=${isPublicPresentation.value}`
 	}
 }

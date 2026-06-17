@@ -24,7 +24,7 @@
 import { inject, ref } from 'vue'
 import { Button, Dialog, createResource } from 'frappe-ui'
 
-import CopyControl from '@/components/Controls/CopyControl.vue'
+import CopyControl from '@/apps/mail/components/Controls/CopyControl.vue'
 
 const user = inject('$user')
 
@@ -32,7 +32,7 @@ const showSecret = ref(false)
 const apiSecret = ref('')
 
 const generateKeys = createResource({
-	url: 'mail.utils.user.generate_user_keys',
+	url: 'suite.mail.utils.user.generate_user_keys',
 	makeParams: () => ({ user: user.data?.name }),
 	onSuccess: (data) => {
 		if (!user.data?.api_key) user.reload()

@@ -26,7 +26,7 @@
 <script setup>
 import { debounce } from 'frappe-ui'
 import { computed, ref, onBeforeUnmount, watch, inject, provide } from 'vue'
-import { useComments } from '@/composables/useYjs'
+import { useComments } from '@/apps/writer/composables/useYjs'
 import CoreEditor from './CoreEditor.vue'
 
 const showSettings = defineModel('showSettings')

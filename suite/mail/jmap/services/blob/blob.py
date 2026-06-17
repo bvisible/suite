@@ -1,7 +1,7 @@
 from typing import ClassVar
 
-from mail.jmap.models import UploadObject
-from mail.jmap.services.core import CoreService
+from suite.mail.jmap.models import UploadObject
+from suite.mail.jmap.services.core import CoreService
 
 
 class BlobService(CoreService):

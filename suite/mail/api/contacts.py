@@ -3,10 +3,10 @@ import re
 
 import frappe
 
-from mail.api.utils import get_avatar_url
-from mail.client.doctype.address_book.address_book import fetch_address_books
-from mail.client.doctype.contact_card.contact_card import bulk_add_contact_cards, fetch_contact_cards
-from mail.jmap import get_default_address_book_id
+from suite.mail.api.utils import get_avatar_url
+from suite.client.doctype.address_book.address_book import fetch_address_books
+from suite.client.doctype.contact_card.contact_card import bulk_add_contact_cards, fetch_contact_cards
+from suite.mail.jmap import get_default_address_book_id
 
 
 @frappe.whitelist()

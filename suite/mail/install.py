@@ -1,8 +1,8 @@
 import frappe
 from frappe.core.api.file import create_new_folder
 
-from mail.mail.doctype.rate_limit.rate_limit import create_rate_limit
-from mail.stalwart.cli import StalwartCLI
+from suite.mail.doctype.rate_limit.rate_limit import create_rate_limit
+from suite.mail.stalwart.cli import StalwartCLI
 
 
 def after_install() -> None:
@@ -19,28 +19,28 @@ def add_rate_limits() -> None:
 	"""Add rate limits."""
 
 	rate_limits = [
-		# mail.api.account
-		{"method_path": "mail.api.account.signup", "limit": 5, "seconds": 60 * 60},
-		{"method_path": "mail.api.account.resend_otp", "limit": 5, "seconds": 60 * 60},
-		{"method_path": "mail.api.account.verify_otp", "limit": 5, "seconds": 60 * 60},
-		{"method_path": "mail.api.account.get_account_request", "limit": 5, "seconds": 60 * 60},
-		{"method_path": "mail.api.account.create_account", "limit": 10, "seconds": 60 * 60},
-		{"method_path": "mail.api.account.send_reset_password_link", "limit": 5, "seconds": 60 * 60},
-		{"method_path": "mail.api.account.validate_email_assigned", "limit": 10, "seconds": 60 * 60},
-		# mail.api.admin
-		{"method_path": "mail.api.admin.add_domain", "limit": 10, "seconds": 24 * 60 * 60},
-		{"method_path": "mail.api.admin.add_member", "limit": 10, "seconds": 60 * 60},
-		# mail.api.inbound
-		{"method_path": "mail.api.inbound.fetch_blob", "limit": 60, "seconds": 60},
-		{"method_path": "mail.api.inbound.pull", "limit": 10, "seconds": 60},
-		{"method_path": "mail.api.inbound.pull_raw", "limit": 10, "seconds": 60},
-		# mail.api.outbound
-		{"method_path": "mail.api.outbound.upload_attachment", "limit": 60, "seconds": 60},
-		{"method_path": "mail.api.outbound.send", "limit": 300, "seconds": 60},
-		{"method_path": "mail.api.outbound.send_raw", "limit": 300, "seconds": 120},
-		# mail.api.spamd
-		{"method_path": "mail.api.spamd.scan", "limit": 60, "seconds": 60},
-		{"method_path": "mail.api.spamd.get_spam_score", "limit": 60, "seconds": 60},
+		# suite.mail.api.account
+		{"method_path": "suite.mail.api.account.signup", "limit": 5, "seconds": 60 * 60},
+		{"method_path": "suite.mail.api.account.resend_otp", "limit": 5, "seconds": 60 * 60},
+		{"method_path": "suite.mail.api.account.verify_otp", "limit": 5, "seconds": 60 * 60},
+		{"method_path": "suite.mail.api.account.get_account_request", "limit": 5, "seconds": 60 * 60},
+		{"method_path": "suite.mail.api.account.create_account", "limit": 10, "seconds": 60 * 60},
+		{"method_path": "suite.mail.api.account.send_reset_password_link", "limit": 5, "seconds": 60 * 60},
+		{"method_path": "suite.mail.api.account.validate_email_assigned", "limit": 10, "seconds": 60 * 60},
+		# suite.mail.api.admin
+		{"method_path": "suite.mail.api.admin.add_domain", "limit": 10, "seconds": 24 * 60 * 60},
+		{"method_path": "suite.mail.api.admin.add_member", "limit": 10, "seconds": 60 * 60},
+		# suite.mail.api.inbound
+		{"method_path": "suite.mail.api.inbound.fetch_blob", "limit": 60, "seconds": 60},
+		{"method_path": "suite.mail.api.inbound.pull", "limit": 10, "seconds": 60},
+		{"method_path": "suite.mail.api.inbound.pull_raw", "limit": 10, "seconds": 60},
+		# suite.mail.api.outbound
+		{"method_path": "suite.mail.api.outbound.upload_attachment", "limit": 60, "seconds": 60},
+		{"method_path": "suite.mail.api.outbound.send", "limit": 300, "seconds": 60},
+		{"method_path": "suite.mail.api.outbound.send_raw", "limit": 300, "seconds": 120},
+		# suite.mail.api.spamd
+		{"method_path": "suite.mail.api.spamd.scan", "limit": 60, "seconds": 60},
+		{"method_path": "suite.mail.api.spamd.get_spam_score", "limit": 60, "seconds": 60},
 	]
 
 	for rl in rate_limits:

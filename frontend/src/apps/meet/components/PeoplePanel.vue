@@ -13,7 +13,7 @@
 				data-testid="people-panel"
 			>
 				<div class="flex items-center justify-between p-4 border-b border-gray-200">
-					<div class="text-ink-gray-900 text-base font-medium">
+					<div class="text-ink-gray-900 text-base-medium">
 						People ({{ totalParticipantCount }})
 					</div>
 					<lucide-x
@@ -47,7 +47,7 @@
 
 					<!-- All Participants -->
 					<div v-if="allVisibleParticipants.length > 0">
-						<div class="px-4 py-2 text-xs font-medium text-ink-gray-5 tracking-wide bg-surface-gray-1">
+						<div class="px-4 py-2 text-xs-medium text-ink-gray-5 tracking-wide bg-surface-gray-1">
 							Participants
 						</div>
 						<PeopleParticipantTile

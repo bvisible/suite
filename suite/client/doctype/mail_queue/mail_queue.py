@@ -29,14 +29,14 @@ from frappe.utils import (
 	validate_email_address,
 )
 
-from mail.jmap import get_email_service, get_identities, get_jmap_connection, parse_account
-from mail.jmap.models import EmailAddress, EmailAttachment, EmailCreateModel, EmailHeader, EmailRecipient
-from mail.jmap.services.mail.email import EmailService
-from mail.jmap.services.mail.mailbox import MailboxService
-from mail.utils import get_config
-from mail.utils.dt import parsedate_to_datetime
-from mail.utils.user import is_administrator
-from mail.utils.validation import has_permission_for_user
+from suite.mail.jmap import get_email_service, get_identities, get_jmap_connection, parse_account
+from suite.mail.jmap.models import EmailAddress, EmailAttachment, EmailCreateModel, EmailHeader, EmailRecipient
+from suite.mail.jmap.services.mail.email import EmailService
+from suite.mail.jmap.services.mail.mailbox import MailboxService
+from suite.mail.utils import get_config
+from suite.mail.utils.dt import parsedate_to_datetime
+from suite.mail.utils.user import is_administrator
+from suite.mail.utils.validation import has_permission_for_user
 
 
 class MailQueue(Document):
@@ -207,7 +207,7 @@ class MailQueue(Document):
 	def message(self) -> str | None:
 		"""Returns the message content if available."""
 
-		from mail.client.doctype.mail_message.mail_message import _get_cached_blobs
+		from suite.client.doctype.mail_message.mail_message import _get_cached_blobs
 
 		if self.blob_id:
 			blobs = _get_cached_blobs(self.account, [self.blob_id])
@@ -565,7 +565,7 @@ class MailQueue(Document):
 		if not self.blob_id:
 			frappe.throw(_("Email does not have a blob ID."))
 
-		from mail.client.doctype.mail_message.mail_message import fetch_blob
+		from suite.client.doctype.mail_message.mail_message import fetch_blob
 
 		return fetch_blob(self.account, self.blob_id).decode("utf-8")
 

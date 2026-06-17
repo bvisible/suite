@@ -20,7 +20,7 @@ export interface ChatStore {
 	$reset: () => void;
 }
 
-export const useChatStore = defineStore("chat", () => {
+export const useChatStore = defineStore("meet-chat", () => {
 	const isChatOpen = ref(false);
 	const chatMessages = ref<ChatMessage[]>([]);
 	const hasUnreadMessages = ref(false);

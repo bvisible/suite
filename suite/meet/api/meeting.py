@@ -10,8 +10,8 @@ import jwt
 from frappe import _
 from frappe.rate_limiter import rate_limit
 
-from meet.utils.sfu_config import get_sfu_config
-from meet.utils.user import (
+from suite.meet.utils.sfu_config import get_sfu_config
+from suite.meet.utils.user import (
 	get_guest_session,
 	get_user_info,
 	set_guest_session,
@@ -19,7 +19,7 @@ from meet.utils.user import (
 )
 
 if TYPE_CHECKING:
-	from meet.meet.doctype.sae_meeting.sae_meeting import SaeMeeting
+	from suite.meet.doctype.sae_meeting.sae_meeting import SaeMeeting
 
 
 def _generate_sfu_token(

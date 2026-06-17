@@ -11,9 +11,9 @@
 <script setup>
 import { ref, useTemplateRef, nextTick } from 'vue'
 
-import { isPublicPresentation, presentationId } from '@/stores/presentation'
-import { handleUploadedMedia } from '@/utils/mediaUploads'
-import { currentSlide } from '@/stores/slide'
+import { isPublicPresentation, presentationId } from '@/apps/slides/stores/presentation'
+import { handleUploadedMedia } from '@/apps/slides/utils/mediaUploads'
+import { currentSlide } from '@/apps/slides/stores/slide'
 
 const emit = defineEmits(['hideOverlay'])
 

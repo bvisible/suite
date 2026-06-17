@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 
-import { userStore } from '@/stores/user'
+import { userStore } from '@/apps/calendar/stores/user'
 
 const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
 const systemIsDark = ref(mediaQuery.matches)

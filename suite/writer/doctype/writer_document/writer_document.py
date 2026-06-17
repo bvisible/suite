@@ -2,7 +2,7 @@
 # For license information, please see license.txt
 
 from datetime import datetime, timedelta
-from drive.api.notifications import create_notification, get_link
+from suite.drive.api.notifications import create_notification, get_link
 
 import frappe
 from frappe.model.document import Document

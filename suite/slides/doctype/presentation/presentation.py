@@ -235,7 +235,7 @@ def is_system_template(template_title: str) -> bool:
 
 def get_template_thumbnail(template_title: str, index: int) -> str:
 	template_title = (template_title or "light").lower()
-	return f"/assets/slides/frontend/images/layouts/{template_title}/thumbnail-{index}.webp"
+	return f"/assets/suite/slides/frontend/images/layouts/{template_title}/thumbnail-{index}.webp"
 
 
 def get_template_cover_thumbnail(template):

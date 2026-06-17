@@ -42,11 +42,11 @@ import { ref, inject } from 'vue'
 
 import { Repeat2, TvMinimalPlay } from 'lucide-vue-next'
 
-import MediaProperties from '@/components/MediaProperties.vue'
-import SliderInput from '@/components/controls/SliderInput.vue'
-import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
+import MediaProperties from '@/apps/slides/components/MediaProperties.vue'
+import SliderInput from '@/apps/slides/components/controls/SliderInput.vue'
+import CollapsibleSection from '@/apps/slides/components/controls/CollapsibleSection.vue'
 
-import { activeElement } from '@/stores/element'
+import { activeElement } from '@/apps/slides/stores/element'
 
 const setProperty = inject('setProperty')
 const setPropertyDeferred = inject('setPropertyDeferred')

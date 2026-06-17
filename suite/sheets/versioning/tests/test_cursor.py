@@ -11,7 +11,7 @@ from __future__ import annotations
 import unittest
 from unittest import mock
 
-from sheets.versioning import timeline as tl
+from suite.sheets.versioning import timeline as tl
 
 
 class CursorRoundTrip(unittest.TestCase):
@@ -32,7 +32,7 @@ class BadCursorRejected(unittest.TestCase):
 	def test_garbage_string_throws(self):
 		# `frappe.throw` raises a generic exception we can match by message.
 		with mock.patch(
-			"sheets.versioning.timeline.frappe.throw",
+			"suite.sheets.versioning.timeline.frappe.throw",
 			side_effect=ValueError("Invalid cursor"),
 		) as m:
 			with self.assertRaises(ValueError):

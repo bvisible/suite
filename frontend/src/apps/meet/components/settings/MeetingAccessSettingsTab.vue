@@ -54,7 +54,7 @@
 <script setup lang="ts">
 import { debounce, FormControl, Switch, toast } from "frappe-ui";
 import { onMounted, ref, watch } from "vue";
-import { useChatStore } from "@/composables/useChatStore";
+import { useChatStore } from "@/apps/meet/composables/useChatStore";
 import { useMeetingDoc } from "../../composables/useMeetingDoc";
 import SettingsLayoutBase from "./SettingsLayoutBase.vue";
 

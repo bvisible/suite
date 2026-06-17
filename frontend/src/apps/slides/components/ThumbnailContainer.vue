@@ -12,13 +12,13 @@
 </template>
 
 <script setup>
-import { focusedSlide, slides } from '@/stores/slide'
-import { recentlyRestored } from '@/stores/historyMeta'
+import { focusedSlide, slides } from '@/apps/slides/stores/slide'
+import { recentlyRestored } from '@/apps/slides/stores/historyMeta'
 
-import SlidePreview from '@/components/SlidePreview.vue'
-import TransitionIcon from '@/icons/TransitionIcon.vue'
+import SlidePreview from '@/apps/slides/components/SlidePreview.vue'
+import TransitionIcon from '@/apps/slides/icons/TransitionIcon.vue'
 
-import { isBackgroundColorDark } from '@/utils/color'
+import { isBackgroundColorDark } from '@/apps/slides/utils/color'
 
 const THUMBNAIL_SCALE = 160 / 960
 

@@ -40,7 +40,7 @@ describe('checkAccess', () => {
 		assert.equal(calls.length, 1)
 		assert.equal(
 			calls[0].url,
-			'http://localhost:8000/api/method/spreadsheet.collab.check_collab_access',
+			'http://localhost:8000/api/method/suite.sheets.collab.check_collab_access',
 		)
 		assert.equal(calls[0].init.headers.Cookie, 'sid=SID-XYZ')
 		// No shared secret on the user-auth call.

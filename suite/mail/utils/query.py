@@ -1,9 +1,9 @@
 import frappe
 
-from mail.client.doctype.address_book.address_book import fetch_address_books
-from mail.client.doctype.calendar.calendar import fetch_calendars
-from mail.client.doctype.mailbox.mailbox import fetch_mailboxes
-from mail.client.doctype.user_account.user_account import fetch_user_accounts
+from suite.client.doctype.address_book.address_book import fetch_address_books
+from suite.client.doctype.calendar.calendar import fetch_calendars
+from suite.client.doctype.mailbox.mailbox import fetch_mailboxes
+from suite.client.doctype.user_account.user_account import fetch_user_accounts
 
 
 @frappe.whitelist()

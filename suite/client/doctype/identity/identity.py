@@ -9,10 +9,10 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, today
 
-from mail.jmap import get_identity_service, parse_account
-from mail.utils import parse_filters
-from mail.utils.user import is_mail_admin
-from mail.utils.validation import has_permission_for_user
+from suite.mail.jmap import get_identity_service, parse_account
+from suite.mail.utils import parse_filters
+from suite.mail.utils.user import is_mail_admin
+from suite.mail.utils.validation import has_permission_for_user
 
 
 class Identity(Document):

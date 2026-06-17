@@ -35,10 +35,10 @@ import { computed } from 'vue'
 
 import { FileUploader } from 'frappe-ui'
 
-import { presentationId } from '@/stores/presentation'
-import { activeElement } from '@/stores/element'
-import { allowedImageFileTypes } from '@/utils/constants'
-import { getAttachmentUrl } from '@/utils/mediaUploads'
+import { presentationId } from '@/apps/slides/stores/presentation'
+import { activeElement } from '@/apps/slides/stores/element'
+import { allowedImageFileTypes } from '@/apps/slides/utils/constants'
+import { getAttachmentUrl } from '@/apps/slides/utils/mediaUploads'
 
 const props = defineProps({
 	mode: {

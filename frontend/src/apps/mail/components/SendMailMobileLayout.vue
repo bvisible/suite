@@ -1,5 +1,5 @@
 <template>
-	<div class="bg-surface-white fixed inset-0 z-10 flex flex-col" :class="{ hidden: !show }">
+	<div class="bg-surface-base fixed inset-0 z-10 flex flex-col" :class="{ hidden: !show }">
 		<div class="sticky top-0 flex items-center border-b px-3 py-2.5">
 			<Button variant="ghost" class="mr-2" @click="close">
 				<template #icon>

@@ -32,7 +32,7 @@
 	</div>
 
 	<div v-else class="text-ink-gray-6 flex flex-col space-y-2 text-sm">
-		<p class="text-base font-medium">{{ __('No folders found.') }}</p>
+		<p class="text-base-medium">{{ __('No folders found.') }}</p>
 
 		<p>
 			{{ __('Folders let you organize your emails into different categories.') }}
@@ -49,13 +49,13 @@ import { Icon } from 'frappe-ui/icons'
 import { Ellipsis, Eye, EyeOff, Settings, Trash2 } from 'lucide-vue-next'
 import { Button, Dropdown, createResource } from 'frappe-ui'
 
-import { FOLDER_ICON_COLOR_MAP } from '@/constants'
-import { getIcon, raiseToast } from '@/utils'
-import { userStore } from '@/stores/user'
-import DeleteFolderModal from '@/components/Modals/DeleteFolderModal.vue'
-import FolderModal from '@/components/Modals/FolderModal.vue'
+import { FOLDER_ICON_COLOR_MAP } from '@/apps/mail/constants'
+import { getIcon, raiseToast } from '@/apps/mail/utils'
+import { userStore } from '@/apps/mail/stores/user'
+import DeleteFolderModal from '@/apps/mail/components/Modals/DeleteFolderModal.vue'
+import FolderModal from '@/apps/mail/components/Modals/FolderModal.vue'
 
-import type { MailboxData } from '@/types'
+import type { MailboxData } from '@/apps/mail/types'
 
 const { mailboxes } = userStore()
 

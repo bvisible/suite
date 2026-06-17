@@ -4,11 +4,12 @@ import { useRoute, useRouter } from 'vue-router'
 import { Check, Eye, EyeOff, LayoutGrid, LogOut, Settings, User } from 'lucide-vue-next'
 import { Avatar, Sidebar, createResource } from 'frappe-ui'
 
-import { toTitleCase } from '@/utils/format'
-import { sessionStore } from '@/stores/session'
-import { userStore } from '@/stores/user'
-import CalendarLogo from '@/components/Icons/CalendarLogo.vue'
-import SettingsModal from '@/components/Modals/SettingsModal.vue'
+import { useSessionStore } from '@/boot/session'
+import { toTitleCase } from '@/apps/calendar/utils/format'
+import { brandingStore } from '@/apps/calendar/stores/branding'
+import { userStore } from '@/apps/calendar/stores/user'
+import CalendarLogo from '@/apps/calendar/components/Icons/CalendarLogo.vue'
+import SettingsModal from '@/apps/calendar/components/Modals/SettingsModal.vue'
 
 const { calendars, visibleCalendars } = defineProps<{
 	calendars: any[]
@@ -19,7 +20,8 @@ const emit = defineEmits(['update:visibleCalendars'])
 
 const route = useRoute()
 const router = useRouter()
-const { branding, logout } = sessionStore()
+const { branding } = brandingStore()
+const { logout } = useSessionStore()
 const store = userStore()
 
 const user = inject('$user')
@@ -37,7 +39,7 @@ const subtitle = computed(() => {
 })
 
 const apps = createResource({
-	url: 'mail.api.get_permitted_apps',
+	url: 'suite.mail.api.get_permitted_apps',
 	cache: 'otherApps',
 	auto: true,
 	transform: (data) => data.filter((app) => app.name !== 'calendar_app'),

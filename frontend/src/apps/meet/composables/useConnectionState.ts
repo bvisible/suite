@@ -17,7 +17,7 @@ export interface ConnectionState {
 	$reset: () => void;
 }
 
-export const useConnectionState = defineStore("connection", () => {
+export const useConnectionState = defineStore("meet-connection", () => {
 	const isConnecting = ref(false);
 	const connectionError = ref<string | null>(null);
 	const isInPreview = ref(true);

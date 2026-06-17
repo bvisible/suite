@@ -19,7 +19,7 @@ from unittest import mock
 
 class CustomShareNotification(unittest.TestCase):
     def setUp(self):
-        patcher = mock.patch("sheets.api.frappe")
+        patcher = mock.patch("suite.sheets.api.frappe")
         self.frappe = patcher.start()
         self.addCleanup(patcher.stop)
         self.frappe.session.user = "alice@example.com"
@@ -52,7 +52,7 @@ class CustomShareNotification(unittest.TestCase):
         self.frappe.utils.escape_html.side_effect = lambda s: s
 
     def test_share_uses_notify_false_so_frappe_default_does_not_fire(self):
-        from sheets import api
+        from suite.sheets import api
 
         api.share_sheet("SH-1", "bob@example.com", write=0)
         # The first positional+keyword arg combo to share.add carries
@@ -62,7 +62,7 @@ class CustomShareNotification(unittest.TestCase):
         self.assertEqual(kwargs.get("notify"), False)
 
     def test_in_app_notification_has_branded_subject_with_title(self):
-        from sheets import api
+        from suite.sheets import api
 
         api.share_sheet("SH-1", "bob@example.com", write=0)
         self.assertIn("Q3 Forecast", self.notification_payload.get("subject", ""))
@@ -71,7 +71,7 @@ class CustomShareNotification(unittest.TestCase):
         self.assertEqual(self.notification_payload["from_user"], "alice@example.com")
 
     def test_role_text_reflects_write_permission(self):
-        from sheets import api
+        from suite.sheets import api
 
         api.share_sheet("SH-1", "bob@example.com", write=0)
         self.assertIn("can view", self.notification_payload["subject"])
@@ -81,7 +81,7 @@ class CustomShareNotification(unittest.TestCase):
         self.assertIn("can edit", self.notification_payload["subject"])
 
     def test_email_body_links_to_the_spa_not_the_desk(self):
-        from sheets import api
+        from suite.sheets import api
 
         api.share_sheet("SH-1", "bob@example.com", write=0)
         kwargs = self.frappe.sendmail.call_args.kwargs
@@ -97,7 +97,7 @@ class CustomShareNotification(unittest.TestCase):
         # If frappe.sendmail or the Notification Log insert throws, the
         # share must still succeed — the DocShare row has already
         # committed and the recipient already has access.
-        from sheets import api
+        from suite.sheets import api
 
         self.frappe.sendmail.side_effect = RuntimeError("smtp dead")
         # Should NOT raise. share.add must have already been called.
@@ -112,7 +112,7 @@ class CustomShareNotification(unittest.TestCase):
         # path on the everyone branch is already correct; this guards
         # that we didn't accidentally introduce a notification dispatch
         # there.
-        from sheets import api
+        from suite.sheets import api
 
         api.share_sheet("SH-1", everyone=1, write=1)
         self.frappe.sendmail.assert_not_called()

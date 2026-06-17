@@ -4,7 +4,7 @@
     id="navbar"
     ondragstart="return false;"
     ondrop="return false;"
-    class="bg-surface-white border-b px-5 py-2.5 h-12 flex justify-between"
+    class="bg-surface-base border-b px-5 py-2.5 h-12 flex justify-between"
   >
     <slot name="breadcrumbs">
       <Breadcrumbs :items="store.state.breadcrumbs" class="select-none truncate max-w-[80%]">
@@ -27,7 +27,7 @@
         v-if="rootEntity?.is_favourite"
         width="16"
         height="16"
-        class="my-auto text-ink-amber-3 stroke-current fill-current"
+        class="my-auto text-ink-amber-6 stroke-current fill-current"
       />
       <template v-if="!isLoggedIn && !inIframe">
         <Button variant="outline" @click="redirectLogin">Sign In</Button>
@@ -64,12 +64,12 @@
         placement="right"
       />
       <Button
-        v-else-if="$route.name === 'Documents' || $route.name === 'Presentations'"
+        v-else-if="$route.name === 'drive-Documents' || $route.name === 'drive-Presentations'"
         id="create-button"
         label="Create"
         variant="solid"
         :icon-left="h(LucidePlus, { class: 'size-4' })"
-        @click="newExternal($route.name === 'Documents' ? 'Document' : 'Presentation')"
+        @click="newExternal($route.name === 'drive-Documents' ? 'Document' : 'Presentation')"
       />
       <Button
         v-if="button"
@@ -91,12 +91,12 @@
 </template>
 <script setup>
 import { Button, Breadcrumbs, LoadingIndicator, Dropdown } from 'frappe-ui'
-import { useStore } from 'vuex'
-import emitter from '@/emitter'
+import store from '@/apps/drive/store'
+import emitter from '@/apps/drive/emitter'
 import { ref, computed, inject, h } from 'vue'
-import { entitiesDownload } from '@/utils/download'
-import { getRecents, getTrash, toggleFav } from '@/resources/files'
-import { apps } from '@/resources/permissions'
+import { entitiesDownload } from '@/apps/drive/utils/download'
+import { getRecents, getTrash, toggleFav } from '@/apps/drive/resources/files'
+import { apps } from '@/apps/drive/resources/permissions'
 import { useRoute } from 'vue-router'
 import {
   newExternal,
@@ -105,8 +105,8 @@ import {
   isAttachmentRef,
   isSiteFile,
   isVirtual,
-} from '@/utils/files'
-import { getFileLink } from '@/ui/drive/js/utils'
+} from '@/apps/drive/utils/files'
+import { getFileLink } from '@/apps/drive/ui/drive/js/utils'
 
 import LucideClock from '~icons/lucide/clock'
 import LucideHome from '~icons/lucide/home'
@@ -130,7 +130,6 @@ import LucideFilePlus2 from '~icons/lucide/file-plus-2'
 import LucideGalleryVerticalEnd from '~icons/lucide/gallery-vertical-end'
 import LucideFolderPlus from '~icons/lucide/folder-plus'
 
-const store = useStore()
 const route = useRoute()
 const open = (url) => {
   window.open(url, '_blank')
@@ -173,7 +172,7 @@ const defaultActions = computed(() => {
           icon: LucideCornerLeftUp,
           onClick: () => {
             window.open(
-              '/api/method/drive.api.files.redirect_to_original?file_id=' + rootEntity.value.name,
+              '/api/method/suite.drive.api.files.redirect_to_original?file_id=' + rootEntity.value.name,
               '_blank'
             )
           },
@@ -239,7 +238,7 @@ const defaultActions = computed(() => {
         {
           label: __('Unfavourite'),
           icon: LucideStar,
-          color: 'text-ink-amber-3 stroke-current fill-current',
+          color: 'text-ink-amber-6 stroke-current fill-current',
           onClick: () => {
             rootEntity.value.is_favourite = false
             toggleFav.submit({
@@ -268,7 +267,7 @@ const defaultActions = computed(() => {
     return { ...k, items: k.items.filter((l) => !l.isEnabled || l.isEnabled()) }
   })
 })
-const isPrivate = computed(() => (store.state.breadcrumbs[0]?.name === 'Home' ? 1 : 0))
+const isPrivate = computed(() => (store.state.breadcrumbs[0]?.name === 'drive-Home' ? 1 : 0))
 
 // Functions
 

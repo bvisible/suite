@@ -4,7 +4,7 @@ from typing import ClassVar
 import frappe
 from frappe import _
 
-from mail.stalwart.cli import StalwartCLI
+from suite.mail.stalwart.cli import StalwartCLI
 
 
 class RoleService(StalwartCLI):

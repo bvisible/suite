@@ -25,11 +25,11 @@ import { Presentation } from 'lucide-vue-next'
 
 import { Badge } from 'frappe-ui'
 
-import Navbar from '@/components/Navbar.vue'
-import PresentationHeader from '@/components/PresentationHeader.vue'
-import SharePopover from '@/components/SharePopover.vue'
+import Navbar from '@/apps/slides/components/Navbar.vue'
+import PresentationHeader from '@/apps/slides/components/PresentationHeader.vue'
+import SharePopover from '@/apps/slides/components/SharePopover.vue'
 
-import { presentationDoc } from '@/stores/presentation'
+import { presentationDoc } from '@/apps/slides/stores/presentation'
 import { useRoute } from 'vue-router'
 
 const isOnline = inject('isOnline', ref(false))
@@ -43,11 +43,11 @@ const primaryButtonProps = computed(() => ({
 	label: 'Present',
 	icon: Presentation,
 	onClick: () => emit('startSlideShow'),
-	hide: route.name === 'EditorNew',
+	hide: route.name === 'slides-editor-new',
 }))
 
 const showNavbarDropdown = computed(() => {
-	if (route.name === 'EditorNew') return false
+	if (route.name === 'slides-editor-new') return false
 	return !inReadonlyMode.value
 })
 </script>

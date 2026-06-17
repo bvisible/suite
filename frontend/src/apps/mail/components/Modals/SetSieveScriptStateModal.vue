@@ -6,10 +6,10 @@
 import { computed } from 'vue'
 import { Dialog, createResource } from 'frappe-ui'
 
-import { getScriptName, isSystemScript, raiseToast } from '@/utils'
-import { userStore } from '@/stores/user'
+import { getScriptName, isSystemScript, raiseToast } from '@/apps/mail/utils'
+import { userStore } from '@/apps/mail/stores/user'
 
-import type { SieveScript } from '@/types'
+import type { SieveScript } from '@/apps/mail/types'
 
 const show = defineModel<boolean>()
 const { script, action } = defineProps<{ script: SieveScript; action?: () => void }>()
@@ -74,7 +74,7 @@ const message = computed(() => {
 })
 
 const setScriptState = createResource({
-	url: 'mail.api.sieve.update_sieve_script',
+	url: 'suite.mail.api.sieve.update_sieve_script',
 	makeParams: () => ({ ...script, active: !script.active }),
 	onSuccess: () => {
 		raiseToast(

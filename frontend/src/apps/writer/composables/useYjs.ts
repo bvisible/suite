@@ -7,11 +7,11 @@ import {
   absolutePositionToRelativePosition,
   ySyncPluginKey,
 } from '@tiptap/y-tiptap'
-import { rebuild } from '@/extensions/comments'
+import { rebuild } from '@/apps/writer/extensions/comments'
 import { inject, ref } from 'vue'
-import { updateComments } from '@/resources'
+import { updateComments } from '@/apps/writer/resources'
 
-import store from '@/store'
+import store from '@/apps/writer/store'
 
 const REALTIME_CONFIG = {
   signaling: ['wss://signal.frappe.cloud'],

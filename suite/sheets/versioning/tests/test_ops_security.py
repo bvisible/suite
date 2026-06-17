@@ -13,12 +13,12 @@ from __future__ import annotations
 import unittest
 from unittest import mock
 
-from sheets.versioning import ops as ops_mod
+from suite.sheets.versioning import ops as ops_mod
 
 
 class CellIdGuard(unittest.TestCase):
 	def setUp(self):
-		patcher = mock.patch("sheets.versioning.ops.frappe")
+		patcher = mock.patch("suite.sheets.versioning.ops.frappe")
 		self.frappe = patcher.start()
 		self.addCleanup(patcher.stop)
 		self.frappe.has_permission.return_value = True

@@ -25,7 +25,8 @@
 </template>
 <script setup>
 import { ref } from 'vue'
-import { clearDialogs } from '@/utils/dialogs'
+import { Button, FormControl, focusDirective as vFocus } from 'frappe-ui'
+import { clearDialogs } from '@/apps/writer/utils/dialogs'
 import LucideVersion from '~icons/lucide/git-pull-request-create'
 
 const versionName = ref('')

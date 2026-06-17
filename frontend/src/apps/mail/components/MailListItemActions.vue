@@ -11,7 +11,7 @@
 			<Star
 				class="icon text-ink-gray-5"
 				:class="{
-					'fill-ink-amber-2 text-ink-amber-2 stroke-ink-amber-2': mail.flagged,
+					'fill-ink-amber-5 text-ink-amber-5 stroke-ink-amber-5': mail.flagged,
 				}"
 			/>
 		</button>
@@ -23,10 +23,10 @@ import { computed } from 'vue'
 import { Archive, Mail, MailOpen, Star, Trash2 } from 'lucide-vue-next'
 import { Tooltip } from 'frappe-ui'
 
-import { useScreenSize } from '@/utils/composables'
-import { userStore } from '@/stores/user'
+import { useScreenSize } from '@/apps/mail/utils/composables'
+import { userStore } from '@/apps/mail/stores/user'
 
-import type { Thread } from '@/types'
+import type { Thread } from '@/apps/mail/types'
 
 const { isHovered, mail } = defineProps<{ isHovered: boolean; mail: Thread }>()
 const emit = defineEmits(['setSeen', 'archiveThread', 'trashThread', 'deleteThread', 'setFlagged'])

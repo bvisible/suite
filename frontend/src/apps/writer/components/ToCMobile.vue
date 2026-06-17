@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="editor && tabs.length > 0 && activeTabId"
-    class="md:hidden fixed bottom-0 w-screen z-10 border-t border-outline-gray-2 bg-surface-white"
+    class="md:hidden fixed bottom-0 w-screen z-10 border-t border-outline-gray-2 bg-surface-base"
   >
     <div class="flex overflow-x-auto px-2 py-2 gap-1">
       <TabButtons
@@ -19,6 +19,8 @@
   </div>
 </template>
 <script setup>
+import { computed, onMounted, onBeforeUnmount } from 'vue'
+
 import { ref } from 'vue'
 import { TabButtons } from 'frappe-ui'
 

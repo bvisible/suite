@@ -41,7 +41,7 @@ class DriveUserInvitation(Document):
             subject=f"Frappe Drive - Invitation",
             template="drive_invitation",
             args={
-                "invite_link": frappe.utils.get_url(f"/api/method/drive.api.product.accept_invite?key={self.name}"),
+                "invite_link": frappe.utils.get_url(f"/api/method/suite.drive.api.product.accept_invite?key={self.name}"),
                 "user": frappe.session.user,
                 "team_name": frappe.db.get_value("Drive Team", self.team, "title"),
             },

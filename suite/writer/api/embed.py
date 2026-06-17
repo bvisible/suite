@@ -1,6 +1,6 @@
 import frappe
-from drive.api.files import upload_file, get_file_internal
-from drive.api.permissions import user_has_permission
+from suite.drive.api.files import upload_file, get_file_internal
+from suite.drive.api.permissions import user_has_permission
 
 
 @frappe.whitelist()
@@ -9,7 +9,7 @@ def add(file_id):
     file = frappe.request.files["file"]
     file.filename = f"{file_doc.name} embed -{file.filename}"
     embed = upload_file(file_doc.team, parent=file_doc.name, embed=1)
-    return {"file_url": f"/api/method/writer.api.embed.get?id={embed.name}"}
+    return {"file_url": f"/api/method/suite.writer.api.embed.get?id={embed.name}"}
 
 
 @frappe.whitelist(allow_guest=True)

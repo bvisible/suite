@@ -35,7 +35,7 @@
 		</ListSelectBanner>
 	</ListView>
 	<div v-else class="text-ink-gray-6 flex flex-col space-y-2 text-sm">
-		<p class="text-base font-medium">{{ __('No blocked email addresses.') }}</p>
+		<p class="text-base-medium">{{ __('No blocked email addresses.') }}</p>
 		<p>{{ MESSAGE }}</p>
 	</div>
 
@@ -55,8 +55,8 @@ import {
 	createResource,
 } from 'frappe-ui'
 
-import { isEmail, raiseToast } from '@/utils'
-import { userStore } from '@/stores/user'
+import { isEmail, raiseToast } from '@/apps/mail/utils'
+import { userStore } from '@/apps/mail/stores/user'
 
 const store = userStore()
 const { blockedAddresses } = store
@@ -68,7 +68,7 @@ const showUnblockModal = ref(false)
 const rows = computed(() => blockedAddresses.data.map((address: string) => ({ name: address })))
 
 const blockEmailAddress = createResource({
-	url: 'mail.api.mail.block_email_address',
+	url: 'suite.mail.api.mail.block_email_address',
 	makeParams: () => ({ account: store.account, email: email.value }),
 	onSuccess: () => {
 		raiseToast(__('Email address blocked.'))
@@ -78,7 +78,7 @@ const blockEmailAddress = createResource({
 })
 
 const unblockEmailAddresses = createResource({
-	url: 'mail.api.mail.unblock_email_addresses',
+	url: 'suite.mail.api.mail.unblock_email_addresses',
 	makeParams: () => ({
 		account: store.account,
 		emails: Array.from(listViewRef.value?.selections),

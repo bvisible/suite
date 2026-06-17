@@ -1,9 +1,9 @@
 from typing import TYPE_CHECKING, ClassVar
 
-from mail.jmap.services.core import CoreService
+from suite.mail.jmap.services.core import CoreService
 
 if TYPE_CHECKING:
-	from mail.jmap.connection import JMAPConnection
+	from suite.mail.jmap.connection import JMAPConnection
 
 
 class PushSubscriptionService(CoreService):

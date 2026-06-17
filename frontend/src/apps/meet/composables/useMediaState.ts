@@ -25,7 +25,7 @@ export interface MediaState {
 	$reset: () => void;
 }
 
-export const useMediaState = defineStore("media", () => {
+export const useMediaState = defineStore("meet-media", () => {
 	const isMicOn = ref(false);
 	const isCameraOn = ref(false);
 	const isScreenSharing = ref(false);

@@ -8,7 +8,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEPLOY_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-COMPOSE_PROJECT="frappe-meet"
+COMPOSE_PROJECT="frappe-suite"
 COMPOSE_CMD="docker compose -f $DEPLOY_DIR/docker-compose.yml -p $COMPOSE_PROJECT --env-file $DEPLOY_DIR/.env"
 
 # Load environment

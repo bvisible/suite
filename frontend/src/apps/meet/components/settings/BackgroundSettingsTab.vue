@@ -81,7 +81,7 @@
 
 						<!-- Label -->
 						<div class="p-2 bg-white">
-							<p class="text-sm font-medium text-center text-gray-900 truncate">
+							<p class="text-sm-medium text-center text-gray-900 truncate">
 								{{ option.label }}
 							</p>
 						</div>

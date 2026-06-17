@@ -49,7 +49,7 @@ def for_cell(sheet: str, cell_id: str, sub_sheet: str | None = None, limit: int 
 	"""Return ops touching `cell_id`, newest first.
 
 	Filters by JSON-contains on `cell_refs` so we don't paginate through
-	every op for the sheet — fast even on busy sheets.
+	every op for the sheet — fast even on busy suite.sheets.
 	"""
 	frappe.has_permission("Sheet", doc=sheet, throw=True)
 	if not _CELL_ID_RE.match(cell_id or ""):

@@ -8,21 +8,21 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import cint
 
-from mail.jmap import (
+from suite.mail.jmap import (
 	get_core_service,
 	get_mailbox_id_by_role,
 	invalidate_jmap_identities_cache,
 	invalidate_jmap_mailboxes_cache,
 	parse_account,
 )
-from mail.storage import get_blob_store, get_data_store
-from mail.storage.data_store import Entity
+from suite.mail.storage import get_blob_store, get_data_store
+from suite.mail.storage.data_store import Entity
 
 if TYPE_CHECKING:
-	from mail.jmap.services.core import CoreService
+	from suite.mail.jmap.services.core import CoreService
 
-from mail.utils.user import is_system_manager
-from mail.utils.validation import has_permission_for_user
+from suite.mail.utils.user import is_system_manager
+from suite.mail.utils.validation import has_permission_for_user
 
 
 class AccountSettings(Document):

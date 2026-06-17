@@ -1,4 +1,5 @@
 import dayjs from 'dayjs/esm'
+import customParseFormat from 'dayjs/esm/plugin/customParseFormat'
 import duration from 'dayjs/esm/plugin/duration'
 import isSameOrAfter from 'dayjs/esm/plugin/isSameOrAfter'
 import isSameOrBefore from 'dayjs/esm/plugin/isSameOrBefore'
@@ -11,6 +12,7 @@ import updateLocale from 'dayjs/esm/plugin/updateLocale'
 import utc from 'dayjs/esm/plugin/utc'
 
 dayjs.extend(updateLocale)
+dayjs.extend(customParseFormat)
 dayjs.extend(relativeTime)
 dayjs.extend(localizedFormat)
 dayjs.extend(isToday)

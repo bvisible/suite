@@ -75,7 +75,7 @@
                 <!-- Print Settings Section -->
                 <div class="flex flex-col gap-3 pb-5 pr-5">
                   <template v-if="tabIndex === 1">
-                    <h3 class="text-sm font-medium text-ink-gray-7">Print Settings</h3>
+                    <h3 class="text-sm-medium text-ink-gray-7">Print Settings</h3>
                     <div class="space-y-2">
                       <FormLabel label="Header & Footer" />
                       <div class="grid grid-cols-2 gap-2">
@@ -141,7 +141,7 @@
                     </div>
                   </template>
                   <template v-else>
-                    <h3 class="text-sm font-medium text-ink-gray-7">Watermark</h3>
+                    <h3 class="text-sm-medium text-ink-gray-7">Watermark</h3>
                     <FormControl
                       v-model="settings.watermark_text"
                       type="text"
@@ -177,7 +177,7 @@
                 </div>
               </div>
               <div class="mt-2">
-                <div v-if="error" class="text-xs text-ink-red-4">
+                <div v-if="error" class="text-xs text-ink-red-8">
                   {{ error }}
                 </div>
                 <Button
@@ -210,10 +210,12 @@
 
 <script setup>
 import { computed, ref, reactive, watchEffect } from 'vue'
-import { FormControl, Dialog, Tabs, FormLabel } from 'frappe-ui'
-import { FONT_FAMILIES, dynamicList } from '@/utils/'
-import Form from '@/components/Form.vue'
+import { Button, FormControl, Dialog, Tabs, FormLabel } from 'frappe-ui'
+import { FONT_FAMILIES, dynamicList } from '@/apps/writer/utils/'
+import Form from '@/apps/writer/components/Form.vue'
 import FontSelect from './FontSelect.vue'
+import LucideFileText from '~icons/lucide/file-text'
+import LucideGlobe2 from '~icons/lucide/globe-2'
 
 const open = ref(true)
 const model = defineModel()

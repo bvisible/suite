@@ -8,9 +8,9 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, today
 
-from mail.jmap import get_jmap_connection
-from mail.utils import parse_filters
-from mail.utils.validation import has_permission_for_user
+from suite.mail.jmap import get_jmap_connection
+from suite.mail.utils import parse_filters
+from suite.mail.utils.validation import has_permission_for_user
 
 
 class UserAccount(Document):

@@ -1,6 +1,6 @@
 # Copyright (c) 2026, Asif and Contributors
 # See license.txt
-"""www/sheets.py — boot context + Vite manifest plumbing.
+"""www/suite.sheets.py — boot context + Vite manifest plumbing.
 
 The www page is what every user hits. The manifest reader is what
 converts content-hashed bundle filenames into the URLs the Jinja
@@ -24,7 +24,7 @@ from unittest import mock
 
 
 class AssetManifestResolution(unittest.TestCase):
-    """The Vite-manifest reader inside sheets/www/sheets.py."""
+    """The Vite-manifest reader inside sheets/www/suite.sheets.py."""
 
     def setUp(self):
         # Each test gets its own tmpdir + a frappe.get_app_path that
@@ -39,7 +39,7 @@ class AssetManifestResolution(unittest.TestCase):
         os.makedirs(self.manifest_dir, exist_ok=True)
         self.manifest_path = os.path.join(self.manifest_dir, "manifest.json")
 
-        patcher = mock.patch("sheets.www.sheets.frappe")
+        patcher = mock.patch("suite.sheets.www.sheets.frappe")
         self.frappe = patcher.start()
         self.addCleanup(patcher.stop)
         self.frappe.get_app_path.return_value = self.tmp.name
@@ -47,7 +47,7 @@ class AssetManifestResolution(unittest.TestCase):
         # Reset the module-level cache between tests so we always start
         # from a known state — otherwise mtime checks across tests can
         # interact in surprising ways.
-        from sheets.www import sheets as www
+        from suite.sheets.www import sheets as www
 
         www._ASSET_CACHE = None
         www._ASSET_CACHE_MTIME = None
@@ -63,25 +63,25 @@ class AssetManifestResolution(unittest.TestCase):
                 "css":  ["index.GHIJKL.css"],
             },
         })
-        from sheets.www import sheets as www
+        from suite.sheets.www import sheets as www
 
         paths = www._asset_paths()
-        self.assertEqual(paths["js"], "/assets/sheets/sheets/index.ABCDEF.js")
-        self.assertEqual(paths["css"], ["/assets/sheets/sheets/index.GHIJKL.css"])
+        self.assertEqual(paths["js"], "/assets/suite/sheets/sheets/index.ABCDEF.js")
+        self.assertEqual(paths["css"], ["/assets/suite/sheets/sheets/index.GHIJKL.css"])
 
     def test_falls_back_to_legacy_filenames_when_manifest_is_missing(self):
         # Dev / unbuilt — vite serves the SPA itself, no manifest on disk.
         # The fallback keeps the Jinja template working rather than 500ing.
-        from sheets.www import sheets as www
+        from suite.sheets.www import sheets as www
 
         paths = www._asset_paths()
-        self.assertEqual(paths["js"], "/assets/sheets/sheets/index.js")
-        self.assertEqual(paths["css"], ["/assets/sheets/sheets/index.css"])
+        self.assertEqual(paths["js"], "/assets/suite/sheets/sheets/index.js")
+        self.assertEqual(paths["css"], ["/assets/suite/sheets/sheets/index.css"])
 
     def test_falls_back_when_manifest_is_malformed(self):
         with open(self.manifest_path, "w") as fh:
             fh.write("not valid json {{{")
-        from sheets.www import sheets as www
+        from suite.sheets.www import sheets as www
 
         paths = www._asset_paths()
         # Bad JSON shouldn't take the page down — fall back to legacy.
@@ -93,7 +93,7 @@ class AssetManifestResolution(unittest.TestCase):
         self._write_manifest({
             "index.html": {"file": "index.A.js", "css": ["index.A.css"]},
         })
-        from sheets.www import sheets as www
+        from suite.sheets.www import sheets as www
 
         first  = www._read_asset_manifest()
         second = www._read_asset_manifest()
@@ -105,7 +105,7 @@ class AssetManifestResolution(unittest.TestCase):
         self._write_manifest({
             "index.html": {"file": "index.OLD.js", "css": []},
         })
-        from sheets.www import sheets as www
+        from suite.sheets.www import sheets as www
 
         first = www._read_asset_manifest()
         self.assertEqual(first["index.html"]["file"], "index.OLD.js")
@@ -124,12 +124,12 @@ class AssetManifestResolution(unittest.TestCase):
 
 
 class BootContext(unittest.TestCase):
-    """get_context populates the keys sheets.html injects into
+    """get_context populates the keys suite.sheets.html injects into
     `window.frappe.{session,boot}`. The SPA branches on these for the
     avatar, ShareDialog, CSRF, and Sentry — so the shape is load-bearing."""
 
     def setUp(self):
-        patcher = mock.patch("sheets.www.sheets.frappe")
+        patcher = mock.patch("suite.sheets.www.sheets.frappe")
         self.frappe = patcher.start()
         self.addCleanup(patcher.stop)
         self.frappe.session.user = "alice@example.com"
@@ -157,7 +157,7 @@ class BootContext(unittest.TestCase):
     def test_guest_is_redirected_to_login(self):
         self.frappe.session.user = "Guest"
         self.frappe.Redirect = RuntimeError  # any exception we can catch
-        from sheets.www import sheets as www
+        from suite.sheets.www import sheets as www
 
         with self.assertRaises(RuntimeError):
             www.get_context(self.ctx)
@@ -167,7 +167,7 @@ class BootContext(unittest.TestCase):
         )
 
     def test_session_and_csrf_populated_for_logged_in_user(self):
-        from sheets.www import sheets as www
+        from suite.sheets.www import sheets as www
 
         www.get_context(self.ctx)
         self.assertEqual(self.ctx.session_user, "alice@example.com")
@@ -177,7 +177,7 @@ class BootContext(unittest.TestCase):
     def test_sentry_dsn_defaults_to_empty_string(self):
         # No DSN configured → context still has the key, just empty,
         # so the Jinja template's `| tojson` never renders `undefined`.
-        from sheets.www import sheets as www
+        from suite.sheets.www import sheets as www
 
         www.get_context(self.ctx)
         self.assertEqual(self.ctx.sentry_dsn, "")
@@ -187,7 +187,7 @@ class BootContext(unittest.TestCase):
             "sheets_sentry_dsn": "https://k@o.ingest.sentry.io/p",
             "developer_mode":         0,
         }.get(key, default)
-        from sheets.www import sheets as www
+        from suite.sheets.www import sheets as www
 
         www.get_context(self.ctx)
         self.assertEqual(self.ctx.sentry_dsn, "https://k@o.ingest.sentry.io/p")
@@ -197,7 +197,7 @@ class BootContext(unittest.TestCase):
         self.frappe.conf.get.side_effect = lambda key, default=None: {
             "developer_mode": 1,
         }.get(key, default)
-        from sheets.www import sheets as www
+        from suite.sheets.www import sheets as www
 
         www.get_context(self.ctx)
         self.assertEqual(self.ctx.sentry_environment, "development")

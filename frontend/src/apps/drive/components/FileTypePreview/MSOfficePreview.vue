@@ -9,7 +9,7 @@
   >
   <div
     v-else
-    class="max-w-[450px] h-fit self-center p-10 bg-surface-white rounded-md text-xl text-center font-medium shadow-xl flex flex-col justify-center items-center gap-4"
+    class="max-w-[450px] h-fit self-center p-10 bg-surface-base rounded-md text-3xl-medium text-center shadow-xl flex flex-col justify-center items-center gap-4"
   >
     <div v-if="error" class="text-p-base">
       <LucideSettings class="size-8 mb-6 mx-auto" />
@@ -33,6 +33,7 @@
   </div>
 </template>
 <script setup>
+import { Button } from 'frappe-ui'
 import { computed, ref, watch } from 'vue'
 const props = defineProps({
   previewEntity: Object,
@@ -42,7 +43,7 @@ const warned = ref(false)
 watch(warned, async () => {
   jwt_token.value = ''
   const res = await fetch(
-    '/api/method/drive.api.files.create_auth_token?entity_name=' + props.previewEntity.name
+    '/api/method/suite.drive.api.files.create_auth_token?entity_name=' + props.previewEntity.name
   )
   const { message } = JSON.parse(await res.text())
   if (message) {
@@ -57,7 +58,7 @@ const error = ref(null)
 const srcUrl = computed(() =>
   encodeURIComponent(
     new URL(
-      `/api/method/drive.api.files.get_file_content?token=${jwt_token.value}&entity_name=${props.previewEntity.name}&trigger_download=1`,
+      `/api/method/suite.drive.api.files.get_file_content?token=${jwt_token.value}&entity_name=${props.previewEntity.name}&trigger_download=1`,
       window.location.origin
     ).href
   )

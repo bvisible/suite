@@ -15,14 +15,14 @@
 <script setup>
 import { computed } from 'vue'
 
-import TextElement from '@/components/TextElement.vue'
-import ImageElement from '@/components/ImageElement.vue'
-import VideoElement from '@/components/VideoElement.vue'
-import ShapeElement from '@/components/ShapeElement.vue'
+import TextElement from '@/apps/slides/components/TextElement.vue'
+import ImageElement from '@/apps/slides/components/ImageElement.vue'
+import VideoElement from '@/apps/slides/components/VideoElement.vue'
+import ShapeElement from '@/apps/slides/components/ShapeElement.vue'
 
-import { activeElementIds } from '@/stores/element'
+import { activeElementIds } from '@/apps/slides/stores/element'
 
-import { slideBounds } from '@/stores/slide'
+import { slideBounds } from '@/apps/slides/stores/slide'
 
 const props = defineProps({
 	mode: {

@@ -64,6 +64,6 @@ const sizeClasses = computed(() => {
 });
 
 const textSizeClass = computed(() => {
-	return props.size === "medium" ? "text-lg sm:text-xl" : "text-xs";
+	return props.size === "medium" ? "text-xl sm:text-3xl" : "text-xs";
 });
 </script>

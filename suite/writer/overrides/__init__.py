@@ -1,4 +1,4 @@
-from drive.api.permissions import get_teams
+from suite.drive.api.permissions import get_teams
 import frappe
 
 

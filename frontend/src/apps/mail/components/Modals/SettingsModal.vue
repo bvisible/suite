@@ -2,8 +2,8 @@
 	<Dialog v-model="show" :options="{ title: __('Settings'), size: '4xl' }">
 		<template #body>
 			<div class="flex" :style="{ height: 'calc(100vh - 9rem)' }">
-				<div class="bg-surface-menu-bar flex w-52 shrink-0 flex-col border-r p-4 py-3">
-					<h1 class="px-2 text-xl leading-6">{{ __('Settings') }}</h1>
+				<div class="bg-surface-sidebar flex w-52 shrink-0 flex-col border-r p-4 py-3">
+					<h1 class="px-2 text-3xl leading-6">{{ __('Settings') }}</h1>
 					<div class="mt-3 space-y-1">
 						<button
 							v-for="tab in tabs"
@@ -55,19 +55,19 @@ import {
 } from 'lucide-vue-next'
 import { Button, Dialog } from 'frappe-ui'
 
-import { userStore } from '@/stores/user'
-import AccountSettings from '@/components/Settings/AccountSettings.vue'
-import AdvancedSettings from '@/components/Settings/AdvancedSettings.vue'
-import AppearanceSettings from '@/components/Settings/AppearanceSettings.vue'
-import AutomationSettings from '@/components/Settings/AutomationSettings.vue'
-import BlockListSettings from '@/components/Settings/BlockListSettings.vue'
-import ExportSettings from '@/components/Settings/ExportSettings.vue'
-import FolderSettings from '@/components/Settings/FolderSettings.vue'
-import IdentitySettings from '@/components/Settings/IdentitySettings.vue'
-import ImportSettings from '@/components/Settings/ImportSettings.vue'
-import ProfileSettings from '@/components/Settings/ProfileSettings.vue'
-import SignatureSettings from '@/components/Settings/SignatureSettings.vue'
-import VacationResponseSettings from '@/components/Settings/VacationResponseSettings.vue'
+import { userStore } from '@/apps/mail/stores/user'
+import AccountSettings from '@/apps/mail/components/Settings/AccountSettings.vue'
+import AdvancedSettings from '@/apps/mail/components/Settings/AdvancedSettings.vue'
+import AppearanceSettings from '@/apps/mail/components/Settings/AppearanceSettings.vue'
+import AutomationSettings from '@/apps/mail/components/Settings/AutomationSettings.vue'
+import BlockListSettings from '@/apps/mail/components/Settings/BlockListSettings.vue'
+import ExportSettings from '@/apps/mail/components/Settings/ExportSettings.vue'
+import FolderSettings from '@/apps/mail/components/Settings/FolderSettings.vue'
+import IdentitySettings from '@/apps/mail/components/Settings/IdentitySettings.vue'
+import ImportSettings from '@/apps/mail/components/Settings/ImportSettings.vue'
+import ProfileSettings from '@/apps/mail/components/Settings/ProfileSettings.vue'
+import SignatureSettings from '@/apps/mail/components/Settings/SignatureSettings.vue'
+import VacationResponseSettings from '@/apps/mail/components/Settings/VacationResponseSettings.vue'
 
 const show = defineModel<boolean>()
 

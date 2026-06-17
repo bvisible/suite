@@ -12,8 +12,8 @@ import msgpack
 import psutil
 from rocksdict import BlockBasedOptions, Cache, DBCompressionType, Options, Rdict
 
-from mail.storage.base_store import BaseStore
-from mail.utils.lock import acquire_lock, release_lock
+from suite.mail.storage.base_store import BaseStore
+from suite.mail.utils.lock import acquire_lock, release_lock
 
 
 class Entity(Enum):

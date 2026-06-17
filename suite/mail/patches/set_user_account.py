@@ -1,7 +1,7 @@
 import frappe
 from frappe.query_builder import Case
 
-from mail.utils.user import get_user_personal_account
+from suite.mail.utils.user import get_user_personal_account
 
 DOCTYPES = [
 	"Mail Exchange",

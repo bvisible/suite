@@ -3,16 +3,16 @@
     id="navbar"
     ondragstart="return false;"
     ondrop="return false;"
-    class="bg-surface-white border-b pr-3 py-2.5 h-12 flex items-center justify-between"
+    class="bg-surface-base border-b pr-3 py-2.5 h-12 flex items-center justify-between"
   >
     <div class="pl-4 pr-1">
       <Dropdown
-        v-if="$route.name !== 'Home'"
+        v-if="$route.name !== 'writer-home'"
         :options="[
           {
             label: 'Back to Home',
             icon: LucideChevronLeft,
-            route: '/',
+            route: { name: 'writer-home' },
           },
         ]"
       >
@@ -51,7 +51,7 @@
         class="size-4 my-auto stroke-amber-500 fill-amber-500 mx-1.5"
       />
       <template v-if="!isLoggedIn">
-        <Button variant="outline" @click="$router.push({ name: 'Login' })">
+        <Button variant="outline" @click="signIn">
           Sign In
         </Button>
         <Button
@@ -65,7 +65,7 @@
         />
       </template>
       <Button
-        v-else-if="$route.name === 'Home'"
+        v-else-if="$route.name === 'writer-home'"
         label="New"
         variant="solid"
         :icon-left="h(LucidePlus, { class: 'size-4' })"
@@ -73,7 +73,7 @@
           createDocument.submit(null, {
             onSuccess: (d) =>
               $router.push({
-                name: 'Document',
+                name: 'writer-document',
                 params: { id: d.name },
               }),
           })
@@ -94,19 +94,20 @@
 </template>
 <script setup>
 import { Button, Breadcrumbs, Dropdown } from 'frappe-ui'
-import { getFileLink } from '@/ui/drive/js/utils'
-import { useStore } from 'vuex'
-import emitter from '@/emitter'
-import { ref, computed, inject, h, defineModel } from 'vue'
-import { createDocument, apps } from '@/resources/'
-import { exportBlog } from '@/utils/exports'
-import Dialogs from '@/components/Dialogs.vue'
-import { dynamicList } from '@/utils/'
-import { downloadZippedHTML, downloadMD } from '@/utils'
+import { getFileLink } from '@/apps/writer/ui/drive/js/utils'
+import store from '@/apps/writer/store'
+import emitter from '@/apps/writer/emitter'
+import { ref, computed, inject, h } from 'vue'
+import { createDocument, apps } from '@/apps/writer/resources/'
+import { exportBlog } from '@/apps/writer/utils/exports'
+import Dialogs from '@/apps/writer/components/Dialogs.vue'
+import { dynamicList } from '@/apps/writer/utils/'
+import { downloadZippedHTML, downloadMD } from '@/apps/writer/utils'
 import { downloadDocxFromHtml } from '../utils/docxexporter'
 
 import LucideUsers from '~icons/lucide/users'
 import LucideBuilding2 from '~icons/lucide/building-2'
+import LucideGlobe2 from '~icons/lucide/globe-2'
 import LucideStar from '~icons/lucide/star'
 import LucideMoreHorizontal from '~icons/lucide/more-horizontal'
 import LucideShare2 from '~icons/lucide/share-2'
@@ -128,9 +129,12 @@ import LucideChevronLeft from '~icons/lucide/chevron-left'
 import WriterLogo from './WriterLogo.vue'
 import { useRoute } from 'vue-router'
 
-const store = useStore()
 const open = (url) => {
   window.open(url, '_blank')
+}
+
+const signIn = () => {
+  window.location.href = '/login'
 }
 
 const props = defineProps({
@@ -153,7 +157,7 @@ const editor = inject('editor', null)
 const route = useRoute()
 const formattedCrumbs = computed(() => {
   const ORIG =
-    route.name === 'Home'
+    route.name === 'writer-home'
       ? { label: 'Writer', href: '/writer' }
       : { label: 'Drive', href: '/drive' }
   if (!props.breadcrumbs.length) return [ORIG]

@@ -72,8 +72,10 @@
 </template>
 <script setup>
 import { TextEditor, Button } from 'frappe-ui'
-import { allUsers } from '@/ui/drive/js/resources'
+import { allUsers } from '@/apps/writer/ui/drive/js/resources'
 import { computed, ref } from 'vue'
+import LucideMessageCircleReply from '~icons/lucide/message-circle-reply'
+import LucideX from '~icons/lucide/x'
 
 const editorContent = defineModel({ type: String })
 

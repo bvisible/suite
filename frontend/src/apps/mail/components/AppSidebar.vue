@@ -74,20 +74,20 @@ import { Icon } from 'frappe-ui/icons'
 import { Check, Keyboard, User } from 'lucide-vue-next'
 import { Avatar, Button, Dropdown, Sidebar, SidebarItem, createResource } from 'frappe-ui'
 
-import { FOLDER_ICON_COLOR_MAP } from '@/constants'
-import { getIcon, toTitleCase } from '@/utils'
-import { useScreenSize, useSidebar } from '@/utils/composables'
-import { sessionStore } from '@/stores/session'
-import { userStore } from '@/stores/user'
-import MailLogo from '@/components/Icons/MailLogo.vue'
-import DeleteFolderModal from '@/components/Modals/DeleteFolderModal.vue'
-import FolderModal from '@/components/Modals/FolderModal.vue'
-import SettingsModal from '@/components/Modals/SettingsModal.vue'
-import ShortcutsModal from '@/components/Modals/ShortcutsModal.vue'
-import PWASettings from '@/components/PWASettings.vue'
-import QuotaBar from '@/components/QuotaBar.vue'
+import { FOLDER_ICON_COLOR_MAP } from '@/apps/mail/constants'
+import { getIcon, toTitleCase } from '@/apps/mail/utils'
+import { useScreenSize, useSidebar } from '@/apps/mail/utils/composables'
+import { sessionStore } from '@/apps/mail/stores/session'
+import { userStore } from '@/apps/mail/stores/user'
+import MailLogo from '@/apps/mail/components/Icons/MailLogo.vue'
+import DeleteFolderModal from '@/apps/mail/components/Modals/DeleteFolderModal.vue'
+import FolderModal from '@/apps/mail/components/Modals/FolderModal.vue'
+import SettingsModal from '@/apps/mail/components/Modals/SettingsModal.vue'
+import ShortcutsModal from '@/apps/mail/components/Modals/ShortcutsModal.vue'
+import PWASettings from '@/apps/mail/components/PWASettings.vue'
+import QuotaBar from '@/apps/mail/components/QuotaBar.vue'
 
-import type { MailboxData } from '@/types'
+import type { MailboxData } from '@/apps/mail/types'
 
 import BookUser from '~icons/lucide/book-user'
 import ContactRound from '~icons/lucide/contact-round'
@@ -115,7 +115,7 @@ const { mailboxes } = store
 const user = inject('$user')
 
 const apps = createResource({
-	url: 'mail.api.get_permitted_apps',
+	url: 'suite.mail.api.get_permitted_apps',
 	cache: 'otherApps',
 	auto: true,
 	transform: (data) => data.filter((app) => app.name !== 'mail'),
@@ -168,12 +168,12 @@ const menuItems = computed(() => [
 					const mailbox = mailboxes.data?.[0]?.id
 					if (mailbox)
 						router.push({
-							name: 'Mailbox',
+							name: 'mail-mailbox',
 							params: { accountId: store.accountId, mailbox },
 						})
 					else
 						router.push({
-							name: 'AddressBooks',
+							name: 'mail-address-books',
 							params: { accountId: store.accountId },
 						})
 				},
@@ -185,7 +185,7 @@ const menuItems = computed(() => [
 			{
 				icon: Crown,
 				label: __('Admin Dashboard'),
-				onClick: () => router.push('/dashboard'),
+				onClick: () => router.push({ name: 'mail-domains' }),
 				condition: () =>
 					user.data.is_jmap_configured &&
 					user.data.is_mail_admin &&
@@ -253,13 +253,13 @@ const dashboardItems = [
 			{
 				label: __('Domains'),
 				icon: Globe,
-				to: { name: 'Domains' },
+				to: { name: 'mail-domains' },
 				activeFor: ['Domains', 'Domain'],
 			},
 			{
 				label: __('Members'),
 				icon: Users,
-				to: { name: 'Members' },
+				to: { name: 'mail-members' },
 				activeFor: ['Members', 'Invites', 'Member'],
 			},
 		],
@@ -277,7 +277,7 @@ const mailboxItems = computed(
 					class: FOLDER_ICON_COLOR_MAP[mailbox.color],
 				}),
 				to: {
-					name: 'Mailbox',
+					name: 'mail-mailbox',
 					params: { accountId: store.accountId, mailbox: mailbox.id },
 				},
 				suffix: mailbox.unread_threads ? String(mailbox.unread_threads) : '',
@@ -313,7 +313,7 @@ const sidebarItems = computed(() => {
 	const starredItem = {
 		label: __('Starred'),
 		icon: Star,
-		to: { name: 'Mailbox', params: { accountId: store.accountId, mailbox: 'starred' } },
+		to: { name: 'mail-mailbox', params: { accountId: store.accountId, mailbox: 'starred' } },
 		activeFor: ['starred'],
 	}
 	const defaultItems = [...defaultMailboxes, starredItem]
@@ -335,13 +335,13 @@ const sidebarItems = computed(() => {
 		{
 			label: __('Address Books'),
 			icon: BookUser,
-			to: { name: 'AddressBooks', params: { accountId: store.accountId } },
+			to: { name: 'mail-address-books', params: { accountId: store.accountId } },
 			activeFor: ['AddressBooks', 'AddressBook'],
 		},
 		{
 			label: __('Contacts'),
 			icon: ContactRound,
-			to: { name: 'Contacts', params: { accountId: store.accountId } },
+			to: { name: 'mail-contacts', params: { accountId: store.accountId } },
 			activeFor: ['Contacts', 'Contact'],
 		},
 	]

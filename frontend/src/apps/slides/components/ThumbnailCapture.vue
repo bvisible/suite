@@ -12,9 +12,9 @@
 <script setup>
 import { nextTick, useTemplateRef } from 'vue'
 
-import SlidePreview from '@/components/SlidePreview.vue'
+import SlidePreview from '@/apps/slides/components/SlidePreview.vue'
 
-import { useThumbnailCapture } from '@/composables/useThumbnailCapture'
+import { useThumbnailCapture } from '@/apps/slides/composables/useThumbnailCapture'
 
 const props = defineProps({
 	slide: {

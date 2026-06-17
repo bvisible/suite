@@ -2,11 +2,11 @@ import { computed, ref, watch, nextTick } from 'vue'
 import { debounce } from 'lodash'
 import { call } from 'frappe-ui'
 
-import { presentationDoc, unsyncedPresentationRecord, inReadonlyMode } from '@/stores/presentation'
-import { slides } from '@/stores/slide'
-import { focusElementId } from '@/stores/element'
-import { isDirty, isSaving } from '@/stores/saving'
-import { captureDOM } from '@/utils/domToWebp'
+import { presentationDoc, unsyncedPresentationRecord, inReadonlyMode } from '@/apps/slides/stores/presentation'
+import { slides } from '@/apps/slides/stores/slide'
+import { focusElementId } from '@/apps/slides/stores/element'
+import { isDirty, isSaving } from '@/apps/slides/stores/saving'
+import { captureDOM } from '@/apps/slides/utils/domToWebp'
 
 const DEBOUNCE_MS = 5000
 
@@ -78,7 +78,7 @@ export const useThumbnailCapture = (thumbnailCapture, hasOngoingInteraction) => 
 	}
 
 	const upload = (base64Data) => {
-		return call('slides.slides.doctype.presentation.presentation.save_presentation_thumbnail', {
+		return call('suite.slides.doctype.presentation.presentation.save_presentation_thumbnail', {
 			presentation_name: presentationName(),
 			base64_data: base64Data,
 		})

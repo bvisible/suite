@@ -3,10 +3,10 @@ import { computed, inject, onMounted, ref, useTemplateRef } from 'vue'
 import { CalendarDays, Edit2, Globe, MapPin, Repeat, Text, Trash2, Users } from 'lucide-vue-next'
 import { Button, Dropdown, createResource, toast } from 'frappe-ui'
 
-import { getReorderedParticipants, isUrl } from '@/utils'
-import { getRepeatMessage } from '@/utils/format'
-import { userStore } from '@/stores/user'
-import EventParticipantList from '@/components/EventParticipantList.vue'
+import { getReorderedParticipants, isUrl } from '@/apps/calendar/utils'
+import { getRepeatMessage } from '@/apps/calendar/utils/format'
+import { userStore } from '@/apps/calendar/stores/user'
+import EventParticipantList from '@/apps/calendar/components/EventParticipantList.vue'
 
 const { calendarEvent, close } = defineProps<{ calendarEvent: any; close: () => void }>()
 
@@ -115,7 +115,6 @@ const openEditModal = () => {
 }
 
 const responseOptions = (status: string) => [
-	// { label: __('This instance'), onClick: () => handleSetResponse(status, false) },
 	{ label: __('Entire series'), onClick: () => handleSetResponse(status, true) },
 ]
 
@@ -136,7 +135,7 @@ const handleSetResponse = (response: string, updateAllInstances: boolean) => {
 }
 
 const editEventInstance = createResource({
-	url: 'mail.client.doctype.calendar_event.calendar_event.update_calendar_event_instance',
+	url: 'suite.client.doctype.calendar_event.calendar_event.update_calendar_event_instance',
 	makeParams: ({ patch }) => ({
 		account: store.account,
 		master_id: calendarEvent.master_id,
@@ -151,7 +150,7 @@ const editEventInstance = createResource({
 })
 
 const editEvent = createResource({
-	url: 'calendar_app.api.edit_calendar_event',
+	url: 'suite.calendar.api.edit_calendar_event',
 	makeParams: ({ patch }) => ({
 		account: store.account,
 		id: calendarEvent.master_id,
@@ -191,7 +190,7 @@ const handleDeleteEvent = () =>
 	})
 
 const deleteEventInstance = createResource({
-	url: 'mail.client.doctype.calendar_event.calendar_event.delete_calendar_event_instance',
+	url: 'suite.client.doctype.calendar_event.calendar_event.delete_calendar_event_instance',
 	makeParams: () => ({
 		account: store.account,
 		master_id: calendarEvent.master_id,
@@ -204,7 +203,7 @@ const deleteEventInstance = createResource({
 })
 
 const deleteEvent = createResource({
-	url: 'mail.client.doctype.calendar_event.calendar_event.delete_calendar_events',
+	url: 'suite.client.doctype.calendar_event.calendar_event.delete_calendar_events',
 	makeParams: () => ({ account: store.account, ids: [calendarEvent.master_id] }),
 	onSuccess: () => {
 		emit('reloadEvents')
@@ -220,7 +219,7 @@ const RESPONSE_STATUS_MAPPING = { ACCEPTED: __('Yes'), TENTATIVE: __('Maybe'), D
 </script>
 
 <template>
-	<div class="bg-surface-modal text-ink-gray-8 w-[32rem] rounded-lg" @click.stop>
+	<div class="bg-surface-elevation-2 text-ink-gray-8 w-[32rem] rounded-lg" @click.stop>
 		<!-- Header: title, date, and actions -->
 		<div class="flex justify-between border-b p-5">
 			<div class="space-y-2">
@@ -259,7 +258,7 @@ const RESPONSE_STATUS_MAPPING = { ACCEPTED: __('Yes'), TENTATIVE: __('Maybe'), D
 						:key="location.uid"
 						class="mt-px min-w-0 break-words text-left text-sm"
 						:class="{
-							'text-ink-blue-3 cursor-pointer hover:underline': isUrl(
+							'text-ink-blue-6 cursor-pointer hover:underline': isUrl(
 								location._name,
 							),
 						}"
@@ -300,7 +299,7 @@ const RESPONSE_STATUS_MAPPING = { ACCEPTED: __('Yes'), TENTATIVE: __('Maybe'), D
 					</span>
 					<button
 						v-if="isDescriptionClamped && !descriptionExpanded"
-						class="text-ink-blue-3 mt-0.5 block"
+						class="text-ink-blue-6 mt-0.5 block"
 						@click="descriptionExpanded = true"
 					>
 						{{ __('Show more') }}
@@ -320,7 +319,7 @@ const RESPONSE_STATUS_MAPPING = { ACCEPTED: __('Yes'), TENTATIVE: __('Maybe'), D
 		<!-- RSVP -->
 		<div
 			v-if="userParticipant.expect_reply"
-			class="bg-surface-menu-bar flex items-center justify-between rounded-b border-t p-5"
+			class="bg-surface-sidebar flex items-center justify-between rounded-b border-t p-5"
 		>
 			<div class="text-left text-sm">{{ __('Are you attending?') }}</div>
 			<div class="flex gap-2">

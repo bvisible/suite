@@ -43,7 +43,7 @@
                   class="flex cursor-pointer items-center gap-3 rounded px-3 py-2.5 transition-colors hover:bg-surface-gray-3"
                 >
                   <div class="min-w-0 flex-1 flex flex-col gap-2">
-                    <div class="truncate text-base font-medium text-ink-gray-7">
+                    <div class="truncate text-base-medium text-ink-gray-7">
                       {{ doc.title }}
                     </div>
                     <div
@@ -71,7 +71,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { Dialog, TextInput, debounce } from 'frappe-ui'
-import { search } from '@/resources'
+import { search } from '@/apps/writer/resources'
 
 import LucideSearch from '~icons/lucide/search'
 import LucideFileText from '~icons/lucide/file-text'

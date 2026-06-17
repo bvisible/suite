@@ -18,7 +18,7 @@
     </div>
     <div v-if="show" class="grow flex flex-col gap-0.5">
       <div class="flex justify-between items-center ps-2 pr-1 pb-1">
-        <span class="text-base font-medium text-ink-gray-8 select-none"
+        <span class="text-base-medium text-ink-gray-8 select-none"
           >Table of Contents</span
         >
         <Button
@@ -168,6 +168,8 @@
 </template>
 
 <script setup>
+import { nextTick } from 'vue'
+
 import { TextSelection } from '@tiptap/pm/state'
 import LucidePlus from '~icons/lucide/plus'
 import LucideMinus from '~icons/lucide/minus'
@@ -179,8 +181,8 @@ import LucideLink from '~icons/lucide/link'
 import LucideTrash from '~icons/lucide/trash'
 import LucideLeftClose from '~icons/lucide/panel-left-close'
 import { ref, watch, computed, h, onMounted, onBeforeUnmount } from 'vue'
-import { TextInput, ContextMenu } from 'frappe-ui'
-import { copyToClipboard } from '@/ui/drive/js/utils'
+import { Button, TextInput, ContextMenu, focusDirective as vFocus, onOutsideClickDirective as vOnOutsideClick } from 'frappe-ui'
+import { copyToClipboard } from '@/apps/writer/ui/drive/js/utils'
 
 const props = defineProps({
   editor: Object,

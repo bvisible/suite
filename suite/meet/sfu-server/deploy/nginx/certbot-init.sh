@@ -17,7 +17,7 @@ DEPLOY_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Use the same fixed project name as deploy.sh so Docker volume names are
 # consistent regardless of the installation directory.
-COMPOSE_PROJECT="meet-sfu"
+COMPOSE_PROJECT="suite-sfu"
 COMPOSE_CMD="docker compose -f $DEPLOY_DIR/docker-compose.yml -p $COMPOSE_PROJECT --env-file $DEPLOY_DIR/.env"
 
 # Load environment
@@ -85,9 +85,9 @@ $COMPOSE_CMD up -d nginx
 sleep 3
 
 # Verify nginx is actually running
-if ! docker ps --filter "name=meet-sfu-nginx" --filter "status=running" -q | grep -q .; then
+if ! docker ps --filter "name=suite-sfu-nginx" --filter "status=running" -q | grep -q .; then
     echo "[!] Nginx didn't start cleanly, checking logs..."
-    docker logs meet-sfu-nginx --tail=20 2>&1 || true
+    docker logs suite-sfu-nginx --tail=20 2>&1 || true
 fi
 
 # Step 3: Request the certificate

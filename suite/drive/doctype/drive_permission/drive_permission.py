@@ -4,7 +4,7 @@
 import frappe
 from frappe.model.document import Document
 
-from drive.api.notifications import notify_share
+from suite.drive.api.notifications import notify_share
 
 
 class DrivePermission(Document):

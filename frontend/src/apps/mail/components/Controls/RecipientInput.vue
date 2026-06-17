@@ -74,10 +74,10 @@ import { onClickOutside, useDebounceFn } from '@vueuse/core'
 import { X } from 'lucide-vue-next'
 import { Avatar, Combobox, createResource } from 'frappe-ui'
 
-import { type DraftRecipient } from '@/types'
-import { isEmail } from '@/utils'
-import { useScreenSize } from '@/utils/composables'
-import { userStore } from '@/stores/user'
+import { type DraftRecipient } from '@/apps/mail/types'
+import { isEmail } from '@/apps/mail/utils'
+import { useScreenSize } from '@/apps/mail/utils/composables'
+import { userStore } from '@/apps/mail/stores/user'
 
 const emit = defineEmits(['showCcBcc'])
 
@@ -213,7 +213,7 @@ const handleDrop = (e: DragEvent) => {
 }
 
 const mailContacts = createResource({
-	url: 'mail.api.contacts.get_contacts',
+	url: 'suite.mail.api.contacts.get_contacts',
 	auto: false,
 	makeParams: (text: string) => ({
 		account: store.account,

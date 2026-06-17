@@ -39,7 +39,7 @@ import {
 	ListView,
 } from 'frappe-ui'
 
-import DashboardCard from '@/components/DashboardCard.vue'
+import DashboardCard from '@/apps/mail/components/DashboardCard.vue'
 
 const { row = 'value' } = defineProps<{
 	rows: Record<string, string>[]

@@ -26,7 +26,7 @@
 	</div>
 
 	<div v-else class="text-ink-gray-6 flex flex-col space-y-2 text-sm">
-		<p class="text-base font-medium">{{ __('No sieve scripts found.') }}</p>
+		<p class="text-base-medium">{{ __('No sieve scripts found.') }}</p>
 		<div class="space-x-1">
 			<span>
 				{{
@@ -34,7 +34,7 @@
 				}}
 			</span>
 			<a
-				class="text-ink-blue-2 hover:underline"
+				class="text-ink-blue-5 hover:underline"
 				href="https://stalw.art/docs/category/sieve-scripting/"
 				target="_blank"
 			>
@@ -61,12 +61,12 @@ import { computed, ref } from 'vue'
 import { Ellipsis } from 'lucide-vue-next'
 import { Badge, Button, Dropdown } from 'frappe-ui'
 
-import { userStore } from '@/stores/user'
-import DeleteSieveScriptModal from '@/components/Modals/DeleteSieveScriptModal.vue'
-import SetSieveScriptStateModal from '@/components/Modals/SetSieveScriptStateModal.vue'
-import SieveScriptModal from '@/components/Modals/SieveScriptModal.vue'
+import { userStore } from '@/apps/mail/stores/user'
+import DeleteSieveScriptModal from '@/apps/mail/components/Modals/DeleteSieveScriptModal.vue'
+import SetSieveScriptStateModal from '@/apps/mail/components/Modals/SetSieveScriptStateModal.vue'
+import SieveScriptModal from '@/apps/mail/components/Modals/SieveScriptModal.vue'
 
-import type { SieveScript } from '@/types'
+import type { SieveScript } from '@/apps/mail/types'
 
 const { sieveScripts } = userStore()
 

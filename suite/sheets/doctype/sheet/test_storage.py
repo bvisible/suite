@@ -5,7 +5,7 @@
 import json
 import unittest
 
-from sheets.sheets.doctype.sheet.storage import (
+from suite.sheets.doctype.sheet.storage import (
 	decode_sheets_data,
 	effective_size,
 	encode_sheets_data,

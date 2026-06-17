@@ -1,104 +1,64 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import type { RouteLocationNormalized, Router } from 'vue-router'
 
-import { sessionStore } from '@/stores/session'
+import suiteRouter from '@/router'
 
-import { userStore } from './stores/user'
+import { userStore } from '@/apps/calendar/stores/user'
 
-const ShortcutRedirect = { render: () => null }
+/**
+ * Calendar router compat + guard.
+ *
+ * The standalone calendar app had its own `createRouter` with a global
+ * `beforeEach` that did: setup-wizard escape, auth, user-data wait, ACCOUNT
+ * RESOLUTION and SHORTCUT-ROUTE EXPANSION. In the suite there is ONE router
+ * (mounted at '/', calendar routes live under '/calendar'); auth is handled by
+ * the suite router's own `beforeEach` (redirects guests to `/login`). So only
+ * the calendar-SPECIFIC parts are ported here as a calendar-local guard that
+ * early-returns for any route whose name doesn't start with `calendar-`.
+ *
+ * This re-exports the single suite router instance as `router` so calendar views
+ * can keep importing it if needed, mirroring the slides reference port.
+ */
+export const router = suiteRouter
 
-const routes = [
-	{
-		path: '/account/:accountId/month/:year?/:month?/:day?',
-		name: 'Month',
-		component: () => import('@/pages/CalendarView.vue'),
-	},
-	{
-		path: '/account/:accountId/week/:year?/:month?/:day?',
-		name: 'Week',
-		component: () => import('@/pages/CalendarView.vue'),
-	},
-	{
-		path: '/account/:accountId/day/:year?/:month?/:day?',
-		name: 'Day',
-		component: () => import('@/pages/CalendarView.vue'),
-	},
-	// Shortcut routes: short paths that resolve to their full account-scoped
-	// equivalents once the active accountId is known (resolved in beforeEach).
-	{
-		path: '/',
-		name: 'RootShortcut',
-		component: ShortcutRedirect,
-		meta: { shortcut: true },
-	},
-	{
-		path: '/account/:accountId?',
-		name: 'AccountShortcut',
-		component: ShortcutRedirect,
-		meta: { shortcut: true },
-	},
-	{
-		path: '/month/:year?/:month?/:day?',
-		name: 'MonthShortcut',
-		component: ShortcutRedirect,
-		meta: { shortcut: true },
-	},
-	{
-		path: '/week/:year?/:month?/:day?',
-		name: 'WeekShortcut',
-		component: ShortcutRedirect,
-		meta: { shortcut: true },
-	},
-	{
-		path: '/day/:year?/:month?/:day?',
-		name: 'DayShortcut',
-		component: ShortcutRedirect,
-		meta: { shortcut: true },
-	},
-]
-
-const router = createRouter({ history: createWebHistory('/calendar'), routes })
-
-const handleSetupWizardEscape = () => {
-	if (document.referrer.includes('/app/setup-wizard')) window.location.replace('/app')
-}
+type Params = Record<string, string | string[]>
 
 const resolveShortcut = (
 	name: string | symbol | null | undefined,
-	params: Record<string, string | string[]>,
+	params: Params,
 	accountId: string,
 ) => {
-	const defaultRoute = { name: 'Month', params: { accountId } }
+	const defaultRoute = { name: 'calendar-month', params: { accountId } }
 
 	switch (name) {
-		case 'MonthShortcut':
-			return { name: 'Month', params: { accountId, ...params } }
-		case 'WeekShortcut':
-			return { name: 'Week', params: { accountId, ...params } }
-		case 'DayShortcut':
-			return { name: 'Day', params: { accountId, ...params } }
+		case 'calendar-month-shortcut':
+			return { name: 'calendar-month', params: { accountId, ...params } }
+		case 'calendar-week-shortcut':
+			return { name: 'calendar-week', params: { accountId, ...params } }
+		case 'calendar-day-shortcut':
+			return { name: 'calendar-day', params: { accountId, ...params } }
 		default:
 			return defaultRoute
 	}
 }
 
-router.beforeEach(async (to) => {
-	handleSetupWizardEscape()
+function installCalendarGuard(r: Router) {
+	r.beforeEach(async (to: RouteLocationNormalized) => {
+		// Only act on calendar routes; let the suite handle everything else.
+		if (typeof to.name !== 'string' || !to.name.startsWith('calendar-')) return
 
-	// 1. Authentication check
-	const { isLoggedIn } = sessionStore()
-	if (!isLoggedIn) window.location.replace('/mail/login')
+		// Wait for user data, then resolve the active account.
+		const store = userStore()
+		await store.userResource.promise
+		const user = store.userResource.data
 
-	// 2. Wait for user data
-	const { userResource, resolveAccount } = userStore()
-	await userResource.promise
-	const user = userResource.data
+		store.resolveAccount(user?.accounts, to.params.accountId as string | undefined)
+		const accountId = store.accountId
 
-	// 3. Resolve active account
-	resolveAccount(user?.accounts, to.params.accountId as string | undefined)
-	const accountId = userStore().accountId
+		// Expand shortcut routes to their full account-scoped equivalents.
+		if (to.meta.shortcut) return resolveShortcut(to.name, to.params, accountId)
+	})
+}
 
-	// 4. Expand shortcut routes to their full account-scoped equivalents
-	if (to.meta.shortcut) return resolveShortcut(to.name, to.params, accountId)
-})
+installCalendarGuard(router)
 
 export default router

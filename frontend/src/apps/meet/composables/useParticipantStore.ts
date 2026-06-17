@@ -17,7 +17,7 @@ export interface ParticipantStore {
 	$reset: () => void;
 }
 
-export const useParticipantStore = defineStore("participant", () => {
+export const useParticipantStore = defineStore("meet-participant", () => {
 	const participants = ref<Record<string, unknown>>({});
 	const remoteVideos = ref<Record<string, HTMLVideoElement>>({});
 	const activeSpeakerIds = ref<string[]>([]);

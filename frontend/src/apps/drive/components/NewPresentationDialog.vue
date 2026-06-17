@@ -30,7 +30,7 @@
         </template>
       </FormControl>
 
-      <div v-if="createPresentation.error" class="pt-4 text-base font-sm text-ink-red-3">
+      <div v-if="createPresentation.error" class="pt-4 text-base font-sm text-ink-red-6">
         {{ createFolder.error.messages[0] }}
       </div>
     </template>
@@ -38,9 +38,10 @@
 </template>
 
 <script setup>
+import { default as vFocus } from '@/apps/drive/utils/focus'
 import { ref } from 'vue'
-import { Dialog } from 'frappe-ui'
-import { createPresentation } from '@/resources/files'
+import { Dialog, FormControl} from 'frappe-ui'
+import { createPresentation } from '@/apps/drive/resources/files'
 import { useRoute } from 'vue-router'
 
 const props = defineProps({

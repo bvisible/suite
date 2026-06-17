@@ -1,32 +1,32 @@
 import { createResource } from 'frappe-ui'
-import { toast } from '@/utils/toasts'
-import store from '@/store'
+import { toast } from '@/apps/drive/utils/toasts'
+import store from '@/apps/drive/store'
 
 export const usersWithAccess = createResource({
-  url: 'drive.api.permissions.get_shared_with_list',
+  url: 'suite.drive.api.permissions.get_shared_with_list',
   makeParams: (params) => params,
 })
 
 export const updateAccess = createResource({
-  url: 'drive.api.files.share',
+  url: 'suite.drive.api.files.share',
   makeParams: (params) => ({ ...params, method: params.method || 'share' }),
   onError: (error) => toast({ type: 'error', title: error.messages[0] }),
 })
 
 export const notifCount = createResource({
-  url: '/api/method/drive.api.notifications.get_unread_count',
+  url: '/api/method/suite.drive.api.notifications.get_unread_count',
   method: 'GET',
   cache: 'notif-count',
 })
 
 export const settings = createResource({
-  url: '/api/method/drive.api.product.get_settings',
+  url: '/api/method/suite.drive.api.product.get_settings',
   method: 'GET',
   cache: 'settings',
 })
 
 export const setSettings = createResource({
-  url: '/api/method/drive.api.product.set_settings',
+  url: '/api/method/suite.drive.api.product.set_settings',
   method: 'POST',
   onSuccess: () => {
     settings.fetch()
@@ -34,15 +34,15 @@ export const setSettings = createResource({
 })
 
 export const generalAccess = createResource({
-  url: 'drive.api.permissions.get_user_access',
+  url: 'suite.drive.api.permissions.get_user_access',
 })
 
 export const userList = createResource({
-  url: 'drive.api.permissions.get_shared_with_list',
+  url: 'suite.drive.api.permissions.get_shared_with_list',
 })
 
 export const teamUsers = createResource({
-  url: 'drive.api.product.get_team_users',
+  url: 'suite.drive.api.product.get_team_users',
   method: 'GET',
   transform: (data) => {
     data.map((item) => {
@@ -53,20 +53,20 @@ export const teamUsers = createResource({
 })
 
 export const getInvites = createResource({
-  url: 'drive.api.product.get_my_invites',
+  url: 'suite.drive.api.product.get_my_invites',
 })
 
 export const acceptInvite = createResource({
-  url: 'drive.api.product.accept_invite',
+  url: 'suite.drive.api.product.accept_invite',
 })
 
 export const rejectInvite = createResource({
-  url: 'drive.api.product.reject_invite',
+  url: 'suite.drive.api.product.reject_invite',
   onSuccess: () => toast('Removed invite'),
 })
 
 export const isAdmin = createResource({
-  url: 'drive.api.product.is_site_admin',
+  url: 'suite.drive.api.product.is_site_admin',
 })
 
 export const apps = createResource({
@@ -96,13 +96,13 @@ export const apps = createResource({
 })
 
 export const diskSettings = createResource({
-  url: 'drive.api.product.disk_settings',
+  url: 'suite.drive.api.product.disk_settings',
   method: 'GET',
   cache: 'disk-settings',
 })
 
 export const createTeam = createResource({
-  url: 'drive.api.product.create_team',
+  url: 'suite.drive.api.product.create_team',
   makeParams: (params) => ({
     ...params,
     user: store.state.user.id,
@@ -110,6 +110,6 @@ export const createTeam = createResource({
 })
 
 export const getDiskSettings = createResource({
-  url: 'drive.api.product.disk_settings',
+  url: 'suite.drive.api.product.disk_settings',
   method: 'GET',
 })

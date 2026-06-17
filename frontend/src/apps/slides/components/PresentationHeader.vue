@@ -18,8 +18,8 @@ import { useRoute, useRouter } from 'vue-router'
 
 import { call } from 'frappe-ui'
 
-import { unsyncedPresentationRecord, updatePresentationTitle } from '@/stores/presentation'
-import { setCursorPositionAtEnd } from '@/utils/helpers'
+import { unsyncedPresentationRecord, updatePresentationTitle } from '@/apps/slides/stores/presentation'
+import { setCursorPositionAtEnd } from '@/apps/slides/utils/helpers'
 
 const props = defineProps({
 	title: String,
@@ -70,7 +70,7 @@ const saveTitle = async (e) => {
 		const slug = await updatePresentationTitle(route.params.presentationId, newTitle)
 		unsyncedPresentationRecord.value.title = newTitle
 		router.replace({
-			name: 'PresentationEditor',
+			name: 'slides-editor',
 			params: { presentationId: route.params.presentationId, slug: slug },
 			query: route.query,
 		})

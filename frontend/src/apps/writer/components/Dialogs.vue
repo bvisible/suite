@@ -5,16 +5,16 @@
   <MoveDialog v-else-if="dialog === 'm'" :entities @complete="refresh" />
   
   <!-- Confirmation dialogs -->
-  <RemoveDialog v-if="dialog === 'remove'" v-model="dialog" :entities @success="$router.push({ name: 'Home' })" />
+  <RemoveDialog v-if="dialog === 'remove'" v-model="dialog" :entities @success="$router.push({ name: 'writer-home' })" />
   
   <InfoDialog v-else-if="dialog === 'i'" v-model="dialog" :entity :emitter />
   <SearchDialog v-if="dialog === 'search'" v-model="dialog" />
 </template>
 <script setup>
 import { ref, watch, computed } from 'vue'
-import emitter from '@/emitter'
+import emitter from '@/apps/writer/emitter'
 
-import { ShareDialog, MoveDialog, InfoDialog, RenameDialog } from '@/ui/drive'
+import { ShareDialog, MoveDialog, InfoDialog, RenameDialog } from '@/apps/writer/ui/drive'
 import RemoveDialog from './RemoveDialog.vue'
 import SearchDialog from './SearchDialog.vue'
 

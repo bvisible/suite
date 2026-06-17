@@ -7,7 +7,7 @@ from urllib.parse import quote, unquote
 
 import frappe
 
-from mail.storage.base_store import BaseStore
+from suite.mail.storage.base_store import BaseStore
 
 
 class BlobStore(BaseStore):

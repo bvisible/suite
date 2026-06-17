@@ -4,7 +4,7 @@
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from meet.api.meeting import get_sfu_connection_details
+from suite.meet.api.meeting import get_sfu_connection_details
 
 
 class IntegrationTestMeetingApi(IntegrationTestCase):

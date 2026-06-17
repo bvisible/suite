@@ -4,9 +4,9 @@ import {
 	presentationId,
 	hasStateChanged,
 	savePresentationDoc,
-} from '@/stores/presentation'
-import { slides } from '@/stores/slide'
-import { cloneObj } from '@/utils/helpers'
+} from '@/apps/slides/stores/presentation'
+import { slides } from '@/apps/slides/stores/slide'
+import { cloneObj } from '@/apps/slides/utils/helpers'
 
 const DB_NAME = 'slides-db'
 const DB_VERSION = 1

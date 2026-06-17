@@ -28,16 +28,16 @@
 <script setup>
 import { computed, onBeforeMount, inject, ref } from 'vue'
 
-import SlideshowText from '@/components/SlideshowText.vue'
+import SlideshowText from '@/apps/slides/components/SlideshowText.vue'
 
 import { EditorContent, generateHTML } from '@tiptap/vue-3'
 
-import { useTextEditor } from '@/composables/useTextEditor'
+import { useTextEditor } from '@/apps/slides/composables/useTextEditor'
 
-import { focusElementId, activeElement, activeElementIds, setEditableState } from '@/stores/element'
-import { isAffectedByMagicMove } from '@/stores/transition'
-import { extensions } from '@/stores/tiptapSetup'
-import { slideIndex } from '@/stores/slide'
+import { focusElementId, activeElement, activeElementIds, setEditableState } from '@/apps/slides/stores/element'
+import { isAffectedByMagicMove } from '@/apps/slides/stores/transition'
+import { extensions } from '@/apps/slides/stores/tiptapSetup'
+import { slideIndex } from '@/apps/slides/stores/slide'
 
 const { activeEditor, baseFontSize } = useTextEditor()
 

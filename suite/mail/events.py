@@ -6,10 +6,10 @@ from frappe.core.doctype.user.user import _get_user_for_update_password
 from frappe.core.doctype.user.user import update_password as update_frappe_password
 from frappe.model.document import Document
 
-from mail.stalwart import delete_account as delete_stalwart_account
-from mail.stalwart import update_password as update_stalwart_password
-from mail.utils import execute_with_logging, is_stalwart_configured
-from mail.utils.user import is_jmap_configured
+from suite.mail.stalwart import delete_account as delete_stalwart_account
+from suite.mail.stalwart import update_password as update_stalwart_password
+from suite.mail.utils import execute_with_logging, is_stalwart_configured
+from suite.mail.utils.user import is_jmap_configured
 
 
 def create_user_settings(doc: Document, method: str | None = None) -> None:

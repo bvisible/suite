@@ -6,7 +6,7 @@ from uuid import uuid7
 import frappe
 from frappe.model.document import Document
 
-from mail.jmap import parse_account
+from suite.mail.jmap import parse_account
 
 
 class BlockedEmailAddress(Document):
@@ -20,12 +20,12 @@ class BlockedEmailAddress(Document):
 		self.validate_duplicate_email()
 
 	def after_insert(self) -> None:
-		from mail.api.sieve import update_sieve_script_for_blocked_emails
+		from suite.mail.api.sieve import update_sieve_script_for_blocked_emails
 
 		update_sieve_script_for_blocked_emails(self.account)
 
 	def after_delete(self) -> None:
-		from mail.api.sieve import update_sieve_script_for_blocked_emails
+		from suite.mail.api.sieve import update_sieve_script_for_blocked_emails
 
 		update_sieve_script_for_blocked_emails(self.account)
 

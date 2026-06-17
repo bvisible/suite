@@ -1,7 +1,7 @@
 <template>
   <div
     ref="scrollContainer"
-    class="sticky hidden md:flex flex-col gap-8 justify-start self-stretch px-5 bg-surface-white w-72"
+    class="sticky hidden md:flex flex-col gap-8 justify-start self-stretch px-5 bg-surface-base w-72"
   >
     <slot />
     <template
@@ -29,7 +29,7 @@
               activeComment = null
           }
         "
-        class="absolute rounded shadow w-64 comment-group scroll-m-24 bg-surface-white dark:border"
+        class="absolute rounded shadow w-64 comment-group scroll-m-24 bg-surface-base dark:border"
         :class="[
           activeComment === comment.id && 'shadow-xl ',
           comment.top
@@ -127,7 +127,7 @@
               <div class="w-8 flex justify-center">
                 <Avatar
                   size="xl"
-                  class="bg-surface-white"
+                  class="bg-surface-base"
                   :label="$user(reply.owner)?.full_name || reply.owner"
                   :image="$user(reply.owner)?.user_image"
                 />
@@ -292,16 +292,23 @@ import {
   onBeforeUnmount,
   nextTick,
 } from 'vue'
-import { Avatar, Button, Dropdown } from 'frappe-ui'
-import { formatDate } from '@/utils/format'
-import { dynamicList } from '@/utils/'
+import { Avatar, Button, Dropdown, onOutsideClickDirective as vOnOutsideClick } from 'frappe-ui'
+import { formatDate } from '@/apps/writer/utils/format'
+import { dynamicList } from '@/apps/writer/utils/'
 import { v4 } from 'uuid'
 import { useDebounceFn, useEventListener } from '@vueuse/core'
 import LucideX from '~icons/lucide/x'
+import LucideCheck from '~icons/lucide/check'
+import LucideMessageCircleCode from '~icons/lucide/message-circle-code'
 import LucideMoreVertical from '~icons/lucide/more-vertical'
-import store from '@/store'
+import store from '@/apps/writer/store'
+import { useUsers } from '@/apps/writer/composables/useUsers'
 import CommentEditor from './CommentEditor.vue'
-import { rebuild, getEditorPos } from '@/extensions/comments'
+import { rebuild, getEditorPos } from '@/apps/writer/extensions/comments'
+
+// Template compat: standalone app exposed `$store` (Vuex) and `$user` globals.
+const $store = store
+const { getUser: $user } = useUsers()
 
 const props = defineProps({
   file: Object,

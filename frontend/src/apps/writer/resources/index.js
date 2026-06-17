@@ -1,8 +1,8 @@
 import { useList, createResource, useCall } from 'frappe-ui'
-import { prettyData } from '@/utils'
+import { prettyData } from '@/apps/writer/utils'
 
 export const getDocuments = useList({
-  url: '/api/method/writer.api.general.get_document_list',
+  url: '/api/method/suite.writer.api.general.get_document_list',
   start: 0,
   limit: 50,
   immediate: false,
@@ -14,7 +14,7 @@ export const getDocuments = useList({
 
 export const createDocument = createResource({
   method: 'POST',
-  url: 'writer.api.docs.create_document',
+  url: 'suite.writer.api.docs.create_document',
   makeParams: (params) => params,
 })
 
@@ -26,13 +26,13 @@ export const getTemplates = useList({
 })
 
 export const search = createResource({
-  url: '/api/method/writer.api.general.search',
+  url: '/api/method/suite.writer.api.general.search',
   method: 'GET',
   makeParams: (params) => params,
 })
 
 export const updateComments = createResource({
-  url: 'writer.api.docs.save_comments',
+  url: 'suite.writer.api.docs.save_comments',
   method: 'POST',
   makeParams: (params) => params,
 })

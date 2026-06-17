@@ -14,7 +14,7 @@ import frappe
 # file is missing — keeps things working in dev where vite serves the SPA
 # itself and there's no build output here at all.
 
-_ASSET_BASE = "/assets/sheets/sheets/"
+_ASSET_BASE = "/assets/suite/sheets/sheets/"
 _ASSET_CACHE = None
 _ASSET_CACHE_MTIME = None
 
@@ -22,7 +22,7 @@ _ASSET_CACHE_MTIME = None
 def _read_asset_manifest() -> dict:
     global _ASSET_CACHE, _ASSET_CACHE_MTIME
     path = os.path.join(
-        frappe.get_app_path("sheets"),
+        frappe.get_app_path("suite", "sheets"),
         "public", "sheets", ".vite", "manifest.json",
     )
     try:

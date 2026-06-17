@@ -1,21 +1,21 @@
-import router from '@/router'
-import store from '@/store'
-import { formatSize } from '@/utils/format'
+import router from '@/apps/drive/router'
+import store from '@/apps/drive/store'
+import { formatSize } from '@/apps/drive/utils/format'
 import { nextTick } from 'vue'
 import { useTimeAgo } from '@vueuse/core'
-import { getFileLink } from '@/ui/drive/js/utils'
+import { getFileLink } from '@/apps/drive/ui/drive/js/utils'
 import {
   getRecents,
   mutate,
   createDocument,
   getDocuments,
-} from '@/resources/files'
-import { getTeams, getPublicTeams } from '@/resources/files'
+} from '@/apps/drive/resources/files'
+import { getTeams, getPublicTeams } from '@/apps/drive/resources/files'
 import { set } from 'idb-keyval'
 import slugify from 'slugify'
-import { toast } from '@/utils/toasts.js'
+import { toast } from '@/apps/drive/utils/toasts.js'
 import { useFileUpload, toast as nToast } from 'frappe-ui'
-import emitter from '@/emitter'
+import emitter from '@/apps/drive/emitter'
 
 export const WRITER_CONTENT_DOCTYPE = 'Writer Document'
 export const PRESENTATION_CONTENT_DOCTYPE = 'Presentation'
@@ -58,7 +58,7 @@ export const openEntity = (entity, new_tab = false) => {
   // attached_to_name drills into a single document; otherwise into a doctype.
   if (isVirtual(entity)) {
     return router.push({
-      name: 'Attachments',
+      name: 'drive-Attachments',
       params: entity.attached_to_name
         ? {
             doctype: entity.attached_to_doctype,
@@ -94,12 +94,12 @@ export const openEntity = (entity, new_tab = false) => {
   // hm?
   if (entity.name === '') {
     router.push({
-      name: entity.is_private ? 'Home' : 'Team',
+      name: entity.is_private ? 'drive-Home' : 'drive-Team',
       params: { team },
     })
   } else if (entity.is_folder) {
     router.push({
-      name: 'Folder',
+      name: 'drive-Folder',
       params: { entityName: entity.name },
     })
   } else if (entity.file_type === 'Link') {
@@ -119,7 +119,7 @@ export const openEntity = (entity, new_tab = false) => {
     window.location.href = '/writer/w/' + entity.name
   } else {
     router.push({
-      name: 'File',
+      name: 'drive-File',
       params: { entityName: entity.name },
     })
   }
@@ -248,14 +248,14 @@ export const setBreadCrumbs = (entity) => {
     res = [
       {
         label: __('Attachments'),
-        name: 'Attachments',
-        route: { name: 'Attachments' },
+        name: 'drive-Attachments',
+        route: { name: 'drive-Attachments' },
       },
       {
         label: entity.attached_to_doctype,
         name: entity.attached_to_doctype,
         route: {
-          name: 'Attachments',
+          name: 'drive-Attachments',
           params: { doctype: entity.attached_to_doctype },
         },
       },
@@ -265,7 +265,7 @@ export const setBreadCrumbs = (entity) => {
         label: entity.attached_to_name,
         name: entity.attached_to_name,
         route: {
-          name: 'Attachments',
+          name: 'drive-Attachments',
           params: {
             doctype: entity.attached_to_doctype,
             docname: entity.attached_to_name,
@@ -279,26 +279,26 @@ export const setBreadCrumbs = (entity) => {
     res = [
       {
         label: in_home ? __('Home') : team.title,
-        name: in_home ? 'Home' : team.name,
+        name: in_home ? 'drive-Home' : team.name,
         route: in_home
-          ? { name: 'Home' }
-          : { name: 'Team', params: { team: team.name } },
+          ? { name: 'drive-Home' }
+          : { name: 'drive-Team', params: { team: team.name } },
       },
     ]
   } else if (entity.folder === 'Home/Attachments' || entity.folder === 'Home') {
     res = [
       {
         label: __('Shared'),
-        name: 'Shared',
-        route: '/shared',
+        name: 'drive-Shared',
+        route: '/drive/shared',
       },
     ]
   } else if (store.getters.isLoggedIn) {
     res = [
       {
         label: __('Shared'),
-        name: 'Shared',
-        route: '/?shared=1',
+        name: 'drive-Shared',
+        route: '/drive?shared=1',
       },
     ]
   }
@@ -317,7 +317,7 @@ export const setBreadCrumbs = (entity) => {
         : popBreadcrumbs(folder),
       route: final
         ? null
-        : { name: 'Folder', params: { entityName: folder.name } },
+        : { name: 'drive-Folder', params: { entityName: folder.name } },
     })
   })
   store.commit('setBreadcrumbs', res)
@@ -518,7 +518,7 @@ export function getLink(entity, copy = true, withDomain = true) {
     if (err.name === 'NotAllowedError') {
       toast({
         icon: 'alert-triangle',
-        iconClasses: 'text-ink-red-3',
+        iconClasses: 'text-ink-red-6',
         title: 'Clipboard permission denied',
         position: 'bottom-right',
       })
@@ -534,14 +534,14 @@ export function dynamicList(k) {
 
 export const setTitle = (file_name) =>
   (document.title =
-    (router.currentRoute.value.name === 'Folder' ? 'Folder - ' : '') +
+    (router.currentRoute.value.name === 'drive-Folder' ? 'Folder - ' : '') +
     file_name)
 
 async function uploadImage(file, params) {
   const uploader = useFileUpload()
   const upload = uploader.upload(file, {
     params,
-    upload_endpoint: '/api/method/drive.api.files.upload_file',
+    upload_endpoint: '/api/method/suite.drive.api.files.upload_file',
   })
   let entity = await new Promise((resolve) => {
     upload.then((data) => {
@@ -560,11 +560,11 @@ export const pasteObj = (e) => {
       .find((item) => item.type.includes('image'))
       ?.getAsFile()
     const route = router.currentRoute.value
-    if (file && ['Home', 'Folder', 'Team'].includes(route.name)) {
+    if (file && ['drive-Home', 'drive-Folder', 'drive-Team'].includes(route.name)) {
       const entity = uploadImage(file, {
         team: route.params.team,
         parent: route.params.entityName || '',
-        personal: store.state.breadcrumbs[0].name === 'Home' ? 1 : 0,
+        personal: store.state.breadcrumbs[0].name === 'drive-Home' ? 1 : 0,
         total_file_size: file.size,
         file_modified: file.lastModified,
       })

@@ -1,5 +1,5 @@
 <template>
-	<div class="bg-surface-white fixed inset-0 z-10 flex flex-col">
+	<div class="bg-surface-base fixed inset-0 z-10 flex flex-col">
 		<div class="sticky top-0 flex items-center border-b px-3 py-2.5">
 			<Button variant="ghost" class="mr-2" @click="emit('close')">
 				<template #icon>
@@ -7,7 +7,7 @@
 				</template>
 			</Button>
 
-			<h2 class="text-lg font-semibold leading-5">{{ __('Settings') }}</h2>
+			<h2 class="text-xl-semibold leading-5">{{ __('Settings') }}</h2>
 		</div>
 
 		<div class="px-3 py-4">
@@ -40,7 +40,7 @@ import { computed, ref } from 'vue'
 import { ChevronLeft } from 'lucide-vue-next'
 import { Button, LoadingIndicator, Switch, createResource } from 'frappe-ui'
 
-import { raiseToast } from '@/utils'
+import { raiseToast } from '@/apps/mail/utils'
 
 const emit = defineEmits(['close'])
 
@@ -90,7 +90,7 @@ const enablePushNotifications = async () => {
 }
 
 const isPushNotificationRelayEnabled = createResource({
-	url: 'mail.api.account.is_push_notification_relay_enabled',
+	url: 'suite.mail.api.account.is_push_notification_relay_enabled',
 	cache: 'mail:push_notifications_enabled',
 	auto: true,
 })

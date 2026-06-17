@@ -9,7 +9,7 @@
 			class="h-16 w-16"
 		/>
 		<div class="mx-4 flex flex-col">
-			<span class="text-xl font-semibold">{{ user.data.full_name }}</span>
+			<span class="text-3xl-semibold">{{ user.data.full_name }}</span>
 			<span class="text-ink-gray-6 text-base">{{ user.data.email }}</span>
 		</div>
 		<Button :label="__('Edit Photo')" class="ml-auto" @click="showEditPhoto = true" />
@@ -36,9 +36,9 @@
 import { inject, ref } from 'vue'
 import { Avatar, Button, ErrorMessage, FormControl, createResource } from 'frappe-ui'
 
-import { raiseToast } from '@/utils'
-import ChangePasswordModal from '@/components/Modals/ChangePasswordModal.vue'
-import EditPhotoModal from '@/components/Modals/EditPhotoModal.vue'
+import { raiseToast } from '@/apps/mail/utils'
+import ChangePasswordModal from '@/apps/mail/components/Modals/ChangePasswordModal.vue'
+import EditPhotoModal from '@/apps/mail/components/Modals/EditPhotoModal.vue'
 
 const user = inject('$user')
 

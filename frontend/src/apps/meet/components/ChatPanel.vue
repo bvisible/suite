@@ -13,7 +13,7 @@
 				data-testid="chat-panel"
 			>
 				<div class="flex items-center justify-between p-4 border-b border-gray-200">
-					<div class="text-gray-900 text-base font-medium">Chat</div>
+					<div class="text-gray-900 text-base-medium">Chat</div>
 					<lucide-x
 						@click="$emit('close')"
 						class="w-4 h-4 text-gray-900 cursor-pointer hover:text-gray-600"

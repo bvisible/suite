@@ -17,7 +17,7 @@
 import { computed, ref, watch } from 'vue'
 import { Dialog, FormControl } from 'frappe-ui'
 
-import { userStore } from '@/stores/user'
+import { userStore } from '@/apps/mail/stores/user'
 
 const show = defineModel<boolean>()
 

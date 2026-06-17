@@ -15,7 +15,7 @@
 <script setup>
 import { computed } from 'vue'
 
-import SlideElement from '@/components/SlideElement.vue'
+import SlideElement from '@/apps/slides/components/SlideElement.vue'
 
 const props = defineProps({
 	slide: { type: Object, required: true },

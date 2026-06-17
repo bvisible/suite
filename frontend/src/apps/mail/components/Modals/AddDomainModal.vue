@@ -47,7 +47,7 @@ import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Dialog, ErrorMessage, FormControl, createResource } from 'frappe-ui'
 
-import { raiseToast } from '@/utils'
+import { raiseToast } from '@/apps/mail/utils'
 
 const show = defineModel<boolean>()
 const router = useRouter()
@@ -66,7 +66,7 @@ watch(show, () => {
 })
 
 const addDomain = createResource({
-	url: 'mail.api.admin.add_domain',
+	url: 'suite.mail.api.admin.add_domain',
 	makeParams: () => ({
 		name: domainName.value,
 		description: domainDescription.value?.trim() || undefined,
@@ -77,7 +77,7 @@ const addDomain = createResource({
 		show.value = false
 		emit('reloadDomains')
 		raiseToast(__('Domain added.'))
-		router.push({ name: 'Domain', params: { domainId: data } })
+		router.push({ name: 'mail-domain', params: { domainId: data } })
 	},
 })
 </script>

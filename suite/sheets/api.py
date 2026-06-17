@@ -1,7 +1,7 @@
 import frappe
 
-from sheets.sheets.doctype.sheet.storage import decode_sheets_data
-from sheets.versioning import save as save_mod
+from suite.sheets.doctype.sheet.storage import decode_sheets_data
+from suite.sheets.versioning import save as save_mod
 
 MAX_TITLE_LEN = 280
 

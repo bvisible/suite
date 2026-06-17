@@ -32,7 +32,7 @@ KIND_VIRTUAL = "virtual"
 
 def is_site_file(entity):
     """Site files live outside any Drive team; they defer to framework storage & perms."""
-    team = entity.get("team") if isinstance(entity, dict) else entity.team
+    team = entity.get("team") if isinstance(entity, dict) else getattr(entity, "team", None)
     return not team
 
 

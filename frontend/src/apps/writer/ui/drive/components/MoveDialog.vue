@@ -3,7 +3,7 @@
     <template #body-main>
       <div class="p-4 sm:px-6">
         <div class="flex w-full justify-between gap-x-15 mb-4">
-          <div class="font-semibold text-2xl flex text-nowrap overflow-hidden">
+          <div class=" text-4xl-semibold flex text-nowrap overflow-hidden">
             <template v-if="props.entities.length > 1">
               Moving {{ props.entities.length }} items
             </template>
@@ -75,7 +75,7 @@
                           ? 'bg-surface-gray-3'
                           : 'hover:bg-surface-gray-2',
                         entities[0].folder === node.value
-                          ? 'cursor-not-allowed hover:bg-surface-white'
+                          ? 'cursor-not-allowed hover:bg-surface-base'
                           : 'group',
                       ]"
                     >
@@ -224,6 +224,7 @@ import {
   Input,
   LoadingIndicator,
   toast,
+  focusDirective as vFocus,
 } from 'frappe-ui'
 import { move, getTeams } from '../js/resources'
 
@@ -287,7 +288,7 @@ const tabs = [
 ]
 
 const folderContents = createResource({
-  url: 'drive.api.list.files',
+  url: 'suite.drive.api.list.files',
   makeParams: (params) => ({
     ...params,
     team: chosenTeam.value,
@@ -321,7 +322,7 @@ const fetchFolderContents = (tree, params = {}, nested = false) => {
 }
 
 const selectedPerms = createResource({
-  url: 'drive.api.permissions.get_entity_with_permissions',
+  url: 'suite.drive.api.permissions.get_entity_with_permissions',
   makeParams: () => ({
     entity_name: selected.value,
   }),
@@ -391,7 +392,7 @@ const dropDownBreadcrumbs = computed(() => {
 // New folder logic
 const createdNode = ref(null)
 const createFolder = createResource({
-  url: 'drive.api.files.create_folder',
+  url: 'suite.drive.api.files.create_folder',
   makeParams(params) {
     return {
       ...params,

@@ -1,0 +1,2 @@
+import{Ct as e,_ as t,z as n}from"./vue.runtime.esm-bundler-BJEHSJCG.js";import{n as r,v as i}from"./log-out-DhLITmn4.js";import{t as a}from"./GenericPage-CVp7ZTLy.js";var o={__name:`Trash`,setup(o){return(o,s)=>(n(),t(a,{"get-entities":e(i),empty:{icon:e(r),title:`Trash is empty`,description:`Trashed files will show up here - you can restore them.`}},null,8,[`get-entities`,`empty`]))}};export{o as default};
+//# sourceMappingURL=Trash-DIGt3_Lr.js.map

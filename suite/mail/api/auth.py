@@ -1,8 +1,8 @@
 import frappe
 from frappe import _
 
-from mail.utils.rate_limiter import dynamic_rate_limit
-from mail.utils.user import (
+from suite.mail.utils.rate_limiter import dynamic_rate_limit
+from suite.mail.utils.user import (
 	get_account_emails,
 	get_user_personal_account,
 	is_jmap_configured,

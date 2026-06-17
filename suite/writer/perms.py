@@ -1,5 +1,5 @@
 import frappe
-from drive.api.permissions import user_has_permission
+from suite.drive.api.permissions import user_has_permission
 
 
 def has_permission(doc, ptype, user=None):

@@ -1,5 +1,5 @@
-import { slides, slideIndex, currentSlide } from '@/stores/slide'
-import { generateUniqueId } from '@/utils/helpers'
+import { slides, slideIndex, currentSlide } from '@/apps/slides/stores/slide'
+import { generateUniqueId } from '@/apps/slides/utils/helpers'
 import { editElementCommand } from './commands'
 
 const canCreateTextConnection = (currentContent, nextContent) => {

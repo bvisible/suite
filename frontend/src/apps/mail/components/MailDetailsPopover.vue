@@ -16,9 +16,9 @@
 import { ChevronDown } from 'lucide-vue-next'
 import { Popover } from 'frappe-ui'
 
-import MailDetails from '@/components/MailDetails.vue'
+import MailDetails from '@/apps/mail/components/MailDetails.vue'
 
-import type { Mail } from '@/types'
+import type { Mail } from '@/apps/mail/types'
 
 defineProps<{ mail: Mail }>()
 </script>

@@ -52,8 +52,8 @@ import { reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Dialog, FormControl, MultiSelect, createResource } from 'frappe-ui'
 
-import { raiseToast } from '@/utils'
-import { userStore } from '@/stores/user'
+import { raiseToast } from '@/apps/mail/utils'
+import { userStore } from '@/apps/mail/stores/user'
 
 const show = defineModel<boolean>()
 
@@ -72,12 +72,12 @@ const defaultContact = {
 const contact = reactive({ ...defaultContact })
 
 const createContact = createResource({
-	url: 'mail.client.doctype.contact_card.contact_card.add_contact_card',
+	url: 'suite.client.doctype.contact_card.contact_card.add_contact_card',
 	makeParams: () => contact,
 	onSuccess: (data: string) => {
 		raiseToast(__('Contact created.'))
 		show.value = false
-		router.push({ name: 'Contact', params: { contactName: data } })
+		router.push({ name: 'mail-contact', params: { contactName: data } })
 	},
 	onError: (error) => raiseToast(error.message, 'error'),
 })

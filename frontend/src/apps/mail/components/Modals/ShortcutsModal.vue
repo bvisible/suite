@@ -4,7 +4,7 @@
 			<div class="grid max-h-[75vh] w-full grid-cols-2 gap-10 overflow-y-auto py-1">
 				<div v-for="(column, index) in shortcutGroups" :key="index">
 					<div v-for="group in column" :key="group.title" class="pb-8">
-						<h2 class="text-ink-gray-8 mb-4 text-lg font-semibold">
+						<h2 class="text-ink-gray-8 mb-4 text-xl-semibold">
 							{{ group.title }}
 						</h2>
 						<ul class="space-y-2">
@@ -39,8 +39,8 @@
 import { computed } from 'vue'
 import { Dialog } from 'frappe-ui'
 
-import { isMac } from '@/utils'
-import { type MailboxRole, userStore } from '@/stores/user'
+import { isMac } from '@/apps/mail/utils'
+import { type MailboxRole, userStore } from '@/apps/mail/stores/user'
 
 const { mailboxes } = userStore()
 

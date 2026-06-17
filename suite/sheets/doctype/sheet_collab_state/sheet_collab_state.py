@@ -6,7 +6,7 @@ base64; only the collab server (Hocuspocus) decodes it. Frappe never
 interprets the bytes.
 
 Read and written exclusively by the internal collab endpoints in
-`sheets.api` — Desk access is reserved for System Managers so an
+`suite.sheets.api` — Desk access is reserved for System Managers so an
 operator can inspect / wipe stuck rows during incidents.
 """
 

@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from mail.jmap import parse_account
+from suite.mail.jmap import parse_account
 
 
 class MailSyncHistory(Document):

@@ -9,14 +9,14 @@ from frappe.query_builder.functions import Max
 from frappe.utils import cint
 from pypika import Case, Order
 
-from mail.api.utils import get_avatar_url
-from mail.stalwart import create_domain as create_stalwart_domain
-from mail.stalwart import delete_domain as delete_stalwart_domain
-from mail.stalwart import get_domains as get_stalwart_domains
-from mail.utils import execute_with_logging, get_config
-from mail.utils.dns import parse_dns_zone_file
-from mail.utils.rate_limiter import dynamic_rate_limit
-from mail.utils.user import is_mail_admin, is_system_manager
+from suite.mail.api.utils import get_avatar_url
+from suite.mail.stalwart import create_domain as create_stalwart_domain
+from suite.mail.stalwart import delete_domain as delete_stalwart_domain
+from suite.mail.stalwart import get_domains as get_stalwart_domains
+from suite.mail.utils import execute_with_logging, get_config
+from suite.mail.utils.dns import parse_dns_zone_file
+from suite.mail.utils.rate_limiter import dynamic_rate_limit
+from suite.mail.utils.user import is_mail_admin, is_system_manager
 
 
 def _get_stalwart_domain(domain_id: str) -> dict:

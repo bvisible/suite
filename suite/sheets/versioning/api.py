@@ -1,6 +1,6 @@
 """Whitelisted v2 versioning endpoints.
 
-Public surface (all under /api/method/sheets.versioning.api.*):
+Public surface (all under /api/method/suite.sheets.versioning.api.*):
 
   * timeline(sheet, tz_offset_minutes)        — first-page bucketed listing
   * timeline_page(sheet, bucket, cursor)      — paginated bucket fetch
