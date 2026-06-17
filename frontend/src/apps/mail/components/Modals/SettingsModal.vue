@@ -1,0 +1,155 @@
+<template>
+	<Dialog v-model="show" :options="{ title: __('Settings'), size: '4xl' }">
+		<template #body>
+			<div class="flex" :style="{ height: 'calc(100vh - 9rem)' }">
+				<div class="bg-surface-menu-bar flex w-52 shrink-0 flex-col border-r p-4 py-3">
+					<h1 class="px-2 text-xl leading-6">{{ __('Settings') }}</h1>
+					<div class="mt-3 space-y-1">
+						<button
+							v-for="tab in tabs"
+							:key="tab.label"
+							class="flex h-7 w-full items-center gap-2 rounded px-2 py-1"
+							:class="[
+								activeTab.label == tab.label
+									? 'bg-surface-gray-3'
+									: 'hover:bg-surface-gray-2',
+							]"
+							@click="activeTab = tab"
+						>
+							<component
+								:is="tab.icon"
+								class="text-ink-gray-6 h-4 w-4 stroke-[1.5]"
+							/>
+							<span class="text-ink-gray-7 text-base"> {{ tab.label }} </span>
+						</button>
+					</div>
+				</div>
+				<div class="flex flex-1 flex-col space-y-5 overflow-y-auto p-12">
+					<component :is="activeTab.component" v-if="activeTab" />
+				</div>
+				<Button
+					class="absolute right-0 my-3 mr-4"
+					variant="ghost"
+					icon="x"
+					@click="show = false"
+				/>
+			</div>
+		</template>
+	</Dialog>
+</template>
+<script setup lang="ts">
+import { computed, inject, markRaw, ref } from 'vue'
+import {
+	Ban,
+	Code,
+	Feather,
+	Fingerprint,
+	Folders,
+	HardDriveDownload,
+	HardDriveUpload,
+	Mailbox,
+	Palette,
+	TreePalm,
+	User,
+	Zap,
+} from 'lucide-vue-next'
+import { Button, Dialog } from 'frappe-ui'
+
+import { userStore } from '@/stores/user'
+import AccountSettings from '@/components/Settings/AccountSettings.vue'
+import AdvancedSettings from '@/components/Settings/AdvancedSettings.vue'
+import AppearanceSettings from '@/components/Settings/AppearanceSettings.vue'
+import AutomationSettings from '@/components/Settings/AutomationSettings.vue'
+import BlockListSettings from '@/components/Settings/BlockListSettings.vue'
+import ExportSettings from '@/components/Settings/ExportSettings.vue'
+import FolderSettings from '@/components/Settings/FolderSettings.vue'
+import IdentitySettings from '@/components/Settings/IdentitySettings.vue'
+import ImportSettings from '@/components/Settings/ImportSettings.vue'
+import ProfileSettings from '@/components/Settings/ProfileSettings.vue'
+import SignatureSettings from '@/components/Settings/SignatureSettings.vue'
+import VacationResponseSettings from '@/components/Settings/VacationResponseSettings.vue'
+
+const show = defineModel<boolean>()
+
+const store = userStore()
+const user = inject('$user')
+
+const tabs = computed(() => {
+	const allTabs = [
+		{
+			label: __('Profile'),
+			icon: User,
+			component: markRaw(ProfileSettings),
+		},
+		{
+			label: __('Account'),
+			icon: Mailbox,
+			component: markRaw(AccountSettings),
+			condition:
+				user.data.is_jmap_configured &&
+				store.account === user.data.accounts.find((a) => a.is_personal)?.name,
+		},
+		{
+			label: __('Identity'),
+			icon: Fingerprint,
+			component: markRaw(IdentitySettings),
+			condition: user.data.is_jmap_configured,
+		},
+		{
+			label: __('Appearance'),
+			icon: Palette,
+			component: markRaw(AppearanceSettings),
+		},
+		{
+			label: __('Folders'),
+			icon: Folders,
+			component: markRaw(FolderSettings),
+			condition: user.data.is_jmap_configured,
+		},
+		{
+			label: __('Signatures'),
+			icon: Feather,
+			component: markRaw(SignatureSettings),
+			condition: user.data.is_jmap_configured,
+		},
+		{
+			label: __('Vacation Response'),
+			icon: TreePalm,
+			component: markRaw(VacationResponseSettings),
+			condition: user.data.is_jmap_configured,
+		},
+		{
+			label: __('Automation'),
+			icon: Zap,
+			component: markRaw(AutomationSettings),
+			condition: user.data.is_jmap_configure,
+		},
+		{
+			label: __('Block List'),
+			icon: Ban,
+			component: markRaw(BlockListSettings),
+			condition: user.data.is_jmap_configured,
+		},
+		{
+			label: __('Import'),
+			icon: HardDriveDownload,
+			component: markRaw(ImportSettings),
+			condition: user.data.is_jmap_configured,
+		},
+		{
+			label: __('Export'),
+			icon: HardDriveUpload,
+			component: markRaw(ExportSettings),
+			condition: user.data.is_jmap_configured,
+		},
+		{
+			label: __('Advanced'),
+			icon: Code,
+			component: markRaw(AdvancedSettings),
+			condition: user.data.is_jmap_configured,
+		},
+	]
+	return allTabs.filter((tab) => tab.condition === undefined || tab.condition)
+})
+const activeTab = ref(tabs.value[0])
+</script>

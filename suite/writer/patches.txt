@@ -1,0 +1,5 @@
+[pre_model_sync]
+
+[post_model_sync]
+writer.patches.change_versioning_schema
+writer.patches.autopopulate_html

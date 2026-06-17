@@ -1,0 +1,76 @@
+<template>
+  <template v-for="row in rows" :key="row.name">
+    <ListRow
+      :row="row"
+      class="group"
+      :class="[
+        row.name === selectedName || selections.has(row.name)
+          ? 'bg-surface-gray-2 hover:!bg-surface-gray-3'
+          : 'bg-surface-white',
+        draggedItem === row.name ? 'opacity-60 hover:shadow-none' : '',
+        dragOverItem === row.name ? '!bg-surface-gray-3' : '',
+      ]"
+      :draggable="true"
+      @contextmenu="(e) => !selections.size && contextMenu(e, row)"
+      @click="!isModKey($event) && !selections.size && open(row)"
+      @dragstart="
+        (e) => {
+          draggedItem = row.name
+          e.dataTransfer?.setData('application/x-filename', draggedItem)
+        }
+      "
+      @dragend="draggedItem = null"
+      @dragover="
+        (e) => {
+          if (row.is_folder) {
+            e.preventDefault()
+            dragOverItem = row.name
+          }
+        }
+      "
+      @dragleave="dragOverItem = null"
+      @drop="
+        $emit(
+          'dropped',
+          row,
+          $event.dataTransfer.getData('application/x-filename')
+        )
+      "
+    >
+      <template #default="{ idx, column, item }">
+        <CustomListRowItem
+          :column="column"
+          :row="row"
+          :item="item"
+          :idx="idx"
+          :context-menu="!selections.size && contextMenu"
+        />
+      </template>
+    </ListRow>
+  </template>
+</template>
+<script setup>
+import { ListRow } from 'frappe-ui'
+import CustomListRowItem from './CustomListRowItem.vue'
+import { openEntity, isModKey } from '@/utils/files'
+import { useRoute } from 'vue-router'
+import { useStore } from 'vuex'
+import { computed, ref } from 'vue'
+
+defineProps({
+  rows: Array,
+  contextMenu: Function,
+  selections: Set,
+})
+defineEmits(['dropped'])
+
+const draggedItem = ref()
+const dragOverItem = ref()
+
+const route = useRoute()
+const store = useStore()
+
+// Used as right-click doesn't trigger active in frappe-ui
+const selectedName = computed(() => store.state.activeEntity?.name)
+const open = (row) => route.name !== 'Trash' && openEntity(row)
+</script>

@@ -1,0 +1,45 @@
+<template>
+	<FrappeUIProvider>
+		<router-view v-slot="{ Component }">
+			<keep-alive :max="5">
+				<component :is="Component" />
+			</keep-alive>
+		</router-view>
+	</FrappeUIProvider>
+</template>
+
+<script setup>
+import { onMounted, h, ref, provide } from 'vue'
+import { FrappeUIProvider, toast } from 'frappe-ui'
+
+import { Wifi, WifiOff } from 'lucide-vue-next'
+import { saveCurrentState } from '@/stores/saving'
+
+const isOnline = ref(false)
+
+const handleLostConnection = () => {
+	isOnline.value = false
+	toast.create({
+		message: 'Lost internet connection.',
+		icon: h(WifiOff, { color: 'white' }),
+	})
+}
+
+const handleConnectionRestored = () => {
+	isOnline.value = true
+	saveCurrentState()
+	toast.create({
+		message: 'You are back online.',
+		icon: h(Wifi, { color: 'white' }),
+	})
+}
+
+onMounted(() => {
+	isOnline.value = navigator?.onLine
+
+	window.addEventListener('online', handleConnectionRestored)
+	window.addEventListener('offline', handleLostConnection)
+})
+
+provide('isOnline', isOnline)
+</script>

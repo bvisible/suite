@@ -1,0 +1,172 @@
+<template>
+	<div class="flex flex-col gap-1">
+		<div :class="fieldLabelClasses">{{ label }}</div>
+		<div class="flex cursor-pointer items-center justify-between">
+			<div class="relative me-3 h-8 w-full">
+				<div
+					class="absolute top-0 h-0.5 rounded-lg border border-gray-300 bg-gray-300"
+					:style="sliderStyles"
+				></div>
+				<input
+					class="slider absolute top-0 cursor-pointer"
+					:class="{
+						'!cursor-grabbing': isDragging,
+					}"
+					type="range"
+					:min="rangeStart"
+					:max="rangeEnd"
+					:step="rangeStep"
+					:value="sliderValue"
+					@input="$emit('update:modelValue', $event.target.value)"
+					@mousedown="handleSliderMouseDown"
+					@mouseup="handleSliderMouseUp"
+					@mouseleave="isDragging = false"
+				/>
+				<div
+					class="absolute top-0 h-0.5 rounded border border-black bg-black"
+					:style="highlightStyles"
+				></div>
+			</div>
+			<input
+				v-if="showInput"
+				type="number"
+				class="h-[25px] w-10 rounded border border-gray-400 px-1 py-0 text-center text-sm focus:border-[1.5px] focus:border-gray-500 focus:ring-0"
+				:value="sliderValue"
+				@change="changeValue"
+			/>
+		</div>
+	</div>
+</template>
+
+<script setup>
+import { ref, useTemplateRef, computed } from 'vue'
+import { fieldLabelClasses } from '@/utils/constants'
+
+const props = defineProps({
+	label: String,
+	rangeStart: Number,
+	rangeEnd: Number,
+	rangeStep: {
+		type: Number,
+		default: 1,
+	},
+	showInput: {
+		type: Boolean,
+		default: true,
+	},
+})
+
+const sliderValue = defineModel()
+
+const emit = defineEmits(['update:modelValue', 'sliderdown', 'sliderup'])
+
+const sliderBar = useTemplateRef('slider')
+
+const isDragging = ref(false)
+
+const changeValue = (e) => {
+	const value = parseFloat(e.target.value)
+	emit('update:modelValue', Math.max(props.rangeStart, Math.min(props.rangeEnd, value)))
+}
+
+const highlightStyles = computed(() => {
+	const { rangeStart, rangeEnd } = props
+
+	const val = parseFloat(sliderValue.value)
+
+	let left = 0
+	let width = 0
+
+	if (rangeStart < 0) {
+		left = Math.abs(rangeStart)
+		if (val <= 0) left -= Math.abs(val)
+		width = Math.abs(val)
+	} else {
+		left = 0
+		width = val - rangeStart
+	}
+
+	return {
+		left: `${(left / (rangeEnd - rangeStart)) * 100}%`,
+		width: `${(width / (rangeEnd - rangeStart)) * 100}%`,
+		top: `calc(50% - 1px)`,
+	}
+})
+
+const sliderStyles = computed(() => {
+	return {
+		left: '0',
+		width: '100%',
+		top: `calc(50% - 1px)`,
+	}
+})
+
+const handleSliderMouseDown = () => {
+	isDragging.value = true
+	emit('sliderdown')
+}
+
+const handleSliderMouseUp = () => {
+	if (isDragging.value) {
+		isDragging.value = false
+		emit('sliderup')
+	}
+}
+</script>
+<style scoped>
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+input[type='number'] {
+	-moz-appearance: textfield;
+}
+
+.slider {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	width: 100%;
+	height: 32px;
+	background: transparent;
+	outline: none;
+	-webkit-transition: 0.2s;
+	transition: opacity 0.2s;
+	border-radius: 10px;
+}
+
+.slider:hover {
+	opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 10px;
+	height: 10px;
+	background: #000000;
+	border-radius: 50%;
+	cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 10px;
+	height: 10px;
+	background: #000000;
+	border-radius: 50%;
+	border: none;
+}
+
+.slider:hover::-webkit-slider-thumb {
+	transform: scale(1.1);
+	transition: transform 0.2s;
+}
+
+.slider:hover::-moz-range-thumb {
+	transform: scale(1.1);
+	transition: transform 0.2s;
+}
+</style>
