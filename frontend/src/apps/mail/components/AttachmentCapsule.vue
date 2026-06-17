@@ -27,8 +27,8 @@
 import { ref } from 'vue'
 import { Download, Loader } from 'lucide-vue-next'
 
-import { getAttachmentUrl } from '@/resources'
-import { downloadUrlAsFile, getFileIcon } from '@/utils'
+import { getAttachmentUrl } from '@/apps/mail/resources'
+import { downloadUrlAsFile, getFileIcon } from '@/apps/mail/utils'
 
 const { fileName, blobID, type } = defineProps<{
 	fileName: string

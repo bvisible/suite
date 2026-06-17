@@ -3,12 +3,11 @@
 </template>
 <script setup>
 import { ref, onMounted, onBeforeUnmount, inject, watch } from 'vue'
-import { useStore } from 'vuex'
+import store from '@/apps/drive/store'
 import { useRoute } from 'vue-router'
 import Dropzone from 'dropzone'
-import { storageBar } from '@/resources/files'
+import { storageBar } from '@/apps/drive/resources/files'
 
-const store = useStore()
 const route = useRoute()
 defineEmits(['success'])
 
@@ -18,7 +17,7 @@ const emitter = inject('emitter')
 
 watch(route, (to) => {
   if (!dropzone.value) return
-  if (to.name === 'Document' || to.name === 'File') {
+  if (to.name === 'drive-Document' || to.name === 'drive-File') {
     dropzone.value.removeEventListeners()
   } else {
     dropzone.value.setupEventListeners()
@@ -29,7 +28,7 @@ function doesRootFolderFullPathExist(k, file_parent) {
   const url =
     window.location.origin +
     '/api/method/' +
-    `drive.api.files.does_entity_exist?name=${k}&folder=${file_parent}`
+    `suite.drive.api.files.does_entity_exist?name=${k}&folder=${file_parent}`
 
   const xhr = new XMLHttpRequest()
   // third parameter false for a synchronous request
@@ -48,7 +47,7 @@ function rootFolderFullPathNewName(k, file_parent) {
   const url =
     window.location.origin +
     '/api/method/' +
-    `drive.api.files.get_new_title?title=${k}&parent_name=${file_parent}&folder=${true}`
+    `suite.drive.api.files.get_new_title?title=${k}&parent_name=${file_parent}&folder=${true}`
 
   const xhr = new XMLHttpRequest()
   xhr.open('GET', url, false) // Here i am seeting third parameter as false for a synchronous request
@@ -113,7 +112,7 @@ onMounted(() => {
     hiddenInputContainer: '#fileSelection',
     // Do we want to allow multi uploads?
     chunking: true,
-    url: '/api/method/drive.api.files.upload_file',
+    url: '/api/method/suite.drive.api.files.upload_file',
     dictUploadCanceled: 'Upload canceled by user',
     maxFilesize: 10 * 1024, // 10GB
     timeout: 120000, // 2 minutes

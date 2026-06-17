@@ -17,7 +17,7 @@
 			required
 		/>
 		<div clas="!mt-2">
-			<router-link class="text-sm hover:underline" to="/reset-password">
+			<router-link class="text-sm hover:underline" :to="{ name: 'mail-forgot-password' }">
 				{{ __('Forgot password?') }}
 			</router-link>
 		</div>
@@ -25,7 +25,7 @@
 		<Button variant="solid" :loading="login.loading" :label="__('Log In')" type="submit" />
 	</form>
 	<div v-if="Number(signupSettings.data?.allow_signup)" class="mt-6 text-center">
-		<router-link class="text-center text-base font-medium hover:underline" to="/signup">
+		<router-link class="text-center text-base-medium hover:underline" :to="{ name: 'mail-signup' }">
 			{{ __('New member? Create an account.') }}
 		</router-link>
 	</div>
@@ -34,12 +34,12 @@
 import { ref } from 'vue'
 import { Button, ErrorMessage, FormControl, createResource } from 'frappe-ui'
 
-import { sessionStore } from '@/stores/session'
+import { sessionStore } from '@/apps/mail/stores/session'
 
 const { login } = sessionStore()
 
 const usr = ref('')
 const pwd = ref('')
 
-const signupSettings = createResource({ url: 'mail.api.get_signup_settings', auto: true })
+const signupSettings = createResource({ url: 'suite.mail.api.get_signup_settings', auto: true })
 </script>

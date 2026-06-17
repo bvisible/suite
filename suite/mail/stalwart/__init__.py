@@ -3,7 +3,7 @@ from frappe import _
 from frappe.utils import random_string
 from frappe.utils.caching import redis_cache
 
-from mail.stalwart.account import (
+from suite.mail.stalwart.account import (
 	Account,
 	AccountService,
 	Credential,
@@ -14,12 +14,12 @@ from mail.stalwart.account import (
 	StorageQuota,
 	UserRoles,
 )
-from mail.stalwart.app_password import AppPassword, AppPasswordService
-from mail.stalwart.domain import Domain, DomainService
-from mail.stalwart.role import RoleService
-from mail.utils import get_config, is_stalwart_configured
-from mail.utils.dt import utcnow
-from mail.utils.user import get_user_personal_account
+from suite.mail.stalwart.app_password import AppPassword, AppPasswordService
+from suite.mail.stalwart.domain import Domain, DomainService
+from suite.mail.stalwart.role import RoleService
+from suite.mail.utils import get_config, is_stalwart_configured
+from suite.mail.utils.dt import utcnow
+from suite.mail.utils.user import get_user_personal_account
 
 
 def _resolve_alias(alias: str) -> tuple[str, str]:

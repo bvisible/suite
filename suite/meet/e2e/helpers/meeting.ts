@@ -11,7 +11,7 @@ export async function createMeetingViaApi(
 	request: APIRequestContext,
 	meetingType: MeetingType = "open",
 ): Promise<string> {
-	const response = await request.post("/api/method/meet.api.meeting.create", {
+	const response = await request.post("/api/method/suite.meet.api.meeting.create", {
 		data: {
 			meeting_type: meetingType,
 		},
@@ -38,7 +38,7 @@ export async function clearMeetingCreateRateLimit(
 	request: APIRequestContext,
 ): Promise<void> {
 	await request.post(
-		"/api/method/meet.api.test_helpers.clear_create_rate_limit",
+		"/api/method/suite.meet.api.test_helpers.clear_create_rate_limit",
 		{ data: {} },
 	);
 }

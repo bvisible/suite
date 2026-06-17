@@ -1,21 +1,21 @@
 <template>
   <div
-    class="text-ink-gray-8 flex flex-col items-start fixed bottom-0 right-0 m-5 w-96 z-1 rounded-2xl overflow-hidden shadow-2xl border border-outline-gray-1 bg-surface-white p-4"
+    class="text-ink-gray-8 flex flex-col items-start fixed bottom-0 right-0 m-5 w-96 z-1 rounded-2xl overflow-hidden shadow-2xl border border-outline-gray-1 bg-surface-base p-4"
   >
     <div
       class="flex items-center justify-between w-full pr-1.5"
       :class="[collapsed ? 'cursor-pointer' : 'mb-4']"
       @click="collapsed = false"
     >
-      <div v-if="uploadsInProgress.length > 0" class="font-medium truncate text-lg">
+      <div v-if="uploadsInProgress.length > 0" class=" truncate text-xl-medium">
         Uploading {{ uploadsInProgress.length }}
         {{ uploadsInProgress.length == 1 ? 'file' : 'files' }}
       </div>
-      <div v-else-if="uploadsCompleted.length > 0" class="font-medium truncate text-lg">
+      <div v-else-if="uploadsCompleted.length > 0" class=" truncate text-xl-medium">
         {{ uploadsCompleted.length }}
         {{ uploadsCompleted.length == 1 ? 'file' : 'files' }} uploaded
       </div>
-      <div v-else-if="uploadsFailed.length > 0" class="font-medium truncate text-lg">
+      <div v-else-if="uploadsFailed.length > 0" class=" truncate text-xl-medium">
         {{ uploadsFailed.length }}
         {{ uploadsFailed.length == 1 ? 'upload' : 'uploads' }} failed
       </div>
@@ -28,11 +28,11 @@
         </button>
       </div>
     </div>
-    <div v-if="!collapsed" class="max-h-64 overflow-y-auto bg-surface-white w-full">
+    <div v-if="!collapsed" class="max-h-64 overflow-y-auto bg-surface-base w-full">
       <div
         v-for="(upload, index) in currentTabGetter()"
         :key="upload.uuid"
-        class="cursor-pointer truncate hover:bg-surface-menu-bar rounded px-1 group"
+        class="cursor-pointer truncate hover:bg-surface-sidebar rounded px-1 group"
         @mouseover="hoverIndex = index"
         @mouseout="hoverIndex = null"
       >
@@ -92,15 +92,15 @@
   </div>
 </template>
 <script setup>
-import { Dialog } from 'frappe-ui'
-import ProgressRing from '@/components/ProgressRing.vue'
+import { Dialog, Button} from 'frappe-ui'
+import ProgressRing from '@/apps/drive/components/ProgressRing.vue'
 import LucideInfo from '~icons/lucide/info'
 import LucidePlus from '~icons/lucide/plus'
 import LucideMinus from '~icons/lucide/minus'
 import LucideFolderOpenDot from '~icons/lucide/folder-open-dot'
 import LucideX from '~icons/lucide/x'
 import LucideRefreshCcw from '~icons/lucide/refresh-ccw'
-import { useStore } from 'vuex'
+import store from '@/apps/drive/store'
 import { useRouter } from 'vue-router'
 import { ref, computed } from 'vue'
 
@@ -109,7 +109,6 @@ const showErrorDialog = ref(false)
 const hoverIndex = ref(null)
 const selectedUpload = ref(null)
 
-const store = useStore()
 const router = useRouter()
 
 const currentTabGetter = () => {
@@ -134,7 +133,7 @@ const openFile = (upload) => {
   }
   if (upload.completed && upload.response) {
     router.push({
-      name: 'File',
+      name: 'drive-File',
       params: { entityName: upload.response.name },
     })
   }

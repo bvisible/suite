@@ -18,7 +18,7 @@
 		v-model="customSelection"
 		:label="__('Custom Selection')"
 		:description="__('Apply filters to select specific emails for export.')"
-		class="hover:!bg-surface-white !cursor-default !p-0"
+		class="hover:!bg-surface-base !cursor-default !p-0"
 	/>
 	<template v-if="customSelection">
 		<FormControl
@@ -91,8 +91,8 @@
 import { computed, inject, onMounted, reactive, ref } from 'vue'
 import { Button, ErrorMessage, FormControl, Switch, createResource } from 'frappe-ui'
 
-import { getAttachmentOptions, getReadStatusOptions } from '@/constants'
-import { userStore } from '@/stores/user'
+import { getAttachmentOptions, getReadStatusOptions } from '@/apps/mail/constants'
+import { userStore } from '@/apps/mail/stores/user'
 
 const { account, mailboxes } = userStore()
 
@@ -131,7 +131,7 @@ const sortOptions = computed(() => [
 ])
 
 const createMailExport = createResource({
-	url: 'mail.api.account.create_mail_export',
+	url: 'suite.mail.api.account.create_mail_export',
 	makeParams: () => {
 		const cleanedFilter = Object.fromEntries(
 			Object.entries(filter)

@@ -20,11 +20,13 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import iframeResizerChildScript from '@iframe-resizer/child/index.umd.js?raw'
+// The package maps `./sfc` only via its (non-honored) `browser` field under
+// Vite 8/Rolldown, so import the concrete SFC file directly.
 // eslint-disable-next-line import/no-unresolved
-import IframeResizer from '@iframe-resizer/vue/sfc'
+import IframeResizer from '@iframe-resizer/vue/iframe-resizer.vue'
 import DOMPurify from 'dompurify'
 
-import { useTheme } from '@/utils/composables'
+import { useTheme } from '@/apps/mail/utils/composables'
 
 const { content } = defineProps<{ content: string }>()
 

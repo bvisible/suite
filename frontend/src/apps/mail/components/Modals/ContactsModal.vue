@@ -43,8 +43,8 @@ import {
 	createResource,
 } from 'frappe-ui'
 
-import { extractNameFromEmail } from '@/utils'
-import { userStore } from '@/stores/user'
+import { extractNameFromEmail } from '@/apps/mail/utils'
+import { userStore } from '@/apps/mail/stores/user'
 
 const show = defineModel<boolean>()
 
@@ -82,7 +82,7 @@ const search = ref('')
 const limit = ref(50)
 
 const contacts = createResource({
-	url: 'mail.api.contacts.get_contacts',
+	url: 'suite.mail.api.contacts.get_contacts',
 	auto: true,
 	makeParams: () => {
 		const filters = []

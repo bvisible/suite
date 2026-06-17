@@ -6,17 +6,17 @@ import frappe
 from frappe import _
 from frappe.utils import cint, convert_utc_to_system_timezone, create_batch, now
 
-from mail.api.auth import validate_user
-from mail.client.doctype.mail_message.mail_message import fetch_blobs, fetch_messages
-from mail.client.doctype.mail_sync_history.mail_sync_history import get_mail_sync_history
-from mail.jmap import get_mailbox_id_by_role
-from mail.utils import get_config
-from mail.utils.dt import convert_to_utc
-from mail.utils.rate_limiter import dynamic_rate_limit
-from mail.utils.user import get_user_personal_account
+from suite.mail.api.auth import validate_user
+from suite.client.doctype.mail_message.mail_message import fetch_blobs, fetch_messages
+from suite.client.doctype.mail_sync_history.mail_sync_history import get_mail_sync_history
+from suite.mail.jmap import get_mailbox_id_by_role
+from suite.mail.utils import get_config
+from suite.mail.utils.dt import convert_to_utc
+from suite.mail.utils.rate_limiter import dynamic_rate_limit
+from suite.mail.utils.user import get_user_personal_account
 
 if TYPE_CHECKING:
-	from mail.client.doctype.mail_sync_history.mail_sync_history import MailSyncHistory
+	from suite.client.doctype.mail_sync_history.mail_sync_history import MailSyncHistory
 
 
 @frappe.whitelist(methods=["GET"])
@@ -27,7 +27,7 @@ def fetch_blob(blob_id: str, as_bytes: bool = False) -> str | bytes:
 	validate_user()
 	account = get_user_personal_account(frappe.session.user, raise_exception=True)
 
-	from mail.client.doctype.mail_message.mail_message import fetch_blob as _fetch_blob
+	from suite.client.doctype.mail_message.mail_message import fetch_blob as _fetch_blob
 
 	blob = _fetch_blob(account, blob_id)
 	return blob if as_bytes else base64.b64encode(blob).decode("utf-8")

@@ -110,13 +110,13 @@ import {
 	usePageMeta,
 } from 'frappe-ui'
 
-import { extractNameFromEmail, raiseToast } from '@/utils'
-import { userStore } from '@/stores/user'
-import DashboardCard from '@/components/DashboardCard.vue'
-import DashboardLayout from '@/components/DashboardLayout.vue'
-import InformationField from '@/components/InformationField.vue'
-import AddAddressBookContactsModal from '@/components/Modals/AddAddressBookContactsModal.vue'
-import EditAddressBookModal from '@/components/Modals/EditAddressBookModal.vue'
+import { extractNameFromEmail, raiseToast } from '@/apps/mail/utils'
+import { userStore } from '@/apps/mail/stores/user'
+import DashboardCard from '@/apps/mail/components/DashboardCard.vue'
+import DashboardLayout from '@/apps/mail/components/DashboardLayout.vue'
+import InformationField from '@/apps/mail/components/InformationField.vue'
+import AddAddressBookContactsModal from '@/apps/mail/components/Modals/AddAddressBookContactsModal.vue'
+import EditAddressBookModal from '@/apps/mail/components/Modals/EditAddressBookModal.vue'
 
 const { accountId, addressBookName } = defineProps<{
 	accountId: string
@@ -134,7 +134,7 @@ const showRemoveContacts = ref(false)
 const addressBook = createDocumentResource({
 	doctype: 'Address Book',
 	name: `${store.account}|${addressBookName}`,
-	onError: () => router.replace({ name: 'AddressBooks', params: { accountId } }),
+	onError: () => router.replace({ name: 'mail-address-books', params: { accountId } }),
 	setValue: {
 		onSuccess: () => {
 			raiseToast(__('Address book updated.'))
@@ -151,7 +151,7 @@ const search = ref('')
 const limit = ref(50)
 
 const contacts = createResource({
-	url: 'mail.api.contacts.get_contact_cards',
+	url: 'suite.mail.api.contacts.get_contact_cards',
 	auto: true,
 	makeParams: () => ({
 		account: store.account,
@@ -173,7 +173,7 @@ const contacts = createResource({
 })
 
 const totalContacts = createResource({
-	url: 'mail.api.contacts.get_address_book_contact_count',
+	url: 'suite.mail.api.contacts.get_address_book_contact_count',
 	auto: true,
 	makeParams: () => ({ account: store.account, address_book: addressBookName }),
 	cache: ['addressBookContactCount', addressBookName],
@@ -203,13 +203,13 @@ const breadcrumbs = computed(() => [
 ])
 
 const deleteAddressBook = createResource({
-	url: 'mail.client.doctype.address_book.address_book.delete_address_books',
+	url: 'suite.client.doctype.address_book.address_book.delete_address_books',
 	makeParams: () => ({ account: store.account, ids: [addressBookName] }),
 	onSuccess: () => {
 		showDeleteAddressBook.value = false
 		raiseToast(__('Address book deleted.'))
 		store.addressBooks.reload()
-		router.push({ name: 'AddressBooks', params: { accountId } })
+		router.push({ name: 'mail-address-books', params: { accountId } })
 	},
 	onError: (error) => {
 		showDeleteAddressBook.value = false
@@ -220,7 +220,7 @@ const deleteAddressBook = createResource({
 const listView = useTemplateRef('listView')
 
 const addContacts = createResource({
-	url: 'mail.client.doctype.contact_card.contact_card.contact_card_add_to_address_book',
+	url: 'suite.client.doctype.contact_card.contact_card.contact_card_add_to_address_book',
 	makeParams: (ids) => ({ account: store.account, ids, address_book_id: addressBookName }),
 	onSuccess: () => {
 		raiseToast(__('Contacts added.'))
@@ -231,7 +231,7 @@ const addContacts = createResource({
 })
 
 const removeContacts = createResource({
-	url: 'mail.client.doctype.contact_card.contact_card.contact_card_remove_from_address_book',
+	url: 'suite.client.doctype.contact_card.contact_card.contact_card_remove_from_address_book',
 	makeParams: () => ({
 		account: store.account,
 		ids: Array.from(listView.value?.selections),
@@ -290,6 +290,6 @@ const LIST_COLUMNS = [
 const LIST_OPTIONS = {
 	showTooltip: false,
 	emptyState: { description: __('No contacts found.') },
-	getRowRoute: (row) => ({ name: 'Contact', params: { accountId, contactName: row.id } }),
+	getRowRoute: (row) => ({ name: 'mail-contact', params: { accountId, contactName: row.id } }),
 }
 </script>

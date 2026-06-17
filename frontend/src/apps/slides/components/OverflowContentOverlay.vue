@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import { slideBounds } from '@/stores/slide'
+import { slideBounds } from '@/apps/slides/stores/slide'
 import { computed } from 'vue'
 
 const maskStyles = computed(() => ({

@@ -45,7 +45,7 @@ import { inject } from 'vue'
 import { User } from 'lucide-vue-next'
 import { Button, Dialog, ErrorMessage, FileUploader, createResource } from 'frappe-ui'
 
-import { raiseToast } from '@/utils'
+import { raiseToast } from '@/apps/mail/utils'
 
 const show = defineModel<boolean>()
 

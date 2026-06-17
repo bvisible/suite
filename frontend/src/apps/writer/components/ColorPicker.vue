@@ -18,7 +18,7 @@
       />
     </template>
     <template #body>
-      <div ref="colorPicker" class="rounded-lg bg-surface-white p-3 shadow-lg dark:bg-zinc-900">
+      <div ref="colorPicker" class="rounded-lg bg-surface-base p-3 shadow-lg dark:bg-zinc-900">
         <div
           ref="colorMap"
           :style="{
@@ -117,7 +117,7 @@
   </Popover>
 </template>
 <script setup lang="ts">
-import { HSVToHex, HexToHSV, getRGB } from '@/utils/helpers'
+import { HSVToHex, HexToHSV, getRGB } from '@/apps/writer/utils/helpers'
 import { clamp, useEyeDropper } from '@vueuse/core'
 import { Popover } from 'frappe-ui'
 

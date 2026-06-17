@@ -25,12 +25,12 @@
 <script setup>
 import { inject } from 'vue'
 
-import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
-import SliderInput from '@/components/controls/SliderInput.vue'
+import CollapsibleSection from '@/apps/slides/components/controls/CollapsibleSection.vue'
+import SliderInput from '@/apps/slides/components/controls/SliderInput.vue'
 
-import { useTextEditor } from '@/composables/useTextEditor'
+import { useTextEditor } from '@/apps/slides/composables/useTextEditor'
 
-import { activeElement } from '@/stores/element'
+import { activeElement } from '@/apps/slides/stores/element'
 
 const setPropertyDeferred = inject('setPropertyDeferred')
 

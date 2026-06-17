@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-screen w-full overflow-hidden sm:bg-surface-menu-bar">
+  <div class="flex h-screen w-full overflow-hidden sm:bg-surface-sidebar">
     <div class="w-full overflow-auto">
       <div class="relative h-full">
         <div class="relative z-10 mx-auto pt-8 sm:w-max sm:pt-20">
@@ -7,10 +7,10 @@
             <FrappeDriveLogo class="inline-block h-12 w-12 rounded-md" />
           </div>
           <div
-            class="mx-auto w-full bg-surface-white p-5 sm:mt-6 sm:w-96 sm:rounded-xl sm:p-6 sm:shadow-md"
+            class="mx-auto w-full bg-surface-base p-5 sm:mt-6 sm:w-96 sm:rounded-xl sm:p-6 sm:shadow-md"
           >
             <h1
-              class="mb-5 text-center text-xl font-semibold text-ink-gray-9"
+              class="mb-5 text-center text-3xl-semibold text-ink-gray-9"
             >
               {{
                 params.get("t")
@@ -163,11 +163,11 @@
 </template>
 
 <script setup>
-import { createResource, ErrorMessage, FormControl } from "frappe-ui"
+import { createResource, ErrorMessage, FormControl, Button } from "frappe-ui"
 import { ref, onMounted, computed } from "vue"
-import FrappeDriveLogo from "@/components/FrappeDriveLogo.vue"
-import { toast } from "@/utils/toasts"
-import { settings } from "@/resources/permissions"
+import FrappeDriveLogo from "@/apps/drive/components/FrappeDriveLogo.vue"
+import { toast } from "@/apps/drive/utils/toasts"
+import { settings } from "@/apps/drive/resources/permissions"
 
 const params = new URLSearchParams(new URL(window.location.href).search)
 const email = ref(params.get("e") || "")
@@ -202,7 +202,7 @@ const getReferrerIfAny = () => {
 }
 
 const signup = createResource({
-  url: "drive.api.product.signup",
+  url: "suite.drive.api.product.signup",
   makeParams: () => ({
     account_request: account_request.value,
     first_name: first_name.value,
@@ -226,7 +226,7 @@ const signup = createResource({
 })
 
 const sendOTP = createResource({
-  url: "drive.api.product.send_otp",
+  url: "suite.drive.api.product.send_otp",
   onSuccess(data) {
     otpRequested.value = true
     otpResendCountdown.value = 30
@@ -236,7 +236,7 @@ const sendOTP = createResource({
 })
 
 const verifyOTP = createResource({
-  url: "drive.api.product.verify_otp",
+  url: "suite.drive.api.product.verify_otp",
   onSuccess: () => {
     otpValidated.value = true
     settings.fetch()

@@ -18,9 +18,9 @@
 
 <script setup lang="ts">
 import { computed, inject, ref } from 'vue'
-import { Button, FormControl, Switch, createResource } from 'frappe-ui'
+import { Button, FormControl, createResource } from 'frappe-ui'
 
-import { raiseToast } from '@/utils'
+import { raiseToast } from '@/apps/calendar/utils'
 
 const user = inject('$user')
 

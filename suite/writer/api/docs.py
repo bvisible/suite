@@ -6,17 +6,17 @@ import markdown
 from markdown.extensions.wikilinks import WikiLinkExtension
 import mimemapper
 
-from drive.utils import (
+from suite.drive.utils import (
     create_drive_file,
     default_team,
     get_home_folder,
 )
-from drive.api.files import get_new_title
-from drive.api.permissions import (
+from suite.drive.api.files import get_new_title
+from suite.drive.api.permissions import (
     user_has_permission,
     get_entity_with_permissions,
 )
-from drive.utils.files import FileManager, storage_key
+from suite.drive.utils.files import FileManager, storage_key
 
 # To be moved to mimemapper
 QUICK_MAP = {
@@ -106,7 +106,7 @@ def get_markdown_file(entity, return_obj):
     manager = FileManager()
     wrapper = io.TextIOWrapper(manager.get_file(entity))
     url_builder = (
-        lambda label, base, end: f"/api/method/writer.api.docs.get_wiki_link?team={entity.team}&title={label}"
+        lambda label, base, end: f"/api/method/suite.writer.api.docs.get_wiki_link?team={entity.team}&title={label}"
     )
     with wrapper as r:
         content = r.read()

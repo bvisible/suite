@@ -77,15 +77,15 @@ import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 
 import { call, usePageMeta } from 'frappe-ui'
 
-import ExportView from '@/pages/ExportView.vue'
-import EditorNavbar from '@/components/EditorNavbar.vue'
-import NavigationPanel from '@/components/NavigationPanel.vue'
-import PropertiesPanel from '@/components/PropertiesPanel.vue'
-import SlideContainer from '@/components/SlideContainer.vue'
-import Toolbar from '@/components/Toolbar.vue'
-import ThemeDialog from '@/components/ThemeDialog.vue'
-import LayoutDialog from '@/components/LayoutDialog.vue'
-import ThumbnailCapture from '@/components/ThumbnailCapture.vue'
+import ExportView from '@/apps/slides/pages/ExportView.vue'
+import EditorNavbar from '@/apps/slides/components/EditorNavbar.vue'
+import NavigationPanel from '@/apps/slides/components/NavigationPanel.vue'
+import PropertiesPanel from '@/apps/slides/components/PropertiesPanel.vue'
+import SlideContainer from '@/apps/slides/components/SlideContainer.vue'
+import Toolbar from '@/apps/slides/components/Toolbar.vue'
+import ThemeDialog from '@/apps/slides/components/ThemeDialog.vue'
+import LayoutDialog from '@/apps/slides/components/LayoutDialog.vue'
+import ThumbnailCapture from '@/apps/slides/components/ThumbnailCapture.vue'
 
 import {
 	presentationId,
@@ -100,7 +100,7 @@ import {
 	deletePresentation,
 	presentationTheme,
 	resetEditorState,
-} from '@/stores/presentation'
+} from '@/apps/slides/stores/presentation'
 import {
 	slides,
 	slideIndex,
@@ -112,20 +112,20 @@ import {
 	duplicateSlide,
 	addEmptySlide,
 	handleInsertSlide,
-} from '@/stores/slide'
-import { resetFocus, focusElementId } from '@/stores/element'
+} from '@/apps/slides/stores/slide'
+import { resetFocus, focusElementId } from '@/apps/slides/stores/element'
 import {
 	commandHistory,
 	setCommandHistory,
 	actions as historyMetaActions,
 	actionOrder as historyMetaActionOrder,
-} from '@/stores/historyMeta'
+} from '@/apps/slides/stores/historyMeta'
 
-import { useShortcuts } from '@/composables/useShortcuts'
-import { saveChanges, saveCurrentState, isDirty } from '@/stores/saving'
-import { inSlideShowMode, startSlideShow } from '@/stores/slideshow'
+import { useShortcuts } from '@/apps/slides/composables/useShortcuts'
+import { saveChanges, saveCurrentState, isDirty } from '@/apps/slides/stores/saving'
+import { inSlideShowMode, startSlideShow } from '@/apps/slides/stores/slideshow'
 import { Layout } from 'lucide-vue-next'
-import { useCommandHistory } from '@/composables/useCommandHistory'
+import { useCommandHistory } from '@/apps/slides/composables/useCommandHistory'
 
 const isDriveInstalled = inject('isDriveInstalled', false)
 
@@ -185,7 +185,7 @@ const handleAutoSave = () => {
 const updateRoute = async (slug) => {
 	if (props.slug == slug) return
 	router.replace({
-		name: 'PresentationEditor',
+		name: 'slides-editor',
 		params: { presentationId: presentationId.value, slug: slug },
 		query: { slide: slideIndex.value + 1 },
 	})
@@ -265,7 +265,7 @@ const handleBeforeUnmount = () => {
 	updateUnsyncedRecord()
 	clearInterval(autosaveInterval)
 
-	if (router.currentRoute.value.name !== 'Slideshow') {
+	if (router.currentRoute.value.name !== 'slides-slideshow') {
 		resetFocus()
 		saveCurrentState()
 	}
@@ -285,9 +285,9 @@ watch(
 watch(
 	() => route.name,
 	(name) => {
-		if (!['EditorNew', 'PresentationEditor'].includes(name)) return
+		if (!['slides-editor-new', 'slides-editor'].includes(name)) return
 		inReadonlyMode.value = props.editorAccess == 'view'
-		if (name === 'EditorNew') {
+		if (name === 'slides-editor-new') {
 			resetEditorState()
 			themeDialogAction.value = 'create'
 			showThemeDialog.value = true
@@ -330,15 +330,15 @@ provide('inReadonlyMode', inReadonlyMode)
 provide('inSlideShowMode', inSlideShowMode)
 
 const navigateToPresentation = async (name) => {
-	if (route.name === 'EditorNew') {
+	if (route.name === 'slides-editor-new') {
 		await router.replace({
-			name: 'PresentationEditor',
+			name: 'slides-editor',
 			params: { presentationId: name },
 			query: { slide: 1 },
 		})
 	} else {
 		await router.push({
-			name: 'PresentationEditor',
+			name: 'slides-editor',
 			params: { presentationId: name },
 			query: { slide: 1 },
 		})
@@ -359,7 +359,7 @@ const createPresentation = async (theme) => {
 
 	if (isDriveInstalled) {
 		const parent = route.query.parent || ''
-		call('slides.api.file.create_drive_file', {
+		call('suite.slides.api.file.create_drive_file', {
 			name: name,
 			parent: parent,
 		})
@@ -385,14 +385,14 @@ const updatePresentationTheme = async (theme) => {
 
 const performNavbarDropdownAction = async (action) => {
 	if (action == 'create') {
-		await router.push({ name: 'EditorNew' })
+		await router.push({ name: 'slides-editor-new' })
 	} else if (action == 'duplicate') {
 		const newPresentation = await duplicatePresentation(presentationId.value)
 		navigateToPresentation(newPresentation)
 	} else if (action == 'delete') {
 		await deletePresentation(presentationId.value)
 		unsyncedPresentationRecord.value = { name: presentationId.value, deleted: true }
-		router.push({ name: 'Home' })
+		router.push({ name: 'slides-home' })
 	} else if (action == 'updateTheme') {
 		themeDialogAction.value = 'update'
 		showThemeDialog.value = true

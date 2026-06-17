@@ -29,7 +29,7 @@
 
 			<!-- Center text -->
 			<div class="absolute inset-0 flex flex-col items-center justify-center space-y-1">
-				<div class="text-xl font-semibold">
+				<div class="text-3xl-semibold">
 					{{ quota ? `${quota.toFixed(2)} GB` : __('Unlimited') }}
 				</div>
 				<div class="text-ink-gray-4 text-xs">{{ __('Total Quota') }}</div>
@@ -40,9 +40,9 @@
 		<div class="flex flex-col gap-4">
 			<!-- Used Storage -->
 			<div class="flex items-start gap-3">
-				<span class="bg-surface-gray-6 mt-1 h-3 w-3 flex-shrink-0 rounded-sm" />
+				<span class="bg-surface-gray-9 mt-1 h-3 w-3 flex-shrink-0 rounded-sm" />
 				<div class="space-y-1">
-					<div class="text-sm font-medium">
+					<div class="text-sm-medium">
 						{{ usedQuota.toFixed(2) }} GB
 						<span v-if="quota">({{ usedPercentage.toFixed(1) }}%)</span>
 					</div>
@@ -54,7 +54,7 @@
 			<div v-if="quota" class="flex items-start gap-3">
 				<span class="bg-surface-gray-2 mt-1 h-3 w-3 flex-shrink-0 rounded-sm" />
 				<div class="space-y-1">
-					<div class="text-sm font-medium">
+					<div class="text-sm-medium">
 						{{ availableQuota.toFixed(2) }} GB ({{ availablePercentage.toFixed(1) }}%)
 					</div>
 					<div class="text-ink-gray-4 text-xs">{{ __('Available') }}</div>
@@ -67,7 +67,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 
-import { useTheme } from '@/utils/composables'
+import { useTheme } from '@/apps/mail/utils/composables'
 
 const { quota, usedQuota } = defineProps<{ quota: number; usedQuota: number }>()
 const { dataTheme } = useTheme()

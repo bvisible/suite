@@ -65,9 +65,9 @@
 import { computed, onActivated, onDeactivated, ref, useTemplateRef, watch, provide } from 'vue'
 import { useRouter } from 'vue-router'
 
-import SlideElement from '@/components/SlideElement.vue'
-import SlideshowEndScreen from '@/components/SlideshowEndScreen.vue'
-import FadeElementTransition from '@/components/FadeElementTransition.vue'
+import SlideElement from '@/apps/slides/components/SlideElement.vue'
+import SlideshowEndScreen from '@/apps/slides/components/SlideshowEndScreen.vue'
+import FadeElementTransition from '@/apps/slides/components/FadeElementTransition.vue'
 
 import {
 	inSlideShowMode,
@@ -75,11 +75,11 @@ import {
 	endSlideShow,
 	prefetchNextSlide,
 	changeSlideInSlideshow,
-} from '@/stores/slideshow'
+} from '@/apps/slides/stores/slideshow'
 
-import { applyReverseTransition, initPresentationDoc, inReadonlyMode } from '@/stores/presentation'
-import { currentSlide, setSlideIndex, slideIndex, slides } from '@/stores/slide'
-import { resetFocus } from '@/stores/element'
+import { applyReverseTransition, initPresentationDoc, inReadonlyMode } from '@/apps/slides/stores/presentation'
+import { currentSlide, setSlideIndex, slideIndex, slides } from '@/apps/slides/stores/slide'
+import { resetFocus } from '@/apps/slides/stores/element'
 
 const slideContainerRef = useTemplateRef('slideContainer')
 
@@ -298,7 +298,7 @@ const initFullscreenMode = async () => {
 
 	if (fullscreenMethod) {
 		fullscreenMethod.call(container).catch((e) => {
-			router.replace({ name: 'PresentationEditor' })
+			router.replace({ name: 'slides-editor' })
 		})
 	}
 }

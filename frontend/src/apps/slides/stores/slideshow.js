@@ -3,17 +3,17 @@ import {
 	applyReverseTransition,
 	isPublicPresentation,
 	presentationDoc,
-} from '@/stores/presentation'
-import { focusedSlide, slideIndex, slides, setSlideIndex } from '@/stores/slide'
+} from '@/apps/slides/stores/presentation'
+import { focusedSlide, slideIndex, slides, setSlideIndex } from '@/apps/slides/stores/slide'
 
-import { router } from '@/router'
-import { session } from '@/stores/session'
+import { router } from '@/apps/slides/router'
+import { session } from '@/apps/slides/stores/session'
 
 const inSlideShowMode = ref(false)
 
 const startSlideShow = () => {
 	router.replace({
-		name: 'Slideshow',
+		name: 'slides-slideshow',
 		params: router.currentRoute.value.params,
 		query: { slide: slideIndex.value + 1 },
 	})
@@ -26,7 +26,7 @@ const endSlideShow = () => {
 		slideIndex.value == slides.value.length ? slides.value.length : slideIndex.value + 1
 	setSlideIndex(slide)
 	router.replace({
-		name: 'PresentationEditor',
+		name: 'slides-editor',
 		params: router.currentRoute.value.params,
 		query: { slide: slide },
 	})
@@ -56,7 +56,7 @@ const getAssetUrl = (url) => {
 	if (presentationDoc.value?.owner === session.user || session.user === 'Administrator') {
 		return url
 	}
-	return `/api/method/slides.api.file.get_media_file?src=${encodeURIComponent(url)}&public=${isPublicPresentation.value}`
+	return `/api/method/suite.slides.api.file.get_media_file?src=${encodeURIComponent(url)}&public=${isPublicPresentation.value}`
 }
 
 const prefetchAsset = async (src, type) => {
@@ -117,7 +117,7 @@ const changeSlideInSlideshow = (index) => {
 
 	nextTick(() => {
 		router.replace({
-			name: 'Slideshow',
+			name: 'slides-slideshow',
 			params: router.currentRoute.value.params,
 			query: { slide: index + 1 },
 		})

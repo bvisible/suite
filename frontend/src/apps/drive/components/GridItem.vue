@@ -36,7 +36,7 @@
   <div
     class="p-2 h-[35%] border-t border-outline-gray-1 flex flex-col justify-evenly"
   >
-    <div class="truncate w-full w-fit text-base font-medium text-ink-gray-8">
+    <div class="truncate w-full w-fit text-base-medium text-ink-gray-8">
       {{ file.file_name }}
     </div>
     <div class="mt-[5px] text-xs text-ink-gray-5">
@@ -65,7 +65,7 @@
   </div>
 </template>
 <script setup>
-import { getIconUrl, getThumbnailUrl } from '@/utils/getIconUrl'
+import { getIconUrl, getThumbnailUrl } from '@/apps/drive/utils/getIconUrl'
 import { createResource } from 'frappe-ui'
 import { ref, computed } from 'vue'
 const props = defineProps({ file: Object })

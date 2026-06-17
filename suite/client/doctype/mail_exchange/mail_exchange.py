@@ -30,13 +30,13 @@ from frappe.utils import (
 	time_diff_in_seconds,
 )
 
-from mail.client.doctype.push_subscription.push_subscription import (
+from suite.client.doctype.push_subscription.push_subscription import (
 	freeze_jmap_push_notifications,
 	unfreeze_jmap_push_notifications,
 )
-from mail.jmap import get_email_service, parse_account
-from mail.jmap.services.mail.email import EmailService
-from mail.utils import (
+from suite.mail.jmap import get_email_service, parse_account
+from suite.mail.jmap.services.mail.email import EmailService
+from suite.mail.utils import (
 	compress_directory,
 	extract_compressed_file,
 	get_config,
@@ -45,8 +45,8 @@ from mail.utils import (
 	get_mbox_files,
 	reconnect_on_failure,
 )
-from mail.utils.dt import parse_iso_datetime
-from mail.utils.user import (
+from suite.mail.utils.dt import parse_iso_datetime
+from suite.mail.utils.user import (
 	clear_sync_state,
 	get_user_email_address,
 	is_administrator,
@@ -54,7 +54,7 @@ from mail.utils.user import (
 	is_mail_admin,
 	is_system_manager,
 )
-from mail.utils.validation import (
+from suite.mail.utils.validation import (
 	validate_jmap_structure,
 	validate_maildir_or_maildirpp,
 	validate_nested_maildir_tree,

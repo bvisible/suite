@@ -17,8 +17,8 @@
 services:
   # ── SFU Server ──────────────────────────────────────────────────────────────
   sfu:
-    image: ${SFU_IMAGE:-ghcr.io/frappe/meet/sfu-server:latest}
-    container_name: meet-sfu
+    image: ${SFU_IMAGE:-ghcr.io/frappe/suite/sfu-server:latest}
+    container_name: suite-sfu
     restart: unless-stopped
     network_mode: host
     environment:
@@ -50,7 +50,7 @@ services:
   # ── Nginx Reverse Proxy ─────────────────────────────────────────────────────
   nginx:
     image: nginx:1.27-alpine
-    container_name: meet-sfu-nginx
+    container_name: suite-sfu-nginx
     restart: unless-stopped
     # host networking: nginx binds directly to host ports 80/443.
     # No 'ports:' mapping needed (or allowed) with network_mode: host.
@@ -73,7 +73,7 @@ services:
   # ── Certbot (SSL certificates) ──────────────────────────────────────────────
   certbot:
     image: certbot/certbot:latest
-    container_name: meet-sfu-certbot
+    container_name: suite-sfu-certbot
     volumes:
       - certbot-webroot:/var/www/certbot
       - certbot-certs:/etc/letsencrypt

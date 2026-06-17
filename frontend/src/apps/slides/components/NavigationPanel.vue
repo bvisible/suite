@@ -49,18 +49,18 @@
 <script setup>
 import { ref, computed, watch, useTemplateRef, useAttrs, inject } from 'vue'
 
-import ThumbnailContainer from '@/components/ThumbnailContainer.vue'
+import ThumbnailContainer from '@/apps/slides/components/ThumbnailContainer.vue'
 
 import { useVirtualizer } from '@tanstack/vue-virtual'
-import { useNavigationPanel } from '@/composables/useNavigationPanel'
-import { useDragSort } from '@/composables/useDragSort'
+import { useNavigationPanel } from '@/apps/slides/composables/useNavigationPanel'
+import { useDragSort } from '@/apps/slides/composables/useDragSort'
 
-import { slides, slideIndex, focusedSlide } from '@/stores/slide'
-import { commandHistory } from '@/stores/historyMeta'
-import { reorderSlidesCommand } from '@/stores/commands'
-import { resetFocus } from '@/stores/element'
-import { slidesLength } from '@/stores/presentation'
-import { handleScrollBarWheelEvent } from '@/utils/helpers'
+import { slides, slideIndex, focusedSlide } from '@/apps/slides/stores/slide'
+import { commandHistory } from '@/apps/slides/stores/historyMeta'
+import { reorderSlidesCommand } from '@/apps/slides/stores/commands'
+import { resetFocus } from '@/apps/slides/stores/element'
+import { slidesLength } from '@/apps/slides/stores/presentation'
+import { handleScrollBarWheelEvent } from '@/apps/slides/utils/helpers'
 
 const attrs = useAttrs()
 

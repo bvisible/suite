@@ -6,8 +6,8 @@ from typing import ClassVar
 import frappe
 from frappe import _
 
-from mail.stalwart.account import Permissions
-from mail.stalwart.cli import StalwartCLI
+from suite.mail.stalwart.account import Permissions
+from suite.mail.stalwart.cli import StalwartCLI
 
 
 @dataclass

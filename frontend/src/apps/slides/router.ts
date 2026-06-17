@@ -1,110 +1,29 @@
-import { createRouter, createWebHistory, RouteLocationNormalized } from 'vue-router'
+import type { RouteLocationNormalized } from 'vue-router'
 
-import { createResource } from 'frappe-ui'
+import suiteRouter from '@/router'
 
-import { session } from '@/stores/session'
+/**
+ * Slides router compat shim.
+ *
+ * The standalone slides app had its own `createRouter` and exported
+ * `{ router, previousRoute, editorAccess }`. In the suite there is ONE router
+ * (mounted at '/', slides routes live under '/slides'); this shim re-exports
+ * that single instance as `router` so slides' module-singleton stores can keep
+ * calling `router.replace(...)` / `router.currentRoute`, and tracks the
+ * `previousRoute` + per-presentation `editorAccess` that slides' views read.
+ *
+ * The actual tracking/guard is installed from `routes.ts` (`installSlidesGuards`)
+ * which runs once the slides route module is lazy-loaded.
+ */
+export const router = suiteRouter
 
-const withPresentationProps = (route: RouteLocationNormalized) => {
-	const slide = parseInt(route.query.slide as string)
-	const activeSlideId = Number.isFinite(slide) ? slide : 1
+export let previousRoute: RouteLocationNormalized | null = null
+export let editorAccess = 'none'
 
-	return {
-		presentationId: route.params.presentationId,
-		activeSlideId: activeSlideId,
-		editorAccess: editorAccess,
-	}
+export function setPreviousRoute(route: RouteLocationNormalized | null) {
+  previousRoute = route
 }
 
-const routes = [
-	{
-		path: '/',
-		name: 'Home',
-		component: () => import('@/pages/Home.vue'),
-	},
-	{
-		path: '/presentation/new',
-		name: 'EditorNew',
-		component: () => import('@/pages/PresentationEditor.vue'),
-		props: withPresentationProps,
-	},
-	{
-		path: '/presentation/:presentationId/:slug?',
-		name: 'PresentationEditor',
-		component: () => import('@/pages/PresentationEditor.vue'),
-		props: withPresentationProps,
-	},
-	{
-		path: '/presentation/view/:presentationId/:slug?',
-		redirect: (route: RouteLocationNormalized) => ({ name: 'PresentationEditor', params: route.params, query: route.query }),
-	},
-	{
-		path: '/slideshow/:presentationId/:slug?',
-		name: 'Slideshow',
-		component: () => import('@/pages/Slideshow.vue'),
-		props: withPresentationProps,
-	},
-	{
-		path: '/not-permitted',
-		name: 'NotPermitted',
-		component: () => import('@/pages/errorPages/NotPermitted.vue'),
-	}
-]
-
-let router = createRouter({
-	history: createWebHistory('/slides'),
-	routes,
-})
-
-const getEditorAccess = async (presentationId: string) => {
-	try {
-		const response = await createResource({
-			url: "slides.slides.doctype.presentation.presentation.get_editor_access",
-			method: "GET",
-		}).submit({
-			doctype: "Presentation",
-			presentation_id: presentationId,
-		})
-		return response
-	} catch (error) {
-		console.error('Failed to fetch presentation access level:', error)
-		return false
-	}
+export function setEditorAccess(access: string) {
+  editorAccess = access
 }
-
-let previousRoute = null
-let editorAccess = "none"
-
-router.beforeEach(async (to, from, next) => {
-	previousRoute = from
-
-	const isLoggedIn = session.isLoggedIn
-
-	if (!['Slideshow', 'PresentationEditor', 'Home'].includes(to.name as string)) {
-		return next()
-	}
-
-	if (to.name === 'Slideshow' && !from.name) {
-		return next({ name: 'PresentationEditor', params: to.params, query: to.query } )
-	} else if (to.name === 'Slideshow') {
-		return next()
-	} else if (to.name === 'PresentationEditor') {
-		if (from.name != to.name || from.params.presentationId != to.params.presentationId) {
-			editorAccess = await getEditorAccess(to.params.presentationId as string)
-		}
-		if (['edit', 'view'].includes(editorAccess)) {
-			return next()
-		}
-		else {
-			return next({ name: 'NotPermitted' })
-		}
-	} else {
-		if (!isLoggedIn) {
-			if (to.path !== '/login') window.location.href = '/login?redirect-to=' + to.path
-			return next()
-		}
-
-		return next()
-	}
-})
-
-export { router, previousRoute, editorAccess }

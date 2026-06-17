@@ -23,7 +23,7 @@ from __future__ import annotations
 import frappe
 from frappe.utils import now_datetime
 
-from sheets.sheets.doctype.sheet.storage import (
+from suite.sheets.doctype.sheet.storage import (
 	decode_sheets_data,
 	effective_size,
 )
@@ -33,7 +33,7 @@ from sheets.sheets.doctype.sheet.storage import (
 #
 # Tuned for Google-Sheets parity: a snapshot every 25 edits or every 30
 # seconds of activity. The nightly tiered-retention pruner thins these
-# down over time, so storage stays bounded even for very active sheets.
+# down over time, so storage stays bounded even for very active suite.sheets.
 AUTO_SNAPSHOT_OPS = 25
 AUTO_SNAPSHOT_SECS = 30
 

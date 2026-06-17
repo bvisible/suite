@@ -28,7 +28,7 @@
           <LucideFolderClosed class="size-4" />
         </template>
       </FormControl>
-      <div v-if="createFolder.error" class="pt-4 text-base font-sm text-ink-red-3">
+      <div v-if="createFolder.error" class="pt-4 text-base font-sm text-ink-red-6">
         {{ createFolder.error.messages[0] }}
       </div>
     </template>
@@ -36,8 +36,9 @@
 </template>
 
 <script setup>
+import { default as vFocus } from '@/apps/drive/utils/focus'
 import { ref } from 'vue'
-import { Dialog, createResource } from 'frappe-ui'
+import { Dialog, createResource, FormControl} from 'frappe-ui'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
@@ -52,7 +53,7 @@ const open = ref(true)
 const folderName = ref('')
 
 const createFolder = createResource({
-  url: 'drive.api.files.create_folder',
+  url: 'suite.drive.api.files.create_folder',
   makeParams(file_name) {
     return {
       file_name,

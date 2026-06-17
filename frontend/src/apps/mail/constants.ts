@@ -29,7 +29,7 @@ export const FOLDER_ICON_COLOR_MAP = {
 }
 
 export const FOLDER_COLOR_MAP = {
-	Gray: 'bg-surface-gray-5',
+	Gray: 'bg-surface-gray-8',
 	Blue: 'bg-blue-500',
 	Green: 'bg-green-500',
 	Amber: 'bg-amber-500',

@@ -10,7 +10,7 @@
 		</header>
 		<div class="mx-auto my-5 rounded border p-12 sm:w-[60rem]">
 			<div class="flex items-center space-x-2">
-				<h1 class="text-xl !font-semibold">
+				<h1 class="text-3xl !font-semibold">
 					{{ __('Mail {0}', [__(mailExchange.data?.operation)]) }}
 				</h1>
 				<Badge
@@ -53,8 +53,8 @@ import { useRouter } from 'vue-router'
 import { Download } from 'lucide-vue-next'
 import { Badge, Breadcrumbs, Dropdown, createResource } from 'frappe-ui'
 
-import { formatBytes, getTheme } from '@/utils'
-import CopyCode from '@/components/CopyCode.vue'
+import { formatBytes, getTheme } from '@/apps/mail/utils'
+import CopyCode from '@/apps/mail/components/CopyCode.vue'
 
 const { id } = defineProps<{ id: string }>()
 
@@ -80,9 +80,9 @@ const mailExchange = createResource({
 		],
 	}),
 	onSuccess: (data) => {
-		if (!data?.operation) router.replace('/mail-exchanges')
+		if (!data?.operation) router.replace({ name: 'mail-exchanges' })
 	},
-	onError: () => router.replace('/mail-exchanges'),
+	onError: () => router.replace({ name: 'mail-exchanges' }),
 })
 
 const operationDetails = computed(() => {

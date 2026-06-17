@@ -1,6 +1,7 @@
 <script setup>
 import { NodeViewWrapper, NodeViewContent } from '@tiptap/vue-3'
 import { computed } from 'vue'
+import { focusDirective as vFocus } from 'frappe-ui'
 
 const props = defineProps({
   node: Object,

@@ -58,11 +58,11 @@ import {
 } from 'vue'
 import { useResizeObserver } from '@vueuse/core'
 
-import SnapGuides from '@/components/SnapGuides.vue'
-import SelectionBox from '@/components/SelectionBox.vue'
-import SlideElement from '@/components/SlideElement.vue'
-import DropTargetOverlay from '@/components/DropTargetOverlay.vue'
-import OverflowContentOverlay from '@/components/OverflowContentOverlay.vue'
+import SnapGuides from '@/apps/slides/components/SnapGuides.vue'
+import SelectionBox from '@/apps/slides/components/SelectionBox.vue'
+import SlideElement from '@/apps/slides/components/SlideElement.vue'
+import DropTargetOverlay from '@/apps/slides/components/DropTargetOverlay.vue'
+import OverflowContentOverlay from '@/apps/slides/components/OverflowContentOverlay.vue'
 
 import {
 	currentSlide,
@@ -70,7 +70,7 @@ import {
 	selectionBounds,
 	updateSelectionBounds,
 	slideIndex,
-} from '@/stores/slide'
+} from '@/apps/slides/stores/slide'
 
 import {
 	activeElementIds,
@@ -82,20 +82,20 @@ import {
 	duplicateElements,
 	activeElements,
 	addTextElement,
-} from '@/stores/element'
+} from '@/apps/slides/stores/element'
 
-import { commandHistory } from '@/stores/historyMeta'
+import { commandHistory } from '@/apps/slides/stores/historyMeta'
 
-import { handleCopy, handlePaste } from '@/stores/copyPaste'
+import { handleCopy, handlePaste } from '@/apps/slides/stores/copyPaste'
 
-import { useDragAndDrop } from '@/composables/useDragAndDrop'
-import { useResizer } from '@/composables/useResizer'
-import { useRotator } from '@/composables/useRotator'
-import { usePanAndZoom } from '@/composables/usePanAndZoom'
-import { useSnapping } from '@/composables/useSnapping'
-import { editElementCommand, batchCommand } from '@/stores/commands'
+import { useDragAndDrop } from '@/apps/slides/composables/useDragAndDrop'
+import { useResizer } from '@/apps/slides/composables/useResizer'
+import { useRotator } from '@/apps/slides/composables/useRotator'
+import { usePanAndZoom } from '@/apps/slides/composables/usePanAndZoom'
+import { useSnapping } from '@/apps/slides/composables/useSnapping'
+import { editElementCommand, batchCommand } from '@/apps/slides/stores/commands'
 
-import { isCmdOrCtrl } from '@/utils/helpers'
+import { isCmdOrCtrl } from '@/apps/slides/utils/helpers'
 
 const props = defineProps({
 	highlight: Boolean,

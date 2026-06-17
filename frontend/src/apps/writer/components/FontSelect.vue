@@ -24,7 +24,7 @@
 </template>
 <script setup>
 import { Combobox } from 'frappe-ui'
-import { FONT_FAMILIES } from '@/utils'
+import { FONT_FAMILIES } from '@/apps/writer/utils'
 
 const selected = defineModel()
 const props = defineProps({

@@ -17,9 +17,9 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue'
 
-import { getGroupedRecipients } from '@/utils'
+import { getGroupedRecipients } from '@/apps/mail/utils'
 
-import type { Mail } from '@/types'
+import type { Mail } from '@/apps/mail/types'
 
 const dayjs = inject('$dayjs')
 

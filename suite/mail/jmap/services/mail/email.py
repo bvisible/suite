@@ -2,13 +2,13 @@ from typing import ClassVar, Literal
 
 import frappe
 
-from mail import __version__
-from mail.jmap.models import EmailCreateModel, EmailRecipient
-from mail.jmap.services.core import CallIdGenerator
-from mail.jmap.services.mail.mail import MailService
-from mail.jmap.services.mail.mailbox import MailboxService
-from mail.jmap.services.mail.submission.email_submission import EmailSubmissionService
-from mail.utils.dt import convert_to_utc
+from suite import __version__
+from suite.mail.jmap.models import EmailCreateModel, EmailRecipient
+from suite.mail.jmap.services.core import CallIdGenerator
+from suite.mail.jmap.services.mail.mail import MailService
+from suite.mail.jmap.services.mail.mailbox import MailboxService
+from suite.mail.jmap.services.mail.submission.email_submission import EmailSubmissionService
+from suite.mail.utils.dt import convert_to_utc
 
 
 class EmailService(MailService):

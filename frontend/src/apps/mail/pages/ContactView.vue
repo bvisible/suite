@@ -226,16 +226,16 @@ import {
 	usePageMeta,
 } from 'frappe-ui'
 
-import { raiseToast } from '@/utils'
-import { userStore } from '@/stores/user'
-import DashboardCard from '@/components/DashboardCard.vue'
-import DashboardLayout from '@/components/DashboardLayout.vue'
-import InformationField from '@/components/InformationField.vue'
-import AddContactAddressBookModal from '@/components/Modals/AddContactAddressBookModal.vue'
-import AddContactAddressModal from '@/components/Modals/AddContactAddressModal.vue'
-import AddContactEmailModal from '@/components/Modals/AddContactEmailModal.vue'
-import AddContactPhoneModal from '@/components/Modals/AddContactPhoneModal.vue'
-import EditContactModal from '@/components/Modals/EditContactModal.vue'
+import { raiseToast } from '@/apps/mail/utils'
+import { userStore } from '@/apps/mail/stores/user'
+import DashboardCard from '@/apps/mail/components/DashboardCard.vue'
+import DashboardLayout from '@/apps/mail/components/DashboardLayout.vue'
+import InformationField from '@/apps/mail/components/InformationField.vue'
+import AddContactAddressBookModal from '@/apps/mail/components/Modals/AddContactAddressBookModal.vue'
+import AddContactAddressModal from '@/apps/mail/components/Modals/AddContactAddressModal.vue'
+import AddContactEmailModal from '@/apps/mail/components/Modals/AddContactEmailModal.vue'
+import AddContactPhoneModal from '@/apps/mail/components/Modals/AddContactPhoneModal.vue'
+import EditContactModal from '@/apps/mail/components/Modals/EditContactModal.vue'
 
 const { accountId, contactName } = defineProps<{ accountId: string; contactName: string }>()
 
@@ -260,7 +260,7 @@ const store = userStore()
 const contact = createDocumentResource({
 	doctype: 'Contact Card',
 	name: `${store.account}|${contactName}`,
-	onError: () => router.replace({ name: 'Contacts', params: { accountId } }),
+	onError: () => router.replace({ name: 'mail-contacts', params: { accountId } }),
 	setValue: {
 		onSuccess: () => raiseToast(__('Contact updated.')),
 		onError: (error) => {
@@ -271,12 +271,12 @@ const contact = createDocumentResource({
 })
 
 const deleteContact = createResource({
-	url: 'mail.client.doctype.contact_card.contact_card.delete_contact_cards',
+	url: 'suite.client.doctype.contact_card.contact_card.delete_contact_cards',
 	makeParams: () => ({ user: user.data.name, ids: [contact.doc.id] }),
 	onSuccess: () => {
 		showDeleteContact.value = false
 		raiseToast(__('Contact deleted.'))
-		router.push({ name: 'Contacts', params: { accountId } })
+		router.push({ name: 'mail-contacts', params: { accountId } })
 	},
 	onError: (error) => {
 		showDeleteContact.value = false

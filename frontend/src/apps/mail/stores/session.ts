@@ -2,8 +2,8 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { createResource } from 'frappe-ui'
 
-import router from '@/router'
-import { userStore } from '@/stores/user'
+import router from '@/apps/mail/router'
+import { userStore } from '@/apps/mail/stores/user'
 
 export const sessionStore = defineStore('mail-session', () => {
 	const { userResource, mailboxes } = userStore()
@@ -30,7 +30,7 @@ export const sessionStore = defineStore('mail-session', () => {
 			login.reset()
 
 			if (user.value === 'Administrator') window.location.replace('/app')
-			else router.replace('/')
+			else router.replace({ name: 'mail-root-shortcut' })
 		},
 	})
 
@@ -45,7 +45,7 @@ export const sessionStore = defineStore('mail-session', () => {
 	})
 
 	const branding = createResource({
-		url: 'mail.api.get_branding',
+		url: 'suite.mail.api.get_branding',
 		cache: 'brand',
 		auto: true,
 		onSuccess: (data) => (document.querySelector("link[rel='icon']").href = data.favicon),

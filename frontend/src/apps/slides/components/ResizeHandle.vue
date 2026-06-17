@@ -4,7 +4,7 @@
 <script setup>
 import { computed } from 'vue'
 
-import { slideBounds } from '@/stores/slide'
+import { slideBounds } from '@/apps/slides/stores/slide'
 
 const props = defineProps({
 	direction: {

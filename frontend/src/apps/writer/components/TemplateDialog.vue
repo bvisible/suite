@@ -51,7 +51,7 @@
                   <LucideFileText class="size-4 text-ink-gray-6" />
 
                   <div class="min-w-0 flex-1">
-                    <div class="truncate text-base font-medium text-ink-gray-7">
+                    <div class="truncate text-base-medium text-ink-gray-7">
                       {{ template.title }}
                     </div>
                   </div>
@@ -94,8 +94,8 @@
 import { ref, computed, watch, nextTick, useTemplateRef } from 'vue'
 import fuzzysort from 'fuzzysort'
 import { Dialog, TextInput } from 'frappe-ui'
-import { insertTemplate } from '@/utils'
-import { getTemplates } from '@/resources'
+import { insertTemplate } from '@/apps/writer/utils'
+import { getTemplates } from '@/apps/writer/resources'
 
 import LucideSearch from '~icons/lucide/search'
 import LucideFileText from '~icons/lucide/file-text'

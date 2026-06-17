@@ -5,7 +5,7 @@
 		:options="{ size: '2xl', paddingTop: '2%' }"
 	>
 		<template #body>
-			<div class="bg-surface-white">
+			<div class="bg-surface-base">
 				<div
 					class="flex items-center px-4 py-2"
 					:class="{ 'border-b': showAdvancedFilters || results?.data?.length }"
@@ -29,7 +29,7 @@
 					<div class="group">
 						<span
 							v-if="advancedFiltersLength"
-							class="bg-surface-gray-7 text-ink-gray-1 border-outline-white absolute right-4 top-3 flex h-3 w-3 items-center justify-center rounded-full border text-[6px] font-bold group-hover:invisible"
+							class="bg-surface-gray-10 text-ink-gray-1 border-outline-base absolute right-4 top-3 flex h-3 w-3 items-center justify-center rounded-full border text-[6px] font-bold group-hover:invisible"
 						>
 							{{ advancedFiltersLength }}
 						</span>
@@ -110,7 +110,7 @@
 						@click="openThread(result.thread_id)"
 					>
 						<div class="mr-2 space-y-1 truncate">
-							<p class="truncate text-base font-semibold">
+							<p class="truncate text-base-semibold">
 								{{ result.subject || __('[No subject]') }}
 							</p>
 							<p class="truncate text-sm">{{ getInterlocutors(result) }}</p>
@@ -163,13 +163,13 @@ import { watchDebounced } from '@vueuse/core'
 import { ChevronLeft, Paperclip, Search, SlidersHorizontal } from 'lucide-vue-next'
 import { Button, Dialog, FormControl, createResource } from 'frappe-ui'
 
-import { getAttachmentOptions, getReadStatusOptions } from '@/constants'
-import { getFormattedDate } from '@/utils'
-import { useScreenSize } from '@/utils/composables'
-import { userStore } from '@/stores/user'
-import SearchMobileLayout from '@/components/SearchMobileLayout.vue'
+import { getAttachmentOptions, getReadStatusOptions } from '@/apps/mail/constants'
+import { getFormattedDate } from '@/apps/mail/utils'
+import { useScreenSize } from '@/apps/mail/utils/composables'
+import { userStore } from '@/apps/mail/stores/user'
+import SearchMobileLayout from '@/apps/mail/components/SearchMobileLayout.vue'
 
-import type { Recipient } from '@/types'
+import type { Recipient } from '@/apps/mail/types'
 
 const show = defineModel<boolean>()
 
@@ -223,7 +223,7 @@ const mailboxOptions = computed(() =>
 )
 
 const results = createResource({
-	url: 'mail.api.mail.search_mails',
+	url: 'suite.mail.api.mail.search_mails',
 	makeParams: () => ({ account, filter: filteredFilter.value }),
 })
 
@@ -240,7 +240,7 @@ watchDebounced(
 )
 
 const openSearchPage = () => {
-	router.push({ name: 'Mailbox', params: { mailbox: 'search' }, query: filteredFilter.value })
+	router.push({ name: 'mail-mailbox', params: { mailbox: 'search' }, query: filteredFilter.value })
 	show.value = false
 }
 
@@ -248,7 +248,7 @@ const router = useRouter()
 
 const openThread = (threadID: string) => {
 	router.push({
-		name: 'Mail',
+		name: 'mail-mail',
 		params: { mailbox: 'search', threadID },
 		query: filteredFilter.value,
 	})

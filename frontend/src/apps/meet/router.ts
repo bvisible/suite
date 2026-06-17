@@ -1,78 +1,54 @@
-import type { RouteRecordRaw } from "vue-router";
-import { createRouter, createWebHistory } from "vue-router";
-import { userResource } from "@/data/user";
-import { session } from "./data/session";
+import type { RouteLocationNormalized, Router } from "vue-router";
 
-const routes: RouteRecordRaw[] = [
-	{
-		path: "/",
-		name: "Home",
-		component: () => import("@/pages/Home.vue"),
-	},
-	{
-		path: "/audio-test",
-		name: "AudioTest",
-		component: () => import("@/pages/AudioTest.vue"),
-		meta: { requiresAdmin: true },
-	},
-	{
-		path: "/:meetingId",
-		name: "Meeting",
-		component: () => import("@/pages/Meeting.vue"),
-		meta: { allowGuest: true },
-	},
-];
+import suiteRouter from "@/router";
 
-declare const __FRONTEND_ROUTE__: string;
+import { userResource } from "@/apps/meet/data/user";
 
-const router = createRouter({
-	history: createWebHistory(`${__FRONTEND_ROUTE__}/`),
-	routes,
-});
+/**
+ * Meet router compat + guard.
+ *
+ * The standalone Meet app had its own `createRouter` with a global `beforeEach`
+ * implementing: auth redirect to /login, `requiresAdmin` (audio-test, restricted
+ * to System Manager / Administrator), and `allowGuest` (the Meeting route is
+ * reachable by guests). In the suite there is ONE router; the suite router's own
+ * `beforeEach` already redirects guests to /login UNLESS the route is marked
+ * `meta.isPublic` (we mark `meet-meeting` public so guests can join).
+ *
+ * So only the meet-SPECIFIC `requiresAdmin` role check is ported here as a
+ * meet-local guard that early-returns for any route whose name doesn't start
+ * with `meet-`. Login state comes from the shared session store via the suite
+ * guard; here we only use meet's `userResource` for the admin role check.
+ *
+ * Re-exports the single suite router instance as `router` so meet pages/
+ * composables can keep importing it, mirroring the calendar/slides ports.
+ */
+export const router = suiteRouter;
 
-function redirectToExternalLogin(nextPath?: string) {
-	const loginUrl = `/login${nextPath ? `?redirect-to=${encodeURIComponent(nextPath)}` : ""}`;
-	window.location.href = loginUrl;
+function installMeetGuard(r: Router) {
+	r.beforeEach(async (to: RouteLocationNormalized) => {
+		// Only act on meet routes; let the suite handle everything else.
+		if (typeof to.name !== "string" || !to.name.startsWith("meet-")) return;
+
+		if (to.meta?.requiresAdmin) {
+			try {
+				if (!userResource.fetched) {
+					await userResource.fetch();
+				}
+			} catch {
+				// userResource onError already redirects to /login on auth errors.
+				return false;
+			}
+			const user = userResource.data as Record<string, unknown> | null;
+			const isAdmin = (user?.roles as string[])?.some((r) =>
+				["System Manager", "Administrator"].includes(r),
+			);
+			if (!isAdmin) {
+				return { name: "meet-home" };
+			}
+		}
+	});
 }
 
-router.beforeEach(async (to, _from, next) => {
-	let isLoggedIn = session.isLoggedIn;
-	let user: Record<string, unknown> | null = null;
-	if (isLoggedIn || to.meta?.requiresAdmin) {
-		try {
-			if (!userResource.fetched) {
-				await userResource.fetch();
-			}
-			user = userResource.data as Record<string, unknown>;
-		} catch (_error) {
-			isLoggedIn = false;
-		}
-	}
-
-	if (to.meta?.requiresAdmin) {
-		if (!isLoggedIn) {
-			redirectToExternalLogin(to.fullPath);
-			return;
-		}
-		const isAdmin = (user?.roles as string[])?.some((r) =>
-			["System Manager", "Administrator"].includes(r),
-		);
-		if (!isAdmin) {
-			return next({ name: "Home" });
-		}
-	}
-
-	if (to.meta?.allowGuest && to.name === "Meeting") {
-		return next();
-	}
-
-	if (!isLoggedIn) {
-		const nextPath = to.name !== "Home" ? to.fullPath : undefined;
-		redirectToExternalLogin(nextPath);
-		return;
-	}
-
-	next();
-});
+installMeetGuard(router);
 
 export default router;

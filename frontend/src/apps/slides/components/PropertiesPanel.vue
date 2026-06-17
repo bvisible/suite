@@ -16,22 +16,22 @@
 <script setup>
 import { computed, provide } from 'vue'
 
-import SlideProperties from '@/components/SlideProperties.vue'
-import TextProperties from '@/components/TextProperties.vue'
-import ImageProperties from '@/components/ImageProperties.vue'
-import VideoProperties from '@/components/VideoProperties.vue'
-import ShapeProperties from '@/components/ShapeProperties.vue'
-import AlignmentControls from '@/components/AlignmentControls.vue'
-import LayoutProperties from '@/components/LayoutProperties.vue'
-import AppearanceProperties from '@/components/AppearanceProperties.vue'
+import SlideProperties from '@/apps/slides/components/SlideProperties.vue'
+import TextProperties from '@/apps/slides/components/TextProperties.vue'
+import ImageProperties from '@/apps/slides/components/ImageProperties.vue'
+import VideoProperties from '@/apps/slides/components/VideoProperties.vue'
+import ShapeProperties from '@/apps/slides/components/ShapeProperties.vue'
+import AlignmentControls from '@/apps/slides/components/AlignmentControls.vue'
+import LayoutProperties from '@/apps/slides/components/LayoutProperties.vue'
+import AppearanceProperties from '@/apps/slides/components/AppearanceProperties.vue'
 
-import { useDeferredCommit } from '@/composables/useDeferredCommit'
+import { useDeferredCommit } from '@/apps/slides/composables/useDeferredCommit'
 
-import { currentSlide } from '@/stores/slide'
-import { activeElement, activeElementIds } from '@/stores/element'
-import { commandHistory } from '@/stores/historyMeta'
-import { handleScrollBarWheelEvent } from '@/utils/helpers'
-import { editElementCommand, editSlideCommand } from '@/stores/commands'
+import { currentSlide } from '@/apps/slides/stores/slide'
+import { activeElement, activeElementIds } from '@/apps/slides/stores/element'
+import { commandHistory } from '@/apps/slides/stores/historyMeta'
+import { handleScrollBarWheelEvent } from '@/apps/slides/utils/helpers'
+import { editElementCommand, editSlideCommand } from '@/apps/slides/stores/commands'
 
 const activeProperties = computed(() => {
 	const elementType = activeElement.value?.type

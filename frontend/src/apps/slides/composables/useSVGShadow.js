@@ -1,5 +1,5 @@
 import { computed } from 'vue'
-import { getColorAndOpacity } from '@/utils/color'
+import { getColorAndOpacity } from '@/apps/slides/utils/color'
 
 const emptyShadow = {
 	hasShadow: false,

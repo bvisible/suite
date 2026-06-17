@@ -4,7 +4,7 @@
 		<div v-if="isConnecting" class="flex-1 flex items-center justify-center">
 			<div class="flex items-center justify-center text-white space-x-4">
 				<Spinner class="h-12" />
-				<p class="text-lg">Joining meeting...</p>
+				<p class="text-xl">Joining meeting...</p>
 			</div>
 		</div>
 
@@ -14,7 +14,7 @@
 				<div class="text-red-500 mb-4">
 					<lucide-alert-circle class="w-12 h-12 mx-auto" />
 				</div>
-				<p class="text-lg mb-4">{{ connectionState.connectionError }}</p>
+				<p class="text-xl mb-4">{{ connectionState.connectionError }}</p>
 				<Button @click="resetToPreview" variant="outline" theme="red">Try Again</Button>
 			</div>
 		</div>
@@ -641,7 +641,7 @@ onMounted(async () => {
 	if (!session.isLoggedIn) {
 		try {
 			const accessData = await frappeRequest({
-				url: "meet.api.meeting.check_meeting_access",
+				url: "suite.meet.api.meeting.check_meeting_access",
 				params: {
 					meeting_id: meetingId.value,
 				},

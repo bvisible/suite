@@ -2,8 +2,8 @@
 	<Dialog v-model="show" :options="{ title: __('Settings'), size: '4xl' }">
 		<template #body>
 			<div class="flex" :style="{ height: 'calc(100vh - 9rem)' }">
-				<div class="bg-surface-menu-bar flex w-52 shrink-0 flex-col border-r p-4 py-3">
-					<h1 class="px-2 text-xl leading-6">{{ __('Settings') }}</h1>
+				<div class="bg-surface-sidebar flex w-52 shrink-0 flex-col border-r p-4 py-3">
+					<h1 class="px-2 text-3xl leading-6">{{ __('Settings') }}</h1>
 					<div class="mt-3 space-y-1">
 						<button
 							v-for="tab in TABS"
@@ -42,8 +42,8 @@ import { markRaw, ref } from 'vue'
 import { Palette, User } from 'lucide-vue-next'
 import { Button, Dialog } from 'frappe-ui'
 
-import AppearanceSettings from '@/components/Settings/AppearanceSettings.vue'
-import ProfileSettings from '@/components/Settings/ProfileSettings.vue'
+import AppearanceSettings from '@/apps/calendar/components/Settings/AppearanceSettings.vue'
+import ProfileSettings from '@/apps/calendar/components/Settings/ProfileSettings.vue'
 
 const show = defineModel<boolean>({ default: false })
 

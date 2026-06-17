@@ -5,13 +5,13 @@
 				<div class="flex justify-center items-center gap-4 mb-6">
 					<FrappeMeetingLogo class="h-16 w-16" />
 				</div>
-				<h1 class="text-2xl font-bold text-gray-900 mb-4">Frappe Meet</h1>
+				<h1 class="text-4xl-bold text-gray-900 mb-4">Frappe Meet</h1>
 			</div>
 
 			<div class="space-y-6">
 				<div class="space-y-3">
 					<form @submit.prevent="joinMeeting" class="space-y-3" data-testid="join-meeting-form">
-						<label class="block text-sm font-medium text-gray-700 text-left">
+						<label class="block text-sm-medium text-gray-700 text-left">
 							Join with Meeting Code
 						</label>
 						<div class="flex gap-3 items-center">
@@ -101,11 +101,11 @@ const meetingCode = ref("");
 const meetingCodeError = ref("");
 
 const createMeeting = createResource({
-	url: "meet.api.meeting.create",
+	url: "suite.meet.api.meeting.create",
 	method: "POST",
 	onSuccess: (meeting_code) => {
 		router.push({
-			name: "Meeting",
+			name: "meet-meeting",
 			params: { meetingId: meeting_code },
 		});
 		connectionState.justCreated = true;
@@ -139,7 +139,7 @@ const joinMeeting = () => {
 	}
 
 	router.push({
-		name: "Meeting",
+		name: "meet-meeting",
 		params: { meetingId: meetingCode.value.trim() },
 	});
 };

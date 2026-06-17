@@ -18,7 +18,7 @@
 									:alt="request.user_name"
 									class="w-10 h-10 rounded-full object-cover"
 								/>
-								<span v-else class="text-sm font-medium text-blue-400">
+								<span v-else class="text-sm-medium text-blue-400">
 									{{ getInitials(request.user_name || request.user_id) }}
 								</span>
 							</div>

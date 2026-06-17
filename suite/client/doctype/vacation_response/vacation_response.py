@@ -9,15 +9,15 @@ from frappe.model.document import Document
 from frappe.utils import cint, today
 from frappe.utils.data import convert_utc_to_system_timezone, get_datetime
 
-from mail.client.doctype.sieve_script.sieve_script import (
+from suite.client.doctype.sieve_script.sieve_script import (
 	activate_last_active_sieve_script,
 	get_active_sieve_script_id,
 	set_last_active_sieve_script_id,
 )
-from mail.jmap import get_vacation_response_service, parse_account
-from mail.utils import convert_html_to_text
-from mail.utils.dt import convert_to_utc
-from mail.utils.validation import has_permission_for_user
+from suite.mail.jmap import get_vacation_response_service, parse_account
+from suite.mail.utils import convert_html_to_text
+from suite.mail.utils.dt import convert_to_utc
+from suite.mail.utils.validation import has_permission_for_user
 
 
 class VacationResponse(Document):

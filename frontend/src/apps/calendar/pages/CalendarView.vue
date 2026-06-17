@@ -3,11 +3,11 @@ import { computed, inject, onMounted, reactive, ref, useTemplateRef, watch } fro
 import { useRoute, useRouter } from 'vue-router'
 import { Button, Calendar, Dialog, createResource, usePageMeta } from 'frappe-ui'
 
-import { raiseToast } from '@/utils'
-import { userStore } from '@/stores/user'
-import AppSidebar from '@/components/AppSidebar.vue'
-import EventPopoverContent from '@/components/EventPopoverContent.vue'
-import EventModal from '@/components/Modals/EventModal.vue'
+import { raiseToast } from '@/apps/calendar/utils'
+import { userStore } from '@/apps/calendar/stores/user'
+import AppSidebar from '@/apps/calendar/components/AppSidebar.vue'
+import EventPopoverContent from '@/apps/calendar/components/EventPopoverContent.vue'
+import EventModal from '@/apps/calendar/components/Modals/EventModal.vue'
 
 const dayjs = inject('$dayjs')
 
@@ -18,6 +18,13 @@ const route = useRoute()
 const router = useRouter()
 
 const calendarRef = useTemplateRef('calendar')
+
+// Calendar's `activeView` is 'Month' | 'Week' | 'Day'; the suite router uses
+// namespaced names 'calendar-month' | 'calendar-week' | 'calendar-day'.
+const VIEW_TO_ROUTE = { Month: 'calendar-month', Week: 'calendar-week', Day: 'calendar-day' }
+const ROUTE_TO_VIEW = { 'calendar-month': 'Month', 'calendar-week': 'Week', 'calendar-day': 'Day' }
+const routeNameForView = (view) => VIEW_TO_ROUTE[view as keyof typeof VIEW_TO_ROUTE]
+const viewForRouteName = (name) => ROUTE_TO_VIEW[name as keyof typeof ROUTE_TO_VIEW]
 
 usePageMeta(() => ({ title: calendarRef.value?.currentMonthYear || __('Frappe Calendar') }))
 
@@ -36,7 +43,7 @@ watch(
 watch(
 	() => calendarRef.value?.activeView,
 	(view) => {
-		if (view && view !== route.name) setRoute()
+		if (view && routeNameForView(view) !== route.name) setRoute()
 	},
 )
 
@@ -55,13 +62,16 @@ const setRoute = () => {
 
 	const target = dayjs().year(year).month(month).date(day)
 	const view = calendarRef.value?.activeView as 'Month' | 'Week' | 'Day'
+	const name = routeNameForView(view)
+	const accountId = route.params.accountId
 
-	if (dayjs().isSame(target, view)) router.replace({ name: view })
-	else router.push({ name: view, params: { year, month: month + 1, day } })
+	if (dayjs().isSame(target, view)) router.replace({ name, params: { accountId } })
+	else router.push({ name, params: { accountId, year, month: month + 1, day } })
 }
 
 onMounted(() => {
-	if (route.name) calendarRef.value.activeView = route.name
+	const view = viewForRouteName(route.name)
+	if (view && calendarRef.value) calendarRef.value.activeView = view
 
 	const { year, month, day } = route.params
 	if (year && month && day) {
@@ -107,7 +117,7 @@ const getEventRole = (event) => {
 }
 
 const calendars = createResource({
-	url: 'calendar_app.api.get_calendars',
+	url: 'suite.calendar.api.get_calendars',
 	makeParams: () => ({ account: store.account }),
 	auto: true,
 	onSuccess: (data) => (visibleCalendars.value = data.map((cal) => cal.name)),
@@ -117,7 +127,7 @@ const calendars = createResource({
 const visibleCalendars = ref<string[]>([])
 
 const events = createResource({
-	url: 'calendar_app.api.get_calendar_events',
+	url: 'suite.calendar.api.get_calendar_events',
 	makeParams: () => {
 		const date = dayjs()
 			.year(calendarRef.value?.currentYear)
@@ -204,19 +214,8 @@ const submitEvent = (sendEmail: boolean) => {
 	editEvent.submit({ sendEmail })
 }
 
-// const editEventInstance = createResource({
-// 	url: 'mail.client.doctype.calendar_event.calendar_event.update_calendar_event_instance',
-// 	makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
-// 		user: user.data.name,
-// 		master_id: selectedEvent.calendarEvent.master_id,
-// 		recurrence_id: selectedEvent.calendarEvent.recurrence_id,
-// 		patch: patch.value,
-// 		send_scheduling_messages: sendEmail,
-// 	}),
-// })
-
 const editEvent = createResource({
-	url: 'mail.client.doctype.calendar_event.calendar_event.update_calendar_event',
+	url: 'suite.client.doctype.calendar_event.calendar_event.update_calendar_event',
 	makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
 		...eventToBeUpdated,
 		id: eventToBeUpdated.master_id,
@@ -282,9 +281,6 @@ const NOTIFY_MODAL_OPTIONS = {
 				<Button @click="handleUpdateRecurringEvent(false)">
 					{{ __('Entire series') }}
 				</Button>
-				<!-- <Button variant="solid" @click="handleUpdateRecurringEvent(true)">
-					{{ __('This instance') }}
-				</Button> -->
 			</div>
 		</template>
 	</Dialog>

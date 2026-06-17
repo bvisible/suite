@@ -9,7 +9,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import get_url, random_string
 
-from drive.utils.users import generate_otp, get_country_info
+from suite.drive.utils.users import generate_otp, get_country_info
 
 
 class AccountRequest(Document):

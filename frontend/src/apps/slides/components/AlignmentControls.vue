@@ -32,11 +32,11 @@ import {
 	AlignEndHorizontal,
 } from 'lucide-vue-next'
 
-import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
+import CollapsibleSection from '@/apps/slides/components/controls/CollapsibleSection.vue'
 
-import { slideBounds, selectionBounds, guideVisibilityMap } from '@/stores/slide'
-import { fieldLabelClasses } from '@/utils/constants'
-import { updatePosition } from '@/stores/element'
+import { slideBounds, selectionBounds, guideVisibilityMap } from '@/apps/slides/stores/slide'
+import { fieldLabelClasses } from '@/apps/slides/utils/constants'
+import { updatePosition } from '@/apps/slides/stores/element'
 
 const horizontalAlignmentOptions = [
 	{

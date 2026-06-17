@@ -19,7 +19,7 @@
 		/>
 		<div ref="threadContainer" class="flex-1 overflow-y-auto">
 			<div v-if="isMobile && thread?.length" class="border-b px-3 py-3.5">
-				<h2 class="text-lg font-semibold leading-5">
+				<h2 class="text-xl-semibold leading-5">
 					{{ thread[0].subject || __('[No subject]') }}
 				</h2>
 			</div>
@@ -36,7 +36,7 @@
 					<template v-for="mail in group.mails" :key="mail.name">
 						<ThreadDivider
 							v-if="shouldShowUnseenMarker(mail.id)"
-							class="!text-ink-blue-2 [&_.border-t]:border-[var(--outline-blue-1)] [&_span:not(.border-t)]:border-[var(--outline-blue-1)]"
+							class="!text-ink-blue-5 [&_.border-t]:border-[var(--outline-blue-1)] [&_span:not(.border-t)]:border-[var(--outline-blue-1)]"
 							:message="unseenMessage"
 						/>
 
@@ -276,7 +276,7 @@
 					class="flex"
 					:class="
 						isMobile
-							? 'bg-surface-white absolute bottom-0 left-0 right-0 z-20 items-stretch border-t'
+							? 'bg-surface-base absolute bottom-0 left-0 right-0 z-20 items-stretch border-t'
 							: 'items-center space-x-2'
 					"
 				>
@@ -346,23 +346,23 @@ import {
 	hasHtmlContent,
 	raiseToast,
 	shouldIgnoreKeypress,
-} from '@/utils'
-import { useScreenSize, useTheme } from '@/utils/composables'
-import { userStore } from '@/stores/user'
-import AttachmentCapsule from '@/components/AttachmentCapsule.vue'
-import AttachmentViewer from '@/components/AttachmentViewer.vue'
-import ComposeMailEditor from '@/components/ComposeMailEditor.vue'
-import EmailContent from '@/components/EmailContent.vue'
-import NoMails from '@/components/Icons/NoMails.vue'
-import MailActions from '@/components/MailActions.vue'
-import MailDate from '@/components/MailDate.vue'
-import MailDetails from '@/components/MailDetails.vue'
-import MailDetailsPopover from '@/components/MailDetailsPopover.vue'
-import SendMail from '@/components/SendMail.vue'
-import ThreadDivider from '@/components/ThreadDivider.vue'
-import ThreadHeader from '@/components/ThreadHeader.vue'
+} from '@/apps/mail/utils'
+import { useScreenSize, useTheme } from '@/apps/mail/utils/composables'
+import { userStore } from '@/apps/mail/stores/user'
+import AttachmentCapsule from '@/apps/mail/components/AttachmentCapsule.vue'
+import AttachmentViewer from '@/apps/mail/components/AttachmentViewer.vue'
+import ComposeMailEditor from '@/apps/mail/components/ComposeMailEditor.vue'
+import EmailContent from '@/apps/mail/components/EmailContent.vue'
+import NoMails from '@/apps/mail/components/Icons/NoMails.vue'
+import MailActions from '@/apps/mail/components/MailActions.vue'
+import MailDate from '@/apps/mail/components/MailDate.vue'
+import MailDetails from '@/apps/mail/components/MailDetails.vue'
+import MailDetailsPopover from '@/apps/mail/components/MailDetailsPopover.vue'
+import SendMail from '@/apps/mail/components/SendMail.vue'
+import ThreadDivider from '@/apps/mail/components/ThreadDivider.vue'
+import ThreadHeader from '@/apps/mail/components/ThreadHeader.vue'
 
-import type { Attachment, ComposeMailData, Identity, Mail, Mailbox } from '@/types'
+import type { Attachment, ComposeMailData, Identity, Mail, Mailbox } from '@/apps/mail/types'
 
 const { mailbox, threadID, threads, messages, canGoPrev, canGoNext } = defineProps<{
 	mailbox: string
@@ -449,7 +449,7 @@ const unseenMessage = computed(() =>
 const shouldShowUnseenMarker = (id: string) =>
 	isSomeSeen.value && firstUnseenMail.value && id == firstUnseenMail.value
 
-const goToMailbox = () => router.push({ name: 'Mailbox', params: { mailbox }, query: route.query })
+const goToMailbox = () => router.push({ name: 'mail-mailbox', params: { mailbox }, query: route.query })
 
 // The thread's messages normally arrive from the parent (loaded via `get_threads`). When the open
 // thread isn't in that list (e.g. a search result, or one on another page), fall back to fetching it
@@ -457,7 +457,7 @@ const goToMailbox = () => router.push({ name: 'Mailbox', params: { mailbox }, qu
 const thread = ref<Mail[]>([])
 
 const threadFallback = createResource({
-	url: 'mail.api.mail.get_thread',
+	url: 'suite.mail.api.mail.get_thread',
 	makeParams: () => ({ account: store.account, thread_id: threadID }),
 	onSuccess: (mails: Mail[]) => {
 		// Thread no longer exists (e.g. deleted) — bail to the mailbox instead of a blank page.
@@ -640,7 +640,7 @@ watch(
 onMounted(() => loadThread())
 
 const unblockEmailAddress = createResource({
-	url: 'mail.api.mail.unblock_email_addresses',
+	url: 'suite.mail.api.mail.unblock_email_addresses',
 	makeParams: (email) => ({ account: store.account, emails: [email] }),
 	onSuccess: () => {
 		raiseToast(__('Email address unblocked.'))

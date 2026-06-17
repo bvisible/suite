@@ -130,7 +130,7 @@
 					class="bg-surface-gray-1/90 text-ink-gray-3 absolute inset-0 z-50 flex flex-col items-center justify-center space-y-1 rounded"
 				>
 					<UploadCloud class="stroke-1.5 h-12 w-12" />
-					<p class="text-lg font-semibold">{{ __('Drop files to upload') }}</p>
+					<p class="text-xl-semibold">{{ __('Drop files to upload') }}</p>
 				</div>
 
 				<EditorContent :editor :class="{ 'opacity-30': isDragging }" @click.stop />
@@ -243,20 +243,20 @@ import {
 	useFileUpload,
 } from 'frappe-ui'
 
-import { getAttachmentUrl } from '@/resources'
+import { getAttachmentUrl } from '@/apps/mail/resources'
 import {
 	formatBytes,
 	isOverlayPresent,
 	processInlineImages,
 	raiseToast,
 	randomString,
-} from '@/utils'
-import { useScreenSize, useVisualViewport } from '@/utils/composables'
-import { CustomParagraphExtension } from '@/utils/text-editor'
-import { userStore } from '@/stores/user'
-import ComposeMailToolbar from '@/components/ComposeMailToolbar.vue'
+} from '@/apps/mail/utils'
+import { useScreenSize, useVisualViewport } from '@/apps/mail/utils/composables'
+import { CustomParagraphExtension } from '@/apps/mail/utils/text-editor'
+import { userStore } from '@/apps/mail/stores/user'
+import ComposeMailToolbar from '@/apps/mail/components/ComposeMailToolbar.vue'
 
-import type { Attachment, ComposeMailData, File as FileDoc, Identity, UserResource } from '@/types'
+import type { Attachment, ComposeMailData, File as FileDoc, Identity, UserResource } from '@/apps/mail/types'
 
 import RecipientInput from './Controls/RecipientInput.vue'
 import ContactsModal from './Modals/ContactsModal.vue'
@@ -429,7 +429,7 @@ const onMailUpdateSuccess = ({
 // Resources
 
 const createMail = createResource({
-	url: 'mail.api.mail.create_mail',
+	url: 'suite.mail.api.mail.create_mail',
 	makeParams: ({ save_as_draft }: { save_as_draft: boolean }) => ({
 		account,
 		...mail,
@@ -442,7 +442,7 @@ const createMail = createResource({
 })
 
 const updateDraft = createResource({
-	url: 'mail.api.mail.update_draft_mail',
+	url: 'suite.mail.api.mail.update_draft_mail',
 	makeParams: ({ submit }: { submit: boolean }) => ({
 		account,
 		...mail,
@@ -455,7 +455,7 @@ const updateDraft = createResource({
 })
 
 const deleteMail = createResource({
-	url: 'mail.api.mail.delete_mail',
+	url: 'suite.mail.api.mail.delete_mail',
 	makeParams: () => ({ account, id: mail.id }),
 	onSuccess: () => {
 		reloadMails()
@@ -562,7 +562,7 @@ const uploadFunction = async (file: File) => {
 	return fileUpload.upload(file, {
 		private: true,
 		folder: 'Home/Frappe Mail',
-		upload_endpoint: '/api/method/mail.api.mail.upload_file',
+		upload_endpoint: '/api/method/suite.mail.api.mail.upload_file',
 	})
 }
 
@@ -672,7 +672,7 @@ const uploadFile = async (file: File) => {
 	const doc = (await fileUpload.upload(file, {
 		private: true,
 		folder: 'Home/Frappe Mail',
-		upload_endpoint: '/api/method/mail.api.mail.upload_file',
+		upload_endpoint: '/api/method/suite.mail.api.mail.upload_file',
 	})) as FileDoc
 
 	attachDoc(doc)

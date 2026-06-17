@@ -17,9 +17,9 @@ export function setTotalCols(n) { TOTAL_COLS = Math.max(1, Math.floor(n)) }
 // Selection accent is intentionally monochrome (Espresso black + neutral grays)
 // rather than blue, to match Frappe Sheets's black-and-grey theme.
 export const COLORS = {
-  white:        '#FFFFFF',                  // --surface-white
+  white:        '#FFFFFF',                  // --surface-base
   gridLine:     '#E2E2E2',                  // --outline-gray-2
-  headerBg:     '#F8F8F8',                  // --surface-menu-bar
+  headerBg:     '#F8F8F8',                  // --surface-sidebar
   headerText:   '#7C7C7C',                  // --ink-gray-5
   cellText:     '#171717',                  // --ink-gray-9
   selFill:      'rgba(23, 23, 23, 0.06)',   // --ink-gray-9 @ 6% — subtle neutral wash

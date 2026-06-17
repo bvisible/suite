@@ -10,7 +10,7 @@ export interface RaiseHandStore {
 	$reset: () => void;
 }
 
-export const useRaiseHandStore = defineStore("raiseHand", () => {
+export const useRaiseHandStore = defineStore("meet-raiseHand", () => {
 	const raisedHands = ref<Record<string, string>>({});
 
 	function setHands(hands: Record<string, string>) {

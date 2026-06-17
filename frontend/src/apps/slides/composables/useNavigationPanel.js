@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { activeElementIds, activeElement } from '@/stores/element'
+import { activeElementIds, activeElement } from '@/apps/slides/stores/element'
 
 const isNavigationPanelOpen = ref(true)
 

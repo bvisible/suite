@@ -1,5 +1,5 @@
-import { findElement } from '@/stores/element'
-import { slidesLength } from '@/stores/presentation'
+import { findElement } from '@/apps/slides/stores/element'
+import { slidesLength } from '@/apps/slides/stores/presentation'
 
 const findSlide = (state, slideId) => state.find((s) => s.clientId === slideId)
 

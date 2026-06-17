@@ -8,7 +8,7 @@
 			></div>
 		</template>
 		<template #body>
-			<div class="m-2 rounded-lg border bg-surface-modal p-3 shadow-xl">
+			<div class="m-2 rounded-lg border bg-surface-elevation-2 p-3 shadow-xl">
 				<div class="flex flex-col gap-3">
 					<div
 						ref="shadeSlider"
@@ -99,10 +99,11 @@ import { useElementBounding, useEyeDropper } from '@vueuse/core'
 
 import { Popover, Input } from 'frappe-ui'
 
-import { copyToClipboard } from '@/stores/copyPaste'
-import EyeDropper from '@/icons/EyeDropper.vue'
+import { copyToClipboard } from '@/apps/slides/stores/copyPaste'
+import EyeDropper from '@/apps/slides/icons/EyeDropper.vue'
 
 import tinycolor from 'tinycolor2'
+import opacityCheckered from '@/apps/slides/assets/opacityCheckered.png'
 
 const shadeSlider = useTemplateRef('shadeSlider')
 const colorSlider = useTemplateRef('colorSlider')
@@ -148,7 +149,7 @@ const colorSliderStyles = computed(() => {
 })
 
 const opacitySliderStyles = computed(() => ({
-	backgroundImage: `linear-gradient(to right, rgb(0, 0, 0, 0), ${currentHue.value}), url('/assets/slides/frontend/opacityCheckered.png')`,
+	backgroundImage: `linear-gradient(to right, rgb(0, 0, 0, 0), ${currentHue.value}), url('${opacityCheckered}')`,
 	backgroundSize: 'cover',
 	backgroundPosition: 'center',
 	backgroundRepeat: 'no-repeat',

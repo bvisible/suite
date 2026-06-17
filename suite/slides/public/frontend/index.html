@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<link rel="icon" href="/assets/slides/frontend/slides-logo.svg?v=1.0" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Slides</title>
+		<script type="module" crossorigin src="/assets/slides/frontend/assets/index-640a31cb.js"></script>
+		<link rel="stylesheet" href="/assets/slides/frontend/assets/index-f63aa86d.css">
+	</head>
+	<body class="overscroll-none">
+		<div id="app"></div>
+		<div id="modals"></div>
+		<div id="popovers"></div>
+
+		<script>
+			window.csrf_token = '{{ csrf_token }}'
+			window.apps = {{ apps | tojson }}
+		</script>
+		
+	
+          <script>
+              {% for key in boot %}
+              window["{{ key }}"] = {{ boot[key] | tojson }};
+              {% endfor %}
+          </script>
+          </body>
+          
+</html>

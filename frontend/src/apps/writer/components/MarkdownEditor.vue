@@ -30,7 +30,7 @@ const menuButtons = [
   <div class="flex flex-col w-full">
     <TextEditorFixedMenu
       v-if="editor"
-      class="w-full max-w-[100vw] overflow-x-auto border-b border-outline-gray-modals justify-start md:justify-center py-1.5 shrink-0"
+      class="w-full max-w-[100vw] overflow-x-auto border-b border-outline-elevation-2 justify-start md:justify-center py-1.5 shrink-0"
       :buttons="menuButtons"
     />
     <div class="overflow-y-auto">

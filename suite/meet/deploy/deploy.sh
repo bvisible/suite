@@ -25,7 +25,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COMPOSE_FILE="$SCRIPT_DIR/docker-compose.yml"
 ENV_FILE="$SCRIPT_DIR/.env"
 
-COMPOSE_PROJECT="frappe-meet"
+COMPOSE_PROJECT="frappe-suite"
 
 # ── Colors ────────────────────────────────────────────────────────────────────
 RED='\033[0;31m'
@@ -137,8 +137,8 @@ cmd_setup() {
 
     # Pull images
     header "Pulling images"
-    docker pull "${FRAPPE_IMAGE:-ghcr.io/frappe/meet:latest}"
-    docker pull "${SFU_IMAGE:-ghcr.io/frappe/meet/sfu-server:latest}"
+    docker pull "${FRAPPE_IMAGE:-ghcr.io/frappe/suite:latest}"
+    docker pull "${SFU_IMAGE:-ghcr.io/frappe/suite/sfu-server:latest}"
     ok "Images pulled"
 
     # Start DB + Redis
@@ -179,7 +179,7 @@ cmd_setup() {
         run_bench new-site "$SITE_NAME" \
             --db-root-password "$DB_ROOT_PASSWORD" \
             --admin-password "$ADMIN_PASSWORD" \
-            --install-app meet \
+            --install-app suite \
             --mariadb-user-host-login-scope "%" \
             --set-default
         ok "Site $SITE_NAME created with Meet installed"
@@ -241,8 +241,8 @@ cmd_update() {
     set -a; source "$ENV_FILE"; set +a
 
     header "Pulling latest images"
-    docker pull "${FRAPPE_IMAGE:-ghcr.io/frappe/meet:latest}"
-    docker pull "${SFU_IMAGE:-ghcr.io/frappe/meet/sfu-server:latest}"
+    docker pull "${FRAPPE_IMAGE:-ghcr.io/frappe/suite:latest}"
+    docker pull "${SFU_IMAGE:-ghcr.io/frappe/suite/sfu-server:latest}"
     ok "Images pulled"
 
     header "Restarting services with new images"

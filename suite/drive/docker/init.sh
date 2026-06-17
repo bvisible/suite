@@ -22,18 +22,18 @@ bench set-redis-socketio-host redis:6379
 sed -i '/redis/d' ./Procfile
 sed -i '/watch/d' ./Procfile
 
-bench get-app drive --branch main
+bench get-app suite --branch main
 
-bench new-site drive.localhost \
+bench new-site suite.localhost \
 --force \
 --mariadb-root-password 123 \
 --admin-password admin \
 --no-mariadb-socket
 
-bench --site drive.localhost install-app drive
-bench --site drive.localhost set-config developer_mode 1
-bench --site drive.localhost clear-cache
-bench --site drive.localhost set-config mute_emails 1
-bench use drive.localhost
+bench --site suite.localhost install-app suite
+bench --site suite.localhost set-config developer_mode 1
+bench --site suite.localhost clear-cache
+bench --site suite.localhost set-config mute_emails 1
+bench use suite.localhost
 
 bench start

@@ -20,7 +20,7 @@ import json
 import unittest
 from unittest import mock
 
-from sheets.versioning import save as save_mod
+from suite.sheets.versioning import save as save_mod
 
 
 def _patched_save_sheet(maybe_snapshot_side_effect=None, enqueue_should_fail=False):

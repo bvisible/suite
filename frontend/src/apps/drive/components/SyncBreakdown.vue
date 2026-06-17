@@ -51,14 +51,14 @@
   </div>
 </template>
 <script setup>
-import { createResource, Tree } from 'frappe-ui'
-import Alert from '@/components/Alert.vue'
+import { createResource, Tree, Button} from 'frappe-ui'
+import Alert from '@/apps/drive/components/Alert.vue'
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { toast } from '@/utils/toasts'
-import emitter from '@/emitter'
+import { toast } from '@/apps/drive/utils/toasts'
+import emitter from '@/apps/drive/emitter'
 import TeamSelector from './TeamSelector.vue'
-import { clearDialogs } from '@/utils/dialogs'
+import { clearDialogs } from '@/apps/drive/utils/dialogs'
 
 const props = defineProps({
   team: { type: String, required: false },
@@ -112,7 +112,7 @@ function convertToArray(nodeObj) {
 const tree = computed(() => preview.data && buildTree(preview.data))
 
 const preview = createResource({
-  url: 'drive.api.scripts.sync_preview',
+  url: 'suite.drive.api.scripts.sync_preview',
   cache: 'preview',
 })
 watch(
@@ -124,7 +124,7 @@ watch(
   { immediate: true }
 )
 const syncFromDisk = createResource({
-  url: 'drive.api.scripts.sync_from_disk',
+  url: 'suite.drive.api.scripts.sync_from_disk',
   beforeSubmit: () => {
     toast({
       icon: LucideFolderSync,

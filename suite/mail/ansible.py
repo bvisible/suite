@@ -10,10 +10,10 @@ import yaml
 from frappe import _
 from frappe.utils import now, time_diff_in_seconds
 
-from mail.utils import reconnect_on_failure
+from suite.mail.utils import reconnect_on_failure
 
 if TYPE_CHECKING:
-	from mail.server.doctype.server_ansible_play.server_ansible_play import ServerAnsiblePlay
+	from suite.server.doctype.server_ansible_play.server_ansible_play import ServerAnsiblePlay
 
 
 class Ansible:
@@ -63,7 +63,9 @@ class Ansible:
 	def playbook_path(self) -> str:
 		"""Returns the absolute path to the playbook."""
 
-		return os.path.join(frappe.get_app_path("mail", "utils", "ansible", "playbooks"), self.playbook)
+		return os.path.join(
+			frappe.get_app_path("suite", "mail", "utils", "ansible", "playbooks"), self.playbook
+		)
 
 	def _create_play_record(self) -> None:
 		"""Creates a Server Ansible Play record and associated Server Ansible Play Task records."""

@@ -5,7 +5,7 @@ from typing import Any, ClassVar, Literal
 
 from cachetools import TTLCache
 
-from mail.jmap.connection import JMAPConnection
+from suite.mail.jmap.connection import JMAPConnection
 
 
 class CoreServiceHelper:
@@ -184,7 +184,7 @@ class CoreService(CoreServiceHelper):
 		if identities := self.cache.get("identities"):
 			return identities
 
-		from mail.jmap.services.mail.identity import IdentityService
+		from suite.mail.jmap.services.mail.identity import IdentityService
 
 		identities = IdentityService(self.account, self.connection).get()
 		self.cache["identities"] = identities
@@ -198,7 +198,7 @@ class CoreService(CoreServiceHelper):
 		if mailboxes := self.cache.get("mailboxes"):
 			return mailboxes
 
-		from mail.jmap.services.mail.mailbox import MailboxService
+		from suite.mail.jmap.services.mail.mailbox import MailboxService
 
 		mailboxes = MailboxService(self.account, self.connection).get()
 		self.cache["mailboxes"] = mailboxes
@@ -209,7 +209,7 @@ class CoreService(CoreServiceHelper):
 	def address_books(self) -> list[dict]:
 		"""Returns the list of address books for the account, using caching to optimize performance."""
 
-		from mail.jmap.services.contacts.address_book import AddressBookService
+		from suite.mail.jmap.services.contacts.address_book import AddressBookService
 
 		return AddressBookService(self.account, self.connection).get()
 
@@ -217,7 +217,7 @@ class CoreService(CoreServiceHelper):
 	def calendars(self) -> list[dict]:
 		"""Returns the list of calendars for the account, using caching to optimize performance."""
 
-		from mail.jmap.services.calendars.calendar import CalendarService
+		from suite.mail.jmap.services.calendars.calendar import CalendarService
 
 		return CalendarService(self.account, self.connection).get()
 
@@ -225,7 +225,7 @@ class CoreService(CoreServiceHelper):
 	def participant_identities(self) -> list[dict]:
 		"""Returns the list of participant identities for the account, using caching to optimize performance."""
 
-		from mail.jmap.services.calendars.participant_identity import ParticipantIdentityService
+		from suite.mail.jmap.services.calendars.participant_identity import ParticipantIdentityService
 
 		return ParticipantIdentityService(self.account, self.connection).get()
 

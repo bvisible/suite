@@ -33,7 +33,7 @@
 import { computed, ref, watch } from 'vue'
 import { Dialog, ErrorMessage, FormControl, createResource } from 'frappe-ui'
 
-import { raiseToast } from '@/utils'
+import { raiseToast } from '@/apps/mail/utils'
 
 const show = defineModel<boolean>()
 

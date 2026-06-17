@@ -58,8 +58,8 @@ import { ref, computed, useTemplateRef, inject } from 'vue'
 
 import { Play, Pause } from 'lucide-vue-next'
 
-import { activeElementIds } from '@/stores/element'
-import { getAttachmentUrl } from '@/utils/mediaUploads'
+import { activeElementIds } from '@/apps/slides/stores/element'
+import { getAttachmentUrl } from '@/apps/slides/utils/mediaUploads'
 
 const props = defineProps({
 	mode: {

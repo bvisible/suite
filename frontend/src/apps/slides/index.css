@@ -1,7 +1,0 @@
-@import './assets/Inter/inter.css';
-@import 'frappe-ui/style.css';
-
-.dialog-overlay {
-    /* slides uses z-index 10 for navbar, side panels etc so dialog should show up on top */
-	z-index: 50;
-}

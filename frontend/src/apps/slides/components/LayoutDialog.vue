@@ -29,9 +29,9 @@
 import { watch, nextTick, computed } from 'vue'
 import { Dialog } from 'frappe-ui'
 
-import SlidePreview from '@/components/SlidePreview.vue'
-import { presentationTheme, templateList } from '@/stores/presentation'
-import { getThumbnailCardStyles } from '@/utils/helpers'
+import SlidePreview from '@/apps/slides/components/SlidePreview.vue'
+import { presentationTheme, templateList } from '@/apps/slides/stores/presentation'
+import { getThumbnailCardStyles } from '@/apps/slides/utils/helpers'
 
 const LAYOUT_PREVIEW_SCALE = 270 / 960
 

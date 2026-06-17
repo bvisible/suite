@@ -1,6 +1,6 @@
 from typing import ClassVar
 
-from mail.jmap.services.contacts.contacts import ContactsService
+from suite.mail.jmap.services.contacts.contacts import ContactsService
 
 
 class AddressBookService(ContactsService):

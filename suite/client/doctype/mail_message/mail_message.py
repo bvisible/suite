@@ -24,24 +24,24 @@ from frappe.utils import (
 	time_diff_in_seconds,
 )
 
-from mail.client.doctype.mail_queue.mail_queue import MailQueue
-from mail.jmap import get_email_service, get_jmap_connection, get_thread_service, parse_account
-from mail.jmap.services.mail.email import EmailService
-from mail.jmap.services.mail.mailbox import MailboxService
-from mail.storage import get_blob_store, get_data_store
-from mail.storage.data_store import Entity
-from mail.utils import (
+from suite.client.doctype.mail_queue.mail_queue import MailQueue
+from suite.mail.jmap import get_email_service, get_jmap_connection, get_thread_service, parse_account
+from suite.mail.jmap.services.mail.email import EmailService
+from suite.mail.jmap.services.mail.mailbox import MailboxService
+from suite.mail.storage import get_blob_store, get_data_store
+from suite.mail.storage.data_store import Entity
+from suite.mail.utils import (
 	enqueue_job,
 	get_config,
 	get_push_logger,
 	parse_filters,
 	user_context,
 )
-from mail.utils.dt import convert_to_utc, parse_iso_datetime, to_iso8601_z
-from mail.utils.email_parser import EmailParser
-from mail.utils.lock import acquire_lock, release_lock
-from mail.utils.user import get_account_emails, get_sync_state, update_sync_state
-from mail.utils.validation import has_permission_for_user
+from suite.mail.utils.dt import convert_to_utc, parse_iso_datetime, to_iso8601_z
+from suite.mail.utils.email_parser import EmailParser
+from suite.mail.utils.lock import acquire_lock, release_lock
+from suite.mail.utils.user import get_account_emails, get_sync_state, update_sync_state
+from suite.mail.utils.validation import has_permission_for_user
 
 
 class MailMessage(Document):
@@ -869,7 +869,7 @@ def set_messages_mailboxes(account: str, mails: list[dict]) -> None:
 	try:
 		emails = []
 		for mail in mails:
-			junk = bool(mail.get("junk"))
+			junk = bool(suite.mail.get("junk"))
 			emails.append(
 				{
 					"id": mail["id"],
@@ -1195,7 +1195,7 @@ def format_message(account: str, mailbox_map: dict, message: dict) -> dict:
 			params = f"account={account}&blob_id={blob_id}"
 			if filename := attachment["filename"]:
 				params += f"&filename={quote(filename)}"
-			attachment["url"] = f"/api/method/mail.api.mail.get_attachment?{params}"
+			attachment["url"] = f"/api/method/suite.mail.api.mail.get_attachment?{params}"
 
 			if attachment["cid"] and formatted_message["html_body"]:
 				formatted_message["html_body"] = convert_img_src_from_cid_to_url(
@@ -1346,7 +1346,7 @@ def fetch_changes(account: str, email_state: str | None = None, ctx: dict | None
 							message["from_name"] or message["from_email"],
 							message["subject"] or _("[No subject]"),
 							f"{url}/mail/account/{account_id}/mailbox/{mailbox_id}/{message['thread_id']}",
-							f"{url}/assets/mail/frontend/manifest/manifest-icon-192.maskable.png",
+							f"{url}/assets/suite/mail/frontend/manifest/manifest-icon-192.maskable.png",
 						)
 				else:
 					logger.info({**ctx, "event": "push-notifications-disabled"})

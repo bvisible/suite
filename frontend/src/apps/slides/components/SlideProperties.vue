@@ -3,7 +3,7 @@
 		<div class="flex flex-col gap-3">
 			<div class="flex items-center justify-between">
 				<div :class="sectionTitleClasses">Slide</div>
-				<div class="pe-0.5 text-2xs font-semibold text-gray-700">
+				<div class="pe-0.5 text-2xs-semibold text-gray-700">
 					{{ slideIndex + 1 + ' of ' + slides.length }}
 				</div>
 			</div>
@@ -71,15 +71,15 @@
 import { inject } from 'vue'
 import { Select, Checkbox, toast } from 'frappe-ui'
 
-import { slides, slideIndex, currentSlide } from '@/stores/slide'
-import { sectionClasses, sectionTitleClasses, fieldLabelClasses } from '@/utils/constants'
-import { getCommandsToAddMagicMove, getCommandsToRemoveMagicMove } from '@/stores/transition'
+import { slides, slideIndex, currentSlide } from '@/apps/slides/stores/slide'
+import { sectionClasses, sectionTitleClasses, fieldLabelClasses } from '@/apps/slides/utils/constants'
+import { getCommandsToAddMagicMove, getCommandsToRemoveMagicMove } from '@/apps/slides/stores/transition'
 
-import SliderInput from '@/components/controls/SliderInput.vue'
-import ColorPicker from '@/components/controls/ColorPicker.vue'
-import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
-import { editSlideCommand, batchCommand } from '@/stores/commands'
-import { commandHistory } from '@/stores/historyMeta'
+import SliderInput from '@/apps/slides/components/controls/SliderInput.vue'
+import ColorPicker from '@/apps/slides/components/controls/ColorPicker.vue'
+import CollapsibleSection from '@/apps/slides/components/controls/CollapsibleSection.vue'
+import { editSlideCommand, batchCommand } from '@/apps/slides/stores/commands'
+import { commandHistory } from '@/apps/slides/stores/historyMeta'
 
 const setPropertyDeferred = inject('setPropertyDeferred')
 

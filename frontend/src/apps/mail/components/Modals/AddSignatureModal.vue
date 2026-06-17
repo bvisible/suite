@@ -28,9 +28,9 @@
 import { computed, inject, reactive, watch } from 'vue'
 import { Dialog, FormControl, TextEditor, useNewDoc } from 'frappe-ui'
 
-import { raiseToast } from '@/utils'
-import { useTextEditorButtons } from '@/utils/composables'
-import { CustomParagraphExtension } from '@/utils/text-editor'
+import { raiseToast } from '@/apps/mail/utils'
+import { useTextEditorButtons } from '@/apps/mail/utils/composables'
+import { CustomParagraphExtension } from '@/apps/mail/utils/text-editor'
 
 const user = inject('$user')
 

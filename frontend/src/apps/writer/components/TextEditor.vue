@@ -16,16 +16,18 @@
 </template>
 
 <script setup>
+import { watch } from 'vue'
+
 import { computed, onMounted, ref, provide } from 'vue'
 
 import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCaret from '@tiptap/extension-collaboration-caret'
 
-import store from '@/store'
+import store from '@/apps/writer/store'
 
-import { getRandomColor } from '@/utils'
-import { rebuild } from '@/extensions/comments'
-import { useYjs } from '@/composables/useYjs'
+import { getRandomColor } from '@/apps/writer/utils'
+import { rebuild } from '@/apps/writer/extensions/comments'
+import { useYjs } from '@/apps/writer/composables/useYjs'
 
 const activeComment = ref(null)
 const showSettings = defineModel('showSettings')

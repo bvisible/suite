@@ -1,10 +1,10 @@
 from typing import ClassVar
 from uuid import uuid7
 
-from mail.jmap.services.calendars.calendar import CalendarService
-from mail.jmap.services.calendars.calendars import CalendarsService
-from mail.jmap.services.calendars.participant_identity import ParticipantIdentityService
-from mail.utils.dt import utcnow
+from suite.mail.jmap.services.calendars.calendar import CalendarService
+from suite.mail.jmap.services.calendars.calendars import CalendarsService
+from suite.mail.jmap.services.calendars.participant_identity import ParticipantIdentityService
+from suite.mail.utils.dt import utcnow
 
 
 class CalendarEventService(CalendarsService):

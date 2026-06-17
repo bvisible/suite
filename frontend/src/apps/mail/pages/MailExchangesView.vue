@@ -76,7 +76,7 @@ import {
 	useList,
 } from 'frappe-ui'
 
-import { getTheme } from '@/utils'
+import { getTheme } from '@/apps/mail/utils'
 
 const user = inject('$user')
 const dayjs = inject('$dayjs')
@@ -136,7 +136,7 @@ const listColumns = computed(() => {
 
 const LIST_OPTIONS = {
 	selectable: false,
-	getRowRoute: (row) => ({ name: 'MailExchange', params: { id: row.name } }),
+	getRowRoute: (row) => ({ name: 'mail-exchange', params: { id: row.name } }),
 	emptyState: { description: __('No mail exchanges found.') },
 }
 

@@ -89,7 +89,7 @@
 
 			<div
 				v-if="identity?.doc && !identity.loading"
-				class="bg-surface-modal sticky bottom-0 py-4"
+				class="bg-surface-elevation-2 sticky bottom-0 py-4"
 			>
 				<Button
 					:label="__('Save')"
@@ -150,13 +150,13 @@ import {
 	useList,
 } from 'frappe-ui'
 
-import { convertHtmlToText, raiseToast } from '@/utils'
-import { useTextEditorButtons } from '@/utils/composables'
-import { CustomParagraphExtension } from '@/utils/text-editor'
-import { userStore } from '@/stores/user'
-import IdentitySettingsListView from '@/components/IdentitySettingsListView.vue'
+import { convertHtmlToText, raiseToast } from '@/apps/mail/utils'
+import { useTextEditorButtons } from '@/apps/mail/utils/composables'
+import { CustomParagraphExtension } from '@/apps/mail/utils/text-editor'
+import { userStore } from '@/apps/mail/stores/user'
+import IdentitySettingsListView from '@/apps/mail/components/IdentitySettingsListView.vue'
 
-import type { Identity } from '@/types'
+import type { Identity } from '@/apps/mail/types'
 
 const user = inject('$user')
 const { identities } = userStore()

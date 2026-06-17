@@ -2,9 +2,9 @@ from pathlib import Path
 
 import frappe
 
-from drive.api.permissions import user_has_permission
-from drive.api.files import get_file_internal
-from drive.utils import WRITER_CONTENT_DOCTYPE, get_home_folder
+from suite.drive.api.permissions import user_has_permission
+from suite.drive.api.files import get_file_internal
+from suite.drive.utils import WRITER_CONTENT_DOCTYPE, get_home_folder
 
 
 @frappe.whitelist(allow_guest=True)

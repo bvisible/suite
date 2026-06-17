@@ -1,8 +1,8 @@
 import { ref } from 'vue'
 import { toast, call } from 'frappe-ui'
 
-import { presentationId } from '@/stores/presentation'
-import { slideIndex, insertSlide, getNewSlide } from '@/stores/slide'
+import { presentationId } from '@/apps/slides/stores/presentation'
+import { slideIndex, insertSlide, getNewSlide } from '@/apps/slides/stores/slide'
 import {
 	activeElements,
 	activeElementIds,
@@ -10,12 +10,12 @@ import {
 	addTextElement,
 	duplicateElements,
 	resetFocus,
-} from '@/stores/element'
+} from '@/apps/slides/stores/element'
 
-import { useTextEditor } from '@/composables/useTextEditor'
+import { useTextEditor } from '@/apps/slides/composables/useTextEditor'
 
-import { getDocFromHTML } from '@/utils/helpers'
-import { handleUploadedMedia } from '@/utils/mediaUploads'
+import { getDocFromHTML } from '@/apps/slides/utils/helpers'
+import { handleUploadedMedia } from '@/apps/slides/utils/mediaUploads'
 
 const { activeEditor } = useTextEditor()
 
@@ -101,7 +101,7 @@ const handlePastedJSON = async (json) => {
 	if (srcPresentation !== presentationId.value) {
 		// if pasted elements are from a different presentation
 		// add file attachments correctly to current presentation + update docnames in json
-		json = await call('slides.slides.doctype.presentation.presentation.get_updated_json', {
+		json = await call('suite.slides.doctype.presentation.presentation.get_updated_json', {
 			presentation: presentationId.value,
 			json: json,
 		})
@@ -124,7 +124,7 @@ const handlePastedSlideJSON = async (json) => {
 		// if pasted slide is from a different presentation
 		// add file attachments correctly to current presentation + update docnames in json
 		slideJSON = await call(
-			'slides.slides.doctype.presentation.presentation.update_slide_attachments',
+			'suite.slides.doctype.presentation.presentation.update_slide_attachments',
 			{
 				parent: presentationId.value,
 				slide: slideJSON,

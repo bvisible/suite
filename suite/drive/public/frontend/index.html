@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html
+  lang="en"
+  data-theme-mode="{{ desk_theme.lower() }}"
+  data-theme="{{ desk_theme.lower() }}"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <!-- HTML Meta Tags -->
+    <title>{{ title }}</title>
+
+    <!-- OG Meta Tags -->
+    <meta
+      property="og:type"
+      content="website"
+    />
+    <meta
+      property="og:title"
+      content="{{ title }}"
+    />
+    <meta
+      property="og:description"
+      content="{{ description }}"
+    />
+    {% if og_image %}
+    <meta
+      property="og:image"
+      content="{{ og_image }}"
+    />
+    {% endif %} 
+
+    <!-- Twitter Meta Tags -->
+    <meta
+      name="twitter:card"
+      content="summary_large_image"
+    />
+    <meta
+      name="twitter:title"
+      content="{{ title }}"
+    />
+    <meta
+      name="twitter:description"
+      content="{{ description }}"
+    />
+    {% if og_image %}
+    <meta
+      name="twitter:image"
+      content="{{ og_image }}"
+    />
+    {% endif %}
+
+    <link rel="apple-touch-icon" sizes="57x57" href="/assets/drive/frontend/favicon-57x57.png" />
+    <link rel="apple-touch-icon" sizes="60x60" href="/assets/drive/frontend/favicon-60x60.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="/assets/drive/frontend/favicon-72x72.png" />
+    <link rel="apple-touch-icon" sizes="76x76" href="/assets/drive/frontend/favicon-76x76.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="/assets/drive/frontend/favicon-114x114.png" />
+    <link rel="apple-touch-icon" sizes="120x120" href="/assets/drive/frontend/favicon-120x120.png" />
+    <link rel="apple-touch-icon" sizes="144x144" href="/assets/drive/frontend/favicon-144x144.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/assets/drive/frontend/favicon-152x152.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/drive/frontend/favicon-180x180.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/drive/frontend/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/drive/frontend/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/assets/drive/frontend/favicon-96x96.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/drive/frontend/favicon-192x192.png" />
+    <link rel="shortcut icon" type="image/x-icon" href="/assets/drive/frontend/favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="/assets/drive/frontend/favicon.ico" />
+    <meta name="msapplication-TileColor" content="#ffffff" />
+    <meta name="msapplication-TileImage" content="/assets/drive/frontend/favicon-144x144.png" />
+    <meta name="msapplication-config" content="/assets/drive/frontend/browserconfig.xml" />
+    <link rel="manifest" href="/assets/drive/frontend/manifest.json" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <script type="module" crossorigin src="/assets/drive/frontend/assets/index-BLSXD4T8.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/chunk-DECur_0Z.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/vue.runtime.esm-bundler-BJEHSJCG.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/_plugin-vue_export-helper-yXnLLYmL.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/x-Ccbm3HYN.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/vue-router-Df4zgSt-.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/debounce-CriyCk2z.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/vuex.esm-bundler-DlVJUdPF.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/Collection-DlNo1jXE.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/getActiveElement-BteucGPH.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/permissions-BzZbYk3j.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/emitter-DJGDtPx2.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/log-out-DhLITmn4.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/Tooltip-r4ruHyjk.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/FocusScope-DL-OYnbV.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/utils-D0-YZ01m.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/useFocusGuards-Dhm69odO.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/chevron-down-CF9UXrHi.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/Button-CLQGAmFR.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/check-DE_GGEF_.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/ErrorMessage-BRo_QJ29.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/useId-BpVS-fyq.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/building-2-BmDfzeKU.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/Dialog-B46SE-du.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/Select-El0130oo.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/ImageGroupUploadDialog-DCPb57ze.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/inbox-xcqlx0uG.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/TeamSelector-qYTXmaS5.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/Checkbox-CfxPm8hA.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/Popover-NTW5K7ZM.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/TextInput-MV83NzON.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/Textarea-zYHUsqCA.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/FormControl-BdAaMcDu.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/TabButtons-DTCHR_3u.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/Badge-B0GeBXOg.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/Dialog-C4wHV7y6.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/utils-BOBL3lNk.js">
+    <link rel="modulepreload" crossorigin href="/assets/drive/frontend/assets/FrappeDriveLogo-5-diQBdY.js">
+    <link rel="stylesheet" crossorigin href="/assets/drive/frontend/assets/permissions-CxEReNsS.css">
+    <link rel="stylesheet" crossorigin href="/assets/drive/frontend/assets/building-2-Dncfp09d.css">
+    <link rel="stylesheet" crossorigin href="/assets/drive/frontend/assets/Dialog-BR3xCPMD.css">
+    <link rel="stylesheet" crossorigin href="/assets/drive/frontend/assets/Select-I3PQy5FR.css">
+    <link rel="stylesheet" crossorigin href="/assets/drive/frontend/assets/Popover-WqQFOTYK.css">
+    <link rel="stylesheet" crossorigin href="/assets/drive/frontend/assets/index-B-p8zRFe.css">
+  </head>
+  <body>
+    <div id="app" class="h-screen"></div>
+    <div id="modals"></div>
+    <div id="popovers"></div>
+
+    <script>
+      window.csrf_token = '{{ csrf_token }}'
+    </script>
+  
+          <script>
+              {% for key in boot %}
+              window["{{ key }}"] = {{ boot[key] | tojson }};
+              {% endfor %}
+          </script>
+          </body>
+          
+</html>

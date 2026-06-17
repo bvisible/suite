@@ -12,8 +12,8 @@ from werkzeug.utils import secure_filename, send_file
 from werkzeug.wrappers import Response
 from werkzeug.wsgi import wrap_file
 
-from drive.api.storage import storage_bar_data
-from drive.utils import (
+from suite.drive.api.storage import storage_bar_data
+from suite.drive.utils import (
     create_drive_file,
     default_team,
     get_file_type,
@@ -27,9 +27,9 @@ from drive.utils import (
     STATUS_ACTIVE,
     STATUS_TRASHED,
 )
-from drive.utils.api import prettify_file
-from drive.utils.files import FileManager, storage_key, get_s3_key, get_s3_url
-from drive.utils.users import mark_as_viewed
+from suite.drive.utils.api import prettify_file
+from suite.drive.utils.files import FileManager, storage_key, get_s3_key, get_s3_url
+from suite.drive.utils.users import mark_as_viewed
 
 from .permissions import get_teams, user_has_permission
 
@@ -156,7 +156,7 @@ def get_thumbnail(entity_name: str):
                 thumbnail_data = html[:1000] if html else ""
             elif drive_file.mime_type == "frappe/slides":
                 thumbnail_url = frappe.call(
-                    "slides.slides.doctype.presentation.presentation.get_presentation_thumbnail",
+                    "suite.slides.doctype.presentation.presentation.get_presentation_thumbnail",
                     presentation_name=drive_file.path,
                 )
                 if not thumbnail_url:

@@ -38,7 +38,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { Dialog } from 'frappe-ui'
+import { Dialog, FormControl, focusDirective as vFocus } from 'frappe-ui'
 import { rename } from '../js/resources'
 
 const props = defineProps({ entity: Object, modelValue: String })

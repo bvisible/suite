@@ -21,9 +21,9 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Button } from 'frappe-ui'
 
-import { isMac } from '@/utils'
-import SearchModal from '@/components/Modals/SearchModal.vue'
-import SendMail from '@/components/SendMail.vue'
+import { isMac } from '@/apps/mail/utils'
+import SearchModal from '@/apps/mail/components/Modals/SearchModal.vue'
+import SendMail from '@/apps/mail/components/SendMail.vue'
 
 const emit = defineEmits(['reloadMails'])
 

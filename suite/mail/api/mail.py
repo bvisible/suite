@@ -7,11 +7,11 @@ import requests
 from frappe import _
 from frappe.utils import format_datetime, random_string
 
-from mail.api.contacts import create_contacts_if_not_exists
-from mail.api.sieve import update_sieve_script_for_mailbox
-from mail.api.utils import get_avatar_url
-from mail.client.doctype.blocked_email_address.blocked_email_address import get_blocked_email_addresses
-from mail.client.doctype.mail_message.mail_message import (
+from suite.mail.api.contacts import create_contacts_if_not_exists
+from suite.mail.api.sieve import update_sieve_script_for_mailbox
+from suite.mail.api.utils import get_avatar_url
+from suite.client.doctype.blocked_email_address.blocked_email_address import get_blocked_email_addresses
+from suite.client.doctype.mail_message.mail_message import (
 	add_messages_to_mailbox,
 	delete_messages,
 	empty_mailbox,
@@ -26,13 +26,13 @@ from mail.client.doctype.mail_message.mail_message import (
 	set_seen_status,
 	set_spam_status,
 )
-from mail.client.doctype.mail_queue.mail_queue import MailQueue
-from mail.client.doctype.mailbox.mailbox import add_mailbox, delete_mailboxes
-from mail.client.doctype.mailbox_settings.mailbox_settings import set_mailbox_settings
-from mail.jmap import get_email_service, get_mailbox_id_by_role
-from mail.utils import convert_html_to_text, get_config
-from mail.utils.user import get_account_emails, is_jmap_configured
-from mail.utils.validation import has_permission_for_user
+from suite.client.doctype.mail_queue.mail_queue import MailQueue
+from suite.client.doctype.mailbox.mailbox import add_mailbox, delete_mailboxes
+from suite.client.doctype.mailbox_settings.mailbox_settings import set_mailbox_settings
+from suite.mail.jmap import get_email_service, get_mailbox_id_by_role
+from suite.mail.utils import convert_html_to_text, get_config
+from suite.mail.utils.user import get_account_emails, is_jmap_configured
+from suite.mail.utils.validation import has_permission_for_user
 
 AVATAR_CACHE_TTL = 60 * 60 * 24
 
@@ -96,7 +96,7 @@ def add_user_images_to_emails(account: str, mails: list[dict], is_thread: bool =
 		if not name:
 			continue
 
-		from_email = (mail.get("from_email") or "").lower()
+		from_email = (suite.mail.get("from_email") or "").lower()
 
 		if not from_email:
 			continue
@@ -277,7 +277,7 @@ def serialize_mail(mail: dict) -> dict:
 
 	return {
 		**{field: mail[field] for field in mail_fields},
-		"attachments": serialize_attachments(mail.get("attachments", [])),
+		"attachments": serialize_attachments(suite.mail.get("attachments", [])),
 	}
 
 
@@ -448,7 +448,7 @@ def update_draft_mail(
 
 @frappe.whitelist()
 def delete_mail(account: str, id: str) -> None:
-	"""Deletes the given mail."""
+	"""Deletes the given suite.mail."""
 
 	delete_messages(account, [id])
 

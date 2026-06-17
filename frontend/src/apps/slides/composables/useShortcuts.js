@@ -1,9 +1,9 @@
 import { onMounted, onBeforeUnmount } from 'vue'
 import { useEventListener } from '@vueuse/core'
 
-import { useNavigationPanel } from '@/composables/useNavigationPanel'
-import { commandHistory } from '@/stores/historyMeta'
-import { useTextEditor } from '@/composables/useTextEditor'
+import { useNavigationPanel } from '@/apps/slides/composables/useNavigationPanel'
+import { commandHistory } from '@/apps/slides/stores/historyMeta'
+import { useTextEditor } from '@/apps/slides/composables/useTextEditor'
 
 import {
 	slideIndex,
@@ -15,7 +15,7 @@ import {
 	changeEditorSlide,
 	duplicateSlide,
 	addEmptySlide,
-} from '@/stores/slide'
+} from '@/apps/slides/stores/slide'
 import {
 	focusElementId,
 	resetFocus,
@@ -26,15 +26,15 @@ import {
 	deleteElements,
 	duplicateElements,
 	activeElement,
-} from '@/stores/element'
+} from '@/apps/slides/stores/element'
 import {
 	changeSlideInSlideshow,
 	startSlideShow,
 	performNextStep,
 	performPreviousStep,
-} from '@/stores/slideshow'
+} from '@/apps/slides/stores/slideshow'
 
-import { isCmdOrCtrl } from '@/utils/helpers'
+import { isCmdOrCtrl } from '@/apps/slides/utils/helpers'
 
 const { toggleNavigationPanel } = useNavigationPanel()
 const { activeEditor, toggleMark } = useTextEditor()

@@ -122,15 +122,15 @@ import {
 	AlignJustify,
 } from 'lucide-vue-next'
 
-import SliderInput from '@/components/controls/SliderInput.vue'
-import NumberInput from '@/components/controls/NumberInput.vue'
-import ColorPicker from '@/components/controls/ColorPicker.vue'
-import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
+import SliderInput from '@/apps/slides/components/controls/SliderInput.vue'
+import NumberInput from '@/apps/slides/components/controls/NumberInput.vue'
+import ColorPicker from '@/apps/slides/components/controls/ColorPicker.vue'
+import CollapsibleSection from '@/apps/slides/components/controls/CollapsibleSection.vue'
 
-import { activeElement } from '@/stores/element'
-import { fieldLabelClasses } from '@/utils/constants'
+import { activeElement } from '@/apps/slides/stores/element'
+import { fieldLabelClasses } from '@/apps/slides/utils/constants'
 
-import { useTextEditor } from '@/composables/useTextEditor'
+import { useTextEditor } from '@/apps/slides/composables/useTextEditor'
 
 const { activeEditor, editorStyles, toggleMark, updateProperty } = useTextEditor()
 

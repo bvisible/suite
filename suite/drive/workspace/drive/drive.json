@@ -1,5 +1,5 @@
 {
-  "app": "drive",
+  "app": "suite",
   "charts": [],
   "content": "[{\"id\":\"lgbz2-8bBY\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Go to Drive\",\"col\":3}},{\"id\":\"vf_k8YJ6jw\",\"type\":\"header\",\"data\":{\"text\":\"<span style=\\\"font-size: 16px;\\\">Manage Drive</span>\",\"col\":12}},{\"id\":\"MfWHdTHJyF\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Manage Disk Settings\",\"col\":3}},{\"id\":\"n2ZStcN9b4\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Teams\",\"col\":3}}]",
   "creation": "2025-07-11 12:47:26.336149",

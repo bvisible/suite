@@ -6,10 +6,10 @@ from frappe.core.doctype.user.user import generate_keys
 from frappe.query_builder import Table
 from frappe.utils.caching import request_cache
 
-from mail.jmap.services.core import parse_account
-from mail.storage import get_data_store
-from mail.storage.data_store import Entity
-from mail.utils import reconnect_on_failure, user_context
+from suite.mail.jmap.services.core import parse_account
+from suite.mail.storage import get_data_store
+from suite.mail.storage.data_store import Entity
+from suite.mail.utils import reconnect_on_failure, user_context
 
 
 def is_administrator(user: str) -> bool:
@@ -80,7 +80,7 @@ def get_jmap_username(user: str) -> str | None:
 def get_account_emails(account: str) -> list[str]:
 	"""Returns the list of email addresses associated with the account."""
 
-	from mail.jmap import get_identities
+	from suite.mail.jmap import get_identities
 
 	emails = []
 	for identity in get_identities(account):
@@ -94,7 +94,7 @@ def get_user_personal_account(
 ) -> str | None:
 	"""Returns the personal account of the user."""
 
-	from mail.client.doctype.user_account.user_account import fetch_user_accounts
+	from suite.client.doctype.user_account.user_account import fetch_user_accounts
 
 	for account in fetch_user_accounts(user, limit=None):
 		if account["is_personal"]:
@@ -109,7 +109,7 @@ def get_user_emails(user: str) -> list[str]:
 
 	emails = []
 
-	from mail.client.doctype.user_account.user_account import fetch_user_accounts
+	from suite.client.doctype.user_account.user_account import fetch_user_accounts
 
 	for account in [a["name"] for a in fetch_user_accounts(user, limit=None)]:
 		emails.extend(get_account_emails(account))

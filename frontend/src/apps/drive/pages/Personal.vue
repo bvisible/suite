@@ -13,11 +13,10 @@
 </template>
 
 <script setup>
-import GenericPage from '@/components/GenericPage.vue'
-import { getPersonal } from '@/resources/files'
-import { useStore } from 'vuex'
+import GenericPage from '@/apps/drive/components/GenericPage.vue'
+import { getPersonal } from '@/apps/drive/resources/files'
+import store from '@/apps/drive/store'
 import LucideHome from '~icons/lucide/home'
 
-const store = useStore()
 store.commit('setCurrentFolder', { name: '', team: '' })
 </script>

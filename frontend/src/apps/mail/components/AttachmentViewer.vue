@@ -20,7 +20,7 @@
 							:is="getFileIcon(currentAttachment?.type)"
 							class="h-4 w-4 shrink-0"
 						/>
-						<span class="truncate text-base font-medium">
+						<span class="truncate text-base-medium">
 							{{ currentAttachment?.filename }}
 						</span>
 					</div>
@@ -155,8 +155,11 @@
 import 'vue-pdf-embed/dist/styles/annotationLayer.css'
 import 'vue-pdf-embed/dist/styles/textLayer.css'
 
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import VuePdfEmbed from 'vue-pdf-embed'
+import { computed, defineAsyncComponent, onMounted, onUnmounted, ref, watch } from 'vue'
+
+// vue-pdf-embed bundles pdf.js — keep it lazy/code-split so it does not bloat
+// the MailboxView route chunk (only loaded when a PDF attachment is opened).
+const VuePdfEmbed = defineAsyncComponent(() => import('vue-pdf-embed'))
 import {
 	ChevronLeft,
 	ChevronRight,
@@ -168,11 +171,11 @@ import {
 } from 'lucide-vue-next'
 import { Button } from 'frappe-ui'
 
-import { fetchAttachment, getAttachmentUrl } from '@/resources'
-import { getFileIcon } from '@/utils'
-import { useScreenSize } from '@/utils/composables'
+import { fetchAttachment, getAttachmentUrl } from '@/apps/mail/resources'
+import { getFileIcon } from '@/apps/mail/utils'
+import { useScreenSize } from '@/apps/mail/utils/composables'
 
-import type { Attachment } from '@/types'
+import type { Attachment } from '@/apps/mail/types'
 
 const { attachments, initialIndex } = defineProps<{
 	attachments?: Attachment[]

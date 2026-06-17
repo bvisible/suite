@@ -4,8 +4,8 @@
       <LucideFileUser v-if="error.exc_type === 'PermissionError'" />
       <LucideFileQuestionMark v-else />
     </div>
-    <h1 class="text-3xl font-bold text-ink-gray-8 mt-4">Uh oh!</h1>
-    <p class="text-lg text-ink-gray-5 mt-4" v-html="error.messages?.join?.('\n') || error" />
+    <h1 class="text-5xl-bold text-ink-gray-8 mt-4">Uh oh!</h1>
+    <p class="text-xl text-ink-gray-5 mt-4" v-html="error.messages?.join?.('\n') || error" />
     <div class="w-50 flex gap-8 my-12">
       <Button
         v-if="$router.options.history.state.back"
@@ -19,7 +19,7 @@
         v-if="$store.state.user.id && $store.state.user.id !== 'Guest'"
         variant="solid"
         size="md"
-        @click="$router.replace({ name: 'Home' })"
+        @click="$router.replace({ name: 'drive-Home' })"
       >
         <div class="flex gap-2"><LucideHome class="size-4" />Go Home</div>
       </Button>
@@ -32,8 +32,8 @@
 
 <script setup>
 import { Button } from 'frappe-ui'
-import store from '@/store'
-import router from '@/router'
+import store from '@/apps/drive/store'
+import router from '@/apps/drive/router'
 import { watchEffect } from 'vue'
 import { LucideFileUser } from 'lucide-vue-next'
 

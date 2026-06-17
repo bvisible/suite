@@ -6,7 +6,7 @@ Hocuspocus-backed collab path and where to connect. Both are sourced
 from ``site_config.json`` so toggling a single site doesn't require a
 frontend rebuild.
 
-Wired in ``sheets.hooks.extend_bootinfo``.
+Wired in ``suite.sheets.hooks.extend_bootinfo``.
 """
 
 from __future__ import annotations

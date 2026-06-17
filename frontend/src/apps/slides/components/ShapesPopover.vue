@@ -163,7 +163,7 @@
 import { ref } from 'vue'
 import { Popover, Tooltip } from 'frappe-ui'
 
-import { addShapeElement } from '@/stores/element'
+import { addShapeElement } from '@/apps/slides/stores/element'
 
 const addShape = (shapeType, close) => {
 	addShapeElement(shapeType)

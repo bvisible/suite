@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="error"
-    class="max-w-[450px] h-fit self-center p-10 border border-outline-gray-2 bg-surface-white rounded-md text-xl text-center font-medium shadow-xl flex flex-col justify-center items-center gap-4"
+    class="max-w-[450px] h-fit self-center p-10 border border-outline-gray-2 bg-surface-base rounded-md text-3xl-medium text-center shadow-xl flex flex-col justify-center items-center gap-4"
   >
     <LucideAlertCircle class="size-8 text-ink-gray-8" />
     <span class="text-ink-gray-9">Cannot open file</span>
@@ -13,16 +13,17 @@
   <component :is="previewComponent" v-else :preview-entity="previewEntity" />
 </template>
 <script setup>
-import MSOfficePreview from '@/components/FileTypePreview/MSOfficePreview.vue'
-import ImagePreview from '@/components/FileTypePreview/ImagePreview.vue'
+import { Button } from 'frappe-ui'
+import MSOfficePreview from '@/apps/drive/components/FileTypePreview/MSOfficePreview.vue'
+import ImagePreview from '@/apps/drive/components/FileTypePreview/ImagePreview.vue'
 import PDFPreview from './FileTypePreview/PDFPreview.vue'
 import VideoPreview from './FileTypePreview/VideoPreview.vue'
 import TextPreview from './FileTypePreview/TextPreview.vue'
-import AudioPreview from '@/components/FileTypePreview/AudioPreview.vue'
+import AudioPreview from '@/apps/drive/components/FileTypePreview/AudioPreview.vue'
 import { computed } from 'vue'
 import LucideAlertCircle from '~icons/lucide/alert-circle'
-import { diskSettings } from '@/resources/permissions'
-import store from '@/store'
+import { diskSettings } from '@/apps/drive/resources/permissions'
+import store from '@/apps/drive/store'
 
 const props = defineProps({
   previewEntity: {
@@ -47,7 +48,7 @@ const error = computed(() => {
 })
 
 const download = () => {
-  window.location.href = `/api/method/drive.api.files.get_file_content?entity_name=${props.previewEntity.name}&trigger_download=1`
+  window.location.href = `/api/method/suite.drive.api.files.get_file_content?entity_name=${props.previewEntity.name}&trigger_download=1`
 }
 
 const RENDERS = {

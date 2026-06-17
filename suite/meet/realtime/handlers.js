@@ -15,7 +15,7 @@ const meet_handlers = (socket) => {
 
 		// session validation for guest
 		socket
-			.frappe_request("/api/method/meet.api.meeting.validate_guest_session", {
+			.frappe_request("/api/method/suite.meet.api.meeting.validate_guest_session", {
 				guest_id: guest_id,
 			})
 			.then((res) => res.json())

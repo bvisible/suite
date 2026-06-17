@@ -11,7 +11,7 @@
 # ==============================================================================
 
 x-frappe-image: &frappe_image
-  image: ${FRAPPE_IMAGE:-ghcr.io/frappe/meet:latest}
+  image: ${FRAPPE_IMAGE:-ghcr.io/frappe/suite:latest}
   restart: unless-stopped
 
 x-depends-on-configurator: &depends_on_configurator
@@ -94,12 +94,12 @@ services:
   # ── MariaDB ─────────────────────────────────────────────────────────────────
   mariadb:
     image: mariadb:11.8
-    container_name: meet-mariadb
+    container_name: suite-mariadb
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_DATABASE: _meet
-      MYSQL_USER: meet
+      MYSQL_DATABASE: _suite
+      MYSQL_USER: suite
       MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
       - mariadb-data:/var/lib/mysql
@@ -119,7 +119,7 @@ services:
   # ── Redis ───────────────────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
-    container_name: meet-redis
+    container_name: suite-redis
     restart: unless-stopped
     volumes:
       - redis-data:/data
@@ -137,7 +137,7 @@ services:
   # ── Nginx (SSL termination + routing) ───────────────────────────────────────
   nginx:
     image: nginx:1.27-alpine
-    container_name: meet-nginx
+    container_name: suite-nginx
     restart: unless-stopped
     ports:
       - "80:80"
@@ -161,7 +161,7 @@ services:
   # ── Certbot (SSL) ──────────────────────────────────────────────────────────
   certbot:
     image: certbot/certbot:latest
-    container_name: meet-certbot
+    container_name: suite-certbot
     volumes:
       - certbot-webroot:/var/www/certbot
       - certbot-certs:/etc/letsencrypt
@@ -176,8 +176,8 @@ services:
 
   # ── SFU Server (host networking for WebRTC) ─────────────────────────────────
   sfu:
-    image: ${SFU_IMAGE:-ghcr.io/frappe/meet/sfu-server:latest}
-    container_name: meet-sfu
+    image: ${SFU_IMAGE:-ghcr.io/frappe/suite/sfu-server:latest}
+    container_name: suite-sfu
     restart: unless-stopped
     network_mode: host
     environment:

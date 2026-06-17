@@ -10,12 +10,12 @@
 </template>
 
 <script setup>
-import GenericPage from '@/components/GenericPage.vue'
-import { getAttachments } from '@/resources/files'
+import GenericPage from '@/apps/drive/components/GenericPage.vue'
+import { getAttachments } from '@/apps/drive/resources/files'
 import LucideStar from '~icons/lucide/star'
 import { watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useStore } from 'vuex'
+import store from '@/apps/drive/store'
 
 const props = defineProps({
   doctype: {
@@ -28,7 +28,6 @@ const props = defineProps({
   },
 })
 const route = useRoute()
-const store = useStore()
 
 watch(
   () => [props.doctype, props.docname],

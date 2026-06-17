@@ -1,29 +1,29 @@
-import router from '@/router'
-import store from '@/store'
-import { formatSize } from '@/utils/format'
+import router from '@/apps/writer/router'
+import store from '@/apps/writer/store'
+import { formatSize } from '@/apps/writer/utils/format'
 import { nextTick, h } from 'vue'
 import { useTimeAgo } from '@vueuse/core'
 import { set } from 'idb-keyval'
-import editorStyle from '@/styles/editor.css?inline'
-import globalStyle from '@/index.css?inline'
+import editorStyle from '@/apps/writer/styles/editor.css?inline'
+import globalStyle from '@/apps/writer/styles/index.css?inline'
 import slugify from 'slugify'
 import { useFileUpload, toast as nToast, createResource } from 'frappe-ui'
-import { getTeams } from '@/ui/drive/js/resources'
-import emitter from '@/emitter'
+import { getTeams } from '@/apps/writer/ui/drive/js/resources'
+import emitter from '@/apps/writer/emitter'
 import { createLowlight, common } from 'lowlight'
 import { toHtml } from 'hast-util-to-html'
 import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
 import TurndownService from 'turndown'
-import { formatDate } from '@/utils/format'
+import { formatDate } from '@/apps/writer/utils/format'
 import {
   default as TableOfContents,
   getHierarchicalIndexes,
 } from '@tiptap/extension-table-of-contents'
-import { FontSize } from '@/extensions/font-size'
-import EmbedExtension from '@/extensions/embed-extension'
-import ExtendedParagraph from '@/extensions/extended-paragraph'
-import FontFamily from '@/extensions/font-family'
+import { FontSize } from '@/apps/writer/extensions/font-size'
+import EmbedExtension from '@/apps/writer/extensions/embed-extension'
+import ExtendedParagraph from '@/apps/writer/extensions/extended-paragraph'
+import FontFamily from '@/apps/writer/extensions/font-family'
 
 function trimCommonPrefix(a, b) {
   let i = 0
@@ -460,7 +460,7 @@ async function uploadImage(file, params) {
   const uploader = useFileUpload()
   const upload = uploader.upload(file, {
     params,
-    upload_endpoint: '/api/method//api/method/drive.api.files.upload_file',
+    upload_endpoint: '/api/method//api/method/suite.drive.api.files.upload_file',
   })
   let entity = await new Promise((resolve) => {
     upload.then((data) => {
@@ -648,7 +648,7 @@ export function toast(obj) {
   nToast.create({
     message: title,
     action: buttons?.[0],
-    icon: icon && h(icon, { class: 'text-ink-white' }),
+    icon: icon && h(icon, { class: 'text-ink-base' }),
     duration: duration || 5,
     type,
   })
@@ -667,7 +667,7 @@ export async function downloadMD(editor, foldername) {
   const zip = new JSZip()
   const urls = editor.value.commands.getEmbedUrls()
   const getExtension = createResource({
-    url: 'writer.api.docs.get_extension',
+    url: 'suite.writer.api.docs.get_extension',
   })
   const parent = router.currentRoute.value.params.entityName
   const markdown = turndownService.turndown(html)
@@ -683,10 +683,10 @@ export async function downloadMD(editor, foldername) {
     const ext = await getExtension.fetch({ entity_name: urls[i].name })
     const title = `${urls[i].title}.${ext}`
     html = html.replace(
-      `src="/api/method/writer.api.embed.get?id=${urls[i].name}"`,
+      `src="/api/method/suite.writer.api.embed.get?id=${urls[i].name}"`,
       `src="./${title}"`,
     )
-    const fileUrl = `/api/method/writer.api.embed.get?id=${urls[i].name}`
+    const fileUrl = `/api/method/suite.writer.api.embed.get?id=${urls[i].name}`
     const blob = await (await fetch(fileUrl)).blob()
     zip.file(title, blob)
   }
@@ -707,17 +707,17 @@ export function downloadZippedHTML(editor, foldername, settings = {}) {
       zip.file(`${foldername}.html`, html)
       const urls = editor.value.commands.getEmbedUrls()
       const getExtension = createResource({
-        url: 'writer.api.docs.get_extension',
+        url: 'suite.writer.api.docs.get_extension',
       })
 
       for (const i in urls) {
         const ext = await getExtension.fetch({ entity_name: urls[i].name })
         const title = `${urls[i].title}.${ext}`
         html = html.replace(
-          `src="/api/method/writer.api.embed.get?id=${urls[i].name}"`,
+          `src="/api/method/suite.writer.api.embed.get?id=${urls[i].name}"`,
           `src="./${title}"`,
         )
-        const fileUrl = `/api/method/writer.api.embed.get?id=${urls[i].name}`
+        const fileUrl = `/api/method/suite.writer.api.embed.get?id=${urls[i].name}`
         const blob = await (await fetch(fileUrl)).blob()
         zip.file(title, blob)
       }

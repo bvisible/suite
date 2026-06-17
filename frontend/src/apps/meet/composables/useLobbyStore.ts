@@ -23,7 +23,7 @@ export interface LobbyStore {
 	$reset: () => void;
 }
 
-export const useLobbyStore = defineStore("lobby", () => {
+export const useLobbyStore = defineStore("meet-lobby", () => {
 	const isWaitingForApproval = ref(false);
 	const isJoinRequestRejected = ref(false);
 	const lobbyUsers = ref<LobbyUser[]>([]);

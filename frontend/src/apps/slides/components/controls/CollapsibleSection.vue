@@ -25,7 +25,7 @@
 import { ref } from 'vue'
 import { ChevronRight, ChevronUp } from 'lucide-vue-next'
 
-import { sectionClasses, sectionTitleClasses } from '@/utils/constants'
+import { sectionClasses, sectionTitleClasses } from '@/apps/slides/utils/constants'
 
 const props = defineProps({
 	title: String,

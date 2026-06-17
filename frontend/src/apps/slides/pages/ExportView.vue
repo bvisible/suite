@@ -18,7 +18,7 @@
 </template>
 
 <script setup>
-import SlideElement from '@/components/SlideElement.vue'
+import SlideElement from '@/apps/slides/components/SlideElement.vue'
 
 const props = defineProps({
 	slides: { type: Array, required: true },

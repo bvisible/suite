@@ -3,12 +3,11 @@
 </template>
 
 <script setup>
-import GenericPage from '@/components/GenericPage.vue'
+import GenericPage from '@/apps/drive/components/GenericPage.vue'
 import { computed } from 'vue'
-import { getSiteFiles, getShared } from '@/resources/files'
-import { useStore } from 'vuex'
+import { getSiteFiles, getShared } from '@/apps/drive/resources/files'
+import store from '@/apps/drive/store'
 import LucideFiles from '~icons/lucide/files'
-const store = useStore()
 
 
 const getEntities = computed(() =>

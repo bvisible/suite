@@ -4,15 +4,15 @@ import frappe
 from frappe import _
 from frappe.utils import random_string
 
-from mail.client.doctype.mail_message.mail_message import enqueue_fetch_changes
-from mail.client.doctype.push_subscription.push_subscription import (
+from suite.client.doctype.mail_message.mail_message import enqueue_fetch_changes
+from suite.client.doctype.push_subscription.push_subscription import (
 	decrypt_jmap_push_payload,
 	get_push_subscription_keys,
 	is_jmap_push_notifications_frozen,
 	verify_push_subscription,
 )
-from mail.jmap import invalidate_jmap_identities_cache, invalidate_jmap_mailboxes_cache
-from mail.utils import get_push_logger
+from suite.mail.jmap import invalidate_jmap_identities_cache, invalidate_jmap_mailboxes_cache
+from suite.mail.utils import get_push_logger
 
 
 @frappe.whitelist(methods=["POST"], allow_guest=True)

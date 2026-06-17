@@ -34,8 +34,8 @@ import {
 	createResource,
 } from 'frappe-ui'
 
-import { extractNameFromEmail } from '@/utils'
-import { userStore } from '@/stores/user'
+import { extractNameFromEmail } from '@/apps/mail/utils'
+import { userStore } from '@/apps/mail/stores/user'
 
 const store = userStore()
 
@@ -64,7 +64,7 @@ const search = ref('')
 const limit = ref(50)
 
 const contacts = createResource({
-	url: 'mail.api.contacts.get_contact_cards',
+	url: 'suite.mail.api.contacts.get_contact_cards',
 	auto: true,
 	makeParams: () => ({
 		account: store.account,

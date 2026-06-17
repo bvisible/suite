@@ -33,11 +33,11 @@
 import { computed, ref } from 'vue'
 import { Dialog, FormControl, TextEditor, createResource } from 'frappe-ui'
 
-import { raiseToast } from '@/utils'
-import { CustomParagraphExtension } from '@/utils/text-editor'
-import { userStore } from '@/stores/user'
+import { raiseToast } from '@/apps/mail/utils'
+import { CustomParagraphExtension } from '@/apps/mail/utils/text-editor'
+import { userStore } from '@/apps/mail/stores/user'
 
-import type { Identity } from '@/types'
+import type { Identity } from '@/apps/mail/types'
 
 const { identities } = userStore()
 
@@ -63,7 +63,7 @@ const addSignatureOptions = computed(() => ({
 }))
 
 const setSignature = createResource({
-	url: 'mail.api.account.set_signature',
+	url: 'suite.mail.api.account.set_signature',
 	makeParams: () => ({ identity: identity.value, signature }),
 	onSuccess: () => {
 		raiseToast(__('Identity updated.'))

@@ -51,16 +51,16 @@ Requires Frappe Framework 15 or 16.
 ```bash
 cd $PATH_TO_YOUR_BENCH
 bench get-app https://github.com/frappe/spreadsheet --branch main
-bench --site $YOUR_SITE install-app spreadsheet
+bench --site $YOUR_SITE install-app suite
 ```
 
 After install, open the app from the Frappe desk app-switcher, or visit
-`https://<your-site>/spreadsheet` directly.
+`https://<your-site>/suite` directly.
 
 ## Frappe Cloud
 
 Add this repo URL as a custom app on your Frappe Cloud bench. The frontend
-assets are pre-built and committed to `spreadsheet/public/` so no Node build
+assets are pre-built and committed to `suite/public/` so no Node build
 runs on Cloud — see [BUILD.md](./BUILD.md) for the release workflow.
 
 ## Contributing
@@ -70,7 +70,7 @@ This app uses `pre-commit` for formatting and linting. Please
 this repository:
 
 ```bash
-cd apps/spreadsheet
+cd apps/suite
 pre-commit install
 ```
 

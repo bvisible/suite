@@ -58,10 +58,10 @@
 import { computed, inject } from 'vue'
 import { Button, ErrorMessage, FormControl, Switch, createDocumentResource } from 'frappe-ui'
 
-import { raiseToast } from '@/utils'
-import { userStore } from '@/stores/user'
+import { raiseToast } from '@/apps/mail/utils'
+import { userStore } from '@/apps/mail/stores/user'
 
-import type { Identity } from '@/types'
+import type { Identity } from '@/apps/mail/types'
 
 const user = inject('$user')
 const { identities } = userStore()

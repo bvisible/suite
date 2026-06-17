@@ -1,8 +1,13 @@
 # Building & releasing
 
+> **Note:** In the `suite` monorepo the Sheets frontend is part of the unified
+> `frontend/` SPA, which builds to `suite/public/frontend` (served at
+> `/assets/suite/frontend/`). The standalone per-app build described below is
+> superseded by that shared build — see `frontend/` for the current workflow.
+
 Frappe Cloud does **not** run `npm install` or `npm run build` for this app.
 The pre-built frontend assets need to be in
-`spreadsheet/public/spreadsheet/` before every push that
+`suite/public/frontend/` before every push that
 includes frontend changes.
 
 ## Local release workflow
@@ -10,21 +15,21 @@ includes frontend changes.
 ```bash
 cd frontend
 npm install            # first time only / after package.json changes
-npm run build          # writes to ../spreadsheet/public/spreadsheet/
+npm run build          # writes to ../suite/public/frontend/
 cd ..
 
 # Sanity check — these should all exist:
-ls spreadsheet/public/spreadsheet/
+ls suite/public/frontend/
 #   index.html  index.js  index.css  Inter.var.woff2  Inter-Italic.var.woff2  ...
 
 # Commit the rebuilt assets alongside any source changes:
-git add spreadsheet/public/spreadsheet/
+git add suite/public/frontend/
 git commit -m "build: rebuild frontend assets"
 git push
 ```
 
 Frappe Cloud picks up the new commit and serves those files via the
-`/assets/spreadsheet/spreadsheet/` URL prefix.
+`/assets/suite/frontend/` URL prefix.
 
 ## Why pre-built?
 

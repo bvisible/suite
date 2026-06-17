@@ -8,7 +8,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from meet.utils.user import (
+from suite.meet.utils.user import (
 	get_guest_session,
 	get_user_info,
 	unique_users,
@@ -24,7 +24,7 @@ class SaeMeeting(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		from meet.meet.doctype.sae_meeting_user.sae_meeting_user import SaeMeetingUser
+		from suite.meet.doctype.sae_meeting_user.sae_meeting_user import SaeMeetingUser
 
 		allow_guest: DF.Check
 		banned_users: DF.Table[SaeMeetingUser]

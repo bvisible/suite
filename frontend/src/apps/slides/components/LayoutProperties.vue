@@ -74,13 +74,13 @@
 <script setup>
 import { computed } from 'vue'
 
-import Forward from '@/icons/Forward.vue'
-import Backward from '@/icons/Backward.vue'
-import SendToBack from '@/icons/SendToBack.vue'
-import BringToFront from '@/icons/BringToFront.vue'
-import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
+import Forward from '@/apps/slides/icons/Forward.vue'
+import Backward from '@/apps/slides/icons/Backward.vue'
+import SendToBack from '@/apps/slides/icons/SendToBack.vue'
+import BringToFront from '@/apps/slides/icons/BringToFront.vue'
+import CollapsibleSection from '@/apps/slides/components/controls/CollapsibleSection.vue'
 
-import { selectionBounds, currentSlide } from '@/stores/slide'
+import { selectionBounds, currentSlide } from '@/apps/slides/stores/slide'
 import {
 	activeElement,
 	activeElements,
@@ -90,12 +90,12 @@ import {
 	getElementPosition,
 	isWithinOverlappingBounds,
 	normalizeZIndices,
-} from '@/stores/element'
-import { editElementCommand, batchCommand } from '@/stores/commands'
+} from '@/apps/slides/stores/element'
+import { editElementCommand, batchCommand } from '@/apps/slides/stores/commands'
 
-import { fieldLabelClasses } from '@/utils/constants'
-import { cloneObj } from '@/utils/helpers'
-import { commandHistory } from '@/stores/historyMeta'
+import { fieldLabelClasses } from '@/apps/slides/utils/constants'
+import { cloneObj } from '@/apps/slides/utils/helpers'
+import { commandHistory } from '@/apps/slides/stores/historyMeta'
 
 const arrangeOptions = [
 	{

@@ -37,13 +37,13 @@ const router = useRouter()
 const password = ref('')
 
 const user = createResource({
-	url: 'mail.api.account.get_user_for_reset_password_key',
+	url: 'suite.mail.api.account.get_user_for_reset_password_key',
 	auto: true,
 	makeParams: () => ({ key: requestKey }),
 	onSuccess: (data?: string) => {
-		if (!data) router.replace('/reset-password')
+		if (!data) router.replace({ name: 'mail-forgot-password' })
 	},
-	onError: () => router.replace('/reset-password'),
+	onError: () => router.replace({ name: 'mail-forgot-password' }),
 })
 
 const resetPassword = createResource({

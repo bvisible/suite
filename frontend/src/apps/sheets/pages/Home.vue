@@ -65,7 +65,7 @@
             @click="setViewMode('list')"
           />
         </div>
-        <Button variant="solid" @click="emit('new')">New Sheet</Button>
+        <Button variant="solid" @click="newSheet()">New Sheet</Button>
       </div>
     </div>
 
@@ -89,7 +89,7 @@
         </div>
         <p class="home-empty-title">No sheets yet</p>
         <p class="home-empty-sub">Create one to get started</p>
-        <Button variant="solid" @click="emit('new')">New Sheet</Button>
+        <Button variant="solid" @click="newSheet()">New Sheet</Button>
       </div>
 
       <!-- No search match (grid only — list mode delegates to ListView's
@@ -105,7 +105,7 @@
           v-for="sheet in filteredSheets"
           :key="sheet.name"
           class="home-card"
-          @click="emit('open', sheet.name)"
+          @click="openSheet(sheet.name)"
         >
           <!-- Preview placeholder -->
           <div class="home-card-preview">
@@ -236,9 +236,21 @@ import {
   ListView,
   ListRowItem,
 } from 'frappe-ui'
-import { call } from '../utils/api.js'
+import { useRouter } from 'vue-router'
 
-const emit = defineEmits(['open', 'new'])
+import { call } from '@/apps/sheets/utils/api.js'
+
+const router = useRouter()
+
+// The standalone app emitted `open`/`new` up to App.vue which then mutated the
+// `?id=` query. Under the suite router we navigate directly to the editor
+// route (':id'); `new` is the special create id, preserved verbatim.
+function openSheet(name) {
+  router.push({ name: 'sheets-editor', params: { id: name } })
+}
+function newSheet() {
+  router.push({ name: 'sheets-editor', params: { id: 'new' } })
+}
 
 const sheets       = ref([])
 const loading      = ref(true)
@@ -336,7 +348,7 @@ const listOptions = computed(() => ({
   selectable: false,
   showTooltip: true,
   rowHeight: 40,
-  onRowClick: (row) => emit('open', row.name),
+  onRowClick: (row) => openSheet(row.name),
   emptyState: searchQuery.value
     ? {
         title: `No matches for "${searchQuery.value}"`,
@@ -348,7 +360,7 @@ const listOptions = computed(() => ({
         button: {
           label: 'New Sheet',
           variant: 'solid',
-          onClick: () => emit('new'),
+          onClick: () => newSheet(),
         },
       },
 }))
@@ -391,7 +403,7 @@ onMounted(fetchSheets)
 async function fetchSheets() {
   loading.value = true
   try {
-    sheets.value = await call('sheets.api.list_sheets')
+    sheets.value = await call('suite.sheets.api.list_sheets')
   } finally {
     loading.value = false
   }
@@ -417,7 +429,7 @@ async function doDelete() {
   if (!deleteTarget.value) return
   deleting.value = true
   try {
-    await call('sheets.api.delete_sheet', { name: deleteTarget.value.name })
+    await call('suite.sheets.api.delete_sheet', { name: deleteTarget.value.name })
     sheets.value = sheets.value.filter(s => s.name !== deleteTarget.value.name)
     showDeleteDialog.value = false
   } catch (err) {
@@ -440,7 +452,7 @@ async function confirmRename() {
   if (!target || !title) return
   renaming.value = true
   try {
-    await call('sheets.api.rename_sheet', { name: target.name, title })
+    await call('suite.sheets.api.rename_sheet', { name: target.name, title })
     const found = sheets.value.find(s => s.name === target.name)
     if (found) found.title = title
     showRenameDialog.value = false
@@ -451,7 +463,7 @@ async function confirmRename() {
 
 async function duplicate(sheet) {
   try {
-    await call('sheets.api.duplicate_sheet', { name: sheet.name })
+    await call('suite.sheets.api.duplicate_sheet', { name: sheet.name })
     // Refresh the listing so the new doc shows up with its modified timestamp.
     await fetchSheets()
   } catch (err) {
@@ -472,7 +484,7 @@ async function duplicate(sheet) {
      (the editor wants pixel-perfect viewport control). So Home owns its own
      scroll: a fixed-height column where the body region scrolls. */
   height: 100vh;
-  background: var(--surface-white);
+  background: var(--surface-base);
   font-family: InterVar, ui-sans-serif, system-ui, sans-serif;
   color: var(--ink-gray-9);
 }
@@ -483,7 +495,7 @@ async function duplicate(sheet) {
   gap: 16px;
   padding: 0 32px;
   height: 60px;
-  background: var(--surface-white);
+  background: var(--surface-base);
   border-bottom: 1px solid var(--outline-gray-2);
   flex-shrink: 0;
 }
@@ -556,7 +568,7 @@ async function duplicate(sheet) {
 }
 
 .home-card {
-  background: var(--surface-cards);
+  background: var(--surface-elevation-1);
   border: 1px solid var(--outline-gray-2);
   border-radius: 10px;
   overflow: hidden;
@@ -634,7 +646,7 @@ async function duplicate(sheet) {
   border: 1px solid var(--outline-gray-2);
   border-radius: 8px;
   padding: 2px;
-  background: var(--surface-white);
+  background: var(--surface-base);
   flex-shrink: 0;
 }
 

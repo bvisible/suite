@@ -5,8 +5,8 @@
 <script setup>
 import { computed } from 'vue'
 
-import { slideBounds, selectionBounds, guideVisibilityMap } from '@/stores/slide'
-import { pairElementId } from '@/stores/element'
+import { slideBounds, selectionBounds, guideVisibilityMap } from '@/apps/slides/stores/slide'
+import { pairElementId } from '@/apps/slides/stores/element'
 
 const props = defineProps({
 	visibilityMap: {

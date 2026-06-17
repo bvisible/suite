@@ -11,11 +11,11 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint
 
-from mail.client.doctype.calendar.calendar import validate_calendar_name_format
-from mail.jmap import get_calendar_event_service, parse_account
-from mail.utils import parse_filters
-from mail.utils.dt import convert_to_utc, parse_iso_datetime, utcnow
-from mail.utils.validation import has_permission_for_user
+from suite.client.doctype.calendar.calendar import validate_calendar_name_format
+from suite.mail.jmap import get_calendar_event_service, parse_account
+from suite.mail.utils import parse_filters
+from suite.mail.utils.dt import convert_to_utc, parse_iso_datetime, utcnow
+from suite.mail.utils.validation import has_permission_for_user
 
 
 class CalendarEvent(Document):

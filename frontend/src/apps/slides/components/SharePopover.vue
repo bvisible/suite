@@ -12,7 +12,7 @@
 				<div class="flex items-center justify-between">
 					<div class="flex items-center gap-2">
 						<LucideEarth class="size-4 stroke-[1.5] text-gray-700" />
-						<div class="text-base font-medium text-gray-900">Allow Public Access</div>
+						<div class="text-base-medium text-gray-900">Allow Public Access</div>
 					</div>
 					<Switch
 						:modelValue="publicPresentation"
@@ -40,9 +40,9 @@
 <script setup>
 import { ref } from 'vue'
 import { Popover, Switch, call, toast } from 'frappe-ui'
-import { presentationId, isPublicPresentation } from '@/stores/presentation'
-import { resetFocus } from '@/stores/element'
-import { copyToClipboard } from '@/stores/copyPaste'
+import { presentationId, isPublicPresentation } from '@/apps/slides/stores/presentation'
+import { resetFocus } from '@/apps/slides/stores/element'
+import { copyToClipboard } from '@/apps/slides/stores/copyPaste'
 
 const publicPresentation = ref()
 

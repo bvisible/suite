@@ -15,7 +15,7 @@
 <script setup lang="ts">
 import { Button } from 'frappe-ui'
 
-import { raiseToast } from '@/utils'
+import { raiseToast } from '@/apps/mail/utils'
 
 const { code } = defineProps<{ code: string }>()
 

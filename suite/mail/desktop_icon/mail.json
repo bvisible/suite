@@ -1,5 +1,5 @@
 {
- "app": "mail",
+ "app": "suite",
  "creation": "2026-01-15 19:06:46.407561",
  "docstatus": 0,
  "doctype": "Desktop Icon",
@@ -9,7 +9,7 @@
  "label": "Mail",
  "link": "/mail",
  "link_type": "External",
- "logo_url": "/assets/mail/images/logo.svg",
+ "logo_url": "/assets/suite/mail/images/logo.svg",
  "modified": "2026-01-15 19:06:46.407561",
  "modified_by": "Administrator",
  "name": "Mail",

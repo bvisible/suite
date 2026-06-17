@@ -2,7 +2,7 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { createResource } from 'frappe-ui'
 
-import type { UserAccount } from '@/types/doctypes'
+import type { UserAccount } from '@/apps/calendar/types/doctypes'
 
 const ACCOUNT_STORAGE_KEY = 'mail-account-id'
 
@@ -38,11 +38,11 @@ export const userStore = defineStore('calendar-user', () => {
 	}
 
 	const userResource = createResource({
-		url: 'mail.api.account.get_user_info',
+		url: 'suite.mail.api.account.get_user_info',
 		onSuccess: (data) => resolveAccount(data?.accounts),
 		onError: (error) => {
 			if (error && error.exc_type === 'AuthenticationError')
-				window.location.replace('/app/login?redirect-to=/calendar')
+				window.location.replace('/login?redirect-to=/calendar')
 		},
 		auto: true,
 	})
@@ -52,7 +52,7 @@ export const userStore = defineStore('calendar-user', () => {
 	)
 
 	const identities = createResource({
-		url: 'mail.api.account.get_identities',
+		url: 'suite.mail.api.account.get_identities',
 		makeParams: () => ({ account: account.value }),
 		cache: ['identities', accountId.value],
 	})

@@ -65,9 +65,3 @@ export interface ParticipantLeftEvent {
 	roomId: string;
 	participantId: string;
 }
-
-declare module "vue" {
-	interface ComponentCustomProperties {
-		$platform: Platform;
-	}
-}

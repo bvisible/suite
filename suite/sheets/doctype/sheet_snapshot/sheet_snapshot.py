@@ -4,7 +4,7 @@ A snapshot is *derived* state: deleting one is non-destructive because the
 canonical history lives in `Sheet Op Log`. Snapshots exist to bound the cost
 of reconstructing past state and to anchor user-facing restore points.
 
-Lifecycle is owned by the versioning module (`sheets.versioning`),
+Lifecycle is owned by the versioning module (`suite.sheets.versioning`),
 not by Desk forms — the controller is intentionally minimal.
 """
 

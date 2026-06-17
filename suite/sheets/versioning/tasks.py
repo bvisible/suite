@@ -10,7 +10,7 @@ Two jobs run nightly:
     can still be expanded into an op-level activity view.
 
 Both are idempotent and safe to re-run. They batch by sheet so a stalled
-worker doesn't block forward progress on other sheets.
+worker doesn't block forward progress on other suite.sheets.
 """
 
 from __future__ import annotations

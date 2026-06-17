@@ -2,8 +2,8 @@ import { Extension } from '@tiptap/vue-3'
 import { Plugin } from '@tiptap/pm/state'
 import { Slice } from '@tiptap/pm/model'
 
-import { getTemplates } from '@/resources'
-import { insertTemplate } from '@/utils'
+import { getTemplates } from '@/apps/writer/resources'
+import { insertTemplate } from '@/apps/writer/utils'
 
 // Custom extension bundling: template keyboard shortcuts, an override of
 // removeEmptyTextStyle (tabs strip all marks otherwise), and a copy

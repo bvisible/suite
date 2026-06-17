@@ -1,170 +1,28 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import type { RouteLocationNormalized, Router } from 'vue-router'
 
-import { sessionStore } from '@/stores/session'
-import { userStore } from '@/stores/user'
+import suiteRouter from '@/router'
+import { useSessionStore } from '@/boot/session'
 
-// Lightweight placeholder used by shortcut routes — the beforeEach guard
-// intercepts them and redirects before any component ever mounts.
-const ShortcutRedirect = { render: () => null }
+import { userStore } from '@/apps/mail/stores/user'
 
-const routes = [
-	{
-		path: '/signup',
-		name: 'SignUp',
-		component: () => import('@/pages/SignupView.vue'),
-		meta: { isLogin: true },
-	},
-	{
-		path: '/signup/:requestKey',
-		name: 'InviteSetup',
-		component: () => import('@/pages/InviteSetupView.vue'),
-		props: true,
-		meta: { isLogin: true },
-	},
-	{
-		path: '/login',
-		name: 'Login',
-		component: () => import('@/pages/LoginView.vue'),
-		meta: { isLogin: true },
-	},
-	{
-		path: '/reset-password',
-		name: 'ForgotPassword',
-		component: () => import('@/pages/ForgotPasswordView.vue'),
-		meta: { isLogin: true },
-	},
-	{
-		path: '/reset-password/:requestKey',
-		name: 'ResetPassword',
-		component: () => import('@/pages/ResetPasswordView.vue'),
-		props: true,
-		meta: { isLogin: true },
-	},
-	{
-		path: '/account/:accountId/mailbox/:mailbox',
-		name: 'Mailbox',
-		component: () => import('@/pages/MailboxView.vue'),
-		props: true,
-	},
-	{
-		path: '/account/:accountId/mailbox/:mailbox/:threadID',
-		name: 'Mail',
-		component: () => import('@/pages/MailboxView.vue'),
-		props: true,
-	},
-	{
-		path: '/account/:accountId/address-books/',
-		name: 'AddressBooks',
-		component: () => import('@/pages/AddressBooksView.vue'),
-		props: true,
-	},
-	{
-		path: '/account/:accountId/address-books/:addressBookName',
-		name: 'AddressBook',
-		component: () => import('@/pages/AddressBookView.vue'),
-		props: true,
-	},
-	{
-		path: '/account/:accountId/contacts/',
-		name: 'Contacts',
-		component: () => import('@/pages/ContactsView.vue'),
-		props: true,
-	},
-	{
-		path: '/account/:accountId/contacts/:contactName',
-		name: 'Contact',
-		component: () => import('@/pages/ContactView.vue'),
-		props: true,
-	},
-	{
-		path: '/mail-exchanges',
-		name: 'MailExchanges',
-		component: () => import('@/pages/MailExchangesView.vue'),
-		meta: { noLayout: true },
-	},
-	{
-		path: '/mail-exchanges/:id',
-		name: 'MailExchange',
-		component: () => import('@/pages/MailExchangeView.vue'),
-		meta: { noLayout: true },
-		props: true,
-	},
-	{
-		path: '/mime-message/:id',
-		name: 'MimeMessage',
-		component: () => import('@/pages/MimeMessageView.vue'),
-		props: true,
-		meta: { noLayout: true },
-	},
-	{
-		path: '/dashboard',
-		redirect: { name: 'Domains' },
-		meta: { isDashboard: true },
-	},
-	{
-		path: '/dashboard/domains',
-		name: 'Domains',
-		component: () => import('@/pages/dashboard/DomainsView.vue'),
-		meta: { isDashboard: true },
-	},
-	{
-		path: '/dashboard/domains/:domainId',
-		name: 'Domain',
-		component: () => import('@/pages/dashboard/DomainView.vue'),
-		props: true,
-		meta: { isDashboard: true },
-	},
-	{
-		path: '/dashboard/members',
-		name: 'Members',
-		component: () => import('@/pages/dashboard/MembersView.vue'),
-		meta: { isDashboard: true },
-	},
-	{
-		path: '/dashboard/invites',
-		name: 'Invites',
-		component: () => import('@/pages/dashboard/MembersView.vue'),
-		meta: { isDashboard: true },
-	},
-	// Shortcut routes: short paths that resolve to their full account-scoped
-	// equivalents once the active accountId is known (resolved in beforeEach).
-	{
-		path: '/',
-		name: 'RootShortcut',
-		component: ShortcutRedirect,
-		meta: { shortcut: true },
-	},
-	{
-		path: '/account/:accountId?',
-		name: 'AccountShortcut',
-		component: ShortcutRedirect,
-		meta: { shortcut: true },
-	},
-	{
-		path: '/mailbox/:mailbox?/:threadID?',
-		name: 'MailboxShortcut',
-		component: ShortcutRedirect,
-		meta: { shortcut: true },
-	},
-	{
-		path: '/address-books/:addressBookName?',
-		name: 'AddressBooksShortcut',
-		component: ShortcutRedirect,
-		meta: { shortcut: true },
-	},
-	{
-		path: '/contacts/:contactName?',
-		name: 'ContactsShortcut',
-		component: ShortcutRedirect,
-		meta: { shortcut: true },
-	},
-]
+/**
+ * Mail router compat + guard.
+ *
+ * The standalone mail app had its own `createRouter` with a global
+ * `beforeEach` that did: setup-wizard escape, auth, user-data wait, dashboard
+ * access control, account resolution, mailbox validation and shortcut-route
+ * expansion. In the suite there is ONE router (mail routes live under '/mail');
+ * the suite router's own `beforeEach` already redirects guests to `/login`
+ * unless the route has `meta.isPublic`. So only the mail-SPECIFIC parts are
+ * ported here as a mail-local guard that early-returns for any route whose
+ * name doesn't start with `mail-`.
+ *
+ * Re-exports the single suite router instance as `router` so mail pages/stores
+ * can keep importing it (`@/apps/mail/router`), mirroring the calendar port.
+ */
+export const router = suiteRouter
 
-const router = createRouter({ history: createWebHistory('/mail'), routes })
-
-// ---------------------------------------------------------------------------
-// Guard helpers
-// ---------------------------------------------------------------------------
+type Params = Record<string, string | string[]>
 
 const handleSetupWizardEscape = () => {
 	if (document.referrer.includes('/desk/setup-wizard')) window.location.replace('/desk')
@@ -175,79 +33,83 @@ const buildDefaultRoute = (
 	mailboxes: { data?: { id: string }[] },
 ): { name: string; params: Record<string, string> } => {
 	const firstMailbox = mailboxes.data?.[0]?.id
-	if (firstMailbox) return { name: 'Mailbox', params: { accountId, mailbox: firstMailbox } }
+	if (firstMailbox) return { name: 'mail-mailbox', params: { accountId, mailbox: firstMailbox } }
 
-	return { name: 'AddressBooks', params: { accountId } }
+	return { name: 'mail-address-books', params: { accountId } }
 }
 
 const resolveShortcut = (
 	name: string | symbol | null | undefined,
-	params: Record<string, string | string[]>,
+	params: Params,
 	accountId: string,
 	defaultRoute: { name: string; params: Record<string, string> },
 ) => {
 	switch (name) {
-		case 'MailboxShortcut':
-			if (params.threadID) return { name: 'Mail', params: { accountId, ...params } }
-			if (params.mailbox) return { name: 'Mailbox', params: { accountId, ...params } }
+		case 'mail-mailbox-shortcut':
+			if (params.threadID) return { name: 'mail-mail', params: { accountId, ...params } }
+			if (params.mailbox) return { name: 'mail-mailbox', params: { accountId, ...params } }
 			return defaultRoute
-		case 'AddressBooksShortcut':
+		case 'mail-address-books-shortcut':
 			if (params.addressBookName)
-				return { name: 'AddressBook', params: { accountId, ...params } }
-			return { name: 'AddressBooks', params: { accountId } }
-		case 'ContactsShortcut':
-			if (params.contactName) return { name: 'Contact', params: { accountId, ...params } }
-			return { name: 'Contacts', params: { accountId } }
+				return { name: 'mail-address-book', params: { accountId, ...params } }
+			return { name: 'mail-address-books', params: { accountId } }
+		case 'mail-contacts-shortcut':
+			if (params.contactName) return { name: 'mail-contact', params: { accountId, ...params } }
+			return { name: 'mail-contacts', params: { accountId } }
 		default:
 			return defaultRoute
 	}
 }
 
-// ---------------------------------------------------------------------------
-// Navigation guard
-// ---------------------------------------------------------------------------
+function installMailGuard(r: Router) {
+	r.beforeEach(async (to: RouteLocationNormalized) => {
+		// Only act on mail routes; let the suite handle everything else.
+		if (typeof to.name !== 'string' || !to.name.startsWith('mail-')) return
 
-router.beforeEach(async (to, _, next) => {
-	handleSetupWizardEscape()
+		handleSetupWizardEscape()
 
-	// 1. Authentication check
-	const { isLoggedIn } = sessionStore()
-	if (!isLoggedIn) return to.meta.isLogin ? next() : next({ name: 'Login' })
+		// Auth: the suite guard already redirects guests on non-public routes,
+		// but public mail routes (login/signup/...) must short-circuit here so
+		// we don't trigger user-data resolution for a guest.
+		const { isLoggedIn } = useSessionStore()
+		if (!isLoggedIn) return
 
-	// 2. Wait for user data
-	const { userResource, mailboxes, resolveAccount } = userStore()
-	await userResource.promise
-	const user = userResource.data
+		// Wait for user data.
+		const { userResource, mailboxes, resolveAccount } = userStore()
+		await userResource.promise
+		const user = userResource.data
 
-	// 3. Admin / dashboard access control
-	if (!user.is_jmap_configured) {
-		if (!user.is_mail_admin) window.location.replace('/desk')
-		if (to.meta.isDashboard) next()
-		else next({ name: 'Domains' })
-		return
-	}
+		// Admin / dashboard access control.
+		if (!user?.is_jmap_configured) {
+			if (!user?.is_mail_admin) window.location.replace('/desk')
+			if (to.meta.isDashboard) return
+			return { name: 'mail-domains' }
+		}
 
-	// 4. Resolve active account
-	resolveAccount(user?.accounts, to.params.accountId as string | undefined)
-	const accountId = userStore().accountId
+		// Resolve active account.
+		resolveAccount(user?.accounts, to.params.accountId as string | undefined)
+		const accountId = userStore().accountId
 
-	// 5. Wait for mailbox list
-	await mailboxes.promise
-	const defaultRoute = buildDefaultRoute(accountId, mailboxes)
+		// Wait for mailbox list.
+		await mailboxes.promise
+		const defaultRoute = buildDefaultRoute(accountId, mailboxes)
 
-	// 6. Validate mailbox param for mailbox routes
-	if (to.name === 'Mailbox' || to.name === 'Mail') {
-		const mailboxExists =
-			mailboxes.data?.some((m: { id: string }) => m.id === to.params.mailbox) ||
-			['starred', 'search'].includes(to.params.mailbox)
-		if (!mailboxExists) return next(defaultRoute)
-	}
+		// Validate mailbox param for mailbox routes.
+		if (to.name === 'mail-mailbox' || to.name === 'mail-mail') {
+			const mailboxExists =
+				mailboxes.data?.some((m: { id: string }) => m.id === to.params.mailbox) ||
+				['starred', 'search'].includes(to.params.mailbox as string)
+			if (!mailboxExists) return defaultRoute
+		}
 
-	// 7. Expand shortcut routes to their full account-scoped equivalents
-	if (to.meta.shortcut) return next(resolveShortcut(to.name, to.params, accountId, defaultRoute))
+		// Expand shortcut routes to their full account-scoped equivalents.
+		if (to.meta.shortcut) return resolveShortcut(to.name, to.params, accountId, defaultRoute)
 
-	// 8. Login pages redirect already-authenticated users to their mailbox
-	return to.meta.isLogin ? next(defaultRoute) : next()
-})
+		// Login pages redirect already-authenticated users to their mailbox.
+		if (to.meta.isLogin) return defaultRoute
+	})
+}
+
+installMailGuard(router)
 
 export default router

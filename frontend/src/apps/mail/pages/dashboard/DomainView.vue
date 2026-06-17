@@ -74,9 +74,9 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Dialog, Dropdown, createResource, usePageMeta } from 'frappe-ui'
 
-import { raiseToast } from '@/utils'
-import DNSRecords from '@/components/DNSRecords.vue'
-import DashboardLayout from '@/components/DashboardLayout.vue'
+import { raiseToast } from '@/apps/mail/utils'
+import DNSRecords from '@/apps/mail/components/DNSRecords.vue'
+import DashboardLayout from '@/apps/mail/components/DashboardLayout.vue'
 
 type DNSRecord = Record<string, string>
 
@@ -106,11 +106,11 @@ const router = useRouter()
 const showConfirmDialog = ref(false)
 
 const domain = createResource({
-	url: 'mail.api.admin.get_domain',
+	url: 'suite.mail.api.admin.get_domain',
 	auto: true,
 	makeParams: () => ({ domain_id: domainId }),
 	cache: ['mailDomain', domainId],
-	onError: () => router.replace({ name: 'Domains' }),
+	onError: () => router.replace({ name: 'mail-domains' }),
 })
 
 const domainRecords = computed<DNSRecord[]>(
@@ -146,10 +146,10 @@ const transportSecurityRecords = computed(() =>
 )
 
 const deleteDomain = createResource({
-	url: 'mail.api.admin.delete_domain',
+	url: 'suite.mail.api.admin.delete_domain',
 	makeParams: () => ({ domain_id: domainId }),
 	onSuccess: () => {
-		router.push({ name: 'Domains' })
+		router.push({ name: 'mail-domains' })
 		showConfirmDialog.value = false
 		raiseToast('Domain deleted.')
 	},
@@ -173,21 +173,21 @@ const downloadFile = (content: string, extension: string, mimeType: string) => {
 }
 
 const downloadDNSZone = createResource({
-	url: 'mail.api.admin.get_domain_dns_zone',
+	url: 'suite.mail.api.admin.get_domain_dns_zone',
 	makeParams: () => ({ domain_id: domainId }),
 	onSuccess: (zone: string) => downloadFile(zone, 'zone', 'text/plain;charset=utf-8'),
 	onError: (error: ResourceError) => raiseToast(getErrorMessage(error), 'error'),
 })
 
 const downloadDNSCsv = createResource({
-	url: 'mail.api.admin.get_domain_dns_csv',
+	url: 'suite.mail.api.admin.get_domain_dns_csv',
 	makeParams: () => ({ domain_id: domainId }),
 	onSuccess: (csv: string) => downloadFile(csv, 'csv', 'text/csv;charset=utf-8'),
 	onError: (error: ResourceError) => raiseToast(getErrorMessage(error), 'error'),
 })
 
 const downloadDNSJson = createResource({
-	url: 'mail.api.admin.get_domain_dns_json',
+	url: 'suite.mail.api.admin.get_domain_dns_json',
 	makeParams: () => ({ domain_id: domainId }),
 	onSuccess: (json: string) => downloadFile(json, 'json', 'application/json;charset=utf-8'),
 	onError: (error: ResourceError) => raiseToast(getErrorMessage(error), 'error'),

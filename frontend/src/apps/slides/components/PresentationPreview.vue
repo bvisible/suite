@@ -6,7 +6,7 @@
 				<router-link
 					v-if="presentation"
 					:to="{
-						name: 'PresentationEditor',
+						name: 'slides-editor',
 						params: { presentationId: presentation?.name },
 					}"
 					class="aspect-video cursor-pointer rounded-2xl bg-white shadow-2xl"
@@ -62,8 +62,8 @@ import { Tooltip } from 'frappe-ui'
 
 import { Presentation, Copy, PenLine, Trash } from 'lucide-vue-next'
 
-import dayjs from '@/utils/dayjs'
-import { getThumbnailCardStyles } from '@/utils/helpers'
+import dayjs from '@/apps/slides/utils/dayjs'
+import { getThumbnailCardStyles } from '@/apps/slides/utils/helpers'
 
 const props = defineProps({
 	presentation: Object,

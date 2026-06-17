@@ -5,7 +5,7 @@ frappe.ui.form.on("Presentation", {
 	refresh: function (frm) {
 		frm.add_custom_button("Optimize Images", function () {
 			frappe.call({
-				method: "slides.slides.doctype.presentation.presentation.optimize_images",
+				method: "suite.slides.doctype.presentation.presentation.optimize_images",
 				args: {
 					name: frm.doc.name,
 				},

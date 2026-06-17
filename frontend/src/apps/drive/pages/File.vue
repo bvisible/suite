@@ -16,7 +16,7 @@
         <FileRender v-else-if="file.data" :preview-entity="file.data" />
       </div>
       <div
-        class="hidden sm:flex absolute bottom-4 left-1/2 transform -translate-x-1/2 w-fit items-center justify-center p-1 gap-1 rounded shadow-xl l bg-surface-white"
+        class="hidden sm:flex absolute bottom-4 left-1/2 transform -translate-x-1/2 w-fit items-center justify-center p-1 gap-1 rounded shadow-xl l bg-surface-base"
       >
         <Button
           :disabled="!prevEntity?.name"
@@ -39,11 +39,11 @@
 </template>
 
 <script setup>
-import { useStore } from 'vuex'
-import Navbar from '@/components/Navbar.vue'
+import store from '@/apps/drive/store'
+import Navbar from '@/apps/drive/components/Navbar.vue'
 import { ref, computed, onMounted, defineProps } from 'vue'
 import { Button, LoadingIndicator } from 'frappe-ui'
-import FileRender from '@/components/FileRender.vue'
+import FileRender from '@/apps/drive/components/FileRender.vue'
 import { createResource } from 'frappe-ui'
 import { useRouter } from 'vue-router'
 import LucideScan from '~icons/lucide/scan'
@@ -55,11 +55,10 @@ import {
   updateURLSlug,
   isWriterDocument,
   hasHostedContent,
-} from '@/utils/files'
-import ErrorPage from '@/components/ErrorPage.vue'
+} from '@/apps/drive/utils/files'
+import ErrorPage from '@/apps/drive/components/ErrorPage.vue'
 
 const router = useRouter()
-const store = useStore()
 const props = defineProps({
   entityName: String,
   slug: String,
@@ -115,11 +114,11 @@ const onSuccess = async (entity) => {
 }
 
 const trackVisit = createResource({
-  url: 'drive.api.files.track_visit',
+  url: 'suite.drive.api.files.track_visit',
 })
 
 const file = createResource({
-  url: 'drive.api.permissions.get_entity_with_permissions',
+  url: 'suite.drive.api.permissions.get_entity_with_permissions',
   params: { entity_name: props.entityName },
   transform(entity) {
     store.commit('setActiveEntity', entity)

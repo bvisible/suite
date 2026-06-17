@@ -90,8 +90,8 @@ import {
 	createResource,
 } from 'frappe-ui'
 
-import { raiseToast } from '@/utils'
-import EditInviteModal from '@/components/Modals/EditInviteModal.vue'
+import { raiseToast } from '@/apps/mail/utils'
+import EditInviteModal from '@/apps/mail/components/Modals/EditInviteModal.vue'
 
 type InviteStatus = 'All' | 'Pending' | 'Accepted' | 'Expired'
 type InviteStatusLabel = Exclude<InviteStatus, 'All'>
@@ -112,7 +112,7 @@ const showEditInvite = ref(false)
 const showDeleteInvites = ref(false)
 
 const invites = createResource({
-	url: 'mail.api.admin.get_account_requests',
+	url: 'suite.mail.api.admin.get_account_requests',
 	makeParams: () => ({
 		search: search.value,
 		...(status.value !== 'All' ? { status: status.value } : {}),
@@ -141,7 +141,7 @@ const listView = useTemplateRef<{
 }>('listView')
 
 const deleteInvites = createResource({
-	url: 'mail.api.admin.delete_account_requests',
+	url: 'suite.mail.api.admin.delete_account_requests',
 	makeParams: () => ({ names: Array.from(listView.value?.selections || []) }),
 	onSuccess: () => {
 		invites.reload()

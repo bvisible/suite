@@ -40,7 +40,7 @@
 
 <script setup>
 import { ref, useTemplateRef, computed } from 'vue'
-import { fieldLabelClasses } from '@/utils/constants'
+import { fieldLabelClasses } from '@/apps/slides/utils/constants'
 
 const props = defineProps({
 	label: String,

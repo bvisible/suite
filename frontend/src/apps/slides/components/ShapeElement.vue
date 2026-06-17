@@ -89,7 +89,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useSVGShadow } from '@/composables/useSVGShadow'
+import { useSVGShadow } from '@/apps/slides/composables/useSVGShadow'
 
 const props = defineProps({
 	transitionStyles: {

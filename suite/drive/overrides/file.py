@@ -6,12 +6,12 @@ from frappe.core.doctype.file.file import File as FrappeFile
 from frappe.core.doctype.file.utils import get_content_hash
 from frappe.utils import get_files_path, now
 
-from drive.api.files import get_file_type
-from drive.api.permissions import get_user_access, user_has_permission
-from drive.api.product import invite_users
-from drive.api.activity import create_new_activity_log
+from suite.drive.api.files import get_file_type
+from suite.drive.api.permissions import get_user_access, user_has_permission
+from suite.drive.api.product import invite_users
+from suite.drive.api.activity import create_new_activity_log
 
-from drive.utils import (
+from suite.drive.utils import (
     generate_upward_path,
     get_home_folder,
     get_default_team,
@@ -24,7 +24,7 @@ from drive.utils import (
     STATUS_ACTIVE,
     STATUS_REMOVED,
 )
-from drive.utils.files import FileManager
+from suite.drive.utils.files import FileManager
 import mimemapper
 
 

@@ -28,10 +28,10 @@ import { useRoute, useRouter } from 'vue-router'
 import { Mails, Users } from 'lucide-vue-next'
 import { Tabs, usePageMeta } from 'frappe-ui'
 
-import InvitesView from '@/pages/dashboard/InvitesView.vue'
-import UsersView from '@/pages/dashboard/UsersView.vue'
-import DashboardLayout from '@/components/DashboardLayout.vue'
-import AddMemberModal from '@/components/Modals/AddMemberModal.vue'
+import InvitesView from '@/apps/mail/pages/dashboard/InvitesView.vue'
+import UsersView from '@/apps/mail/pages/dashboard/UsersView.vue'
+import DashboardLayout from '@/apps/mail/components/DashboardLayout.vue'
+import AddMemberModal from '@/apps/mail/components/Modals/AddMemberModal.vue'
 
 usePageMeta(() => ({ title: __('Members') }))
 

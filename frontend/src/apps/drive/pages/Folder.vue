@@ -11,16 +11,15 @@
 </template>
 
 <script setup>
-import GenericPage from '@/components/GenericPage.vue'
+import GenericPage from '@/apps/drive/components/GenericPage.vue'
 import { watch, computed } from 'vue'
-import { useStore } from 'vuex'
+import store from '@/apps/drive/store'
 import { createResource } from 'frappe-ui'
-import { COMMON_OPTIONS } from '@/resources/files'
-import { setBreadCrumbs, prettyData, setCache, updateURLSlug } from '@/utils/files'
-import router from '@/router'
+import { COMMON_OPTIONS } from '@/apps/drive/resources/files'
+import { setBreadCrumbs, prettyData, setCache, updateURLSlug } from '@/apps/drive/utils/files'
+import router from '@/apps/drive/router'
 import LucideFolderClosed from '~icons/lucide/folder-closed'
 
-const store = useStore()
 
 const props = defineProps({
   entityName: String,
@@ -30,7 +29,7 @@ store.commit('setCurrentFolder', { name: props.entityName })
 
 const getFolderContents = createResource({
   ...COMMON_OPTIONS,
-  url: 'drive.api.list.files',
+  url: 'suite.drive.api.list.files',
   makeParams: (params) => ({
     ...params,
     entity_name: props.entityName,
@@ -48,7 +47,7 @@ const onSuccess = (entity) => {
 
 const e = computed(() => props.entityName)
 const currentFolder = createResource({
-  url: 'drive.api.permissions.get_entity_with_permissions',
+  url: 'suite.drive.api.permissions.get_entity_with_permissions',
   transform(entity) {
     return prettyData([entity])[0]
   },

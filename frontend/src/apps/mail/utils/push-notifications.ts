@@ -1,4 +1,4 @@
-import type { NotificationPayload } from '@/types'
+import type { NotificationPayload } from '@/apps/mail/types'
 
 export const isChrome = (): boolean => navigator.userAgent.toLowerCase().includes('chrome')
 
@@ -10,7 +10,7 @@ export const showNotification = (payload: NotificationPayload): void => {
 	const notificationTitle = payload?.data?.title
 	const notificationOptions: NotificationOptions = {
 		body: payload?.data?.body || '',
-		badge: '/assets/mail/frontend/logo-96-96.png',
+		badge: '/assets/suite/frontend/logo-96-96.png',
 	}
 	if (payload?.data?.notification_icon)
 		notificationOptions['icon'] = payload.data.notification_icon

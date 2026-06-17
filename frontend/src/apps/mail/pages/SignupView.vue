@@ -78,7 +78,7 @@
 		/>
 	</form>
 	<div class="mt-6 text-center">
-		<router-link class="text-center text-base font-medium hover:underline" to="/login">
+		<router-link class="text-center text-base-medium hover:underline" :to="{ name: 'mail-login' }">
 			{{ __('Already have an account? Log in.') }}
 		</router-link>
 	</div>
@@ -89,7 +89,7 @@ import { reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Button, ErrorMessage, FeatherIcon, FormControl, createResource } from 'frappe-ui'
 
-import { sessionStore } from '@/stores/session'
+import { sessionStore } from '@/apps/mail/stores/session'
 
 const router = useRouter()
 const route = useRoute()
@@ -107,23 +107,23 @@ const user = reactive({
 })
 
 createResource({
-	url: 'mail.api.get_signup_settings',
+	url: 'suite.mail.api.get_signup_settings',
 	auto: true,
 	onSuccess: (data) => {
 		if (!Number(data.allow_signup)) {
-			router.push('/login')
+			router.push({ name: 'mail-login' })
 		}
 	},
 })
 
 const signupDomains = createResource({
-	url: 'mail.api.get_signup_domains',
+	url: 'suite.mail.api.get_signup_domains',
 	auto: true,
 	onSuccess: (data) => (user.domain = data[0]),
 })
 
 const validateUsername = createResource({
-	url: 'mail.api.account.validate_email_assigned',
+	url: 'suite.mail.api.account.validate_email_assigned',
 	makeParams: () => ({ email: `${user.username}@${user.domain}` }),
 	onSuccess: () => {
 		usernameVerified.value = true
@@ -132,7 +132,7 @@ const validateUsername = createResource({
 })
 
 const signup = createResource({
-	url: 'mail.api.account.signup',
+	url: 'suite.mail.api.account.signup',
 	makeParams: () => ({ ...user }),
 	onSuccess: () => login.submit({ usr: `${user.username}@${user.domain}`, pwd: user.password }),
 })

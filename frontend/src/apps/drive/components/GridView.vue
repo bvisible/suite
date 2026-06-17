@@ -8,11 +8,11 @@
       v-for="file in rows"
       :id="file.name"
       :key="file.name"
-      class="grid-item rounded-lg group select-none entity cursor-pointer relative h-[172px] border bg-surface-white"
+      class="grid-item rounded-lg group select-none entity cursor-pointer relative h-[172px] border bg-surface-base"
       :class="[
         selections.has(file.name) || selectedRow?.name === file.name
           ? 'bg-surface-gray-2 shadow-gray'
-          : 'border-outline-gray-modals hover:shadow-lg',
+          : 'border-outline-elevation-2 hover:shadow-lg',
         draggedItem === file.name ? 'opacity-60 hover:shadow-none' : '',
         dragOverItem === file.name ? '!bg-surface-gray-3' : '',
       ]"
@@ -40,7 +40,7 @@
     >
       <LucideStar
         v-if="$route.name !== 'Favourites' && file.is_favourite"
-        class="text-ink-amber-3 stroke-current fill-current absolute top-2 left-2 h-4"
+        class="text-ink-amber-6 stroke-current fill-current absolute top-2 left-2 h-4"
         width="16"
         height="16"
       />
@@ -71,15 +71,16 @@
 </template>
 
 <script setup>
-import GridItem from '@/components/GridItem.vue'
-import emitter from '@/emitter'
+import GridItem from '@/apps/drive/components/GridItem.vue'
+import emitter from '@/apps/drive/emitter'
 import { Button } from 'frappe-ui'
 import { ref, computed } from 'vue'
-import { openEntity } from '@/utils/files'
+import { openEntity } from '@/apps/drive/utils/files'
 import { useRoute } from 'vue-router'
-import { useStore } from 'vuex'
-import { settings } from '@/resources/permissions'
+import store from '@/apps/drive/store'
+import { settings } from '@/apps/drive/resources/permissions'
 import { onKeyDown } from '@vueuse/core'
+import { onOutsideClickDirective as vOnOutsideClick } from 'frappe-ui'
 
 const props = defineProps({
   folderContents: Object,
@@ -87,7 +88,6 @@ const props = defineProps({
 })
 defineEmits(['dropped'])
 const route = useRoute()
-const store = useStore()
 const selections = defineModel(new Set())
 
 const rows = computed(() => props.folderContents)

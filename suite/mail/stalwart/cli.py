@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, ClassVar
 import frappe
 from frappe import _
 
-from mail.utils import (
+from suite.mail.utils import (
 	get_config,
 	get_mail_app_path,
 	get_stalwart_cli_path,

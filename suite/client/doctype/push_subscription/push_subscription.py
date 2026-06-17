@@ -10,11 +10,11 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, today
 
-from mail.jmap import get_push_subscription_service
-from mail.utils import generate_uuid_style_hash, parse_filters
-from mail.utils.dt import parse_iso_datetime
-from mail.utils.user import is_jmap_configured
-from mail.utils.validation import has_permission_for_user
+from suite.mail.jmap import get_push_subscription_service
+from suite.mail.utils import generate_uuid_style_hash, parse_filters
+from suite.mail.utils.dt import parse_iso_datetime
+from suite.mail.utils.user import is_jmap_configured
+from suite.mail.utils.validation import has_permission_for_user
 
 
 class PushSubscription(Document):
@@ -142,7 +142,7 @@ def add_push_subscription(
 	device_client_id = device_client_id or generate_uuid_style_hash(
 		f"frappe-{frappe.local.site.replace('.', '-')}-{user}"
 	)
-	url = url or f"{frappe.utils.get_url()}/api/method/mail.api.jmap.push_notification?user={user}"
+	url = url or f"{frappe.utils.get_url()}/api/method/suite.mail.api.jmap.push_notification?user={user}"
 	types = types or None
 
 	creation_id = str(uuid7())

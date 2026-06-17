@@ -57,9 +57,9 @@ import { computed, useTemplateRef } from 'vue'
 import { Laugh, Paperclip, SendHorizontal, Trash2 } from 'lucide-vue-next'
 import { Button, TextEditorFixedMenu } from 'frappe-ui'
 
-import { isMac } from '@/utils'
-import { useScreenSize, useTextEditorButtons, useVisualViewport } from '@/utils/composables'
-import EmojiPicker from '@/components/EmojiPicker.vue'
+import { isMac } from '@/apps/mail/utils'
+import { useScreenSize, useTextEditorButtons, useVisualViewport } from '@/apps/mail/utils/composables'
+import EmojiPicker from '@/apps/mail/components/EmojiPicker.vue'
 
 const { isRecipientsEmpty } = defineProps<{
 	isRecipientsEmpty: boolean

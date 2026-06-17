@@ -16,7 +16,7 @@ import json
 
 import frappe
 
-from sheets.sheets.doctype.sheet.storage import (
+from suite.sheets.doctype.sheet.storage import (
 	decode_sheets_data,
 	encode_sheets_data,
 )

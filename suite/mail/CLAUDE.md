@@ -26,16 +26,16 @@ npm run build-email-css  # Tailwind CSS for email templates (output: mail/public
 
 ### Backend (Frappe Bench — run from bench root, not app root)
 ```bash
-bench --site <site> install-app mail
-bench --site <site> run-tests --app mail          # All tests
-bench --site <site> run-tests --app mail --module mail.tests.test_foo  # Single test
+bench --site <site> install-app suite
+bench --site <site> run-tests --app suite          # All tests
+bench --site <site> run-tests --app suite --module suite.mail.tests.test_foo  # Single test
 bench build                                         # Rebuild assets
 ```
 
 ### Linting
 ```bash
 pre-commit run --all-files   # Python (ruff) + JS (eslint) + prettier + pyupgrade
-ruff check mail/             # Python only
+ruff check suite/mail/       # Python only
 cd frontend && bun run lint  # ESLint only
 ```
 

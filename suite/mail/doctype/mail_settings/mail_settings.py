@@ -8,9 +8,9 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-from mail.server.doctype.dns_record.dns_record import get_dns_provider
-from mail.stalwart import get_domain_by_name
-from mail.utils import is_stalwart_configured
+from suite.server.doctype.dns_record.dns_record import get_dns_provider
+from suite.mail.stalwart import get_domain_by_name
+from suite.mail.utils import is_stalwart_configured
 
 
 class MailSettings(Document):

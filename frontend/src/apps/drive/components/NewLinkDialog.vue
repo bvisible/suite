@@ -32,7 +32,7 @@
           @keydown="createLink.error = null"
         />
       </div>
-      <div v-if="createLink.error" class="pt-4 text-base font-sm text-ink-red-3">
+      <div v-if="createLink.error" class="pt-4 text-base font-sm text-ink-red-6">
         {{ createLink.error.messages[0] }}
       </div>
     </template>
@@ -40,8 +40,9 @@
 </template>
 
 <script setup>
+import { default as vFocus } from '@/apps/drive/utils/focus'
 import { ref } from 'vue'
-import { Dialog, createResource } from 'frappe-ui'
+import { Dialog, createResource, FormControl} from 'frappe-ui'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
@@ -58,7 +59,7 @@ const file_name = ref('')
 const link = ref(localStorage.getItem('prevClip') || '')
 
 const createLink = createResource({
-  url: 'drive.api.files.create_link',
+  url: 'suite.drive.api.files.create_link',
   makeParams: () => ({
     file_name: file_name.value.trim(),
     link: link.value.trim(),

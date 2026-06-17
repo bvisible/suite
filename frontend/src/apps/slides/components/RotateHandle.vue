@@ -10,7 +10,7 @@
 <script setup>
 import { computed, inject } from 'vue'
 
-import { slideBounds } from '@/stores/slide'
+import { slideBounds } from '@/apps/slides/stores/slide'
 
 const { startRotate } = inject('rotator', {})
 

@@ -4,30 +4,30 @@ import frappe
 from frappe import _
 from frappe.utils import cint
 
-from mail.jmap.connection import JMAPConnection, JMAPConnectionInfo, JMAPSessionManager
-from mail.jmap.services.blob.blob import BlobService
-from mail.jmap.services.calendars.calendar import CalendarService
-from mail.jmap.services.calendars.calendar_event import CalendarEventService
-from mail.jmap.services.calendars.calendar_event_notification import CalendarEventNotificationService
-from mail.jmap.services.calendars.participant_identity import ParticipantIdentityService
-from mail.jmap.services.contacts.address_book import AddressBookService
-from mail.jmap.services.contacts.contact_card import ContactCardService
-from mail.jmap.services.core import CoreService, parse_account
-from mail.jmap.services.mail.email import EmailService
-from mail.jmap.services.mail.identity import IdentityService
-from mail.jmap.services.mail.mailbox import MailboxService
-from mail.jmap.services.mail.submission.email_submission import EmailSubmissionService
-from mail.jmap.services.mail.thread import ThreadService
-from mail.jmap.services.principals.principal import PrincipalService
-from mail.jmap.services.push_subscription import PushSubscriptionService
-from mail.jmap.services.quota.quota import QuotaService
-from mail.jmap.services.sieve.sieve_script import SieveScriptService
-from mail.jmap.services.vacationresponse.vacation_response import VacationResponseService
-from mail.jmap.services.websocket.websocket import WebSocketService
-from mail.storage import get_data_store
-from mail.storage.data_store import Entity
-from mail.utils import get_config
-from mail.utils.validation import has_permission_for_user
+from suite.mail.jmap.connection import JMAPConnection, JMAPConnectionInfo, JMAPSessionManager
+from suite.mail.jmap.services.blob.blob import BlobService
+from suite.mail.jmap.services.calendars.calendar import CalendarService
+from suite.mail.jmap.services.calendars.calendar_event import CalendarEventService
+from suite.mail.jmap.services.calendars.calendar_event_notification import CalendarEventNotificationService
+from suite.mail.jmap.services.calendars.participant_identity import ParticipantIdentityService
+from suite.mail.jmap.services.contacts.address_book import AddressBookService
+from suite.mail.jmap.services.contacts.contact_card import ContactCardService
+from suite.mail.jmap.services.core import CoreService, parse_account
+from suite.mail.jmap.services.mail.email import EmailService
+from suite.mail.jmap.services.mail.identity import IdentityService
+from suite.mail.jmap.services.mail.mailbox import MailboxService
+from suite.mail.jmap.services.mail.submission.email_submission import EmailSubmissionService
+from suite.mail.jmap.services.mail.thread import ThreadService
+from suite.mail.jmap.services.principals.principal import PrincipalService
+from suite.mail.jmap.services.push_subscription import PushSubscriptionService
+from suite.mail.jmap.services.quota.quota import QuotaService
+from suite.mail.jmap.services.sieve.sieve_script import SieveScriptService
+from suite.mail.jmap.services.vacationresponse.vacation_response import VacationResponseService
+from suite.mail.jmap.services.websocket.websocket import WebSocketService
+from suite.mail.storage import get_data_store
+from suite.mail.storage.data_store import Entity
+from suite.mail.utils import get_config
+from suite.mail.utils.validation import has_permission_for_user
 
 
 def get_jmap_connection(
@@ -394,7 +394,7 @@ def get_user_accounts(user: str) -> list[str]:
 
 	has_permission_for_user(user)
 
-	from mail.client.doctype.user_account.user_account import fetch_user_accounts
+	from suite.client.doctype.user_account.user_account import fetch_user_accounts
 
 	return [a["name"] for a in fetch_user_accounts(user, limit=None)]
 

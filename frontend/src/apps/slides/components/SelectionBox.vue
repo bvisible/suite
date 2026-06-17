@@ -11,9 +11,9 @@
 <script setup>
 import { ref, computed, nextTick, useTemplateRef, onMounted, onBeforeUnmount, inject } from 'vue'
 
-import Resizer from '@/components/Resizer.vue'
+import Resizer from '@/apps/slides/components/Resizer.vue'
 
-import { currentSlide, slideBounds, selectionBounds, updateSelectionBounds } from '@/stores/slide'
+import { currentSlide, slideBounds, selectionBounds, updateSelectionBounds } from '@/apps/slides/stores/slide'
 import {
 	activeElementIds,
 	setActiveElements,
@@ -23,7 +23,7 @@ import {
 	activeElement,
 	isWithinOverlappingBounds,
 	cropSelectionToFitContent,
-} from '@/stores/element'
+} from '@/apps/slides/stores/element'
 
 const slideDiv = inject('slideDiv')
 const slideContainerDiv = inject('slideContainerDiv')

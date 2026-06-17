@@ -58,9 +58,9 @@ import {
 	usePageMeta,
 } from 'frappe-ui'
 
-import { userStore } from '@/stores/user'
-import DashboardLayout from '@/components/DashboardLayout.vue'
-import AddAddressBookModal from '@/components/Modals/AddAddressBookModal.vue'
+import { userStore } from '@/apps/mail/stores/user'
+import DashboardLayout from '@/apps/mail/components/DashboardLayout.vue'
+import AddAddressBookModal from '@/apps/mail/components/Modals/AddAddressBookModal.vue'
 
 usePageMeta(() => ({ title: __('Address Books') }))
 
@@ -85,7 +85,7 @@ const LIST_OPTIONS = {
 	showTooltip: false,
 	emptyState: { description: __('No address books found.') },
 	getRowRoute: (row) => ({
-		name: 'AddressBook',
+		name: 'mail-address-book',
 		params: { accountId, addressBookName: row.id },
 	}),
 }

@@ -4,7 +4,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 
-import { getDocFromHTML } from '@/utils/helpers'
+import { getDocFromHTML } from '@/apps/slides/utils/helpers'
 
 const props = defineProps({
 	content: {

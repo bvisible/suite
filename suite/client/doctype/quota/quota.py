@@ -8,9 +8,9 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint
 
-from mail.jmap import get_quota_service, parse_account
-from mail.utils import parse_filters
-from mail.utils.validation import has_permission_for_user
+from suite.mail.jmap import get_quota_service, parse_account
+from suite.mail.utils import parse_filters
+from suite.mail.utils.validation import has_permission_for_user
 
 
 class Quota(Document):

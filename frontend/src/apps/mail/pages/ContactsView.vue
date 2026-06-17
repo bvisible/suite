@@ -55,10 +55,10 @@ import {
 	usePageMeta,
 } from 'frappe-ui'
 
-import { extractNameFromEmail, raiseToast } from '@/utils'
-import { userStore } from '@/stores/user'
-import DashboardLayout from '@/components/DashboardLayout.vue'
-import AddContactModal from '@/components/Modals/AddContactModal.vue'
+import { extractNameFromEmail, raiseToast } from '@/apps/mail/utils'
+import { userStore } from '@/apps/mail/stores/user'
+import DashboardLayout from '@/apps/mail/components/DashboardLayout.vue'
+import AddContactModal from '@/apps/mail/components/Modals/AddContactModal.vue'
 
 const { accountId } = defineProps<{ accountId: string }>()
 
@@ -74,7 +74,7 @@ const search = ref('')
 const limit = ref(50)
 
 const contacts = createResource({
-	url: 'mail.api.contacts.get_contact_cards',
+	url: 'suite.mail.api.contacts.get_contact_cards',
 	auto: true,
 	makeParams: () => ({
 		account: store.account,
@@ -114,7 +114,7 @@ const loadMoreContacts = useDebounceFn((e) => {
 }, 500)
 
 const deleteContacts = createResource({
-	url: 'mail.client.doctype.contact_card.contact_card.delete_contact_cards',
+	url: 'suite.client.doctype.contact_card.contact_card.delete_contact_cards',
 	makeParams: () => ({ account: store.account, ids: Array.from(listView.value?.selections) }),
 	onSuccess: () => {
 		contacts.reload()
@@ -132,7 +132,7 @@ const listOptions = computed(() => ({
 	showTooltip: false,
 	emptyState: { description: contacts.loading ? __('Loading...') : __('No contacts found.') },
 	getRowRoute: (row) => ({
-		name: 'Contact',
+		name: 'mail-contact',
 		params: { accountId, contactName: row.id },
 	}),
 }))

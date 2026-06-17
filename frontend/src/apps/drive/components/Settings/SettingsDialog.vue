@@ -2,9 +2,9 @@
   <Dialog v-model="open" :options="{ title: 'Settings', size: '5xl' }">
     <template #body>
       <div class="flex" :style="{ height: '80vh' }">
-        <div class="flex w-52 shrink-0 flex-col bg-surface-menu-bar py-3 p-4 border-r">
+        <div class="flex w-52 shrink-0 flex-col bg-surface-sidebar py-3 p-4 border-r">
           <div class="flex justify-between items-center">
-            <h1 class="text-xl font-semibold leading-6 text-ink-gray-9 pr-2">
+            <h1 class="text-3xl-semibold leading-6 text-ink-gray-9 pr-2">
               {{ __('Settings') }}
             </h1>
             <!-- <Button
@@ -42,8 +42,8 @@
 <script setup>
 import { ref, markRaw, computed } from 'vue'
 import { Dialog, Button } from 'frappe-ui'
-import { isAdmin } from '@/resources/permissions'
-import ProfileSettings from '@/components/Settings/ProfileSettings.vue'
+import { isAdmin } from '@/apps/drive/resources/permissions'
+import ProfileSettings from '@/apps/drive/components/Settings/ProfileSettings.vue'
 import StorageSettings from './StorageSettings.vue'
 import TemplateSettings from './TemplateSettings.vue'
 import UserListSettings from './UserListSettings.vue'

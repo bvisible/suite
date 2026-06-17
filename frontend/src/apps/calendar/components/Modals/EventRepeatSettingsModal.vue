@@ -2,7 +2,7 @@
 import { computed, inject, reactive, watch } from 'vue'
 import { Dialog, FormControl } from 'frappe-ui'
 
-import { getRepeatFrequencyOptions, getRepeatMessage } from '@/utils/format'
+import { getRepeatFrequencyOptions, getRepeatMessage } from '@/apps/calendar/utils/format'
 
 const show = defineModel<boolean>()
 const { startDate, rRule } = defineProps<{ startDate: string; rRule: any }>()
@@ -248,7 +248,7 @@ const DIALOG_OPTIONS = {
 
 				<hr />
 
-				<div class="text-base font-medium">{{ getRepeatMessage(recurrenceRule) }}</div>
+				<div class="text-base-medium">{{ getRepeatMessage(recurrenceRule) }}</div>
 			</div>
 		</template>
 	</Dialog>

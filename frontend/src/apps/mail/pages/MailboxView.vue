@@ -7,7 +7,7 @@
 				:items="[
 					{
 						label: mailboxName,
-						route: { name: 'Mailbox', params: { accountId, mailbox } },
+						route: { name: 'mail-mailbox', params: { accountId, mailbox } },
 					},
 				]"
 			/>
@@ -194,7 +194,7 @@
 							"
 						>
 							<div
-								class="text-ink-gray-6 group flex items-center border-b border-l-transparent p-3.5 text-xs font-semibold sm:border-l sm:px-5"
+								class="text-ink-gray-6 group flex items-center border-b border-l-transparent p-3.5 text-xs-semibold sm:border-l sm:px-5"
 								@click="toggleGroupCollapse(key)"
 							>
 								<div
@@ -278,13 +278,13 @@
 			<div class="flex cursor-col-resize justify-center" @mousedown="startResizing">
 				<div
 					ref="resizer"
-					class="group-hover:bg-surface-gray-5 h-full rounded-full transition-all duration-300 ease-in-out"
+					class="group-hover:bg-surface-gray-8 h-full rounded-full transition-all duration-300 ease-in-out"
 				/>
 			</div>
 
 			<!-- Mail thread -->
 			<div
-				class="bg-surface-white overflow-y-auto"
+				class="bg-surface-base overflow-y-auto"
 				:class="{
 					'w-2/3': !isMobile && showReadingPane,
 					'absolute bottom-0 left-0 right-0 top-0': !isMobile && !showReadingPane,
@@ -386,17 +386,17 @@ import {
 	usePageMeta,
 } from 'frappe-ui'
 
-import { getFormattedDate, isMac, raiseToast, shouldIgnoreKeypress, startResizing } from '@/utils'
-import { useScreenSize, useSidebar, useUndo } from '@/utils/composables'
-import { useThreadActions } from '@/utils/useThreadActions'
-import { type MailboxRole, userStore } from '@/stores/user'
-import HeaderActions from '@/components/HeaderActions.vue'
-import NoMails from '@/components/Icons/NoMails.vue'
-import MailListItem from '@/components/MailListItem.vue'
-import MailThread from '@/components/MailThread.vue'
-import ShortcutsModal from '@/components/Modals/ShortcutsModal.vue'
+import { getFormattedDate, isMac, raiseToast, shouldIgnoreKeypress, startResizing } from '@/apps/mail/utils'
+import { useScreenSize, useSidebar, useUndo } from '@/apps/mail/utils/composables'
+import { useThreadActions } from '@/apps/mail/utils/useThreadActions'
+import { type MailboxRole, userStore } from '@/apps/mail/stores/user'
+import HeaderActions from '@/apps/mail/components/HeaderActions.vue'
+import NoMails from '@/apps/mail/components/Icons/NoMails.vue'
+import MailListItem from '@/apps/mail/components/MailListItem.vue'
+import MailThread from '@/apps/mail/components/MailThread.vue'
+import ShortcutsModal from '@/apps/mail/components/Modals/ShortcutsModal.vue'
 
-import type { COLOR_SCHEME, Thread, UserResource } from '@/types'
+import type { COLOR_SCHEME, Thread, UserResource } from '@/apps/mail/types'
 
 const { accountId, mailbox, threadID } = defineProps<{
 	accountId: string
@@ -617,7 +617,7 @@ const handleGMenuNavigation = (e: KeyboardEvent, key: string) => {
 	const mailboxId = navigationMap[key]
 	if (mailboxId) {
 		e.preventDefault()
-		router.push({ name: 'Mailbox', params: { accountId, mailbox: mailboxId } })
+		router.push({ name: 'mail-mailbox', params: { accountId, mailbox: mailboxId } })
 	}
 }
 
@@ -844,7 +844,7 @@ const syncDisplayedPage = () => {
 }
 
 const searchResults = createResource({
-	url: 'mail.api.mail.search_mails',
+	url: 'suite.mail.api.mail.search_mails',
 	makeParams: () => ({
 		account: store.account,
 		filter: route.query,
@@ -881,7 +881,7 @@ const filter = ref<string | null>(
 const isMailboxLoaded = ref(false)
 
 const threads = createResource({
-	url: 'mail.api.mail.get_threads',
+	url: 'suite.mail.api.mail.get_threads',
 	makeParams: () => ({
 		account: store.account,
 		mailbox,
@@ -1058,14 +1058,14 @@ onUnmounted(() => {
 })
 
 const goToMailbox = () =>
-	router.push({ name: 'Mailbox', params: { accountId, mailbox }, query: route.query })
+	router.push({ name: 'mail-mailbox', params: { accountId, mailbox }, query: route.query })
 
 const getThreadByOffset = (offset: number, currentThread: string = threadID!) =>
 	threadIDs.value[threadIDs.value.indexOf(currentThread) + offset]
 
 const goToThread = (threadID: string) => {
 	if (threadID)
-		router.push({ name: 'Mail', params: { accountId, mailbox, threadID }, query: route.query })
+		router.push({ name: 'mail-mail', params: { accountId, mailbox, threadID }, query: route.query })
 }
 
 // When stepping past the first/last thread of a page, move to the adjacent page (if any) and open
@@ -1148,7 +1148,7 @@ const {
 const showEmptyMailbox = ref(false)
 
 const emptyMailbox = createResource({
-	url: 'mail.api.mail.empty_user_mailbox',
+	url: 'suite.mail.api.mail.empty_user_mailbox',
 	makeParams: () => ({ account: store.account, mailbox }),
 	onSuccess: () => {
 		threadsResource.value.data = []
@@ -1254,7 +1254,8 @@ const title = computed(() => {
 
 <style scoped>
 .checkbox-hitbox:hover :deep(input[type='checkbox']) {
-	@apply border-outline-gray-5 shadow-sm;
+	@apply shadow-sm;
+	border-color: var(--outline-gray-7);
 }
 
 .loading-bar__fill {

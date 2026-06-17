@@ -3,7 +3,7 @@ from frappe.apps import get_apps
 from frappe.translate import get_all_translations
 from frappe.utils.caching import redis_cache
 
-from mail.utils.user import is_system_manager
+from suite.mail.utils.user import is_system_manager
 
 
 @frappe.whitelist(allow_guest=True)
@@ -19,7 +19,7 @@ def get_signup_settings() -> dict:
 def get_signup_domains() -> list:
 	"""Returns signup domains."""
 
-	from mail.mail.doctype.mail_settings.mail_settings import get_signup_domains as _get_signup_domains
+	from suite.mail.doctype.mail_settings.mail_settings import get_signup_domains as _get_signup_domains
 
 	return _get_signup_domains()
 
@@ -56,7 +56,7 @@ def get_permitted_apps():
 
 	desk = {
 		"name": "frappe",
-		"logo": "/assets/mail/images/desk.png",
+		"logo": "/assets/suite/mail/images/desk.png",
 		"title": "Desk",
 		"route": "/app",
 	}

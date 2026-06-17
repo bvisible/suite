@@ -12,7 +12,7 @@ These hooks scope reads to sheets the caller can actually read on the parent
 and the Administrator bypass — they already have unrestricted access by
 design.
 
-Wiring lives in :mod:`sheets.hooks`.
+Wiring lives in :mod:`suite.sheets.hooks`.
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ def sheet_snapshot_query(user: str | None = None) -> str:
 
 
 def _scope_to_readable_sheets(table_prefix: str, user: str | None) -> str:
-	"""Return a SQL fragment restricting child rows to readable parent sheets.
+	"""Return a SQL fragment restricting child rows to readable parent suite.sheets.
 
 	Empty string = no restriction (privileged users). The fragment is AND'd
 	into the WHERE clause by Frappe's permission machinery.

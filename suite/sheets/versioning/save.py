@@ -29,7 +29,7 @@ import json
 
 import frappe
 
-from sheets.sheets.doctype.sheet.storage import (
+from suite.sheets.doctype.sheet.storage import (
 	MAX_SHEETS_DATA_BYTES,
 	decode_sheets_data,
 	encode_sheets_data,

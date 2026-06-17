@@ -13,7 +13,7 @@
 <script setup>
 import { FormControl } from 'frappe-ui'
 import { ref, watchEffect } from 'vue'
-import { FONT_FAMILIES } from '@/utils'
+import { FONT_FAMILIES } from '@/apps/writer/utils'
 import FontSelect from './FontSelect.vue'
 
 const props = defineProps({

@@ -39,16 +39,16 @@
 <script setup>
 import { onActivated, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { previousRoute } from '@/router'
+import { previousRoute } from '@/apps/slides/router'
 
 import { createResource } from 'frappe-ui'
 
 import { Plus } from 'lucide-vue-next'
 
-import Navbar from '@/components/Navbar.vue'
-import PresentationList from '@/components/PresentationList.vue'
-import PresentationPreview from '@/components/PresentationPreview.vue'
-import PresentationActionDialog from '@/components/PresentationActionDialog.vue'
+import Navbar from '@/apps/slides/components/Navbar.vue'
+import PresentationList from '@/apps/slides/components/PresentationList.vue'
+import PresentationPreview from '@/apps/slides/components/PresentationPreview.vue'
+import PresentationActionDialog from '@/apps/slides/components/PresentationActionDialog.vue'
 
 import {
 	createPresentationResource,
@@ -56,7 +56,7 @@ import {
 	unsyncedPresentationRecord,
 	templateList,
 	templateListResource,
-} from '@/stores/presentation'
+} from '@/apps/slides/stores/presentation'
 
 const router = useRouter()
 
@@ -69,7 +69,7 @@ const dialogAction = ref('')
 const presentationList = ref([])
 
 const presentationListResource = createResource({
-	url: 'slides.slides.doctype.presentation.presentation.get_presentations',
+	url: 'suite.slides.doctype.presentation.presentation.get_presentations',
 	method: 'GET',
 	auto: true,
 	cache: 'presentations',
@@ -83,13 +83,13 @@ const navigateToPresentation = (name, present) => {
 	previewPresentation.value = null
 	if (present) {
 		router.replace({
-			name: 'Slideshow',
+			name: 'slides-slideshow',
 			params: { presentationId: name },
 			query: { slide: 1 },
 		})
 	} else {
 		router.push({
-			name: 'PresentationEditor',
+			name: 'slides-editor',
 			params: { presentationId: name },
 			query: { slide: 1 },
 		})
@@ -150,7 +150,7 @@ const syncPresentationRecord = () => {
 }
 
 onActivated(() => {
-	if (previousRoute?.name == 'PresentationEditor') {
+	if (previousRoute?.name == 'slides-editor') {
 		syncPresentationRecord()
 	}
 })
@@ -166,7 +166,7 @@ onMounted(() => {
 })
 
 const navigateToEditor = () => {
-	router.push({ name: 'EditorNew' })
+	router.push({ name: 'slides-editor-new' })
 }
 
 const duplicateAndNavigate = async (presentation) => {

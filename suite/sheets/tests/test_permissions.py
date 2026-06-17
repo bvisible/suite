@@ -17,7 +17,7 @@ from __future__ import annotations
 import unittest
 from unittest import mock
 
-from sheets import permissions
+from suite.sheets import permissions
 
 
 def _esc(value):
@@ -26,19 +26,19 @@ def _esc(value):
 
 class QueryConditions(unittest.TestCase):
 	def test_administrator_gets_no_filter(self):
-		with mock.patch("sheets.permissions.frappe") as f:
+		with mock.patch("suite.sheets.permissions.frappe") as f:
 			f.session.user = "Administrator"
 			self.assertEqual(permissions.sheet_op_log_query(), "")
 			self.assertEqual(permissions.sheet_snapshot_query(), "")
 
 	def test_system_manager_gets_no_filter(self):
-		with mock.patch("sheets.permissions.frappe") as f:
+		with mock.patch("suite.sheets.permissions.frappe") as f:
 			f.session.user = "sm@example.com"
 			f.get_roles.return_value = ["System Manager", "All"]
 			self.assertEqual(permissions.sheet_op_log_query(), "")
 
 	def test_regular_user_scoped_to_owned_and_shared(self):
-		with mock.patch("sheets.permissions.frappe") as f:
+		with mock.patch("suite.sheets.permissions.frappe") as f:
 			f.session.user = "alice@example.com"
 			f.get_roles.return_value = ["All"]
 			f.db.escape.side_effect = _esc
@@ -52,7 +52,7 @@ class QueryConditions(unittest.TestCase):
 		self.assertIn("user = 'alice@example.com'", sql)
 
 	def test_snapshot_query_targets_snapshot_table(self):
-		with mock.patch("sheets.permissions.frappe") as f:
+		with mock.patch("suite.sheets.permissions.frappe") as f:
 			f.session.user = "alice@example.com"
 			f.get_roles.return_value = ["All"]
 			f.db.escape.side_effect = _esc
@@ -62,7 +62,7 @@ class QueryConditions(unittest.TestCase):
 
 class HasPermission(unittest.TestCase):
 	def test_admin_short_circuits(self):
-		with mock.patch("sheets.permissions.frappe") as f:
+		with mock.patch("suite.sheets.permissions.frappe") as f:
 			f.session.user = "Administrator"
 			doc = mock.Mock(sheet="SH-1")
 			self.assertTrue(
@@ -72,7 +72,7 @@ class HasPermission(unittest.TestCase):
 			f.has_permission.assert_not_called()
 
 	def test_read_on_child_delegates_to_read_on_parent(self):
-		with mock.patch("sheets.permissions.frappe") as f:
+		with mock.patch("suite.sheets.permissions.frappe") as f:
 			f.session.user = "alice@example.com"
 			f.get_roles.return_value = ["All"]
 			f.has_permission.return_value = True
@@ -85,7 +85,7 @@ class HasPermission(unittest.TestCase):
 			)
 
 	def test_write_on_child_requires_write_on_parent(self):
-		with mock.patch("sheets.permissions.frappe") as f:
+		with mock.patch("suite.sheets.permissions.frappe") as f:
 			f.session.user = "alice@example.com"
 			f.get_roles.return_value = ["All"]
 			f.has_permission.return_value = False
@@ -98,7 +98,7 @@ class HasPermission(unittest.TestCase):
 			)
 
 	def test_doc_with_no_sheet_denied(self):
-		with mock.patch("sheets.permissions.frappe") as f:
+		with mock.patch("suite.sheets.permissions.frappe") as f:
 			f.session.user = "alice@example.com"
 			f.get_roles.return_value = ["All"]
 			# Plain dict shape (Frappe sometimes hands raw dicts to the hook).
@@ -107,7 +107,7 @@ class HasPermission(unittest.TestCase):
 			)
 
 	def test_dict_doc_extracts_sheet(self):
-		with mock.patch("sheets.permissions.frappe") as f:
+		with mock.patch("suite.sheets.permissions.frappe") as f:
 			f.session.user = "alice@example.com"
 			f.get_roles.return_value = ["All"]
 			f.has_permission.return_value = True

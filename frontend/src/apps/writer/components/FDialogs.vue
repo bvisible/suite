@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import { useDialogs } from '@/utils/dialogs'
+import { useDialogs } from '@/apps/writer/utils/dialogs'
 import { Dialog } from 'frappe-ui'
 
 const dialogs = useDialogs()

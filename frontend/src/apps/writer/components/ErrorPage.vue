@@ -6,8 +6,8 @@
       <LucideFileUser v-if="error.type === 'PermissionError'" />
       <LucideFileQuestionMark v-else />
     </div>
-    <h1 class="text-3xl font-bold text-ink-gray-8 mt-4">Uh oh!</h1>
-    <p class="text-lg text-ink-gray-5 mt-4">
+    <h1 class="text-5xl-bold text-ink-gray-8 mt-4">Uh oh!</h1>
+    <p class="text-xl text-ink-gray-5 mt-4">
       <template v-if="typeof error === 'string'">{{ error }}</template>
       <template v-else>
         {{
@@ -33,7 +33,7 @@
           v-if="$store.state.user.id && $store.state.user.id !== 'Guest'"
           variant="solid"
           size="md"
-          @click="$router.replace({ name: 'Home' })"
+          @click="$router.replace({ name: 'writer-home' })"
         >
           <div class="flex gap-2"><LucideHome class="size-4" />Go Home</div>
         </Button>
@@ -47,9 +47,14 @@
 
 <script setup>
 import { Button } from 'frappe-ui'
-import store from '@/store'
+import store from '@/apps/writer/store'
+// Template compat: standalone app exposed a global $store.
+const $store = store
 import { watchEffect } from 'vue'
 import LucideFileUser from '~icons/lucide/file-user'
+import LucideFileQuestionMark from '~icons/lucide/file-question-mark'
+import LucideHome from '~icons/lucide/home'
+import LucideUser from '~icons/lucide/user'
 
 const props = defineProps({ error: Object })
 

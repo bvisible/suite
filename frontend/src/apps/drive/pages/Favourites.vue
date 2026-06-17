@@ -10,7 +10,7 @@
 </template>
 
 <script setup>
-import GenericPage from '@/components/GenericPage.vue'
-import { getFavourites } from '@/resources/files'
+import GenericPage from '@/apps/drive/components/GenericPage.vue'
+import { getFavourites } from '@/apps/drive/resources/files'
 import LucideStar from '~icons/lucide/star'
 </script>

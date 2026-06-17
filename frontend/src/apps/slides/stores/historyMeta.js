@@ -4,8 +4,8 @@ import {
 	cropSelectionToFitContent,
 	focusElementId,
 	setActiveElements,
-} from '@/stores/element'
-import { changeEditorSlide, currentSlide, slideIndex, slides } from '@/stores/slide'
+} from '@/apps/slides/stores/element'
+import { changeEditorSlide, currentSlide, slideIndex, slides } from '@/apps/slides/stores/slide'
 
 let commandHistory = null
 

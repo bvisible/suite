@@ -2,9 +2,9 @@ import { ref, computed } from 'vue'
 import { createResource, call, createDocumentResource } from 'frappe-ui'
 import { isEqual } from 'lodash'
 
-import { router } from '@/router'
+import { router } from '@/apps/slides/router'
 import { slides } from './slide'
-import { normalizeZIndices } from '@/stores/element'
+import { normalizeZIndices } from '@/apps/slides/stores/element'
 import { v4 as uuid4 } from 'uuid'
 import { commandHistory } from './historyMeta'
 
@@ -17,7 +17,7 @@ const presentationId = ref('')
 const applyReverseTransition = ref(false)
 
 const createPresentationResource = createResource({
-	url: 'slides.slides.doctype.presentation.presentation.create_presentation',
+	url: 'suite.slides.doctype.presentation.presentation.create_presentation',
 	method: 'POST',
 	makeParams: (args) => {
 		return {
@@ -40,7 +40,7 @@ const createPresentationResource = createResource({
 })
 
 const updatePresentationTitle = async (id, newTitle) => {
-	return call('slides.slides.doctype.presentation.presentation.update_title', {
+	return call('suite.slides.doctype.presentation.presentation.update_title', {
 		name: id,
 		title: newTitle,
 	}).then((response) => {
@@ -162,7 +162,7 @@ const getPresentationResource = (name) => {
 
 const getPublicPresentationResource = (name) => {
 	return createResource({
-		url: 'slides.slides.doctype.presentation.presentation.get_public_presentation',
+		url: 'suite.slides.doctype.presentation.presentation.get_public_presentation',
 		method: 'GET',
 		auto: false,
 		makeParams: () => {
@@ -191,7 +191,7 @@ const getPublicPresentationResource = (name) => {
 
 const getCompositePresentationResource = (name) => {
 	return createResource({
-		url: 'slides.slides.doctype.presentation.presentation.get_composite_presentation',
+		url: 'suite.slides.doctype.presentation.presentation.get_composite_presentation',
 		method: 'GET',
 		auto: false,
 		makeParams: () => {
@@ -299,7 +299,7 @@ const isPublicPresentation = ref(false)
 const templateList = ref([])
 
 const templateListResource = createResource({
-	url: 'slides.slides.doctype.presentation.presentation.get_templates',
+	url: 'suite.slides.doctype.presentation.presentation.get_templates',
 	method: 'GET',
 	cache: 'templates',
 	onSuccess: (data) => {
@@ -314,7 +314,7 @@ const presentationTheme = computed(() => {
 const inReadonlyMode = ref(false)
 
 const deletePresentation = async (presentation) => {
-	await call('slides.slides.doctype.presentation.presentation.delete_presentation', {
+	await call('suite.slides.doctype.presentation.presentation.delete_presentation', {
 		name: presentation,
 	})
 }
@@ -326,7 +326,7 @@ const duplicatePresentation = async (presentation) => {
 
 	if (isDriveInstalled) {
 		const parent = router.currentRoute.value.query.parent || ''
-		call('slides.api.file.create_drive_file', {
+		call('suite.slides.api.file.create_drive_file', {
 			title: newPresentation.title,
 			name: newPresentation.name,
 			parent: parent,

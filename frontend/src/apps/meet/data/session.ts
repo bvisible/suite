@@ -1,45 +1,27 @@
-import { createResource } from "frappe-ui";
 import { computed, reactive } from "vue";
+import { useSessionStore } from "@/boot/session";
 import { userResource } from "./user";
 
-interface LoginParams {
-	email: string;
-	password: string;
-}
-
-function sessionUser(): string | null {
-	const cookies = new URLSearchParams(document.cookie.split("; ").join("&"));
-	let _sessionUser = cookies.get("user_id");
-	if (_sessionUser === "Guest") {
-		_sessionUser = null;
-	}
-	return _sessionUser;
-}
-
+/**
+ * Meet session adapter.
+ *
+ * The standalone Meet app owned a bespoke session object (login/logout +
+ * cookie-derived current user). In the suite, "who is logged in" is the shared
+ * `useSessionStore` (src/boot/session.ts). This adapter delegates auth state to
+ * the shared store while preserving the `session.user.{sessionUser,full_name,
+ * avatar,...}` shape that meet components/composables read, sourced from meet's
+ * own `userResource` (kept for role checks + profile fields).
+ *
+ * `useSessionStore()` requires an active Pinia, which main.ts installs before
+ * mount, so it is safe to call lazily from the getters below.
+ */
 export const session = reactive({
-	login: createResource({
-		url: "login",
-		makeParams({ email, password }: LoginParams) {
-			return {
-				usr: email,
-				pwd: password,
-			};
-		},
+	user: computed(() => {
+		const store = useSessionStore();
+		return {
+			sessionUser: store.user,
+			...userResource.data,
+		};
 	}),
-	logout: createResource({
-		url: "logout",
-		onSuccess() {
-			userResource.reset();
-			session.user = computed(() => ({
-				sessionUser: sessionUser(),
-				...userResource.data,
-			}));
-			window.location.href = "/login";
-		},
-	}),
-	user: computed(() => ({
-		sessionUser: sessionUser(),
-		...userResource.data,
-	})),
-	isLoggedIn: computed(() => !!session.user.sessionUser),
+	isLoggedIn: computed(() => useSessionStore().isLoggedIn),
 });

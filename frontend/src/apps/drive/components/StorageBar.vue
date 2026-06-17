@@ -15,7 +15,7 @@
         :class="
           (100 * storageBar.data.total_size) / storageMax > 100
             ? 'bg-surface-red-500'
-            : 'bg-surface-gray-7'
+            : 'bg-surface-gray-10'
         "
         :style="{
           width: calculatePercent,
@@ -34,8 +34,8 @@
 <script setup>
 import { computed, inject, watch } from 'vue'
 import SidebarItem from './SidebarItem.vue'
-import { formatSize, base2BlockSize } from '@/utils/format'
-import { storageBar } from '@/resources/files'
+import { formatSize, base2BlockSize } from '@/apps/drive/utils/format'
+import { storageBar } from '@/apps/drive/resources/files'
 import { useRoute } from 'vue-router'
 import LucideCloud from '~icons/lucide/cloud'
 

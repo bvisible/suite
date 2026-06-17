@@ -76,7 +76,10 @@
 
 <script setup lang="ts">
 import { Button } from "frappe-ui";
+import { usePlatform } from "../composables/usePlatform";
 import SettingsDialog from "./settings/SettingsDialog.vue";
+
+const $platform = usePlatform();
 
 defineProps({
 	isMicOn: {

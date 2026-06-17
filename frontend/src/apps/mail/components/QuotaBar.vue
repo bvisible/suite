@@ -10,7 +10,7 @@
 			<div
 				class="h-1 rounded-full"
 				:class="
-					quota.data?.used_percentage > 80 ? 'bg-surface-red-6' : 'bg-surface-gray-7'
+					quota.data?.used_percentage > 80 ? 'bg-surface-red-8' : 'bg-surface-gray-10'
 				"
 				:style="{ width: `${quota.data?.used_percentage || 0}%`, maxWidth: '100%' }"
 			/>
@@ -26,15 +26,15 @@ import { computed, watch } from 'vue'
 import { Cloud } from 'lucide-vue-next'
 import { createResource } from 'frappe-ui'
 
-import { formatBytes } from '@/utils'
-import { userStore } from '@/stores/user'
+import { formatBytes } from '@/apps/mail/utils'
+import { userStore } from '@/apps/mail/stores/user'
 
 const { isCollapsed } = defineProps<{ isCollapsed: boolean }>()
 
 const store = userStore()
 
 const quota = createResource({
-	url: 'mail.api.account.get_quota',
+	url: 'suite.mail.api.account.get_quota',
 	auto: true,
 	makeParams: () => ({ account: store.account }),
 	cache: ['quota', store.account],

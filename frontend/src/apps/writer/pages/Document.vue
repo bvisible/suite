@@ -121,8 +121,8 @@
 </template>
 
 <script setup>
-import Navbar from '@/components/Navbar.vue'
-import ErrorPage from '@/components/ErrorPage.vue'
+import Navbar from '@/apps/writer/components/Navbar.vue'
+import ErrorPage from '@/apps/writer/components/ErrorPage.vue'
 import {
   ref,
   inject,
@@ -133,22 +133,24 @@ import {
   computed,
   useTemplateRef,
 } from 'vue'
-import { useStore } from 'vuex'
-import { LoadingIndicator, useDoc, usePageMeta } from 'frappe-ui'
+import store from '@/apps/writer/store'
+// Template compat: standalone app exposed a global $store.
+const $store = store
+import { Button, LoadingIndicator, useDoc, usePageMeta } from 'frappe-ui'
 
-import VersionsSidebar from '@/components/VersionsSidebar.vue'
-import WriterSettings from '@/components/WriterSettings.vue'
-import TemplateDialog from '@/components/TemplateDialog.vue'
-import UsersBar from '@/components/UsersBar.vue'
+import VersionsSidebar from '@/apps/writer/components/VersionsSidebar.vue'
+import WriterSettings from '@/apps/writer/components/WriterSettings.vue'
+import TemplateDialog from '@/apps/writer/components/TemplateDialog.vue'
+import UsersBar from '@/apps/writer/components/UsersBar.vue'
 
-import { toast } from '@/utils/'
-import useDocument from '@/composables/useDocument'
+import { toast } from '@/apps/writer/utils/'
+import useDocument from '@/apps/writer/composables/useDocument'
 import LucideLock from '~icons/lucide/lock'
 import LucideLockOpen from '~icons/lucide/lock-open'
-import TextEditor from '@/components/TextEditor.vue'
-import NonCollabEditor from '@/components/NonCollabEditor.vue'
+import TextEditor from '@/apps/writer/components/TextEditor.vue'
+import NonCollabEditor from '@/apps/writer/components/NonCollabEditor.vue'
 const MarkdownEditor = defineAsyncComponent(
-  () => import('@/components/MarkdownEditor.vue'),
+  () => import('@/apps/writer/components/MarkdownEditor.vue'),
 )
 
 const props = defineProps({
@@ -156,7 +158,6 @@ const props = defineProps({
   slug: String,
 })
 
-const store = useStore()
 const editorEl = useTemplateRef('editorEl')
 const editor = computed(() => editorEl.value?.editor)
 provide('editor', editor)

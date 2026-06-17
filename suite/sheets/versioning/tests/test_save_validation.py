@@ -13,8 +13,8 @@ import json
 import unittest
 from unittest import mock
 
-from sheets.sheets.doctype.sheet.storage import encode_sheets_data
-from sheets.versioning import save as save_mod
+from suite.sheets.doctype.sheet.storage import encode_sheets_data
+from suite.sheets.versioning import save as save_mod
 
 
 class TitleCleaning(unittest.TestCase):
@@ -44,7 +44,7 @@ class PayloadValidation(unittest.TestCase):
 
 	def test_non_string_throws(self):
 		with mock.patch(
-			"sheets.versioning.save.frappe.throw",
+			"suite.sheets.versioning.save.frappe.throw",
 			side_effect=ValueError("must be string"),
 		):
 			with self.assertRaises(ValueError):
@@ -52,7 +52,7 @@ class PayloadValidation(unittest.TestCase):
 
 	def test_invalid_json_throws(self):
 		with mock.patch(
-			"sheets.versioning.save.frappe.throw",
+			"suite.sheets.versioning.save.frappe.throw",
 			side_effect=ValueError("not valid JSON"),
 		):
 			with self.assertRaises(ValueError):
@@ -76,7 +76,7 @@ class OpsCoercion(unittest.TestCase):
 
 	def test_non_array_throws(self):
 		with mock.patch(
-			"sheets.versioning.save.frappe.throw",
+			"suite.sheets.versioning.save.frappe.throw",
 			side_effect=ValueError("must be array"),
 		):
 			with self.assertRaises(ValueError):
@@ -85,7 +85,7 @@ class OpsCoercion(unittest.TestCase):
 	def test_too_many_ops_throws(self):
 		too_many = [{"op_type": "edit"}] * (save_mod.MAX_OPS_PER_SAVE + 1)
 		with mock.patch(
-			"sheets.versioning.save.frappe.throw",
+			"suite.sheets.versioning.save.frappe.throw",
 			side_effect=ValueError("too many"),
 		):
 			with self.assertRaises(ValueError):

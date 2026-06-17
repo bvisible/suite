@@ -14,7 +14,7 @@ import { Plugin, PluginKey, TextSelection } from 'prosemirror-state'
 import { joinBackward } from 'prosemirror-commands'
 import { liftListItem } from 'prosemirror-schema-list'
 
-import { getDocFromHTML } from '@/utils/helpers'
+import { getDocFromHTML } from '@/apps/slides/utils/helpers'
 
 const parseElementStyle = (attribute, value) => {
 	if (!value) return null

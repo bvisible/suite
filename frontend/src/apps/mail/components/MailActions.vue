@@ -42,11 +42,11 @@ import {
 } from 'lucide-vue-next'
 import { Button, Dropdown, createResource, toast } from 'frappe-ui'
 
-import { downloadUrlAsFile, raisePromiseToast, raiseToast } from '@/utils'
-import { useScreenSize, useUndo } from '@/utils/composables'
-import { userStore } from '@/stores/user'
+import { downloadUrlAsFile, raisePromiseToast, raiseToast } from '@/apps/mail/utils'
+import { useScreenSize, useUndo } from '@/apps/mail/utils/composables'
+import { userStore } from '@/apps/mail/stores/user'
 
-import type { ComposeMailData, Identity, Mail } from '@/types'
+import type { ComposeMailData, Identity, Mail } from '@/apps/mail/types'
 
 const {
 	mailbox,
@@ -87,7 +87,7 @@ const primaryActions = (mail: Mail): MailAction[] => [
 	{
 		label: __('Unstar'),
 		onClick: () => emit('setFlagged', mail.id, false),
-		icon: () => h(Star, { class: 'fill-ink-amber-2 text-ink-amber-2 stroke-ink-amber-2' }),
+		icon: () => h(Star, { class: 'fill-ink-amber-5 text-ink-amber-5 stroke-ink-amber-5' }),
 		condition: !!mail.flagged && mailbox !== mailboxIds.trash && !isMobile.value,
 	},
 	{
@@ -153,7 +153,7 @@ const moreActions = (mail: Mail): GroupedAction[] => [
 				label: __('Unstar'),
 				onClick: () => emit('setFlagged', mail.id, false),
 				icon: () =>
-					h(Star, { class: 'fill-ink-amber-2 text-ink-amber-2 stroke-ink-amber-2' }),
+					h(Star, { class: 'fill-ink-amber-5 text-ink-amber-5 stroke-ink-amber-5' }),
 				condition: () => !!mail.flagged && mailbox !== mailboxIds.trash,
 			},
 			{
@@ -234,7 +234,7 @@ const moreActions = (mail: Mail): GroupedAction[] => [
 ]
 
 const downloadEmail = createResource({
-	url: 'mail.api.mail.fetch_mail_as_eml',
+	url: 'suite.mail.api.mail.fetch_mail_as_eml',
 	makeParams: () => ({ name: mail.name }),
 	onSuccess: (content: string) => {
 		const byteArray = new Uint8Array(content)
@@ -246,7 +246,7 @@ const downloadEmail = createResource({
 })
 
 const markAsSpam = createResource({
-	url: 'mail.api.mail.set_mails_spam_status',
+	url: 'suite.mail.api.mail.set_mails_spam_status',
 	makeParams: ({ spam }: { spam: boolean }) => ({ account, ids: [mail.id], spam }),
 })
 
@@ -266,7 +266,7 @@ const handleMarkAsSpam = (spam: boolean, isUndo = false) => {
 }
 
 const moveMail = createResource({
-	url: 'mail.api.mail.move_mails',
+	url: 'suite.mail.api.mail.move_mails',
 	makeParams: (mailbox: string) => ({
 		account,
 		ids: [mail.id],
@@ -296,7 +296,7 @@ const handleMoveMail = (mailbox: string, isUndo = false) => {
 }
 
 const deleteMail = createResource({
-	url: 'mail.client.doctype.mail_message.mail_message.bulk_delete',
+	url: 'suite.client.doctype.mail_message.mail_message.bulk_delete',
 	makeParams: () => ({ names: [mail.name] }),
 	onSuccess: () => reloadMails(),
 })
@@ -309,12 +309,12 @@ const handleDeleteMail = () =>
 	})
 
 const setMailsSeen = createResource({
-	url: 'mail.api.mail.set_mails_seen',
+	url: 'suite.mail.api.mail.set_mails_seen',
 	makeParams: ({ ids }: { ids: string[] }) => ({ account, ids, seen: false }),
 	onSuccess: (ids: string[]) => {
 		raiseToast(__('{0} marked as unread.', [ids.length === 1 ? __('Mail') : __('Mails')]))
 		router.push({
-			name: 'Mailbox',
+			name: 'mail-mailbox',
 			params: { accountId: route.params.accountId, mailbox },
 			query: route.query,
 		})
@@ -333,12 +333,12 @@ const handleMarkUnreadFromHere = () => {
 }
 
 const blockEmailAddress = createResource({
-	url: 'mail.api.mail.block_email_address',
+	url: 'suite.mail.api.mail.block_email_address',
 	makeParams: () => ({ account, email: mail.from_email }),
 })
 
 const unblockEmailAddress = createResource({
-	url: 'mail.api.mail.unblock_email_addresses',
+	url: 'suite.mail.api.mail.unblock_email_addresses',
 	makeParams: () => ({ account, emails: [mail.from_email] }),
 })
 

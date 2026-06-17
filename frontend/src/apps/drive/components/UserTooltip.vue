@@ -5,7 +5,7 @@
   </Tooltip>
 </template>
 <script setup>
-import { teamUsers } from '@/resources/permissions'
+import { teamUsers } from '@/apps/drive/resources/permissions'
 import { Tooltip } from 'frappe-ui'
 defineProps({
   email: String,

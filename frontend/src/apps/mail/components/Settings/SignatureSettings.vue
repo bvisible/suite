@@ -22,7 +22,7 @@
 	</div>
 
 	<div v-else class="text-ink-gray-6 flex flex-col space-y-2 text-sm">
-		<p class="text-base font-medium">{{ __('No signatures found.') }}</p>
+		<p class="text-base-medium">{{ __('No signatures found.') }}</p>
 
 		<p>
 			{{ __('Signatures let you automatically add personalized content to your emails.') }}
@@ -43,11 +43,11 @@ import { inject, ref } from 'vue'
 import { Edit2, Ellipsis, Pin, Trash2 } from 'lucide-vue-next'
 import { Button, Dropdown, useList } from 'frappe-ui'
 
-import AddSignatureModal from '@/components/Modals/AddSignatureModal.vue'
-import EditSignatureModal from '@/components/Modals/EditSignatureModal.vue'
-import SetDefaultSignatureModal from '@/components/Modals/SetDefaultSignatureModal.vue'
+import AddSignatureModal from '@/apps/mail/components/Modals/AddSignatureModal.vue'
+import EditSignatureModal from '@/apps/mail/components/Modals/EditSignatureModal.vue'
+import SetDefaultSignatureModal from '@/apps/mail/components/Modals/SetDefaultSignatureModal.vue'
 
-import type { MailSignature } from '@/types'
+import type { MailSignature } from '@/apps/mail/types'
 
 const user = inject('$user')
 

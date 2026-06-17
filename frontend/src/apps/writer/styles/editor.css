@@ -25,7 +25,7 @@ b {
 /* Render the username above the caret */
 .collaboration-carets__label {
   border-radius: 3px 3px 3px 0;
-  color: var(--ink-white);
+  color: var(--ink-base);
   font-size: 10px;
   font-style: normal;
   font-weight: 600;

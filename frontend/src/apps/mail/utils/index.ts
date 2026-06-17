@@ -2,14 +2,14 @@ import * as cheerio from 'cheerio'
 import { File, Paperclip } from 'lucide-vue-next'
 import { toast } from 'frappe-ui'
 
-import { FOLDER_ICON_MAP } from '@/constants'
-import dayjs from '@/utils/dayjs'
-import AudioIcon from '@/components/Icons/AudioIcon.vue'
-import ImageIcon from '@/components/Icons/ImageIcon.vue'
-import PDFIcon from '@/components/Icons/PDFIcon.vue'
-import VideoIcon from '@/components/Icons/VideoIcon.vue'
+import { FOLDER_ICON_MAP } from '@/apps/mail/constants'
+import dayjs from '@/apps/mail/utils/dayjs'
+import AudioIcon from '@/apps/mail/components/Icons/AudioIcon.vue'
+import ImageIcon from '@/apps/mail/components/Icons/ImageIcon.vue'
+import PDFIcon from '@/apps/mail/components/Icons/PDFIcon.vue'
+import VideoIcon from '@/apps/mail/components/Icons/VideoIcon.vue'
 
-import type { ComposeMailData, MailboxData, Recipient } from '@/types'
+import type { ComposeMailData, MailboxData, Recipient } from '@/apps/mail/types'
 
 export const toTitleCase = (str: string) =>
 	str

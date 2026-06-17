@@ -40,7 +40,7 @@
 		/>
 	</form>
 	<div class="mt-6 text-center">
-		<router-link class="text-center text-base font-medium hover:underline" to="/login">
+		<router-link class="text-center text-base-medium hover:underline" :to="{ name: 'mail-login' }">
 			{{ __('Already have an account? Log in.') }}
 		</router-link>
 	</div>
@@ -50,7 +50,7 @@ import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Button, ErrorMessage, FormControl, createResource } from 'frappe-ui'
 
-import { sessionStore } from '@/stores/session'
+import { sessionStore } from '@/apps/mail/stores/session'
 
 const { requestKey } = defineProps<{ requestKey: string }>()
 
@@ -64,17 +64,17 @@ const password = ref('')
 const errorMessage = ref('')
 
 const getAccountRequest = createResource({
-	url: 'mail.api.account.get_account_request',
+	url: 'suite.mail.api.account.get_account_request',
 	makeParams: () => ({ request_key: requestKey }),
 	onSuccess: (data) => {
 		if ((data?.backup_email || data?.account) && !data?.is_verified && !data?.is_expired)
 			email.value = data.account || data.backup_email
-		else router.replace({ name: 'SignUp' })
+		else router.replace({ name: 'mail-signup' })
 	},
 })
 
 const createAccount = createResource({
-	url: 'mail.api.account.create_account',
+	url: 'suite.mail.api.account.create_account',
 	makeParams: () => ({
 		request_key: requestKey,
 		first_name: firstName.value,
@@ -93,7 +93,7 @@ watch(
 	(val) => {
 		if (!val) return
 		if (val.length === 32) getAccountRequest.submit()
-		else router.replace({ name: 'SignUp' })
+		else router.replace({ name: 'mail-signup' })
 	},
 	{ immediate: true },
 )

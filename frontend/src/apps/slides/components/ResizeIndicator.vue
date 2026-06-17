@@ -10,8 +10,8 @@
 <script setup>
 import { computed } from 'vue'
 
-import { currentSlide } from '@/stores/slide'
-import { isBackgroundColorDark } from '@/utils/color'
+import { currentSlide } from '@/apps/slides/stores/slide'
+import { isBackgroundColorDark } from '@/apps/slides/utils/color'
 
 const props = defineProps({
 	type: {

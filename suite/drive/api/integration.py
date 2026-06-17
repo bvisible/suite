@@ -1,6 +1,6 @@
 import frappe
 
-from drive.utils import PRESENTATION_CONTENT_DOCTYPE
+from suite.drive.utils import PRESENTATION_CONTENT_DOCTYPE
 
 
 def presentation(doc, event):

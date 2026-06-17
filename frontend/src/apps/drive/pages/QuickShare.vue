@@ -22,10 +22,10 @@
       <div
         v-for="file in transfers.data"
         :key="file.name"
-        class="flex justify-between rounded border border-outline-gray-modals p-3 shadow-sm"
+        class="flex justify-between rounded border border-outline-elevation-2 p-3 shadow-sm"
       >
         <div class="flex flex-col gap-2 justify-center">
-          <span class="text-sm font-medium text-ink-gray-9 truncate">
+          <span class="text-sm-medium text-ink-gray-9 truncate">
             {{ file.title }}
           </span>
           <span class="text-xs text-ink-gray-5">
@@ -44,13 +44,14 @@
   </div>
 </template>
 <script setup>
-import Navbar from "@/components/Navbar.vue"
-import emitter from "@/emitter"
-import store from "@/store"
+import { Button } from 'frappe-ui'
+import Navbar from "@/apps/drive/components/Navbar.vue"
+import emitter from "@/apps/drive/emitter"
+import store from "@/apps/drive/store"
 import { createResource } from "frappe-ui"
-import { prettyData } from "@/utils/files"
+import { prettyData } from "@/apps/drive/utils/files"
 import LucideDownload from "~icons/lucide/download"
-import { entitiesDownload } from "@/utils/download"
+import { entitiesDownload } from "@/apps/drive/utils/download"
 import { inject } from "vue"
 
 const transform = (data) => {
@@ -66,7 +67,7 @@ const transform = (data) => {
 }
 
 const transfers = createResource({
-  url: "drive.api.list.get_transfers",
+  url: "suite.drive.api.list.get_transfers",
   auto: true,
   transform,
 })

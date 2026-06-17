@@ -52,7 +52,7 @@
 				<Switch
 					v-model="accountRequest.send_invite"
 					:label="__('Send Invite')"
-					class="hover:!bg-surface-white !cursor-default !p-0"
+					class="hover:!bg-surface-base !cursor-default !p-0"
 				/>
 				<FormControl
 					v-if="accountRequest.send_invite"
@@ -88,8 +88,8 @@
 import { inject, reactive, watch } from 'vue'
 import { Dialog, ErrorMessage, FeatherIcon, FormControl, Switch, createResource } from 'frappe-ui'
 
-import { raiseToast } from '@/utils'
-import { userStore } from '@/stores/user'
+import { raiseToast } from '@/apps/mail/utils'
+import { userStore } from '@/apps/mail/stores/user'
 
 const show = defineModel<boolean>()
 
@@ -134,7 +134,7 @@ watch(show, () => {
 })
 
 const addMember = createResource({
-	url: 'mail.api.admin.add_member',
+	url: 'suite.mail.api.admin.add_member',
 	makeParams: () => ({
 		...accountRequest,
 		is_admin: accountRequest.role === 'admin',

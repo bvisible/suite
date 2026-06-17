@@ -46,16 +46,16 @@
   <ShortcutsDialog v-if="showShortcuts" v-model="showShortcuts" />
 </template>
 <script setup>
-import FrappeDriveLogo from '@/components/FrappeDriveLogo.vue'
+import FrappeDriveLogo from '@/apps/drive/components/FrappeDriveLogo.vue'
 
 import StorageBar from './StorageBar.vue'
 import { Sidebar, SidebarItem, createResource } from 'frappe-ui'
-import { notifCount, apps } from '@/resources/permissions'
-import { getTeams } from '@/resources/files'
-import { dynamicList } from '@/utils/files'
+import { notifCount, apps } from '@/apps/drive/resources/permissions'
+import { getTeams } from '@/apps/drive/resources/files'
+import { dynamicList } from '@/apps/drive/utils/files'
 
-import { useStore } from 'vuex'
-import icons from '@/utils/icons'
+import store from '@/apps/drive/store'
+import icons from '@/apps/drive/utils/icons'
 import LucideClock from '~icons/lucide/clock'
 import LucideUsers from '~icons/lucide/users'
 import LucideFiles from '~icons/lucide/files'
@@ -68,13 +68,13 @@ import LucideSearch from '~icons/lucide/search'
 import LucideFileText from '~icons/lucide/file-text'
 import LucideGalleryVerticalEnd from '~icons/lucide/gallery-vertical-end'
 
-import SettingsDialog from '@/components/Settings/SettingsDialog.vue'
-import ShortcutsDialog from '@/components/ShortcutsDialog.vue'
-import emitter from '@/emitter'
+import SettingsDialog from '@/apps/drive/components/Settings/SettingsDialog.vue'
+import ShortcutsDialog from '@/apps/drive/components/ShortcutsDialog.vue'
+import emitter from '@/apps/drive/emitter'
 import { ref, computed, watch, h } from 'vue'
-import AppsIcon from '@/components/AppsIcon.vue'
+import AppsIcon from '@/apps/drive/components/AppsIcon.vue'
 import { useRouter } from 'vue-router'
-import { move } from '@/resources/files'
+import { move } from '@/apps/drive/resources/files'
 
 import LucideBook from '~icons/lucide/book'
 import LucideBadgeHelp from '~icons/lucide/badge-help'
@@ -83,19 +83,18 @@ import LucideSun from '~icons/lucide/sun'
 import LucideMoon from '~icons/lucide/moon'
 import LucideMonitor from '~icons/lucide/monitor'
 import LucideCheck from '~icons/lucide/check'
-import { getThemeMode, switchTheme } from '@/utils/setupTheme'
+import { getThemeMode, switchTheme } from '@/apps/drive/utils/setupTheme'
 
 defineEmits(['toggleMobileSidebar', 'showSearchPopUp'])
-const store = useStore()
 const router = useRouter()
 notifCount.fetch()
 getTeams.fetch()
 apps.fetch()
 
 const teamExists = createResource({
-  url: 'drive.utils.get_default_team',
+  url: 'suite.drive.utils.get_default_team',
   auto: true,
-  onSuccess: (d) => !d && router.replace({ name: 'Setup' }),
+  onSuccess: (d) => !d && router.replace({ name: 'drive-Setup' }),
 })
 
 const isCollapsed = ref(store.state.sidebarCollapsed)
@@ -221,7 +220,7 @@ const sidebarItems = computed(() => {
           label: __('Inbox'),
           icon: LucideInbox,
           to: '/inbox',
-          isActive: first.name === 'Inbox',
+          isActive: first.name === 'drive-Inbox',
           accessKey: 'i',
           suffix: notifCount.data,
         },
@@ -234,28 +233,28 @@ const sidebarItems = computed(() => {
           label: 'Home',
           to: `/`,
           icon: LucideHome,
-          isActive: first.name == 'Home',
+          isActive: first.name == 'drive-Home',
           accessKey: 'h',
         },
         {
           label: 'Recents',
           to: `/recents`,
           icon: LucideClock,
-          isActive: first.name == 'Recents',
+          isActive: first.name == 'drive-Recents',
           accessKey: 'r',
         },
         {
           label: 'Shared',
           to: `/shared`,
           icon: LucideUsers,
-          isActive: first.name == 'Shared',
+          isActive: first.name == 'drive-Shared',
           accessKey: 's',
         },
         {
           label: 'Trash',
           to: `/trash`,
           icon: LucideTrash,
-          isActive: first.name == 'Trash',
+          isActive: first.name == 'drive-Trash',
         },
       ],
     },
@@ -281,28 +280,28 @@ const sidebarItems = computed(() => {
           label: 'Attachments',
           to: `/attachments`,
           icon: LucidePaperclip,
-          isActive: first.name == 'Attachments',
+          isActive: first.name == 'drive-Attachments',
           accessKey: 'a',
         },
         {
           label: 'Favourites',
           to: `/favourites`,
           icon: LucideStar,
-          isActive: first.name == 'Favourites',
+          isActive: first.name == 'drive-Favourites',
           accessKey: 'f',
         },
         {
           label: 'Documents',
           to: `/documents`,
           icon: LucideFileText,
-          isActive: first.name == 'Documents',
+          isActive: first.name == 'drive-Documents',
           accessKey: 'd',
         },
         {
           label: 'Presentations',
           to: `/presentations`,
           icon: LucideGalleryVerticalEnd,
-          isActive: first.name == 'Presentations',
+          isActive: first.name == 'drive-Presentations',
           cond: apps.data?.find?.((k) => k.name === 'slides'),
         },
       ]),

@@ -58,12 +58,12 @@
 import { computed, inject, reactive, ref } from 'vue'
 import { Button, FormControl, Switch, TextEditor, createResource } from 'frappe-ui'
 
-import { convertHtmlToText, raiseToast } from '@/utils'
-import { useTextEditorButtons } from '@/utils/composables'
-import { userStore } from '@/stores/user'
-import SetSieveScriptStateModal from '@/components/Modals/SetSieveScriptStateModal.vue'
+import { convertHtmlToText, raiseToast } from '@/apps/mail/utils'
+import { useTextEditorButtons } from '@/apps/mail/utils/composables'
+import { userStore } from '@/apps/mail/stores/user'
+import SetSieveScriptStateModal from '@/apps/mail/components/Modals/SetSieveScriptStateModal.vue'
 
-import type { VacationResponse } from '@/types/doctypes'
+import type { VacationResponse } from '@/apps/mail/types/doctypes'
 
 const store = userStore()
 const dayjs = inject('$dayjs')
@@ -84,7 +84,7 @@ const handleSave = () => {
 const original = reactive({})
 
 const vacationResponse = createResource({
-	url: 'mail.client.doctype.vacation_response.vacation_response.get_vacation_response',
+	url: 'suite.client.doctype.vacation_response.vacation_response.get_vacation_response',
 	makeParams: () => ({ account: store.account }),
 	auto: true,
 	transform: (doc: VacationResponse) => {
@@ -97,7 +97,7 @@ const vacationResponse = createResource({
 })
 
 const updateVacationResponse = createResource({
-	url: 'mail.client.doctype.vacation_response.vacation_response.update_vacation_response',
+	url: 'suite.client.doctype.vacation_response.vacation_response.update_vacation_response',
 	makeParams: () => ({
 		account: store.account,
 		enabled: vacationResponse.data.enabled,

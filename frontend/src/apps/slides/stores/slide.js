@@ -6,12 +6,12 @@ import {
 	templateList,
 	inReadonlyMode,
 	presentationTheme,
-} from '@/stores/presentation'
-import { resetFocus } from '@/stores/element'
-import { saveChanges, isDirty } from '@/stores/saving'
-import { commandHistory } from '@/stores/historyMeta'
-import { generateUniqueId, cloneObj } from '@/utils/helpers'
-import { router } from '@/router'
+} from '@/apps/slides/stores/presentation'
+import { resetFocus } from '@/apps/slides/stores/element'
+import { saveChanges, isDirty } from '@/apps/slides/stores/saving'
+import { commandHistory } from '@/apps/slides/stores/historyMeta'
+import { generateUniqueId, cloneObj } from '@/apps/slides/utils/helpers'
+import { router } from '@/apps/slides/router'
 
 import { toast } from 'frappe-ui'
 import { inSlideShowMode } from './slideshow'

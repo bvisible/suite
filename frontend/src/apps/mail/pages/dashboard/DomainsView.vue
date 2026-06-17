@@ -71,9 +71,9 @@ import {
 	usePageMeta,
 } from 'frappe-ui'
 
-import dayjs from '@/utils/dayjs'
-import DashboardLayout from '@/components/DashboardLayout.vue'
-import AddDomainModal from '@/components/Modals/AddDomainModal.vue'
+import dayjs from '@/apps/mail/utils/dayjs'
+import DashboardLayout from '@/apps/mail/components/DashboardLayout.vue'
+import AddDomainModal from '@/apps/mail/components/Modals/AddDomainModal.vue'
 
 usePageMeta(() => ({ title: __('Domains') }))
 
@@ -82,7 +82,7 @@ const search = ref('')
 const status = ref<'All' | 'Enabled' | 'Disabled'>('All')
 
 const domains = createResource({
-	url: 'mail.api.admin.get_domains',
+	url: 'suite.mail.api.admin.get_domains',
 	auto: true,
 	makeParams: () => ({
 		txt: search.value,
@@ -113,7 +113,7 @@ const LIST_OPTIONS = {
 	selectable: false,
 	showTooltip: false,
 	emptyState: { description: __('No domains found.') },
-	getRowRoute: (row: DomainRow) => ({ name: 'Domain', params: { domainId: row.id } }),
+	getRowRoute: (row: DomainRow) => ({ name: 'mail-domain', params: { domainId: row.id } }),
 }
 
 const formatCreatedAt = (createdAt?: string) => (createdAt ? dayjs(createdAt).fromNow() : '-')

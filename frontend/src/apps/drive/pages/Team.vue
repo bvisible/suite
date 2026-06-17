@@ -16,14 +16,13 @@
 </template>
 
 <script setup>
-import GenericPage from '@/components/GenericPage.vue'
-import { getTeam, getTeams, getPublicTeams } from '@/resources/files'
-import { useStore } from 'vuex'
+import GenericPage from '@/apps/drive/components/GenericPage.vue'
+import { getTeam, getTeams, getPublicTeams } from '@/apps/drive/resources/files'
+import store from '@/apps/drive/store'
 import { useRoute } from 'vue-router'
 import LucideBuilding2 from '~icons/lucide/building-2'
 import { computed, watch } from 'vue'
 
-const store = useStore()
 const props = defineProps({
   team: String,
 })

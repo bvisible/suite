@@ -2,12 +2,12 @@ import { type ComputedRef, type Ref, computed, h, ref } from 'vue'
 import { Icon } from 'frappe-ui/icons'
 import { createResource, toast } from 'frappe-ui'
 
-import { FOLDER_ICON_COLOR_MAP } from '@/constants'
-import { getIcon, raisePromiseToast, raiseToast } from '@/utils'
-import { useUndo } from '@/utils/composables'
-import { userStore } from '@/stores/user'
+import { FOLDER_ICON_COLOR_MAP } from '@/apps/mail/constants'
+import { getIcon, raisePromiseToast, raiseToast } from '@/apps/mail/utils'
+import { useUndo } from '@/apps/mail/utils/composables'
+import { userStore } from '@/apps/mail/stores/user'
 
-import type { Mail, Thread } from '@/types'
+import type { Mail, Thread } from '@/apps/mail/types'
 
 export type SetSeenParams = {
 	0?: string[]
@@ -79,7 +79,7 @@ export function useThreadActions(deps: {
 	}
 
 	const setSeen = createResource({
-		url: 'mail.api.mail.set_mails_seen',
+		url: 'suite.mail.api.mail.set_mails_seen',
 		makeParams: ({ ids, seen }: { ids: string[]; seen: boolean }) => ({
 			account: store.account,
 			ids,
@@ -89,7 +89,7 @@ export function useThreadActions(deps: {
 	})
 
 	const setFlagged = createResource({
-		url: 'mail.api.mail.set_flagged',
+		url: 'suite.mail.api.mail.set_flagged',
 		makeParams: ({ ids, flagged }: { ids: string[]; flagged: boolean }) => ({
 			account: store.account,
 			ids,
@@ -106,7 +106,7 @@ export function useThreadActions(deps: {
 	})
 
 	const moveMails = createResource({
-		url: 'mail.api.mail.move_mails',
+		url: 'suite.mail.api.mail.move_mails',
 		makeParams: ({
 			ids,
 			mailbox: target,
@@ -129,7 +129,7 @@ export function useThreadActions(deps: {
 	)
 
 	const addMails = createResource({
-		url: 'mail.api.mail.add_mails_to_mailbox',
+		url: 'suite.mail.api.mail.add_mails_to_mailbox',
 		makeParams: ({ ids, mailbox_id }: { ids: string[]; mailbox_id: string }) => ({
 			account: store.account,
 			ids,
@@ -138,7 +138,7 @@ export function useThreadActions(deps: {
 	})
 
 	const removeMails = createResource({
-		url: 'mail.api.mail.remove_mails_from_mailbox',
+		url: 'suite.mail.api.mail.remove_mails_from_mailbox',
 		makeParams: ({ ids, mailbox_id }: { ids: string[]; mailbox_id: string }) => ({
 			account: store.account,
 			ids,
@@ -149,7 +149,7 @@ export function useThreadActions(deps: {
 	// Restores each mail to an exact snapshot (mailbox set + junk) — used to undo a move precisely.
 	type MailSnapshot = { id: string; mailbox_ids: string[]; junk: 0 | 1 }
 	const setMailsMailboxes = createResource({
-		url: 'mail.api.mail.set_mails_mailboxes',
+		url: 'suite.mail.api.mail.set_mails_mailboxes',
 		makeParams: ({ mails }: { mails: MailSnapshot[] }) => ({ account: store.account, mails }),
 	})
 
@@ -265,7 +265,7 @@ export function useThreadActions(deps: {
 	}
 
 	const setMailsSpam = createResource({
-		url: 'mail.api.mail.set_mails_spam_status',
+		url: 'suite.mail.api.mail.set_mails_spam_status',
 		makeParams: ({ ids, spam }: { ids: string[]; spam: boolean }) => ({
 			account: store.account,
 			ids,
@@ -327,7 +327,7 @@ export function useThreadActions(deps: {
 	}))
 
 	const bulkDelete = createResource({
-		url: 'mail.client.doctype.mail_message.mail_message.bulk_delete',
+		url: 'suite.client.doctype.mail_message.mail_message.bulk_delete',
 		makeParams: ({ names }: { names: string[] }) => ({ names }),
 	})
 

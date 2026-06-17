@@ -18,7 +18,7 @@ export interface ReactionStore {
 	$reset: () => void;
 }
 
-export const useReactionStore = defineStore("reaction", () => {
+export const useReactionStore = defineStore("meet-reaction", () => {
 	const reactions = ref<Record<string, ReactionEntry>>({});
 
 	function showReactionForUser(userId: string, emoji: string, duration = 5000) {

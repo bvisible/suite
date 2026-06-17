@@ -215,12 +215,15 @@ import {
 } from "vue";
 import LucideBug from "~icons/lucide/bug";
 import { useMeetingDoc } from "../composables/useMeetingDoc";
+import { usePlatform } from "../composables/usePlatform";
 import { useResponsiveGrid } from "../composables/useResponsiveGrid";
 import { autoHideToolbar } from "../data/mediaPreferences";
 import { canScreenShare } from "../utils/device";
 import MeetingInfoDialog from "./MeetingInfoDialog.vue";
 import ReactionPicker from "./ReactionPicker.vue";
 import SettingsDialog from "./settings/SettingsDialog.vue";
+
+const $platform = usePlatform();
 
 interface MoreOption {
 	icon: string | Component;

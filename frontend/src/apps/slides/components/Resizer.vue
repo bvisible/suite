@@ -22,11 +22,11 @@
 <script setup>
 import { computed, inject } from 'vue'
 
-import ResizeHandle from '@/components/ResizeHandle.vue'
-import RotateHandle from '@/components/RotateHandle.vue'
-import ResizeIndicator from '@/components/ResizeIndicator.vue'
+import ResizeHandle from '@/apps/slides/components/ResizeHandle.vue'
+import RotateHandle from '@/apps/slides/components/RotateHandle.vue'
+import ResizeIndicator from '@/apps/slides/components/ResizeIndicator.vue'
 
-import { selectionBounds, slideBounds } from '@/stores/slide'
+import { selectionBounds, slideBounds } from '@/apps/slides/stores/slide'
 
 const props = defineProps({
 	elementType: {

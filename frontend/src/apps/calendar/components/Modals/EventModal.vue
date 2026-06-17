@@ -3,12 +3,12 @@ import { computed, inject, reactive, ref, watch } from 'vue'
 import { useDebounceFn } from '@vueuse/core'
 import { Button, Combobox, Dialog, Dropdown, FormControl, createResource, toast } from 'frappe-ui'
 
-import { getReorderedParticipants, raiseToast } from '@/utils'
-import { getRepeatMessage } from '@/utils/format'
-import { userStore } from '@/stores/user'
-import EventAlertList from '@/components/EventAlertList.vue'
-import EventParticipantList from '@/components/EventParticipantList.vue'
-import EventRepeatSettingsModal from '@/components/Modals/EventRepeatSettingsModal.vue'
+import { getReorderedParticipants, raiseToast } from '@/apps/calendar/utils'
+import { getRepeatMessage } from '@/apps/calendar/utils/format'
+import { userStore } from '@/apps/calendar/stores/user'
+import EventAlertList from '@/apps/calendar/components/EventAlertList.vue'
+import EventParticipantList from '@/apps/calendar/components/EventParticipantList.vue'
+import EventRepeatSettingsModal from '@/apps/calendar/components/Modals/EventRepeatSettingsModal.vue'
 
 const show = defineModel<boolean>()
 const { selectedEvent } = defineProps<{ selectedEvent: any }>()
@@ -242,7 +242,7 @@ const handleSuccess = () => {
 }
 
 const createEvent = createResource({
-	url: 'mail.client.doctype.calendar_event.calendar_event.add_calendar_event',
+	url: 'suite.client.doctype.calendar_event.calendar_event.add_calendar_event',
 	makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
 		account: store.account,
 		...eventParams.value,
@@ -252,7 +252,7 @@ const createEvent = createResource({
 })
 
 const editEventInstance = createResource({
-	url: 'mail.client.doctype.calendar_event.calendar_event.update_calendar_event_instance',
+	url: 'suite.client.doctype.calendar_event.calendar_event.update_calendar_event_instance',
 	makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
 		account: store.account,
 		master_id: selectedEvent.calendarEvent.master_id,
@@ -264,7 +264,7 @@ const editEventInstance = createResource({
 })
 
 const editEvent = createResource({
-	url: 'mail.client.doctype.calendar_event.calendar_event.update_calendar_event',
+	url: 'suite.client.doctype.calendar_event.calendar_event.update_calendar_event',
 	makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
 		account: store.account,
 		id: selectedEvent.calendarEvent.master_id,
@@ -344,7 +344,7 @@ const addAlertOptions = computed(() => [
 // --- Contacts search ---
 
 const mailContacts = createResource({
-	url: 'mail.api.contacts.get_contacts',
+	url: 'suite.mail.api.contacts.get_contacts',
 	makeParams: (text: string) => ({
 		account: store.account,
 		filter: { operator: 'OR', conditions: [{ text }, { email: text }] },
@@ -409,7 +409,7 @@ const SHOW_RECURRING_EVENT_MODAL_OPTIONS = {
 		<template #body-content>
 			<div class="grid max-h-[48rem] grid-cols-11 gap-6 overflow-y-auto">
 				<div class="col-span-7 space-y-4">
-					<h3 class="text-base font-medium">{{ __('Event Details') }}</h3>
+					<h3 class="text-base-medium">{{ __('Event Details') }}</h3>
 					<!-- Title -->
 					<FormControl
 						v-model="event.title"
@@ -544,7 +544,7 @@ const SHOW_RECURRING_EVENT_MODAL_OPTIONS = {
 				<div class="col-span-4 flex h-full flex-col space-y-4 border-l pl-6">
 					<!-- RSVP -->
 					<template v-if="showRSVP">
-						<h3 class="text-base font-medium">{{ __('RSVP') }}</h3>
+						<h3 class="text-base-medium">{{ __('RSVP') }}</h3>
 						<FormControl
 							v-model="userParticipant.participation_status"
 							type="select"
@@ -555,7 +555,7 @@ const SHOW_RECURRING_EVENT_MODAL_OPTIONS = {
 					</template>
 
 					<!-- Participants -->
-					<h3 class="text-base font-medium">{{ __('Participants') }}</h3>
+					<h3 class="text-base-medium">{{ __('Participants') }}</h3>
 					<Combobox
 						:options="mailContacts?.data || []"
 						:placeholder="__('Enter participants')"
@@ -595,9 +595,6 @@ const SHOW_RECURRING_EVENT_MODAL_OPTIONS = {
 		<template #actions>
 			<div class="flex justify-end space-x-2">
 				<Button @click="handleSaveRecurringEvent(false)">{{ __('Entire series') }}</Button>
-				<!-- <Button variant="solid" @click="handleSaveRecurringEvent(true)">
-					{{ __('This instance') }}
-				</Button> -->
 			</div>
 		</template>
 	</Dialog>

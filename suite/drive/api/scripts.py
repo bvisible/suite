@@ -1,7 +1,7 @@
 import frappe
 
-from drive.api.product import is_admin
-from drive.utils import (
+from suite.drive.api.product import is_admin
+from suite.drive.utils import (
     create_drive_file,
     default_team,
     get_file_type,
@@ -10,8 +10,8 @@ from drive.utils import (
     STATUS_TRASHED,
     STATUS_REMOVED,
 )
-from drive.utils.files import FileManager
-from drive.api.files import delete_entities
+from suite.drive.utils.files import FileManager
+from suite.drive.api.files import delete_entities
 from datetime import date, timedelta
 
 

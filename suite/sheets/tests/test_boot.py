@@ -7,12 +7,12 @@ from __future__ import annotations
 import unittest
 from unittest import mock
 
-from sheets import boot as _boot  # noqa: F401  — see test_collab.py
+from suite.sheets import boot as _boot  # noqa: F401  — see test_collab.py
 
 
 class ExtendBootinfo(unittest.TestCase):
 	def setUp(self):
-		patcher = mock.patch("sheets.boot.frappe")
+		patcher = mock.patch("suite.sheets.boot.frappe")
 		self.frappe = patcher.start()
 		self.addCleanup(patcher.stop)
 
@@ -23,7 +23,7 @@ class ExtendBootinfo(unittest.TestCase):
 		return B()
 
 	def test_defaults_to_legacy_path_when_unset(self):
-		from sheets import boot
+		from suite.sheets import boot
 
 		self.frappe.conf.get.return_value = None
 		b = self._bootinfo()
@@ -32,7 +32,7 @@ class ExtendBootinfo(unittest.TestCase):
 		self.assertIsNone(b.collab_ws_url)
 
 	def test_picks_up_site_config_values(self):
-		from sheets import boot
+		from suite.sheets import boot
 
 		# Distinct return values per key, in lookup order.
 		self.frappe.conf.get.side_effect = lambda key: {
@@ -46,7 +46,7 @@ class ExtendBootinfo(unittest.TestCase):
 
 	def test_collab_v2_is_truthy_coerced_to_bool(self):
 		# site_config sometimes holds 1/0 rather than literal True/False.
-		from sheets import boot
+		from suite.sheets import boot
 
 		self.frappe.conf.get.side_effect = lambda key: {"collab_v2": 1}.get(key)
 		b = self._bootinfo()

@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { getElementCenter } from '@/stores/element'
+import { getElementCenter } from '@/apps/slides/stores/element'
 
 export const useRotator = () => {
 	const isRotating = ref(false)

@@ -37,7 +37,7 @@
 import { computed, inject, ref } from 'vue'
 import { Button, FormControl, Switch, createResource } from 'frappe-ui'
 
-import { raiseToast } from '@/utils'
+import { raiseToast } from '@/apps/mail/utils'
 
 const user = inject('$user')
 

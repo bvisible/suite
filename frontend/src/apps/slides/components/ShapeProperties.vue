@@ -72,13 +72,13 @@
 import { computed, inject } from 'vue'
 import { FormControl } from 'frappe-ui'
 
-import CollapsibleSection from '@/components/controls/CollapsibleSection.vue'
-import ColorPicker from '@/components/controls/ColorPicker.vue'
-import NumberInput from '@/components/controls/NumberInput.vue'
-import ShadowProperties from '@/components/ShadowProperties.vue'
+import CollapsibleSection from '@/apps/slides/components/controls/CollapsibleSection.vue'
+import ColorPicker from '@/apps/slides/components/controls/ColorPicker.vue'
+import NumberInput from '@/apps/slides/components/controls/NumberInput.vue'
+import ShadowProperties from '@/apps/slides/components/ShadowProperties.vue'
 
-import { activeElement } from '@/stores/element'
-import { fieldLabelClasses } from '@/utils/constants'
+import { activeElement } from '@/apps/slides/stores/element'
+import { fieldLabelClasses } from '@/apps/slides/utils/constants'
 
 const setProperty = inject('setProperty')
 const setPropertyDeferred = inject('setPropertyDeferred')

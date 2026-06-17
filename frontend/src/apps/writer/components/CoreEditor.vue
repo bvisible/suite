@@ -1,7 +1,7 @@
 <template>
-  <div class="flex flex-col w-full bg-surface-white">
+  <div class="flex flex-col w-full bg-surface-base">
     <TextEditorFixedMenu v-if="editable && editor"
-      class="w-full max-w-[100vw] py-1.5 !px-4 md:px-0 overflow-x-auto flex shrink-0 border-b border-outline-gray-modals"
+      class="w-full max-w-[100vw] py-1.5 !px-4 md:px-0 overflow-x-auto flex shrink-0 border-b border-outline-elevation-2"
       :buttons="menuButtons" />
     <div class="flex flex-1 overflow-auto">
       <ToC v-if="editor" :editor :anchors />
@@ -19,7 +19,7 @@
             @keydown="onEditorKeydown">
             <template #editor="{ editor }">
               <EditorContent :editor="editor"
-                class="md:mx-auto bg-surface-white prose prose-sm prose-v2 prose-table:table-fixed prose-td:p-2 prose-th:p-2 prose-td:border prose-th:border prose-td:relative prose-th:relative prose-th:bg-surface-gray-2"
+                class="md:mx-auto bg-surface-base prose prose-sm prose-v2 prose-table:table-fixed prose-td:p-2 prose-th:p-2 prose-td:border prose-th:border prose-td:relative prose-th:relative prose-th:bg-surface-gray-2"
                 :class="[
                   settings?.wide
                     ? 'md:min-w-[100ch] md:max-w-[100ch]'
@@ -66,12 +66,13 @@ import {
 } from '@tiptap/extension-table-of-contents'
 import {
   TextEditor as FTextEditor,
+  Button,
   TextEditorFixedMenu,
   toast,
   useFileUpload,
   Dropdown,
 } from 'frappe-ui'
-import { rename, allUsers } from '@/ui/drive/js/resources'
+import { rename, allUsers } from '@/apps/writer/ui/drive/js/resources'
 import { onKeyDown } from '@vueuse/core'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -79,23 +80,23 @@ import FloatingComments from './FloatingComments.vue'
 import { buildMenuButtons } from './core-editor/menu-buttons'
 import { bubbleMenuOptions } from './core-editor/bubble-menu'
 
-import { CoreEditorExtension } from '@/extensions/core-editor'
-import { PageBreakExtension } from '@/extensions/page-break'
-import CleanStyles from '@/extensions/clean-styles'
-import MediaDownload from '@/extensions/media-download'
-import OldCommentExtension from '@/extensions/old-comment'
-import { TabsExtension } from '@/extensions/tabs'
-import TabTrailingNode from '@/extensions/tab-trailing-node'
-import { CommentExtension, rebuild } from '@/extensions/comments'
+import { CoreEditorExtension } from '@/apps/writer/extensions/core-editor'
+import { PageBreakExtension } from '@/apps/writer/extensions/page-break'
+import CleanStyles from '@/apps/writer/extensions/clean-styles'
+import MediaDownload from '@/apps/writer/extensions/media-download'
+import OldCommentExtension from '@/apps/writer/extensions/old-comment'
+import { TabsExtension } from '@/apps/writer/extensions/tabs'
+import TabTrailingNode from '@/apps/writer/extensions/tab-trailing-node'
+import { CommentExtension, rebuild } from '@/apps/writer/extensions/comments'
 
-import store from '@/store'
-import emitter from '@/emitter'
+import store from '@/apps/writer/store'
+import emitter from '@/apps/writer/emitter'
 import {
   COMMON_EXTENSIONS,
   isModKey,
   printDoc,
   updateURLSlug,
-} from '@/utils'
+} from '@/apps/writer/utils'
 
 import LucideMessageSquareQuote from '~icons/lucide/message-square-quote'
 import LucideMessageSquarePlus from '~icons/lucide/message-square-plus'
@@ -273,7 +274,7 @@ const uploadFunction = (file) => {
   const fileUpload = useFileUpload()
   return fileUpload.upload(file, {
     params: { file_id: props.file.doc.name },
-    upload_endpoint: `/api/method/writer.api.embed.add`,
+    upload_endpoint: `/api/method/suite.writer.api.embed.add`,
   })
 }
 
@@ -398,7 +399,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style>
-@import url('@/styles/editor.css');
+@import url('@/apps/writer/styles/editor.css');
 
 iframe {
   border: 1px solid var(--surface-gray-4) !important;
