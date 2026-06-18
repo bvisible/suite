@@ -1,7 +1,10 @@
 import type { SelfieSegmentation } from "@mediapipe/selfie_segmentation";
 import { toast } from "frappe-ui";
 import { onUnmounted, type Ref, ref } from "vue";
-import { availableBackgroundImages } from "../data/backgroundEffects";
+import {
+	availableBackgroundImages,
+	customBackgroundImages,
+} from "../data/backgroundEffects";
 import {
 	applyBlurEffect,
 	applyVirtualBackground,
@@ -316,9 +319,6 @@ export function useBackgroundEffects(): UseBackgroundEffectsReturn {
 					predefinedImages.find((img) => img.name === selectedKey) || null;
 
 				if (!bgImage) {
-					const { customBackgroundImages } = await import(
-						"../data/backgroundEffects"
-					);
 					const customImage = customBackgroundImages.value.find(
 						(img: BackgroundImage) => img.name === selectedKey,
 					);
