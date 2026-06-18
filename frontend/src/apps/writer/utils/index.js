@@ -10,8 +10,6 @@ import slugify from 'slugify'
 import { useFileUpload, toast as nToast, createResource } from 'frappe-ui'
 import { getTeams } from '@/apps/writer/ui/drive/js/resources'
 import emitter from '@/apps/writer/emitter'
-import { createLowlight, common } from 'lowlight'
-import { toHtml } from 'hast-util-to-html'
 import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
 import TurndownService from 'turndown'
@@ -226,19 +224,7 @@ export function enterFullScreen() {
   }
 }
 
-function highlightCodeBlocks(html) {
-  const lowlight = createLowlight(common)
-  const doc = new DOMParser().parseFromString(html, 'text/html')
-  doc.querySelectorAll('pre code').forEach((block) => {
-    const result = lowlight.highlightAuto(block.textContent)
-    block.innerHTML = toHtml(result)
-  })
-
-  return doc.body.innerHTML
-}
-
 export function printDoc(html, settings = {}) {
-  const highlightedHtml = highlightCodeBlocks(html)
   const fontMap = {
     caveat: 'var(--font-caveat)',
     'comic-sans': 'var(--font-comic-sans)',
@@ -330,7 +316,7 @@ export function printDoc(html, settings = {}) {
               <body>
                 ${shouldShowWatermark ? `<div class="watermark">${watermark.text}</div>` : ''}
                 <div class="ProseMirror prose-sm" style='padding-left: 40px; padding-right: 40px; padding-top: 20px; padding-bottom: 20px; margin: 0;'>
-                  ${highlightedHtml}
+                  ${html}
                 </div>
               </body>
             </html>

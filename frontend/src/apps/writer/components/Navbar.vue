@@ -103,7 +103,6 @@ import { exportBlog } from '@/apps/writer/utils/exports'
 import Dialogs from '@/apps/writer/components/Dialogs.vue'
 import { dynamicList } from '@/apps/writer/utils/'
 import { downloadZippedHTML, downloadMD } from '@/apps/writer/utils'
-import { downloadDocxFromHtml } from '../utils/docxexporter'
 
 import LucideUsers from '~icons/lucide/users'
 import LucideBuilding2 from '~icons/lucide/building-2'
@@ -290,17 +289,6 @@ const fileActions = computed(() =>
                   icon: LucideFile,
                   onClick: () => {
                     emitter.emit('print-file')
-                  },
-                },
-                {
-                  label: 'DOCX',
-                  icon: LucideFileText,
-                  onClick: () => {
-                    downloadDocxFromHtml(
-                      editor.getHTML(),
-                      `${file.doc.file_name}.docx`,
-                      props.document?.doc?.settings,
-                    )
                   },
                 },
                 {

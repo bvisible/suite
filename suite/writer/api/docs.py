@@ -155,7 +155,7 @@ def get_extension(entity_name: str):
 
 
 @frappe.whitelist()
-def create_blog(entity_name: str, html: str, attachments: str | None = None):
+def create_blog(entity_name: str, html: str):
     """
     If the blog app is installed, creates a blog
     """
