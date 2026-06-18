@@ -17,6 +17,9 @@ declare global {
 
   /** Bare `__('text')` available in templates via globalProperties. */
   const __: (message: string, replace?: Array<string | number>) => string
+
+  /** Injected by Vite from sites/common_site_config.json. */
+  const __SOCKETIO_PORT__: string | number
 }
 
 export {}

@@ -226,6 +226,7 @@ export interface SocketData {
 	userId: string;
 	userName: string;
 	meetingId: string;
+	site?: string;
 	isHost: boolean;
 	isGuest?: boolean;
 	roomId?: string;
@@ -395,6 +396,7 @@ export interface JWTPayload {
 	session_id?: string;
 	exp?: number;
 	iat?: number;
+	site?: string;
 }
 
 // Server types
@@ -417,6 +419,7 @@ declare module 'socket.io' {
 		userId: string;
 		userName: string;
 		meetingId: string;
+		site?: string;
 		isHost: boolean;
 		isCohost: boolean;
 		roomId?: string;

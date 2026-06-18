@@ -1,21 +1,16 @@
 import { io } from 'socket.io-client'
 import { getCachedListResource, getCachedResource } from 'frappe-ui'
 
-// `socketio_port` was imported from sites/common_site_config.json in the
-// standalone app — a path OUTSIDE the suite frontend root that Vite's fs.allow
-// rejects. Read it from window boot data instead, with a dev fallback. The
-// Window augmentation is declared locally (not in the shared env.d.ts).
 declare global {
 	interface Window {
 		site_name?: string
-		socketio_port?: number | string
 	}
 }
 
 export const initSocket = () => {
 	const host = window.location.hostname
 	const siteName = window.site_name || host
-	const socketio_port = window.socketio_port ?? 9000
+	const socketio_port = __SOCKETIO_PORT__
 	const port = window.location.port ? `:${socketio_port}` : ''
 	const protocol = port ? 'http' : 'https'
 	const url = `${protocol}://${host}${port}/${siteName}`

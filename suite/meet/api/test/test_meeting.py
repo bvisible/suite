@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+import jwt
 from frappe.tests import IntegrationTestCase
 
 from suite.meet.api.meeting import get_sfu_connection_details
@@ -40,6 +41,47 @@ class IntegrationTestMeetingApi(IntegrationTestCase):
 
 		with self.assertRaises(frappe.PermissionError):
 			get_sfu_connection_details(self.meeting.name)
+
+	def test_sfu_token_includes_site_claim(self):
+		"""The SFU JWT must carry the source site so the SFU can namespace rooms
+		across multiple frappe sites sharing one SFU instance."""
+		self.meeting.add_user_to_table("members", self.member_email, save=True, ignore_permissions=True)
+
+		frappe.set_user(self.member_email)
+
+		result = get_sfu_connection_details(self.meeting.name)
+
+		decoded = jwt.decode(
+			result["auth_token"],
+			frappe.conf.sfu_secret,
+			algorithms=["HS256"],
+		)
+
+		self.assertEqual(decoded["site"], frappe.local.site)
+		self.assertEqual(decoded["meeting_id"], self.meeting.name)
+
+	def test_sfu_token_site_claim_keeps_cross_site_meetings_isolated(self):
+		"""Two sites with meetings of the same name must mint tokens that
+		carry different `site` claims so the SFU can route them to distinct
+		rooms."""
+		from suite.meet.api.meeting import _generate_sfu_token
+
+		token_a = _generate_sfu_token(
+			user_id="user-a",
+			meeting_id="all-hands",
+			site="site-a.example.com",
+		)
+		token_b = _generate_sfu_token(
+			user_id="user-b",
+			meeting_id="all-hands",
+			site="site-b.example.com",
+		)
+
+		decoded_a = jwt.decode(token_a, frappe.conf.sfu_secret, algorithms=["HS256"])
+		decoded_b = jwt.decode(token_b, frappe.conf.sfu_secret, algorithms=["HS256"])
+
+		self.assertEqual(decoded_a["meeting_id"], decoded_b["meeting_id"])
+		self.assertNotEqual(decoded_a["site"], decoded_b["site"])
 
 	def _ensure_user(self, email: str, first_name: str):
 		if frappe.db.exists("User", email):

@@ -104,7 +104,7 @@ function _resolveSocketUrl(w, boot, sitename) {
 	if (!origin) return '/' + sitename
 
 	if (w.dev_server) {
-		const port = boot.socketio_port || '9000'
+		const port = __SOCKETIO_PORT__
 		const parts = origin.split(':')
 		const base = parts.length > 2 ? parts[0] + ':' + parts[1] : origin
 		return `${base}:${port}/${sitename}`

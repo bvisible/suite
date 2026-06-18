@@ -17,6 +17,7 @@ const frappeBackendUrl = `http://${defaultSite}:${webserverPort}`
 export default defineConfig(({ mode }) => ({
   define: {
     __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false',
+    __SOCKETIO_PORT__: JSON.stringify(commonSiteConfig.socketio_port || 9000),
   },
   // Served by Frappe at /assets/suite/frontend/ (build output lands in
   // ../suite/public/frontend -> exposed as /assets/suite/frontend).
@@ -41,9 +42,6 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
-      // drive's getIconUrl bundles file-type SVGs via this alias (ported icons
-      // live under suite/public/drive/images/icons after the asset relocation).
-      '@icons': path.resolve(__dirname, '../suite/public/drive/images/icons'),
       'tailwind.config.js': path.resolve(__dirname, 'tailwind.config.js'),
     },
     // Keep single ProseMirror / Yjs / reka-ui / vue singletons across the 7

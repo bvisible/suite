@@ -168,7 +168,7 @@ def get_presentations() -> list[dict]:
 
 
 @frappe.whitelist()
-def update_slide_attachments(parent, slide):
+def update_slide_attachments(parent: str, slide: dict | str):
 	slide = json.loads(slide) if isinstance(slide, str) else slide
 
 	elements_data = slide.get("elements") or "[]"
@@ -269,7 +269,7 @@ def set_template_metadata(presentation, template):
 
 
 @frappe.whitelist()
-def create_presentation(template=None, duplicate_from=None):
+def create_presentation(template: str | None = None, duplicate_from: str | None = None):
 	presentation = frappe.new_doc("Presentation")
 	if duplicate_from:
 		set_duplicate_metadata(presentation, duplicate_from)
@@ -284,12 +284,12 @@ def create_presentation(template=None, duplicate_from=None):
 
 
 @frappe.whitelist()
-def delete_presentation(name):
+def delete_presentation(name: str):
 	return frappe.delete_doc("Presentation", name)
 
 
 @frappe.whitelist()
-def update_title(name, title):
+def update_title(name: str, title: str):
 	frappe.set_value("Presentation", name, "title", title)
 	return slug(title)
 
@@ -314,7 +314,7 @@ def get_attachment(presentation, file_url):
 
 
 @frappe.whitelist()
-def get_updated_json(presentation, json):
+def get_updated_json(presentation: str, json: list[dict]):
 	for element in json:
 		if element.get("type") in ["image", "video"]:
 			file_url = element.get("src").replace(frappe.local.site_name, "")
@@ -340,17 +340,17 @@ def has_permission(doc, ptype="read", user=None):
 
 
 @frappe.whitelist(allow_guest=True)
-def is_public_presentation(name):
+def is_public_presentation(name: str):
 	return frappe.db.get_value("Presentation", name, "is_public") == 1
 
 
 @frappe.whitelist(allow_guest=True)
-def is_composite_presentation(name):
+def is_composite_presentation(name: str):
 	return frappe.db.get_value("Presentation", name, "is_composite") == 1
 
 
 @frappe.whitelist(allow_guest=True)
-def get_public_presentation(name):
+def get_public_presentation(name: str):
 	if not is_public_presentation(name):
 		frappe.throw("Presentation is not public", frappe.PermissionError)
 
@@ -389,7 +389,7 @@ def get_templates():
 
 
 @frappe.whitelist(allow_guest=True)
-def get_composite_presentation(name):
+def get_composite_presentation(name: str):
 	doc = frappe.get_doc("Presentation", name)
 
 	composite_slides = []
@@ -437,7 +437,7 @@ def create_new_webp_file_doc(presentation_name, file_url, image, extn):
 
 
 @frappe.whitelist()
-def get_webp_doc(presentation_name, file_doc):
+def get_webp_doc(presentation_name: str, file_doc: dict):
 	file_url = file_doc.get("file_url", "")
 	if file_url.endswith((".webp", ".svg")):
 		return file_doc
@@ -462,7 +462,7 @@ def update_element_urls(presentation, element):
 
 
 @frappe.whitelist()
-def optimize_images(name):
+def optimize_images(name: str):
 	doc = frappe.get_doc("Presentation", name)
 
 	for slide in doc.slides:

@@ -1,6 +1,4 @@
-import 'dotenv/config';
 import http from 'node:http';
-import cors from 'cors';
 import express, { type Application } from 'express';
 import { Server } from 'socket.io';
 import { MediasoupManager } from './mediasoup/MediasoupManager';
@@ -67,7 +65,16 @@ export class SFUServer {
 	}
 
 	private setupMiddleware(): void {
-		this.app.use(cors());
+		this.app.use((_req, res, next) => {
+			res.header('Access-Control-Allow-Origin', '*');
+			res.header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+			res.header('Access-Control-Allow-Headers', '*');
+			if (_req.method === 'OPTIONS') {
+				res.sendStatus(204);
+				return;
+			}
+			next();
+		});
 		this.app.use(express.json());
 	}
 

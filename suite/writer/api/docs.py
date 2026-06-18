@@ -27,7 +27,7 @@ QUICK_MAP = {
 
 @frappe.whitelist()
 @default_team
-def create_document(team, title=None, parent=None, template=None):
+def create_document(team: str, title: str | None = None, parent: str | None = None, template: str | None = None):
     home_directory = get_home_folder(team)
     parent = parent or home_directory.name
     parent_doc = frappe.get_doc("File", parent)
@@ -85,7 +85,7 @@ def create_document(team, title=None, parent=None, template=None):
 
 
 @frappe.whitelist(allow_guest=True)
-def get_document(file_id):
+def get_document(file_id: str):
     return_obj = get_entity_with_permissions(file_id)
     entity = frappe._dict(return_obj)
 
@@ -146,7 +146,7 @@ def save_comments(doc: str, data: str):
 
 
 @frappe.whitelist()
-def get_extension(entity_name):
+def get_extension(entity_name: str):
     mime_type = frappe.get_value("File", entity_name, "mime_type")
     try:
         return mimemapper.get_extension(mime_type)
@@ -155,7 +155,7 @@ def get_extension(entity_name):
 
 
 @frappe.whitelist()
-def create_blog(entity_name, html, attachments=None):
+def create_blog(entity_name: str, html: str, attachments: str | None = None):
     """
     If the blog app is installed, creates a blog
     """

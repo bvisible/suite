@@ -74,6 +74,7 @@ export class AuthManager {
 			socket.userId = decoded.user_id;
 			socket.userName = decoded.user_name;
 			socket.meetingId = decoded.meeting_id;
+			socket.site = decoded.site;
 			socket.isHost = decoded.is_host || false;
 			socket.isCohost = decoded.is_cohost || false;
 			socket.scope = decoded.scope || 'presence-preview';
@@ -82,9 +83,10 @@ export class AuthManager {
 			this.scheduleTokenExpiry(socket);
 
 			loggers.authManager.info(
-				'Authenticated user: %s for meeting: %s',
+				'Authenticated user: %s for meeting: %s (site: %s)',
 				socket.userId,
 				socket.meetingId,
+				socket.site ?? '<unspecified>',
 			);
 			return true;
 		} catch (error) {
@@ -114,6 +116,10 @@ export class AuthManager {
 
 		if (!decoded.user_id || decoded.user_id !== socket.userId) {
 			throw new Error('Token user mismatch');
+		}
+
+		if ((decoded.site ?? undefined) !== (socket.site ?? undefined)) {
+			throw new Error('Token site mismatch');
 		}
 
 		socket.currentToken = token;

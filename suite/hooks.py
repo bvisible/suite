@@ -302,14 +302,8 @@ ignore_links_on_delete = [
 # mail — log retention (only definer; kept as dict)
 default_log_clearing_doctypes = {"Mail Queue": 3, "Spam Check Log": 7}
 
-# meet / sheets / calendar — type annotation enforcement (singletons, all True)
 export_python_type_annotations = True
-# Temporarily disabled for the suite merge: drive/meet/calendar enforced this as
-# standalone apps and comply, but writer/slides/mail were written without
-# whitelist arg annotations and now live under the same `suite` app, so blanket
-# enforcement 417s their methods. Re-enable once the ~23 laggard methods in
-# suite/{writer,slides,client} are annotated (tracked follow-up).
-require_type_annotated_api_methods = False
+require_type_annotated_api_methods = True
 
 # ============================================================================
 # Access-control path lists (concatenated; identical entries de-duplicated)
@@ -327,7 +321,6 @@ ALLOWED_PATHS = [
 	"/api/method/frappe.integrations.oauth2.approve",
 	"/api/method/frappe.integrations.oauth2.get_token",
 	"/api/method/frappe.integrations.oauth2.openid_profile",
-	"/api/method/frappe.integrations.oauth2_logins.login_via_frappe",
 	"/api/method/frappe.website.doctype.web_page_view.web_page_view.make_view_log",
 	"/api/method/ping",
 	"/api/method/login",
@@ -341,10 +334,14 @@ ALLOWED_PATHS = [
 ]
 
 ALLOWED_WILDCARD_PATHS = [
-	# drive
+	"/api/method/frappe.integrations.oauth2_logins.",
+	"/api/method/suite.mail.api.",
+	"/api/method/suite.calendar.api.",
+	"/api/method/suite.meet.api.",
 	"/api/method/suite.drive.api.",
-	# writer
 	"/api/method/suite.writer.api.",
+	"/api/method/suite.slides.api.",
+	"/api/method/suite.sheets.api.",
 ]
 
 DENIED_PATHS = []

@@ -4,7 +4,7 @@ from suite.drive.api.permissions import user_has_permission
 
 
 @frappe.whitelist()
-def add(file_id):
+def add(file_id: str):
     file_doc = frappe.get_doc("File", file_id)
     file = frappe.request.files["file"]
     file.filename = f"{file_doc.name} embed -{file.filename}"
@@ -13,7 +13,7 @@ def add(file_id):
 
 
 @frappe.whitelist(allow_guest=True)
-def get(id):
+def get(id: str):
     embed = frappe.get_cached_doc("File", id)
     parent = frappe.db.get_value(
         "File", embed.folder, ["name", "content_docname"], as_dict=True

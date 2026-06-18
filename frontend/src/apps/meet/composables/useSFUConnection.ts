@@ -10,7 +10,6 @@ import { useRouter } from "vue-router";
 import { useSocket } from "../socket";
 import audioNotificationManager from "../utils/audioNotifications";
 import { getErrorMessage } from "../utils/error";
-import { SocketIOSignalChannel } from "../utils/media/SignalChannel";
 import { SFUClient } from "../utils/SFUClient";
 import { SFUMeetingManager } from "../utils/SFUMeetingManager";
 import { useChatStore } from "./useChatStore";
@@ -85,8 +84,7 @@ export function useSFUConnection(deps: {
 
 	const chatStore = useChatStore();
 
-	const signalChannel = new SocketIOSignalChannel();
-	const sfuClient = new SFUClient(signalChannel);
+	const sfuClient = new SFUClient();
 	const sfuManager = shallowRef<SFUMeetingManager | null>(null);
 
 	const realtimeListenersSetup = shallowRef(false);

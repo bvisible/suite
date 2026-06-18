@@ -22,14 +22,10 @@ Binary = CustomFunction("BINARY", ["expression"])
 
 @frappe.whitelist()
 def get_document_list(
-    start=0,
-    limit=20,
+    start: int = 0,
+    limit: int = 20,
 ):
     user = frappe.session.user
-
-    # Convert string parameters to integers
-    limit = int(limit)
-    start = int(start)
 
     recently_opened = (
         frappe.qb.from_(Recents).select(Recents.entity_name).where(Recents.user == user)
@@ -124,7 +120,7 @@ def get_document_list(
 
 
 @frappe.whitelist()
-def get_versions(id):
+def get_versions(id: str):
     if not get_user_access(id).get("write"):
         frappe.throw("You don't have write access.", frappe.PermissionError)
 
@@ -141,7 +137,7 @@ def get_versions(id):
 
 
 @frappe.whitelist()
-def search(query, filters=None):
+def search(query: str, filters: str | None = None):
     client = WriterSearch()
     search = client.search(query, filters=filters)
     metadata = get_drive_file_meta([k["name"] for k in search["results"]])

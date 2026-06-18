@@ -24,15 +24,26 @@
 
 		<!-- ── Tile strip / full grid ─────────────────────────────────────── -->
 		<TransitionGroup
-			:name="isFlipAnimating ? '' : 'tile'"
+			name="tile"
 			tag="div"
-			class="h-full"
+			class="h-full gap-2 overflow-hidden"
 			:class="[
 				mode === 'sidebar'
-					? `grid gap-2 mt-3 sm:mt-0 sm:ml-3 ${containerClass}`
-					: 'relative call-grid',
+					? 'grid auto-rows-fr content-start mt-3 sm:mt-0 sm:ml-3'
+					: 'flex flex-wrap justify-center content-start',
+				mode === 'sidebar' && !isMobile
+					? gridColumns === 2
+						? 'w-72'
+						: 'w-64'
+					: '',
+				mode === 'sidebar' && isMobile ? 'max-h-[120px]' : '',
 			]"
-			:style="containerStyle"
+			:style="{
+				gridTemplateColumns:
+					mode === 'sidebar'
+						? `repeat(${gridColumns}, minmax(0, 1fr))`
+						: undefined,
+			}"
 		>
 			<!-- Local camera tile -->
 			<ParticipantTile
@@ -91,6 +102,7 @@ import { type ComputedRef, computed, inject, ref, watch } from "vue";
 import { useLayout } from "../composables/useLayout";
 import { useMeetingContext } from "../composables/useMeetingContext";
 import { usePinnedTileAnimation } from "../composables/usePinnedTileAnimation";
+import { useResponsiveGrid } from "../composables/useResponsiveGrid";
 import { useScreenShareTiles } from "../composables/useScreenShareTiles";
 import { useTileAdaptiveStreaming } from "../composables/useTileAdaptiveStreaming";
 import type { Participant } from "../utils/media/ParticipantManager";
@@ -290,13 +302,13 @@ const extraTileCount = computed(() => {
 	return Math.max(0, allScreenShareTiles.value.length - 1);
 });
 
+const { isMobile } = useResponsiveGrid();
+
 // ── Layout composable ─────────────────────────────────────────────────────────
 
 const {
 	mode,
-	containerStyle,
-	containerClass,
-	tileStyle,
+	gridColumns,
 	displayParticipants,
 	allParticipants,
 	visibleTileCount,
@@ -316,7 +328,20 @@ const {
 	extraTileCount,
 );
 
-const { isFlipAnimating, pinnedTileStyles } = usePinnedTileAnimation({
+const tileStyle = computed(() => {
+	if (mode.value === "sidebar") return undefined;
+	const gap = "0.5rem";
+	const columns = gridColumns.value;
+	const rows = Math.ceil(visibleTileCount.value / columns) || 1;
+	return {
+		width: `calc((100% - ${columns - 1} * ${gap}) / ${columns})`,
+		height: `calc((100% - ${rows - 1} * ${gap}) / ${rows})`,
+		minWidth: "0",
+		minHeight: "0",
+	};
+});
+
+const { pinnedTileStyles } = usePinnedTileAnimation({
 	container,
 	pinnedPanelsMap,
 	pinnedTiles,

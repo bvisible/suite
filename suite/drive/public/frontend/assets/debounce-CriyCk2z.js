@@ -1,2 +1,0 @@
-function e(e,t,n){var r;return function(){var i=this,a=arguments,o=function(){r=void 0,n||e.apply(i,a)},s=n&&!r;clearTimeout(r),r=window.setTimeout(o,t),s&&e.apply(i,a)}}export{e as t};
-//# sourceMappingURL=debounce-CriyCk2z.js.map
