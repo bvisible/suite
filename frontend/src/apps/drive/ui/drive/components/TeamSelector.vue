@@ -9,7 +9,7 @@
 </template>
 <script setup lang="ts">
 import { getTeams } from '../js/resources'
-import icons from '../js/icons'
+import LucideBuilding from '~icons/lucide/building'
 import { dynamicList } from '../js/utils'
 import { computed, watch } from 'vue'
 import { Combobox } from 'frappe-ui'
@@ -44,7 +44,7 @@ const options = computed<DropdownItem[]>(() => {
   const res = Object.values(getTeams.data).map((k) => ({
     label: k.title,
     value: k.name,
-    icon: icons[k.icon || 'building'],
+    icon: LucideBuilding,
   }))
   return dynamicList([
     { cond: props.none === true, label: 'Everywhere', value: 'all' },

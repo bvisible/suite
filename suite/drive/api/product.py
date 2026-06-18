@@ -14,7 +14,7 @@ def access_app():
 
 @frappe.whitelist()
 def create_team(
-    user: str, team_name: str = None, icon: str = None, s3_bucket: str = None, prefix: str = None, personal: int = 0
+    user: str, team_name: str = None, s3_bucket: str = None, prefix: str = None, personal: int = 0
 ):
     """
     Used for creating teams (including the personal "team")
@@ -28,7 +28,6 @@ def create_team(
         {
             "doctype": "Drive Team",
             "title": team_name,
-            "icon": icon,
             "s3_bucket": s3_bucket,
             "prefix": prefix,
             "personal": personal,
@@ -44,14 +43,12 @@ def create_team(
 
 
 @frappe.whitelist()
-def edit_team(team: str, icon: str = None, team_name: str = None):
+def edit_team(team: str, team_name: str = None):
     team = frappe.get_doc("Drive Team", team)
     if not is_admin(team.name):
         frappe.throw("You are not an admin of this team")
     if team_name:
         team.title = team_name
-    if icon is not None:
-        team.icon = icon
     team.save()
     return team.name
 

@@ -290,19 +290,6 @@
         <div>
           <FormLabel label="Team Name:" required />
           <div class="flex gap-1.5 mt-1.5">
-            <EmojiPicker
-              v-model="selectedIcon"
-              :emojis="
-                Object.keys(icons).map((k) => ({
-                  value: k,
-                  label: k
-                    .split('-')
-                    .map((i) => i.charAt(0).toUpperCase() + i.slice(1))
-                    .join(' '),
-                  icon: icons[k],
-                }))
-              "
-            />
             <FormControl
               v-model="teamName"
               v-focus
@@ -342,7 +329,6 @@
             createTeam.submit(
               {
                 team_name: teamName,
-                icon: selectedIcon,
                 s3_bucket: s3Bucket,
                 prefix,
               },
@@ -351,7 +337,6 @@
                   team = id
                   showAddTeam = false
                   teamName = ''
-                  selectedIcon = 'building'
                   s3Bucket = ''
                   prefix = ''
                   getTeams.fetch()
@@ -375,18 +360,6 @@
         <div>
           <FormLabel label="Team Name:" required />
           <div class="flex gap-1 mt-1.5">
-            <EmojiPicker
-              :emojis="
-                Object.keys(icons).map((k) => ({
-                  value: k,
-                  label: k
-                    .split('-')
-                    .map((i) => i.charAt(0).toUpperCase() + i.slice(1))
-                    .join(' '),
-                  icon: icons[k],
-                }))
-              "
-            />
             <FormControl v-model="teamName" v-focus class="grow" required type="text" />
           </div>
         </div>
@@ -406,13 +379,11 @@
             {
               team,
               team_name: teamName,
-              icon: selectedIcon,
             },
             {
               onSuccess: () => {
                 showEditTeam = false
                 teamName = ''
-                selectedIcon = ''
                 getTeams.fetch()
               },
             }
@@ -429,7 +400,6 @@
 import { default as vFocus } from '@/apps/drive/utils/focus'
 import { h, computed } from 'vue'
 import { getTeams } from '@/apps/drive/resources/files'
-import icons from '@/apps/drive/utils/icons'
 import { getInvites, rejectInvite, acceptInvite, createTeam } from '@/apps/drive/resources/permissions'
 import {
   Avatar,
@@ -456,7 +426,6 @@ import LucideLogOut from '~icons/lucide/log-out'
 import LucidePencil from '~icons/lucide/pencil'
 import router from '@/apps/drive/router'
 import Alert from '@/apps/drive/components/Alert.vue'
-import EmojiPicker from '@/apps/drive/components/EmojiPicker.vue'
 import UserTooltip from '@/apps/drive/components/UserTooltip.vue'
 import { dynamicList } from '@/apps/drive/utils/files'
 import TeamSelector from '@/apps/drive/components/TeamSelector.vue'
@@ -499,13 +468,11 @@ const showRemove = ref(false)
 const showAddTeam = ref(false)
 const showEditTeam = ref(false)
 const teamName = ref('')
-const selectedIcon = ref('building')
 const s3Bucket = ref('')
 const prefix = ref('')
 watch(showEditTeam, (val) => {
   if (val) {
     teamName.value = teamData.value.title
-    selectedIcon.value = teamData.value.icon
     s3Bucket.value = teamData.value.s3_bucket
     prefix.value = teamData.value.prefix
   }

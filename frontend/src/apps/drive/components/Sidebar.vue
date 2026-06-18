@@ -55,7 +55,7 @@ import { getTeams } from '@/apps/drive/resources/files'
 import { dynamicList } from '@/apps/drive/utils/files'
 
 import store from '@/apps/drive/store'
-import icons from '@/apps/drive/utils/icons'
+import LucideBuilding from '~icons/lucide/building'
 import LucideClock from '~icons/lucide/clock'
 import LucideUsers from '~icons/lucide/users'
 import LucideFiles from '~icons/lucide/files'
@@ -267,7 +267,7 @@ const sidebarItems = computed(() => {
         Object.values(getTeams.data).map((team) => ({
           label: team.title,
           to: `/t/${team.name}/`,
-          icon: h(icons[team.icon || 'building']),
+          icon: h(LucideBuilding),
           isActive: team.name === first.name,
           accessKey: 't',
         })),

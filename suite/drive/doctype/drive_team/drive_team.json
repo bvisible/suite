@@ -10,7 +10,6 @@
   "storage",
   "quota",
   "team_domain",
-  "icon",
   "personal",
   "s3_bucket",
   "prefix",
@@ -46,11 +45,6 @@
    "fieldname": "team_domain",
    "fieldtype": "Data",
    "label": "Team Domain"
-  },
-  {
-   "fieldname": "icon",
-   "fieldtype": "Data",
-   "label": "Icon"
   },
   {
    "default": "0",
