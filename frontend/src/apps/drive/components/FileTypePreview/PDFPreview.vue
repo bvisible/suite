@@ -7,7 +7,16 @@
     </div>
     <div class="grow flex items-center justify-center border rounded-sm max-h-[70vh] overflow-auto">
       <LoadingIndicator v-if="loading" class="w-10 text-ink-gray-8 mx-auto h-full" />
-      <canvas ref="canvasRef" :class="{ hidden: loading }" class="rounded-sm" />
+      <VuePdfEmbed
+        :class="{ hidden: loading }"
+        class="rounded-sm"
+        :source="src"
+        :page="currentPage"
+        :scale="scale"
+        @loaded="onLoaded"
+        @loading-failed="loading = false"
+        @rendering-failed="loading = false"
+      />
     </div>
     <div v-if="totalPages" class="flex gap-2 justify-center items-center">
       <Button label="Prev" :disabled="currentPage <= 1" @click="currentPage--" />
@@ -24,15 +33,11 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, defineAsyncComponent } from 'vue'
 import { LoadingIndicator, Button } from 'frappe-ui'
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core'
-import * as PDFJS from 'pdfjs-dist'
 
-PDFJS.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url
-).toString()
+const VuePdfEmbed = defineAsyncComponent(() => import('vue-pdf-embed'))
 
 const breakpoints = useBreakpoints(breakpointsTailwind)
 const isMobile = breakpoints.smaller('sm')
@@ -42,36 +47,13 @@ const src = computed(
   () => `/api/method/suite.drive.api.files.get_file_content?entity_name=${props.previewEntity.name}`
 )
 
-const canvasRef = ref(null)
 const currentPage = ref(1)
 const totalPages = ref(0)
 const scale = ref(1)
 const loading = ref(true)
-let pdfDoc = null
 
-async function loadPDF() {
-  loading.value = true
-  const task = PDFJS.getDocument(src.value)
-  pdfDoc = await task.promise
-  totalPages.value = pdfDoc.numPages
-  await renderPage(currentPage.value)
+function onLoaded(doc) {
+  totalPages.value = doc.numPages
   loading.value = false
 }
-
-async function renderPage(num) {
-  if (!pdfDoc || !canvasRef.value) return
-  const page = await pdfDoc.getPage(num)
-  const viewport = page.getViewport({ scale: scale.value })
-  const canvas = canvasRef.value
-  canvas.height = viewport.height
-  canvas.width = viewport.width
-  await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise
-}
-
-watch(currentPage, (num) => renderPage(num))
-watch(scale, () => renderPage(currentPage.value))
-
-onMounted(() => {
-  if (isMobile.value) loadPDF()
-})
 </script>

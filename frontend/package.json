@@ -55,7 +55,6 @@
     "mediasoup-client": "^3.18.8",
     "mitt": "^3.0.1",
     "modern-screenshot": "^4.7.0",
-    "pdfjs-dist": "4.2.67",
     "pinia": "^3.0.4",
     "reka-ui": "^2.6.0",
     "sass": "^1.62.0",
