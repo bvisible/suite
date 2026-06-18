@@ -1,4 +1,3 @@
-import * as cheerio from 'cheerio'
 import { File, Paperclip } from 'lucide-vue-next'
 import { toast } from 'frappe-ui'
 
@@ -258,21 +257,20 @@ export const randomString = (length: number) => {
 
 export const processInlineImages = (mail: ComposeMailData) => {
 	const htmlBody = mail.html_body! + mail.quoted_content
-	const $ = cheerio.load(htmlBody)
+	const doc = new DOMParser().parseFromString(htmlBody, 'text/html')
 
 	const regularAttachments = mail.attachments?.filter((a) => a.disposition !== 'inline') || []
 	const inlineAttachments = mail.attachments?.filter((a) => a.disposition === 'inline') || []
 	const processedAttachments = [...regularAttachments]
 
-	$('img').each((_, img) => {
-		const $img = $(img)
-		const src = $img.attr('src')
+	doc.querySelectorAll('img').forEach((img) => {
+		const src = img.getAttribute('src')
 		if (!src) return
 
-		const cid = $img.attr('data-cid')
+		const cid = img.getAttribute('data-cid')
 		if (!cid) return
 
-		$img.attr('src', `cid:${cid}`)
+		img.setAttribute('src', `cid:${cid}`)
 
 		if (src.startsWith('/files') || src.startsWith('/private/files')) {
 			processedAttachments.push({ file_url: src, disposition: 'inline', cid })
@@ -287,7 +285,7 @@ export const processInlineImages = (mail: ComposeMailData) => {
 		if (attachment) processedAttachments.push({ ...attachment, cid })
 	})
 
-	return { html_body: $.html(), attachments: processedAttachments }
+	return { html_body: doc.documentElement.outerHTML, attachments: processedAttachments }
 }
 
 export const extractNameFromEmail = (email: string) =>
