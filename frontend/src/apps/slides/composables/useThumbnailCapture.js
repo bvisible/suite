@@ -1,6 +1,21 @@
 import { computed, ref, watch, nextTick } from 'vue'
-import { debounce } from 'lodash'
 import { call } from 'frappe-ui'
+
+function debounce(fn, wait) {
+	let timer = null
+	const debounced = (...args) => {
+		if (timer) clearTimeout(timer)
+		timer = setTimeout(() => {
+			timer = null
+			fn(...args)
+		}, wait)
+	}
+	debounced.cancel = () => {
+		if (timer) clearTimeout(timer)
+		timer = null
+	}
+	return debounced
+}
 
 import { presentationDoc, unsyncedPresentationRecord, inReadonlyMode } from '@/apps/slides/stores/presentation'
 import { slides } from '@/apps/slides/stores/slide'

@@ -1,6 +1,5 @@
 import { ref, computed } from 'vue'
 import { createResource, call, createDocumentResource } from 'frappe-ui'
-import { isEqual } from 'lodash'
 
 import { router } from '@/apps/slides/router'
 import { slides } from './slide'
@@ -101,6 +100,17 @@ const transformElements = async (elements) => {
 	}
 
 	return newEls
+}
+
+const deepEqual = (a, b) => {
+	if (a === b) return true
+	if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false
+	const keysA = Object.keys(a)
+	const keysB = Object.keys(b)
+	if (keysA.length !== keysB.length) return false
+	return keysA.every(
+		(key) => Object.prototype.hasOwnProperty.call(b, key) && deepEqual(a[key], b[key]),
+	)
 }
 
 const parseElements = (value) => {
@@ -237,7 +247,7 @@ const hasSlideChanged = (originalState, slideState) => {
 	const currElements = parseElements(slideState.elements)
 	const origElements = parseElements(originalState.elements)
 
-	return !isEqual(currElements, origElements)
+	return !deepEqual(currElements, origElements)
 }
 
 const hasStateChanged = (original, current) => {

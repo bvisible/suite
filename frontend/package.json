@@ -51,7 +51,6 @@
     "js-base64": "^3.7.8",
     "jszip": "^3.10.1",
     "katex": "^0.16.25",
-    "lodash": "^4.17.21",
     "lucide-vue-next": "^1.0.0",
     "mediasoup-client": "^3.18.8",
     "mitt": "^3.0.1",
