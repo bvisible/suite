@@ -245,6 +245,12 @@ doc_events = {
 	},
 }
 
+user_invitation = {
+	"allowed_roles": {
+		"System Manager": ["Drive User", "Meet User"],
+	},
+}
+
 # ============================================================================
 # Scheduled Tasks (per-frequency lists combined; cron keys de-duplicated)
 # ============================================================================

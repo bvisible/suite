@@ -7,6 +7,17 @@ def is_setup_complete() -> bool:
 
 
 @frappe.whitelist()
+def mark_setup_complete() -> None:
+	frappe.only_for("System Manager")
+
+	from frappe.desk.page.setup_wizard.setup_wizard import enable_setup_wizard_complete
+
+	enable_setup_wizard_complete("frappe")
+	enable_setup_wizard_complete("suite")
+	frappe.db.set_single_value("System Settings", "setup_complete", 1)
+
+
+@frappe.whitelist()
 def get_logged_in_user() -> dict | None:
 	user = frappe.session.user
 	if user == "Guest":
