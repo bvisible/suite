@@ -17,6 +17,29 @@ def mark_setup_complete() -> None:
 	frappe.db.set_single_value("System Settings", "setup_complete", 1)
 
 
+@frappe.whitelist(methods=["POST"])
+def invite_users(emails: str) -> dict[str, list[str]]:
+	from frappe.core.api.user_invitation import invite_by_email
+
+	return invite_by_email(
+		emails=emails,
+		roles=get_invite_roles(),
+		redirect_to_path="/suite",
+		app_name="suite",
+	)
+
+
+def get_invite_roles() -> list[str]:
+	hook = frappe.get_hooks("user_invitation", app_name="suite")
+	allowed_roles = (hook if isinstance(hook, dict) else {}).get("allowed_roles") or {}
+	user_roles = set(frappe.get_roles())
+	roles: set[str] = set()
+	for role, granted in allowed_roles.items():
+		if role in user_roles:
+			roles.update(granted)
+	return list(roles)
+
+
 @frappe.whitelist()
 def get_logged_in_user() -> dict | None:
 	user = frappe.session.user
