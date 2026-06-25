@@ -4,6 +4,7 @@ import {
   type RouteLocationNormalizedLoaded,
   type RouteRecordRaw,
 } from 'vue-router'
+import { createResource } from 'frappe-ui'
 
 import { SUITE_APPS, SUITE_LOGO } from '@/apps/registry'
 import { useSessionStore } from '@/boot/session'
@@ -61,6 +62,12 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/shell/LauncherView.vue'),
     meta: { isShell: true, title: 'Frappe Suite', favicon: SUITE_FAVICON },
   },
+  {
+    path: '/suite/setup',
+    name: 'suite-setup',
+    component: () => import('@/shell/SetupView.vue'),
+    meta: { isShell: true, title: 'Frappe Suite', favicon: SUITE_FAVICON },
+  },
   ...placeholderGroups,
   {
     path: '/:pathMatch(.*)*',
@@ -78,6 +85,19 @@ const router = createRouter({
 
 // Apps whose real route groups have already been registered.
 const registeredApps = new Set<string>()
+
+// Cached first-time-setup state. Fetched once per page load (dev serves no Jinja
+// boot data, so this can't come from a window global); the setup toggle does a
+// full reload, which refreshes it.
+const setupCompleteResource = createResource({ url: 'suite.api.account.is_setup_complete' })
+let setupCompletePromise: Promise<boolean> | undefined
+
+function ensureSetupComplete(): Promise<boolean> {
+  if (!setupCompletePromise) {
+    setupCompletePromise = setupCompleteResource.fetch().then(() => Boolean(setupCompleteResource.data))
+  }
+  return setupCompletePromise
+}
 
 /**
  * Load `src/apps/<appId>/routes.ts`, register its routes under the app prefix
@@ -123,6 +143,17 @@ router.beforeEach(async (to) => {
   if (!session.isLoggedIn && !to.meta.isPublic) {
     window.location.href = `/login?redirect-to=${encodeURIComponent(to.fullPath)}`
     return false
+  }
+
+  // 3. First-time setup gate. Mirrors desk's setup-wizard redirect: until the
+  // site's setup is complete, every route funnels to /suite/setup; once it is,
+  // /suite/setup bounces back to the launcher.
+  const setupComplete = await ensureSetupComplete()
+  if (!setupComplete && to.path !== '/suite/setup') {
+    return '/suite/setup'
+  }
+  if (setupComplete && to.path === '/suite/setup') {
+    return '/suite'
   }
 
   return true

@@ -2,6 +2,11 @@ import frappe
 
 
 @frappe.whitelist()
+def is_setup_complete() -> bool:
+	return bool(frappe.is_setup_complete())
+
+
+@frappe.whitelist()
 def get_logged_in_user() -> dict | None:
 	user = frappe.session.user
 	if user == "Guest":
