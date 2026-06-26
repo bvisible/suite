@@ -3,7 +3,7 @@ import frappe
 
 @frappe.whitelist()
 def is_setup_complete() -> bool:
-	return bool(frappe.is_setup_complete())
+	return bool(frappe.db.get_single_value("Suite Settings", "setup_complete"))
 
 
 @frappe.whitelist()
@@ -13,7 +13,7 @@ def mark_setup_complete() -> None:
 	from frappe.desk.page.setup_wizard.setup_wizard import enable_setup_wizard_complete
 
 	enable_setup_wizard_complete("frappe")
-	enable_setup_wizard_complete("suite")
+	frappe.db.set_single_value("Suite Settings", "setup_complete", 1)
 	frappe.db.set_single_value("System Settings", "setup_complete", 1)
 
 
@@ -63,10 +63,7 @@ def get_invite_roles() -> list[str]:
 def reset_setup() -> None:
 	frappe.only_for("System Manager")
 
-	frappe.db.set_value(
-		"Installed Application", {"app_name": ("in", ["frappe", "suite"])}, "is_setup_complete", 0
-	)
-	frappe.db.set_single_value("System Settings", "setup_complete", 0)
+	frappe.db.set_single_value("Suite Settings", "setup_complete", 0)
 
 
 @frappe.whitelist()

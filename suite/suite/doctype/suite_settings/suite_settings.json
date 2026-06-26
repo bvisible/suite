@@ -5,7 +5,8 @@
  "engine": "InnoDB",
  "field_order": [
   "workspace_name",
-  "workspace_logo"
+  "workspace_logo",
+  "setup_complete"
  ],
  "fields": [
   {
@@ -17,12 +18,19 @@
    "fieldname": "workspace_logo",
    "fieldtype": "Attach Image",
    "label": "Workspace Logo"
+  },
+  {
+   "default": "0",
+   "fieldname": "setup_complete",
+   "fieldtype": "Check",
+   "label": "Setup Complete",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-06-26 16:09:48.716129",
+ "modified": "2026-06-26 18:26:27.000000",
  "modified_by": "Administrator",
  "module": "Suite",
  "name": "Suite Settings",

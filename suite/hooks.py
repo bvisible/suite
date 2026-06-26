@@ -15,6 +15,12 @@ app_license = "agpl-3.0"
 # ============================================================================
 add_to_apps_screen = [
 	{
+		"name": "suite",
+		"logo": "/assets/suite/frontend/logo.svg",
+		"title": "Suite",
+		"route": "/suite",
+	},
+	{
 		"name": "drive",
 		"logo": "/assets/suite/drive/images/icons/logo.svg",
 		"title": "Drive",
