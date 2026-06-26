@@ -32,7 +32,7 @@
                 :src="app.logo"
                 :alt="`${app.name} logo`"
                 class="setup-icon size-[38px] object-contain"
-                :style="{ animationDelay: `${0.14 + i * 0.05}s` }"
+                :style="{ animationDelay: `${i * 0.06}s` }"
                 draggable="false"
               />
             </Tooltip>
@@ -54,7 +54,7 @@
 
         <Button
           v-if="step === 'welcome'"
-          class="setup-btn w-full"
+          class="w-full"
           variant="solid"
           label="Get started"
           icon-right="lucide-chevron-right"
@@ -64,7 +64,6 @@
         <div v-else-if="step === 'invite'" class="flex items-center justify-between">
           <Button variant="ghost" label="Skip for now" :disabled="invite.loading" @click="skip" />
           <Button
-            class="setup-btn"
             variant="solid"
             label="Send Invites"
             icon-right="lucide-chevron-right"
@@ -75,7 +74,7 @@
 
         <template v-else>
           <Button
-            class="setup-btn w-full"
+            class="w-full"
             variant="solid"
             label="Open Suite"
             icon-right="lucide-chevron-right"
@@ -147,13 +146,13 @@ function skip() {
 
 <style scoped>
 .setup-screen {
-  animation: slideIn 0.36s ease both;
+  animation: fadeIn 0.3s ease-out both;
 }
 
-@keyframes slideIn {
+@keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateX(18px);
+    transform: translateX(4px);
   }
   to {
     opacity: 1;
@@ -163,13 +162,13 @@ function skip() {
 
 .setup-icon {
   opacity: 0;
-  animation: iconPop 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: iconIn 0.6s ease both;
 }
 
-@keyframes iconPop {
+@keyframes iconIn {
   from {
     opacity: 0;
-    transform: scale(0.6);
+    transform: scale(0.97);
   }
   to {
     opacity: 1;
@@ -179,15 +178,11 @@ function skip() {
 
 .setup-mark__squircle {
   fill: #6b1fe6;
-  transition: fill 420ms ease;
+  transition: fill 300ms ease;
 }
 
 .setup-mark__glyph {
-  transform-box: fill-box;
-  transform-origin: center;
-  transition:
-    opacity 260ms ease,
-    transform 360ms ease;
+  transition: opacity 200ms ease;
 }
 
 .setup-mark__check {
@@ -197,12 +192,7 @@ function skip() {
   stroke-linecap: round;
   stroke-linejoin: round;
   opacity: 0;
-  transform: scale(0.5);
-  transform-box: fill-box;
-  transform-origin: center;
-  transition:
-    opacity 320ms ease,
-    transform 460ms cubic-bezier(0.34, 1.7, 0.5, 1);
+  transition: opacity 200ms ease;
 }
 
 .setup-mark.is-done .setup-mark__squircle {
@@ -211,22 +201,10 @@ function skip() {
 
 .setup-mark.is-done .setup-mark__glyph {
   opacity: 0;
-  transform: scale(0.6);
 }
 
 .setup-mark.is-done .setup-mark__check {
   opacity: 1;
-  transform: scale(1);
-}
-
-.setup-btn {
-  transition:
-    background 120ms ease,
-    transform 80ms ease;
-}
-
-.setup-btn:active {
-  transform: scale(0.985);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -240,10 +218,6 @@ function skip() {
   .setup-mark__squircle,
   .setup-mark__glyph,
   .setup-mark__check {
-    transition: none;
-  }
-
-  .setup-btn {
     transition: none;
   }
 }
