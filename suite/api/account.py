@@ -58,6 +58,17 @@ def get_invite_roles() -> list[str]:
 	return list(roles)
 
 
+# DEBUG ONLY — do not commit. Resets the setup flag to re-run /suite/setup.
+@frappe.whitelist()
+def reset_setup() -> None:
+	frappe.only_for("System Manager")
+
+	frappe.db.set_value(
+		"Installed Application", {"app_name": ("in", ["frappe", "suite"])}, "is_setup_complete", 0
+	)
+	frappe.db.set_single_value("System Settings", "setup_complete", 0)
+
+
 @frappe.whitelist()
 def get_logged_in_user() -> dict | None:
 	user = frappe.session.user

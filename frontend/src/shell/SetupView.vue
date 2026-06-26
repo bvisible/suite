@@ -1,24 +1,26 @@
 <template>
   <div class="flex h-full justify-center overflow-auto bg-surface-base pt-24 pb-14">
     <div class="flex w-full max-w-sm flex-col gap-7 px-4">
+      <img
+        v-if="step !== 'done'"
+        :src="suiteLogo"
+        alt="Frappe Suite logo"
+        class="size-10 shrink-0 object-contain"
+        draggable="false"
+      />
       <svg
-        class="setup-mark size-10 shrink-0"
-        :class="{ invisible: step === 'welcome', 'is-done mx-auto mt-[102px]': step === 'done' }"
+        v-else
+        class="mx-auto mt-[102px] size-10 shrink-0"
         viewBox="0 0 36 36"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
       >
         <path
-          class="setup-mark__squircle"
+          class="setup-check__bg"
           d="M0 14.4C0 9.35953 0 6.83929 0.980941 4.91409C1.8438 3.22063 3.22063 1.8438 4.91409 0.980941C6.83929 0 9.35953 0 14.4 0H21.6C26.6405 0 29.1607 0 31.0859 0.980941C32.7794 1.8438 34.1562 3.22063 35.0191 4.91409C36 6.83929 36 9.35953 36 14.4V21.6C36 26.6405 36 29.1607 35.0191 31.0859C34.1562 32.7794 32.7794 34.1562 31.0859 35.0191C29.1607 36 26.6405 36 21.6 36H14.4C9.35953 36 6.83929 36 4.91409 35.0191C3.22063 34.1562 1.8438 32.7794 0.980941 31.0859C0 29.1607 0 26.6405 0 21.6V14.4Z"
         />
-        <path
-          class="setup-mark__glyph"
-          d="M22.4999 10.9286H26.3571C27.4222 10.9286 28.2857 11.792 28.2857 12.8571V24.4286C28.2857 25.4937 27.4222 26.3571 26.3571 26.3571H9.64281C8.57769 26.3571 7.71423 25.4937 7.71423 24.4286V16.8424H10.2857V23.7857H25.7142V13.5H7.71423V10.9286H13.4999V9H22.4999V10.9286ZM21.2142 19.415H14.7857V16.8436H21.2142V19.415Z"
-          fill="white"
-        />
-        <polyline class="setup-mark__check" points="10,18.5 15.5,23.5 26,12.5" />
+        <polyline class="setup-check__mark" points="10,18.5 15.5,23.5 26,12.5" />
       </svg>
 
       <div>
@@ -139,9 +141,10 @@
 import { computed, ref } from 'vue'
 import { Avatar, Button, ErrorMessage, FileUploader, FormControl, Tooltip, createResource } from 'frappe-ui'
 
-import { SUITE_APPS } from '@/apps/registry'
+import { SUITE_APPS, SUITE_LOGO } from '@/apps/registry'
 
 const apps = SUITE_APPS
+const suiteLogo = SUITE_LOGO
 
 type Step = 'welcome' | 'workspace' | 'invite' | 'done'
 
@@ -256,35 +259,16 @@ function skip() {
   }
 }
 
-.setup-mark__squircle {
-  fill: #6b1fe6;
-  transition: fill 300ms ease;
-}
-
-.setup-mark__glyph {
-  transition: opacity 200ms ease;
-}
-
-.setup-mark__check {
-  fill: none;
-  stroke: var(--ink-gray-8);
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  opacity: 0;
-  transition: opacity 200ms ease;
-}
-
-.setup-mark.is-done .setup-mark__squircle {
+.setup-check__bg {
   fill: var(--surface-gray-2);
 }
 
-.setup-mark.is-done .setup-mark__glyph {
-  opacity: 0;
-}
-
-.setup-mark.is-done .setup-mark__check {
-  opacity: 1;
+.setup-check__mark {
+  fill: none;
+  stroke: var(--ink-gray-8);
+  stroke-width: 1.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -292,12 +276,6 @@ function skip() {
     animation: none;
     opacity: 1;
     transform: none;
-  }
-
-  .setup-mark__squircle,
-  .setup-mark__glyph,
-  .setup-mark__check {
-    transition: none;
   }
 }
 </style>
