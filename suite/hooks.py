@@ -286,15 +286,15 @@ scheduler_events = {
 }
 
 # ============================================================================
-# Lifecycle hooks — dispatched through suite.suite_core.boot so that EACH
+# Lifecycle hooks — dispatched through suite.suite.boot so that EACH
 # former app's handler is preserved and invoked in order.
 # ============================================================================
-from suite.suite_core import boot as _suite_boot
+from suite.suite import boot as _suite_boot
 
-after_install = "suite.suite_core.boot.after_install"
-after_migrate = "suite.suite_core.boot.after_migrate"
-after_app_install = "suite.suite_core.boot.after_app_install"
-extend_bootinfo = "suite.suite_core.boot.extend_bootinfo"
+after_install = "suite.suite.boot.after_install"
+after_migrate = "suite.suite.boot.after_migrate"
+after_app_install = "suite.suite.boot.after_app_install"
+extend_bootinfo = "suite.suite.boot.extend_bootinfo"
 
 # drive — custom upload + after_request middleware (single definers)
 after_upload_file = "suite.drive.overrides.file.after_upload_file"

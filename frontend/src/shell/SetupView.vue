@@ -1,9 +1,9 @@
 <template>
   <div class="flex h-full justify-center overflow-auto bg-surface-base pt-24 pb-14">
-    <div class="flex w-full max-w-sm flex-col px-4">
+    <div class="flex w-full max-w-sm flex-col gap-7 px-4">
       <svg
-        class="setup-mark mb-7 size-10 shrink-0"
-        :class="{ invisible: step === 'welcome', 'is-done': step === 'done' }"
+        class="setup-mark size-10 shrink-0"
+        :class="{ invisible: step === 'welcome', 'is-done mx-auto mt-[102px]': step === 'done' }"
         viewBox="0 0 36 36"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -21,35 +21,72 @@
         <polyline class="setup-mark__check" points="10,18.5 15.5,23.5 26,12.5" />
       </svg>
 
-      <div :key="step" class="setup-screen">
-        <h1 class="text-4xl-semibold text-ink-gray-9">{{ current.title }}</h1>
-        <p class="mt-2 text-base text-ink-gray-6">{{ current.subtitle }}</p>
-
-        <div class="mt-6 h-28">
-          <div v-if="step === 'welcome'" class="flex h-full items-start justify-between">
-            <Tooltip v-for="(app, i) in apps" :key="app.id" :text="app.name">
-              <img
-                :src="app.logo"
-                :alt="`${app.name} logo`"
-                class="setup-icon size-[38px] object-contain"
-                :style="{ animationDelay: `${i * 0.06}s` }"
-                draggable="false"
-              />
-            </Tooltip>
+      <div>
+        <div class="flex flex-col gap-[30px]">
+          <div class="flex flex-col gap-2" :class="{ 'text-center': step === 'done' }">
+            <h1 class="text-4xl-semibold text-ink-gray-9">{{ current.title }}</h1>
+            <p class="text-base text-ink-gray-6">{{ current.subtitle }}</p>
           </div>
 
-          <template v-else-if="step === 'invite'">
-            <FormControl
-              v-model="emails"
-              type="textarea"
-              variant="outline"
-              :rows="3"
-              class="!resize-none"
-              placeholder="name@company.com, another@company.com"
-              :disabled="invite.loading"
-            />
-            <ErrorMessage class="mt-2" :message="invite.error" />
-          </template>
+          <div v-if="step !== 'done'" class="h-28">
+            <div v-if="step === 'welcome'" class="flex h-full items-start justify-between">
+              <Tooltip v-for="(app, i) in apps" :key="app.id" :text="app.name">
+                <img
+                  :src="app.logo"
+                  :alt="`${app.name} logo`"
+                  class="setup-icon size-[38px] object-contain"
+                  :style="{ animationDelay: `${i * 0.06}s` }"
+                  draggable="false"
+                />
+              </Tooltip>
+            </div>
+
+            <div v-else-if="step === 'workspace'" class="flex items-start gap-4">
+              <FileUploader
+                file-types="image/*"
+                @success="(file) => (workspaceLogo = file.file_url)"
+              >
+                <template #default="{ openFileSelector }">
+                  <button
+                    type="button"
+                    class="size-[54px] shrink-0 rounded-[10px] focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+                    @click="openFileSelector"
+                  >
+                    <Avatar
+                      :image="workspaceLogo"
+                      :label="workspaceName || 'W'"
+                      shape="square"
+                      size="3xl"
+                      class="!size-full"
+                    />
+                  </button>
+                </template>
+              </FileUploader>
+              <div class="flex flex-1 flex-col gap-2">
+                <FormControl
+                  v-model="workspaceName"
+                  type="text"
+                  variant="outline"
+                  label="Workspace Name"
+                  placeholder="Acme Inc."
+                />
+                <ErrorMessage :message="saveWorkspace.error" />
+              </div>
+            </div>
+
+            <div v-else-if="step === 'invite'" class="flex flex-col gap-2">
+              <FormControl
+                v-model="emails"
+                type="textarea"
+                variant="outline"
+                :rows="3"
+                class="!resize-none"
+                placeholder="name@company.com, another@company.com"
+                :disabled="invite.loading"
+              />
+              <ErrorMessage :message="displayError" />
+            </div>
+          </div>
         </div>
 
         <Button
@@ -59,6 +96,16 @@
           label="Get started"
           icon-right="lucide-chevron-right"
           @click="onPrimary"
+        />
+
+        <Button
+          v-else-if="step === 'workspace'"
+          class="w-full"
+          variant="solid"
+          label="Continue"
+          icon-right="lucide-chevron-right"
+          :loading="saveWorkspace.loading"
+          @click="continueWorkspace"
         />
 
         <div v-else-if="step === 'invite'" class="flex items-center justify-between">
@@ -72,7 +119,7 @@
           />
         </div>
 
-        <template v-else>
+        <div v-else class="mt-10 flex flex-col gap-3">
           <Button
             class="w-full"
             variant="solid"
@@ -81,8 +128,8 @@
             :loading="markComplete.loading"
             @click="markComplete.submit()"
           />
-          <ErrorMessage class="mt-3" :message="markComplete.error" />
-        </template>
+          <ErrorMessage :message="markComplete.error" />
+        </div>
       </div>
     </div>
   </div>
@@ -90,29 +137,61 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { Button, ErrorMessage, FormControl, Tooltip, createResource } from 'frappe-ui'
+import { Avatar, Button, ErrorMessage, FileUploader, FormControl, Tooltip, createResource } from 'frappe-ui'
 
 import { SUITE_APPS } from '@/apps/registry'
 
 const apps = SUITE_APPS
 
-type Step = 'welcome' | 'invite' | 'done'
+type Step = 'welcome' | 'workspace' | 'invite' | 'done'
 
 const step = ref<Step>('welcome')
+const workspaceName = ref('')
+const workspaceLogo = ref('')
 const emails = ref('')
+const inviteError = ref('')
+
+const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
 
 const copy: Record<Step, { title: string; subtitle: string }> = {
   welcome: { title: 'Welcome to Frappe Suite', subtitle: 'Everything your team needs, all in one place.' },
+  workspace: { title: 'Setup your Workspace', subtitle: 'Customize your shared home.' },
   invite: { title: "Let's invite your team", subtitle: 'Add teammates and explore Suite together.' },
   done: { title: "You're all set!", subtitle: 'Your workspace is ready. Time to dive in.' },
 }
 const current = computed(() => copy[step.value])
+
+const displayError = computed(() => {
+  if (inviteError.value) return inviteError.value
+  const err = invite.error as { exc_type?: string; messages?: string[] } | null
+  if (!err) return ''
+  if (err.exc_type === 'OutgoingEmailError') {
+    return 'No outgoing email account setup.'
+  }
+  return err.messages?.join(' ') || String(err)
+})
 
 // Full reload so the router's cached setup state refetches and routes to /suite.
 const markComplete = createResource({
   url: 'suite.api.account.mark_setup_complete',
   onSuccess: () => {
     window.location.href = '/suite'
+  },
+})
+
+createResource({
+  url: 'suite.api.account.get_workspace',
+  auto: true,
+  onSuccess: (data: { workspace_name: string; workspace_logo: string }) => {
+    workspaceName.value = data.workspace_name
+    workspaceLogo.value = data.workspace_logo
+  },
+})
+
+const saveWorkspace = createResource({
+  url: 'suite.api.account.update_workspace',
+  onSuccess: () => {
+    step.value = 'invite'
   },
 })
 
@@ -124,16 +203,32 @@ const invite = createResource({
 })
 
 function onPrimary() {
-  step.value = 'invite'
+  step.value = 'workspace'
+}
+
+function continueWorkspace() {
+  saveWorkspace.submit({
+    workspace_name: workspaceName.value,
+    workspace_logo: workspaceLogo.value,
+  })
 }
 
 function sendInvites() {
+  inviteError.value = ''
   const cleaned = emails.value
     .split(/[\n,]+/)
     .map((e) => e.trim())
     .filter(Boolean)
   if (!cleaned.length) {
     skip()
+    return
+  }
+  const invalid = cleaned.filter((e) => !isEmail(e))
+  if (invalid.length) {
+    inviteError.value =
+      invalid.length === 1
+        ? `“${invalid[0]}” doesn’t look like a valid email address.`
+        : `These don’t look like valid email addresses: ${invalid.join(', ')}`
     return
   }
   invite.submit({ emails: cleaned.join(', ') })
@@ -145,21 +240,6 @@ function skip() {
 </script>
 
 <style scoped>
-.setup-screen {
-  animation: fadeIn 0.3s ease-out both;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateX(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
 .setup-icon {
   opacity: 0;
   animation: iconIn 0.6s ease both;
@@ -168,7 +248,7 @@ function skip() {
 @keyframes iconIn {
   from {
     opacity: 0;
-    transform: scale(0.97);
+    transform: scale(0.98);
   }
   to {
     opacity: 1;
@@ -208,7 +288,6 @@ function skip() {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .setup-screen,
   .setup-icon {
     animation: none;
     opacity: 1;

@@ -8,4 +8,4 @@ Mail
 Client
 Server
 Calendar
-Suite Core
+Suite

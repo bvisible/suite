@@ -1,4 +1,4 @@
-"""Suite Core lifecycle dispatchers.
+"""Suite lifecycle dispatchers.
 
 Phase 3 consolidation: the seven source apps each defined their own lifecycle
 hooks (after_install, after_migrate, after_app_install, extend_bootinfo, ...).
@@ -20,7 +20,7 @@ def _run(label, func, *args, **kwargs):
 	try:
 		return func(*args, **kwargs)
 	except Exception:
-		frappe.log_error(title=f"suite.suite_core.boot: {label} failed")
+		frappe.log_error(title=f"suite.suite.boot: {label} failed")
 		raise
 
 
@@ -33,7 +33,8 @@ def after_install():
 	through Drive's overridden hooks. So create Drive's File columns FIRST, before
 	any app's after_install runs.
 	"""
-	from suite.drive.install import ensure_custom_fields, after_install as drive_after_install
+	from suite.drive.install import after_install as drive_after_install
+	from suite.drive.install import ensure_custom_fields
 	from suite.mail.install import after_install as mail_after_install
 
 	_run("drive.ensure_custom_fields", ensure_custom_fields)

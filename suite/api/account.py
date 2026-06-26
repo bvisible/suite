@@ -17,6 +17,24 @@ def mark_setup_complete() -> None:
 	frappe.db.set_single_value("System Settings", "setup_complete", 1)
 
 
+@frappe.whitelist()
+def get_workspace() -> dict[str, str]:
+	return {
+		"workspace_name": frappe.db.get_single_value("Suite Settings", "workspace_name") or "",
+		"workspace_logo": frappe.db.get_single_value("Suite Settings", "workspace_logo") or "",
+	}
+
+
+@frappe.whitelist(methods=["POST"])
+def update_workspace(workspace_name: str, workspace_logo: str = "") -> None:
+	frappe.only_for("System Manager")
+
+	settings = frappe.get_single("Suite Settings")
+	settings.workspace_name = workspace_name
+	settings.workspace_logo = workspace_logo
+	settings.save()
+
+
 @frappe.whitelist(methods=["POST"])
 def invite_users(emails: str) -> dict[str, list[str]]:
 	from frappe.core.api.user_invitation import invite_by_email
