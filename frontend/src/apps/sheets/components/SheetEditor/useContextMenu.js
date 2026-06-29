@@ -4,9 +4,9 @@ import { reactive } from 'vue'
 const MENU_HEIGHT_EST = { cell: 620, colHeader: 240, rowHeader: 240 }
 
 /**
- * @param {{ getGrid: () => object, getViewport?: () => { width: number, height: number } }} opts
+ * @param {{ getGrid: () => object, getViewport?: () => { width: number, height: number }, readOnly?: () => boolean }} opts
  */
-export function useContextMenu({ getGrid, getViewport = () => ({ width: window.innerWidth, height: window.innerHeight }) }) {
+export function useContextMenu({ getGrid, getViewport = () => ({ width: window.innerWidth, height: window.innerHeight }), readOnly = () => false }) {
   const contextMenu = reactive({
     open: false, x: 0, y: 0, bottom: 0, useBottom: false, maxH: 0,
     targetRow: 0, targetCol: 0, mode: 'cell',
@@ -16,6 +16,9 @@ export function useContextMenu({ getGrid, getViewport = () => ({ width: window.i
 
   function openCanvasContextMenu(e) {
     e.preventDefault()
+    // Every entry in this menu mutates the sheet (insert/delete/freeze/hide/
+    // paste-special/validation/…), so view-only viewers get no menu at all.
+    if (readOnly()) return
     tabMenu.open = false
     const grid = getGrid()
     const hit  = grid.getHitRegion(e.clientX, e.clientY)
@@ -52,6 +55,8 @@ export function useContextMenu({ getGrid, getViewport = () => ({ width: window.i
   }
 
   function openTabMenu(e, name) {
+    // Rename / duplicate / delete sheet — all writes, so skip for viewers.
+    if (readOnly()) return
     const vp = getViewport()
     contextMenu.open = false
     tabMenu.name   = name

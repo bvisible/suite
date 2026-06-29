@@ -165,8 +165,10 @@
       </div>
     </div>
 
-    <!-- Bar 2 · Formatting toolbar -->
-    <div class="sn-toolbar">
+    <!-- Bar 2 · Formatting toolbar — hidden for read-only viewers: every control
+         here mutates (number/font/style/align/colour/border/merge/painter/
+         hyperlink/conditional-format/chart), and the server rejects their writes. -->
+    <div v-if="!readOnly" class="sn-toolbar">
 
       <!-- Number format -->
       <Dropdown :options="numberFormatDropdownOptions" placement="left" class="sn-numfmt">
@@ -299,6 +301,7 @@
           name="formula-bar"
           class="sn-formula-input"
           :value="formulaValue"
+          :readonly="readOnly"
           @input="onFormulaInput"
           @keydown="onFormulaKey"
           @blur="closeAc"
@@ -428,8 +431,9 @@
         @cancel="onSplitCancel"
       />
 
-      <!-- Filter chevrons on row 0 (the user's header row of data) -->
-      <div v-if="showSortFilter" class="sn-filter-overlay">
+      <!-- Filter chevrons on row 0 (the user's header row of data). Hidden for
+           viewers — the panel they open sorts/filters (and persists) the data. -->
+      <div v-if="showSortFilter && !readOnly" class="sn-filter-overlay">
         <button
           v-for="col in visibleFilterCols"
           :key="col.col"
@@ -569,7 +573,7 @@
     </div>
 
     <!-- Add-more-rows strip — only when the user has scrolled near the bottom -->
-    <div v-if="showAddRows" class="sn-addrows">
+    <div v-if="showAddRows && !readOnly" class="sn-addrows">
       <span class="sn-addrows-label">Add</span>
       <input name="add-rows-count" class="sn-addrows-input" type="number" min="1" max="10000" v-model.number="addRowsCount" />
       <span class="sn-addrows-label">more rows at the bottom</span>
@@ -638,7 +642,7 @@
           </span>
         </div>
 
-        <Button variant="ghost" size="sm" icon="plus" class="sn-tab-add" tooltip="Add sheet" @click="addSheet" />
+        <Button v-if="!readOnly" variant="ghost" size="sm" icon="plus" class="sn-tab-add" tooltip="Add sheet" @click="addSheet" />
       </div>
 
       <div v-if="selectionStats" class="sn-stats">
@@ -1624,10 +1628,14 @@ const fileDropdownOptions = computed(() => [
     { label: 'Export as XLSX', icon: 'download',  onClick: () => exportXLSX() },
     { label: 'Export as PDF',  icon: 'printer',   onClick: () => exportPDF() },
   ]},
-  { group: 'Import', items: [
-    { label: 'Import CSV',  icon: 'upload', onClick: () => csvInputRef.value?.click() },
-    { label: 'Import XLSX', icon: 'upload', onClick: () => xlsxInputRef.value?.click() },
-  ]},
+  // Import overwrites the sheet — hidden for read-only viewers (export stays,
+  // it only reads).
+  ...(readOnly.value
+    ? []
+    : [{ group: 'Import', items: [
+        { label: 'Import CSV',  icon: 'upload', onClick: () => csvInputRef.value?.click() },
+        { label: 'Import XLSX', icon: 'upload', onClick: () => xlsxInputRef.value?.click() },
+      ]}]),
 ])
 
 const hAlignIcon = computed(() => {
@@ -2036,7 +2044,7 @@ const { acItems, acIdx, acUp, acVisible, updateAc, commitAc, closeAc } =
 
 // Context menu — placed here because contextMenu is passed to usePivotIntegration below.
 const { contextMenu, tabMenu, openCanvasContextMenu: onCanvasContextMenu, openTabMenu } =
-  useContextMenu({ getGrid: () => grid })
+  useContextMenu({ getGrid: () => grid, readOnly: () => readOnly.value })
 
 // renderVersion is defined here because usePivotIntegration reads it at call time.
 const renderVersion = ref(0)
@@ -3097,6 +3105,7 @@ function onFormulaKey(e) {
 // the user wandered off to another sheet to pick a range. If there's no
 // cross-sheet edit, this collapses to the legacy "write to activeCell" path.
 function _commitFormulaBar() {
+  if (readOnly.value) return   // viewer: formula bar is read-only (see :readonly bind)
   const homeSheet   = editingHomeSheet.value
   const homeCell    = editingHomeCell.value
   const targetSheet = homeSheet || sheet.getCurrentSheet()
@@ -4002,6 +4011,7 @@ const renameInputRef   = ref(null)
 let _renameTarget      = ''
 
 function openRenameDialog(name) {
+  if (readOnly.value) return   // viewer: renaming a sheet is a write
   tabMenu.open = false
   _renameTarget      = name
   renameValue.value  = name
