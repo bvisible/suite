@@ -8,7 +8,11 @@ import { isWrapText } from '../utils/text-wrap.js'
 
 export { colLabel, cellId, parseCellId } from '../utils/cells.js'
 
-export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getFormat, onFill, onBatchCommit, getMergeInfo, isSlave, getMasterId, getComment, getValidation, getCondFormat, getRightInset, onHyperlinkClick, onDropdownClick, onResizeEnd, getSheetNames, getCurrentSheet, getEditingHomeSheet } = {}) {
+export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getFormat, onFill, onBatchCommit, getMergeInfo, isSlave, getMasterId, getComment, getValidation, getCondFormat, getRightInset, onHyperlinkClick, onDropdownClick, onResizeEnd, getSheetNames, getCurrentSheet, getEditingHomeSheet, readOnly = false } = {}) {
+  // When true, the grid is a viewer: the in-cell editor never opens, so no
+  // keystroke / F2 / double-click can mutate a cell. Selection, scrolling and
+  // copy still work. Toggled at runtime via setReadOnly (public link viewers).
+  let _readOnly = readOnly
   const ctx = canvas.getContext('2d')
   const dpr = window.devicePixelRatio || 1
 
@@ -626,6 +630,7 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
   }
 
   function showEditor(initialValue, mode = 'enter') {
+    if (_readOnly) return   // viewer: editing is disabled
     editMode = mode
     selEnd = { r: sel.r, c: sel.c }
     const fmt = getFormat ? getFormat(cellId(sel.r, sel.c)) : {}
@@ -1294,6 +1299,7 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     if (e.key === 'F2') { e.preventDefault(); showEditor(data[cellId(r, c)] ?? '', 'edit'); return }
 
     if ((e.key === 'Delete' || e.key === 'Backspace') && !mod) {
+      if (_readOnly) return   // viewer: clearing cells is disabled
       e.preventDefault()
       const { r0, c0, r1, c1 } = getSelRange()
       if (r0 === r1 && c0 === c1) {
@@ -1574,6 +1580,7 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     expandCols, getTotalCols,
     setZoom, getZoom,
     viewSnapshot, viewRestore,
+    setReadOnly: (v) => { _readOnly = !!v },
     destroy,
   }
 }

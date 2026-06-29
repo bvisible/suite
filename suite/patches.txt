@@ -34,6 +34,7 @@ suite.writer.patches.change_versioning_schema
 suite.writer.patches.autopopulate_html
 # --- sheets ---
 suite.sheets.patches.v0_1.migrate_blob_to_cells
+suite.sheets.patches.v0_1.drop_everyone_sheet_shares
 # --- meet ---
 suite.meet.patches.migrate_meeting_fields_to_table_multiselect
 # --- mail ---
