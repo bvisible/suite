@@ -15,7 +15,7 @@
         @click="show = !show"
       />
     </div>
-    <div v-if="show" class="grow flex flex-col gap-0.5">
+    <div v-if="show && (anchors.length > 1 || tabs.length)" class="grow flex flex-col gap-0.5">
       <div class="flex justify-between items-center ps-2 pr-1 pb-1">
         <span class="text-base-medium text-ink-gray-8 select-none">Table of Contents</span>
         <Button
@@ -50,7 +50,7 @@
             <TextInput
               v-model="editingTabLabel"
               v-on-outside-click="() => finishRenaming(false)"
-              v-focus
+              autofocus
               @keydown.enter="finishRenaming(false)"
               @keydown.esc="finishRenaming(true)"
               class="w-full"
@@ -171,7 +171,6 @@ import {
   Button,
   TextInput,
   ContextMenu,
-  focusDirective as vFocus,
   onOutsideClickDirective as vOnOutsideClick,
 } from 'frappe-ui'
 import { copyToClipboard } from '@/apps/drive/ui/drive/js/utils'
@@ -184,24 +183,29 @@ const props = defineProps({
   },
 })
 
-const show = ref(JSON.parse(localStorage.getItem('showToc') || true))
+const show = ref(JSON.parse(localStorage.getItem('showToc') || 'false'))
 watch(show, v => localStorage.setItem('showToc', v))
 const showHeadings = ref(true)
 
 // Get all tabs from the document
-const tabs = computed(() => {
+const tabs = ref([])
+
+const updateTabs = () => {
   const t = []
   props.editor.state.doc.descendants(node => {
     if (node.type.name === 'tab') {
       t.push({ id: node.attrs.id, label: node.attrs.label })
     }
   })
-  return t
-})
+  tabs.value = t
+}
 
 // Get active tab ID
 const activeTabId = ref()
 onMounted(() => {
+  updateTabs()
+  props.editor.on('update', updateTabs)
+
   const handleTabChange = e => {
     activeTabId.value = e.detail.tabId
     finishRenaming(true)
@@ -209,6 +213,7 @@ onMounted(() => {
 
   props.editor.view.dom.addEventListener('tab-changed', handleTabChange)
   onBeforeUnmount(() => {
+    props.editor.off('update', updateTabs)
     props.editor.view.dom.removeEventListener('tab-changed', handleTabChange)
   })
 })

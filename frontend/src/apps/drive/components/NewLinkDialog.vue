@@ -4,19 +4,19 @@
     title="New Link"
     size="xs"
     :actions="[
-      {
-        label: 'Create',
-        variant: 'solid',
-        loading: createLink.loading,
-        onClick: createLink.submit,
-      },
-    ]"
+    {
+      label: 'Create',
+      variant: 'solid',
+      loading: createLink.loading,
+      onClick: createLink.submit,
+    },
+  ]"
     @close="dialogType = ''"
   >
     <div class="flex flex-col gap-4">
       <FormControl
         v-model="file_name"
-        v-focus
+        autofocus
         label="Link name"
         type="text"
         @keydown="createLink.error = null"
@@ -36,7 +36,6 @@
 </template>
 
 <script setup>
-import { default as vFocus } from '@/apps/drive/utils/focus'
 import { ref } from 'vue'
 import { Dialog, createResource, FormControl } from 'frappe-ui'
 import { useRoute } from 'vue-router'

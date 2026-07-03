@@ -19,9 +19,7 @@
     @update:active-row="setActive"
   >
     <ListHeader class="mb-[1px]" />
-    <div v-if="!folderContents" class="w-full text-center flex items-center justify-center py-10">
-      <LoadingIndicator class="w-8" />
-    </div>
+    <DriveListSkeleton v-if="!folderContents" />
     <template v-else>
       <div class="h-full overflow-y-auto">
         <ListEmptyState v-if="!formattedRows.length" />
@@ -64,7 +62,6 @@ import {
   ListGroupRows,
   ListGroupHeader,
   ListEmptyState,
-  LoadingIndicator,
   ListView as FrappeListView,
   Avatar,
   Tooltip,
@@ -75,6 +72,7 @@ import { useRoute } from 'vue-router'
 import { computed, h, ref, watch, useTemplateRef } from 'vue'
 import ContextMenu from '@/apps/drive/components/ContextMenu.vue'
 import CustomListRow from './CustomListRow.vue'
+import DriveListSkeleton from './DriveListSkeleton.vue'
 import { openEntity, isModKey, getLink, getThumbnailUrl } from '@/apps/drive/utils/files'
 import { formatDate } from '@/apps/drive/utils/format'
 import { WRITER_CONTENT_DOCTYPE, PRESENTATION_CONTENT_DOCTYPE } from '@/apps/drive/utils/files'

@@ -17,12 +17,12 @@
     :title="__('Edit Profile')"
     size="md"
     :actions="[
-      {
-        label: __('Confirm'),
-        variant: 'solid',
-        onClick: updateProfile,
-      },
-    ]"
+    {
+      label: __('Confirm'),
+      variant: 'solid',
+      onClick: updateProfile,
+    },
+  ]"
   >
     <div class="flex flex-col items-start justify-start gap-y-2">
       <span class="text-base text-ink-gray-5">Profile Photo</span>
@@ -47,10 +47,10 @@
           file-types="image/png, image/jpeg, image/jpg"
           :validate-file="validateFile"
           @success="
-              (file) => {
-                newImageUrl = file.file_url
-              }
-            "
+          (file) => {
+            newImageUrl = file.file_url
+          }
+        "
         >
           <template #default="{ openFileSelector }">
             <Button @click="openFileSelector">
@@ -61,7 +61,7 @@
       </div>
       <div class="w-full flex flex-col gap-y-2 my-2">
         <span class="text-base text-ink-gray-5">{{ __('First Name') }}</span>
-        <Input v-model="newFirstName" v-focus />
+        <Input v-model="newFirstName" autofocus />
         <span class="text-base text-ink-gray-5">{{ __('Last Name') }}</span>
         <Input v-model="newLastName" />
       </div>
@@ -71,14 +71,9 @@
     {{ __('Preferences') }}
   </h1>
 
-  <Switch
-    v-model="detectLinks"
-    label="Automatically detect links"
-    class="!px-0 hover:!bg-inherit"
-  />
+  <Switch v-model="detectLinks" label="Automatically detect links" />
 </template>
 <script setup>
-import { default as vFocus } from '@/apps/drive/utils/focus'
 import {
   Button,
   Input,

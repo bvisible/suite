@@ -27,9 +27,7 @@
       :get-entities="getEntities || { data: [] }"
     />
 
-    <div v-if="!props.getEntities.data" class="m-auto" style="transform: translate(0, -88.5px)">
-      <LoadingIndicator class="size-5 text-ink-gray-9" />
-    </div>
+    <DriveListSkeleton v-if="!props.getEntities.data" />
     <NoFilesSection v-else-if="!props.getEntities.data?.length" :icon="icon" v-bind="empty" />
     <ListView
       v-else-if="view === 'list'"
@@ -101,7 +99,7 @@ import { view, getSortOrder, setSortOrder } from '@/apps/drive/data/prefs'
 import { setCurrentFolder } from '@/apps/drive/data/currentFolder'
 import { toast } from '@/apps/drive/utils/toasts'
 import { move } from '@/apps/drive/resources/files'
-import { LoadingIndicator } from 'frappe-ui'
+import DriveListSkeleton from '@/apps/drive/components/DriveListSkeleton.vue'
 import { settings } from '@/apps/drive/resources/permissions'
 import emitter from '@/apps/drive/emitter'
 import { getFileLink } from '@/apps/drive/ui/drive/js/utils'

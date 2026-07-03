@@ -4,17 +4,17 @@
     title="Rename"
     size="xs"
     :actions="[
-      {
-        label: 'Confirm',
-        variant: 'solid',
-        disabled: !newTitle || newTitle === entity.file_name || rename.loading,
-        onClick: submit,
-      },
-    ]"
+    {
+      label: 'Confirm',
+      variant: 'solid',
+      disabled: !newTitle || newTitle === entity.file_name || rename.loading,
+      onClick: submit,
+    },
+  ]"
     @close="dialogType = ''"
   >
     <div class="flex gap-3">
-      <FormControl v-model="newTitle" v-focus class="grow" type="text" @keyup.enter="submit" />
+      <FormControl v-model="newTitle" autofocus class="grow" type="text" @keyup.enter="submit" />
       <div
         v-if="file_ext"
         disabled
@@ -27,7 +27,6 @@
 </template>
 
 <script setup>
-import { default as vFocus } from '@/apps/drive/utils/focus'
 import { ref } from 'vue'
 import { Dialog, FormControl } from 'frappe-ui'
 import { rename } from '../js/resources'

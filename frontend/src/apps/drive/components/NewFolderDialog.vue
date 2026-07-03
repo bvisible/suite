@@ -4,19 +4,19 @@
     title="Create a folder"
     size="xs"
     :actions="[
-      {
-        label: 'Create',
-        variant: 'solid',
-        disabled: folderName.length === 0,
-        loading: createFolder.loading,
-        onClick: submit,
-      },
-    ]"
+    {
+      label: 'Create',
+      variant: 'solid',
+      disabled: folderName.length === 0,
+      loading: createFolder.loading,
+      onClick: submit,
+    },
+  ]"
     @close="dialogType = ''"
   >
     <FormControl
       v-model="folderName"
-      v-focus
+      autofocus
       label="Name:"
       @keyup.enter="submit"
       @keydown="createFolder.error = null"
@@ -32,7 +32,6 @@
 </template>
 
 <script setup>
-import { default as vFocus } from '@/apps/drive/utils/focus'
 import { ref } from 'vue'
 import { Dialog, createResource, FormControl } from 'frappe-ui'
 import { useRoute } from 'vue-router'

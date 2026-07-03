@@ -1,5 +1,5 @@
 <template>
-  <FormControl v-model="versionName" v-focus label="Name:" autocomplete="off">
+  <FormControl v-model="versionName" autofocus label="Name:" autocomplete="off">
     <template #prefix>
       <LucideVersion class="size-4" />
     </template>
@@ -25,7 +25,7 @@
 </template>
 <script setup>
 import { ref } from 'vue'
-import { Button, FormControl, focusDirective as vFocus } from 'frappe-ui'
+import { Button, FormControl } from 'frappe-ui'
 import { clearDialogs } from '@/apps/writer/utils/dialogs'
 import LucideVersion from '~icons/lucide/git-pull-request-create'
 

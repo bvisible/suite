@@ -289,7 +289,7 @@
           />
           <FormControl
             v-model="teamName"
-            v-focus
+            autofocus
             class="grow"
             required
             type="text"
@@ -366,7 +366,7 @@
                 }))
               "
           />
-          <FormControl v-model="teamName" v-focus class="grow" required type="text" />
+          <FormControl v-model="teamName" autofocus class="grow" required type="text" />
         </div>
       </div>
       <template v-if="getDiskSettings.data.enabled">
@@ -404,7 +404,6 @@
 </template>
 
 <script setup>
-import { default as vFocus } from '@/apps/drive/utils/focus'
 import { h, computed } from 'vue'
 import { useSessionStore } from '@/boot/session'
 const currentUserId = computed(() => useSessionStore().user)
