@@ -38,6 +38,28 @@ jobs:
           pip install semgrep
           semgrep scan --config ./frappe-semgrep-rules/rules --config r/python.lang.correctness .
 
+  frontend-format-check:
+    name: Frontend Format Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: frontend/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+        working-directory: frontend
+
+      - name: Check formatting
+        run: yarn biome format ./src
+        working-directory: frontend
+
   deps-vulnerable-check:
     name: Vulnerable Dependency Check
     runs-on: ubuntu-latest
