@@ -83,6 +83,13 @@ repos:
               suite/meet/sfu-server/tsconfig\.json
           )$
 
+      - id: biome-frontend
+        name: Biome Format (Frontend)
+        entry: bash -c 'cd frontend && node_modules/.bin/biome format --write --config-path biome.json "${@/#frontend\//}"' --
+        language: system
+        files: "frontend/src/.*\\.(js|ts|vue)$"
+        exclude: ".*node_modules.*"
+
 ci:
   autoupdate_schedule: weekly
   skip: []
