@@ -1,28 +1,28 @@
 <template>
-	<EditorContent
-		v-if="showEditor"
-		:editor="activeEditor"
-		:style="editorStyles"
-		class="textElement"
-		:class="isAutoWidth ? 'text-auto-width' : 'text-fixed-width'"
-		@mousedown="handleMouseDown"
-		@dblclick="handleDoubleClick"
-	/>
-	<SlideshowText
-		v-else-if="showMagicMoveText"
-		:content="element.content"
-		class="textElement select-none"
-		:class="isAutoWidth ? 'text-auto-width' : 'text-fixed-width'"
-		:style="elementLineHeightStyle"
-	/>
-	<div
-		v-else
-		v-html="element.content"
-		class="textElement select-none"
-		:class="isAutoWidth ? 'text-auto-width' : 'text-fixed-width'"
-		:style="elementLineHeightStyle"
-		@dblclick="handleDoubleClick"
-	></div>
+  <EditorContent
+    v-if="showEditor"
+    :editor="activeEditor"
+    :style="editorStyles"
+    class="textElement"
+    :class="isAutoWidth ? 'text-auto-width' : 'text-fixed-width'"
+    @mousedown="handleMouseDown"
+    @dblclick="handleDoubleClick"
+  />
+  <SlideshowText
+    v-else-if="showMagicMoveText"
+    :content="element.content"
+    class="textElement select-none"
+    :class="isAutoWidth ? 'text-auto-width' : 'text-fixed-width'"
+    :style="elementLineHeightStyle"
+  />
+  <div
+    v-else
+    v-html="element.content"
+    class="textElement select-none"
+    :class="isAutoWidth ? 'text-auto-width' : 'text-fixed-width'"
+    :style="elementLineHeightStyle"
+    @dblclick="handleDoubleClick"
+  ></div>
 </template>
 
 <script setup>
@@ -127,73 +127,73 @@ onBeforeMount(() => normalizeContent())
 
 <style>
 .ProseMirror {
-	caret-color: currentColor;
-	outline: none;
+  caret-color: currentColor;
+  outline: none;
 }
 
 .tiptap ul,
 .textElement > ul {
-	list-style: none;
-	padding-left: 0;
+  list-style: none;
+  padding-left: 0;
 }
 
 .tiptap > ul li,
 .textElement > ul li {
-	position: relative;
-	padding-left: 0.8em;
+  position: relative;
+  padding-left: 0.8em;
 }
 
 .tiptap > ul li::before,
 .textElement > ul li::before {
-	content: '\2022';
-	position: absolute;
-	left: 0;
-	top: 0;
-	font-size: 1em;
+  content: "\2022";
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 1em;
 }
 
 .tiptap ol,
 .textElement ol {
-	list-style: none;
-	margin: 0;
-	padding: 0;
-	counter-reset: step;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: step;
 }
 
 .tiptap ol li,
 .textElement ol li {
-	counter-increment: step;
-	position: relative;
-	padding-left: calc(2ch + 0.2em);
+  counter-increment: step;
+  position: relative;
+  padding-left: calc(2ch + 0.2em);
 }
 
 .tiptap ol li::before,
 .textElement ol li::before {
-	content: counter(step) '.';
-	position: absolute;
-	left: 0;
-	top: 0;
-	width: 2ch;
-	text-align: right;
+  content: counter(step) ".";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2ch;
+  text-align: right;
 }
 
 .text-auto-width,
 .text-auto-width .ProseMirror {
-	white-space: pre;
+  white-space: pre;
 }
 
 .text-fixed-width,
 .text-fixed-width .ProseMirror {
-	width: 100%;
-	white-space: pre-wrap;
-	overflow-wrap: break-word;
-	hyphens: auto;
+  width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 /* use CSS variable set on container to apply legacy element line-height without
    mutating inner HTML. Inline styles on <p> will still take precedence. */
 .textElement p,
 .textElement li {
-	line-height: var(--el-line-height, 1.5);
+  line-height: var(--el-line-height, 1.5);
 }
 </style>

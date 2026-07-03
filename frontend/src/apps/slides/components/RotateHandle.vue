@@ -1,11 +1,11 @@
 <template>
-	<div
-		:style="rotateHandleStyles"
-		class="flex items-center justify-center"
-		@mousedown="startRotate"
-	>
-		<LucideRotateCw class="stroke-[1.5] text-white" :style="rotateIconStyles" />
-	</div>
+  <div
+    :style="rotateHandleStyles"
+    class="flex items-center justify-center"
+    @mousedown="startRotate"
+  >
+    <LucideRotateCw class="stroke-[1.5] text-white" :style="rotateIconStyles" />
+  </div>
 </template>
 <script setup>
 import { computed, inject } from 'vue'

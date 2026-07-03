@@ -1,206 +1,203 @@
 <template>
-	<div class="h-[100dvh] bg-gray-900 flex flex-col" data-meeting-component>
-		<!-- Loading state -->
-		<div v-if="isConnecting" class="flex-1 flex items-center justify-center">
-			<div class="flex flex-col items-center justify-center text-white gap-3 px-6 text-center">
-				<Spinner class="h-12" />
-				<p class="text-lg">Joining meeting...</p>
-				<p v-if="e2eeJoinPendingMessage" class="mt-2 text-base text-ink-gray-2">
-					{{ e2eeJoinPendingMessage }}
-				</p>
-			</div>
-		</div>
+  <div class="h-[100dvh] bg-gray-900 flex flex-col" data-meeting-component>
+    <!-- Loading state -->
+    <div v-if="isConnecting" class="flex-1 flex items-center justify-center">
+      <div class="flex flex-col items-center justify-center text-white gap-3 px-6 text-center">
+        <Spinner class="h-12" />
+        <p class="text-lg">Joining meeting...</p>
+        <p v-if="e2eeJoinPendingMessage" class="mt-2 text-base text-ink-gray-2">
+          {{ e2eeJoinPendingMessage }}
+        </p>
+      </div>
+    </div>
 
-		<!-- Error state -->
-		<div v-else-if="hasConnectionError" class="flex-1 flex items-center justify-center">
-			<div class="text-center text-white">
-				<div class="text-red-500 mb-4">
-					<lucide-alert-circle class="w-12 h-12 mx-auto" />
-				</div>
-				<p class="text-xl mb-4">{{ connectionState.connectionError }}</p>
-				<Button @click="resetToPreview" variant="outline" theme="red">Try Again</Button>
-			</div>
-		</div>
+    <!-- Error state -->
+    <div v-else-if="hasConnectionError" class="flex-1 flex items-center justify-center">
+      <div class="text-center text-white">
+        <div class="text-red-500 mb-4">
+          <lucide-alert-circle class="w-12 h-12 mx-auto" />
+        </div>
+        <p class="text-xl mb-4">{{ connectionState.connectionError }}</p>
+        <Button @click="resetToPreview" variant="outline" theme="red">Try Again</Button>
+      </div>
+    </div>
 
-		<!-- Preview mode -->
-		<MeetingPreview
-			v-else-if="showPreview"
-			:meetingId="meetingId"
-			:isCameraOn="mediaState.isCameraOn"
-			:isMicOn="mediaState.isMicOn"
-			:cameraPermissionGranted="mediaState.cameraPermissionGranted"
-			:microphonePermissionGranted="mediaState.microphonePermissionGranted"
-			:isConnecting="connectionState.isConnecting"
-			:userInitials="currentUser.userInitials.value"
-			:userAvatar="currentUser.userAvatar.value"
-			:currentUserName="
+    <!-- Preview mode -->
+    <MeetingPreview
+      v-else-if="showPreview"
+      :meetingId="meetingId"
+      :isCameraOn="mediaState.isCameraOn"
+      :isMicOn="mediaState.isMicOn"
+      :cameraPermissionGranted="mediaState.cameraPermissionGranted"
+      :microphonePermissionGranted="mediaState.microphonePermissionGranted"
+      :isConnecting="connectionState.isConnecting"
+      :userInitials="currentUser.userInitials.value"
+      :userAvatar="currentUser.userAvatar.value"
+      :currentUserName="
 				currentUser.currentUser.value?.full_name ||
 				currentUser.currentUser.value?.name ||
 				'You'
 			"
-			:guestAuthToken="connectionState.guestAuthToken"
-			:isWaitingForApproval="lobbyStore.isWaitingForApproval"
-			:setLocalVideoRef="mediaControls.setLocalVideoRef"
-			@toggle-microphone="mediaControls.toggleMicrophone()"
-			@toggle-camera="mediaControls.toggleCamera()"
-			@join-from-preview="joinMeetingFromPreview"
-			@guest-join-complete="handleGuestJoinComplete"
-			@leave-waiting-room="leaveWaitingRoom"
-			@try-join-again="tryJoinAgain"
-			@device-changed="handleDeviceChanged"
-		/>
+      :guestAuthToken="connectionState.guestAuthToken"
+      :isWaitingForApproval="lobbyStore.isWaitingForApproval"
+      :setLocalVideoRef="mediaControls.setLocalVideoRef"
+      @toggle-microphone="mediaControls.toggleMicrophone()"
+      @toggle-camera="mediaControls.toggleCamera()"
+      @join-from-preview="joinMeetingFromPreview"
+      @guest-join-complete="handleGuestJoinComplete"
+      @leave-waiting-room="leaveWaitingRoom"
+      @try-join-again="tryJoinAgain"
+      @device-changed="handleDeviceChanged"
+    />
 
-		<!-- Main meeting interface -->
-		<template v-else>
-			<div class="relative flex flex-1 min-h-0 overflow-hidden">
-				<div
-					v-if="e2eeJoinPendingMessage"
-					class="absolute top-4 left-1/2 -translate-x-1/2 z-[60] max-w-[calc(100%-2rem)] rounded-full border border-amber-300/30 bg-amber-950/80 px-4 py-2 text-sm text-amber-50 shadow-lg backdrop-blur-md flex items-center gap-2"
-					role="status"
-					data-testid="e2ee-join-pending-banner"
-				>
-					<Spinner class="h-4" />
-					<span>{{ e2eeJoinPendingMessage }}</span>
-				</div>
-				<div
-					class="grid flex-1 min-h-0 transition-[grid-template-columns] duration-300 ease-out relative"
-					:style="{
+    <!-- Main meeting interface -->
+    <template v-else>
+      <div class="relative flex flex-1 min-h-0 overflow-hidden">
+        <div
+          v-if="e2eeJoinPendingMessage"
+          class="absolute top-4 left-1/2 -translate-x-1/2 z-[60] max-w-[calc(100%-2rem)] rounded-full border border-amber-300/30 bg-amber-950/80 px-4 py-2 text-sm text-amber-50 shadow-lg backdrop-blur-md flex items-center gap-2"
+          role="status"
+          data-testid="e2ee-join-pending-banner"
+        >
+          <Spinner class="h-4" />
+          <span>{{ e2eeJoinPendingMessage }}</span>
+        </div>
+        <div
+          class="grid flex-1 min-h-0 transition-[grid-template-columns] duration-300 ease-out relative"
+          :style="{
 						'--panel-width': panelWidth,
 						gridTemplateColumns: 'minmax(0, 1fr) var(--panel-width)',
 					}"
-				>
-					<!-- Video column — padding-bottom mirrors the toolbar height so tiles
+        >
+          <!-- Video column — padding-bottom mirrors the toolbar height so tiles
                  reclaim the space when the toolbar hides, without affecting panels -->
-					<div
-						class="flex flex-col min-h-0 transition-[padding-bottom] duration-500 ease-in-out"
-						:style="{ paddingBottom: isToolbarVisible ? '6rem' : '0' }"
-					>
-						<!-- Video area -->
-						<div class="p-4 flex flex-col flex-1 min-h-0 text-white">
-							<MeetingLayout @open-people-panel="togglePeople" />
-						</div>
-					</div>
+          <div
+            class="flex flex-col min-h-0 transition-[padding-bottom] duration-500 ease-in-out"
+            :style="{ paddingBottom: isToolbarVisible ? '6rem' : '0' }"
+          >
+            <!-- Video area -->
+            <div class="p-4 flex flex-col flex-1 min-h-0 text-white">
+              <MeetingLayout @open-people-panel="togglePeople" />
+            </div>
+          </div>
 
-					<!-- Panel Container -->
-					<Transition
-						enter-active-class="transition-all duration-300 ease-out"
-						enter-from-class="opacity-0 transform translate-x-full w-0"
-						enter-to-class="opacity-100 transform translate-x-0"
-						leave-active-class="transition-all duration-300 ease-in"
-						leave-from-class="opacity-100 transform translate-x-0"
-						leave-to-class="opacity-0 transform translate-x-full"
-					>
-						<div
-							v-if="activePanel"
-							class="h-full overflow-hidden z-50 md:z-auto bg-black/30 backdrop-blur-sm md:bg-transparent"
-							:class="{
+          <!-- Panel Container -->
+          <Transition
+            enter-active-class="transition-all duration-300 ease-out"
+            enter-from-class="opacity-0 transform translate-x-full w-0"
+            enter-to-class="opacity-100 transform translate-x-0"
+            leave-active-class="transition-all duration-300 ease-in"
+            leave-from-class="opacity-100 transform translate-x-0"
+            leave-to-class="opacity-0 transform translate-x-full"
+          >
+            <div
+              v-if="activePanel"
+              class="h-full overflow-hidden z-50 md:z-auto bg-black/30 backdrop-blur-sm md:bg-transparent"
+              :class="{
 								'absolute inset-0 w-full': isMobile,
 								relative: !isMobile,
 								'md:relative': true,
 							}"
-							:style="{ width: isMobile ? '100%' : '24rem' }"
-						>
-							<!-- Chat Panel -->
-							<ChatPanel
-								v-if="activePanel === 'chat'"
-								:open="true"
-								:messages="chatStore.chatMessages"
-								:user-id="(currentUser.currentUser.value?.user_id as string) || ''"
-								:user-name="
+              :style="{ width: isMobile ? '100%' : '24rem' }"
+            >
+              <!-- Chat Panel -->
+              <ChatPanel
+                v-if="activePanel === 'chat'"
+                :open="true"
+                :messages="chatStore.chatMessages"
+                :user-id="(currentUser.currentUser.value?.user_id as string) || ''"
+                :user-name="
 									(currentUser.currentUser.value?.full_name as string) ||
 									(currentUser.currentUser.value?.name as string) ||
 									'You'
 								"
-								:isHost="isCurrentUserHost"
-								:isCohost="isCurrentUserCohost"
-								:isGuest="isGuestSession"
-								:hostOnlyChat="chatStore.hostOnlyChat"
-								@close="toggleChat"
-								@send="chat.onSendChat"
-							/>
+                :isHost="isCurrentUserHost"
+                :isCohost="isCurrentUserCohost"
+                :isGuest="isGuestSession"
+                :hostOnlyChat="chatStore.hostOnlyChat"
+                @close="toggleChat"
+                @send="chat.onSendChat"
+              />
 
-							<!-- People Panel -->
-							<PeoplePanel
-								v-if="activePanel === 'people'"
-								:open="true"
-								:currentUser="currentUser.currentUser.value"
-								:participants="participantsForPeoplePanel"
-								:isMicOn="mediaState.isMicOn"
-								:isCameraOn="mediaState.isCameraOn"
-								:creatorUserId="meetingOwner"
-								:coHosts="meetingCoHosts"
-								:lobbyUsers="lobbyStore.lobbyUsers"
-								@close="togglePeople"
-								@muteParticipant="handleMuteParticipant"
-								@kickParticipant="handleKickParticipant"
-								@lowerHand="handleLowerHand"
-								@promoteToCohost="handlePromoteToCohost"
-								@approveLobbyUser="handleApproveLobbyUser"
-								@approveAllLobbyUsers="handleApproveAllLobbyUsers"
-								@rejectLobbyUser="handleRejectLobbyUser"
-							/>
-						</div>
-					</Transition>
-				</div>
+              <!-- People Panel -->
+              <PeoplePanel
+                v-if="activePanel === 'people'"
+                :open="true"
+                :currentUser="currentUser.currentUser.value"
+                :participants="participantsForPeoplePanel"
+                :isMicOn="mediaState.isMicOn"
+                :isCameraOn="mediaState.isCameraOn"
+                :creatorUserId="meetingOwner"
+                :coHosts="meetingCoHosts"
+                :lobbyUsers="lobbyStore.lobbyUsers"
+                @close="togglePeople"
+                @muteParticipant="handleMuteParticipant"
+                @kickParticipant="handleKickParticipant"
+                @lowerHand="handleLowerHand"
+                @promoteToCohost="handlePromoteToCohost"
+                @approveLobbyUser="handleApproveLobbyUser"
+                @approveAllLobbyUsers="handleApproveAllLobbyUsers"
+                @rejectLobbyUser="handleRejectLobbyUser"
+              />
+            </div>
+          </Transition>
+        </div>
 
-				<!-- Meeting controls are anchored to the meeting viewport so side panels do not shift them -->
-				<div class="pointer-events-none absolute inset-x-0 bottom-0">
-					<!-- Meeting controls -->
-					<MeetingToolbar
-						:isChatOpen="chatStore.isChatOpen"
-						:isPeopleOpen="isPeopleOpen"
-						:hasUnread="chatStore.hasUnreadMessages"
-						:lobbyUserCount="lobbyStore.lobbyUsers?.length || 0"
-						:isMicOn="mediaState.isMicOn"
-						:isCameraOn="mediaState.isCameraOn"
-						:isScreenSharing="mediaState.isScreenSharing"
-						:isFullscreen="isFullscreen"
-						:isHandRaised="isHandRaised"
-						:isReactionPickerOpen="isReactionPickerOpen"
-						@update:isReactionPickerOpen="isReactionPickerOpen = $event"
-						:meetingId="meetingId"
-						:meetingTitle="meetingTitle"
-						:currentUser="currentUser.currentUser.value"
-						:cameraPermissionGranted="mediaState.cameraPermissionGranted"
-						:microphonePermissionGranted="mediaState.microphonePermissionGranted"
-						@toggle-chat="toggleChat"
-						@toggle-people="togglePeople"
-						@toggle-reactions="toggleReactions($event)"
-						@toggle-microphone="mediaControls.toggleMicrophone()"
-						@toggle-camera="mediaControls.toggleCamera()"
-						@toggle-screen-share="mediaControls.toggleScreenShare()"
-						@toggle-fullscreen="toggleFullscreen"
-						@toggle-raise-hand="raiseHand.toggleRaiseHand()"
-						@report-problem="handleReportProblem"
-						@end-call="sfuConnection.endCall()"
-						@device-changed="handleDeviceChanged"
-						@visibility-change="isToolbarVisible = $event"
-					/>
-				</div>
-			</div>
+        <!-- Meeting controls are anchored to the meeting viewport so side panels do not shift them -->
+        <div class="pointer-events-none absolute inset-x-0 bottom-0">
+          <!-- Meeting controls -->
+          <MeetingToolbar
+            :isChatOpen="chatStore.isChatOpen"
+            :isPeopleOpen="isPeopleOpen"
+            :hasUnread="chatStore.hasUnreadMessages"
+            :lobbyUserCount="lobbyStore.lobbyUsers?.length || 0"
+            :isMicOn="mediaState.isMicOn"
+            :isCameraOn="mediaState.isCameraOn"
+            :isScreenSharing="mediaState.isScreenSharing"
+            :isFullscreen="isFullscreen"
+            :isHandRaised="isHandRaised"
+            :isReactionPickerOpen="isReactionPickerOpen"
+            @update:isReactionPickerOpen="isReactionPickerOpen = $event"
+            :meetingId="meetingId"
+            :meetingTitle="meetingTitle"
+            :currentUser="currentUser.currentUser.value"
+            :cameraPermissionGranted="mediaState.cameraPermissionGranted"
+            :microphonePermissionGranted="mediaState.microphonePermissionGranted"
+            @toggle-chat="toggleChat"
+            @toggle-people="togglePeople"
+            @toggle-reactions="toggleReactions($event)"
+            @toggle-microphone="mediaControls.toggleMicrophone()"
+            @toggle-camera="mediaControls.toggleCamera()"
+            @toggle-screen-share="mediaControls.toggleScreenShare()"
+            @toggle-fullscreen="toggleFullscreen"
+            @toggle-raise-hand="raiseHand.toggleRaiseHand()"
+            @report-problem="handleReportProblem"
+            @end-call="sfuConnection.endCall()"
+            @device-changed="handleDeviceChanged"
+            @visibility-change="isToolbarVisible = $event"
+          />
+        </div>
+      </div>
 
-			<LobbyOverlay
-				v-if="(isInLobby || isWaitingForApproval) && !isRejected"
-				@leave="leaveLobby"
-			/>
+      <LobbyOverlay v-if="(isInLobby || isWaitingForApproval) && !isRejected" @leave="leaveLobby" />
 
-			<RejectionOverlay v-if="isRejected && isGuestSession" @leave="goHome" />
-		</template>
+      <RejectionOverlay v-if="isRejected && isGuestSession" @leave="goHome" />
+    </template>
 
-		<!-- Chat notifications -->
-		<ChatNotificationQueue
-			ref="chatNotificationQueue"
-			:auto-dismiss-delay="5000"
-			@notification-click="handleNotificationClick"
-		/>
+    <!-- Chat notifications -->
+    <ChatNotificationQueue
+      ref="chatNotificationQueue"
+      :auto-dismiss-delay="5000"
+      @notification-click="handleNotificationClick"
+    />
 
-		<!-- Join request notifications -->
-		<JoinRequestNotifications
-			:waitingUsers="lobbyUsersForNotifications"
-			@approve-user="lobby.approveUser"
-			@reject-user="lobby.rejectUser"
-		/>
-	</div>
+    <!-- Join request notifications -->
+    <JoinRequestNotifications
+      :waitingUsers="lobbyUsersForNotifications"
+      @approve-user="lobby.approveUser"
+      @reject-user="lobby.rejectUser"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">

@@ -1,12 +1,13 @@
 <template>
   <Dialog v-model="show" :options="{ title: dialogTitle, size: 'md' }">
     <template #body-content>
-
       <!-- Inline error banner for permission / network failures from any of
            the share endpoints. Auto-clears after 5 s. -->
       <Badge
         v-if="errorMessage"
-        theme="red" variant="subtle" size="sm"
+        theme="red"
+        variant="subtle"
+        size="sm"
         class="sd-error"
         :label="errorMessage"
         :tooltip="errorMessage"
@@ -52,16 +53,16 @@
            batch on Invite. Drive-style — nothing commits until the user
            clicks "Invite" in the actions row. -->
       <div class="sd-stage-row">
-        <div class="sd-stage-wrap sd-search-wrap" :class="{ 'sd-stage-wrap--has-chips': staged.length }">
+        <div
+          class="sd-stage-wrap sd-search-wrap"
+          :class="{ 'sd-stage-wrap--has-chips': staged.length }"
+        >
           <div v-for="(c, i) in staged" :key="c.user" class="sd-chip">
             <Avatar :label="c.initials" :image="c.user_image || undefined" size="xs" />
             <span class="sd-chip-text">{{ c.user }}</span>
-            <button
-              type="button"
-              class="sd-chip-x"
-              aria-label="Remove"
-              @click.stop="removeChip(i)"
-            >×</button>
+            <button type="button" class="sd-chip-x" aria-label="Remove" @click.stop="removeChip(i)">
+              ×
+            </button>
           </div>
           <input
             v-model="searchQuery"
@@ -112,13 +113,20 @@
           <Avatar :label="ownerInitials" size="md" :tooltip="ownerFullName" />
           <div class="sd-member-info">
             <span class="sd-member-name">{{ ownerFullName }}</span>
-            <span v-if="props.ownerId !== ownerFullName" class="sd-member-email">{{ props.ownerId }}</span>
+            <span v-if="props.ownerId !== ownerFullName" class="sd-member-email"
+              >{{ props.ownerId }}</span
+            >
           </div>
           <span class="sd-role-label">Owner (you)</span>
         </div>
 
         <div v-for="s in shares" :key="s.user" class="sd-member-row">
-          <Avatar :label="s.initials" :image="s.user_image || undefined" size="md" :tooltip="s.full_name" />
+          <Avatar
+            :label="s.initials"
+            :image="s.user_image || undefined"
+            size="md"
+            :tooltip="s.full_name"
+          />
           <div class="sd-member-info">
             <span class="sd-member-name">{{ s.full_name }}</span>
             <span class="sd-member-email">{{ s.user }}</span>
@@ -137,7 +145,6 @@
 
         <p v-if="!shares.length" class="sd-empty">No one else has access yet.</p>
       </div>
-
     </template>
 
     <template #actions>
@@ -150,7 +157,13 @@
           :disabled="!staged.length || inviting"
           @click="inviteStaged"
         />
-        <Button variant="outline" size="sm" icon-left="link-2" label="Copy link" @click="copyLink" />
+        <Button
+          variant="outline"
+          size="sm"
+          icon-left="link-2"
+          label="Copy link"
+          @click="copyLink"
+        />
       </div>
     </template>
   </Dialog>
@@ -471,115 +484,244 @@ async function copyLink() {
 <style scoped>
 /* Inline error banner — sits above the dialog body for permission / network
    failures from any of the share endpoints. */
-.sd-error { display: block; margin: 0 0 12px; max-width: 100%; }
+.sd-error {
+  display: block;
+  margin: 0 0 12px;
+  max-width: 100%;
+}
 
 /* ── Labels ── */
 .sd-label {
-  font-size: 13px; font-weight: 500; color: var(--ink-gray-6);
-  margin: 0 0 10px; letter-spacing: .01em;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-gray-6);
+  margin: 0 0 10px;
+  letter-spacing: 0.01em;
 }
 
 /* ── General access row ── */
 .sd-access-row {
-  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin-bottom: 4px;
 }
 
 /* Make Frappe UI Button pill-shaped inside the access row */
-.sd-pill-btn :deep(button) { border-radius: 999px; }
+.sd-pill-btn :deep(button) {
+  border-radius: 999px;
+}
 
 /* ── Divider ── */
-.sd-divider { height: 1px; background: var(--outline-gray-1); margin: 16px 0; }
+.sd-divider {
+  height: 1px;
+  background: var(--outline-gray-1);
+  margin: 16px 0;
+}
 
 /* ── Stage row (chips + input + role) ── */
 .sd-stage-row {
-  display: flex; align-items: flex-start; gap: 8px; margin-bottom: 4px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 4px;
 }
 
 /* Pill-shaped wrapper holds the chips inline with the free-text input.
    Background and focus styling mimic the prior FormControl-based search
    so existing visual language is preserved. */
 .sd-stage-wrap {
-  flex: 1; min-width: 0; position: relative;
-  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
   padding: 6px 12px;
   background: var(--surface-gray-2);
   border: 1px solid transparent;
   border-radius: 18px;
-  transition: background-color .1s, border-color .1s;
+  transition:
+    background-color 0.1s,
+    border-color 0.1s;
 }
-.sd-stage-wrap:hover        { background: var(--surface-gray-3); }
-.sd-stage-wrap:focus-within { background: var(--surface-gray-3); }
+.sd-stage-wrap:hover {
+  background: var(--surface-gray-3);
+}
+.sd-stage-wrap:focus-within {
+  background: var(--surface-gray-3);
+}
 
 /* When chips are present, give the wrapper a touch more vertical padding
    so the chips don't kiss the edge. */
-.sd-stage-wrap--has-chips { padding: 5px 8px; }
+.sd-stage-wrap--has-chips {
+  padding: 5px 8px;
+}
 
 .sd-stage-input {
-  flex: 1; min-width: 80px;
-  border: 0; background: transparent;
-  font-size: 13px; color: var(--ink-gray-9);
+  flex: 1;
+  min-width: 80px;
+  border: 0;
+  background: transparent;
+  font-size: 13px;
+  color: var(--ink-gray-9);
   padding: 2px 4px;
 }
 /* Belt-and-braces: some global styles (frappe-ui, browser default) add a
    blue outline/box-shadow on focused inputs — strip them so only our
    wrapper background communicates focus. */
 .sd-stage-input:focus,
-.sd-stage-input:focus-visible { outline: none !important; box-shadow: none !important; }
-.sd-stage-input::placeholder { color: var(--ink-gray-5); }
+.sd-stage-input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.sd-stage-input::placeholder {
+  color: var(--ink-gray-5);
+}
 
 /* Individual chip pill */
 .sd-chip {
-  display: inline-flex; align-items: center; gap: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: var(--surface-base);
   border: 1px solid var(--outline-gray-2);
   border-radius: 999px;
   padding: 2px 6px 2px 4px;
-  font-size: 12px; color: var(--ink-gray-8);
+  font-size: 12px;
+  color: var(--ink-gray-8);
   max-width: 240px;
 }
 .sd-chip-text {
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   max-width: 180px;
 }
 .sd-chip-x {
-  border: 0; background: transparent; cursor: pointer;
-  font-size: 14px; line-height: 1; color: var(--ink-gray-5);
-  padding: 0 2px; border-radius: 4px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--ink-gray-5);
+  padding: 0 2px;
+  border-radius: 4px;
 }
-.sd-chip-x:hover { color: var(--ink-gray-8); background: var(--surface-gray-2); }
+.sd-chip-x:hover {
+  color: var(--ink-gray-8);
+  background: var(--surface-gray-2);
+}
 
 /* Generic search-wrap class kept so the absolute-positioned results
    popover continues to anchor correctly. */
-.sd-search-wrap { position: relative; }
+.sd-search-wrap {
+  position: relative;
+}
 
 /* Search results popover */
 .sd-results {
-  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 500;
-  background: var(--surface-elevation-2); border: 1px solid var(--outline-elevation-2);
-  border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,.12); padding: 4px;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 500;
+  background: var(--surface-elevation-2);
+  border: 1px solid var(--outline-elevation-2);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  padding: 4px;
 }
 .sd-result-row {
-  display: flex; align-items: center; gap: 10px; padding: 8px 10px; width: 100%;
-  border-radius: 6px; border: none; background: transparent; cursor: pointer; text-align: left;
-  transition: background-color .1s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  width: 100%;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.1s;
 }
-.sd-result-row:hover { background: var(--surface-gray-2); }
-.sd-result-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.sd-result-name  { font-size: 13px; font-weight: 500; color: var(--ink-gray-9); }
-.sd-result-email { font-size: 11px; color: var(--ink-gray-5); }
+.sd-result-row:hover {
+  background: var(--surface-gray-2);
+}
+.sd-result-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.sd-result-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-gray-9);
+}
+.sd-result-email {
+  font-size: 11px;
+  color: var(--ink-gray-5);
+}
 
 /* ── Member list ── */
-.sd-loading      { display: flex; justify-content: center; padding: 20px; }
-.sd-member-list  { display: flex; flex-direction: column; margin-top: 8px; }
-.sd-member-row   {
-  display: flex; align-items: center; gap: 12px;
-  padding: 8px 4px; border-radius: 8px; transition: background-color .1s;
+.sd-loading {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
 }
-.sd-member-row:hover { background: var(--surface-gray-1); }
-.sd-member-info  { flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0; overflow: hidden; }
-.sd-member-name  { font-size: 13px; font-weight: 600; color: var(--ink-gray-9); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sd-member-email { font-size: 11px; color: var(--ink-gray-5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sd-role-label   { font-size: 12px; color: var(--ink-gray-5); flex-shrink: 0; white-space: nowrap; padding-right: 4px; }
-.sd-empty        { font-size: 13px; color: var(--ink-gray-5); padding: 12px 4px; margin: 0; }
+.sd-member-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 8px;
+}
+.sd-member-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 4px;
+  border-radius: 8px;
+  transition: background-color 0.1s;
+}
+.sd-member-row:hover {
+  background: var(--surface-gray-1);
+}
+.sd-member-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  overflow: hidden;
+}
+.sd-member-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-gray-9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sd-member-email {
+  font-size: 11px;
+  color: var(--ink-gray-5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sd-role-label {
+  font-size: 12px;
+  color: var(--ink-gray-5);
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding-right: 4px;
+}
+.sd-empty {
+  font-size: 13px;
+  color: var(--ink-gray-5);
+  padding: 12px 4px;
+  margin: 0;
+}
 </style>

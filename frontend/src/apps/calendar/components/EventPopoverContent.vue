@@ -217,136 +217,136 @@ const RESPONSE_STATUS_MAPPING = { ACCEPTED: __('Yes'), TENTATIVE: __('Maybe'), D
 </script>
 
 <template>
-	<div class="bg-surface-elevation-2 text-ink-gray-8 w-[32rem] rounded-lg" @click.stop>
-		<!-- Header: title, date, and actions -->
-		<div class="flex justify-between border-b p-5">
-			<div class="space-y-2">
-				<h2 class="flex gap-3 text-left" :class="{ italic: !calendarEvent.title }">
-					{{ calendarEvent.title || __('[No title]') }}
-				</h2>
-				<div class="mt-px min-w-0 break-words text-left text-sm">{{ date }}</div>
-			</div>
-			<Dropdown
-				:options
-				:button="{
+  <div class="bg-surface-elevation-2 text-ink-gray-8 w-[32rem] rounded-lg" @click.stop>
+    <!-- Header: title, date, and actions -->
+    <div class="flex justify-between border-b p-5">
+      <div class="space-y-2">
+        <h2 class="flex gap-3 text-left" :class="{ italic: !calendarEvent.title }">
+          {{ calendarEvent.title || __('[No title]') }}
+        </h2>
+        <div class="mt-px min-w-0 break-words text-left text-sm">{{ date }}</div>
+      </div>
+      <Dropdown
+        :options
+        :button="{
 					icon: 'more-vertical',
 					disabled: deleteEventInstance.loading || deleteEvent.loading,
 					variant: 'ghost',
 				}"
-			/>
-		</div>
-		<div class="flex flex-col gap-4 p-5">
-			<!-- Recurrence rule -->
-			<div v-if="calendarEvent.recurrence_id" class="flex gap-3">
-				<Repeat class="stroke-1.5 text-ink-gray-5 h-4 w-4 shrink-0" />
-				<span class="min-w-0 break-words text-left text-sm">
-					{{ getRepeatMessage(calendarEvent.recurrence_rule) }}
-				</span>
-			</div>
+      />
+    </div>
+    <div class="flex flex-col gap-4 p-5">
+      <!-- Recurrence rule -->
+      <div v-if="calendarEvent.recurrence_id" class="flex gap-3">
+        <Repeat class="stroke-1.5 text-ink-gray-5 h-4 w-4 shrink-0" />
+        <span class="min-w-0 break-words text-left text-sm">
+          {{ getRepeatMessage(calendarEvent.recurrence_rule) }}
+        </span>
+      </div>
 
-			<!-- Locations -->
-			<div v-if="calendarEvent.locations.length" class="flex gap-3">
-				<component
-					:is="isUrl(calendarEvent.locations[0]._name) ? Globe : MapPin"
-					class="stroke-1.5 text-ink-gray-5 h-4 w-4 shrink-0"
-				/>
-				<div class="space-y-2">
-					<div
-						v-for="location in calendarEvent.locations"
-						:key="location.uid"
-						class="mt-px min-w-0 break-words text-left text-sm"
-						:class="{
+      <!-- Locations -->
+      <div v-if="calendarEvent.locations.length" class="flex gap-3">
+        <component
+          :is="isUrl(calendarEvent.locations[0]._name) ? Globe : MapPin"
+          class="stroke-1.5 text-ink-gray-5 h-4 w-4 shrink-0"
+        />
+        <div class="space-y-2">
+          <div
+            v-for="location in calendarEvent.locations"
+            :key="location.uid"
+            class="mt-px min-w-0 break-words text-left text-sm"
+            :class="{
 							'text-ink-blue-6 cursor-pointer hover:underline': isUrl(
 								location._name,
 							),
 						}"
-						@click="openUrl(location._name)"
-					>
-						{{ location._name }}
-					</div>
-				</div>
-			</div>
+            @click="openUrl(location._name)"
+          >
+            {{ location._name }}
+          </div>
+        </div>
+      </div>
 
-			<!-- Participants -->
-			<div class="flex gap-3">
-				<Users class="stroke-1.5 text-ink-gray-5 h-4 w-4 shrink-0" />
-				<span class="mt-px text-sm"> {{ participants }} </span>
-			</div>
-			<div class="max-h-44 space-y-4 overflow-y-scroll pl-7">
-				<EventParticipantList
-					:participants="
+      <!-- Participants -->
+      <div class="flex gap-3">
+        <Users class="stroke-1.5 text-ink-gray-5 h-4 w-4 shrink-0" />
+        <span class="mt-px text-sm"> {{ participants }} </span>
+      </div>
+      <div class="max-h-44 space-y-4 overflow-y-scroll pl-7">
+        <EventParticipantList
+          :participants="
 						getReorderedParticipants(
 							calendarEvent.participants,
 							calendarEvent.organizer,
 						)
 					"
-					:dont-show-remove="true"
-				/>
-			</div>
+          :dont-show-remove="true"
+        />
+      </div>
 
-			<!-- Description -->
-			<div v-if="calendarEvent.description" class="flex gap-3">
-				<Text class="stroke-1.5 text-ink-gray-5 h-4 w-4 shrink-0" />
-				<div class="mt-px min-w-0 text-left text-sm">
-					<span
-						ref="descriptionRef"
-						class="break-words"
-						:class="{ 'line-clamp-3': !descriptionExpanded }"
-					>
-						{{ calendarEvent.description }}
-					</span>
-					<button
-						v-if="isDescriptionClamped && !descriptionExpanded"
-						class="text-ink-blue-6 mt-0.5 block"
-						@click="descriptionExpanded = true"
-					>
-						{{ __('Show more') }}
-					</button>
-				</div>
-			</div>
+      <!-- Description -->
+      <div v-if="calendarEvent.description" class="flex gap-3">
+        <Text class="stroke-1.5 text-ink-gray-5 h-4 w-4 shrink-0" />
+        <div class="mt-px min-w-0 text-left text-sm">
+          <span
+            ref="descriptionRef"
+            class="break-words"
+            :class="{ 'line-clamp-3': !descriptionExpanded }"
+          >
+            {{ calendarEvent.description }}
+          </span>
+          <button
+            v-if="isDescriptionClamped && !descriptionExpanded"
+            class="text-ink-blue-6 mt-0.5 block"
+            @click="descriptionExpanded = true"
+          >
+            {{ __('Show more') }}
+          </button>
+        </div>
+      </div>
 
-			<!-- Organizer -->
-			<div class="flex gap-3">
-				<CalendarDays class="stroke-1.5 text-ink-gray-5 h-4 w-4 shrink-0" />
-				<span class="mt-px min-w-0 break-words text-left text-sm">
-					{{ calendarEvent.organizer }}
-				</span>
-			</div>
-		</div>
+      <!-- Organizer -->
+      <div class="flex gap-3">
+        <CalendarDays class="stroke-1.5 text-ink-gray-5 h-4 w-4 shrink-0" />
+        <span class="mt-px min-w-0 break-words text-left text-sm">
+          {{ calendarEvent.organizer }}
+        </span>
+      </div>
+    </div>
 
-		<!-- RSVP -->
-		<div
-			v-if="userParticipant.expect_reply"
-			class="bg-surface-sidebar flex items-center justify-between rounded-b border-t p-5"
-		>
-			<div class="text-left text-sm">{{ __('Are you attending?') }}</div>
-			<div class="flex gap-2">
-				<template v-if="calendarEvent.recurrence_id">
-					<Dropdown
-						v-for="(label, status) in RESPONSE_STATUS_MAPPING"
-						:key="status"
-						:options="responseOptions(status)"
-					>
-						<Button
-							:label
-							variant="outline"
-							class="text-xs"
-							:class="{ '!bg-surface-gray-3': userResponse === status }"
-						/>
-					</Dropdown>
-				</template>
-				<template v-else>
-					<Button
-						v-for="(label, status) in RESPONSE_STATUS_MAPPING"
-						:key="status"
-						:label
-						variant="outline"
-						class="text-xs"
-						:class="{ '!bg-surface-gray-3': userResponse === status }"
-						@click="handleSetResponse(status, true)"
-					/>
-				</template>
-			</div>
-		</div>
-	</div>
+    <!-- RSVP -->
+    <div
+      v-if="userParticipant.expect_reply"
+      class="bg-surface-sidebar flex items-center justify-between rounded-b border-t p-5"
+    >
+      <div class="text-left text-sm">{{ __('Are you attending?') }}</div>
+      <div class="flex gap-2">
+        <template v-if="calendarEvent.recurrence_id">
+          <Dropdown
+            v-for="(label, status) in RESPONSE_STATUS_MAPPING"
+            :key="status"
+            :options="responseOptions(status)"
+          >
+            <Button
+              :label
+              variant="outline"
+              class="text-xs"
+              :class="{ '!bg-surface-gray-3': userResponse === status }"
+            />
+          </Dropdown>
+        </template>
+        <template v-else>
+          <Button
+            v-for="(label, status) in RESPONSE_STATUS_MAPPING"
+            :key="status"
+            :label
+            variant="outline"
+            class="text-xs"
+            :class="{ '!bg-surface-gray-3': userResponse === status }"
+            @click="handleSetResponse(status, true)"
+          />
+        </template>
+      </div>
+    </div>
+  </div>
 </template>

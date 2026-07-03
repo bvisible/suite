@@ -1,39 +1,39 @@
 <template>
-	<Dialog :options="{ title: __('Shortcuts'), size: '5xl' }">
-		<template #body-content>
-			<div class="grid max-h-[75vh] w-full grid-cols-2 gap-10 overflow-y-auto py-1">
-				<div v-for="(column, index) in shortcutGroups" :key="index">
-					<div v-for="group in column" :key="group.title" class="pb-8">
-						<h2 class="text-ink-gray-8 mb-4 text-xl-semibold">
-							{{ group.title }}
-						</h2>
-						<ul class="space-y-2">
-							<li
-								v-for="(shortcut, sIndex) in group.shortcuts"
-								:key="sIndex"
-								class="flex items-start justify-between"
-							>
-								<div class="text-ink-gray-7 text-base">{{ shortcut[1] }}</div>
-								<div class="flex w-[14rem] justify-start gap-1 space-x-1">
-									<span
-										v-for="(key, kIndex) in shortcut[0]"
-										:key="kIndex"
-										class="text-ink-gray-8 my-auto text-xs"
-										:class="{
+  <Dialog :options="{ title: __('Shortcuts'), size: '5xl' }">
+    <template #body-content>
+      <div class="grid max-h-[75vh] w-full grid-cols-2 gap-10 overflow-y-auto py-1">
+        <div v-for="(column, index) in shortcutGroups" :key="index">
+          <div v-for="group in column" :key="group.title" class="pb-8">
+            <h2 class="text-ink-gray-8 mb-4 text-xl-semibold">
+              {{ group.title }}
+            </h2>
+            <ul class="space-y-2">
+              <li
+                v-for="(shortcut, sIndex) in group.shortcuts"
+                :key="sIndex"
+                class="flex items-start justify-between"
+              >
+                <div class="text-ink-gray-7 text-base">{{ shortcut[1] }}</div>
+                <div class="flex w-[14rem] justify-start gap-1 space-x-1">
+                  <span
+                    v-for="(key, kIndex) in shortcut[0]"
+                    :key="kIndex"
+                    class="text-ink-gray-8 my-auto text-xs"
+                    :class="{
 											'bg-surface-gray-2 border-outline-gray-2 rounded-sm border px-2 py-0.5 font-mono shadow-sm':
 												![__('or'), __('then')].includes(key),
 										}"
-									>
-										{{ key }}
-									</span>
-								</div>
-							</li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</template>
-	</Dialog>
+                  >
+                    {{ key }}
+                  </span>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </template>
+  </Dialog>
 </template>
 <script setup lang="ts">
 import { computed } from 'vue'

@@ -1,19 +1,19 @@
 <template>
-	<Dialog v-model="show" :options="options">
-		<template #body-content>
-			<div class="space-y-4">
-				<FormControl v-model="email.number" type="tel" :label="__('Number')" required />
-				<FormControl
-					v-model="email.type"
-					type="select"
-					:label="__('Type')"
-					:options="TYPE_OPTIONS"
-					required
-				/>
-				<FormControl v-model="email.label" :label="__('Label')" />
-			</div>
-		</template>
-	</Dialog>
+  <Dialog v-model="show" :options="options">
+    <template #body-content>
+      <div class="space-y-4">
+        <FormControl v-model="email.number" type="tel" :label="__('Number')" required />
+        <FormControl
+          v-model="email.type"
+          type="select"
+          :label="__('Type')"
+          :options="TYPE_OPTIONS"
+          required
+        />
+        <FormControl v-model="email.label" :label="__('Label')" />
+      </div>
+    </template>
+  </Dialog>
 </template>
 <script setup lang="ts">
 import { computed, reactive, watch } from 'vue'

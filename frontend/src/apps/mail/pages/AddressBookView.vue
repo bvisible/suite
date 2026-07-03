@@ -1,75 +1,72 @@
 <template>
-	<DashboardLayout
-		v-if="addressBook?.doc"
-		:breadcrumbs
-		:badge-label="addressBook.doc?.default ? __('Default') : ''"
-		badge-theme="blue"
-	>
-		<template #actions>
-			<Dropdown :options="dropdownOptions">
-				<Button icon="more-horizontal" class="text-ink-gray-5" />
-			</Dropdown>
-		</template>
-		<template #default>
-			<DashboardCard
-				:title="__('General Information')"
-				:button-label="__('Edit')"
-				@action="showEditGeneral = true"
-			>
-				<InformationField :label="__('Name')" :value="addressBook.doc._name" />
-				<InformationField
-					:label="__('Description')"
-					:value="addressBook.doc.description"
-				/>
-				<InformationField
-					:label="__('Total Contacts')"
-					:value="totalContacts.data?.toString() || '0'"
-				/>
-			</DashboardCard>
+  <DashboardLayout
+    v-if="addressBook?.doc"
+    :breadcrumbs
+    :badge-label="addressBook.doc?.default ? __('Default') : ''"
+    badge-theme="blue"
+  >
+    <template #actions>
+      <Dropdown :options="dropdownOptions">
+        <Button icon="more-horizontal" class="text-ink-gray-5" />
+      </Dropdown>
+    </template>
+    <template #default>
+      <DashboardCard
+        :title="__('General Information')"
+        :button-label="__('Edit')"
+        @action="showEditGeneral = true"
+      >
+        <InformationField :label="__('Name')" :value="addressBook.doc._name" />
+        <InformationField :label="__('Description')" :value="addressBook.doc.description" />
+        <InformationField
+          :label="__('Total Contacts')"
+          :value="totalContacts.data?.toString() || '0'"
+        />
+      </DashboardCard>
 
-			<DashboardCard :title="__('Contacts')" class="flex-1" @action="showAddContacts = true">
-				<div class="space-y-4 p-4">
-					<FormControl v-model="search" :placeholder="__('Search')" class="w-80">
-						<template #prefix>
-							<FeatherIcon name="search" class="text-ink-gray-5 w-4" />
-						</template>
-					</FormControl>
+      <DashboardCard :title="__('Contacts')" class="flex-1" @action="showAddContacts = true">
+        <div class="space-y-4 p-4">
+          <FormControl v-model="search" :placeholder="__('Search')" class="w-80">
+            <template #prefix>
+              <FeatherIcon name="search" class="text-ink-gray-5 w-4" />
+            </template>
+          </FormControl>
 
-					<ListView
-						v-if="contacts?.data"
-						ref="listView"
-						:columns="LIST_COLUMNS"
-						:rows="contacts?.data"
-						:options="LIST_OPTIONS"
-						row-key="id"
-						class="max-h-[73vh] min-h-72 flex-1 overflow-auto"
-					>
-						<ListHeader />
-						<ListRows v-if="contacts.data.length" @scroll="loadMoreContacts" />
-						<ListEmptyState v-else />
-						<ListSelectBanner>
-							<template #actions>
-								<Button
-									variant="ghost"
-									theme="red"
-									:label="__('Remove')"
-									@click="showRemoveContacts = true"
-								/>
-							</template>
-						</ListSelectBanner>
-					</ListView>
-				</div>
-			</DashboardCard>
-		</template>
-	</DashboardLayout>
+          <ListView
+            v-if="contacts?.data"
+            ref="listView"
+            :columns="LIST_COLUMNS"
+            :rows="contacts?.data"
+            :options="LIST_OPTIONS"
+            row-key="id"
+            class="max-h-[73vh] min-h-72 flex-1 overflow-auto"
+          >
+            <ListHeader />
+            <ListRows v-if="contacts.data.length" @scroll="loadMoreContacts" />
+            <ListEmptyState v-else />
+            <ListSelectBanner>
+              <template #actions>
+                <Button
+                  variant="ghost"
+                  theme="red"
+                  :label="__('Remove')"
+                  @click="showRemoveContacts = true"
+                />
+              </template>
+            </ListSelectBanner>
+          </ListView>
+        </div>
+      </DashboardCard>
+    </template>
+  </DashboardLayout>
 
-	<EditAddressBookModal
-		v-if="addressBook?.originalDoc"
-		v-model="showEditGeneral"
-		:name="addressBook.doc._name"
-		:description="addressBook.doc.description"
-		:is-default="!!addressBook.doc.default"
-		@save="
+  <EditAddressBookModal
+    v-if="addressBook?.originalDoc"
+    v-model="showEditGeneral"
+    :name="addressBook.doc._name"
+    :description="addressBook.doc.description"
+    :is-default="!!addressBook.doc.default"
+    @save="
 			(val) => {
 				addressBook.doc._name = val.name
 				addressBook.doc.description = val.description
@@ -77,16 +74,16 @@
 				addressBook.save.submit()
 			}
 		"
-	/>
-	<Dialog v-model="showDeleteAddressBook" :options="deleteAddressBookOptions" />
+  />
+  <Dialog v-model="showDeleteAddressBook" :options="deleteAddressBookOptions" />
 
-	<AddAddressBookContactsModal
-		v-if="addressBook?.originalDoc"
-		v-model="showAddContacts"
-		:current-contacts="contacts.data?.map((c) => c.id) || []"
-		@add="(selections) => addContacts.submit(selections)"
-	/>
-	<Dialog v-model="showRemoveContacts" :options="removeContactsOptions" />
+  <AddAddressBookContactsModal
+    v-if="addressBook?.originalDoc"
+    v-model="showAddContacts"
+    :current-contacts="contacts.data?.map((c) => c.id) || []"
+    @add="(selections) => addContacts.submit(selections)"
+  />
+  <Dialog v-model="showRemoveContacts" :options="removeContactsOptions" />
 </template>
 
 <script setup lang="ts">

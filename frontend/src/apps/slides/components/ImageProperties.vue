@@ -1,19 +1,19 @@
 <template>
-	<CollapsibleSection title="Orientation">
-		<template #default>
-			<div
-				v-for="(direction, index) in imageOrientationProperties"
-				:key="index"
-				class="flex cursor-pointer items-center justify-between"
-				@click="toggleImageOrientation(direction)"
-			>
-				<div :class="fieldLabelClasses">{{ direction.label }}</div>
-				<component :is="direction.icon" size="20" :strokeWidth="1.2" />
-			</div>
-		</template>
-	</CollapsibleSection>
+  <CollapsibleSection title="Orientation">
+    <template #default>
+      <div
+        v-for="(direction, index) in imageOrientationProperties"
+        :key="index"
+        class="flex cursor-pointer items-center justify-between"
+        @click="toggleImageOrientation(direction)"
+      >
+        <div :class="fieldLabelClasses">{{ direction.label }}</div>
+        <component :is="direction.icon" size="20" :strokeWidth="1.2" />
+      </div>
+    </template>
+  </CollapsibleSection>
 
-	<MediaProperties />
+  <MediaProperties />
 </template>
 
 <script setup>

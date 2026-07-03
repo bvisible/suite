@@ -1,6 +1,11 @@
 <template>
-  <FrappeListView ref="container" class="relative select-none p-5 md:pb-15" row-key="name" :columns="selectedColumns"
-    :rows="formattedRows" :options="{
+  <FrappeListView
+    ref="container"
+    class="relative select-none p-5 md:pb-15"
+    row-key="name"
+    :columns="selectedColumns"
+    :rows="formattedRows"
+    :options="{
       selectable: true,
       enableActive: true,
       showTooltip: true,
@@ -9,7 +14,10 @@
       emptyState: {
         description: 'Nothing found - try something else?',
       },
-    }" @update:selections="handleSelections" @update:active-row="setActive">
+    }"
+    @update:selections="handleSelections"
+    @update:active-row="setActive"
+  >
     <ListHeader class="mb-[1px]" />
     <div v-if="!folderContents" class="w-full text-center flex items-center justify-center py-10">
       <LoadingIndicator class="w-8" />
@@ -22,7 +30,12 @@
             <slot v-if="$slots['group-header']" name="group-header" v-bind="{ group }" />
           </ListGroupHeader>
           <ListGroupRows :group="group">
-            <CustomListRow :rows="group.rows" :context-menu="contextMenu" :selections @dropped="emit('dropped')" />
+            <CustomListRow
+              :rows="group.rows"
+              :context-menu="contextMenu"
+              :selections
+              @dropped="emit('dropped')"
+            />
           </ListGroupRows>
         </div>
         <div v-else class="pb-8">
@@ -36,8 +49,14 @@
       </div>
     </template>
   </FrappeListView>
-  <ContextMenu v-if="rowEvent && selectedRow" :key="selectedRow.name" v-on-outside-click="() => (rowEvent = false)"
-    :close="() => (rowEvent = false)" :action-items="dropdownActionItems(selectedRow)" :event="rowEvent" />
+  <ContextMenu
+    v-if="rowEvent && selectedRow"
+    :key="selectedRow.name"
+    v-on-outside-click="() => (rowEvent = false)"
+    :close="() => (rowEvent = false)"
+    :action-items="dropdownActionItems(selectedRow)"
+    :event="rowEvent"
+  />
 </template>
 <script setup>
 import {

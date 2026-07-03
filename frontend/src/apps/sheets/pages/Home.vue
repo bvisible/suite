@@ -6,19 +6,32 @@
         <!-- Brand mark from claude.ai/design handoff (logo/preview.html).
              Deep cyan #0E7490, rising line in #A5F0FA, white nodes. -->
         <svg width="28" height="28" viewBox="0 0 256 256" fill="none" style="flex-shrink:0">
-          <rect width="256" height="256" rx="60" fill="#0E7490"/>
-          <rect x="0.5" y="0.5" width="255" height="255" rx="59.5" stroke="white" stroke-opacity="0.12"/>
+          <rect width="256" height="256" rx="60" fill="#0E7490" />
+          <rect
+            x="0.5"
+            y="0.5"
+            width="255"
+            height="255"
+            rx="59.5"
+            stroke="white"
+            stroke-opacity="0.12"
+          />
           <g stroke="white" stroke-opacity="0.18" stroke-width="2" stroke-linecap="round">
-            <line x1="85"  y1="32"  x2="85"  y2="224"/>
-            <line x1="171" y1="32"  x2="171" y2="224"/>
-            <line x1="32"  y1="85"  x2="224" y2="85"/>
-            <line x1="32"  y1="171" x2="224" y2="171"/>
+            <line x1="85" y1="32" x2="85" y2="224" />
+            <line x1="171" y1="32" x2="171" y2="224" />
+            <line x1="32" y1="85" x2="224" y2="85" />
+            <line x1="32" y1="171" x2="224" y2="171" />
           </g>
-          <polyline points="48,180 96,148 136,164 184,80 216,108"
-                    fill="none" stroke="#A5F0FA" stroke-width="18"
-                    stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="136" cy="164" r="11" fill="white"/>
-          <circle cx="184" cy="80"  r="11" fill="white"/>
+          <polyline
+            points="48,180 96,148 136,164 184,80 216,108"
+            fill="none"
+            stroke="#A5F0FA"
+            stroke-width="18"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <circle cx="136" cy="164" r="11" fill="white" />
+          <circle cx="184" cy="80" r="11" fill="white" />
         </svg>
         <span class="home-brand-name">Frappe Sheets</span>
       </div>
@@ -50,7 +63,8 @@
         <div class="home-viewtoggle" role="tablist" aria-label="View mode">
           <Button
             :variant="viewMode === 'list' ? 'subtle' : 'ghost'"
-            size="sm" icon="list"
+            size="sm"
+            icon="list"
             tooltip="List view"
             role="tab"
             :aria-selected="viewMode === 'list'"
@@ -58,7 +72,8 @@
           />
           <Button
             :variant="viewMode === 'grid' ? 'subtle' : 'ghost'"
-            size="sm" icon="grid"
+            size="sm"
+            icon="grid"
             tooltip="Grid view"
             role="tab"
             :aria-selected="viewMode === 'grid'"
@@ -80,11 +95,11 @@
       <div v-else-if="!sheets.length" class="home-empty">
         <div class="home-empty-icon">
           <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-            <rect width="48" height="48" rx="8" fill="#f3f3f3"/>
-            <rect x="10" y="10" width="13" height="13" rx="2" fill="#e2e2e2"/>
-            <rect x="25" y="10" width="13" height="13" rx="2" fill="#e2e2e2"/>
-            <rect x="10" y="25" width="13" height="13" rx="2" fill="#e2e2e2"/>
-            <rect x="25" y="25" width="13" height="13" rx="2" fill="#e2e2e2"/>
+            <rect width="48" height="48" rx="8" fill="#f3f3f3" />
+            <rect x="10" y="10" width="13" height="13" rx="2" fill="#e2e2e2" />
+            <rect x="25" y="10" width="13" height="13" rx="2" fill="#e2e2e2" />
+            <rect x="10" y="25" width="13" height="13" rx="2" fill="#e2e2e2" />
+            <rect x="25" y="25" width="13" height="13" rx="2" fill="#e2e2e2" />
           </svg>
         </div>
         <p class="home-empty-title">No sheets yet</p>
@@ -109,21 +124,27 @@
         >
           <!-- Preview placeholder -->
           <div class="home-card-preview">
-            <svg width="100%" height="100%" viewBox="0 0 200 120" fill="none" preserveAspectRatio="xMidYMid meet">
-              <rect width="200" height="120" fill="#F8F8F8"/>
-              <line x1="0" y1="24" x2="200" y2="24" stroke="#E2E2E2"/>
-              <line x1="0" y1="48" x2="200" y2="48" stroke="#E2E2E2"/>
-              <line x1="0" y1="72" x2="200" y2="72" stroke="#E2E2E2"/>
-              <line x1="0" y1="96" x2="200" y2="96" stroke="#E2E2E2"/>
-              <line x1="40" y1="0" x2="40" y2="120" stroke="#E2E2E2"/>
-              <line x1="100" y1="0" x2="100" y2="120" stroke="#E2E2E2"/>
-              <line x1="160" y1="0" x2="160" y2="120" stroke="#E2E2E2"/>
-              <rect x="8"   y="8"  width="24" height="9" rx="2" fill="#E2E2E2"/>
-              <rect x="48"  y="8"  width="36" height="9" rx="2" fill="#C7C7C7"/>
-              <rect x="108" y="8"  width="20" height="9" rx="2" fill="#E2E2E2"/>
-              <rect x="48"  y="32" width="28" height="8" rx="2" fill="#EDEDED"/>
-              <rect x="48"  y="56" width="44" height="8" rx="2" fill="#EDEDED"/>
-              <rect x="48"  y="80" width="20" height="8" rx="2" fill="#EDEDED"/>
+            <svg
+              width="100%"
+              height="100%"
+              viewBox="0 0 200 120"
+              fill="none"
+              preserveAspectRatio="xMidYMid meet"
+            >
+              <rect width="200" height="120" fill="#F8F8F8" />
+              <line x1="0" y1="24" x2="200" y2="24" stroke="#E2E2E2" />
+              <line x1="0" y1="48" x2="200" y2="48" stroke="#E2E2E2" />
+              <line x1="0" y1="72" x2="200" y2="72" stroke="#E2E2E2" />
+              <line x1="0" y1="96" x2="200" y2="96" stroke="#E2E2E2" />
+              <line x1="40" y1="0" x2="40" y2="120" stroke="#E2E2E2" />
+              <line x1="100" y1="0" x2="100" y2="120" stroke="#E2E2E2" />
+              <line x1="160" y1="0" x2="160" y2="120" stroke="#E2E2E2" />
+              <rect x="8" y="8" width="24" height="9" rx="2" fill="#E2E2E2" />
+              <rect x="48" y="8" width="36" height="9" rx="2" fill="#C7C7C7" />
+              <rect x="108" y="8" width="20" height="9" rx="2" fill="#E2E2E2" />
+              <rect x="48" y="32" width="28" height="8" rx="2" fill="#EDEDED" />
+              <rect x="48" y="56" width="44" height="8" rx="2" fill="#EDEDED" />
+              <rect x="48" y="80" width="20" height="8" rx="2" fill="#EDEDED" />
             </svg>
           </div>
 
@@ -132,13 +153,19 @@
             <div class="home-card-info">
               <span class="home-card-title">{{ sheet.title }}</span>
               <span class="home-card-date">
-                <template v-if="!isOwnedByMe(sheet)">Shared · </template>{{ formatDate(sheet.modified) }}
+                <template v-if="!isOwnedByMe(sheet)">Shared · </template>
+                {{ formatDate(sheet.modified) }}
               </span>
             </div>
             <div class="home-card-menu" @click.stop>
               <Dropdown :options="cardActions(sheet)" placement="right">
                 <template #default="{ open }">
-                  <Button :variant="open ? 'subtle' : 'ghost'" size="sm" icon="lucide-ellipsis-vertical" tooltip="Actions" />
+                  <Button
+                    :variant="open ? 'subtle' : 'ghost'"
+                    size="sm"
+                    icon="lucide-ellipsis-vertical"
+                    tooltip="Actions"
+                  />
                 </template>
               </Dropdown>
             </div>
@@ -157,11 +184,7 @@
         :options="listOptions"
       >
         <template #cell="{ item, row, column }">
-          <div
-            v-if="column.key === '_actions'"
-            class="flex w-full justify-end"
-            @click.stop
-          >
+          <div v-if="column.key === '_actions'" class="flex w-full justify-end" @click.stop>
             <Dropdown :options="cardActions(row)" placement="right">
               <template #default="{ open }">
                 <Button
@@ -173,13 +196,7 @@
               </template>
             </Dropdown>
           </div>
-          <ListRowItem
-            v-else
-            :column="column"
-            :row="row"
-            :item="item"
-            :align="column.align"
-          />
+          <ListRowItem v-else :column="column" :row="row" :item="item" :align="column.align" />
         </template>
       </ListView>
     </div>
@@ -187,7 +204,12 @@
     <!-- Rename dialog -->
     <Dialog v-model="showRenameDialog" :options="{ title: 'Rename sheet', size: 'sm' }">
       <template #body-content>
-        <FormControl v-model="renameValue" label="New title" placeholder="Untitled Sheet" @keydown.enter="confirmRename" />
+        <FormControl
+          v-model="renameValue"
+          label="New title"
+          placeholder="Untitled Sheet"
+          @keydown.enter="confirmRename"
+        />
       </template>
       <template #actions>
         <div class="flex flex-row-reverse gap-2">
@@ -198,10 +220,7 @@
     </Dialog>
 
     <!-- Delete confirm dialog -->
-    <Dialog
-      v-model="showDeleteDialog"
-      :options="{ title: 'Delete sheet?', size: 'sm' }"
-    >
+    <Dialog v-model="showDeleteDialog" :options="{ title: 'Delete sheet?', size: 'sm' }">
       <template #body-content>
         <p class="home-confirm-text">
           "<strong>{{ deleteTarget?.title }}</strong>" will be permanently deleted.
@@ -209,12 +228,7 @@
       </template>
       <template #actions>
         <div class="flex flex-row-reverse gap-2">
-          <Button
-            variant="solid"
-            theme="red"
-            :loading="deleting"
-            @click="doDelete"
-          >Delete</Button>
+          <Button variant="solid" theme="red" :loading="deleting" @click="doDelete">Delete</Button>
           <Button @click="showDeleteDialog = false">Cancel</Button>
         </div>
       </template>
@@ -525,21 +539,30 @@ async function duplicate(sheet) {
 }
 
 /* Search input — compact, fixed 220px so it doesn't dominate the topbar. */
-.home-search       { width: 220px; }
-.home-search :deep(input) { height: 28px; font-size: 13px; }
-.home-search-icon  { width: 13px; height: 13px; color: var(--ink-gray-5); }
+.home-search {
+  width: 220px;
+}
+.home-search :deep(input) {
+  height: 28px;
+  font-size: 13px;
+}
+.home-search-icon {
+  width: 13px;
+  height: 13px;
+  color: var(--ink-gray-5);
+}
 
 .home-brand-name {
   font-size: 16px;
   font-weight: 600;
-  letter-spacing: .01em;
+  letter-spacing: 0.01em;
   color: var(--ink-gray-9);
 }
 
 .home-body {
   flex: 1;
-  min-height: 0;          /* lets flex children own their own scroll */
-  overflow-y: auto;       /* the actual scroll container */
+  min-height: 0; /* lets flex children own their own scroll */
+  overflow-y: auto; /* the actual scroll container */
   padding: 40px 32px;
   width: 100%;
 }
@@ -562,10 +585,27 @@ async function duplicate(sheet) {
   min-height: 300px;
   color: var(--ink-gray-5);
 }
-.home-spinner       { width: 32px; height: 32px; color: var(--ink-gray-5); }
-.home-empty-icon    { margin-bottom: 4px; }
-.home-empty-title   { font-size: 15px; font-weight: 500; letter-spacing: .01em; color: var(--ink-gray-8); margin: 0; }
-.home-empty-sub     { font-size: 13px; letter-spacing: .02em; color: var(--ink-gray-5); margin: 0 0 8px; }
+.home-spinner {
+  width: 32px;
+  height: 32px;
+  color: var(--ink-gray-5);
+}
+.home-empty-icon {
+  margin-bottom: 4px;
+}
+.home-empty-title {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--ink-gray-8);
+  margin: 0;
+}
+.home-empty-sub {
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--ink-gray-5);
+  margin: 0 0 8px;
+}
 
 /* Grid */
 .home-grid {
@@ -580,11 +620,16 @@ async function duplicate(sheet) {
   border-radius: 10px;
   overflow: hidden;
   cursor: pointer;
-  transition: box-shadow .15s, border-color .15s, transform .15s;
+  transition:
+    box-shadow 0.15s,
+    border-color 0.15s,
+    transform 0.15s;
 }
 .home-card:hover {
   border-color: var(--outline-gray-3);
-  box-shadow: 0 0 1px rgba(0,0,0,.35), 0 6px 8px -4px rgba(0,0,0,.1);
+  box-shadow:
+    0 0 1px rgba(0, 0, 0, 0.35),
+    0 6px 8px -4px rgba(0, 0, 0, 0.1);
 }
 
 .home-card-preview {
@@ -612,7 +657,7 @@ async function duplicate(sheet) {
 .home-card-title {
   font-size: 13px;
   font-weight: 500;
-  letter-spacing: .01em;
+  letter-spacing: 0.01em;
   color: var(--ink-gray-9);
   white-space: nowrap;
   overflow: hidden;
@@ -621,7 +666,7 @@ async function duplicate(sheet) {
 
 .home-card-date {
   font-size: 11px;
-  letter-spacing: .02em;
+  letter-spacing: 0.02em;
   color: var(--ink-gray-5);
 }
 
@@ -629,16 +674,20 @@ async function duplicate(sheet) {
 .home-card-menu {
   flex-shrink: 0;
   opacity: 0;
-  transition: opacity .15s;
+  transition: opacity 0.15s;
 }
-.home-card:hover .home-card-menu { opacity: 1; }
+.home-card:hover .home-card-menu {
+  opacity: 1;
+}
 /* Keep the menu visible while its dropdown is open so the trigger doesn't
    vanish when the user moves the cursor onto the menu. */
-.home-card-menu:has([data-headlessui-state~="open"]) { opacity: 1; }
+.home-card-menu:has([data-headlessui-state~="open"]) {
+  opacity: 1;
+}
 
 .home-confirm-text {
   font-size: 14px;
-  letter-spacing: .02em;
+  letter-spacing: 0.02em;
   color: var(--ink-gray-7);
   margin: 0;
 }

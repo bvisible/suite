@@ -1,211 +1,211 @@
 <template>
-	<DashboardLayout v-if="contact?.doc" :breadcrumbs="breadcrumbs">
-		<template #actions>
-			<Dropdown :options="DROPDOWN_OPTIONS">
-				<Button icon="more-horizontal" class="text-ink-gray-5" />
-			</Dropdown>
-		</template>
-		<template #default>
-			<div class="grid grid-cols-2 gap-5">
-				<DashboardCard
-					:title="__('General Information')"
-					:button-label="__('Edit')"
-					class="h-[14.5rem] max-sm:col-span-2"
-					@action="showEditGeneral = true"
-				>
-					<InformationField :label="__('Name')" :value="contact.doc.full_name" />
-					<InformationField :label="__('Kind')" :value="capitalize(contact.doc.kind)" />
-					<InformationField
-						:label="__('Created On')"
-						:value="dayjs(contact.doc.created_at).format('MMM D YYYY, h:mm A')"
-					/>
-					<InformationField
-						:label="__('Updated On')"
-						:value="dayjs(contact.doc.updated_at).format('MMM D YYYY, h:mm A')"
-					/>
-				</DashboardCard>
+  <DashboardLayout v-if="contact?.doc" :breadcrumbs="breadcrumbs">
+    <template #actions>
+      <Dropdown :options="DROPDOWN_OPTIONS">
+        <Button icon="more-horizontal" class="text-ink-gray-5" />
+      </Dropdown>
+    </template>
+    <template #default>
+      <div class="grid grid-cols-2 gap-5">
+        <DashboardCard
+          :title="__('General Information')"
+          :button-label="__('Edit')"
+          class="h-[14.5rem] max-sm:col-span-2"
+          @action="showEditGeneral = true"
+        >
+          <InformationField :label="__('Name')" :value="contact.doc.full_name" />
+          <InformationField :label="__('Kind')" :value="capitalize(contact.doc.kind)" />
+          <InformationField
+            :label="__('Created On')"
+            :value="dayjs(contact.doc.created_at).format('MMM D YYYY, h:mm A')"
+          />
+          <InformationField
+            :label="__('Updated On')"
+            :value="dayjs(contact.doc.updated_at).format('MMM D YYYY, h:mm A')"
+          />
+        </DashboardCard>
 
-				<DashboardCard
-					:title="__('Address Books')"
-					class="h-[14.5rem] max-sm:col-span-2"
-					@action="showAddAddressBook = true"
-				>
-					<ListView
-						ref="addressBooksList"
-						:columns="ADDRESS_BOOK_COLUMNS"
-						:rows="contact.doc.address_books"
-						row-key="address_book_id"
-						:options="{
+        <DashboardCard
+          :title="__('Address Books')"
+          class="h-[14.5rem] max-sm:col-span-2"
+          @action="showAddAddressBook = true"
+        >
+          <ListView
+            ref="addressBooksList"
+            :columns="ADDRESS_BOOK_COLUMNS"
+            :rows="contact.doc.address_books"
+            row-key="address_book_id"
+            :options="{
 							emptyState: { title: '', description: __('No address books.') },
 						}"
-						class="flex-1 overflow-auto p-4"
-					>
-						<ListHeader />
-						<ListRows v-if="contact.doc.address_books.length" />
-						<ListEmptyState v-else />
-						<ListSelectBanner>
-							<template #actions>
-								<Button
-									variant="ghost"
-									:label="__('Remove')"
-									theme="red"
-									@click="showRemoveAddressBooks = true"
-								/>
-							</template>
-						</ListSelectBanner>
-					</ListView>
-				</DashboardCard>
+            class="flex-1 overflow-auto p-4"
+          >
+            <ListHeader />
+            <ListRows v-if="contact.doc.address_books.length" />
+            <ListEmptyState v-else />
+            <ListSelectBanner>
+              <template #actions>
+                <Button
+                  variant="ghost"
+                  :label="__('Remove')"
+                  theme="red"
+                  @click="showRemoveAddressBooks = true"
+                />
+              </template>
+            </ListSelectBanner>
+          </ListView>
+        </DashboardCard>
 
-				<DashboardCard
-					:title="__('Emails')"
-					class="col-span-2 h-[14.5rem]"
-					@action="showAddEmail = true"
-				>
-					<ListView
-						ref="emailsList"
-						:columns="EMAIL_COLUMNS"
-						:rows="contact.doc.emails.map((c) => ({ ...c, type: capitalize(c.type) }))"
-						row-key="address"
-						:options="{ emptyState: { title: '', description: __('No emails.') } }"
-						class="flex-1 overflow-auto p-4"
-					>
-						<ListHeader />
-						<ListRows v-if="contact.doc.emails.length" />
-						<ListEmptyState v-else />
-						<ListSelectBanner>
-							<template #actions>
-								<Button
-									variant="ghost"
-									:label="__('Remove')"
-									theme="red"
-									@click="showRemoveEmails = true"
-								/>
-							</template>
-						</ListSelectBanner>
-					</ListView>
-				</DashboardCard>
+        <DashboardCard
+          :title="__('Emails')"
+          class="col-span-2 h-[14.5rem]"
+          @action="showAddEmail = true"
+        >
+          <ListView
+            ref="emailsList"
+            :columns="EMAIL_COLUMNS"
+            :rows="contact.doc.emails.map((c) => ({ ...c, type: capitalize(c.type) }))"
+            row-key="address"
+            :options="{ emptyState: { title: '', description: __('No emails.') } }"
+            class="flex-1 overflow-auto p-4"
+          >
+            <ListHeader />
+            <ListRows v-if="contact.doc.emails.length" />
+            <ListEmptyState v-else />
+            <ListSelectBanner>
+              <template #actions>
+                <Button
+                  variant="ghost"
+                  :label="__('Remove')"
+                  theme="red"
+                  @click="showRemoveEmails = true"
+                />
+              </template>
+            </ListSelectBanner>
+          </ListView>
+        </DashboardCard>
 
-				<DashboardCard
-					:title="__('Phones')"
-					class="col-span-2 h-[14.5rem]"
-					@action="showAddPhone = true"
-				>
-					<ListView
-						ref="phonesList"
-						:columns="PHONE_COLUMNS"
-						:rows="contact.doc.phones.map((p) => ({ ...p, type: capitalize(p.type) }))"
-						row-key="number"
-						:options="{ emptyState: { title: '', description: __('No phones.') } }"
-						class="flex-1 overflow-auto p-4"
-					>
-						<ListHeader />
-						<ListRows v-if="contact.doc.phones.length" />
-						<ListEmptyState v-else />
-						<ListSelectBanner>
-							<template #actions>
-								<Button
-									variant="ghost"
-									:label="__('Remove')"
-									theme="red"
-									@click="showRemovePhones = true"
-								/>
-							</template>
-						</ListSelectBanner>
-					</ListView>
-				</DashboardCard>
+        <DashboardCard
+          :title="__('Phones')"
+          class="col-span-2 h-[14.5rem]"
+          @action="showAddPhone = true"
+        >
+          <ListView
+            ref="phonesList"
+            :columns="PHONE_COLUMNS"
+            :rows="contact.doc.phones.map((p) => ({ ...p, type: capitalize(p.type) }))"
+            row-key="number"
+            :options="{ emptyState: { title: '', description: __('No phones.') } }"
+            class="flex-1 overflow-auto p-4"
+          >
+            <ListHeader />
+            <ListRows v-if="contact.doc.phones.length" />
+            <ListEmptyState v-else />
+            <ListSelectBanner>
+              <template #actions>
+                <Button
+                  variant="ghost"
+                  :label="__('Remove')"
+                  theme="red"
+                  @click="showRemovePhones = true"
+                />
+              </template>
+            </ListSelectBanner>
+          </ListView>
+        </DashboardCard>
 
-				<DashboardCard
-					:title="__('Addresses')"
-					class="col-span-2 h-[14.5rem]"
-					@action="showAddAddress = true"
-				>
-					<ListView
-						ref="addressesList"
-						:columns="ADDRESS_COLUMNS"
-						:rows="
+        <DashboardCard
+          :title="__('Addresses')"
+          class="col-span-2 h-[14.5rem]"
+          @action="showAddAddress = true"
+        >
+          <ListView
+            ref="addressesList"
+            :columns="ADDRESS_COLUMNS"
+            :rows="
 							contact.doc.addresses.map((a) => ({ ...a, type: capitalize(a.type) }))
 						"
-						row-key="idx"
-						:options="{ emptyState: { title: '', description: __('No addresses.') } }"
-						class="flex-1 overflow-auto p-4"
-					>
-						<ListHeader />
-						<ListRows v-if="contact.doc.addresses.length" />
-						<ListEmptyState v-else />
-						<ListSelectBanner>
-							<template #actions>
-								<Button
-									variant="ghost"
-									:label="__('Remove')"
-									theme="red"
-									@click="showRemoveAddresses = true"
-								/>
-							</template>
-						</ListSelectBanner>
-					</ListView>
-				</DashboardCard>
-			</div>
-		</template>
-	</DashboardLayout>
+            row-key="idx"
+            :options="{ emptyState: { title: '', description: __('No addresses.') } }"
+            class="flex-1 overflow-auto p-4"
+          >
+            <ListHeader />
+            <ListRows v-if="contact.doc.addresses.length" />
+            <ListEmptyState v-else />
+            <ListSelectBanner>
+              <template #actions>
+                <Button
+                  variant="ghost"
+                  :label="__('Remove')"
+                  theme="red"
+                  @click="showRemoveAddresses = true"
+                />
+              </template>
+            </ListSelectBanner>
+          </ListView>
+        </DashboardCard>
+      </div>
+    </template>
+  </DashboardLayout>
 
-	<EditContactModal
-		v-if="contact?.originalDoc"
-		v-model="showEditGeneral"
-		:full-name="contact.doc.full_name"
-		:kind="contact.doc.kind"
-		@save="
+  <EditContactModal
+    v-if="contact?.originalDoc"
+    v-model="showEditGeneral"
+    :full-name="contact.doc.full_name"
+    :kind="contact.doc.kind"
+    @save="
 			(val) => {
 				contact.doc.full_name = val.fullName
 				contact.doc.kind = val.kind
 				contact.save.submit()
 			}
 		"
-	/>
-	<AddContactAddressBookModal
-		v-if="contact?.originalDoc"
-		v-model="showAddAddressBook"
-		@add="
+  />
+  <AddContactAddressBookModal
+    v-if="contact?.originalDoc"
+    v-model="showAddAddressBook"
+    @add="
 			(val) => {
 				contact.doc.address_books.push(val)
 				contact.save.submit()
 			}
 		"
-	/>
-	<AddContactEmailModal
-		v-if="contact?.originalDoc"
-		v-model="showAddEmail"
-		@add="
+  />
+  <AddContactEmailModal
+    v-if="contact?.originalDoc"
+    v-model="showAddEmail"
+    @add="
 			(val) => {
 				contact.doc.emails.push(val)
 				contact.save.submit()
 			}
 		"
-	/>
-	<AddContactPhoneModal
-		v-if="contact?.originalDoc"
-		v-model="showAddPhone"
-		@add="
+  />
+  <AddContactPhoneModal
+    v-if="contact?.originalDoc"
+    v-model="showAddPhone"
+    @add="
 			(val) => {
 				contact.doc.phones.push(val)
 				contact.save.submit()
 			}
 		"
-	/>
-	<AddContactAddressModal
-		v-if="contact?.originalDoc"
-		v-model="showAddAddress"
-		@add="
+  />
+  <AddContactAddressModal
+    v-if="contact?.originalDoc"
+    v-model="showAddAddress"
+    @add="
 			(val) => {
 				contact.doc.addresses.push(val)
 				contact.save.submit()
 			}
 		"
-	/>
-	<Dialog v-model="showDeleteContact" :options="deleteContactOptions" />
-	<Dialog v-model="showRemoveAddressBooks" :options="removeAddressBooksOptions" />
-	<Dialog v-model="showRemoveEmails" :options="removeEmailsOptions" />
-	<Dialog v-model="showRemovePhones" :options="removePhonesOptions" />
-	<Dialog v-model="showRemoveAddresses" :options="removeAddressesOptions" />
+  />
+  <Dialog v-model="showDeleteContact" :options="deleteContactOptions" />
+  <Dialog v-model="showRemoveAddressBooks" :options="removeAddressBooksOptions" />
+  <Dialog v-model="showRemoveEmails" :options="removeEmailsOptions" />
+  <Dialog v-model="showRemovePhones" :options="removePhonesOptions" />
+  <Dialog v-model="showRemoveAddresses" :options="removeAddressesOptions" />
 </template>
 
 <script setup lang="ts">

@@ -1,14 +1,14 @@
 <template>
   <Dialog v-model:open="open" v-bind="dialogOptions" @close="dialogType = ''">
     <div class="flex items-center justify-start">
-        <div class="text-base text-ink-gray-6">
-          <template v-if="props.entities.length">
-            {{ props.entities.length > 1 ? 'These items ' : `"${props.entities[0].file_name}" ` }}
-          </template>
-          <span v-html="dialogData.message" />
-        </div>
+      <div class="text-base text-ink-gray-6">
+        <template v-if="props.entities.length">
+          {{ props.entities.length > 1 ? 'These items ' : `"${props.entities[0].file_name}" ` }}
+        </template>
+        <span v-html="dialogData.message" />
       </div>
-      <ErrorMessage class="my-1 text-center" :message="updateResource.error" />
+    </div>
+    <ErrorMessage class="my-1 text-center" :message="updateResource.error" />
   </Dialog>
 </template>
 <script setup>

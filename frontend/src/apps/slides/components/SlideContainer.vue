@@ -1,37 +1,37 @@
 <template>
-	<div ref="slideContainer" class="flex size-full" @dragenter="showOverlay">
-		<!-- when mounting place slide directly in the center of the visible container -->
-		<!-- 1/2 width of viewport + 1/2 width of offset caused due to thinner navigation panel -->
-		<div ref="slideRef" :style="slideStyles" :class="slideClasses" @contextmenu.prevent>
-			<SelectionBox
-				ref="selectionBox"
-				v-if="!inReadonlyMode"
-				:isDragging
-				:elementOffset
-				@mousedown="(e) => handleMouseDown(e)"
-			/>
+  <div ref="slideContainer" class="flex size-full" @dragenter="showOverlay">
+    <!-- when mounting place slide directly in the center of the visible container -->
+    <!-- 1/2 width of viewport + 1/2 width of offset caused due to thinner navigation panel -->
+    <div ref="slideRef" :style="slideStyles" :class="slideClasses" @contextmenu.prevent>
+      <SelectionBox
+        ref="selectionBox"
+        v-if="!inReadonlyMode"
+        :isDragging
+        :elementOffset
+        @mousedown="(e) => handleMouseDown(e)"
+      />
 
-			<MarqueeOverlay v-if="!inReadonlyMode" @setIsSelecting="(val) => (isSelecting = val)" />
+      <MarqueeOverlay v-if="!inReadonlyMode" @setIsSelecting="(val) => (isSelecting = val)" />
 
-			<ShapeDrawOverlay v-if="!inReadonlyMode" />
+      <ShapeDrawOverlay v-if="!inReadonlyMode" />
 
-			<SnapGuides :ongoingInteraction="hasOngoingInteraction" :activeGuides="activeGuides" />
+      <SnapGuides :ongoingInteraction="hasOngoingInteraction" :activeGuides="activeGuides" />
 
-			<SlideElement
-				v-for="element in currentSlide?.elements"
-				:key="`editor-${element.id}`"
-				:ref="(comp) => registerElementDiv(element.id, comp?.$el)"
-				mode="editor"
-				:element
-				:elementOffset
-				:data-index="element.id"
-				:highlight="highlightElement(element)"
-				@mousedown="(e) => handleMouseDown(e, element)"
-			/>
-		</div>
-		<DropTargetOverlay v-show="mediaDragOver" @hideOverlay="hideOverlay" />
-		<OverflowContentOverlay />
-	</div>
+      <SlideElement
+        v-for="element in currentSlide?.elements"
+        :key="`editor-${element.id}`"
+        :ref="(comp) => registerElementDiv(element.id, comp?.$el)"
+        mode="editor"
+        :element
+        :elementOffset
+        :data-index="element.id"
+        :highlight="highlightElement(element)"
+        @mousedown="(e) => handleMouseDown(e, element)"
+      />
+    </div>
+    <DropTargetOverlay v-show="mediaDragOver" @hideOverlay="hideOverlay" />
+    <OverflowContentOverlay />
+  </div>
 </template>
 
 <script setup>

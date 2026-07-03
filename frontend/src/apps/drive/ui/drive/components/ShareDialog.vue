@@ -22,9 +22,7 @@
         <div>
           <!-- General section -->
           <div class="border-b pb-4 mb-4">
-            <div class="mb-2 text-ink-gray-5 text-base-medium">
-              General Access
-            </div>
+            <div class="mb-2 text-ink-gray-5 text-base-medium">General Access</div>
             <div class="flex justify-between mt-3">
               <div class="flex flex-col gap-2">
                 <Select
@@ -35,22 +33,13 @@
                   "
                 >
                   <template #prefix>
-                    <component
-                      :is="generalAccessLevel.icon"
-                      class="mr-2 size-4 text-ink-gray-6"
-                    />
+                    <component :is="generalAccessLevel.icon" class="mr-2 size-4 text-ink-gray-6" />
                   </template>
                   <template #item-prefix="{ option }">
-                    <component
-                      :is="option.icon"
-                      class="size-4 text-ink-gray-6"
-                    />
+                    <component :is="option.icon" class="size-4 text-ink-gray-6" />
                   </template>
                 </Select>
-                <TeamSelector
-                  v-if="generalAccessLevel == 'team'"
-                  v-model="chosenTeam"
-                />
+                <TeamSelector v-if="generalAccessLevel == 'team'" v-model="chosenTeam" />
               </div>
               <Select
                 v-if="generalAccessLevel !== 'restricted'"
@@ -78,11 +67,7 @@
               "
               placeholder="Add people..."
             />
-            <Select
-              v-if="usersToAdd.length"
-              v-model="accessToAdd"
-              :options="accessOptions"
-            />
+            <Select v-if="usersToAdd.length" v-model="accessToAdd" :options="accessOptions" />
           </div>
 
           <div
@@ -94,28 +79,19 @@
               :key="user.name"
               class="flex items-center gap-3 pr-1"
             >
-              <Avatar
-                size="xl"
-                :label="user.user || user.email"
-                :image="user.user_image"
-              />
+              <Avatar size="xl" :label="user.user || user.email" :image="user.user_image" />
 
               <div class="flex items-start flex-col gap-1">
-                <span class=" text-base-medium text-ink-gray-9">{{
-                  user.full_name || user.user || user.email
-                }}</span>
-                <span class="text-ink-gray-7 text-sm">{{
-                  user.full_name ? user.user || user.email : ''
-                }}</span>
+                <span class=" text-base-medium text-ink-gray-9"
+                  >{{ user.full_name || user.user || user.email }}</span
+                >
+                <span class="text-ink-gray-7 text-sm"
+                  >{{ user.full_name ? user.user || user.email : '' }}</span
+                >
               </div>
               <div class="ml-auto">
-                <span
-                  v-if="user.user == currentUserId"
-                  class="mr-1 text-ink-gray-7"
-                >
-                  <div v-if="user.user === entity.owner" class="flex gap-1">
-                    Owner (you)
-                  </div>
+                <span v-if="user.user == currentUserId" class="mr-1 text-ink-gray-7">
+                  <div v-if="user.user === entity.owner" class="flex gap-1">Owner (you)</div>
                   <template v-else>You</template>
                 </span>
                 <Select
@@ -148,11 +124,7 @@
           </div>
           <div class="w-full flex items-center justify-end">
             <div class="flex gap-2">
-              <Button
-                class="text-base"
-                variant="outline"
-                @click="getFileLink(entity)"
-              >
+              <Button class="text-base" variant="outline" @click="getFileLink(entity)">
                 <template #prefix>
                   <LucideLink2 class="w-4 text-ink-gray-6" />
                 </template>

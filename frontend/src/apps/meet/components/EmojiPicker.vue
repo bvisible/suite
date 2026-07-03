@@ -14,9 +14,7 @@
       <span class="text-xl">{{ item.emoji }}</span>
       <span v-if="item.keywords?.[0]" class="text-sm text-gray-800">:{{ item.keywords[0] }}:</span>
     </div>
-    <div v-if="filteredEmojis.length === 0" class="p-2 text-sm text-gray-500">
-      No emojis found
-    </div>
+    <div v-if="filteredEmojis.length === 0" class="p-2 text-sm text-gray-500">No emojis found</div>
   </div>
 </template>
 

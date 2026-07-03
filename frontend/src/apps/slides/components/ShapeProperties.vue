@@ -1,71 +1,68 @@
 <template>
-	<CollapsibleSection title="Style">
-		<template #default>
-			<div
-				class="flex items-center justify-between"
-				v-if="activeElement.shapeType == 'rectangle'"
-			>
-				<div :class="fieldLabelClasses">Border Radius</div>
-				<div class="w-28">
-					<NumberInput
-						:modelValue="activeElement.borderRadius"
-						@update:modelValue="(val) => setProperty('borderRadius', val)"
-						suffix="px"
-						:rangeStart="0"
-						:rangeEnd="50"
-						:rangeStep="0.5"
-					/>
-				</div>
-			</div>
+  <CollapsibleSection title="Style">
+    <template #default>
+      <div class="flex items-center justify-between" v-if="activeElement.shapeType == 'rectangle'">
+        <div :class="fieldLabelClasses">Border Radius</div>
+        <div class="w-28">
+          <NumberInput
+            :modelValue="activeElement.borderRadius"
+            @update:modelValue="(val) => setProperty('borderRadius', val)"
+            suffix="px"
+            :rangeStart="0"
+            :rangeEnd="50"
+            :rangeStep="0.5"
+          />
+        </div>
+      </div>
 
-			<div v-if="activeElement.shapeType == 'line'" class="flex items-center justify-between">
-				<div :class="fieldLabelClasses">Arrows</div>
-				<div class="w-28">
-					<FormControl
-						type="select"
-						:modelValue="arrowDirection"
-						:options="arrowOptions"
-						@update:modelValue="updateArrowDirection"
-					/>
-				</div>
-			</div>
+      <div v-if="activeElement.shapeType == 'line'" class="flex items-center justify-between">
+        <div :class="fieldLabelClasses">Arrows</div>
+        <div class="w-28">
+          <FormControl
+            type="select"
+            :modelValue="arrowDirection"
+            :options="arrowOptions"
+            @update:modelValue="updateArrowDirection"
+          />
+        </div>
+      </div>
 
-			<div class="flex items-center justify-between">
-				<div :class="fieldLabelClasses">Stroke Width</div>
-				<div class="w-28">
-					<NumberInput
-						:modelValue="activeElement.strokeWidth"
-						@update:modelValue="(val) => setProperty('strokeWidth', val)"
-						suffix="px"
-						:rangeStart="activeElement.shapeType === 'line' ? 0.5 : 0"
-						:rangeEnd="50"
-						:rangeStep="0.5"
-					/>
-				</div>
-			</div>
+      <div class="flex items-center justify-between">
+        <div :class="fieldLabelClasses">Stroke Width</div>
+        <div class="w-28">
+          <NumberInput
+            :modelValue="activeElement.strokeWidth"
+            @update:modelValue="(val) => setProperty('strokeWidth', val)"
+            suffix="px"
+            :rangeStart="activeElement.shapeType === 'line' ? 0.5 : 0"
+            :rangeEnd="50"
+            :rangeStep="0.5"
+          />
+        </div>
+      </div>
 
-			<div v-if="activeElement.shapeType != 'line'" class="flex items-center justify-between">
-				<div :class="fieldLabelClasses">Fill Color</div>
-				<ColorPicker
-					v-model="activeElement.fillColor"
-					@colordown="onFillColorUpdateStart"
-					@colorup="onFillColorUpdateEnd"
-				/>
-			</div>
+      <div v-if="activeElement.shapeType != 'line'" class="flex items-center justify-between">
+        <div :class="fieldLabelClasses">Fill Color</div>
+        <ColorPicker
+          v-model="activeElement.fillColor"
+          @colordown="onFillColorUpdateStart"
+          @colorup="onFillColorUpdateEnd"
+        />
+      </div>
 
-			<div class="flex items-center justify-between">
-				<div :class="fieldLabelClasses">Stroke Color</div>
+      <div class="flex items-center justify-between">
+        <div :class="fieldLabelClasses">Stroke Color</div>
 
-				<ColorPicker
-					v-model="activeElement.strokeColor"
-					@colordown="onStrokeColorUpdateStart"
-					@colorup="onStrokeColorUpdateEnd"
-				/>
-			</div>
-		</template>
-	</CollapsibleSection>
+        <ColorPicker
+          v-model="activeElement.strokeColor"
+          @colordown="onStrokeColorUpdateStart"
+          @colorup="onStrokeColorUpdateEnd"
+        />
+      </div>
+    </template>
+  </CollapsibleSection>
 
-	<ShadowProperties />
+  <ShadowProperties />
 </template>
 
 <script setup>

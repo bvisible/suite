@@ -1,90 +1,90 @@
 <template>
-	<div class="bg-surface-base sticky top-0 flex items-center border-b py-2.5 sm:px-3.5">
-		<Button
-			variant="ghost"
-			class="mr-2 shrink-0"
-			@click="$router.push({ name: 'mail-mailbox', params: { mailbox }, query: route.query })"
-		>
-			<template #icon>
-				<ChevronLeft class="icon" />
-			</template>
-		</Button>
-		<template v-if="thread?.length">
-			<Tooltip v-if="!isMobile" :text="thread?.[0]?.subject">
-				<h2 class="mr-2 select-none truncate font-semibold leading-5">
-					{{ thread?.[0]?.subject || __('[No subject]') }}
-				</h2>
-			</Tooltip>
-			<div class="ml-auto shrink-0 space-x-2">
-				<Dropdown v-if="user.data?.show_reading_pane" :options="threadActions">
-					<Button variant="ghost" :tooltip="__('Actions')">
-						<template #icon>
-							<Ellipsis class="icon" />
-						</template>
-					</Button>
-				</Dropdown>
-				<template v-else>
-					<Button
-						v-for="action in threadActions.filter((a) => a.condition())"
-						:key="action.label"
-						:tooltip="action.label"
-						variant="ghost"
-						@click="action.onClick"
-					>
-						<template #icon>
-							<component :is="action.icon" class="icon" />
-						</template>
-					</Button>
-				</template>
+  <div class="bg-surface-base sticky top-0 flex items-center border-b py-2.5 sm:px-3.5">
+    <Button
+      variant="ghost"
+      class="mr-2 shrink-0"
+      @click="$router.push({ name: 'mail-mailbox', params: { mailbox }, query: route.query })"
+    >
+      <template #icon>
+        <ChevronLeft class="icon" />
+      </template>
+    </Button>
+    <template v-if="thread?.length">
+      <Tooltip v-if="!isMobile" :text="thread?.[0]?.subject">
+        <h2 class="mr-2 select-none truncate font-semibold leading-5">
+          {{ thread?.[0]?.subject || __('[No subject]') }}
+        </h2>
+      </Tooltip>
+      <div class="ml-auto shrink-0 space-x-2">
+        <Dropdown v-if="user.data?.show_reading_pane" :options="threadActions">
+          <Button variant="ghost" :tooltip="__('Actions')">
+            <template #icon>
+              <Ellipsis class="icon" />
+            </template>
+          </Button>
+        </Dropdown>
+        <template v-else>
+          <Button
+            v-for="action in threadActions.filter((a) => a.condition())"
+            :key="action.label"
+            :tooltip="action.label"
+            variant="ghost"
+            @click="action.onClick"
+          >
+            <template #icon>
+              <component :is="action.icon" class="icon" />
+            </template>
+          </Button>
+        </template>
 
-				<Dropdown :options="moveToOptions">
-					<Button variant="ghost" :tooltip="__('Move To')">
-						<template #icon>
-							<FolderInput class="icon" />
-						</template>
-					</Button>
-				</Dropdown>
-				<Dropdown v-if="showAddTo" :options="addToOptions">
-					<Button variant="ghost" :tooltip="__('Add To')">
-						<template #icon>
-							<FolderPlus class="icon" />
-						</template>
-					</Button>
-				</Dropdown>
-				<Dropdown v-if="canRemoveFrom" :options="removeFromOptions">
-					<Button variant="ghost" :tooltip="__('Remove From')">
-						<template #icon>
-							<FolderMinus class="icon" />
-						</template>
-					</Button>
-				</Dropdown>
+        <Dropdown :options="moveToOptions">
+          <Button variant="ghost" :tooltip="__('Move To')">
+            <template #icon>
+              <FolderInput class="icon" />
+            </template>
+          </Button>
+        </Dropdown>
+        <Dropdown v-if="showAddTo" :options="addToOptions">
+          <Button variant="ghost" :tooltip="__('Add To')">
+            <template #icon>
+              <FolderPlus class="icon" />
+            </template>
+          </Button>
+        </Dropdown>
+        <Dropdown v-if="canRemoveFrom" :options="removeFromOptions">
+          <Button variant="ghost" :tooltip="__('Remove From')">
+            <template #icon>
+              <FolderMinus class="icon" />
+            </template>
+          </Button>
+        </Dropdown>
 
-				<template v-if="threads.includes(threadID)">
-					<Button
-						variant="ghost"
-						:tooltip="__('Previous Thread (↑/K)')"
-						:disabled="threadID === threads[0] && !canGoPrev"
-						@click="emit('prevThread')"
-					>
-						<template #icon>
-							<ArrowLeft class="icon" />
-						</template>
-					</Button>
+        <template v-if="threads.includes(threadID)">
+          <Button
+            variant="ghost"
+            :tooltip="__('Previous Thread (↑/K)')"
+            :disabled="threadID === threads[0] && !canGoPrev"
+            @click="emit('prevThread')"
+          >
+            <template #icon>
+              <ArrowLeft class="icon" />
+            </template>
+          </Button>
 
-					<Button
-						variant="ghost"
-						:tooltip="__('Next Thread (↓/J)')"
-						:disabled="threadID === threads.at(-1) && !canGoNext"
-						@click="emit('nextThread')"
-					>
-						<template #icon>
-							<ArrowRight class="icon" />
-						</template>
-					</Button>
-				</template>
-			</div>
-		</template>
-	</div>
+          <Button
+            variant="ghost"
+            :tooltip="__('Next Thread (↓/J)')"
+            :disabled="threadID === threads.at(-1) && !canGoNext"
+            @click="emit('nextThread')"
+          >
+            <template #icon>
+              <ArrowRight class="icon" />
+            </template>
+          </Button>
+        </template>
+      </div>
+    </template>
+  </div>
 </template>
 
 <script setup lang="ts">

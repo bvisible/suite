@@ -9,14 +9,10 @@
           <div
             class="mx-auto w-full bg-surface-base p-5 sm:mt-6 sm:w-96 sm:rounded-xl sm:p-6 sm:shadow-md"
           >
-            <h1
-              class="mb-5 text-center text-3xl-semibold text-ink-gray-9"
-            >
-              {{
-                params.get("t")
+            <h1 class="mb-5 text-center text-3xl-semibold text-ink-gray-9">
+              {{ params.get("t")
                   ? "Join " + params.get("t")
-                  : "Create an account"
-              }}
+                  : "Create an account" }}
             </h1>
 
             <form class="flex flex-col gap-4">
@@ -70,14 +66,11 @@
                       class="text-ink-gray-9 underline"
                       href="https://frappecloud.com/policies"
                       target="_blank"
-                    >Terms and Policies</a>
+                      >Terms and Policies</a
+                    >
                   </span>
                 </label>
-                <ErrorMessage
-                  v-if="signup.error"
-                  class="text-center"
-                  :message="signup.error"
-                />
+                <ErrorMessage v-if="signup.error" class="text-center" :message="signup.error" />
                 <Button
                   class="w-full"
                   variant="solid"
@@ -126,20 +119,14 @@
                   :disabled="otpResendCountdown > 0"
                   @click="sendOTP.submit()"
                 >
-                  Resend verification code{{
-                    otpResendCountdown > 0
+                  Resend verification code{{ otpResendCountdown > 0
                       ? ` in ${otpResendCountdown}s`
-                      : ""
-                  }}
+                      : "" }}
                 </Button>
               </template>
 
               <template v-else>
-                <ErrorMessage
-                  v-if="sendOTP.error"
-                  class="text-center"
-                  :message="sendOTP.error"
-                />
+                <ErrorMessage v-if="sendOTP.error" class="text-center" :message="sendOTP.error" />
                 <Button
                   class="w-full"
                   variant="solid"

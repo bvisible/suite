@@ -1,14 +1,14 @@
 <template>
-	<div :style="elementStyle">
-		<component
-			:is="getDynamicComponent(element.type)"
-			:key="getElementKey(element)"
-			:element="element"
-			:mode="mode"
-			:elementOffset="elementOffset"
-			:transitionStyles="transitionStyles"
-		/>
-	</div>
+  <div :style="elementStyle">
+    <component
+      :is="getDynamicComponent(element.type)"
+      :key="getElementKey(element)"
+      :element="element"
+      :mode="mode"
+      :elementOffset="elementOffset"
+      :transitionStyles="transitionStyles"
+    />
+  </div>
 </template>
 
 <script setup>

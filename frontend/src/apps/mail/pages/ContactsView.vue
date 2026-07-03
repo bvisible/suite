@@ -1,41 +1,41 @@
 <template>
-	<DashboardLayout
-		:breadcrumbs="[{ label: __('Contacts') }]"
-		:button-label="__('Add Contact')"
-		:button-action="() => (showAddContact = true)"
-	>
-		<FormControl v-model="search" :placeholder="__('Search')" class="sm:w-80">
-			<template #prefix>
-				<FeatherIcon name="search" class="text-ink-gray-5 w-4" />
-			</template>
-		</FormControl>
+  <DashboardLayout
+    :breadcrumbs="[{ label: __('Contacts') }]"
+    :button-label="__('Add Contact')"
+    :button-action="() => (showAddContact = true)"
+  >
+    <FormControl v-model="search" :placeholder="__('Search')" class="sm:w-80">
+      <template #prefix>
+        <FeatherIcon name="search" class="text-ink-gray-5 w-4" />
+      </template>
+    </FormControl>
 
-		<ListView
-			ref="listView"
-			class="flex-1"
-			:columns="LIST_COLUMNS"
-			:rows="contacts?.data || []"
-			:options="listOptions"
-			row-key="id"
-		>
-			<ListHeader />
-			<ListRows v-if="contacts?.data?.length" @scroll="loadMoreContacts" />
-			<ListEmptyState v-else />
-			<ListSelectBanner>
-				<template #actions>
-					<Button
-						variant="ghost"
-						theme="red"
-						:label="__('Delete')"
-						@click="showDeleteContacts = true"
-					/>
-				</template>
-			</ListSelectBanner>
-		</ListView>
-	</DashboardLayout>
+    <ListView
+      ref="listView"
+      class="flex-1"
+      :columns="LIST_COLUMNS"
+      :rows="contacts?.data || []"
+      :options="listOptions"
+      row-key="id"
+    >
+      <ListHeader />
+      <ListRows v-if="contacts?.data?.length" @scroll="loadMoreContacts" />
+      <ListEmptyState v-else />
+      <ListSelectBanner>
+        <template #actions>
+          <Button
+            variant="ghost"
+            theme="red"
+            :label="__('Delete')"
+            @click="showDeleteContacts = true"
+          />
+        </template>
+      </ListSelectBanner>
+    </ListView>
+  </DashboardLayout>
 
-	<AddContactModal v-model="showAddContact" />
-	<Dialog v-model="showDeleteContacts" :options="DELETE_CONTACTS_OPTIONS" />
+  <AddContactModal v-model="showAddContact" />
+  <Dialog v-model="showDeleteContacts" :options="DELETE_CONTACTS_OPTIONS" />
 </template>
 
 <script setup lang="ts">

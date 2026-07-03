@@ -1,21 +1,21 @@
 <template>
-	<div>
-		<TransitionGroup
-			name="notification"
-			tag="div"
-			class="fixed bottom-4 z-50 flex flex-col-reverse space-y-reverse space-y-2"
-			:class="props.chatOpen ? 'right-80 sm:right-96' : 'right-4'"
-		>
-			<ChatNotification
-				v-for="notification in activeNotifications"
-				:key="notification.id"
-				:notification="notification"
-				:auto-dismiss-delay="autoDismissDelay"
-				@close="removeNotification(notification.id)"
-				@click="handleNotificationClick"
-			/>
-		</TransitionGroup>
-	</div>
+  <div>
+    <TransitionGroup
+      name="notification"
+      tag="div"
+      class="fixed bottom-4 z-50 flex flex-col-reverse space-y-reverse space-y-2"
+      :class="props.chatOpen ? 'right-80 sm:right-96' : 'right-4'"
+    >
+      <ChatNotification
+        v-for="notification in activeNotifications"
+        :key="notification.id"
+        :notification="notification"
+        :auto-dismiss-delay="autoDismissDelay"
+        @close="removeNotification(notification.id)"
+        @click="handleNotificationClick"
+      />
+    </TransitionGroup>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -100,20 +100,20 @@ defineExpose({
 <style scoped>
 .notification-enter-active,
 .notification-leave-active {
-	transition: all 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .notification-enter-from {
-	opacity: 0;
-	transform: translateY(20px) scale(0.95);
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
 }
 
 .notification-leave-to {
-	opacity: 0;
-	transform: translateY(20px) scale(0.95);
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
 }
 
 .notification-move {
-	transition: transform 0.3s ease;
+  transition: transform 0.3s ease;
 }
 </style>

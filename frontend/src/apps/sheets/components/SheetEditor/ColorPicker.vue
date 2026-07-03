@@ -15,29 +15,63 @@
   <Popover :placement="placement">
     <template #target="{ togglePopover, isOpen }">
       <slot name="trigger" :toggle="togglePopover" :open="isOpen" :color="modelValue">
-        <button type="button" class="sn-cp-trigger" :class="{ open: isOpen }" :title="title" @click="togglePopover()">
-          <span class="sn-cp-trigger-sw" :style="{ background: isHex(modelValue) ? modelValue : 'transparent' }" />
+        <button
+          type="button"
+          class="sn-cp-trigger"
+          :class="{ open: isOpen }"
+          :title="title"
+          @click="togglePopover()"
+        >
+          <span
+            class="sn-cp-trigger-sw"
+            :style="{ background: isHex(modelValue) ? modelValue : 'transparent' }"
+          />
         </button>
       </slot>
     </template>
     <template #body="{ close }">
       <div class="sn-cp-pop">
         <div class="sn-cp-grid">
-          <button v-for="c in COLORS" :key="c" type="button" class="sn-cp-sw"
-                  :class="{ sel: eqHex(c, modelValue) }" :style="{ background: c }" :title="c"
-                  @click="choose(c, close)">
-            <FeatherIcon v-if="eqHex(c, modelValue)" name="check" class="sn-cp-check" :style="{ color: contrast(c) }" />
+          <button
+            v-for="c in COLORS"
+            :key="c"
+            type="button"
+            class="sn-cp-sw"
+            :class="{ sel: eqHex(c, modelValue) }"
+            :style="{ background: c }"
+            :title="c"
+            @click="choose(c, close)"
+          >
+            <FeatherIcon
+              v-if="eqHex(c, modelValue)"
+              name="check"
+              class="sn-cp-check"
+              :style="{ color: contrast(c) }"
+            />
           </button>
         </div>
         <div class="sn-cp-foot">
-          <button v-if="allowDefault" type="button" class="sn-cp-iconbtn" :class="{ sel: !isHex(modelValue) }"
-                  :title="defaultLabel" @click="choose(defaultValue, close)">
+          <button
+            v-if="allowDefault"
+            type="button"
+            class="sn-cp-iconbtn"
+            :class="{ sel: !isHex(modelValue) }"
+            :title="defaultLabel"
+            @click="choose(defaultValue, close)"
+          >
             <FeatherIcon name="slash" class="sn-cp-icon" />
           </button>
           <span class="sn-cp-hash">#</span>
-          <input class="sn-cp-hex" :value="hexBody" maxlength="6" placeholder="rrggbb" spellcheck="false"
-                 @input="hexBody = norm($event.target.value)"
-                 @keydown.enter.prevent="commitHex(close)" @blur="commitHex(null)" />
+          <input
+            class="sn-cp-hex"
+            :value="hexBody"
+            maxlength="6"
+            placeholder="rrggbb"
+            spellcheck="false"
+            @input="hexBody = norm($event.target.value)"
+            @keydown.enter.prevent="commitHex(close)"
+            @blur="commitHex(null)"
+          />
           <label class="sn-cp-iconbtn" :title="`Custom colour`">
             <FeatherIcon name="plus" class="sn-cp-icon" />
             <input type="color" :value="nativeValue()" @input="choose($event.target.value, null)" />
@@ -215,27 +249,130 @@ function contrast(hex) {
 </script>
 
 <style scoped>
-.sn-cp-trigger { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:6px; border:1px solid var(--outline-gray-2); background:var(--surface-base); cursor:pointer; padding:0; }
-.sn-cp-trigger:hover, .sn-cp-trigger.open { background:var(--surface-gray-2); }
-.sn-cp-trigger-sw { width:16px; height:16px; border-radius:4px; border:1px solid var(--outline-gray-2); }
+.sn-cp-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--outline-gray-2);
+  background: var(--surface-base);
+  cursor: pointer;
+  padding: 0;
+}
+.sn-cp-trigger:hover,
+.sn-cp-trigger.open {
+  background: var(--surface-gray-2);
+}
+.sn-cp-trigger-sw {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid var(--outline-gray-2);
+}
 
 /* Width pinned to the grid (9×20px chips + 8×6px gaps + 12px padding each side)
    so the footer's hex input can't widen the popover past the swatches. */
-.sn-cp-pop { padding:12px; width:252px; background:var(--surface-elevation-2, #fff); border:1px solid var(--outline-elevation-2, var(--outline-gray-2)); border-radius:10px; box-shadow:0 6px 24px rgba(0,0,0,.14); }
+.sn-cp-pop {
+  padding: 12px;
+  width: 252px;
+  background: var(--surface-elevation-2, #fff);
+  border: 1px solid var(--outline-elevation-2, var(--outline-gray-2));
+  border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.14);
+}
 
-.sn-cp-grid { display:grid; grid-template-columns:repeat(9, 20px); gap:6px; justify-content:space-between; }
-.sn-cp-sw { width:20px; height:20px; border-radius:9999px; border:1px solid rgba(0,0,0,.10); cursor:pointer; padding:0; display:flex; align-items:center; justify-content:center; transition:transform .1s; }
-.sn-cp-sw:hover { transform:scale(1.18); }
-.sn-cp-sw.sel { box-shadow:0 0 0 2px var(--surface-base), 0 0 0 3.5px var(--outline-gray-5); }
-.sn-cp-check { width:11px; height:11px; }
+.sn-cp-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 20px);
+  gap: 6px;
+  justify-content: space-between;
+}
+.sn-cp-sw {
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s;
+}
+.sn-cp-sw:hover {
+  transform: scale(1.18);
+}
+.sn-cp-sw.sel {
+  box-shadow:
+    0 0 0 2px var(--surface-base),
+    0 0 0 3.5px var(--outline-gray-5);
+}
+.sn-cp-check {
+  width: 11px;
+  height: 11px;
+}
 
-.sn-cp-foot { display:flex; align-items:center; gap:6px; margin-top:12px; }
-.sn-cp-hash { font-size:13px; color:var(--ink-gray-5); margin-left:2px; }
-.sn-cp-hex { flex:1; min-width:0; height:30px; padding:0 10px; font-size:13px; text-transform:uppercase; border:1px solid var(--outline-gray-2); border-radius:8px; color:var(--ink-gray-9); background:var(--surface-base); outline:none; }
-.sn-cp-hex:focus { border-color:var(--outline-gray-4); }
-.sn-cp-iconbtn { position:relative; display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; border:1px solid var(--outline-gray-2); cursor:pointer; color:var(--ink-gray-7); background:var(--surface-base); flex-shrink:0; }
-.sn-cp-iconbtn:hover { background:var(--surface-gray-2); }
-.sn-cp-iconbtn.sel { border-color:var(--outline-gray-4); color:var(--ink-gray-9); }
-.sn-cp-icon { width:15px; height:15px; pointer-events:none; }
-.sn-cp-iconbtn input[type=color] { position:absolute; inset:0; opacity:0; width:100%; height:100%; cursor:pointer; }
+.sn-cp-foot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+.sn-cp-hash {
+  font-size: 13px;
+  color: var(--ink-gray-5);
+  margin-left: 2px;
+}
+.sn-cp-hex {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  padding: 0 10px;
+  font-size: 13px;
+  text-transform: uppercase;
+  border: 1px solid var(--outline-gray-2);
+  border-radius: 8px;
+  color: var(--ink-gray-9);
+  background: var(--surface-base);
+  outline: none;
+}
+.sn-cp-hex:focus {
+  border-color: var(--outline-gray-4);
+}
+.sn-cp-iconbtn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--outline-gray-2);
+  cursor: pointer;
+  color: var(--ink-gray-7);
+  background: var(--surface-base);
+  flex-shrink: 0;
+}
+.sn-cp-iconbtn:hover {
+  background: var(--surface-gray-2);
+}
+.sn-cp-iconbtn.sel {
+  border-color: var(--outline-gray-4);
+  color: var(--ink-gray-9);
+}
+.sn-cp-icon {
+  width: 15px;
+  height: 15px;
+  pointer-events: none;
+}
+.sn-cp-iconbtn input[type="color"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
 </style>

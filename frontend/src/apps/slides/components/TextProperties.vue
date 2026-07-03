@@ -1,108 +1,108 @@
 <template>
-	<CollapsibleSection title="Style">
-		<template #default>
-			<Select
-				:options="presetTextStyles"
-				:modelValue="activeElement.defaultStyle || 'body'"
-				@update:modelValue="applyPresetTextStyles"
-			/>
+  <CollapsibleSection title="Style">
+    <template #default>
+      <Select
+        :options="presetTextStyles"
+        :modelValue="activeElement.defaultStyle || 'body'"
+        @update:modelValue="applyPresetTextStyles"
+      />
 
-			<div class="grid grid-cols-5 gap-2">
-				<button
-					v-for="style in styleProperties"
-					:key="style.property"
-					:class="getFontStyleButtonClasses(style.property)"
-					@click="toggleMark(style.property)"
-				>
-					<component
-						:is="style.icon"
-						size="16"
-						:strokeWidth="1.5"
-						:class="getFontStyleIconClasses(style.property)"
-					/>
-				</button>
-			</div>
+      <div class="grid grid-cols-5 gap-2">
+        <button
+          v-for="style in styleProperties"
+          :key="style.property"
+          :class="getFontStyleButtonClasses(style.property)"
+          @click="toggleMark(style.property)"
+        >
+          <component
+            :is="style.icon"
+            size="16"
+            :strokeWidth="1.5"
+            :class="getFontStyleIconClasses(style.property)"
+          />
+        </button>
+      </div>
 
-			<div class="flex items-center justify-between">
-				<div
-					class="flex h-8 w-4/5 items-center justify-between rounded-[10px] border bg-gray-100 p-0.5"
-				>
-					<div
-						v-for="textAlign in textAlignProperties"
-						:key="textAlign.alignValue"
-						:class="getTabClasses(textAlign.alignValue)"
-						@click="updateProperty('textAlign', textAlign.alignValue)"
-					>
-						<component :is="textAlign.icon" size="16" :strokeWidth="1.5" />
-					</div>
-				</div>
+      <div class="flex items-center justify-between">
+        <div
+          class="flex h-8 w-4/5 items-center justify-between rounded-[10px] border bg-gray-100 p-0.5"
+        >
+          <div
+            v-for="textAlign in textAlignProperties"
+            :key="textAlign.alignValue"
+            :class="getTabClasses(textAlign.alignValue)"
+            @click="updateProperty('textAlign', textAlign.alignValue)"
+          >
+            <component :is="textAlign.icon" size="16" :strokeWidth="1.5" />
+          </div>
+        </div>
 
-				<div :class="listButtonClasses" @click="updateProperty('list')">
-					<component
-						:is="editorStyles.orderedList ? ListOrdered : List"
-						size="16"
-						:strokeWidth="1.5"
-					/>
-				</div>
-			</div>
-		</template>
-	</CollapsibleSection>
+        <div :class="listButtonClasses" @click="updateProperty('list')">
+          <component
+            :is="editorStyles.orderedList ? ListOrdered : List"
+            size="16"
+            :strokeWidth="1.5"
+          />
+        </div>
+      </div>
+    </template>
+  </CollapsibleSection>
 
-	<CollapsibleSection title="Font">
-		<template #default>
-			<FormControl
-				type="combobox"
-				:options="textFonts"
-				size="sm"
-				variant="subtle"
-				:modelValue="displayFont"
-				@update:modelValue="(font) => updateProperty('fontFamily', font)"
-			/>
+  <CollapsibleSection title="Font">
+    <template #default>
+      <FormControl
+        type="combobox"
+        :options="textFonts"
+        size="sm"
+        variant="subtle"
+        :modelValue="displayFont"
+        @update:modelValue="(font) => updateProperty('fontFamily', font)"
+      />
 
-			<div class="flex items-center justify-between">
-				<div :class="fieldLabelClasses">Size</div>
-				<div class="w-28">
-					<NumberInput
-						:modelValue="editorStyles.fontSize"
-						@update:modelValue="(value) => updateProperty('fontSize', value)"
-						suffix="px"
-						:rangeStart="5"
-						:rangeEnd="800"
-						:rangeStep="1"
-					/>
-				</div>
-			</div>
+      <div class="flex items-center justify-between">
+        <div :class="fieldLabelClasses">Size</div>
+        <div class="w-28">
+          <NumberInput
+            :modelValue="editorStyles.fontSize"
+            @update:modelValue="(value) => updateProperty('fontSize', value)"
+            suffix="px"
+            :rangeStart="5"
+            :rangeEnd="800"
+            :rangeStep="1"
+          />
+        </div>
+      </div>
 
-			<div class="flex items-center justify-between">
-				<div :class="fieldLabelClasses">Color</div>
-				<ColorPicker
-					:modelValue="editorStyles.color"
-					@update:modelValue="(val) => updateProperty('color', val)"
-				/>
-			</div>
-		</template>
-	</CollapsibleSection>
+      <div class="flex items-center justify-between">
+        <div :class="fieldLabelClasses">Color</div>
+        <ColorPicker
+          :modelValue="editorStyles.color"
+          @update:modelValue="(val) => updateProperty('color', val)"
+        />
+      </div>
+    </template>
+  </CollapsibleSection>
 
-	<CollapsibleSection title="Spacing">
-		<template #default>
-			<SliderInput
-				label="Line Height"
-				:rangeStart="1"
-				:rangeEnd="5.0"
-				:rangeStep="0.1"
-				:modelValue="parseFloat(editorStyles.lineHeight)"
-				@update:modelValue="(value) => updateProperty('lineHeight', parseFloat(value))"
-			/>
+  <CollapsibleSection title="Spacing">
+    <template #default>
+      <SliderInput
+        label="Line Height"
+        :rangeStart="1"
+        :rangeEnd="5.0"
+        :rangeStep="0.1"
+        :modelValue="parseFloat(editorStyles.lineHeight)"
+        @update:modelValue="(value) => updateProperty('lineHeight', parseFloat(value))"
+      />
 
-			<SliderInput
-				label="Letter Spacing"
-				:rangeStart="-10"
-				:rangeEnd="50"
-				:modelValue="editorStyles.letterSpacing || 0"
-				@update:modelValue="(value) => updateProperty('letterSpacing', parseFloat(value))"
-			/>
-		</template>
-	</CollapsibleSection>
+      <SliderInput
+        label="Letter Spacing"
+        :rangeStart="-10"
+        :rangeEnd="50"
+        :modelValue="editorStyles.letterSpacing || 0"
+        @update:modelValue="(value) => updateProperty('letterSpacing', parseFloat(value))"
+      />
+    </template>
+  </CollapsibleSection>
 </template>
 
 <script setup>
@@ -278,7 +278,7 @@ const displayFont = computed(() => {
 <style scoped>
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-	-webkit-appearance: none;
-	margin: 0;
+  -webkit-appearance: none;
+  margin: 0;
 }
 </style>

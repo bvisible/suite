@@ -53,17 +53,17 @@ const segments = computed<Segment[]>(() => {
 </script>
 
 <template>
-	<div class="whitespace-pre-wrap break-words pt-4 font-sans text-base !leading-5 sm:text-sm">
-		<template v-for="(segment, index) in segments" :key="index">
-			<a
-				v-if="segment.href"
-				:href="segment.href"
-				target="_blank"
-				rel="noopener noreferrer"
-				class="text-ink-blue-6 hover:underline"
-				>{{ segment.text }}</a
-			>
-			<span v-else>{{ segment.text }}</span>
-		</template>
-	</div>
+  <div class="whitespace-pre-wrap break-words pt-4 font-sans text-base !leading-5 sm:text-sm">
+    <template v-for="(segment, index) in segments" :key="index">
+      <a
+        v-if="segment.href"
+        :href="segment.href"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="text-ink-blue-6 hover:underline"
+        >{{ segment.text }}</a
+      >
+      <span v-else>{{ segment.text }}</span>
+    </template>
+  </div>
 </template>

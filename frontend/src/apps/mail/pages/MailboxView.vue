@@ -1,259 +1,250 @@
 <template>
-	<!-- Header -->
-	<header class="flex items-center justify-between border-b px-3 py-2.5 sm:px-5">
-		<div class="flex items-center space-x-2">
-			<Button v-if="isMobile" icon="menu" variant="ghost" @click="openSidebar" />
-			<Breadcrumbs
-				:items="[
+  <!-- Header -->
+  <header class="flex items-center justify-between border-b px-3 py-2.5 sm:px-5">
+    <div class="flex items-center space-x-2">
+      <Button v-if="isMobile" icon="menu" variant="ghost" @click="openSidebar" />
+      <Breadcrumbs
+        :items="[
 					{
 						label: mailboxName,
 						route: { name: 'mail-mailbox', params: { accountId, mailbox } },
 					},
 				]"
-			/>
-		</div>
-		<HeaderActions @reload-mails="reloadThreads(true, ['drafts', 'sent'])" />
-	</header>
+      />
+    </div>
+    <HeaderActions @reload-mails="reloadThreads(true, ['drafts', 'sent'])" />
+  </header>
 
-	<!-- Unscreened-thread nudge on the inbox, mirroring the trash/junk info bar: shown while Hey-style
+  <!-- Unscreened-thread nudge on the inbox, mirroring the trash/junk info bar: shown while Hey-style
 	     screening is on and threads are waiting to be screened. -->
-	<div v-if="showScreenerBanner" class="space-x-1 border-b px-3 py-2.5 sm:px-5">
-		<span class="text-ink-gray-5">{{ screenerBannerLabel }}</span>
-		<Button :label="__('Review Now')" variant="ghost" @click="goToScreener" />
-	</div>
+  <div v-if="showScreenerBanner" class="space-x-1 border-b px-3 py-2.5 sm:px-5">
+    <span class="text-ink-gray-5">{{ screenerBannerLabel }}</span>
+    <Button :label="__('Review Now')" variant="ghost" @click="goToScreener" />
+  </div>
 
-	<div
-		v-if="
+  <div
+    v-if="
 			[mailboxIds.trash, mailboxIds.junk].includes(mailbox) &&
 			!threadsResource.data?.loading &&
 			threadsResource.data?.length &&
 			(showReadingPane || !threadID)
 		"
-		class="space-x-1 border-b px-3 py-2.5 sm:px-5"
-	>
-		<span class="text-ink-gray-5">
-			{{ __('Items in this mailbox will be automatically deleted after 30 days.') }}
-		</span>
-		<Button :label="__('Delete Now')" variant="ghost" @click="showEmptyMailbox = true" />
-	</div>
+    class="space-x-1 border-b px-3 py-2.5 sm:px-5"
+  >
+    <span class="text-ink-gray-5">
+      {{ __('Items in this mailbox will be automatically deleted after 30 days.') }}
+    </span>
+    <Button :label="__('Delete Now')" variant="ghost" @click="showEmptyMailbox = true" />
+  </div>
 
-	<div
-		class="relative flex"
-		:class="
+  <div
+    class="relative flex"
+    :class="
 			[mailboxIds.trash, mailboxIds.junk].includes(mailbox) || showScreenerBanner
 				? 'h-[calc(100dvh-6.1rem)]'
 				: 'h-[calc(100dvh-3.05rem)]'
 		"
-	>
-		<!-- Loading -->
-		<div v-if="isLoading" class="flex w-full flex-col items-center justify-center">
-			<div class="text-ink-gray-5 flex items-center space-x-2">
-				<LoaderCircle class="h-5 w-5 animate-spin" />
-				<span>{{ __('Loading...') }}</span>
-			</div>
-		</div>
+  >
+    <!-- Loading -->
+    <div v-if="isLoading" class="flex w-full flex-col items-center justify-center">
+      <div class="text-ink-gray-5 flex items-center space-x-2">
+        <LoaderCircle class="h-5 w-5 animate-spin" />
+        <span>{{ __('Loading...') }}</span>
+      </div>
+    </div>
 
-		<template v-else-if="threadsResource?.data?.length || filter">
-			<div
-				ref="mailSidebar"
-				class="sticky top-16 flex flex-col border-r"
-				:class="!isMobile && showReadingPane ? 'w-1/3' : 'w-full'"
-			>
-				<!-- Toolbar/Actions -->
-				<div
-					class="relative flex items-center border-b border-l-transparent px-3.5 py-2.5 sm:border-l sm:px-5"
-				>
-					<div class="mr-5 max-sm:ml-3">
-						<Tooltip
-							:text="
+    <template v-else-if="threadsResource?.data?.length || filter">
+      <div
+        ref="mailSidebar"
+        class="sticky top-16 flex flex-col border-r"
+        :class="!isMobile && showReadingPane ? 'w-1/3' : 'w-full'"
+      >
+        <!-- Toolbar/Actions -->
+        <div
+          class="relative flex items-center border-b border-l-transparent px-3.5 py-2.5 sm:border-l sm:px-5"
+        >
+          <div class="mr-5 max-sm:ml-3">
+            <Tooltip
+              :text="
 								isAllSelected
 									? __('Clear All (Esc)')
 									: __('Select All ({0}+A)', [modifier])
 							"
-						>
-							<div
-								class="checkbox-hitbox -m-3 cursor-pointer p-3"
-								@click.stop.prevent="toggleSelectAll(!isAllSelected)"
-							>
-								<Checkbox
-									:model-value="isAllSelected"
-									size="md"
-									class="pointer-events-none"
-								/>
-							</div>
-						</Tooltip>
-					</div>
-					<Dropdown
-						v-if="!selections.length && mailbox !== 'search'"
-						:options="FILTER_OPTIONS"
-					>
-						<button
-							class="text-ink-gray-8 hover:bg-surface-gray-2 -ml-2 flex min-w-0 items-center gap-1 rounded px-2 py-1"
-						>
-							<span class="truncate">{{ title }}</span>
-							<ChevronDown class="text-ink-gray-5 icon shrink-0" />
-						</button>
-					</Dropdown>
-					<p v-else class="pb-[2px]">{{ title }}</p>
-					<div class="-mr-1.5 ml-auto flex items-center space-x-1.5 sm:space-x-3">
-						<div
-							v-if="!selections.length && displayTotal"
-							class="text-ink-gray-6 flex items-center gap-1"
-						>
-							<span class="whitespace-nowrap text-sm tabular-nums">
-								{{ range }} {{ __('of') }} {{ totalLabel }}
-							</span>
-							<Button
-								:tooltip="__('Previous Page')"
-								variant="ghost"
-								:disabled="!canGoPrev"
-								@click="goToPage(false)"
-							>
-								<template #icon>
-									<ChevronLeft class="icon" />
-								</template>
-							</Button>
-							<Button
-								:tooltip="__('Next Page')"
-								variant="ghost"
-								:disabled="!canGoNext"
-								@click="goToPage(true)"
-							>
-								<template #icon>
-									<ChevronRight class="icon" />
-								</template>
-							</Button>
-						</div>
+            >
+              <div
+                class="checkbox-hitbox -m-3 cursor-pointer p-3"
+                @click.stop.prevent="toggleSelectAll(!isAllSelected)"
+              >
+                <Checkbox :model-value="isAllSelected" size="md" class="pointer-events-none" />
+              </div>
+            </Tooltip>
+          </div>
+          <Dropdown v-if="!selections.length && mailbox !== 'search'" :options="FILTER_OPTIONS">
+            <button
+              class="text-ink-gray-8 hover:bg-surface-gray-2 -ml-2 flex min-w-0 items-center gap-1 rounded px-2 py-1"
+            >
+              <span class="truncate">{{ title }}</span>
+              <ChevronDown class="text-ink-gray-5 icon shrink-0" />
+            </button>
+          </Dropdown>
+          <p v-else class="pb-[2px]">{{ title }}</p>
+          <div class="-mr-1.5 ml-auto flex items-center space-x-1.5 sm:space-x-3">
+            <div
+              v-if="!selections.length && displayTotal"
+              class="text-ink-gray-6 flex items-center gap-1"
+            >
+              <span class="whitespace-nowrap text-sm tabular-nums">
+                {{ range }} {{ __('of') }} {{ totalLabel }}
+              </span>
+              <Button
+                :tooltip="__('Previous Page')"
+                variant="ghost"
+                :disabled="!canGoPrev"
+                @click="goToPage(false)"
+              >
+                <template #icon>
+                  <ChevronLeft class="icon" />
+                </template>
+              </Button>
+              <Button
+                :tooltip="__('Next Page')"
+                variant="ghost"
+                :disabled="!canGoNext"
+                @click="goToPage(true)"
+              >
+                <template #icon>
+                  <ChevronRight class="icon" />
+                </template>
+              </Button>
+            </div>
 
-						<template v-else-if="selections.length">
-							<Dropdown v-if="showReadingPane" :options="selectActions">
-								<Button variant="ghost" :tooltip="__('Actions')">
-									<template #icon>
-										<Ellipsis class="icon" />
-									</template>
-								</Button>
-							</Dropdown>
-							<template v-else>
-								<Button
-									v-for="action in selectActions.filter((a) => a.condition())"
-									:key="action.label"
-									:tooltip="action.label"
-									variant="ghost"
-									@click="action.onClick"
-								>
-									<template #icon>
-										<component :is="action.icon" class="icon" />
-									</template>
-								</Button>
-							</template>
-						</template>
+            <template v-else-if="selections.length">
+              <Dropdown v-if="showReadingPane" :options="selectActions">
+                <Button variant="ghost" :tooltip="__('Actions')">
+                  <template #icon>
+                    <Ellipsis class="icon" />
+                  </template>
+                </Button>
+              </Dropdown>
+              <template v-else>
+                <Button
+                  v-for="action in selectActions.filter((a) => a.condition())"
+                  :key="action.label"
+                  :tooltip="action.label"
+                  variant="ghost"
+                  @click="action.onClick"
+                >
+                  <template #icon>
+                    <component :is="action.icon" class="icon" />
+                  </template>
+                </Button>
+              </template>
+            </template>
 
-						<Dropdown
-							v-if="!!selections.length && !['search', 'starred'].includes(mailbox)"
-							:options="moveToOptions"
-						>
-							<Button variant="ghost" :tooltip="__('Move To')">
-								<template #icon>
-									<component :is="FolderInput" class="icon" />
-								</template>
-							</Button>
-						</Dropdown>
-						<Dropdown v-if="showAddTo" :options="addToOptions">
-							<Button variant="ghost" :tooltip="__('Add To')">
-								<template #icon>
-									<component :is="FolderPlus" class="icon" />
-								</template>
-							</Button>
-						</Dropdown>
-						<Dropdown v-if="showRemoveFrom" :options="removeFromOptions">
-							<Button variant="ghost" :tooltip="__('Remove From')">
-								<template #icon>
-									<component :is="FolderMinus" class="icon" />
-								</template>
-							</Button>
-						</Dropdown>
-					</div>
-					<!-- Subtle loading bar: a segment sliding across the bottom outline (no layout shift) -->
-					<div
-						v-if="threadsResource?.loading"
-						class="loading-bar pointer-events-none absolute bottom-[-1px] left-[-1px] right-0 h-0.5 overflow-hidden"
-						role="progressbar"
-						aria-busy="true"
-					>
-						<div
-							class="loading-bar__fill via-ink-gray-3 absolute inset-y-0 left-0 w-[30%] bg-gradient-to-r from-transparent to-transparent"
-						/>
-					</div>
-				</div>
+            <Dropdown
+              v-if="!!selections.length && !['search', 'starred'].includes(mailbox)"
+              :options="moveToOptions"
+            >
+              <Button variant="ghost" :tooltip="__('Move To')">
+                <template #icon>
+                  <component :is="FolderInput" class="icon" />
+                </template>
+              </Button>
+            </Dropdown>
+            <Dropdown v-if="showAddTo" :options="addToOptions">
+              <Button variant="ghost" :tooltip="__('Add To')">
+                <template #icon>
+                  <component :is="FolderPlus" class="icon" />
+                </template>
+              </Button>
+            </Dropdown>
+            <Dropdown v-if="showRemoveFrom" :options="removeFromOptions">
+              <Button variant="ghost" :tooltip="__('Remove From')">
+                <template #icon>
+                  <component :is="FolderMinus" class="icon" />
+                </template>
+              </Button>
+            </Dropdown>
+          </div>
+          <!-- Subtle loading bar: a segment sliding across the bottom outline (no layout shift) -->
+          <div
+            v-if="threadsResource?.loading"
+            class="loading-bar pointer-events-none absolute bottom-[-1px] left-[-1px] right-0 h-0.5 overflow-hidden"
+            role="progressbar"
+            aria-busy="true"
+          >
+            <div
+              class="loading-bar__fill via-ink-gray-3 absolute inset-y-0 left-0 w-[30%] bg-gradient-to-r from-transparent to-transparent"
+            />
+          </div>
+        </div>
 
-				<!-- Mail list -->
-				<div
-					v-if="threadsResource?.data?.length"
-					ref="mailList"
-					class="h-full overflow-y-auto overscroll-contain"
-				>
-					<div v-for="(group, key) in groupedThreads" :key="key">
-						<Tooltip
-							v-if="groupMessagesBy !== 'None'"
-							:text="
+        <!-- Mail list -->
+        <div
+          v-if="threadsResource?.data?.length"
+          ref="mailList"
+          class="h-full overflow-y-auto overscroll-contain"
+        >
+          <div v-for="(group, key) in groupedThreads" :key="key">
+            <Tooltip
+              v-if="groupMessagesBy !== 'None'"
+              :text="
 								isLastGroup(key)
 									? ''
 									: __(collapsedGroups.includes(key) ? 'Expand' : 'Collapse')
 							"
-						>
-							<div
-								class="text-ink-gray-6 group flex items-center border-b border-l-transparent p-3.5 text-xs-semibold sm:border-l sm:px-5"
-								@click="toggleGroupCollapse(key)"
-							>
-								<div
-									class="pr-7.5 checkbox-hitbox -m-3 cursor-pointer py-3 pl-6 sm:pl-3"
-									@click.stop.prevent="
+            >
+              <div
+                class="text-ink-gray-6 group flex items-center border-b border-l-transparent p-3.5 text-xs-semibold sm:border-l sm:px-5"
+                @click="toggleGroupCollapse(key)"
+              >
+                <div
+                  class="pr-7.5 checkbox-hitbox -m-3 cursor-pointer py-3 pl-6 sm:pl-3"
+                  @click.stop.prevent="
 										toggleSelect(getGroupThreads(key), !isGroupSelected(key))
 									"
-								>
-									<Checkbox
-										:model-value="isGroupSelected(key)"
-										size="md"
-										class="pointer-events-none"
-									/>
-								</div>
+                >
+                  <Checkbox
+                    :model-value="isGroupSelected(key)"
+                    size="md"
+                    class="pointer-events-none"
+                  />
+                </div>
 
-								<span class="select-none pt-[2px]">
-									{{
-										getFormattedDate(
+                <span class="select-none pt-[2px]">
+                  {{ getFormattedDate(
 											key,
 											groupMessagesBy === 'Month',
-										).toUpperCase()
-									}}
-								</span>
+										).toUpperCase() }}
+                </span>
 
-								<component
-									:is="
+                <component
+                  :is="
 										collapsedGroups.includes(key) ? ChevronRight : ChevronDown
 									"
-									v-if="!isLastGroup(key)"
-									class="icon ml-auto"
-								/>
-							</div>
-						</Tooltip>
-						<template v-if="!collapsedGroups.includes(key)">
-							<MailListItem
-								v-for="mail in group"
-								ref="mailItems"
-								:key="mail.name"
-								:mailbox
-								:mail
-								:is-selected="selections.includes(mail.thread_id)"
-								class="border-l-transparent sm:border-l"
-								:class="{
+                  v-if="!isLastGroup(key)"
+                  class="icon ml-auto"
+                />
+              </div>
+            </Tooltip>
+            <template v-if="!collapsedGroups.includes(key)">
+              <MailListItem
+                v-for="mail in group"
+                ref="mailItems"
+                :key="mail.name"
+                :mailbox
+                :mail
+                :is-selected="selections.includes(mail.thread_id)"
+                class="border-l-transparent sm:border-l"
+                :class="{
 									'!bg-surface-blue-1': mail.thread_id === threadID && !isMobile,
 									'!border-l-blue-500': mail.thread_id === threadInFocus,
 								}"
-								@set-seen="
+                @set-seen="
 									(seen: boolean) =>
 										handleSetSeen({ [Number(seen)]: [mail.thread_id] })
 								"
-								@archive-thread="
+                @archive-thread="
 									mailbox === mailboxIds.sent
 										? handleAddThreadsToMailbox(mailboxIds.archive, [
 												mail.thread_id,
@@ -262,102 +253,100 @@
 												[mailboxIds.archive]: [mail.thread_id],
 											})
 								"
-								@trash-thread="
+                @trash-thread="
 									handleMoveThreads({ [mailboxIds.trash]: [mail.thread_id] })
 								"
-								@delete-thread="junkOrDeleteThreads([mail.thread_id], false)"
-								@set-flagged="
+                @delete-thread="junkOrDeleteThreads([mail.thread_id], false)"
+                @set-flagged="
 									(flagged: boolean) =>
 										setFlaggedByThreadIDs([mail.thread_id], flagged)
 								"
-								@set-selected="
+                @set-selected="
 									(selected: boolean) => toggleSelect([mail.thread_id], selected)
 								"
-							/>
-						</template>
-					</div>
-				</div>
-				<div v-else class="flex h-full items-center justify-center">
-					<p class="text-ink-gray-5">
-						{{ __('No mails found for the selected filter.') }}
-					</p>
-				</div>
-			</div>
-			<div class="flex cursor-col-resize justify-center" @mousedown="startResizing">
-				<div
-					ref="resizer"
-					class="group-hover:bg-surface-gray-8 h-full rounded-full transition-all duration-300 ease-in-out"
-				/>
-			</div>
+              />
+            </template>
+          </div>
+        </div>
+        <div v-else class="flex h-full items-center justify-center">
+          <p class="text-ink-gray-5">
+            {{ __('No mails found for the selected filter.') }}
+          </p>
+        </div>
+      </div>
+      <div class="flex cursor-col-resize justify-center" @mousedown="startResizing">
+        <div
+          ref="resizer"
+          class="group-hover:bg-surface-gray-8 h-full rounded-full transition-all duration-300 ease-in-out"
+        />
+      </div>
 
-			<!-- Mail thread -->
-			<div
-				class="bg-surface-base overflow-y-auto"
-				:class="{
+      <!-- Mail thread -->
+      <div
+        class="bg-surface-base overflow-y-auto"
+        :class="{
 					'w-2/3': !isMobile && showReadingPane,
 					'absolute bottom-0 left-0 right-0 top-0': !isMobile && !showReadingPane,
 					'fixed inset-0': isMobile,
 					hidden: (isMobile || !showReadingPane) && !threadID,
 				}"
-			>
-				<MailThread
-					ref="mailThread"
-					:mailbox
-					:thread-i-d
-					:threads="threadIDs"
-					:messages="currentThread?.messages"
-					:can-go-prev="canGoPrev"
-					:can-go-next="canGoNext"
-					@reload-mails="reloadThreads"
-					@set-seen="
+      >
+        <MailThread
+          ref="mailThread"
+          :mailbox
+          :thread-i-d
+          :threads="threadIDs"
+          :messages="currentThread?.messages"
+          :can-go-prev="canGoPrev"
+          :can-go-next="canGoNext"
+          @reload-mails="reloadThreads"
+          @set-seen="
 						(seen: boolean, ids: string[]) =>
 							handleSetSeen({ [Number(seen)]: [threadID!] }, seen, ids)
 					"
-					@sync-unseen="handleSyncUnseen"
-					@set-flagged="
+          @sync-unseen="handleSyncUnseen"
+          @set-flagged="
 						(ids: string[], flagged: boolean) => setFlagged.submit({ ids, flagged })
 					"
-					@move-thread="
+          @move-thread="
 						(moveToMailbox: string) =>
 							handleMoveThreads({ [moveToMailbox]: [threadID!] })
 					"
-					@add-thread-to-mailbox="
+          @add-thread-to-mailbox="
 						(mailboxId: string) => handleAddThreadsToMailbox(mailboxId, [threadID!])
 					"
-					@remove-thread-from-mailbox="
+          @remove-thread-from-mailbox="
 						(mailboxId: string) =>
 							handleRemoveThreadsFromMailbox(mailboxId, [threadID!])
 					"
-					@set-spam-status="
+          @set-spam-status="
 						(spam: boolean) =>
 							spam
 								? junkOrDeleteThreads([threadID!], true)
 								: handleSetSpamStatus({ 0: [threadID!] })
 					"
-					@delete-thread="junkOrDeleteThreads([threadID!], false)"
-					@prev-thread="goToThreadByOffset(-1)"
-					@next-thread="goToThreadByOffset(1)"
-				/>
-			</div>
-		</template>
+          @delete-thread="junkOrDeleteThreads([threadID!], false)"
+          @prev-thread="goToThreadByOffset(-1)"
+          @next-thread="goToThreadByOffset(1)"
+        />
+      </div>
+    </template>
 
-		<!-- No mails -->
-		<div v-else class="text-ink-gray-5 flex w-full flex-col items-center justify-center">
-			<NoMails class="text-ink-gray-2 mb-2 h-16 w-16" />
-			<p>
-				{{
-					mailbox === 'search'
+    <!-- No mails -->
+    <div v-else class="text-ink-gray-5 flex w-full flex-col items-center justify-center">
+      <NoMails class="text-ink-gray-2 mb-2 h-16 w-16" />
+      <p>
+        {{ mailbox === 'search'
 						? __('No results found for the given query.')
-						: __('You have no mails in this folder.')
-				}}
-			</p>
-		</div>
-	</div>
+						: __('You have no mails in this folder.') }}
+      </p>
+    </div>
+  </div>
 
-	<Dialog v-model="showEmptyMailbox" :options="emptyMailboxOptions" />
-	<Dialog v-model="showJunkOrDeleteThreads" :options="junkOrDeleteThreadsOptions" />
-	<BlockSenderModal />
-	<ShortcutsModal v-model="showShortcuts" />
+  <Dialog v-model="showEmptyMailbox" :options="emptyMailboxOptions" />
+  <Dialog v-model="showJunkOrDeleteThreads" :options="junkOrDeleteThreadsOptions" />
+  <BlockSenderModal />
+  <ShortcutsModal v-model="showShortcuts" />
 </template>
 <script setup lang="ts">
 import { computed, inject, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue'
@@ -1283,21 +1272,21 @@ const title = computed(() => {
 </script>
 
 <style scoped>
-.checkbox-hitbox:hover :deep(input[type='checkbox']) {
-	@apply shadow-sm;
-	border-color: var(--outline-gray-7);
+.checkbox-hitbox:hover :deep(input[type="checkbox"]) {
+  @apply shadow-sm;
+  border-color: var(--outline-gray-7);
 }
 
 .loading-bar__fill {
-	animation: loading-bar-slide 1.2s linear infinite;
+  animation: loading-bar-slide 1.2s linear infinite;
 }
 
 @keyframes loading-bar-slide {
-	0% {
-		transform: translateX(-100%);
-	}
-	100% {
-		transform: translateX(333%);
-	}
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(333%);
+  }
 }
 </style>

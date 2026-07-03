@@ -1,70 +1,68 @@
 <template>
-	<div class="flex items-center justify-between">
-		<h1>{{ __('Sieve Scripts') }}</h1>
-		<div class="flex items-center gap-2">
-			<Button
-				icon-left="refresh-cw"
-				:label="__('Rebuild Automation')"
-				:loading="rebuildAutomation.loading"
-				:tooltip="
+  <div class="flex items-center justify-between">
+    <h1>{{ __('Sieve Scripts') }}</h1>
+    <div class="flex items-center gap-2">
+      <Button
+        icon-left="refresh-cw"
+        :label="__('Rebuild Automation')"
+        :loading="rebuildAutomation.loading"
+        :tooltip="
 					__('Regenerate the folder automation script from your saved mailbox rules.')
 				"
-				@click="rebuildAutomation.submit()"
-			/>
-			<Button icon-left="plus" :label="__('New')" @click="addScript" />
-		</div>
-	</div>
+        @click="rebuildAutomation.submit()"
+      />
+      <Button icon-left="plus" :label="__('New')" @click="addScript" />
+    </div>
+  </div>
 
-	<div v-if="filteredScripts.length">
-		<div
-			v-for="script in filteredScripts"
-			:key="script.name"
-			class="hover:bg-surface-gray-1 -mx-2 flex cursor-pointer items-center justify-between rounded px-3 py-1"
-			@click="editScript(script)"
-		>
-			<div class="flex items-center gap-2">
-				<span class="text-base">{{ script._name }}</span>
-				<Badge v-if="script.active" :label="__('Active')" theme="blue" size="sm" />
-			</div>
-			<Dropdown :options="scriptOptions(script)">
-				<Button variant="" @click.stop>
-					<template #icon>
-						<Ellipsis class="text-ink-gray-5 h-4 w-4" />
-					</template>
-				</Button>
-			</Dropdown>
-		</div>
-	</div>
+  <div v-if="filteredScripts.length">
+    <div
+      v-for="script in filteredScripts"
+      :key="script.name"
+      class="hover:bg-surface-gray-1 -mx-2 flex cursor-pointer items-center justify-between rounded px-3 py-1"
+      @click="editScript(script)"
+    >
+      <div class="flex items-center gap-2">
+        <span class="text-base">{{ script._name }}</span>
+        <Badge v-if="script.active" :label="__('Active')" theme="blue" size="sm" />
+      </div>
+      <Dropdown :options="scriptOptions(script)">
+        <Button variant="" @click.stop>
+          <template #icon>
+            <Ellipsis class="text-ink-gray-5 h-4 w-4" />
+          </template>
+        </Button>
+      </Dropdown>
+    </div>
+  </div>
 
-	<div v-else class="text-ink-gray-6 flex flex-col space-y-2 text-sm">
-		<p class="text-base-medium">{{ __('No sieve scripts found.') }}</p>
-		<div class="space-x-1">
-			<span>
-				{{
-					__('Sieve scripts let you automatically filter and organize incoming emails.')
-				}}
-			</span>
-			<a
-				class="text-ink-blue-5 hover:underline"
-				href="https://stalw.art/docs/category/sieve-scripting/"
-				target="_blank"
-			>
-				{{ __('Learn more.') }}
-			</a>
-		</div>
-	</div>
+  <div v-else class="text-ink-gray-6 flex flex-col space-y-2 text-sm">
+    <p class="text-base-medium">{{ __('No sieve scripts found.') }}</p>
+    <div class="space-x-1">
+      <span>
+        {{ __('Sieve scripts let you automatically filter and organize incoming emails.') }}
+      </span>
+      <a
+        class="text-ink-blue-5 hover:underline"
+        href="https://stalw.art/docs/category/sieve-scripting/"
+        target="_blank"
+      >
+        {{ __('Learn more.') }}
+      </a>
+    </div>
+  </div>
 
-	<SieveScriptModal v-model="showSieveScript" :selected-script />
-	<SetSieveScriptStateModal
-		v-if="selectedScript"
-		v-model="showSetScriptAsActive"
-		:script="selectedScript"
-	/>
-	<DeleteSieveScriptModal
-		v-if="selectedScript"
-		v-model="showDeleteScript"
-		:script="selectedScript"
-	/>
+  <SieveScriptModal v-model="showSieveScript" :selected-script />
+  <SetSieveScriptStateModal
+    v-if="selectedScript"
+    v-model="showSetScriptAsActive"
+    :script="selectedScript"
+  />
+  <DeleteSieveScriptModal
+    v-if="selectedScript"
+    v-model="showDeleteScript"
+    :script="selectedScript"
+  />
 </template>
 
 <script setup lang="ts">

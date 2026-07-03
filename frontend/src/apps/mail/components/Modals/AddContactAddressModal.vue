@@ -1,22 +1,22 @@
 <template>
-	<Dialog v-model="show" :options="options">
-		<template #body-content>
-			<div class="space-y-4">
-				<FormControl
-					v-model="address.type"
-					type="select"
-					:label="__('Type')"
-					:options="TYPE_OPTIONS"
-					required
-				/>
-				<FormControl v-model="address.street" :label="__('Street')" required />
-				<FormControl v-model="address.locality" :label="__('Locality')" />
-				<FormControl v-model="address.region" :label="__('Region')" />
-				<FormControl v-model="address.postcode" :label="__('Postcode')" />
-				<FormControl v-model="address.country" :label="__('Country')" />
-			</div>
-		</template>
-	</Dialog>
+  <Dialog v-model="show" :options="options">
+    <template #body-content>
+      <div class="space-y-4">
+        <FormControl
+          v-model="address.type"
+          type="select"
+          :label="__('Type')"
+          :options="TYPE_OPTIONS"
+          required
+        />
+        <FormControl v-model="address.street" :label="__('Street')" required />
+        <FormControl v-model="address.locality" :label="__('Locality')" />
+        <FormControl v-model="address.region" :label="__('Region')" />
+        <FormControl v-model="address.postcode" :label="__('Postcode')" />
+        <FormControl v-model="address.country" :label="__('Country')" />
+      </div>
+    </template>
+  </Dialog>
 </template>
 <script setup lang="ts">
 import { computed, reactive, watch } from 'vue'

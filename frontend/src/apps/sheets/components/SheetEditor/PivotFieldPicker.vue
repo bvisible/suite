@@ -21,40 +21,37 @@
            container; `trapped=false` is fine — we only want the *pause*
            side-effect, not our own trap. -->
       <FocusScope v-if="open" as-child :trapped="false">
-      <div
-        ref="popRef"
-        class="pfp-pop"
-        :class="{ 'pfp-pop--up': openUpward }"
-        :style="popStyle"
-      >
-        <div class="pfp-search-row">
-          <FeatherIcon name="search" class="pfp-search-icon" />
-          <input
-            ref="searchRef"
-            name="pivot-field-search"
-            v-model="query"
-            class="pfp-search"
-            placeholder="Search fields…"
-            spellcheck="false"
-            autocomplete="off"
-            @keydown.escape.stop="close"
-            @keydown.enter.prevent="selectFirst"
-            @keydown.down.prevent="moveHighlight(1)"
-            @keydown.up.prevent="moveHighlight(-1)"
-          />
+        <div ref="popRef" class="pfp-pop" :class="{ 'pfp-pop--up': openUpward }" :style="popStyle">
+          <div class="pfp-search-row">
+            <FeatherIcon name="search" class="pfp-search-icon" />
+            <input
+              ref="searchRef"
+              name="pivot-field-search"
+              v-model="query"
+              class="pfp-search"
+              placeholder="Search fields…"
+              spellcheck="false"
+              autocomplete="off"
+              @keydown.escape.stop="close"
+              @keydown.enter.prevent="selectFirst"
+              @keydown.down.prevent="moveHighlight(1)"
+              @keydown.up.prevent="moveHighlight(-1)"
+            />
+          </div>
+          <div class="pfp-list" ref="listRef">
+            <button
+              v-for="(f, i) in filtered"
+              :key="f"
+              class="pfp-item"
+              :class="{ 'pfp-item--active': i === highlight }"
+              @click="onSelect(f)"
+              @mouseenter="highlight = i"
+            >
+              {{ f }}
+            </button>
+            <div v-if="!filtered.length" class="pfp-empty">No matching fields</div>
+          </div>
         </div>
-        <div class="pfp-list" ref="listRef">
-          <button
-            v-for="(f, i) in filtered"
-            :key="f"
-            class="pfp-item"
-            :class="{ 'pfp-item--active': i === highlight }"
-            @click="onSelect(f)"
-            @mouseenter="highlight = i"
-          >{{ f }}</button>
-          <div v-if="!filtered.length" class="pfp-empty">No matching fields</div>
-        </div>
-      </div>
       </FocusScope>
     </Teleport>
   </div>
@@ -238,21 +235,27 @@ onBeforeUnmount(close)
   border: 1px solid var(--outline-gray-2, #e5e5e5);
   border-radius: 8px;
   box-shadow:
-    0 0 0 1px rgba(0,0,0,.03),
-    0 8px 24px -6px rgba(0,0,0,.12),
-    0 4px 8px -4px rgba(0,0,0,.08);
+    0 0 0 1px rgba(0, 0, 0, 0.03),
+    0 8px 24px -6px rgba(0, 0, 0, 0.12),
+    0 4px 8px -4px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: pfp-rise 140ms cubic-bezier(.2,.8,.25,1);
+  animation: pfp-rise 140ms cubic-bezier(0.2, 0.8, 0.25, 1);
   transform-origin: top left;
 }
 .pfp-pop--up {
   transform-origin: bottom left;
 }
 @keyframes pfp-rise {
-  from { transform: translateY(-4px) scale(.98); opacity: 0; }
-  to   { transform: translateY(0)    scale(1);   opacity: 1; }
+  from {
+    transform: translateY(-4px) scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
 }
 
 .pfp-search-row {
@@ -264,11 +267,20 @@ onBeforeUnmount(close)
   flex-shrink: 0;
   background: var(--surface-base, #ffffff);
 }
-.pfp-search-icon { width: 13px; height: 13px; color: var(--ink-gray-4, #a3a3a3); flex-shrink: 0; }
+.pfp-search-icon {
+  width: 13px;
+  height: 13px;
+  color: var(--ink-gray-4, #a3a3a3);
+  flex-shrink: 0;
+}
 .pfp-search {
-  flex: 1; min-width: 0;
-  font: inherit; font-size: 13px; line-height: 18px;
-  border: 0; background: transparent;
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: 13px;
+  line-height: 18px;
+  border: 0;
+  background: transparent;
   color: var(--ink-gray-9, #171717);
   padding: 0;
   /* !important + multi-state selectors are necessary because Frappe UI's
@@ -277,7 +289,9 @@ onBeforeUnmount(close)
   outline: none !important;
   box-shadow: none !important;
 }
-.pfp-search::placeholder { color: var(--ink-gray-4, #a3a3a3); }
+.pfp-search::placeholder {
+  color: var(--ink-gray-4, #a3a3a3);
+}
 .pfp-search:focus,
 .pfp-search:focus-visible,
 .pfp-search:active {
@@ -300,13 +314,22 @@ onBeforeUnmount(close)
 }
 
 .pfp-item {
-  display: block; width: 100%; text-align: left;
-  padding: 5px 8px; border: 0; border-radius: 4px;
-  background: transparent; color: var(--ink-gray-8, #262626);
-  font: inherit; font-size: 12.5px; line-height: 18px;
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink-gray-8, #262626);
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 18px;
   cursor: pointer;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  transition: background-color .08s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background-color 0.08s ease;
 }
 .pfp-item:hover,
 .pfp-item--active {
@@ -323,10 +346,14 @@ onBeforeUnmount(close)
 
 /* Thin, themed scrollbar — the system default is jarring against the
    popover's tight padding. */
-.pfp-list::-webkit-scrollbar { width: 6px; }
+.pfp-list::-webkit-scrollbar {
+  width: 6px;
+}
 .pfp-list::-webkit-scrollbar-thumb {
   background: var(--outline-gray-3, #d4d4d4);
   border-radius: 3px;
 }
-.pfp-list::-webkit-scrollbar-thumb:hover { background: var(--outline-gray-4, #a3a3a3); }
+.pfp-list::-webkit-scrollbar-thumb:hover {
+  background: var(--outline-gray-4, #a3a3a3);
+}
 </style>

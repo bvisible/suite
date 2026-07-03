@@ -2,7 +2,6 @@
   <!-- '/suite' launcher: brand-logo app switcher for all 7 suite apps. -->
   <div class="h-full overflow-auto">
     <div class="mx-auto flex min-h-full max-w-5xl flex-col px-6 pt-[10%] pb-16">
-
       <div class="mx-auto grid grid-cols-4 gap-x-20 gap-y-10">
         <router-link
           v-for="app in apps"

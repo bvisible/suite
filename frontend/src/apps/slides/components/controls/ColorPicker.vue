@@ -1,96 +1,96 @@
 <template>
-	<Popover @open="syncCurrentColor">
-		<template #target="{ togglePopover, isOpen }">
-			<div
-				class="me-0.5 size-4 cursor-pointer rounded-sm ring-[1.5px] ring-gray-300 ring-offset-1"
-				:style="{ backgroundColor: currentColor }"
-				@click="handleColorPickerClick(togglePopover, isOpen)"
-			></div>
-		</template>
-		<template #body>
-			<div class="m-2 rounded-lg border bg-surface-elevation-2 p-3 shadow-xl">
-				<div class="flex flex-col gap-3">
-					<div
-						ref="shadeSlider"
-						class="cursor-pointer rounded-t shadow-xl"
-						:style="shadeStyles"
-						@mousedown="handleUpdateShade"
-					>
-						<div
-							class="relative size-3 rounded border shadow-md transition-transform duration-200 ease-in-out hover:scale-[1.2]"
-							:style="shadeRectStyles"
-						></div>
-					</div>
-					<div class="flex h-8 justify-between py-1">
-						<div
-							class="h-full w-6 rounded-sm ring-1 ring-gray-100 ring-offset-1"
-							:style="{ backgroundColor: currentColor }"
-						></div>
-						<div class="flex flex-col justify-between px-1">
-							<div
-								ref="colorSlider"
-								:class="sliderClasses"
-								:style="colorSliderStyles"
-								@mousedown="handleUpdateHue"
-							>
-								<div
-									:class="sliderCursorClasses"
-									:style="{ left: hueCursorLeft, top: '-0.25rem' }"
-								></div>
-							</div>
-							<div
-								ref="opacitySlider"
-								:class="sliderClasses"
-								:style="opacitySliderStyles"
-								@mousedown="handleUpdateOpacity"
-							>
-								<div
-									:class="sliderCursorClasses"
-									:style="{ left: opacityCursorLeft, top: '-0.25rem' }"
-								></div>
-							</div>
-						</div>
-					</div>
-					<div class="flex items-center gap-2">
-						<Input
-							type="text"
-							placeholder="Set Color"
-							:aria-label="'Hex color input'"
-							:value="getDisplayColor()"
-							class="max-w-[94px] border-none text-sm uppercase"
-							@update:modelValue="
+  <Popover @open="syncCurrentColor">
+    <template #target="{ togglePopover, isOpen }">
+      <div
+        class="me-0.5 size-4 cursor-pointer rounded-sm ring-[1.5px] ring-gray-300 ring-offset-1"
+        :style="{ backgroundColor: currentColor }"
+        @click="handleColorPickerClick(togglePopover, isOpen)"
+      ></div>
+    </template>
+    <template #body>
+      <div class="m-2 rounded-lg border bg-surface-elevation-2 p-3 shadow-xl">
+        <div class="flex flex-col gap-3">
+          <div
+            ref="shadeSlider"
+            class="cursor-pointer rounded-t shadow-xl"
+            :style="shadeStyles"
+            @mousedown="handleUpdateShade"
+          >
+            <div
+              class="relative size-3 rounded border shadow-md transition-transform duration-200 ease-in-out hover:scale-[1.2]"
+              :style="shadeRectStyles"
+            ></div>
+          </div>
+          <div class="flex h-8 justify-between py-1">
+            <div
+              class="h-full w-6 rounded-sm ring-1 ring-gray-100 ring-offset-1"
+              :style="{ backgroundColor: currentColor }"
+            ></div>
+            <div class="flex flex-col justify-between px-1">
+              <div
+                ref="colorSlider"
+                :class="sliderClasses"
+                :style="colorSliderStyles"
+                @mousedown="handleUpdateHue"
+              >
+                <div
+                  :class="sliderCursorClasses"
+                  :style="{ left: hueCursorLeft, top: '-0.25rem' }"
+                ></div>
+              </div>
+              <div
+                ref="opacitySlider"
+                :class="sliderClasses"
+                :style="opacitySliderStyles"
+                @mousedown="handleUpdateOpacity"
+              >
+                <div
+                  :class="sliderCursorClasses"
+                  :style="{ left: opacityCursorLeft, top: '-0.25rem' }"
+                ></div>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <Input
+              type="text"
+              placeholder="Set Color"
+              :aria-label="'Hex color input'"
+              :value="getDisplayColor()"
+              class="max-w-[94px] border-none text-sm uppercase"
+              @update:modelValue="
 								(val) => {
 									setColor(val)
 								}
 							"
-							@click="handleColorInputClick"
-						/>
+              @click="handleColorInputClick"
+            />
 
-						<div class="flex justify-center">
-							<Button
-								@click="handleClipboardCopy"
-								class="flex items-center justify-center rounded text-gray-600 transition-colors hover:bg-gray-100"
-								title="Copy Color"
-							>
-								<LucideClipboard class="size-3.5 text-gray-700" />
-							</Button>
-						</div>
+            <div class="flex justify-center">
+              <Button
+                @click="handleClipboardCopy"
+                class="flex items-center justify-center rounded text-gray-600 transition-colors hover:bg-gray-100"
+                title="Copy Color"
+              >
+                <LucideClipboard class="size-3.5 text-gray-700" />
+              </Button>
+            </div>
 
-						<div class="flex justify-center">
-							<Button
-								v-if="isSupported"
-								@click="openEyeDropper"
-								class="flex items-center justify-center rounded transition-colors hover:bg-gray-100"
-								title="Pick color from screen"
-							>
-								<EyeDropper class="size-3.5 text-gray-700" />
-							</Button>
-						</div>
-					</div>
-				</div>
-			</div>
-		</template>
-	</Popover>
+            <div class="flex justify-center">
+              <Button
+                v-if="isSupported"
+                @click="openEyeDropper"
+                class="flex items-center justify-center rounded transition-colors hover:bg-gray-100"
+                title="Pick color from screen"
+              >
+                <EyeDropper class="size-3.5 text-gray-700" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+  </Popover>
 </template>
 
 <script setup>

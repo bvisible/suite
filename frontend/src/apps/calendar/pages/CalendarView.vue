@@ -237,57 +237,57 @@ const NOTIFY_MODAL_OPTIONS = {
 </script>
 
 <template>
-	<div class="flex h-screen min-h-0 w-full min-w-0 flex-col">
-		<div class="flex min-h-0 min-w-0 flex-1">
-			<AppSidebar
-				:calendars="calendars?.data || []"
-				:visible-calendars
-				@update:visible-calendars="
+  <div class="flex h-screen min-h-0 w-full min-w-0 flex-col">
+    <div class="flex min-h-0 min-w-0 flex-1">
+      <AppSidebar
+        :calendars="calendars?.data || []"
+        :visible-calendars
+        @update:visible-calendars="
 					(name) =>
 						visibleCalendars.includes(name)
 							? visibleCalendars.splice(visibleCalendars.indexOf(name), 1)
 							: visibleCalendars.push(name)
 				"
-			/>
-			<div class="min-h-0 min-w-0 flex-1 p-4">
-				<Calendar
-					ref="calendar"
-					:events="visibleEvents"
-					:config="{ isEditMode: true }"
-					:on-dbl-click="(event) => handleOpenEvent(event)"
-					:on-cell-click="(event) => handleOpenEvent(event)"
-					@update="handleUpdate"
-				>
-					<template #event-popover-content="{ calendarEvent, close }">
-						<EventPopoverContent
-							:calendar-event
-							:close
-							@edit="handleOpenEvent({ calendarEvent })"
-							@reload-events="events.reload()"
-						/>
-					</template>
-				</Calendar>
-			</div>
-		</div>
-	</div>
-	<EventModal v-model="showEditEvent" :selected-event="event" @reload-events="events.reload()" />
-	<Dialog v-model="showRecurringEventModal" :options="RECURRING_EVENT_MODAL_OPTIONS">
-		<template #actions>
-			<div class="flex justify-end space-x-2">
-				<Button @click="handleUpdateRecurringEvent(false)">
-					{{ __('Entire series') }}
-				</Button>
-			</div>
-		</template>
-	</Dialog>
-	<Dialog v-model="showNotifyModal" :options="NOTIFY_MODAL_OPTIONS">
-		<template #actions>
-			<div class="flex justify-end space-x-2">
-				<Button variant="outline" @click="submitEvent(false)"> {{ __('Skip') }} </Button>
-				<Button variant="solid" @click="submitEvent(true)">
-					{{ __('Send Email') }}
-				</Button>
-			</div>
-		</template>
-	</Dialog>
+      />
+      <div class="min-h-0 min-w-0 flex-1 p-4">
+        <Calendar
+          ref="calendar"
+          :events="visibleEvents"
+          :config="{ isEditMode: true }"
+          :on-dbl-click="(event) => handleOpenEvent(event)"
+          :on-cell-click="(event) => handleOpenEvent(event)"
+          @update="handleUpdate"
+        >
+          <template #event-popover-content="{ calendarEvent, close }">
+            <EventPopoverContent
+              :calendar-event
+              :close
+              @edit="handleOpenEvent({ calendarEvent })"
+              @reload-events="events.reload()"
+            />
+          </template>
+        </Calendar>
+      </div>
+    </div>
+  </div>
+  <EventModal v-model="showEditEvent" :selected-event="event" @reload-events="events.reload()" />
+  <Dialog v-model="showRecurringEventModal" :options="RECURRING_EVENT_MODAL_OPTIONS">
+    <template #actions>
+      <div class="flex justify-end space-x-2">
+        <Button @click="handleUpdateRecurringEvent(false)">
+          {{ __('Entire series') }}
+        </Button>
+      </div>
+    </template>
+  </Dialog>
+  <Dialog v-model="showNotifyModal" :options="NOTIFY_MODAL_OPTIONS">
+    <template #actions>
+      <div class="flex justify-end space-x-2">
+        <Button variant="outline" @click="submitEvent(false)"> {{ __('Skip') }} </Button>
+        <Button variant="solid" @click="submitEvent(true)">
+          {{ __('Send Email') }}
+        </Button>
+      </div>
+    </template>
+  </Dialog>
 </template>

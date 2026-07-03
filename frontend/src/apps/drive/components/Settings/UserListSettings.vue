@@ -44,8 +44,7 @@
     <div class="py-1 flex justify-between">
       <div>
         You have an invite to join
-        <span class="font-medium">{{ invite.team_name }}</span
-        >.
+        <span class="font-medium">{{ invite.team_name }}</span>.
       </div>
     </div>
   </Alert>
@@ -110,11 +109,9 @@
             <div v-if="isAdmin.data && user.name != currentUserId" class="ml-auto">
               <Dropdown v-slot="{ open }" :options="accessOptions" placement="right">
                 <Button variant="ghost" @click="selectedUser = user">
-                  {{
-                    __(
+                  {{ __(
                       user.access_level == 2 ? 'Manager' : user.access_level == 1 ? 'User' : 'Guest'
-                    )
-                  }}
+                    ) }}
                   <template #suffix>
                     <LucideChevronDown
                       class="size-4 text-ink-gray-6"
@@ -127,9 +124,7 @@
               </Dropdown>
             </div>
             <span v-else class="ml-auto text-base text-ink-gray-6">
-              {{
-                __(user.access_level == 2 ? 'Manager' : user.access_level == 1 ? 'User' : 'Guest')
-              }}
+              {{ __(user.access_level == 2 ? 'Manager' : user.access_level == 1 ? 'User' : 'Guest') }}
               <template v-if="user.name === currentUserId">(you)</template>
             </span>
           </div>
@@ -203,46 +198,42 @@
     </template>
   </Tabs>
 
-  <Dialog
-    v-model:open="showInvite"
-    :title="'Invite people to ' + teamData.title"
-    size="lg"
-  >
+  <Dialog v-model:open="showInvite" :title="'Invite people to ' + teamData.title" size="lg">
     <div class="flex items-start justify-start gap-4">
-        <div class="flex flex-wrap gap-1 rounded w-full bg-surface-gray-2 p-2">
-          <Button
-            v-for="(email, idx) in invited"
-            :key="email"
-            :label="email"
-            variant="outline"
-            class="shadow-sm"
-          >
-            <template #suffix>
-              <LucideX class="h-4" stroke-width="1.5" @click.stop="() => invited.splice(idx, 1)" />
-            </template>
-          </Button>
-          <div class="min-w-[10rem] flex-1">
-            <input
-              v-model="emailInput"
-              type="text"
-              autocomplete="off"
-              placeholder="Enter email address"
-              class="h-7 w-full rounded border-none bg-surface-gray-2 py-1.5 pl-2 pr-2 text-base text-ink-gray-8 placeholder-ink-gray-4 transition-colors focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
-              @keydown="isValidEmail"
-              @keydown.enter.capture.stop="extractEmails"
-              @keydown.space.prevent.stop="extractEmails"
-            />
-          </div>
+      <div class="flex flex-wrap gap-1 rounded w-full bg-surface-gray-2 p-2">
+        <Button
+          v-for="(email, idx) in invited"
+          :key="email"
+          :label="email"
+          variant="outline"
+          class="shadow-sm"
+        >
+          <template #suffix>
+            <LucideX class="h-4" stroke-width="1.5" @click.stop="() => invited.splice(idx, 1)" />
+          </template>
+        </Button>
+        <div class="min-w-[10rem] flex-1">
+          <input
+            v-model="emailInput"
+            type="text"
+            autocomplete="off"
+            placeholder="Enter email address"
+            class="h-7 w-full rounded border-none bg-surface-gray-2 py-1.5 pl-2 pr-2 text-base text-ink-gray-8 placeholder-ink-gray-4 transition-colors focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
+            @keydown="isValidEmail"
+            @keydown.enter.capture.stop="extractEmails"
+            @keydown.space.prevent.stop="extractEmails"
+          />
         </div>
       </div>
-      <Checkbox v-model="inviteAsGuest" class="mt-4 mb-2" label="Invite as guest" />
-      <Button
-        class="w-full"
-        variant="solid"
-        label="Send Invitation"
-        :disabled="!emailTest().length && !invited.length"
-        :loading="inviteUsers.loading"
-        @click="
+    </div>
+    <Checkbox v-model="inviteAsGuest" class="mt-4 mb-2" label="Invite as guest" />
+    <Button
+      class="w-full"
+      variant="solid"
+      label="Send Invitation"
+      :disabled="!emailTest().length && !invited.length"
+      :loading="inviteUsers.loading"
+      @click="
           () => {
             extractEmails()
             showInvite = false
@@ -253,7 +244,7 @@
             })
           }
         "
-      />
+    />
   </Dialog>
   <Dialog
     v-if="showRemove"
@@ -280,12 +271,12 @@
   />
   <Dialog v-model:open="showAddTeam" :title="__('New Team')" size="sm">
     <div class="flex flex-col gap-4">
-        <div>
-          <FormLabel label="Team Name:" required />
-          <div class="flex gap-1.5 mt-1.5">
-            <EmojiPicker
-              v-model="selectedIcon"
-              :emojis="
+      <div>
+        <FormLabel label="Team Name:" required />
+        <div class="flex gap-1.5 mt-1.5">
+          <EmojiPicker
+            v-model="selectedIcon"
+            :emojis="
                 Object.keys(icons).map((k) => ({
                   value: k,
                   label: k
@@ -295,36 +286,36 @@
                   icon: icons[k],
                 }))
               "
-            />
-            <FormControl
-              v-model="teamName"
-              v-focus
-              class="grow"
-              required
-              type="text"
-              @update:model-value="createTeam.error = null"
-            />
-          </div>
+          />
+          <FormControl
+            v-model="teamName"
+            v-focus
+            class="grow"
+            required
+            type="text"
+            @update:model-value="createTeam.error = null"
+          />
         </div>
-        <template v-if="getDiskSettings.data.enabled">
-          <FormControl
-            v-model="s3Bucket"
-            type="text"
-            label="S3 Bucket"
-            description="Optional - allows you to use a different bucket for this team."
-          />
-          <FormControl
-            v-model="prefix"
-            :disabled="!s3Bucket"
-            type="text"
-            label="Folder"
-            description="Optional - allows you to use a specific folder inside the bucket."
-          />
-        </template>
       </div>
-      <div v-if="createTeam.error" class="text-sm text-ink-red-6 my-3">
-        {{ createTeam.error.messages[0] }}
-      </div>
+      <template v-if="getDiskSettings.data.enabled">
+        <FormControl
+          v-model="s3Bucket"
+          type="text"
+          label="S3 Bucket"
+          description="Optional - allows you to use a different bucket for this team."
+        />
+        <FormControl
+          v-model="prefix"
+          :disabled="!s3Bucket"
+          type="text"
+          label="Folder"
+          description="Optional - allows you to use a specific folder inside the bucket."
+        />
+      </template>
+    </div>
+    <div v-if="createTeam.error" class="text-sm text-ink-red-6 my-3">
+      {{ createTeam.error.messages[0] }}
+    </div>
     <template #actions>
       <div class="flex justify-end">
         <Button
@@ -358,17 +349,13 @@
       </div>
     </template>
   </Dialog>
-  <Dialog
-    v-model:open="showEditTeam"
-    :title="__('Settings - ' + teamData.title)"
-    size="sm"
-  >
+  <Dialog v-model:open="showEditTeam" :title="__('Settings - ' + teamData.title)" size="sm">
     <div class="flex flex-col gap-4">
-        <div>
-          <FormLabel label="Team Name:" required />
-          <div class="flex gap-1 mt-1.5">
-            <EmojiPicker
-              :emojis="
+      <div>
+        <FormLabel label="Team Name:" required />
+        <div class="flex gap-1 mt-1.5">
+          <EmojiPicker
+            :emojis="
                 Object.keys(icons).map((k) => ({
                   value: k,
                   label: k
@@ -378,15 +365,15 @@
                   icon: icons[k],
                 }))
               "
-            />
-            <FormControl v-model="teamName" v-focus class="grow" required type="text" />
-          </div>
+          />
+          <FormControl v-model="teamName" v-focus class="grow" required type="text" />
         </div>
-        <template v-if="getDiskSettings.data.enabled">
-          <FormControl v-model="s3Bucket" :disabled="true" type="text" label="S3 Bucket" />
-          <FormControl v-model="prefix" :disabled="true" type="text" label="Folder" />
-        </template>
       </div>
+      <template v-if="getDiskSettings.data.enabled">
+        <FormControl v-model="s3Bucket" :disabled="true" type="text" label="S3 Bucket" />
+        <FormControl v-model="prefix" :disabled="true" type="text" label="Folder" />
+      </template>
+    </div>
     <template #actions>
       <Button
         :disabled="!teamName.trim().length"

@@ -1,26 +1,26 @@
 <template>
-	<DashboardLayout
-		:breadcrumbs="[{ label: __('Members') }]"
-		:button-label="__('Add Member')"
-		:button-action="() => (showAddMember = true)"
-		:remove-spacing="true"
-	>
-		<Tabs
-			v-model="tabIndex"
-			:tabs="[
+  <DashboardLayout
+    :breadcrumbs="[{ label: __('Members') }]"
+    :button-label="__('Add Member')"
+    :button-action="() => (showAddMember = true)"
+    :remove-spacing="true"
+  >
+    <Tabs
+      v-model="tabIndex"
+      :tabs="[
 				{ label: __('Users'), icon: Users },
 				{ label: __('Invites'), icon: Mails },
 			]"
-		>
-			<template #tab-panel>
-				<div class="flex flex-1 flex-col space-y-5 overflow-y-auto p-5">
-					<UsersView v-if="tabIndex === 0" ref="usersView" />
-					<InvitesView v-else ref="invitesView" />
-				</div>
-			</template>
-		</Tabs>
-	</DashboardLayout>
-	<AddMemberModal v-model="showAddMember" @reload="reload" />
+    >
+      <template #tab-panel>
+        <div class="flex flex-1 flex-col space-y-5 overflow-y-auto p-5">
+          <UsersView v-if="tabIndex === 0" ref="usersView" />
+          <InvitesView v-else ref="invitesView" />
+        </div>
+      </template>
+    </Tabs>
+  </DashboardLayout>
+  <AddMemberModal v-model="showAddMember" @reload="reload" />
 </template>
 <script setup lang="ts">
 import { computed, ref, useTemplateRef } from 'vue'

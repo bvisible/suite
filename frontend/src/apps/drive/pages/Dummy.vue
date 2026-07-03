@@ -1,1 +1,3 @@
-<template>Wait...</template>
+<template
+  >Wait...</template
+>

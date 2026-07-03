@@ -1,8 +1,8 @@
 <template>
-	<Dialog
-		v-if="accountRequest?.doc"
-		v-model="show"
-		:options="{
+  <Dialog
+    v-if="accountRequest?.doc"
+    v-model="show"
+    :options="{
 			title: __('Edit Invite'),
 			actions: [
 				{
@@ -13,40 +13,32 @@
 				},
 			],
 		}"
-	>
-		<template #body-content>
-			<div class="space-y-4">
-				<FormControl
-					:label="__('Assigned Email')"
-					:value="accountRequest.doc.account"
-					disabled
-				/>
-				<FormControl
-					v-model="inviteRole"
-					type="select"
-					:label="__('Role')"
-					:options="ROLE_OPTIONS"
-					:disabled="!isEditableInvite"
-				/>
-				<FormControl
-					:label="__('Backup Email')"
-					:value="accountRequest.doc.backup_email"
-					disabled
-				/>
-				<FormControl
-					:label="__('Invited By')"
-					:value="accountRequest.doc.invited_by"
-					disabled
-				/>
-				<FormControl
-					v-model="accountRequest.doc.expires_at"
-					type="datetime-local"
-					:label="__('Expires At')"
-					:disabled="!isEditableInvite"
-				/>
-			</div>
-		</template>
-	</Dialog>
+  >
+    <template #body-content>
+      <div class="space-y-4">
+        <FormControl :label="__('Assigned Email')" :value="accountRequest.doc.account" disabled />
+        <FormControl
+          v-model="inviteRole"
+          type="select"
+          :label="__('Role')"
+          :options="ROLE_OPTIONS"
+          :disabled="!isEditableInvite"
+        />
+        <FormControl
+          :label="__('Backup Email')"
+          :value="accountRequest.doc.backup_email"
+          disabled
+        />
+        <FormControl :label="__('Invited By')" :value="accountRequest.doc.invited_by" disabled />
+        <FormControl
+          v-model="accountRequest.doc.expires_at"
+          type="datetime-local"
+          :label="__('Expires At')"
+          :disabled="!isEditableInvite"
+        />
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <script setup lang="ts">

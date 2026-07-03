@@ -1,17 +1,17 @@
 <template>
-	<Dialog v-model="show" :options="options">
-		<template #body-content>
-			<div class="space-y-4">
-				<FormControl
-					v-model="addressBook"
-					type="combobox"
-					:label="__('Address Book')"
-					:options="addressBooks.data.map((ab) => ({ label: ab._name, value: ab.name }))"
-					:open-on-click="true"
-				/>
-			</div>
-		</template>
-	</Dialog>
+  <Dialog v-model="show" :options="options">
+    <template #body-content>
+      <div class="space-y-4">
+        <FormControl
+          v-model="addressBook"
+          type="combobox"
+          :label="__('Address Book')"
+          :options="addressBooks.data.map((ab) => ({ label: ab._name, value: ab.name }))"
+          :open-on-click="true"
+        />
+      </div>
+    </template>
+  </Dialog>
 </template>
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'

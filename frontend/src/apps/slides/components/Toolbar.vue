@@ -1,50 +1,47 @@
 <template>
-	<div
-		class="absolute bottom-10 left-[calc(50%-128px)] z-10 flex h-10 items-center justify-center gap-1 rounded-lg bg-white p-1 shadow-xl"
-		@wheel="handleScrollBarWheelEvent"
-	>
-		<Tooltip text="Text" :hover-delay="0.7">
-			<div class="cursor-pointer rounded p-2 hover:bg-gray-100" @click="addTextElement(null)">
-				<Type size="16" class="stroke-[1.5]" />
-			</div>
-		</Tooltip>
+  <div
+    class="absolute bottom-10 left-[calc(50%-128px)] z-10 flex h-10 items-center justify-center gap-1 rounded-lg bg-white p-1 shadow-xl"
+    @wheel="handleScrollBarWheelEvent"
+  >
+    <Tooltip text="Text" :hover-delay="0.7">
+      <div class="cursor-pointer rounded p-2 hover:bg-gray-100" @click="addTextElement(null)">
+        <Type size="16" class="stroke-[1.5]" />
+      </div>
+    </Tooltip>
 
-		<Tooltip text="Media" :hover-delay="0.7">
-			<FileUploader
-				:fileTypes="allowedImageFileTypes.concat(['video/*'])"
-				:uploadArgs="{
+    <Tooltip text="Media" :hover-delay="0.7">
+      <FileUploader
+        :fileTypes="allowedImageFileTypes.concat(['video/*'])"
+        :uploadArgs="{
 					doctype: 'Presentation',
 					docname: presentationId,
 					private: true,
 				}"
-				@success="(file) => handleUploadSuccess(file)"
-			>
-				<template #default="{ openFileSelector }">
-					<div
-						class="cursor-pointer rounded p-2 hover:bg-gray-100"
-						@click="openFileSelector"
-					>
-						<ImagePlus size="16" class="stroke-[1.5]" />
-					</div>
-				</template>
-			</FileUploader>
-		</Tooltip>
+        @success="(file) => handleUploadSuccess(file)"
+      >
+        <template #default="{ openFileSelector }">
+          <div class="cursor-pointer rounded p-2 hover:bg-gray-100" @click="openFileSelector">
+            <ImagePlus size="16" class="stroke-[1.5]" />
+          </div>
+        </template>
+      </FileUploader>
+    </Tooltip>
 
-		<ShapesDropdown />
+    <ShapesDropdown />
 
-		<div class="h-6 border-l"></div>
+    <div class="h-6 border-l"></div>
 
-		<Tooltip v-for="option in slideActions" :text="option.label" :hover-delay="0.5">
-			<div
-				class="cursor-pointer rounded p-2 hover:bg-gray-100"
-				@click="option.onClick"
-				@mouseenter="emit('setHighlight', true)"
-				@mouseleave="emit('setHighlight', false)"
-			>
-				<component :is="option.icon" size="16" class="stroke-[1.5]" />
-			</div>
-		</Tooltip>
-	</div>
+    <Tooltip v-for="option in slideActions" :text="option.label" :hover-delay="0.5">
+      <div
+        class="cursor-pointer rounded p-2 hover:bg-gray-100"
+        @click="option.onClick"
+        @mouseenter="emit('setHighlight', true)"
+        @mouseleave="emit('setHighlight', false)"
+      >
+        <component :is="option.icon" size="16" class="stroke-[1.5]" />
+      </div>
+    </Tooltip>
+  </div>
 </template>
 
 <script setup>

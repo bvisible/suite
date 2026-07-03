@@ -1,49 +1,45 @@
 <template>
-	<!-- Slide Navigation Panel -->
-	<div
-		:class="[panelClasses, attrs.class]"
-		@mouseenter="handleHoverChange"
-		@mouseleave="handleHoverChange"
-		@wheel="handleScrollBarWheelEvent"
-		@click.stop
-	>
-		<div
-			ref="scrollableArea"
-			class="h-svh overflow-y-auto p-4 pe-3 custom-scrollbar"
-			:class="{ 'pb-14': !inReadonlyMode }"
-			:style="scrollbarStyles"
-		>
-			<div :style="virtualContainerStyles">
-				<div
-					v-for="virtualRow in virtualRows"
-					:key="virtualRow.key"
-					:class="getRowClasses(orderedSlides[virtualRow.index])"
-					:style="getRowStyles(virtualRow)"
-					@click="handleSlideClick(orderedSlides[virtualRow.index])"
-					@mousedown="slideSort.handleSortStart($event, virtualRow.index)"
-				>
-					<ThumbnailContainer
-						:slide="orderedSlides[virtualRow.index]"
-						:isActive="isSlideActive(orderedSlides[virtualRow.index])"
-					/>
-				</div>
-			</div>
+  <!-- Slide Navigation Panel -->
+  <div
+    :class="[panelClasses, attrs.class]"
+    @mouseenter="handleHoverChange"
+    @mouseleave="handleHoverChange"
+    @wheel="handleScrollBarWheelEvent"
+    @click.stop
+  >
+    <div
+      ref="scrollableArea"
+      class="h-svh overflow-y-auto p-4 pe-3 custom-scrollbar"
+      :class="{ 'pb-14': !inReadonlyMode }"
+      :style="scrollbarStyles"
+    >
+      <div :style="virtualContainerStyles">
+        <div
+          v-for="virtualRow in virtualRows"
+          :key="virtualRow.key"
+          :class="getRowClasses(orderedSlides[virtualRow.index])"
+          :style="getRowStyles(virtualRow)"
+          @click="handleSlideClick(orderedSlides[virtualRow.index])"
+          @mousedown="slideSort.handleSortStart($event, virtualRow.index)"
+        >
+          <ThumbnailContainer
+            :slide="orderedSlides[virtualRow.index]"
+            :isActive="isSlideActive(orderedSlides[virtualRow.index])"
+          />
+        </div>
+      </div>
 
-			<!-- add slide option -->
-			<div
-				v-if="!inReadonlyMode"
-				:class="insertButtonClasses"
-				@click="emit('openLayoutDialog')"
-			>
-				<LucidePlus class="size-3.5" />
-			</div>
-		</div>
-	</div>
+      <!-- add slide option -->
+      <div v-if="!inReadonlyMode" :class="insertButtonClasses" @click="emit('openLayoutDialog')">
+        <LucidePlus class="size-3.5" />
+      </div>
+    </div>
+  </div>
 
-	<!-- Slide Navigator Toggle -->
-	<div v-if="!isNavigationPanelOpen" :class="toggleButtonClasses" @click="toggleNavigationPanel">
-		<LucideChevronRight class="size-3.5 text-gray-500" />
-	</div>
+  <!-- Slide Navigator Toggle -->
+  <div v-if="!isNavigationPanelOpen" :class="toggleButtonClasses" @click="toggleNavigationPanel">
+    <LucideChevronRight class="size-3.5 text-gray-500" />
+  </div>
 </template>
 
 <script setup>
@@ -228,14 +224,14 @@ watch(
 
 <style scoped>
 .virtual-row-wrapper.is-active::before {
-	content: '';
-	position: absolute;
-	left: -1.25rem;
-	top: 0;
-	width: 0.5rem;
-	height: 90px;
-	border-radius: 0 0.25rem 0.25rem 0;
-	background: rgb(59 130 246 / 0.9);
-	pointer-events: none;
+  content: "";
+  position: absolute;
+  left: -1.25rem;
+  top: 0;
+  width: 0.5rem;
+  height: 90px;
+  border-radius: 0 0.25rem 0.25rem 0;
+  background: rgb(59 130 246 / 0.9);
+  pointer-events: none;
 }
 </style>

@@ -1,22 +1,39 @@
 <template>
-  <Sidebar id="sidebar" v-model:collapsed="sidebarCollapsed" class="hidden sm:flex" :header="{
+  <Sidebar
+    id="sidebar"
+    v-model:collapsed="sidebarCollapsed"
+    class="hidden sm:flex"
+    :header="{
     title: 'Drive',
     subtitle: currentUserFullName,
     menuItems: settingsItems,
     logo: FrappeDriveLogo,
-  }" :sections="sidebarItems">
+  }"
+    :sections="sidebarItems"
+  >
     <template #footer-items="{ isCollapsed }">
       <StorageBar v-if="teamExists.data" :is-expanded="!isCollapsed" />
     </template>
     <template #sidebar-item="{ item, isCollapsed }">
-      <SidebarItem :class="draggedSpace === item.label &&
+      <SidebarItem
+        :class="draggedSpace === item.label &&
         'ring-1 ring-outline-gray-3 !bg-surface-gray-3'
-        " :label="item.label" :accessKey="item.accessKey" :icon="item.icon" :suffix="item.suffix" :to="item.to"
-        :isActive="item.isActive" :isCollapsed :onClick="item.onClick" @dragover.prevent="
-          ; (['Trash', 'Home'].includes(item.label) ||
+        "
+        :label="item.label"
+        :accessKey="item.accessKey"
+        :icon="item.icon"
+        :suffix="item.suffix"
+        :to="item.to"
+        :isActive="item.isActive"
+        :isCollapsed
+        :onClick="item.onClick"
+        @dragover.prevent="() => (['Trash', 'Home'].includes(item.label) ||
           item.to?.name === 'drive-Team') &&
           (draggedSpace = item.label)
-          " @dragleave="draggedSpace = null" @drop.prevent="handleDrop($event, item)" />
+          "
+        @dragleave="draggedSpace = null"
+        @drop.prevent="handleDrop($event, item)"
+      />
     </template>
   </Sidebar>
   <SettingsDialog v-if="showSettings" v-model="showSettings" :suggested-tab="suggestedTab" />

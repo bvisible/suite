@@ -65,7 +65,7 @@ const updateColorScheme = createResource({
 </script>
 
 <template>
-	<FrappeUIProvider>
-		<router-view />
-	</FrappeUIProvider>
+  <FrappeUIProvider>
+    <router-view />
+  </FrappeUIProvider>
 </template>

@@ -1,15 +1,15 @@
 <template>
-	<div class="bg-surface-gray-1 flex justify-between rounded p-3">
-		<pre class="text-wrap p-1 text-base">{{ code }}</pre>
-		<Button
-			icon="copy"
-			size="sm"
-			variant="ghost"
-			class="shrink-0"
-			:tooltip="__('Copy Code')"
-			@click="copyToClipBoard"
-		/>
-	</div>
+  <div class="bg-surface-gray-1 flex justify-between rounded p-3">
+    <pre class="text-wrap p-1 text-base">{{ code }}</pre>
+    <Button
+      icon="copy"
+      size="sm"
+      variant="ghost"
+      class="shrink-0"
+      :tooltip="__('Copy Code')"
+      @click="copyToClipBoard"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">

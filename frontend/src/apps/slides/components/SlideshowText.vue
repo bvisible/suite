@@ -1,5 +1,5 @@
 <template>
-	<div ref="textRef" v-html="textHTML"></div>
+  <div ref="textRef" v-html="textHTML"></div>
 </template>
 <script setup>
 import { ref, watch } from 'vue'

@@ -34,9 +34,9 @@
               class="relative mr-2"
               size="xs"
             />
-            <span class="text-base text-ink-gray-8">{{
-              entity.full_name || entity.user_name
-            }}</span>
+            <span class="text-base text-ink-gray-8"
+              >{{ entity.full_name || entity.user_name }}</span
+            >
           </div>
         </div>
       </div>

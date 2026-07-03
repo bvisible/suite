@@ -1,24 +1,24 @@
 <template>
-	<div class="flex flex-col space-y-2 rounded p-2">
-		<div class="flex w-full">
-			<div class="flex items-center space-x-2">
-				<Cloud class="icon" />
-				<span v-if="!isCollapsed" class="text-sm"> {{ __('Storage') }} </span>
-			</div>
-		</div>
-		<div class="bg-surface-gray-4 h-1 w-auto rounded-full">
-			<div
-				class="h-1 rounded-full"
-				:class="
+  <div class="flex flex-col space-y-2 rounded p-2">
+    <div class="flex w-full">
+      <div class="flex items-center space-x-2">
+        <Cloud class="icon" />
+        <span v-if="!isCollapsed" class="text-sm"> {{ __('Storage') }} </span>
+      </div>
+    </div>
+    <div class="bg-surface-gray-4 h-1 w-auto rounded-full">
+      <div
+        class="h-1 rounded-full"
+        :class="
 					quota.data?.used_percentage > 80 ? 'bg-surface-red-8' : 'bg-surface-gray-10'
 				"
-				:style="{ width: `${quota.data?.used_percentage || 0}%`, maxWidth: '100%' }"
-			/>
-		</div>
-		<span class="text-ink-gray-5 line-clamp-1 text-xs" :class="{ invisible: isCollapsed }">
-			{{ displayedQuota }}
-		</span>
-	</div>
+        :style="{ width: `${quota.data?.used_percentage || 0}%`, maxWidth: '100%' }"
+      />
+    </div>
+    <span class="text-ink-gray-5 line-clamp-1 text-xs" :class="{ invisible: isCollapsed }">
+      {{ displayedQuota }}
+    </span>
+  </div>
 </template>
 
 <script setup lang="ts">

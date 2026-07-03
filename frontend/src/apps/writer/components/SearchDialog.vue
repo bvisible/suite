@@ -22,7 +22,8 @@
               <template #prefix><LucideSearch class="size-4 text-ink-gray-6" /></template>
               <template #suffix v-if="searching">
                 <span class="text-ink-gray-5 text-xs flex items-center gap-1"
-                  ><KeyboardShortcut combo="Enter" /> to search</span
+                  ><KeyboardShortcut combo="Enter" />
+                  to search</span
                 >
               </template>
             </TextInput>
@@ -35,8 +36,7 @@
             <LoadingIndicator v-if="search.loading" class="size-5 my-10 mx-auto" />
             <div v-else-if="searchResults.length" class="space-y-1">
               <div class="text-sm text-ink-gray-5 ps-3">
-                Showing results for "<span class="font-medium">{{ query }}</span
-                >":
+                Showing results for "<span class="font-medium">{{ query }}</span>":
               </div>
               <div v-for="doc in searchResults" :key="doc.name">
                 <div

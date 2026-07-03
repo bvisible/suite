@@ -1,64 +1,64 @@
 <template>
-	<div class="absolute left-0 top-0 h-full w-full bg-black">
-		<div
-			ref="slideContainer"
-			class="flex h-screen w-full items-center justify-center"
-			:style="slideContainerStyles"
-		>
-			<div
-				v-if="showSlideshowEndScreen"
-				class="flex h-full w-full items-center justify-center bg-black"
-				@click="endSlideShow()"
-			>
-				<SlideshowEndScreen @restartSlideShow="changeSlideInSlideshow(0)" />
-			</div>
+  <div class="absolute left-0 top-0 h-full w-full bg-black">
+    <div
+      ref="slideContainer"
+      class="flex h-screen w-full items-center justify-center"
+      :style="slideContainerStyles"
+    >
+      <div
+        v-if="showSlideshowEndScreen"
+        class="flex h-full w-full items-center justify-center bg-black"
+        @click="endSlideShow()"
+      >
+        <SlideshowEndScreen @restartSlideShow="changeSlideInSlideshow(0)" />
+      </div>
 
-			<div
-				v-else-if="isMagicMoveApplied"
-				:style="slideStyles"
-				@click="changeSlideInSlideshow(slideIndex + 1)"
-			>
-				<FadeElementTransition
-					:duration="parseFloat(prevSlide?.transitionDuration)"
-					:skip="!prevSlide?.fadeUnmatchedElements"
-				>
-					<SlideElement
-						v-for="element in currentSlide?.elements"
-						:key="`slideshow-${getElementKey(element)}`"
-						mode="slideshow"
-						:element="element"
-						:data-index="element.id"
-						:transitionStyles="transitionStyles"
-						:style="getElementTransitionStyles(element)"
-						class="forward-transition"
-					/>
-				</FadeElementTransition>
-			</div>
+      <div
+        v-else-if="isMagicMoveApplied"
+        :style="slideStyles"
+        @click="changeSlideInSlideshow(slideIndex + 1)"
+      >
+        <FadeElementTransition
+          :duration="parseFloat(prevSlide?.transitionDuration)"
+          :skip="!prevSlide?.fadeUnmatchedElements"
+        >
+          <SlideElement
+            v-for="element in currentSlide?.elements"
+            :key="`slideshow-${getElementKey(element)}`"
+            mode="slideshow"
+            :element="element"
+            :data-index="element.id"
+            :transitionStyles="transitionStyles"
+            :style="getElementTransitionStyles(element)"
+            class="forward-transition"
+          />
+        </FadeElementTransition>
+      </div>
 
-			<div v-else>
-				<Transition
-					@before-enter="beforeSlideEnter"
-					@enter="slideEnter"
-					@before-leave="beforeSlideLeave"
-					@leave="slideLeave"
-				>
-					<div
-						:key="slideIndex"
-						:style="slideStyles"
-						@click="changeSlideInSlideshow(slideIndex + 1)"
-					>
-						<SlideElement
-							v-for="element in currentSlide?.elements"
-							:key="`slideshow-${getElementKey(element)}`"
-							mode="slideshow"
-							:element="element"
-							:data-index="element.id"
-						/>
-					</div>
-				</Transition>
-			</div>
-		</div>
-	</div>
+      <div v-else>
+        <Transition
+          @before-enter="beforeSlideEnter"
+          @enter="slideEnter"
+          @before-leave="beforeSlideLeave"
+          @leave="slideLeave"
+        >
+          <div
+            :key="slideIndex"
+            :style="slideStyles"
+            @click="changeSlideInSlideshow(slideIndex + 1)"
+          >
+            <SlideElement
+              v-for="element in currentSlide?.elements"
+              :key="`slideshow-${getElementKey(element)}`"
+              mode="slideshow"
+              :element="element"
+              :data-index="element.id"
+            />
+          </div>
+        </Transition>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -352,8 +352,8 @@ provide('inSlideShowMode', inSlideShowMode)
 
 <style>
 .forward-transition .textElement span {
-	transition-property: all;
-	transition-duration: var(--transition-duration);
-	transition-timing-function: ease-in-out;
+  transition-property: all;
+  transition-duration: var(--transition-duration);
+  transition-timing-function: ease-in-out;
 }
 </style>

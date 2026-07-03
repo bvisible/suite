@@ -1,74 +1,74 @@
 <template>
-	<div class="flex items-center space-x-3">
-		<FormControl v-model="search" :placeholder="__('Search')" class="w-80">
-			<template #prefix>
-				<FeatherIcon name="search" class="text-ink-gray-5 w-4" />
-			</template>
-		</FormControl>
-		<FormControl
-			v-model="status"
-			:placeholder="__('Invitation Status')"
-			class="w-40"
-			type="select"
-			:options="STATUS_OPTIONS"
-		/>
-	</div>
+  <div class="flex items-center space-x-3">
+    <FormControl v-model="search" :placeholder="__('Search')" class="w-80">
+      <template #prefix>
+        <FeatherIcon name="search" class="text-ink-gray-5 w-4" />
+      </template>
+    </FormControl>
+    <FormControl
+      v-model="status"
+      :placeholder="__('Invitation Status')"
+      class="w-40"
+      type="select"
+      :options="STATUS_OPTIONS"
+    />
+  </div>
 
-	<ListView
-		v-if="inviteRows"
-		ref="listView"
-		class="flex-1"
-		:columns="LIST_COLUMNS"
-		:rows="inviteRows"
-		:options="LIST_OPTIONS"
-		row-key="name"
-	>
-		<ListHeader />
-		<ListRows>
-			<template v-if="inviteRows.length">
-				<ListRow
-					v-for="row in inviteRows"
-					:key="row.name"
-					v-slot="{ column, item }"
-					:row="row"
-					class="hover:!bg-surface-gray-1"
-				>
-					<ListRowItem :item="item">
-						<template v-if="column.key === 'role'">
-							<Badge
-								:label="row.is_admin ? __('Admin') : __('User')"
-								:theme="row.is_admin ? 'orange' : 'blue'"
-							/>
-						</template>
-						<Badge
-							v-else-if="column.key === 'status'"
-							:label="item"
-							:theme="getTheme(item as InviteStatusLabel)"
-						/>
-					</ListRowItem>
-				</ListRow>
-			</template>
-			<ListEmptyState v-else />
-		</ListRows>
-		<ListSelectBanner>
-			<template #actions>
-				<Button
-					variant="ghost"
-					theme="red"
-					:label="__('Delete')"
-					@click="showDeleteInvites = true"
-				/>
-			</template>
-		</ListSelectBanner>
-	</ListView>
+  <ListView
+    v-if="inviteRows"
+    ref="listView"
+    class="flex-1"
+    :columns="LIST_COLUMNS"
+    :rows="inviteRows"
+    :options="LIST_OPTIONS"
+    row-key="name"
+  >
+    <ListHeader />
+    <ListRows>
+      <template v-if="inviteRows.length">
+        <ListRow
+          v-for="row in inviteRows"
+          :key="row.name"
+          v-slot="{ column, item }"
+          :row="row"
+          class="hover:!bg-surface-gray-1"
+        >
+          <ListRowItem :item="item">
+            <template v-if="column.key === 'role'">
+              <Badge
+                :label="row.is_admin ? __('Admin') : __('User')"
+                :theme="row.is_admin ? 'orange' : 'blue'"
+              />
+            </template>
+            <Badge
+              v-else-if="column.key === 'status'"
+              :label="item"
+              :theme="getTheme(item as InviteStatusLabel)"
+            />
+          </ListRowItem>
+        </ListRow>
+      </template>
+      <ListEmptyState v-else />
+    </ListRows>
+    <ListSelectBanner>
+      <template #actions>
+        <Button
+          variant="ghost"
+          theme="red"
+          :label="__('Delete')"
+          @click="showDeleteInvites = true"
+        />
+      </template>
+    </ListSelectBanner>
+  </ListView>
 
-	<EditInviteModal
-		v-if="selectedInvite"
-		v-model="showEditInvite"
-		:invite-i-d="selectedInvite"
-		@reload-invites="invites.reload()"
-	/>
-	<Dialog v-model="showDeleteInvites" :options="DELETE_INVITES_OPTIONS" />
+  <EditInviteModal
+    v-if="selectedInvite"
+    v-model="showEditInvite"
+    :invite-i-d="selectedInvite"
+    @reload-invites="invites.reload()"
+  />
+  <Dialog v-model="showDeleteInvites" :options="DELETE_INVITES_OPTIONS" />
 </template>
 
 <script setup lang="ts">

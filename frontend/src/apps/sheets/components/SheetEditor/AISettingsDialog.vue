@@ -1,11 +1,12 @@
 <template>
   <Dialog v-model="show" :options="{ title: 'AI Assist', size: 'md' }">
     <template #body-content>
-
       <!-- Inline error banner (permission / network failures). Auto-clears. -->
       <Badge
         v-if="errorMessage"
-        theme="red" variant="subtle" size="sm"
+        theme="red"
+        variant="subtle"
+        size="sm"
         class="ai-error"
         :label="errorMessage"
         :tooltip="errorMessage"
@@ -15,9 +16,8 @@
 
       <template v-else>
         <p class="ai-help">
-          Lets people describe what they want in plain words and have it applied
-          to the grid. The API key is stored encrypted on the server and is
-          never sent back to the browser.
+          Lets people describe what they want in plain words and have it applied to the grid. The
+          API key is stored encrypted on the server and is never sent back to the browser.
         </p>
 
         <!-- Enable toggle -->
@@ -51,12 +51,11 @@
           @update:modelValue="model = $event"
         />
         <p class="ai-key-state">
-          Tip: set this to <code>mock</code> for a keyless local demo — sums, averages,
-          counts, min/max/median, running totals, % of total, and text transforms
-          (uppercase, trim, first/last name, email domain) over a selection. No API key, no spend.
+          Tip: set this to <code>mock</code> for a keyless local demo — sums, averages, counts,
+          min/max/median, running totals, % of total, and text transforms (uppercase, trim,
+          first/last name, email domain) over a selection. No API key, no spend.
         </p>
       </template>
-
     </template>
 
     <template #actions>
@@ -143,18 +142,63 @@ async function save() {
 </script>
 
 <style scoped>
-.ai-error { display: block; margin: 0 0 12px; max-width: 100%; }
-.ai-loading { display: flex; justify-content: center; padding: 24px; }
-.ai-help { font-size: 13px; color: var(--ink-gray-6); margin: 0 0 16px; line-height: 1.5; }
+.ai-error {
+  display: block;
+  margin: 0 0 12px;
+  max-width: 100%;
+}
+.ai-loading {
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+}
+.ai-help {
+  font-size: 13px;
+  color: var(--ink-gray-6);
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
 
-.ai-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.ai-row-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.ai-row-title { font-size: 13px; font-weight: 500; color: var(--ink-gray-9); }
-.ai-row-sub { font-size: 12px; color: var(--ink-gray-5); }
+.ai-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.ai-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ai-row-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-gray-9);
+}
+.ai-row-sub {
+  font-size: 12px;
+  color: var(--ink-gray-5);
+}
 
-.ai-divider { height: 1px; background: var(--outline-gray-1); margin: 16px 0; }
+.ai-divider {
+  height: 1px;
+  background: var(--outline-gray-1);
+  margin: 16px 0;
+}
 
-.ai-label { font-size: 13px; font-weight: 500; color: var(--ink-gray-6); margin: 0 0 8px; }
-.ai-label--gap { margin-top: 16px; }
-.ai-key-state { font-size: 11px; color: var(--ink-gray-5); margin: 6px 0 0; }
+.ai-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-gray-6);
+  margin: 0 0 8px;
+}
+.ai-label--gap {
+  margin-top: 16px;
+}
+.ai-key-state {
+  font-size: 11px;
+  color: var(--ink-gray-5);
+  margin: 6px 0 0;
+}
 </style>

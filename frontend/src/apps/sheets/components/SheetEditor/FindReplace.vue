@@ -20,9 +20,9 @@
       autocomplete="off"
     />
     <div class="fr-actions">
-      <Button class="fr-grow" variant="solid"   size="sm" label="Find next" @click="findNext" />
-      <Button class="fr-grow" variant="outline" size="sm" label="Replace"   @click="replaceCurrent" />
-      <Button class="fr-grow" variant="outline" size="sm" label="All"       @click="replaceAll" />
+      <Button class="fr-grow" variant="solid" size="sm" label="Find next" @click="findNext" />
+      <Button class="fr-grow" variant="outline" size="sm" label="Replace" @click="replaceCurrent" />
+      <Button class="fr-grow" variant="outline" size="sm" label="All" @click="replaceAll" />
     </div>
     <div v-if="status" class="fr-status">{{ status }}</div>
   </div>
@@ -108,10 +108,47 @@ function replaceAll() {
 </script>
 
 <style scoped>
-.fr-panel   { position:fixed; top:60px; right:16px; z-index:200; background:var(--surface-elevation-2); border:1px solid var(--outline-elevation-2); border-radius:10px; box-shadow:0 0 1px rgba(0,0,0,.35), 0 6px 8px -4px rgba(0,0,0,.1); padding:12px; width:280px; display:flex; flex-direction:column; gap:8px; }
-.fr-header  { display:flex; justify-content:space-between; align-items:center; }
-.fr-title   { font-size:13px; font-weight:600; letter-spacing:.02em; color:var(--ink-gray-9); }
-.fr-actions { display:flex; gap:4px; padding-top:2px; }
-.fr-grow    { flex:1; }
-.fr-status  { font-size:11px; letter-spacing:.02em; color:var(--ink-gray-5); text-align:center; padding-top:2px; }
+.fr-panel {
+  position: fixed;
+  top: 60px;
+  right: 16px;
+  z-index: 200;
+  background: var(--surface-elevation-2);
+  border: 1px solid var(--outline-elevation-2);
+  border-radius: 10px;
+  box-shadow:
+    0 0 1px rgba(0, 0, 0, 0.35),
+    0 6px 8px -4px rgba(0, 0, 0, 0.1);
+  padding: 12px;
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.fr-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.fr-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-gray-9);
+}
+.fr-actions {
+  display: flex;
+  gap: 4px;
+  padding-top: 2px;
+}
+.fr-grow {
+  flex: 1;
+}
+.fr-status {
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--ink-gray-5);
+  text-align: center;
+  padding-top: 2px;
+}
 </style>

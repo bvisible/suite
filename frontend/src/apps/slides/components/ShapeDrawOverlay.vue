@@ -1,7 +1,7 @@
 <template>
-	<div v-if="pendingShapeType" :style="overlayStyles" @mousedown.prevent="handleMouseDown" />
+  <div v-if="pendingShapeType" :style="overlayStyles" @mousedown.prevent="handleMouseDown" />
 
-	<div v-if="isDrawing" :style="previewStyles" />
+  <div v-if="isDrawing" :style="previewStyles" />
 </template>
 <script setup>
 import { computed, onMounted, onBeforeUnmount } from 'vue'

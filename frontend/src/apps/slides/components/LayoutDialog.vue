@@ -1,28 +1,23 @@
 <template>
-	<Dialog
-		v-model:open="showLayoutDialog"
-		class="pb-0"
-		size="4xl"
-		title="Select a Template Layout"
-	>
-		<template #default>
-			<div class="grid max-h-[32rem] grid-cols-3 gap-6 overflow-y-auto">
-				<div
-					v-for="layout in layouts"
-					:key="layout.idx"
-					class="aspect-video cursor-pointer overflow-hidden rounded-lg border border-gray-300 hover:border-gray-400"
-					:style="getThumbnailCardStyles(layout.thumbnail)"
-					@click="insertSlideWithLayout(layout)"
-				>
-					<SlidePreview
-						v-if="layout.thumbnail == ''"
-						:slide="layout"
-						:scale="LAYOUT_PREVIEW_SCALE"
-					/>
-				</div>
-			</div>
-		</template>
-	</Dialog>
+  <Dialog v-model:open="showLayoutDialog" class="pb-0" size="4xl" title="Select a Template Layout">
+    <template #default>
+      <div class="grid max-h-[32rem] grid-cols-3 gap-6 overflow-y-auto">
+        <div
+          v-for="layout in layouts"
+          :key="layout.idx"
+          class="aspect-video cursor-pointer overflow-hidden rounded-lg border border-gray-300 hover:border-gray-400"
+          :style="getThumbnailCardStyles(layout.thumbnail)"
+          @click="insertSlideWithLayout(layout)"
+        >
+          <SlidePreview
+            v-if="layout.thumbnail == ''"
+            :slide="layout"
+            :scale="LAYOUT_PREVIEW_SCALE"
+          />
+        </div>
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <script setup>

@@ -1,7 +1,7 @@
 <template>
-	<Dialog
-		v-model="show"
-		:options="{
+  <Dialog
+    v-model="show"
+    :options="{
 			title: __('Add Member'),
 			actions: [
 				{
@@ -11,77 +11,74 @@
 				},
 			],
 		}"
-	>
-		<template #body-content>
-			<div class="space-y-4">
-				<div class="flex items-center justify-between">
-					<FormControl
-						v-model="accountRequest.username"
-						:label="__('Username')"
-						placeholder="johndoe"
-						class="w-full"
-					/>
-					<FeatherIcon
-						class="text-ink-gray-3 mx-2.5 mb-1.5 mt-auto h-4 w-4"
-						name="at-sign"
-					/>
-					<FormControl
-						v-model="accountRequest.domain"
-						type="combobox"
-						:label="__('Domain')"
-						placeholder="yourdomain.com"
-						class="w-full"
-						:options="domains.data"
-						:open-on-click="true"
-					/>
-				</div>
-				<FormControl
-					v-model="accountRequest.role"
-					type="select"
-					:label="__('Role')"
-					:options="ROLE_OPTIONS"
-				/>
-				<FormControl
-					v-model="accountRequest.backup_email"
-					type="email"
-					:label="__('Backup Email')"
-					placeholder="johndoe@personal.com"
-				/>
-				<hr />
+  >
+    <template #body-content>
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <FormControl
+            v-model="accountRequest.username"
+            :label="__('Username')"
+            placeholder="johndoe"
+            class="w-full"
+          />
+          <FeatherIcon class="text-ink-gray-3 mx-2.5 mb-1.5 mt-auto h-4 w-4" name="at-sign" />
+          <FormControl
+            v-model="accountRequest.domain"
+            type="combobox"
+            :label="__('Domain')"
+            placeholder="yourdomain.com"
+            class="w-full"
+            :options="domains.data"
+            :open-on-click="true"
+          />
+        </div>
+        <FormControl
+          v-model="accountRequest.role"
+          type="select"
+          :label="__('Role')"
+          :options="ROLE_OPTIONS"
+        />
+        <FormControl
+          v-model="accountRequest.backup_email"
+          type="email"
+          :label="__('Backup Email')"
+          placeholder="johndoe@personal.com"
+        />
+        <hr />
 
-				<Switch
-					v-model="accountRequest.send_invite"
-					:label="__('Send Invite')"
-					class="hover:!bg-surface-base !cursor-default !p-0"
-				/>
-				<FormControl
-					v-if="accountRequest.send_invite"
-					v-model="accountRequest.expires_at"
-					:label="__('Expires At')"
-					type="datetime-local"
-				/>
-				<template v-else>
-					<FormControl
-						v-model="accountRequest.first_name"
-						:label="__('First Name')"
-						placeholder="John"
-					/>
-					<FormControl
-						v-model="accountRequest.last_name"
-						:label="__('Last Name')"
-						placeholder="Doe"
-					/>
-					<FormControl
-						v-model="accountRequest.password"
-						type="password"
-						:label="__('Password')"
-						placeholder="••••••••"
-					/>
-				</template>
-				<ErrorMessage :message="addMember.error?.messages[0]" />
-			</div>
-		</template>
-	</Dialog>
+        <Switch
+          v-model="accountRequest.send_invite"
+          :label="__('Send Invite')"
+          class="hover:!bg-surface-base !cursor-default !p-0"
+        />
+        <FormControl
+          v-if="accountRequest.send_invite"
+          v-model="accountRequest.expires_at"
+          :label="__('Expires At')"
+          type="datetime-local"
+        />
+        <template v-else>
+          <FormControl
+            v-model="accountRequest.first_name"
+            :label="__('First Name')"
+            placeholder="John"
+          />
+          <FormControl
+            v-model="accountRequest.last_name"
+            :label="__('Last Name')"
+            placeholder="Doe"
+          />
+          <FormControl
+            v-model="accountRequest.password"
+            type="password"
+            :label="__('Password')"
+            placeholder="••••••••"
+          />
+        </template>
+        <ErrorMessage :message="addMember.error?.messages[0]" />
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <script setup lang="ts">

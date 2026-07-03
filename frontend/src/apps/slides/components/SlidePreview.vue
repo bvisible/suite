@@ -1,15 +1,15 @@
 <template>
-	<div class="relative aspect-video overflow-hidden" :style="previewStyles">
-		<div :style="slideStyles">
-			<SlideElement
-				v-for="element in elements"
-				:key="`thumbnail-${element.id}`"
-				mode="thumbnail"
-				:element="element"
-				:data-index="element.id"
-			/>
-		</div>
-	</div>
+  <div class="relative aspect-video overflow-hidden" :style="previewStyles">
+    <div :style="slideStyles">
+      <SlideElement
+        v-for="element in elements"
+        :key="`thumbnail-${element.id}`"
+        mode="thumbnail"
+        :element="element"
+        :data-index="element.id"
+      />
+    </div>
+  </div>
 </template>
 
 <script setup>

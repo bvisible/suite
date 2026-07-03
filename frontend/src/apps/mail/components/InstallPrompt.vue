@@ -1,56 +1,54 @@
 <template>
-	<Dialog v-model="showDialog">
-		<template #body-title>
-			<h2 class="text-xl-bold">{{ __('Install Frappe Mail') }}</h2>
-		</template>
-		<template #body-content>
-			<p>{{ __('Get the app on your device for easy access & a better experience!') }}</p>
-		</template>
-		<template #actions>
-			<Button variant="solid" class="w-full py-5" @click="install">
-				<template #prefix><FeatherIcon name="download" class="w-4" /></template>
-				{{ __('Install') }}
-			</Button>
-		</template>
-	</Dialog>
+  <Dialog v-model="showDialog">
+    <template #body-title>
+      <h2 class="text-xl-bold">{{ __('Install Frappe Mail') }}</h2>
+    </template>
+    <template #body-content>
+      <p>{{ __('Get the app on your device for easy access & a better experience!') }}</p>
+    </template>
+    <template #actions>
+      <Button variant="solid" class="w-full py-5" @click="install">
+        <template #prefix><FeatherIcon name="download" class="w-4" /></template>
+        {{ __('Install') }}
+      </Button>
+    </template>
+  </Dialog>
 
-	<!-- iOS installation info message -->
-	<Popover :show="iosInstallMessage" placement="bottom">
-		<template #body>
-			<div
-				class="bg-surface-blue-2 mx-2 mt-[calc(100vh-15rem)] flex flex-col gap-3 rounded py-5 drop-shadow-xl"
-			>
-				<div class="mb-1 flex flex-row items-center justify-between px-3 text-center">
-					<span class="text-base-bold">
-						{{ __('Install Frappe Mail') }}
-					</span>
-					<span class="inline-flex items-baseline">
-						<FeatherIcon
-							name="x"
-							class="text-ink-gray-6 ml-auto h-4 w-4"
-							@click="iosInstallMessage = false"
-						/>
-					</span>
-				</div>
-				<div class="text-ink-gray-7 px-3 text-xs">
-					<span class="flex flex-col gap-2">
-						<span>
-							{{
-								__(
+  <!-- iOS installation info message -->
+  <Popover :show="iosInstallMessage" placement="bottom">
+    <template #body>
+      <div
+        class="bg-surface-blue-2 mx-2 mt-[calc(100vh-15rem)] flex flex-col gap-3 rounded py-5 drop-shadow-xl"
+      >
+        <div class="mb-1 flex flex-row items-center justify-between px-3 text-center">
+          <span class="text-base-bold">
+            {{ __('Install Frappe Mail') }}
+          </span>
+          <span class="inline-flex items-baseline">
+            <FeatherIcon
+              name="x"
+              class="text-ink-gray-6 ml-auto h-4 w-4"
+              @click="iosInstallMessage = false"
+            />
+          </span>
+        </div>
+        <div class="text-ink-gray-7 px-3 text-xs">
+          <span class="flex flex-col gap-2">
+            <span>
+              {{ __(
 									'Get the app on your iPhone for easy access & a better experience',
-								)
-							}}
-						</span>
-						<span class="inline-flex items-start whitespace-nowrap">
-							<span>Tap&nbsp;</span>
-							<FeatherIcon name="share" class="h-4 w-4 text-blue-600" />
-							<span>&nbsp;and then "Add to Home Screen"</span>
-						</span>
-					</span>
-				</div>
-			</div>
-		</template>
-	</Popover>
+								) }}
+            </span>
+            <span class="inline-flex items-start whitespace-nowrap">
+              <span>Tap&nbsp;</span>
+              <FeatherIcon name="share" class="h-4 w-4 text-blue-600" />
+              <span>&nbsp;and then "Add to Home Screen"</span>
+            </span>
+          </span>
+        </div>
+      </div>
+    </template>
+  </Popover>
 </template>
 
 <script setup lang="ts">

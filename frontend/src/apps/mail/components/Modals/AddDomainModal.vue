@@ -1,7 +1,7 @@
 <template>
-	<Dialog
-		v-model="show"
-		:options="{
+  <Dialog
+    v-model="show"
+    :options="{
 			title: __('Add Domain'),
 			actions: [
 				{
@@ -12,34 +12,30 @@
 				},
 			],
 		}"
-	>
-		<template #body-content>
-			<div class="space-y-4">
-				<p class="text-p-base">
-					{{
-						__(
+  >
+    <template #body-content>
+      <div class="space-y-4">
+        <p class="text-p-base">
+          {{ __(
 							`To add a domain, you must already own it. If you don't have one, purchase one and return here.`,
-						)
-					}}
-				</p>
-				<FormControl
-					v-model="domainName"
-					:label="__('Domain Name')"
-					placeholder="example.com"
-					autocomplete="off"
-				/>
-				<FormControl
-					v-model="domainDescription"
-					:label="__('Description')"
-					:placeholder="__('Primary domain for company email')"
-					type="textarea"
-				/>
-				<ErrorMessage
-					:message="addDomain.error?.messages[0] || addDomain.error?.message"
-				/>
-			</div>
-		</template>
-	</Dialog>
+						) }}
+        </p>
+        <FormControl
+          v-model="domainName"
+          :label="__('Domain Name')"
+          placeholder="example.com"
+          autocomplete="off"
+        />
+        <FormControl
+          v-model="domainDescription"
+          :label="__('Description')"
+          :placeholder="__('Primary domain for company email')"
+          type="textarea"
+        />
+        <ErrorMessage :message="addDomain.error?.messages[0] || addDomain.error?.message" />
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <script setup lang="ts">

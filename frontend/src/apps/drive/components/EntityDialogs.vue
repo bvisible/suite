@@ -23,11 +23,7 @@
     @success="onMoveSuccess"
     @complete="entityOpen && resource?.fetch?.(resource.params)"
   />
-  <InfoDialog
-    v-else-if="dialog === 'i'"
-    v-model="dialog"
-    :entity="entities[0]"
-  />
+  <InfoDialog v-else-if="dialog === 'i'" v-model="dialog" :entity="entities[0]" />
   <ConfirmDialog
     v-if="dialog === 'remove'"
     v-model="dialog"

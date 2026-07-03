@@ -1,28 +1,28 @@
 <template>
-	<TransitionGroup
-		name="floating-reaction"
-		tag="div"
-		class="absolute inset-0 pointer-events-none z-50"
-	>
-		<div
-			v-for="reaction in floatingReactions"
-			:key="reaction.id"
-			class="absolute flex flex-col items-center animate-float-up"
-			:style="{
+  <TransitionGroup
+    name="floating-reaction"
+    tag="div"
+    class="absolute inset-0 pointer-events-none z-50"
+  >
+    <div
+      v-for="reaction in floatingReactions"
+      :key="reaction.id"
+      class="absolute flex flex-col items-center animate-float-up"
+      :style="{
 				left: `${reaction.position.x}px`,
 				top: `${reaction.position.y}px`,
 			}"
-		>
-			<div class="text-5xl mb-1 animate-bounce-in">
-				{{ reaction.emoji }}
-			</div>
+    >
+      <div class="text-5xl mb-1 animate-bounce-in">
+        {{ reaction.emoji }}
+      </div>
 
-			<!-- NamePill component won't work here due to it's positioning -->
-			<div class="bg-black/70 text-white text-xs px-2 py-1 rounded-md whitespace-nowrap">
-				{{ reaction.userName }}
-			</div>
-		</div>
-	</TransitionGroup>
+      <!-- NamePill component won't work here due to it's positioning -->
+      <div class="bg-black/70 text-white text-xs px-2 py-1 rounded-md whitespace-nowrap">
+        {{ reaction.userName }}
+      </div>
+    </div>
+  </TransitionGroup>
 </template>
 
 <script setup lang="ts">
@@ -118,63 +118,63 @@ const floatingReactions = computed<ReactionWithPosition[]>(() => {
 
 <style scoped>
 @keyframes float-up {
-	0% {
-		opacity: 0;
-		transform: translateY(20px) scale(0.8);
-	}
-	10% {
-		opacity: 1;
-		transform: translateY(0) scale(1);
-	}
-	90% {
-		opacity: 1;
-		transform: translateY(-40px) scale(1);
-	}
-	100% {
-		opacity: 0;
-		transform: translateY(-60px) scale(0.9);
-	}
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.8);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  90% {
+    opacity: 1;
+    transform: translateY(-40px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-60px) scale(0.9);
+  }
 }
 
 @keyframes bounce-in {
-	0% {
-		transform: scale(0.3);
-		opacity: 0;
-	}
-	50% {
-		transform: scale(1.1);
-		opacity: 1;
-	}
-	100% {
-		transform: scale(1);
-		opacity: 1;
-	}
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .animate-float-up {
-	animation: float-up 4s ease-out forwards;
+  animation: float-up 4s ease-out forwards;
 }
 
 .animate-bounce-in {
-	animation: bounce-in 0.6s ease-out;
+  animation: bounce-in 0.6s ease-out;
 }
 
 /* Transition for entering/leaving reactions */
 .floating-reaction-enter-active {
-	transition: all 0.3s ease-out;
+  transition: all 0.3s ease-out;
 }
 
 .floating-reaction-leave-active {
-	transition: all 0.3s ease-in;
+  transition: all 0.3s ease-in;
 }
 
 .floating-reaction-enter-from {
-	opacity: 0;
-	transform: translateY(20px) scale(0.8);
+  opacity: 0;
+  transform: translateY(20px) scale(0.8);
 }
 
 .floating-reaction-leave-to {
-	opacity: 0;
-	transform: translateY(-20px) scale(0.9);
+  opacity: 0;
+  transform: translateY(-20px) scale(0.9);
 }
 </style>

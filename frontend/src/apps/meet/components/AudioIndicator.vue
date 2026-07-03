@@ -1,17 +1,17 @@
 <template>
-	<div class="flex items-center gap-1" :style="{ height: `${props.maxHeight || 80}px` }">
-		<div
-			v-for="(bar, index) in bars"
-			:key="index"
-			class="audio-bar"
-			:class="bar.className"
-			:style="{
+  <div class="flex items-center gap-1" :style="{ height: `${props.maxHeight || 80}px` }">
+    <div
+      v-for="(bar, index) in bars"
+      :key="index"
+      class="audio-bar"
+      :class="bar.className"
+      :style="{
 				height: `${bar.height}px`,
 				maxHeight: `${props.maxHeight || 80}px`,
 				transition: 'height 0.1s ease-out',
 			}"
-		/>
-	</div>
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -244,8 +244,8 @@ onUnmounted(() => {
 
 <style scoped>
 .audio-bar {
-	width: 3px;
-	border-radius: 1px;
-	transition: height 0.1s ease-out;
+  width: 3px;
+  border-radius: 1px;
+  transition: height 0.1s ease-out;
 }
 </style>

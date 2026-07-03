@@ -1,39 +1,39 @@
 <template>
-	<div class="flex h-screen w-screen flex-col">
-		<Navbar
-			:primaryButton="{
+  <div class="flex h-screen w-screen flex-col">
+    <Navbar
+      :primaryButton="{
 				label: 'New',
 				icon: Plus,
 				onClick: () => navigateToEditor(),
 			}"
-		/>
+    />
 
-		<PresentationList
-			:loading="presentationListResource.loading"
-			:presentations="presentationList"
-			@setPreview="setPreview"
-			@navigate="navigateToPresentation"
-			@openDialog="openDialog"
-			@duplicatePresentation="(name) => duplicateAndNavigate(name)"
-		/>
+    <PresentationList
+      :loading="presentationListResource.loading"
+      :presentations="presentationList"
+      @setPreview="setPreview"
+      @navigate="navigateToPresentation"
+      @openDialog="openDialog"
+      @duplicatePresentation="(name) => duplicateAndNavigate(name)"
+    />
 
-		<PresentationPreview
-			v-if="previewPresentation"
-			:presentation="previewPresentation"
-			@setPreview="setPreview"
-			@openDialog="openDialog"
-			@navigate="navigateToPresentation"
-			@duplicatePresentation="(name) => duplicateAndNavigate(name)"
-		/>
-	</div>
+    <PresentationPreview
+      v-if="previewPresentation"
+      :presentation="previewPresentation"
+      @setPreview="setPreview"
+      @openDialog="openDialog"
+      @navigate="navigateToPresentation"
+      @duplicatePresentation="(name) => duplicateAndNavigate(name)"
+    />
+  </div>
 
-	<PresentationActionDialog
-		v-model="showDialog"
-		:dialogAction="dialogAction"
-		:presentation="selectedPresentation"
-		@closeDialog="closeDialog"
-		@updatePresentationList="updatePresentationList"
-	/>
+  <PresentationActionDialog
+    v-model="showDialog"
+    :dialogAction="dialogAction"
+    :presentation="selectedPresentation"
+    @closeDialog="closeDialog"
+    @updatePresentationList="updatePresentationList"
+  />
 </template>
 
 <script setup>

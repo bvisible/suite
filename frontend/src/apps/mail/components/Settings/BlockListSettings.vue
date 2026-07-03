@@ -1,64 +1,55 @@
 <template>
-	<!-- A single h-full flex column gives the ListView a bounded flex parent so it fills the panel and
+  <!-- A single h-full flex column gives the ListView a bounded flex parent so it fills the panel and
 	scrolls within itself, instead of taking a small intrinsic height with empty space below. -->
-	<div class="flex min-h-0 flex-1 flex-col gap-5">
-		<h1>{{ __('Screened Senders') }}</h1>
+  <div class="flex min-h-0 flex-1 flex-col gap-5">
+    <h1>{{ __('Screened Senders') }}</h1>
 
-		<div class="flex gap-4">
-			<FormControl
-				v-model="email"
-				type="text"
-				variant="outline"
-				:placeholder="__('Enter email or domain (e.g. @example.com)')"
-				class="flex-1"
-				@keydown.enter="screenEmailAddress.submit()"
-			/>
-			<!-- FormControl forces `w-full` on selects, so constrain it with a fixed-width wrapper
+    <div class="flex gap-4">
+      <FormControl
+        v-model="email"
+        type="text"
+        variant="outline"
+        :placeholder="__('Enter email or domain (e.g. @example.com)')"
+        class="flex-1"
+        @keydown.enter="screenEmailAddress.submit()"
+      />
+      <!-- FormControl forces `w-full` on selects, so constrain it with a fixed-width wrapper
 			instead of letting it claim the whole row and squeeze the email input. -->
-			<div class="w-36 shrink-0">
-				<FormControl
-					v-model="action"
-					type="select"
-					variant="outline"
-					:options="ACTION_OPTIONS"
-				/>
-			</div>
-			<Button
-				:label="__('Add')"
-				variant="solid"
-				:loading="screenEmailAddress.loading"
-				:disabled="!isEmailOrDomain(email) || isAlreadyScreened"
-				@click="screenEmailAddress.submit()"
-			/>
-		</div>
+      <div class="w-36 shrink-0">
+        <FormControl v-model="action" type="select" variant="outline" :options="ACTION_OPTIONS" />
+      </div>
+      <Button
+        :label="__('Add')"
+        variant="solid"
+        :loading="screenEmailAddress.loading"
+        :disabled="!isEmailOrDomain(email) || isAlreadyScreened"
+        @click="screenEmailAddress.submit()"
+      />
+    </div>
 
-		<ListView
-			v-if="rows.length"
-			ref="listView"
-			class="min-h-0 flex-1"
-			:columns="COLUMNS"
-			:rows="rows"
-			row-key="email"
-		>
-			<ListHeader />
-			<ListRows />
-			<ListSelectBanner>
-				<template #actions>
-					<Button
-						variant="ghost"
-						:label="__('Remove')"
-						@click="showRemoveModal = true"
-					/>
-				</template>
-			</ListSelectBanner>
-		</ListView>
-		<div v-else class="text-ink-gray-6 flex flex-col space-y-2 text-sm">
-			<p class="text-base font-medium">{{ __('No screened senders.') }}</p>
-			<p>{{ MESSAGE }}</p>
-		</div>
+    <ListView
+      v-if="rows.length"
+      ref="listView"
+      class="min-h-0 flex-1"
+      :columns="COLUMNS"
+      :rows="rows"
+      row-key="email"
+    >
+      <ListHeader />
+      <ListRows />
+      <ListSelectBanner>
+        <template #actions>
+          <Button variant="ghost" :label="__('Remove')" @click="showRemoveModal = true" />
+        </template>
+      </ListSelectBanner>
+    </ListView>
+    <div v-else class="text-ink-gray-6 flex flex-col space-y-2 text-sm">
+      <p class="text-base font-medium">{{ __('No screened senders.') }}</p>
+      <p>{{ MESSAGE }}</p>
+    </div>
 
-		<Dialog v-model="showRemoveModal" :options="removeModalOptions" />
-	</div>
+    <Dialog v-model="showRemoveModal" :options="removeModalOptions" />
+  </div>
 </template>
 
 <script setup lang="ts">

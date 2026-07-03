@@ -1,33 +1,33 @@
 <template>
-	<Dialog v-model="show" :options="options">
-		<template #body-content>
-			<div class="space-y-4">
-				<FormControl
-					v-model="selectFrom"
-					:label="__('Select From')"
-					type="combobox"
-					:open-on-click="true"
-					:options="selectFromOptions"
-					@update:model-value="contacts.reload"
-				/>
-				<hr />
-				<FormControl v-model="search" :placeholder="__('Search...')" />
-				<ListView
-					v-if="contacts?.data"
-					ref="listView"
-					class="h-60 shrink-0"
-					:columns="LIST_COLUMNS"
-					:rows="contacts.data"
-					:options="LIST_OPTIONS"
-					row-key="email"
-				>
-					<ListHeader />
-					<ListRows v-if="contacts.data.length" @scroll="loadMoreContacts" />
-					<ListEmptyState v-else />
-				</ListView>
-			</div>
-		</template>
-	</Dialog>
+  <Dialog v-model="show" :options="options">
+    <template #body-content>
+      <div class="space-y-4">
+        <FormControl
+          v-model="selectFrom"
+          :label="__('Select From')"
+          type="combobox"
+          :open-on-click="true"
+          :options="selectFromOptions"
+          @update:model-value="contacts.reload"
+        />
+        <hr />
+        <FormControl v-model="search" :placeholder="__('Search...')" />
+        <ListView
+          v-if="contacts?.data"
+          ref="listView"
+          class="h-60 shrink-0"
+          :columns="LIST_COLUMNS"
+          :rows="contacts.data"
+          :options="LIST_OPTIONS"
+          row-key="email"
+        >
+          <ListHeader />
+          <ListRows v-if="contacts.data.length" @scroll="loadMoreContacts" />
+          <ListEmptyState v-else />
+        </ListView>
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <script setup lang="ts">

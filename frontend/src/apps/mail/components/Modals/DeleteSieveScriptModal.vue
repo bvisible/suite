@@ -1,7 +1,7 @@
 <template>
-	<Dialog
-		v-model="show"
-		:options="{
+  <Dialog
+    v-model="show"
+    :options="{
 			title: __('Delete Sieve Script'),
 			message: __(`Are you sure you want to delete '{0}'? `, [script._name]),
 			icon: { name: 'alert-triangle', appearance: 'warning' },
@@ -9,7 +9,7 @@
 				{ label: __('Confirm'), theme: 'red', onClick: () => deleteScript.submit() },
 			],
 		}"
-	/>
+  />
 </template>
 
 <script setup lang="ts">

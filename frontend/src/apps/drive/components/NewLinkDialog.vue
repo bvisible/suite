@@ -14,24 +14,24 @@
     @close="dialogType = ''"
   >
     <div class="flex flex-col gap-4">
-        <FormControl
-          v-model="file_name"
-          v-focus
-          label="Link name"
-          type="text"
-          @keydown="createLink.error = null"
-        />
-        <FormControl
-          v-model="link"
-          label="URL"
-          type="url"
-          @keydown.enter="createLink.submit"
-          @keydown="createLink.error = null"
-        />
-      </div>
-      <div v-if="createLink.error" class="pt-4 text-base font-sm text-ink-red-6">
-        {{ createLink.error.messages[0] }}
-      </div>
+      <FormControl
+        v-model="file_name"
+        v-focus
+        label="Link name"
+        type="text"
+        @keydown="createLink.error = null"
+      />
+      <FormControl
+        v-model="link"
+        label="URL"
+        type="url"
+        @keydown.enter="createLink.submit"
+        @keydown="createLink.error = null"
+      />
+    </div>
+    <div v-if="createLink.error" class="pt-4 text-base font-sm text-ink-red-6">
+      {{ createLink.error.messages[0] }}
+    </div>
   </Dialog>
 </template>
 

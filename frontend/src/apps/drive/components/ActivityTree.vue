@@ -12,18 +12,10 @@
         :key="activity"
         class="flex items-start justify-start py-3 gap-x-2"
       >
-        <Avatar
-          size="md"
-          :image="activity.user_image"
-          :label="activity.full_name"
-        />
+        <Avatar size="md" :image="activity.user_image" :label="activity.full_name" />
         <div class="flex flex-col items-start justify-center">
-          <span class="text-sm text-ink-gray-9">{{
-            __(activity.message)
-          }}</span>
-          <span class="text-xs text-ink-gray-5 mb-3">{{
-            activity.creation
-          }}</span>
+          <span class="text-sm text-ink-gray-9">{{ __(activity.message) }}</span>
+          <span class="text-xs text-ink-gray-5 mb-3">{{ activity.creation }}</span>
 
           <template v-if="activity.action_type === 'rename'">
             <div class="flex items-center justify-start flex-wrap gap-1">
@@ -35,11 +27,7 @@
               />
 
               <ArrowRight class="text-ink-gray-4 h-4" />
-              <ActivityTreeItem
-                :activity="activity"
-                :entity="entity"
-                :title="activity.new_value"
-              />
+              <ActivityTreeItem :activity="activity" :entity="entity" :title="activity.new_value" />
             </div>
           </template>
           <ActivityTreeShare

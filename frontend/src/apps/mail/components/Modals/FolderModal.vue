@@ -1,7 +1,7 @@
 <template>
-	<Dialog
-		v-model="show"
-		:options="{
+  <Dialog
+    v-model="show"
+    :options="{
 			title: isNew ? __('New Folder') : __('Folder Settings'),
 			size: 'xl',
 			paddingTop: '10%',
@@ -14,141 +14,141 @@
 				},
 			],
 		}"
-	>
-		<template #body-content>
-			<Tabs v-model="tab" :tabs="TABS" class="[&>[role=tablist]]:px-0">
-				<template #tab-panel>
-					<div class="space-y-4 pt-4 sm:pt-6">
-						<!-- General -->
-						<template v-if="tab === 0">
-							<FormControl v-model="folder.name" :label="__('Name')" required />
-							<div class="space-y-1.5">
-								<label class="text-ink-gray-5 block text-xs">
-									{{ __('Icon') }}
-								</label>
-								<IconPicker v-model="folder.icon" />
-							</div>
-							<FormControl
-								v-model="folder.color"
-								type="select"
-								:label="__('Color')"
-								:options="COLOR_OPTIONS"
-							>
-								<template #prefix>
-									<span
-										class="h-4 w-4 shrink-0 rounded-full"
-										:class="FOLDER_COLOR_MAP[folder.color]"
-									/>
-								</template>
-							</FormControl>
-							<hr />
-							<Switch
-								v-model="folder.disable_push_notification"
-								:label="__('Disable Push Notifications')"
-								:disabled="isNotificationsDisabled"
-								:description="
+  >
+    <template #body-content>
+      <Tabs v-model="tab" :tabs="TABS" class="[&>[role=tablist]]:px-0">
+        <template #tab-panel>
+          <div class="space-y-4 pt-4 sm:pt-6">
+            <!-- General -->
+            <template v-if="tab === 0">
+              <FormControl v-model="folder.name" :label="__('Name')" required />
+              <div class="space-y-1.5">
+                <label class="text-ink-gray-5 block text-xs">
+                  {{ __('Icon') }}
+                </label>
+                <IconPicker v-model="folder.icon" />
+              </div>
+              <FormControl
+                v-model="folder.color"
+                type="select"
+                :label="__('Color')"
+                :options="COLOR_OPTIONS"
+              >
+                <template #prefix>
+                  <span
+                    class="h-4 w-4 shrink-0 rounded-full"
+                    :class="FOLDER_COLOR_MAP[folder.color]"
+                  />
+                </template>
+              </FormControl>
+              <hr />
+              <Switch
+                v-model="folder.disable_push_notification"
+                :label="__('Disable Push Notifications')"
+                :disabled="isNotificationsDisabled"
+                :description="
 									__('Check to disable push notifications for this folder.')
 								"
-								class="!p-0"
-							/>
-						</template>
+                class="!p-0"
+              />
+            </template>
 
-						<!-- Automation  -->
-						<template v-else>
-							<Alert
-								v-if="activeScript !== 'frappe_mail_automation'"
-								:title="__('Folder Automation Disabled')"
-								:description="
+            <!-- Automation  -->
+            <template v-else>
+              <Alert
+                v-if="activeScript !== 'frappe_mail_automation'"
+                :title="__('Folder Automation Disabled')"
+                :description="
 									__(
 										`Please enable it to ensure that your rules function properly.`,
 										[activeScript],
 									)
 								"
-								theme="yellow"
-								:dismissable="false"
-							>
-								<template #footer>
-									<Button
-										class="col-span-full"
-										:label="__('Enable')"
-										variant="outline"
-										@click="showEnableFolderAutomation = true"
-									/>
-								</template>
-							</Alert>
-							<FormControl
-								v-model="automationRules.emails_from"
-								:label="__('Emails From')"
-								placeholder="john@example.com, jane@example.com, *@example.io"
-								:description="
+                theme="yellow"
+                :dismissable="false"
+              >
+                <template #footer>
+                  <Button
+                    class="col-span-full"
+                    :label="__('Enable')"
+                    variant="outline"
+                    @click="showEnableFolderAutomation = true"
+                  />
+                </template>
+              </Alert>
+              <FormControl
+                v-model="automationRules.emails_from"
+                :label="__('Emails From')"
+                placeholder="john@example.com, jane@example.com, *@example.io"
+                :description="
 									__(
 										'Emails from these addresses will be automatically moved to this folder.',
 									)
 								"
-							/>
-							<FormControl
-								v-model="automationRules.subject_contains"
-								:label="__('Subject Contains')"
-								placeholder="Important, Urgent, Follow Up"
-								:description="
+              />
+              <FormControl
+                v-model="automationRules.subject_contains"
+                :label="__('Subject Contains')"
+                placeholder="Important, Urgent, Follow Up"
+                :description="
 									__(
 										'Emails with these keywords in the subject will be automatically moved to this folder.',
 									)
 								"
-							/>
-							<FormControl
-								v-if="
+              />
+              <FormControl
+                v-if="
 									automationRules.emails_from && automationRules.subject_contains
 								"
-								v-model="automationRules.match_if"
-								:label="__('Match If')"
-								type="select"
-								:options="[
+                v-model="automationRules.match_if"
+                :label="__('Match If')"
+                type="select"
+                :options="[
 									{ label: __('Either condition is met'), value: 'any' },
 									{ label: __('Both conditions are met'), value: 'all' },
 								]"
-							/>
-							<template
-								v-if="
+              />
+              <template
+                v-if="
 									automationRules.emails_from || automationRules.subject_contains
 								"
-							>
-								<hr />
-								<Switch
-									v-model="automationRules.mark_as_read"
-									:label="__('Mark as Read')"
-									:disabled="isNotificationsDisabled"
-									:description="
+              >
+                <hr />
+                <Switch
+                  v-model="automationRules.mark_as_read"
+                  :label="__('Mark as Read')"
+                  :disabled="isNotificationsDisabled"
+                  :description="
 										__(
 											'Automatically mark emails as read when they are moved to this folder.',
 										)
 									"
-									class="!p-0"
-								/>
-								<Switch
-									v-model="automationRules.add_star"
-									:label="__('Add Star')"
-									:disabled="isNotificationsDisabled"
-									:description="
+                  class="!p-0"
+                />
+                <Switch
+                  v-model="automationRules.add_star"
+                  :label="__('Add Star')"
+                  :disabled="isNotificationsDisabled"
+                  :description="
 										__(
 											'Automatically star emails when they are moved to this folder.',
 										)
 									"
-									class="!p-0"
-								/>
-							</template>
-						</template>
-					</div>
-				</template>
-			</Tabs>
-		</template>
-	</Dialog>
+                  class="!p-0"
+                />
+              </template>
+            </template>
+          </div>
+        </template>
+      </Tabs>
+    </template>
+  </Dialog>
 
-	<SetSieveScriptStateModal
-		v-model="showEnableFolderAutomation"
-		:script="automationScript || DEFAULT_AUTOMATION_SCRIPT"
-		:action="automationScript ? undefined : createAutomationScript.submit"
-	/>
+  <SetSieveScriptStateModal
+    v-model="showEnableFolderAutomation"
+    :script="automationScript || DEFAULT_AUTOMATION_SCRIPT"
+    :action="automationScript ? undefined : createAutomationScript.submit"
+  />
 </template>
 
 <script setup lang="ts">

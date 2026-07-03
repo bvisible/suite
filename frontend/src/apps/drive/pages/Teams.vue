@@ -44,7 +44,8 @@
         <div class="flex flex-col">
           <span class="text-md">{{ invite.team_name }}</span>
           <span class="text-sm"
-            >{{ invite.status === 'Proposed' ? 'Requested' : 'Sent' }} at
+            >{{ invite.status === 'Proposed' ? 'Requested' : 'Sent' }}
+            at
             {{ formatDate(invite.creation) }}</span
           >
         </div>

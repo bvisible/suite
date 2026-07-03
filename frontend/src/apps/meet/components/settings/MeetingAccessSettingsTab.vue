@@ -1,28 +1,28 @@
 <template>
-	<SettingsLayoutBase
-		title="Meeting Access"
-		description="Manage how participants can join and interact in the meeting."
-	>
-		<template #content>
-			<div class="space-y-6">
-				<!-- Allow Guest Toggle -->
-				<div class="space-y-3">
-					<Switch
-						class="w-full !px-0"
-						label="Allow Guests"
-						description="Allow non-registered users to join this meeting"
-						v-model="allowGuest"
-						:disabled="meetingDoc.updateSettings.loading || meetingDoc.get.loading"
-					/>
-				</div>
+  <SettingsLayoutBase
+    title="Meeting Access"
+    description="Manage how participants can join and interact in the meeting."
+  >
+    <template #content>
+      <div class="space-y-6">
+        <!-- Allow Guest Toggle -->
+        <div class="space-y-3">
+          <Switch
+            class="w-full !px-0"
+            label="Allow Guests"
+            description="Allow non-registered users to join this meeting"
+            v-model="allowGuest"
+            :disabled="meetingDoc.updateSettings.loading || meetingDoc.get.loading"
+          />
+        </div>
 
-				<!-- Meeting Type Selector -->
-				<div>
-					<FormControl
-						v-model="meetingType"
-						type="select"
-						label="Control who can join this meeting"
-						:options="[
+        <!-- Meeting Type Selector -->
+        <div>
+          <FormControl
+            v-model="meetingType"
+            type="select"
+            label="Control who can join this meeting"
+            :options="[
 							{
 								label: 'Open - Anyone can join directly',
 								value: 'open',
@@ -32,29 +32,29 @@
 								value: 'restricted',
 							},
 						]"
-						:disabled="meetingDoc.updateSettings.loading || meetingDoc.get.loading"
-					/>
-				</div>
+            :disabled="meetingDoc.updateSettings.loading || meetingDoc.get.loading"
+          />
+        </div>
 
-				<div class="space-y-3">
-					<Switch
-						class="w-full !px-0"
-						label="Host Only Chat"
-						description="Restrict chat so only hosts and co-hosts can send messages"
-						v-model="hostOnlyChat"
-						:disabled="meetingDoc.updateSettings.loading || meetingDoc.get.loading"
-					/>
-				</div>
+        <div class="space-y-3">
+          <Switch
+            class="w-full !px-0"
+            label="Host Only Chat"
+            description="Restrict chat so only hosts and co-hosts can send messages"
+            v-model="hostOnlyChat"
+            :disabled="meetingDoc.updateSettings.loading || meetingDoc.get.loading"
+          />
+        </div>
 
-				<!-- E2EE Toggle -->
-				<E2EESettingsSection
-					:meeting-id="props.meetingId"
-					:meeting-doc="meetingDoc"
-					:globally-enabled="globalE2EEEnabled"
-				/>
-			</div>
-		</template>
-	</SettingsLayoutBase>
+        <!-- E2EE Toggle -->
+        <E2EESettingsSection
+          :meeting-id="props.meetingId"
+          :meeting-doc="meetingDoc"
+          :globally-enabled="globalE2EEEnabled"
+        />
+      </div>
+    </template>
+  </SettingsLayoutBase>
 </template>
 
 <script setup lang="ts">

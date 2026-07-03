@@ -1,206 +1,203 @@
 <template>
-	<div
-		class="pointer-events-none w-full overflow-hidden shrink-0 transition-[height,margin] duration-500 ease-in-out"
-		:class="{ 'mt-2 mb-2': isVisible }"
-		:style="{ height: toolbarHeight }"
-	>
-		<div
-			class="flex justify-center px-4 transition-transform duration-500 ease-in-out"
-			:class="isVisible ? 'translate-y-0' : 'translate-y-full'"
-		>
-			<div
-				class="flex items-center gap-3 p-4 bg-black/80 backdrop-blur-md rounded-full border border-white/10 shadow-xl pointer-events-auto transition-all duration-500"
-				@mouseenter="onMouseEnter"
-				@mouseleave="onMouseLeave"
-				data-testid="meeting-toolbar"
-			>
-				<!-- Microphone -->
-				<Button
-					@click="$emit('toggle-microphone')"
-					variant="solid"
-					size="lg"
-					class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95"
-					:class="{
+  <div
+    class="pointer-events-none w-full overflow-hidden shrink-0 transition-[height,margin] duration-500 ease-in-out"
+    :class="{ 'mt-2 mb-2': isVisible }"
+    :style="{ height: toolbarHeight }"
+  >
+    <div
+      class="flex justify-center px-4 transition-transform duration-500 ease-in-out"
+      :class="isVisible ? 'translate-y-0' : 'translate-y-full'"
+    >
+      <div
+        class="flex items-center gap-3 p-4 bg-black/80 backdrop-blur-md rounded-full border border-white/10 shadow-xl pointer-events-auto transition-all duration-500"
+        @mouseenter="onMouseEnter"
+        @mouseleave="onMouseLeave"
+        data-testid="meeting-toolbar"
+      >
+        <!-- Microphone -->
+        <Button
+          @click="$emit('toggle-microphone')"
+          variant="solid"
+          size="lg"
+          class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95"
+          :class="{
 						'!bg-[#e54e17] hover:!bg-[#e54e17]': !isMicOn,
 					}"
-					:title="`Toggle Audio (${$platform === 'mac' ? '⌘+D' : 'Ctrl+D'})`"
-					data-testid="toolbar-microphone"
-				>
-					<template #icon>
-						<lucide-mic-off v-if="!isMicOn" class="w-5 h-5 text-white" />
-						<lucide-mic v-else class="w-5 h-5 text-white" />
-					</template>
-				</Button>
+          :title="`Toggle Audio (${$platform === 'mac' ? '⌘+D' : 'Ctrl+D'})`"
+          data-testid="toolbar-microphone"
+        >
+          <template #icon>
+            <lucide-mic-off v-if="!isMicOn" class="w-5 h-5 text-white" />
+            <lucide-mic v-else class="w-5 h-5 text-white" />
+          </template>
+        </Button>
 
-				<!-- Camera -->
-				<Button
-					@click="$emit('toggle-camera')"
-					variant="solid"
-					size="lg"
-					class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95"
-					:class="{
+        <!-- Camera -->
+        <Button
+          @click="$emit('toggle-camera')"
+          variant="solid"
+          size="lg"
+          class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95"
+          :class="{
 						'!bg-[#e54e17] hover:!bg-[#e54e17]': !isCameraOn,
 					}"
-					:title="`Toggle Video (${$platform === 'mac' ? '⌘+E' : 'Ctrl+E'})`"
-					data-testid="toolbar-camera"
-				>
-					<template #icon>
-						<lucide-video-off v-if="!isCameraOn" class="w-5 h-5 text-white" />
-						<lucide-video v-else class="w-5 h-5 text-white" />
-					</template>
-				</Button>
+          :title="`Toggle Video (${$platform === 'mac' ? '⌘+E' : 'Ctrl+E'})`"
+          data-testid="toolbar-camera"
+        >
+          <template #icon>
+            <lucide-video-off v-if="!isCameraOn" class="w-5 h-5 text-white" />
+            <lucide-video v-else class="w-5 h-5 text-white" />
+          </template>
+        </Button>
 
-				<!-- Screen Share -->
-				<Button
-					v-if="canScreenShare()"
-					@click="$emit('toggle-screen-share')"
-					variant="solid"
-					size="lg"
-					class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95"
-					:class="{
+        <!-- Screen Share -->
+        <Button
+          v-if="canScreenShare()"
+          @click="$emit('toggle-screen-share')"
+          variant="solid"
+          size="lg"
+          class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95"
+          :class="{
 						'!bg-[#e54e17] hover:!bg-[#e54e17]': isScreenSharing,
 					}"
-					title="Toggle Screen Share"
-					data-testid="toolbar-screen-share"
-				>
-					<template #icon>
-						<lucide-monitor-up v-if="!isScreenSharing" class="w-5 h-5 text-white" />
-						<lucide-monitor-pause v-else class="w-5 h-5 text-white" />
-					</template>
-				</Button>
+          title="Toggle Screen Share"
+          data-testid="toolbar-screen-share"
+        >
+          <template #icon>
+            <lucide-monitor-up v-if="!isScreenSharing" class="w-5 h-5 text-white" />
+            <lucide-monitor-pause v-else class="w-5 h-5 text-white" />
+          </template>
+        </Button>
 
-				<!-- Reactions -->
-				<ReactionPicker
-					:is-open="isReactionPickerOpen"
-					:is-hand-raised="isHandRaised"
-					@select="handleReactionSelect"
-					@toggle-raise-hand="$emit('toggle-raise-hand')"
-					@update:open="updateReactionPickerOpen"
-				>
-					<template #trigger>
-						<Button
-							variant="solid"
-							theme="gray"
-							size="lg"
-							class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95"
-							:class="{
+        <!-- Reactions -->
+        <ReactionPicker
+          :is-open="isReactionPickerOpen"
+          :is-hand-raised="isHandRaised"
+          @select="handleReactionSelect"
+          @toggle-raise-hand="$emit('toggle-raise-hand')"
+          @update:open="updateReactionPickerOpen"
+        >
+          <template #trigger>
+            <Button
+              variant="solid"
+              theme="gray"
+              size="lg"
+              class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95"
+              :class="{
 								'!bg-gray-800 hover:!bg-gray-800': isReactionPickerOpen,
 							}"
-							title="Reactions & Raise Hand"
-							data-testid="toolbar-reactions"
-						>
-							<template #icon>
-								<lucide-smile class="w-5 h-5 text-white" />
-							</template>
-						</Button>
-					</template>
-				</ReactionPicker>
+              title="Reactions & Raise Hand"
+              data-testid="toolbar-reactions"
+            >
+              <template #icon>
+                <lucide-smile class="w-5 h-5 text-white" />
+              </template>
+            </Button>
+          </template>
+        </ReactionPicker>
 
-				<!-- Chat -->
-				<div v-if="!isMobile" class="relative">
-					<Button
-						@click="$emit('toggle-chat')"
-						variant="solid"
-						size="lg"
-						theme="gray"
-						class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95"
-						:class="{
+        <!-- Chat -->
+        <div v-if="!isMobile" class="relative">
+          <Button
+            @click="$emit('toggle-chat')"
+            variant="solid"
+            size="lg"
+            theme="gray"
+            class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95"
+            :class="{
 							'!bg-gray-800 hover:!bg-gray-800': isChatOpen,
 						}"
-						title="Show Chat"
-						data-testid="toolbar-chat"
-					>
-						<template #icon>
-							<lucide-message-square-off
-								v-if="isChatOpen"
-								class="w-5 h-5 text-white"
-							/>
-							<lucide-message-square v-else class="w-5 h-5 text-white" />
-						</template>
-					</Button>
+            title="Show Chat"
+            data-testid="toolbar-chat"
+          >
+            <template #icon>
+              <lucide-message-square-off v-if="isChatOpen" class="w-5 h-5 text-white" />
+              <lucide-message-square v-else class="w-5 h-5 text-white" />
+            </template>
+          </Button>
 
-					<!-- Unread Badge -->
-					<div
-						v-if="hasUnread && !isChatOpen"
-						class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"
-					/>
-				</div>
+          <!-- Unread Badge -->
+          <div
+            v-if="hasUnread && !isChatOpen"
+            class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"
+          />
+        </div>
 
-				<!-- People -->
-				<div class="relative" v-if="!isMobile">
-					<Button
-						@click="$emit('toggle-people')"
-						variant="solid"
-						size="lg"
-						theme="gray"
-						class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95"
-						:class="{
+        <!-- People -->
+        <div class="relative" v-if="!isMobile">
+          <Button
+            @click="$emit('toggle-people')"
+            variant="solid"
+            size="lg"
+            theme="gray"
+            class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95"
+            :class="{
 							'!bg-gray-800 hover:!bg-gray-800': isPeopleOpen,
 						}"
-						title="Show Participants"
-						data-testid="toolbar-people"
-					>
-						<template #icon>
-							<lucide-users class="w-5 h-5 text-white" />
-						</template>
-					</Button>
+            title="Show Participants"
+            data-testid="toolbar-people"
+          >
+            <template #icon>
+              <lucide-users class="w-5 h-5 text-white" />
+            </template>
+          </Button>
 
-					<div
-						v-if="lobbyUserCount > 0"
-						class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"
-					/>
-				</div>
+          <div
+            v-if="lobbyUserCount > 0"
+            class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"
+          />
+        </div>
 
-				<!-- More Options -->
-				<div class="relative" ref="dropdownContainer" @click="handleDropdownClick">
-					<Dropdown :options="moreOptions" placement="top">
-						<template #default>
-							<Button
-								variant="solid"
-								theme="gray"
-								size="lg"
-								class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95"
-								title="More options"
-								data-testid="toolbar-more"
-							>
-								<template #icon>
-									<lucide-more-horizontal class="w-5 h-5 text-white" />
-								</template>
-							</Button>
-						</template>
-					</Dropdown>
-				</div>
+        <!-- More Options -->
+        <div class="relative" ref="dropdownContainer" @click="handleDropdownClick">
+          <Dropdown :options="moreOptions" placement="top">
+            <template #default>
+              <Button
+                variant="solid"
+                theme="gray"
+                size="lg"
+                class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95"
+                title="More options"
+                data-testid="toolbar-more"
+              >
+                <template #icon>
+                  <lucide-more-horizontal class="w-5 h-5 text-white" />
+                </template>
+              </Button>
+            </template>
+          </Dropdown>
+        </div>
 
-				<!-- End Call -->
-				<Button
-					@click="$emit('end-call')"
-					variant="solid"
-					theme="red"
-					size="lg"
-					class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95 !bg-red-600 hover:!bg-red-500"
-					title="End Call"
-					data-testid="toolbar-end-call"
-				>
-					<template #icon>
-						<lucide-phone-off class="w-5 h-5 text-white" />
-					</template>
-				</Button>
-			</div>
-		</div>
-	</div>
+        <!-- End Call -->
+        <Button
+          @click="$emit('end-call')"
+          variant="solid"
+          theme="red"
+          size="lg"
+          class="!rounded-full p-0 !bg-opacity-90 hover:!bg-opacity-100 transition-all duration-200 hover:scale-105 active:scale-95 !bg-red-600 hover:!bg-red-500"
+          title="End Call"
+          data-testid="toolbar-end-call"
+        >
+          <template #icon>
+            <lucide-phone-off class="w-5 h-5 text-white" />
+          </template>
+        </Button>
+      </div>
+    </div>
+  </div>
 
-	<MeetingInfoDialog
-		v-model="showMeetingInfoDialog"
-		:meetingId="meetingId"
-		:meetingTitle="meetingTitle"
-	/>
+  <MeetingInfoDialog
+    v-model="showMeetingInfoDialog"
+    :meetingId="meetingId"
+    :meetingTitle="meetingTitle"
+  />
 
-	<SettingsDialog
-		v-model="showSettingsDialog"
-		:meetingId="meetingId"
-		:isPreview="false"
-		@device-changed="$emit('device-changed', $event)"
-	/>
+  <SettingsDialog
+    v-model="showSettingsDialog"
+    :meetingId="meetingId"
+    :isPreview="false"
+    @device-changed="$emit('device-changed', $event)"
+  />
 </template>
 
 <script setup lang="ts">

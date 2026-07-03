@@ -1,35 +1,35 @@
 <template>
-	<div class="flex h-7 w-full items-center justify-between rounded border bg-gray-50/80">
-		<div v-if="prefix" :class="labelClasses">
-			{{ prefix }}
-		</div>
-		<input
-			type="number"
-			:class="inputClasses"
-			:value="modelValue"
-			:disabled="disabled"
-			@change="changeValue"
-		/>
-		<div v-if="suffix" :class="labelClasses">
-			{{ suffix }}
-		</div>
-		<div v-if="!hideButtons" class="flex h-full w-12 flex-col border-l">
-			<button
-				class="flex h-1/2 cursor-pointer items-center justify-center rounded-tr border-b bg-white hover:bg-gray-200"
-				:disabled="disabled"
-				@click="updateValue('increment')"
-			>
-				<LucideChevronUp class="size-3" />
-			</button>
-			<button
-				class="flex h-1/2 cursor-pointer items-center justify-center rounded-br bg-white hover:bg-gray-200"
-				:disabled="disabled"
-				@click="updateValue('decrement')"
-			>
-				<LucideChevronDown class="size-3" />
-			</button>
-		</div>
-	</div>
+  <div class="flex h-7 w-full items-center justify-between rounded border bg-gray-50/80">
+    <div v-if="prefix" :class="labelClasses">
+      {{ prefix }}
+    </div>
+    <input
+      type="number"
+      :class="inputClasses"
+      :value="modelValue"
+      :disabled="disabled"
+      @change="changeValue"
+    />
+    <div v-if="suffix" :class="labelClasses">
+      {{ suffix }}
+    </div>
+    <div v-if="!hideButtons" class="flex h-full w-12 flex-col border-l">
+      <button
+        class="flex h-1/2 cursor-pointer items-center justify-center rounded-tr border-b bg-white hover:bg-gray-200"
+        :disabled="disabled"
+        @click="updateValue('increment')"
+      >
+        <LucideChevronUp class="size-3" />
+      </button>
+      <button
+        class="flex h-1/2 cursor-pointer items-center justify-center rounded-br bg-white hover:bg-gray-200"
+        :disabled="disabled"
+        @click="updateValue('decrement')"
+      >
+        <LucideChevronDown class="size-3" />
+      </button>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -98,11 +98,11 @@ const updateValue = change => {
 <style scoped>
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-	-webkit-appearance: none;
-	margin: 0;
+  -webkit-appearance: none;
+  margin: 0;
 }
 
-input[type='number'] {
-	-moz-appearance: textfield;
+input[type="number"] {
+  -moz-appearance: textfield;
 }
 </style>

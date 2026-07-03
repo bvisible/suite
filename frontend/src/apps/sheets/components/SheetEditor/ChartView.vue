@@ -108,11 +108,22 @@ onBeforeUnmount(() => cancelAnimationFrame(_rafId))
   border-radius: 8px;
   overflow: hidden;
 }
-.cv-chart { width: 100%; height: 100%; }
+.cv-chart {
+  width: 100%;
+  height: 100%;
+}
 .cv-empty {
-  display: flex; align-items: center; justify-content: center;
-  width: 100%; height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
   color: var(--ink-gray-4, #a3a3a3);
-  font: 12px/1 InterVar, Inter, ui-sans-serif, system-ui, sans-serif;
+  font:
+    12px / 1 InterVar,
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
 }
 </style>

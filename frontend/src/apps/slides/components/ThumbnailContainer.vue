@@ -1,14 +1,14 @@
 <template>
-	<div :class="getThumbnailClasses(slide)" :style="getThumbnailStyles(slide)">
-		<SlidePreview :slide="slide" :scale="THUMBNAIL_SCALE" />
-		<div
-			class="absolute inset-0 flex w-full justify-between rounded p-2"
-			:style="getGradientOverlayStyles(slide)"
-		>
-			<div class="text-[10px] font-medium">{{ slide.idx }}</div>
-			<TransitionIcon v-if="slide.transition != 'None'" class="h-3 opacity-80" />
-		</div>
-	</div>
+  <div :class="getThumbnailClasses(slide)" :style="getThumbnailStyles(slide)">
+    <SlidePreview :slide="slide" :scale="THUMBNAIL_SCALE" />
+    <div
+      class="absolute inset-0 flex w-full justify-between rounded p-2"
+      :style="getGradientOverlayStyles(slide)"
+    >
+      <div class="text-[10px] font-medium">{{ slide.idx }}</div>
+      <TransitionIcon v-if="slide.transition != 'None'" class="h-3 opacity-80" />
+    </div>
+  </div>
 </template>
 
 <script setup>

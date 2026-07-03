@@ -1,21 +1,21 @@
 <template>
-	<div class="flex items-center justify-center w-full h-full pointer-events-none">
-		<div
-			class="relative flex items-center justify-center rounded-full overflow-hidden bg-gradient-to-br from-gray-500 to-gray-600 text-white shadow-inner max-w-full max-h-full"
-			:class="sizeClasses"
-		>
-			<img
-				v-if="image"
-				:src="image"
-				alt="avatar"
-				class="w-full h-full object-cover"
-				draggable="false"
-			/>
-			<span v-else class="font-semibold select-none" :class="textClasses">
-				{{ label }}
-			</span>
-		</div>
-	</div>
+  <div class="flex items-center justify-center w-full h-full pointer-events-none">
+    <div
+      class="relative flex items-center justify-center rounded-full overflow-hidden bg-gradient-to-br from-gray-500 to-gray-600 text-white shadow-inner max-w-full max-h-full"
+      :class="sizeClasses"
+    >
+      <img
+        v-if="image"
+        :src="image"
+        alt="avatar"
+        class="w-full h-full object-cover"
+        draggable="false"
+      />
+      <span v-else class="font-semibold select-none" :class="textClasses">
+        {{ label }}
+      </span>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -50,19 +50,19 @@ const textClasses = computed(() => {
 
 <style scoped>
 @media (prefers-reduced-motion: no-preference) {
-	.pulse-soft {
-		animation: pulseSoft 5s ease-in-out infinite;
-	}
-	@keyframes pulseSoft {
-		0%,
-		100% {
-			transform: scale(1);
-			filter: brightness(1);
-		}
-		50% {
-			transform: scale(1.03);
-			filter: brightness(1.08);
-		}
-	}
+  .pulse-soft {
+    animation: pulseSoft 5s ease-in-out infinite;
+  }
+  @keyframes pulseSoft {
+    0%,
+    100% {
+      transform: scale(1);
+      filter: brightness(1);
+    }
+    50% {
+      transform: scale(1.03);
+      filter: brightness(1.08);
+    }
+  }
 }
 </style>

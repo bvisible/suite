@@ -9,10 +9,7 @@
         :draggable="false"
         class="w-full px-10 py-5 flex-grow w-full flex justify-center align-center items-center relative"
       >
-        <LoadingIndicator
-          v-if="file.loading"
-          class="w-10 h-full text-ink-gray-8"
-        />
+        <LoadingIndicator v-if="file.loading" class="w-10 h-full text-ink-gray-8" />
         <FileRender v-else-if="file.data" :preview-entity="file.data" />
       </div>
       <div

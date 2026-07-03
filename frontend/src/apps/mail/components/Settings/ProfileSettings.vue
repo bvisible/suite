@@ -1,36 +1,36 @@
 <template>
-	<h1>{{ __('Profile') }}</h1>
+  <h1>{{ __('Profile') }}</h1>
 
-	<div class="flex w-full items-center">
-		<Avatar
-			:image="user.data.user_image"
-			:label="user.data.full_name"
-			size="3xl"
-			class="h-16 w-16"
-		/>
-		<div class="mx-4 flex flex-col">
-			<span class="text-3xl-semibold">{{ user.data.full_name }}</span>
-			<span class="text-ink-gray-6 text-base">{{ user.data.email }}</span>
-		</div>
-		<Button :label="__('Edit Photo')" class="ml-auto" @click="showEditPhoto = true" />
-	</div>
-	<FormControl v-model="firstName" :label="__('First Name')" variant="outline" />
-	<FormControl v-model="lastName" :label="__('Last Name')" variant="outline" />
-	<ErrorMessage :message="setName.error" />
-	<Button
-		:label="__('Save')"
-		class="min-h-7"
-		variant="solid"
-		:disabled="
+  <div class="flex w-full items-center">
+    <Avatar
+      :image="user.data.user_image"
+      :label="user.data.full_name"
+      size="3xl"
+      class="h-16 w-16"
+    />
+    <div class="mx-4 flex flex-col">
+      <span class="text-3xl-semibold">{{ user.data.full_name }}</span>
+      <span class="text-ink-gray-6 text-base">{{ user.data.email }}</span>
+    </div>
+    <Button :label="__('Edit Photo')" class="ml-auto" @click="showEditPhoto = true" />
+  </div>
+  <FormControl v-model="firstName" :label="__('First Name')" variant="outline" />
+  <FormControl v-model="lastName" :label="__('Last Name')" variant="outline" />
+  <ErrorMessage :message="setName.error" />
+  <Button
+    :label="__('Save')"
+    class="min-h-7"
+    variant="solid"
+    :disabled="
 			!firstName || (firstName === user.data.first_name && lastName === user.data.last_name)
 		"
-		:loading="setName.loading"
-		@click="setName.submit"
-	/>
-	<Button class="min-h-7" :label="__('Change Password')" @click="showChangePassword = true" />
+    :loading="setName.loading"
+    @click="setName.submit"
+  />
+  <Button class="min-h-7" :label="__('Change Password')" @click="showChangePassword = true" />
 
-	<EditPhotoModal v-model="showEditPhoto" />
-	<ChangePasswordModal v-model="showChangePassword" />
+  <EditPhotoModal v-model="showEditPhoto" />
+  <ChangePasswordModal v-model="showChangePassword" />
 </template>
 <script setup lang="ts">
 import { inject, ref } from 'vue'

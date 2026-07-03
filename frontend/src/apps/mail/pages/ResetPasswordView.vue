@@ -1,29 +1,18 @@
 <template>
-	<form class="flex flex-col space-y-4" @submit.prevent="resetPassword.submit()">
-		<FormControl
-			:label="__('Email')"
-			:value="user.data"
-			autocomplete="email"
-			readonly
-			required
-		/>
-		<FormControl
-			v-model="password"
-			:label="__('New Password')"
-			type="password"
-			placeholder="••••••••"
-			name="password"
-			autocomplete="new-password"
-			required
-		/>
-		<ErrorMessage :message="resetPassword.error" />
-		<Button
-			variant="solid"
-			:loading="resetPassword.loading"
-			:label="__('Confirm')"
-			type="submit"
-		/>
-	</form>
+  <form class="flex flex-col space-y-4" @submit.prevent="resetPassword.submit()">
+    <FormControl :label="__('Email')" :value="user.data" autocomplete="email" readonly required />
+    <FormControl
+      v-model="password"
+      :label="__('New Password')"
+      type="password"
+      placeholder="••••••••"
+      name="password"
+      autocomplete="new-password"
+      required
+    />
+    <ErrorMessage :message="resetPassword.error" />
+    <Button variant="solid" :loading="resetPassword.loading" :label="__('Confirm')" type="submit" />
+  </form>
 </template>
 <script setup lang="ts">
 import { ref } from 'vue'

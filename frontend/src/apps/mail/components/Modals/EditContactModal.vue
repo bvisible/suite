@@ -1,17 +1,17 @@
 <template>
-	<Dialog v-model="show" :options="options">
-		<template #body-content>
-			<div class="space-y-4">
-				<FormControl v-model="contact.fullName" :label="__('Name')" />
-				<FormControl
-					v-model="contact.kind"
-					type="select"
-					:label="__('Kind')"
-					:options="KIND_OPTIONS"
-				/>
-			</div>
-		</template>
-	</Dialog>
+  <Dialog v-model="show" :options="options">
+    <template #body-content>
+      <div class="space-y-4">
+        <FormControl v-model="contact.fullName" :label="__('Name')" />
+        <FormControl
+          v-model="contact.kind"
+          type="select"
+          :label="__('Kind')"
+          :options="KIND_OPTIONS"
+        />
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <script setup lang="ts">

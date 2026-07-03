@@ -1,27 +1,27 @@
 <template>
-	<Dialog v-if="signature?.doc" v-model="show" :options="addSignatureOptions">
-		<template #body-content>
-			<div class="space-y-4">
-				<FormControl
-					v-model="signature.doc.signature_name"
-					:label="__('Signature Name')"
-					:placeholder="__('Work signature')"
-					variant="outline"
-				/>
-				<div class="space-y-1.5">
-					<label class="text-ink-gray-5 block text-xs">{{ __('Signature Body') }}</label>
-					<TextEditor
-						editor-class="prose-sm min-h-[8rem] border rounded-b-lg border-t-0 p-2 max-w-none border-outline-gray-2"
-						:extensions="[CustomParagraphExtension]"
-						:fixed-menu="buttons"
-						:placeholder="__('Write your signature here')"
-						:content="signature.doc.html_body"
-						@change="(val: string) => (signature.doc.html_body = val)"
-					/>
-				</div>
-			</div>
-		</template>
-	</Dialog>
+  <Dialog v-if="signature?.doc" v-model="show" :options="addSignatureOptions">
+    <template #body-content>
+      <div class="space-y-4">
+        <FormControl
+          v-model="signature.doc.signature_name"
+          :label="__('Signature Name')"
+          :placeholder="__('Work signature')"
+          variant="outline"
+        />
+        <div class="space-y-1.5">
+          <label class="text-ink-gray-5 block text-xs">{{ __('Signature Body') }}</label>
+          <TextEditor
+            editor-class="prose-sm min-h-[8rem] border rounded-b-lg border-t-0 p-2 max-w-none border-outline-gray-2"
+            :extensions="[CustomParagraphExtension]"
+            :fixed-menu="buttons"
+            :placeholder="__('Write your signature here')"
+            :content="signature.doc.html_body"
+            @change="(val: string) => (signature.doc.html_body = val)"
+          />
+        </div>
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <script setup lang="ts">

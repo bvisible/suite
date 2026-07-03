@@ -4,11 +4,7 @@
     class="sticky hidden md:flex flex-col gap-8 justify-start self-stretch px-5 bg-surface-base w-72"
   >
     <slot />
-    <template
-      v-if="showComments"
-      v-for="comment in filteredComments"
-      :key="comment.id"
-    >
+    <template v-if="showComments" v-for="comment in filteredComments" :key="comment.id">
       <div
         :id="'comment-' + comment.id"
         :ref="
@@ -103,10 +99,7 @@
             'pb-1.5'
           "
         >
-          <blockquote
-            v-if="comment.detached"
-            class="text-xs text-ink-gray-8 mb-4"
-          >
+          <blockquote v-if="comment.detached" class="text-xs text-ink-gray-8 mb-4">
             Replying to:
             <span class="text-ink-gray-5 italic">{{ comment.anchorText }}</span>
           </blockquote>
@@ -132,23 +125,14 @@
                   :image="$user(reply.owner)?.user_image"
                 />
               </div>
-              <div
-                class="grow flex flex-col min-w-0"
-                :class="reply.edit && 'gap-1'"
-              >
-                <div
-                  class="w-full flex justify-between items-start label-group gap-1 text-sm"
-                >
+              <div class="grow flex flex-col min-w-0" :class="reply.edit && 'gap-1'">
+                <div class="w-full flex justify-between items-start label-group gap-1 text-sm">
                   <div class="flex gap-1">
-                    <label
-                      class="font-medium text-ink-gray-8 max-w-[70%] truncate"
+                    <label class="font-medium text-ink-gray-8 max-w-[70%] truncate"
                       >{{ $user(reply.owner)?.full_name || reply.owner }}</label
                     >
 
-                    <label
-                      class="text-ink-gray-6 truncate"
-                      :title="new Date(reply.creation)"
-                    >
+                    <label class="text-ink-gray-6 truncate" :title="new Date(reply.creation)">
                       &#183;
                       {{ formatDateOrTime(reply.creation) }}</label
                     >
@@ -197,10 +181,7 @@
                       :icon="h(LucideMoreVertical, { class: 'size-3' })"
                     />
                   </Dropdown>
-                  <LucideBadgeCheck
-                    v-if="comment.resolved"
-                    class="text-ink-gray-6 size-4"
-                  />
+                  <LucideBadgeCheck v-if="comment.resolved" class="text-ink-gray-6 size-4" />
                 </div>
                 <div class="comment-content text-sm">
                   <CommentEditor

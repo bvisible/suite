@@ -1,16 +1,16 @@
 <template>
-	<div
-		class="flex h-full w-64 flex-col overflow-y-auto border-l bg-white pb-4 custom-scrollbar"
-		@wheel="handleScrollBarWheelEvent"
-	>
-		<div v-if="activeElementIds.length">
-			<AlignmentControls />
-			<LayoutProperties />
-			<component :is="activeProperties" />
-			<AppearanceProperties v-if="activeElement" />
-		</div>
-		<SlideProperties v-else-if="currentSlide" />
-	</div>
+  <div
+    class="flex h-full w-64 flex-col overflow-y-auto border-l bg-white pb-4 custom-scrollbar"
+    @wheel="handleScrollBarWheelEvent"
+  >
+    <div v-if="activeElementIds.length">
+      <AlignmentControls />
+      <LayoutProperties />
+      <component :is="activeProperties" />
+      <AppearanceProperties v-if="activeElement" />
+    </div>
+    <SlideProperties v-else-if="currentSlide" />
+  </div>
 </template>
 
 <script setup>
@@ -98,7 +98,7 @@ provide('setPropertyDeferred', setPropertyDeferred)
 <style scoped>
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-	-webkit-appearance: none;
-	margin: 0;
+  -webkit-appearance: none;
+  margin: 0;
 }
 </style>

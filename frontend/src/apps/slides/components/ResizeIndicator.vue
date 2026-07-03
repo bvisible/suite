@@ -1,10 +1,10 @@
 <template>
-	<div :style="styles" :class="indicatorClasses">
-		<div v-if="['text', 'line'].includes(type)">{{ Math.round(dimensions.width) }}</div>
-		<template v-else>
-			<div>{{ Math.round(dimensions.width) }} × {{ Math.round(dimensions.height) }}</div>
-		</template>
-	</div>
+  <div :style="styles" :class="indicatorClasses">
+    <div v-if="['text', 'line'].includes(type)">{{ Math.round(dimensions.width) }}</div>
+    <template v-else>
+      <div>{{ Math.round(dimensions.width) }} × {{ Math.round(dimensions.height) }}</div>
+    </template>
+  </div>
 </template>
 
 <script setup>

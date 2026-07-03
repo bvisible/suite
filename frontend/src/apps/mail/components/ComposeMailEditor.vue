@@ -1,210 +1,204 @@
 <template>
-	<TextEditor
-		ref="textEditor"
-		editor-class="prose-sm max-w-none"
-		:extensions="[CustomImageExtension, CustomParagraphExtension]"
-		:content="mail.html_body.replaceAll('<div><br></div>', '<div></div>')"
-		:upload-function
-		class="flex flex-col max-sm:overflow-y-auto"
-		:class="{ 'pointer-events-none opacity-50': !show, 'sm:h-[75vh]': !isInThread }"
-		:style="isMobile && { height: editorHeight }"
-		@change="
+  <TextEditor
+    ref="textEditor"
+    editor-class="prose-sm max-w-none"
+    :extensions="[CustomImageExtension, CustomParagraphExtension]"
+    :content="mail.html_body.replaceAll('<div><br></div>', '<div></div>')"
+    :upload-function
+    class="flex flex-col max-sm:overflow-y-auto"
+    :class="{ 'pointer-events-none opacity-50': !show, 'sm:h-[75vh]': !isInThread }"
+    :style="isMobile && { height: editorHeight }"
+    @change="
 			(val: string) => (mail.html_body = val.replaceAll('<div></div>', '<div><br></div>'))
 		"
-		@dragenter.prevent="handleDragEnter"
-		@dragover.prevent="handleDragOver"
-		@dragleave.prevent="handleDragLeave"
-		@drop.prevent="handleDrop"
-	>
-		<template #top>
-			<div
-				class="flex flex-col gap-2.5 border-b pb-2.5 max-sm:px-3 max-sm:pt-2.5"
-				:class="{ 'border-transparent': isDragging }"
-			>
-				<div v-if="!mailDetails?.type || isMobile" class="flex justify-between gap-2">
-					<div class="flex items-center gap-2">
-						<span class="text-ink-gray-4 text-sm">{{ __('From') }}</span>
-						<Combobox
-							v-model="mail.from_email"
-							:options="
+    @dragenter.prevent="handleDragEnter"
+    @dragover.prevent="handleDragOver"
+    @dragleave.prevent="handleDragLeave"
+    @drop.prevent="handleDrop"
+  >
+    <template #top>
+      <div
+        class="flex flex-col gap-2.5 border-b pb-2.5 max-sm:px-3 max-sm:pt-2.5"
+        :class="{ 'border-transparent': isDragging }"
+      >
+        <div v-if="!mailDetails?.type || isMobile" class="flex justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="text-ink-gray-4 text-sm">{{ __('From') }}</span>
+            <Combobox
+              v-model="mail.from_email"
+              :options="
 								identities.data.map((i: Identity) => ({
 									label: `${i._name} <${i.email}>`,
 									value: i.email,
 								})) || []
 							"
-							:open-on-click="true"
-							class="min-w-64"
-						/>
-					</div>
-					<Button
-						v-if="isInThread"
-						variant="ghost"
-						:disabled="isLoading || isDraftUpdated"
-						@click="emit('popOut', mail)"
-					>
-						<template #icon>
-							<component :is="ExternalLink" class="text-ink-gray-5 h-4 w-4" />
-						</template>
-					</Button>
-				</div>
-				<div class="flex items-start gap-2">
-					<Dropdown v-if="isInThread && mailDetails?.type" :options="localDraftActions">
-						<Button variant="ghost" :icon="TYPE_ICON_MAP[mailDetails.type]"> </Button>
-					</Dropdown>
-					<div class="flex flex-1 flex-col gap-2.5">
-						<div class="flex gap-2">
-							<Tooltip :text="__('Select from contacts')">
-								<span
-									class="text-ink-gray-4 cursor-pointer text-sm leading-7 hover:underline"
-									@click="insertContacts('to')"
-								>
-									{{ __('To') }}
-								</span>
-							</Tooltip>
-							<RecipientInput
-								ref="toInput"
-								v-model="mail.to"
-								@show-cc-bcc="showCcBcc = true"
-							/>
-							<div class="flex gap-1.5">
-								<Button
-									v-if="!(mail.cc?.length || mail.bcc?.length)"
-									variant="ghost"
-									@click="toggleCcBcc"
-								>
-									<template #icon>
-										<component
-											:is="showCcBcc ? ChevronUp : ChevronDown"
-											class="text-ink-gray-5 h-4 w-4"
-										/>
-									</template>
-								</Button>
-							</div>
-						</div>
-						<template v-if="showCcBcc">
-							<div class="flex gap-2">
-								<Tooltip :text="__('Select from contacts')">
-									<span
-										class="text-ink-gray-4 cursor-pointer text-sm leading-7 hover:underline"
-										@click="insertContacts('cc')"
-									>
-										{{ __('Cc') }}
-									</span>
-								</Tooltip>
-								<RecipientInput ref="ccInput" v-model="mail.cc" />
-							</div>
-							<div class="flex gap-2">
-								<Tooltip :text="__('Select from contacts')">
-									<span
-										class="text-ink-gray-4 cursor-pointer text-sm leading-7 hover:underline"
-										@click="insertContacts('bcc')"
-									>
-										{{ __('Bcc') }}
-									</span>
-								</Tooltip>
-								<RecipientInput v-model="mail.bcc" />
-							</div>
-						</template>
-					</div>
-				</div>
-				<div v-if="!mailDetails?.type || isMobile" class="flex items-center gap-2">
-					<span class="text-ink-gray-4 text-sm">{{ __('Subject') }}</span>
-					<input
-						v-model="mail.subject"
-						class="flex-1 border-none bg-inherit text-base focus-visible:!ring-0"
-					/>
-				</div>
-			</div>
-		</template>
-		<template #editor="{ editor }">
-			<div
-				class="relative flex flex-1 cursor-text flex-col border-2 border-transparent py-2.5 text-sm max-sm:px-3 sm:overflow-y-auto"
-				:class="{
+              :open-on-click="true"
+              class="min-w-64"
+            />
+          </div>
+          <Button
+            v-if="isInThread"
+            variant="ghost"
+            :disabled="isLoading || isDraftUpdated"
+            @click="emit('popOut', mail)"
+          >
+            <template #icon>
+              <component :is="ExternalLink" class="text-ink-gray-5 h-4 w-4" />
+            </template>
+          </Button>
+        </div>
+        <div class="flex items-start gap-2">
+          <Dropdown v-if="isInThread && mailDetails?.type" :options="localDraftActions">
+            <Button variant="ghost" :icon="TYPE_ICON_MAP[mailDetails.type]"> </Button>
+          </Dropdown>
+          <div class="flex flex-1 flex-col gap-2.5">
+            <div class="flex gap-2">
+              <Tooltip :text="__('Select from contacts')">
+                <span
+                  class="text-ink-gray-4 cursor-pointer text-sm leading-7 hover:underline"
+                  @click="insertContacts('to')"
+                >
+                  {{ __('To') }}
+                </span>
+              </Tooltip>
+              <RecipientInput ref="toInput" v-model="mail.to" @show-cc-bcc="showCcBcc = true" />
+              <div class="flex gap-1.5">
+                <Button
+                  v-if="!(mail.cc?.length || mail.bcc?.length)"
+                  variant="ghost"
+                  @click="toggleCcBcc"
+                >
+                  <template #icon>
+                    <component
+                      :is="showCcBcc ? ChevronUp : ChevronDown"
+                      class="text-ink-gray-5 h-4 w-4"
+                    />
+                  </template>
+                </Button>
+              </div>
+            </div>
+            <template v-if="showCcBcc">
+              <div class="flex gap-2">
+                <Tooltip :text="__('Select from contacts')">
+                  <span
+                    class="text-ink-gray-4 cursor-pointer text-sm leading-7 hover:underline"
+                    @click="insertContacts('cc')"
+                  >
+                    {{ __('Cc') }}
+                  </span>
+                </Tooltip>
+                <RecipientInput ref="ccInput" v-model="mail.cc" />
+              </div>
+              <div class="flex gap-2">
+                <Tooltip :text="__('Select from contacts')">
+                  <span
+                    class="text-ink-gray-4 cursor-pointer text-sm leading-7 hover:underline"
+                    @click="insertContacts('bcc')"
+                  >
+                    {{ __('Bcc') }}
+                  </span>
+                </Tooltip>
+                <RecipientInput v-model="mail.bcc" />
+              </div>
+            </template>
+          </div>
+        </div>
+        <div v-if="!mailDetails?.type || isMobile" class="flex items-center gap-2">
+          <span class="text-ink-gray-4 text-sm">{{ __('Subject') }}</span>
+          <input
+            v-model="mail.subject"
+            class="flex-1 border-none bg-inherit text-base focus-visible:!ring-0"
+          />
+        </div>
+      </div>
+    </template>
+    <template #editor="{ editor }">
+      <div
+        class="relative flex flex-1 cursor-text flex-col border-2 border-transparent py-2.5 text-sm max-sm:px-3 sm:overflow-y-auto"
+        :class="{
 					'max-h-96 min-h-32': isInThread,
 					'!border-outline-gray-3 rounded border-dashed': isDragging,
 				}"
-				@click="editor.commands.focus('end')"
-			>
-				<div
-					v-if="isDragging"
-					class="bg-surface-gray-1/90 text-ink-gray-3 absolute inset-0 z-50 flex flex-col items-center justify-center space-y-1 rounded"
-				>
-					<UploadCloud class="stroke-1.5 h-12 w-12" />
-					<p class="text-xl-semibold">{{ __('Drop files to upload') }}</p>
-				</div>
+        @click="editor.commands.focus('end')"
+      >
+        <div
+          v-if="isDragging"
+          class="bg-surface-gray-1/90 text-ink-gray-3 absolute inset-0 z-50 flex flex-col items-center justify-center space-y-1 rounded"
+        >
+          <UploadCloud class="stroke-1.5 h-12 w-12" />
+          <p class="text-xl-semibold">{{ __('Drop files to upload') }}</p>
+        </div>
 
-				<EditorContent :editor :class="{ 'opacity-30': isDragging }" @click.stop />
+        <EditorContent :editor :class="{ 'opacity-30': isDragging }" @click.stop />
 
-				<div
-					class="mt-auto cursor-default space-y-2.5 pt-2.5"
-					:class="{ 'opacity-30': isDragging }"
-					@click.stop
-				>
-					<!-- Show quoted content -->
-					<Button
-						v-if="mail?.quoted_content"
-						label="&middot;&middot;&middot;"
-						class="max-h-4 w-fit"
-						@click="openQuotedContent"
-					/>
+        <div
+          class="mt-auto cursor-default space-y-2.5 pt-2.5"
+          :class="{ 'opacity-30': isDragging }"
+          @click.stop
+        >
+          <!-- Show quoted content -->
+          <Button
+            v-if="mail?.quoted_content"
+            label="&middot;&middot;&middot;"
+            class="max-h-4 w-fit"
+            @click="openQuotedContent"
+          />
 
-					<!-- Attachments -->
-					<a
-						v-for="(file, index) in mail.attachments.filter(
+          <!-- Attachments -->
+          <a
+            v-for="(file, index) in mail.attachments.filter(
 							(file: Attachment) => file.disposition === 'attachment',
 						)"
-						:key="index"
-						class="bg-surface-gray-2 text-ink-gray-6 flex cursor-pointer items-center rounded p-2.5"
-						:href="file.file_url"
-						target="_blank"
-						@click="openAttachment(file.blob_id, file.type)"
-					>
-						<span class="mr-1 font-medium">
-							{{ file.file_name || file.filename || file.name }}
-						</span>
-						<span class="mr-1 font-extralight">
-							({{ formatBytes(file.file_size || file.size) }})
-						</span>
-						<FeatherIcon
-							class="ml-auto h-3.5 w-3.5"
-							name="x"
-							@click.stop.prevent="mail.attachments.splice(index, 1)"
-						/>
-					</a>
+            :key="index"
+            class="bg-surface-gray-2 text-ink-gray-6 flex cursor-pointer items-center rounded p-2.5"
+            :href="file.file_url"
+            target="_blank"
+            @click="openAttachment(file.blob_id, file.type)"
+          >
+            <span class="mr-1 font-medium">
+              {{ file.file_name || file.filename || file.name }}
+            </span>
+            <span class="mr-1 font-extralight">
+              ({{ formatBytes(file.file_size || file.size) }})
+            </span>
+            <FeatherIcon
+              class="ml-auto h-3.5 w-3.5"
+              name="x"
+              @click.stop.prevent="mail.attachments.splice(index, 1)"
+            />
+          </a>
 
-					<div
-						v-for="(fileUpload, id) in fileUploads.filter((fu) => fu.isUploading)"
-						:key="id"
-						class="bg-surface-gray-2 text-ink-gray-6 mb-2 rounded p-2.5 text-sm"
-					>
-						<div class="mb-1.5 flex items-center">
-							<span class="mr-1 font-medium"> {{ fileUpload.name }} </span>
-							<span class="font-extralight">
-								({{ formatBytes(fileUpload.size) }})
-							</span>
-						</div>
-						<Progress :value="fileUpload.progress" />
-					</div>
-				</div>
-			</div>
-		</template>
-		<template #bottom>
-			<ComposeMailToolbar
-				:is-recipients-empty
-				class="border-t"
-				:class="{ 'border-transparent': isDragging }"
-				@select-files="(files: File[]) => uploadFiles(files)"
-				@append-emoji="(emoji: string) => appendEmoji(emoji)"
-				@discard-mail="discardMail"
-				@send-mail="sendMail"
-			/>
-		</template>
-	</TextEditor>
+          <div
+            v-for="(fileUpload, id) in fileUploads.filter((fu) => fu.isUploading)"
+            :key="id"
+            class="bg-surface-gray-2 text-ink-gray-6 mb-2 rounded p-2.5 text-sm"
+          >
+            <div class="mb-1.5 flex items-center">
+              <span class="mr-1 font-medium"> {{ fileUpload.name }} </span>
+              <span class="font-extralight"> ({{ formatBytes(fileUpload.size) }}) </span>
+            </div>
+            <Progress :value="fileUpload.progress" />
+          </div>
+        </div>
+      </div>
+    </template>
+    <template #bottom>
+      <ComposeMailToolbar
+        :is-recipients-empty
+        class="border-t"
+        :class="{ 'border-transparent': isDragging }"
+        @select-files="(files: File[]) => uploadFiles(files)"
+        @append-emoji="(emoji: string) => appendEmoji(emoji)"
+        @discard-mail="discardMail"
+        @send-mail="sendMail"
+      />
+    </template>
+  </TextEditor>
 
-	<ContactsModal
-		v-model="showContactsModal"
-		@insert="(selections) => mail[insertContactsInto].push(...selections)"
-	/>
+  <ContactsModal
+    v-model="showContactsModal"
+    @insert="(selections) => mail[insertContactsInto].push(...selections)"
+  />
 </template>
 
 <script setup lang="ts">

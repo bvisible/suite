@@ -21,10 +21,7 @@
       <WriterLogo v-else class="size-7" />
     </div>
     <slot name="breadcrumbs">
-      <Breadcrumbs
-        :items="formattedCrumbs"
-        class="select-none truncate max-w-[80%]"
-      />
+      <Breadcrumbs :items="formattedCrumbs" class="select-none truncate max-w-[80%]" />
     </slot>
 
     <div class="ml-auto flex items-center gap-3">
@@ -40,10 +37,7 @@
       />
       <div v-if="file?.doc?.share_count" class="flex items-center">
         <LucideGlobe2 v-if="file.doc.share_count === -2" class="size-4 text-ink-gray-6" />
-        <LucideBuilding2
-          v-else-if="file.doc.share_count === -1"
-          class="size-4 text-ink-gray-6"
-        />
+        <LucideBuilding2 v-else-if="file.doc.share_count === -1" class="size-4 text-ink-gray-6" />
         <LucideUsers v-else-if="file.doc.share_count > 0" class="size-4 text-ink-gray-6" />
       </div>
       <LucideStar
@@ -51,9 +45,7 @@
         class="size-4 my-auto stroke-amber-500 fill-amber-500 mx-1.5"
       />
       <template v-if="!isLoggedIn">
-        <Button variant="outline" @click="signIn">
-          Sign In
-        </Button>
+        <Button variant="outline" @click="signIn"> Sign In </Button>
         <Button
           v-if="!isLoggedIn"
           class="hidden md:block"

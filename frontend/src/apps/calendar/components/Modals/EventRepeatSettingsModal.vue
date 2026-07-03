@@ -173,83 +173,78 @@ const DIALOG_OPTIONS = {
 </script>
 
 <template>
-	<Dialog v-model="show" :options="DIALOG_OPTIONS">
-		<template #body-content>
-			<div class="space-y-4">
-				<!-- Interval + Frequency -->
-				<div class="flex space-x-4">
-					<FormControl
-						v-model.number="repeat.interval"
-						:label="__('Repeat Every')"
-						type="number"
-						class="w-full"
-					/>
-					<FormControl
-						v-model="repeat.frequency"
-						type="select"
-						label="‎"
-						:options="getRepeatFrequencyOptions(repeat.interval)"
-						class="w-full"
-					/>
-				</div>
+  <Dialog v-model="show" :options="DIALOG_OPTIONS">
+    <template #body-content>
+      <div class="space-y-4">
+        <!-- Interval + Frequency -->
+        <div class="flex space-x-4">
+          <FormControl
+            v-model.number="repeat.interval"
+            :label="__('Repeat Every')"
+            type="number"
+            class="w-full"
+          />
+          <FormControl
+            v-model="repeat.frequency"
+            type="select"
+            label="‎"
+            :options="getRepeatFrequencyOptions(repeat.interval)"
+            class="w-full"
+          />
+        </div>
 
-				<!-- Repeat on days: weekly -->
-				<div v-if="repeat.frequency === 'weekly'">
-					<label class="text-ink-gray-5 mb-1 block text-xs">
-						{{ __('Repeat On Days') }}
-					</label>
-					<div class="flex w-full overflow-hidden rounded border">
-						<button
-							v-for="(d, i) in WEEKDAYS"
-							:key="d.value"
-							type="button"
-							class="text-ink-gray-7 h-7 w-full text-xs focus:outline-none"
-							:class="{
+        <!-- Repeat on days: weekly -->
+        <div v-if="repeat.frequency === 'weekly'">
+          <label class="text-ink-gray-5 mb-1 block text-xs">
+            {{ __('Repeat On Days') }}
+          </label>
+          <div class="flex w-full overflow-hidden rounded border">
+            <button
+              v-for="(d, i) in WEEKDAYS"
+              :key="d.value"
+              type="button"
+              class="text-ink-gray-7 h-7 w-full text-xs focus:outline-none"
+              :class="{
 								'border-r': i !== WEEKDAYS.length - 1,
 								'bg-surface-gray-2': !repeat.byDay
 									.map((d) => d.day)
 									.includes(d.value),
 							}"
-							@click="toggleDay(d.value)"
-						>
-							{{ d.label }}
-						</button>
-					</div>
-				</div>
+              @click="toggleDay(d.value)"
+            >
+              {{ d.label }}
+            </button>
+          </div>
+        </div>
 
-				<!-- Repeat on: monthly -->
-				<FormControl
-					v-else-if="repeat.frequency === 'monthly'"
-					v-model="repeat.repeatOn"
-					type="select"
-					:label="__('Repeat On')"
-					:options="monthlyRepeatOnOptions"
-				/>
+        <!-- Repeat on: monthly -->
+        <FormControl
+          v-else-if="repeat.frequency === 'monthly'"
+          v-model="repeat.repeatOn"
+          type="select"
+          :label="__('Repeat On')"
+          :options="monthlyRepeatOnOptions"
+        />
 
-				<!-- End condition -->
-				<FormControl
-					v-model="repeat.end"
-					type="select"
-					:label="__('End')"
-					:options="END_OPTIONS"
-				/>
-				<FormControl
-					v-if="repeat.end === 'On Date'"
-					v-model="repeat.until"
-					type="date"
-					:label="__('End Date')"
-				/>
-				<FormControl
-					v-else-if="repeat.end === 'After Occurrences'"
-					v-model.number="repeat.count"
-					type="number"
-					:label="__('Total Occurrences')"
-				/>
+        <!-- End condition -->
+        <FormControl v-model="repeat.end" type="select" :label="__('End')" :options="END_OPTIONS" />
+        <FormControl
+          v-if="repeat.end === 'On Date'"
+          v-model="repeat.until"
+          type="date"
+          :label="__('End Date')"
+        />
+        <FormControl
+          v-else-if="repeat.end === 'After Occurrences'"
+          v-model.number="repeat.count"
+          type="number"
+          :label="__('Total Occurrences')"
+        />
 
-				<hr />
+        <hr />
 
-				<div class="text-base-medium">{{ getRepeatMessage(recurrenceRule) }}</div>
-			</div>
-		</template>
-	</Dialog>
+        <div class="text-base-medium">{{ getRepeatMessage(recurrenceRule) }}</div>
+      </div>
+    </template>
+  </Dialog>
 </template>

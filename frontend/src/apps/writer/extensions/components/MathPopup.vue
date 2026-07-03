@@ -108,7 +108,7 @@ const handleClose = () => {
 <style scoped>
 :deep(textarea) {
   font-family:
-    'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace !important;
+    "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace !important;
   font-size: 12px !important;
   line-height: 1.5 !important;
 }

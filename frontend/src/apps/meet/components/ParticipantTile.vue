@@ -1,154 +1,140 @@
 <template>
-	<div
-		class="group relative rounded-lg overflow-hidden min-h-0"
-		:class="tileBackgroundClass"
-		:data-testid="`participant-tile-${participant.user_id}`"
-		:data-audio-enabled="String(isAudioEnabled)"
-		:data-video-enabled="String(isVideoEnabled)"
-		:data-tile-id="`${pinType}-${tileId}`"
-	>
-		<video
-			:ref="videoRef"
-			:data-participant-id="participant.user_id"
-			class="block w-full h-full remote-video"
-			:class="[videoObjectFitClass, videoBackgroundClass]"
-			:style="{ transform: isLocal ? 'scaleX(-1) translateZ(0)' : 'translateZ(0)' }"
-			autoplay
-			muted
-			playsinline
-		/>
+  <div
+    class="group relative rounded-lg overflow-hidden min-h-0"
+    :class="tileBackgroundClass"
+    :data-testid="`participant-tile-${participant.user_id}`"
+    :data-audio-enabled="String(isAudioEnabled)"
+    :data-video-enabled="String(isVideoEnabled)"
+    :data-tile-id="`${pinType}-${tileId}`"
+  >
+    <video
+      :ref="videoRef"
+      :data-participant-id="participant.user_id"
+      class="block w-full h-full remote-video"
+      :class="[videoObjectFitClass, videoBackgroundClass]"
+      :style="{ transform: isLocal ? 'scaleX(-1) translateZ(0)' : 'translateZ(0)' }"
+      autoplay
+      muted
+      playsinline
+    />
 
-		<!-- Infinity mirror cover for local screen share presenter -->
-		<div
-			v-if="participant.isLocalScreenShare && showBlur"
-			class="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-md"
-		>
-			<lucide-monitor-up class="w-8 h-8 text-white mb-6" />
-			<div
-				v-if="showScreenShareCopy"
-				class="text-white text-xl-medium mb-1"
-			>
-				You are sharing your screen
-			</div>
-			<div
-				v-if="showScreenShareCopy"
-				class="text-white text-sm-medium"
-			>
-				Everyone else can see what you are presenting
-			</div>
-		</div>
+    <!-- Infinity mirror cover for local screen share presenter -->
+    <div
+      v-if="participant.isLocalScreenShare && showBlur"
+      class="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-md"
+    >
+      <lucide-monitor-up class="w-8 h-8 text-white mb-6" />
+      <div v-if="showScreenShareCopy" class="text-white text-xl-medium mb-1">
+        You are sharing your screen
+      </div>
+      <div v-if="showScreenShareCopy" class="text-white text-sm-medium">
+        Everyone else can see what you are presenting
+      </div>
+    </div>
 
-		<div
-			v-if="showAvatar && !isVideoEnabled && !participant.isLocalScreenShare"
-			class="absolute inset-0 flex items-center justify-center pointer-events-none"
-			:class="avatarBackgroundClass"
-		>
-			<MeetingAvatar
-				:label="participant.initials"
-				:image="participant.avatar"
-				:tiles="tileCount"
-			/>
-		</div>
+    <div
+      v-if="showAvatar && !isVideoEnabled && !participant.isLocalScreenShare"
+      class="absolute inset-0 flex items-center justify-center pointer-events-none"
+      :class="avatarBackgroundClass"
+    >
+      <MeetingAvatar :label="participant.initials" :image="participant.avatar" :tiles="tileCount" />
+    </div>
 
-		<NamePill
-			:name="resolvedDisplayName"
-			:size="labelSize"
-			:position="labelPosition"
-		/>
+    <NamePill :name="resolvedDisplayName" :size="labelSize" :position="labelPosition" />
 
-		<!-- Reaction -->
-		<div
-			v-if="showReaction && currentReaction"
-			class="absolute top-1 px-2 py-1 rounded-md text-3xl pointer-events-none animate-pop"
-			:class="{ 'left-2': !isHandRaised, 'left-10': isHandRaised }"
-			:aria-label="`Reaction ${currentReaction.emoji} from ${resolvedDisplayName}`"
-			role="img"
-		>
-			<span class="text-4xl">{{ currentReaction.emoji }}</span>
-		</div>
+    <!-- Reaction -->
+    <div
+      v-if="showReaction && currentReaction"
+      class="absolute top-1 px-2 py-1 rounded-md text-3xl pointer-events-none animate-pop"
+      :class="{ 'left-2': !isHandRaised, 'left-10': isHandRaised }"
+      :aria-label="`Reaction ${currentReaction.emoji} from ${resolvedDisplayName}`"
+      role="img"
+    >
+      <span class="text-4xl">{{ currentReaction.emoji }}</span>
+    </div>
 
-		<!-- Raised Hand -->
-		<div
-			v-if="showRaisedHand && isHandRaised"
-			class="absolute top-2 left-2 px-2 py-1 rounded-full !bg-[#e54e17] text-white pointer-events-none flex items-center justify-center"
-			:aria-label="`${resolvedDisplayName} has raised their hand`"
-		>
-			<lucide-hand class="w-4 h-4" :class="{ wave: isAnimating }" />
-		</div>
+    <!-- Raised Hand -->
+    <div
+      v-if="showRaisedHand && isHandRaised"
+      class="absolute top-2 left-2 px-2 py-1 rounded-full !bg-[#e54e17] text-white pointer-events-none flex items-center justify-center"
+      :aria-label="`${resolvedDisplayName} has raised their hand`"
+    >
+      <lucide-hand class="w-4 h-4" :class="{ wave: isAnimating }" />
+    </div>
 
-		<div
-			v-if="showAudioState && isAudioEnabled && stream"
-			class="absolute top-2 right-2 rounded-full bg-gray-700 p-1.5"
-		>
-			<AudioIndicator
-				:mediaStream="stream"
-				:isActive="true"
-				:maxHeight="16"
-				:sensitivity="3.0"
-				activeColorClass="bg-gray-100"
-			/>
-		</div>
+    <div
+      v-if="showAudioState && isAudioEnabled && stream"
+      class="absolute top-2 right-2 rounded-full bg-gray-700 p-1.5"
+    >
+      <AudioIndicator
+        :mediaStream="stream"
+        :isActive="true"
+        :maxHeight="16"
+        :sensitivity="3.0"
+        activeColorClass="bg-gray-100"
+      />
+    </div>
 
-		<div
-			v-if="showNetworkState && showNetworkIndicator"
-			class="absolute top-2 right-12 bg-gray-700 rounded-full p-1.5 ring-1 ring-gray-800"
-			:title="networkQualityMessage"
-		>
-			<WifiAlertIcon class="w-4 h-4 text-white" />
-		</div>
+    <div
+      v-if="showNetworkState && showNetworkIndicator"
+      class="absolute top-2 right-12 bg-gray-700 rounded-full p-1.5 ring-1 ring-gray-800"
+      :title="networkQualityMessage"
+    >
+      <WifiAlertIcon class="w-4 h-4 text-white" />
+    </div>
 
-		<div
-			v-if="showAudioState && !isAudioEnabled"
-			class="absolute top-2 right-2 bg-gray-700 rounded-full p-1.5 ring-1 ring-gray-800"
-		>
-			<lucide-mic-off class="w-4 h-4 text-white" />
-		</div>
+    <div
+      v-if="showAudioState && !isAudioEnabled"
+      class="absolute top-2 right-2 bg-gray-700 rounded-full p-1.5 ring-1 ring-gray-800"
+    >
+      <lucide-mic-off class="w-4 h-4 text-white" />
+    </div>
 
-		<!-- Participant action toolbar -->
-		<div
-			v-if="showActionToolbar"
-			class="absolute bottom-2 right-2 flex items-center gap-0.5 rounded-full bg-gray-700 p-0.5 text-white opacity-0 group-hover:opacity-70 hover:!opacity-100 transition-opacity ring-1 ring-gray-800"
-			@click.stop
-		>
-			<button
-				v-if="canShowPinButton"
-				type="button"
-				class="rounded-full p-1.5 hover:bg-gray-600 transition-colors"
-				:class="{ 'bg-gray-600': isPinned }"
-				:title="isPinned ? 'Unpin participant' : 'Pin participant'"
-				@click="togglePin"
-			>
-				<lucide-pin-off v-if="isPinned" class="w-3.5 h-3.5" />
-				<lucide-pin v-else class="w-3.5 h-3.5" />
-			</button>
-			<button
-				v-if="canShowHostControls && isAudioEnabled"
-				type="button"
-				class="rounded-full p-1.5 hover:bg-gray-600 transition-colors"
-				title="Mute participant"
-				@click="handleMute"
-			>
-				<lucide-mic-off class="w-3.5 h-3.5" />
-			</button>
-			<button
-				v-if="canShowHostControls"
-				type="button"
-				class="rounded-full p-1.5 hover:bg-gray-600 transition-colors"
-				title="Remove participant"
-				@click="showKickDialog = true"
-			>
-				<lucide-user-x class="w-3.5 h-3.5" />
-			</button>
-		</div>
+    <!-- Participant action toolbar -->
+    <div
+      v-if="showActionToolbar"
+      class="absolute bottom-2 right-2 flex items-center gap-0.5 rounded-full bg-gray-700 p-0.5 text-white opacity-0 group-hover:opacity-70 hover:!opacity-100 transition-opacity ring-1 ring-gray-800"
+      @click.stop
+    >
+      <button
+        v-if="canShowPinButton"
+        type="button"
+        class="rounded-full p-1.5 hover:bg-gray-600 transition-colors"
+        :class="{ 'bg-gray-600': isPinned }"
+        :title="isPinned ? 'Unpin participant' : 'Pin participant'"
+        @click="togglePin"
+      >
+        <lucide-pin-off v-if="isPinned" class="w-3.5 h-3.5" />
+        <lucide-pin v-else class="w-3.5 h-3.5" />
+      </button>
+      <button
+        v-if="canShowHostControls && isAudioEnabled"
+        type="button"
+        class="rounded-full p-1.5 hover:bg-gray-600 transition-colors"
+        title="Mute participant"
+        @click="handleMute"
+      >
+        <lucide-mic-off class="w-3.5 h-3.5" />
+      </button>
+      <button
+        v-if="canShowHostControls"
+        type="button"
+        class="rounded-full p-1.5 hover:bg-gray-600 transition-colors"
+        title="Remove participant"
+        @click="showKickDialog = true"
+      >
+        <lucide-user-x class="w-3.5 h-3.5" />
+      </button>
+    </div>
 
-		<!-- Kick Confirmation Dialog -->
-		<KickParticipantDialog
-			v-if="canShowHostControls"
-			v-model="showKickDialog"
-			:participant-name="resolvedDisplayName || 'this participant'"
-			@confirm="handleKick"
-		/>
-	</div>
+    <!-- Kick Confirmation Dialog -->
+    <KickParticipantDialog
+      v-if="canShowHostControls"
+      v-model="showKickDialog"
+      :participant-name="resolvedDisplayName || 'this participant'"
+      @confirm="handleKick"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -336,43 +322,62 @@ const handleKick = ban => {
 <style scoped>
 /* Firefox blank video mitigation */
 .remote-video {
-	background-color: #000;
-	will-change: transform;
-	transform: translateZ(0);
+  background-color: #000;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 @-moz-document url-prefix() {
-	.remote-video {
-		background-color: #111;
-		opacity: 0.99;
-	}
+  .remote-video {
+    background-color: #111;
+    opacity: 0.99;
+  }
 }
 
 video.remote-video::-moz-focus-inner {
-	border: 0;
+  border: 0;
 }
 
 /* Reaction animation */
 .animate-pop {
-	animation: pop 360ms cubic-bezier(.2,.9,.3,1);
+  animation: pop 360ms cubic-bezier(0.2, 0.9, 0.3, 1);
 }
 @keyframes pop {
-	0% { transform: scale(0.75); opacity: 0 }
-	60% { transform: scale(1.08); opacity: 1 }
-	100% { transform: scale(1); opacity: 1 }
+  0% {
+    transform: scale(0.75);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 /* Raised-hand wave (was a global rule in the standalone app's index.css) */
 .wave {
-	display: inline-block;
-	transform-origin: 70% 70%;
-	animation: hand-wave 900ms ease-in-out infinite;
+  display: inline-block;
+  transform-origin: 70% 70%;
+  animation: hand-wave 900ms ease-in-out infinite;
 }
 @keyframes hand-wave {
-	0% { transform: rotate(0deg); }
-	15% { transform: rotate(20deg); }
-	40% { transform: rotate(-12deg); }
-	65% { transform: rotate(8deg); }
-	100% { transform: rotate(0deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  15% {
+    transform: rotate(20deg);
+  }
+  40% {
+    transform: rotate(-12deg);
+  }
+  65% {
+    transform: rotate(8deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
 }
 </style>

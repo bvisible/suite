@@ -1,38 +1,38 @@
 <template>
-	<div
-		v-if="showImagesBanner"
-		class="text-ink-gray-6 mb-3 flex flex-col gap-3 rounded border p-2.5 px-4 sm:flex-row sm:items-center"
-	>
-		<div class="flex min-w-0 flex-1 items-center gap-3">
-			<ImageOff class="h-4.5 w-4.5 shrink-0 stroke-1.5" />
-			<span class="text-ink-gray-8 min-w-0 flex-1"> {{ blockedLabel }} </span>
-		</div>
-		<div class="flex shrink-0 items-center justify-end gap-3">
-			<Button
-				v-if="canTrust"
-				variant="ghost"
-				:label="__('Mark Sender as Trusted')"
-				@click="handleTrust"
-			/>
-			<Button :label="__('Load Images')" class="w-28" @click="imagesLoaded = true" />
-		</div>
-	</div>
-	<div v-if="!isIframeReady" class="animate-pulse space-y-2 py-4">
-		<div
-			v-for="i in 5"
-			:key="i"
-			class="bg-surface-gray-3 h-2"
-			:style="{ width: `${Math.floor(Math.random() * 40) + 60}%` }"
-		/>
-	</div>
-	<IframeResizer
-		v-show="isIframeReady"
-		class="w-full"
-		license="GPLv3"
-		:scrolling="true"
-		:srcdoc
-		@on-ready="isIframeReady = true"
-	/>
+  <div
+    v-if="showImagesBanner"
+    class="text-ink-gray-6 mb-3 flex flex-col gap-3 rounded border p-2.5 px-4 sm:flex-row sm:items-center"
+  >
+    <div class="flex min-w-0 flex-1 items-center gap-3">
+      <ImageOff class="h-4.5 w-4.5 shrink-0 stroke-1.5" />
+      <span class="text-ink-gray-8 min-w-0 flex-1"> {{ blockedLabel }} </span>
+    </div>
+    <div class="flex shrink-0 items-center justify-end gap-3">
+      <Button
+        v-if="canTrust"
+        variant="ghost"
+        :label="__('Mark Sender as Trusted')"
+        @click="handleTrust"
+      />
+      <Button :label="__('Load Images')" class="w-28" @click="imagesLoaded = true" />
+    </div>
+  </div>
+  <div v-if="!isIframeReady" class="animate-pulse space-y-2 py-4">
+    <div
+      v-for="i in 5"
+      :key="i"
+      class="bg-surface-gray-3 h-2"
+      :style="{ width: `${Math.floor(Math.random() * 40) + 60}%` }"
+    />
+  </div>
+  <IframeResizer
+    v-show="isIframeReady"
+    class="w-full"
+    license="GPLv3"
+    :scrolling="true"
+    :srcdoc
+    @on-ready="isIframeReady = true"
+  />
 </template>
 
 <script setup lang="ts">

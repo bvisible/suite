@@ -1,58 +1,58 @@
 <template>
-	<FormControl
-		v-model="mailImport.format"
-		:label="__('Format')"
-		type="select"
-		variant="outline"
-		:options="FORMAT_OPTIONS"
-		required
-	/>
-	<template v-if="['eml', 'mbox', 'maildir'].includes(mailImport.format)">
-		<FormControl
-			v-model="mailImport.mailbox"
-			:label="__('Folder')"
-			type="select"
-			variant="outline"
-			:options="mailboxOptions"
-		/>
-		<FormControl
-			v-model="mailImport.seen"
-			:label="__('Mark as Read')"
-			type="select"
-			variant="outline"
-			:options="markAsReadOptions"
-		/>
-	</template>
-	<input
-		ref="fileInput"
-		type="file"
-		class="hidden"
-		:accept="acceptTypes"
-		@change="onFileSelected"
-	/>
-	<Button
-		class="w-full"
-		:label="uploading ? __('Uploading ({0}%)', [progress]) : __('Upload File')"
-		:loading="uploading"
-		@click="fileInput?.click()"
-	/>
-	<p class="text-ink-gray-5 mt-2 flex text-sm">{{ fileUploadSubtitle }}</p>
+  <FormControl
+    v-model="mailImport.format"
+    :label="__('Format')"
+    type="select"
+    variant="outline"
+    :options="FORMAT_OPTIONS"
+    required
+  />
+  <template v-if="['eml', 'mbox', 'maildir'].includes(mailImport.format)">
+    <FormControl
+      v-model="mailImport.mailbox"
+      :label="__('Folder')"
+      type="select"
+      variant="outline"
+      :options="mailboxOptions"
+    />
+    <FormControl
+      v-model="mailImport.seen"
+      :label="__('Mark as Read')"
+      type="select"
+      variant="outline"
+      :options="markAsReadOptions"
+    />
+  </template>
+  <input
+    ref="fileInput"
+    type="file"
+    class="hidden"
+    :accept="acceptTypes"
+    @change="onFileSelected"
+  />
+  <Button
+    class="w-full"
+    :label="uploading ? __('Uploading ({0}%)', [progress]) : __('Upload File')"
+    :loading="uploading"
+    @click="fileInput?.click()"
+  />
+  <p class="text-ink-gray-5 mt-2 flex text-sm">{{ fileUploadSubtitle }}</p>
 
-	<Button
-		class="min-h-7"
-		:label="__('Create Import')"
-		variant="solid"
-		:loading="ongoingImport.data?.name"
-		:disabled="ongoingImport.loading || ongoingImport.error || !mailImport.file"
-		@click="createMailImport.submit()"
-	/>
-	<div class="!mt-3 space-x-1 text-base">
-		<span class="text-ink-gray-5">{{ importSubtitle }}</span>
-		<a class="hover:underline" :href="importHref" target="_blank">
-			{{ importLinkText }}
-		</a>
-	</div>
-	<ErrorMessage v-if="createMailImport.error" :message="createMailImport.error" class="mb-2.5" />
+  <Button
+    class="min-h-7"
+    :label="__('Create Import')"
+    variant="solid"
+    :loading="ongoingImport.data?.name"
+    :disabled="ongoingImport.loading || ongoingImport.error || !mailImport.file"
+    @click="createMailImport.submit()"
+  />
+  <div class="!mt-3 space-x-1 text-base">
+    <span class="text-ink-gray-5">{{ importSubtitle }}</span>
+    <a class="hover:underline" :href="importHref" target="_blank">
+      {{ importLinkText }}
+    </a>
+  </div>
+  <ErrorMessage v-if="createMailImport.error" :message="createMailImport.error" class="mb-2.5" />
 </template>
 
 <script setup lang="ts">

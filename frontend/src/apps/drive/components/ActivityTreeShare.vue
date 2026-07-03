@@ -12,14 +12,12 @@
       :label="activity.share_user_fullname ? activity.share_user_fullname : activity.new_value"
     />
     <span class="flex gap-x-0.5 items-center justify-start">
-      <span class="line-clamp-1">{{
-        activity.share_user_fullname ? activity.share_user_fullname : activity.new_value
-      }}</span>
+      <span class="line-clamp-1"
+        >{{ activity.share_user_fullname ? activity.share_user_fullname : activity.new_value }}</span
+      >
       <span>∙</span>
       <span class="text-ink-gray-5">
-        {{
-          activity.meta_value === '1' ? 'View' : activity.meta_value === '2' ? 'Edit' : 'Share'
-        }}</span
+        {{ activity.meta_value === '1' ? 'View' : activity.meta_value === '2' ? 'Edit' : 'Share' }}</span
       >
     </span>
   </div>
@@ -40,9 +38,9 @@
     <span class="flex gap-x-0.5 items-center justify-start">
       <span>{{ activity.document_field === 'everyone' ? 'Organization' : 'Public' }}</span>
       <span>∙</span>
-      <span class="text-ink-gray-5">{{
-        activity.meta_value === '1' ? 'View' : activity.meta_value === '2' ? 'Edit' : 'Full Access'
-      }}</span>
+      <span class="text-ink-gray-5"
+        >{{ activity.meta_value === '1' ? 'View' : activity.meta_value === '2' ? 'Edit' : 'Full Access' }}</span
+      >
     </span>
   </div>
   <slot name="nested" />
@@ -77,7 +75,7 @@ defineProps({
 }
 
 .strike-div::after {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   right: 0;

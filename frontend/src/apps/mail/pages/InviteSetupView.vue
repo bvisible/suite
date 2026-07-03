@@ -1,49 +1,49 @@
 <template>
-	<form class="flex flex-col space-y-4" @submit.prevent="submit">
-		<FormControl
-			v-model="email"
-			:label="__('Email')"
-			type="email"
-			placeholder="johndoe@example.com"
-			autocomplete="email"
-			readonly
-			required
-		/>
-		<FormControl
-			v-model="firstName"
-			:label="__('First Name')"
-			placeholder="John"
-			autocomplete="given-name"
-			required
-		/>
-		<FormControl
-			v-model="lastName"
-			:label="__('Last Name')"
-			placeholder="Doe"
-			autocomplete="family-name"
-		/>
-		<FormControl
-			v-model="password"
-			:label="__('Password')"
-			type="password"
-			placeholder="••••••••"
-			name="password"
-			autocomplete="current-password"
-			required
-		/>
-		<ErrorMessage :message="errorMessage" />
-		<Button
-			variant="solid"
-			:loading="createAccount.loading"
-			:label="__('Create Account')"
-			type="submit"
-		/>
-	</form>
-	<div class="mt-6 text-center">
-		<router-link class="text-center text-base-medium hover:underline" :to="{ name: 'mail-login' }">
-			{{ __('Already have an account? Log in.') }}
-		</router-link>
-	</div>
+  <form class="flex flex-col space-y-4" @submit.prevent="submit">
+    <FormControl
+      v-model="email"
+      :label="__('Email')"
+      type="email"
+      placeholder="johndoe@example.com"
+      autocomplete="email"
+      readonly
+      required
+    />
+    <FormControl
+      v-model="firstName"
+      :label="__('First Name')"
+      placeholder="John"
+      autocomplete="given-name"
+      required
+    />
+    <FormControl
+      v-model="lastName"
+      :label="__('Last Name')"
+      placeholder="Doe"
+      autocomplete="family-name"
+    />
+    <FormControl
+      v-model="password"
+      :label="__('Password')"
+      type="password"
+      placeholder="••••••••"
+      name="password"
+      autocomplete="current-password"
+      required
+    />
+    <ErrorMessage :message="errorMessage" />
+    <Button
+      variant="solid"
+      :loading="createAccount.loading"
+      :label="__('Create Account')"
+      type="submit"
+    />
+  </form>
+  <div class="mt-6 text-center">
+    <router-link class="text-center text-base-medium hover:underline" :to="{ name: 'mail-login' }">
+      {{ __('Already have an account? Log in.') }}
+    </router-link>
+  </div>
 </template>
 <script setup lang="ts">
 import { ref, watch } from 'vue'

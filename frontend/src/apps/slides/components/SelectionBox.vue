@@ -1,12 +1,12 @@
 <template>
-	<div v-if="activeElementIds.length" :style="boxStyles">
-		<Resizer
-			v-if="showResizers"
-			:elementType="activeElement?.shapeType || activeElement?.type"
-			:dimensions="selectionBounds"
-			:style="{ pointerEvents: 'auto' }"
-		/>
-	</div>
+  <div v-if="activeElementIds.length" :style="boxStyles">
+    <Resizer
+      v-if="showResizers"
+      :elementType="activeElement?.shapeType || activeElement?.type"
+      :dimensions="selectionBounds"
+      :style="{ pointerEvents: 'auto' }"
+    />
+  </div>
 </template>
 <script setup>
 import { computed } from 'vue'

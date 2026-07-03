@@ -1,27 +1,27 @@
 <template>
-	<Dialog v-model="show" :options="options">
-		<template #body-content>
-			<div class="space-y-4">
-				<FormControl
-					v-model="addressBook.name"
-					:label="__('Name')"
-					:placeholder="__('Work Contacts')"
-				/>
-				<FormControl
-					v-model="addressBook.description"
-					type="textarea"
-					:label="__('Description')"
-					:placeholder="__('All my work-related contacts')"
-				/>
-				<FormControl
-					v-model="addressBook.isDefault"
-					type="checkbox"
-					:label="__('Set as Default')"
-					:disabled="isDefault"
-				/>
-			</div>
-		</template>
-	</Dialog>
+  <Dialog v-model="show" :options="options">
+    <template #body-content>
+      <div class="space-y-4">
+        <FormControl
+          v-model="addressBook.name"
+          :label="__('Name')"
+          :placeholder="__('Work Contacts')"
+        />
+        <FormControl
+          v-model="addressBook.description"
+          type="textarea"
+          :label="__('Description')"
+          :placeholder="__('All my work-related contacts')"
+        />
+        <FormControl
+          v-model="addressBook.isDefault"
+          type="checkbox"
+          :label="__('Set as Default')"
+          :disabled="isDefault"
+        />
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <script setup lang="ts">

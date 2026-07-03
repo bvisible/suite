@@ -1,7 +1,7 @@
 <template>
-	<Dialog
-		v-model="showDialog"
-		:options="{
+  <Dialog
+    v-model="showDialog"
+    :options="{
 			title: 'Remove Participant',
 			size: 'sm',
 			actions: [
@@ -18,20 +18,16 @@
 				}
 			]
 		}"
-	>
-		<template #body-content>
-			<div class="space-y-4">
-				<p class="text-base text-ink-gray-7">
-					Are you sure you want to remove <strong>{{ participantName }}</strong> from the meeting?
-				</p>
-				<FormControl
-					label="Ban from this meeting?"
-					type="checkbox"
-					v-model="banFromMeeting"
-				/>
-			</div>
-		</template>
-	</Dialog>
+  >
+    <template #body-content>
+      <div class="space-y-4">
+        <p class="text-base text-ink-gray-7">
+          Are you sure you want to remove <strong>{{ participantName }}</strong> from the meeting?
+        </p>
+        <FormControl label="Ban from this meeting?" type="checkbox" v-model="banFromMeeting" />
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <script setup lang="ts">

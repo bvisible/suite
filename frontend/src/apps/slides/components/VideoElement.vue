@@ -1,56 +1,56 @@
 <template>
-	<div v-if="mode == 'thumbnail'">
-		<img
-			v-if="thumbnailSrc"
-			class="object-cover"
-			:style="videoStyles"
-			:src="getAttachmentUrl(thumbnailSrc)"
-		/>
-	</div>
-	<div
-		v-else
-		@click="handleVideoClick"
-		@mouseenter="handleHoverChange"
-		@mouseleave="handleHoverChange"
-	>
-		<video
-			ref="videoElement"
-			:style="videoStyles"
-			:autoplay="inSlideShowMode ? element.autoplay : false"
-			:loop="element.loop"
-			:playbackRate="element.playbackRate"
-			@timeupdate="updateProgress"
-			@loadedmetadata="updateDuration"
-			@ended="resetProgress"
-			preload="auto"
-			:poster="getAttachmentUrl(element.poster)"
-		>
-			<source :src="getAttachmentUrl(element.src)" />
-		</video>
-		<div
-			ref="overlay"
-			v-show="showOverlay"
-			class="overlay absolute left-0 top-0 size-full cursor-default overflow-hidden transition-opacity duration-500 ease-in-out"
-			:style="gradientOverlayStyles"
-		>
-			<div v-if="showProgressBar" :class="toggleButtonClasses">
-				<component
-					size="16"
-					:is="isPlaying ? Pause : Play"
-					class="stroke-[1.5] ps-[0.5px] text-white"
-				/>
-			</div>
-			<div
-				v-if="showProgressBar"
-				ref="progressBar"
-				:class="progressBarClasses"
-				@click.stop="seekTimestamp"
-			>
-				<div :class="getBarClasses('duration')"></div>
-				<div :class="getBarClasses('current')" :style="{ width: `${progress}%` }"></div>
-			</div>
-		</div>
-	</div>
+  <div v-if="mode == 'thumbnail'">
+    <img
+      v-if="thumbnailSrc"
+      class="object-cover"
+      :style="videoStyles"
+      :src="getAttachmentUrl(thumbnailSrc)"
+    />
+  </div>
+  <div
+    v-else
+    @click="handleVideoClick"
+    @mouseenter="handleHoverChange"
+    @mouseleave="handleHoverChange"
+  >
+    <video
+      ref="videoElement"
+      :style="videoStyles"
+      :autoplay="inSlideShowMode ? element.autoplay : false"
+      :loop="element.loop"
+      :playbackRate="element.playbackRate"
+      @timeupdate="updateProgress"
+      @loadedmetadata="updateDuration"
+      @ended="resetProgress"
+      preload="auto"
+      :poster="getAttachmentUrl(element.poster)"
+    >
+      <source :src="getAttachmentUrl(element.src)" />
+    </video>
+    <div
+      ref="overlay"
+      v-show="showOverlay"
+      class="overlay absolute left-0 top-0 size-full cursor-default overflow-hidden transition-opacity duration-500 ease-in-out"
+      :style="gradientOverlayStyles"
+    >
+      <div v-if="showProgressBar" :class="toggleButtonClasses">
+        <component
+          size="16"
+          :is="isPlaying ? Pause : Play"
+          class="stroke-[1.5] ps-[0.5px] text-white"
+        />
+      </div>
+      <div
+        v-if="showProgressBar"
+        ref="progressBar"
+        :class="progressBarClasses"
+        @click.stop="seekTimestamp"
+      >
+        <div :class="getBarClasses('duration')"></div>
+        <div :class="getBarClasses('current')" :style="{ width: `${progress}%` }"></div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>

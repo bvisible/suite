@@ -116,9 +116,7 @@ const labelFunction = (val: SelectValue_, selected = false) => {
                       {{ labelFunction(option) }}
                     </span>
                   </SelectItemText>
-                  <SelectItemIndicator
-                    class="inline-flex ml-auto items-center justify-center"
-                  >
+                  <SelectItemIndicator class="inline-flex ml-auto items-center justify-center">
                     <LucideCheck class="size-4" />
                   </SelectItemIndicator>
                 </SelectItem>

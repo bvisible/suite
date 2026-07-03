@@ -1,23 +1,23 @@
 <template>
-	<Button
-		v-for="action in primaryActions(mail).filter((d) => d.condition !== false && !isCollapsed)"
-		:key="action.label"
-		variant="ghost"
-		:tooltip="action.label"
-		@click.stop="action.onClick"
-	>
-		<template #icon>
-			<component :is="action.icon" class="text-ink-gray-5 icon" />
-		</template>
-	</Button>
+  <Button
+    v-for="action in primaryActions(mail).filter((d) => d.condition !== false && !isCollapsed)"
+    :key="action.label"
+    variant="ghost"
+    :tooltip="action.label"
+    @click.stop="action.onClick"
+  >
+    <template #icon>
+      <component :is="action.icon" class="text-ink-gray-5 icon" />
+    </template>
+  </Button>
 
-	<Dropdown v-if="!mail.draft && !isCollapsed" :options="moreActions(mail)">
-		<Button variant="ghost" :tooltip="__('More')" @click.stop>
-			<template #icon>
-				<Ellipsis class="text-ink-gray-5 icon" />
-			</template>
-		</Button>
-	</Dropdown>
+  <Dropdown v-if="!mail.draft && !isCollapsed" :options="moreActions(mail)">
+    <Button variant="ghost" :tooltip="__('More')" @click.stop>
+      <template #icon>
+        <Ellipsis class="text-ink-gray-5 icon" />
+      </template>
+    </Button>
+  </Dropdown>
 </template>
 
 <script lang="ts" setup>

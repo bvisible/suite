@@ -1,21 +1,21 @@
 <template>
-	<div class="flex space-x-2">
-		<Button
-			icon="search"
-			:tooltip="__('Search ({0}+K)', [modifier])"
-			variant="ghost"
-			@click="showSearchModal = true"
-		/>
-		<Button
-			icon-left="edit"
-			:label="__('Compose')"
-			:tooltip="__('Compose (C)')"
-			@click="showSendModal = true"
-		/>
-	</div>
+  <div class="flex space-x-2">
+    <Button
+      icon="search"
+      :tooltip="__('Search ({0}+K)', [modifier])"
+      variant="ghost"
+      @click="showSearchModal = true"
+    />
+    <Button
+      icon-left="edit"
+      :label="__('Compose')"
+      :tooltip="__('Compose (C)')"
+      @click="showSendModal = true"
+    />
+  </div>
 
-	<SendMail v-model="showSendModal" @reload-mails="emit('reloadMails')" />
-	<SearchModal v-model="showSearchModal" />
+  <SendMail v-model="showSendModal" @reload-mails="emit('reloadMails')" />
+  <SearchModal v-model="showSearchModal" />
 </template>
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'

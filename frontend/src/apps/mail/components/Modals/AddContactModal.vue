@@ -1,7 +1,7 @@
 <template>
-	<Dialog
-		v-model="show"
-		:options="{
+  <Dialog
+    v-model="show"
+    :options="{
 			title: __('New Contact'),
 			actions: [
 				{
@@ -16,35 +16,35 @@
 				},
 			],
 		}"
-	>
-		<template #body-content>
-			<div class="space-y-4">
-				<FormControl
-					v-model="contact.full_name"
-					:label="__('Name')"
-					:placeholder="__('John Doe')"
-				/>
-				<FormControl
-					v-model="contact.kind"
-					type="select"
-					:label="__('Kind')"
-					:options="KIND_OPTIONS"
-				/>
-				<div class="space-y-1.5">
-					<label class="text-ink-gray-5 block text-xs">{{ __('Address Books') }}</label>
-					<MultiSelect
-						v-model="contact.address_book_ids"
-						:options="
+  >
+    <template #body-content>
+      <div class="space-y-4">
+        <FormControl
+          v-model="contact.full_name"
+          :label="__('Name')"
+          :placeholder="__('John Doe')"
+        />
+        <FormControl
+          v-model="contact.kind"
+          type="select"
+          :label="__('Kind')"
+          :options="KIND_OPTIONS"
+        />
+        <div class="space-y-1.5">
+          <label class="text-ink-gray-5 block text-xs">{{ __('Address Books') }}</label>
+          <MultiSelect
+            v-model="contact.address_book_ids"
+            :options="
 							store.addressBooks.data.map((ab) => ({
 								label: ab._name,
 								value: ab.id,
 							}))
 						"
-					/>
-				</div>
-			</div>
-		</template>
-	</Dialog>
+          />
+        </div>
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <script setup lang="ts">

@@ -19,12 +19,7 @@
         class="mr-2"
         @click="notifications.reload()"
       />
-      <Button
-        icon-left="check-circle"
-        @click="markAllRead"
-      >
-        Mark all as Read
-      </Button>
+      <Button icon-left="check-circle" @click="markAllRead"> Mark all as Read </Button>
     </div>
   </div>
   <ListView

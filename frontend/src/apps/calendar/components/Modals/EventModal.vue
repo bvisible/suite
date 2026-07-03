@@ -404,207 +404,199 @@ const SHOW_RECURRING_EVENT_MODAL_OPTIONS = {
 </script>
 
 <template>
-	<Dialog v-model="show" :options="dialogOptions">
-		<template #body-content>
-			<div class="grid max-h-[48rem] grid-cols-11 gap-6 overflow-y-auto">
-				<div class="col-span-7 space-y-4">
-					<h3 class="text-base-medium">{{ __('Event Details') }}</h3>
-					<!-- Title -->
-					<FormControl
-						v-model="event.title"
-						:label="__('Title')"
-						:placeholder="__('Meeting with Team')"
-					/>
+  <Dialog v-model="show" :options="dialogOptions">
+    <template #body-content>
+      <div class="grid max-h-[48rem] grid-cols-11 gap-6 overflow-y-auto">
+        <div class="col-span-7 space-y-4">
+          <h3 class="text-base-medium">{{ __('Event Details') }}</h3>
+          <!-- Title -->
+          <FormControl
+            v-model="event.title"
+            :label="__('Title')"
+            :placeholder="__('Meeting with Team')"
+          />
 
-					<!-- Date and Time -->
-					<FormControl v-model="event.isAllDay" :label="__('All Day')" type="checkbox" />
-					<div class="flex space-x-4">
-						<FormControl
-							v-model="event.startDate"
-							type="date"
-							:label="__('Start Date')"
-							class="w-full"
-						/>
-						<FormControl
-							v-if="!event.isAllDay"
-							v-model="event.startTime"
-							type="time"
-							:label="__('Start Time')"
-							class="w-full"
-						/>
-					</div>
-					<div class="flex space-x-4">
-						<FormControl
-							v-model="event.endDate"
-							type="date"
-							:label="__('End Date')"
-							class="w-full"
-						/>
-						<FormControl
-							v-if="!event.isAllDay"
-							v-model="event.endTime"
-							type="time"
-							:label="__('End Time')"
-							class="w-full"
-						/>
-					</div>
+          <!-- Date and Time -->
+          <FormControl v-model="event.isAllDay" :label="__('All Day')" type="checkbox" />
+          <div class="flex space-x-4">
+            <FormControl
+              v-model="event.startDate"
+              type="date"
+              :label="__('Start Date')"
+              class="w-full"
+            />
+            <FormControl
+              v-if="!event.isAllDay"
+              v-model="event.startTime"
+              type="time"
+              :label="__('Start Time')"
+              class="w-full"
+            />
+          </div>
+          <div class="flex space-x-4">
+            <FormControl
+              v-model="event.endDate"
+              type="date"
+              :label="__('End Date')"
+              class="w-full"
+            />
+            <FormControl
+              v-if="!event.isAllDay"
+              v-model="event.endTime"
+              type="time"
+              :label="__('End Time')"
+              class="w-full"
+            />
+          </div>
 
-					<!-- Repeat -->
-					<div class="flex items-center space-x-3">
-						<FormControl
-							v-model="event.repeat"
-							:label="
+          <!-- Repeat -->
+          <div class="flex items-center space-x-3">
+            <FormControl
+              v-model="event.repeat"
+              :label="
 								event.recurrence_rule?.frequency
 									? __('Repeat: {0}', [getRepeatMessage(event.recurrence_rule)])
 									: __('Repeat')
 							"
-							type="checkbox"
-							@update:model-value="
+              type="checkbox"
+              @update:model-value="
 								$event ? (showRepeatSettings = true) : (event.recurrence_rule = {})
 							"
-						/>
-						<span
-							v-if="event.recurrence_rule?.frequency"
-							class="text-ink-gray-4 cursor-pointer text-base hover:underline"
-							@click="showRepeatSettings = true"
-						>
-							{{ __('Edit') }}
-						</span>
-					</div>
+            />
+            <span
+              v-if="event.recurrence_rule?.frequency"
+              class="text-ink-gray-4 cursor-pointer text-base hover:underline"
+              @click="showRepeatSettings = true"
+            >
+              {{ __('Edit') }}
+            </span>
+          </div>
 
-					<!-- Locations -->
-					<div class="space-y-2">
-						<div v-for="(_, i) in event.locations" :key="i" class="flex space-x-2">
-							<FormControl
-								v-model="event.locations[i]"
-								:label="
+          <!-- Locations -->
+          <div class="space-y-2">
+            <div v-for="(_, i) in event.locations" :key="i" class="flex space-x-2">
+              <FormControl
+                v-model="event.locations[i]"
+                :label="
 									i === 0
 										? event.locations.length > 1
 											? __('Locations')
 											: __('Location')
 										: ''
 								"
-								:placeholder="__('Meeting location {0}', [i + 1])"
-								class="w-full"
-							/>
-							<Button
-								v-if="
+                :placeholder="__('Meeting location {0}', [i + 1])"
+                class="w-full"
+              />
+              <Button
+                v-if="
 									event.locations.length === i + 1 && event.locations.length < 3
 								"
-								icon="plus"
-								class="mt-auto"
-								@click="event.locations.push('')"
-							/>
-							<Button
-								v-else
-								icon="x"
-								class="mt-auto"
-								@click="event.locations.splice(i, 1)"
-							/>
-						</div>
-					</div>
+                icon="plus"
+                class="mt-auto"
+                @click="event.locations.push('')"
+              />
+              <Button v-else icon="x" class="mt-auto" @click="event.locations.splice(i, 1)" />
+            </div>
+          </div>
 
-					<!-- Alerts -->
-					<div class="space-y-2">
-						<EventAlertList v-model:alerts="event.alerts" />
-						<Dropdown
-							v-if="event.alerts.length < 3"
-							:button="{ label: __('Add Alert') }"
-							:options="addAlertOptions"
-						/>
-					</div>
+          <!-- Alerts -->
+          <div class="space-y-2">
+            <EventAlertList v-model:alerts="event.alerts" />
+            <Dropdown
+              v-if="event.alerts.length < 3"
+              :button="{ label: __('Add Alert') }"
+              :options="addAlertOptions"
+            />
+          </div>
 
-					<!-- Availability and Privacy -->
-					<div class="flex space-x-4">
-						<FormControl
-							v-model="event.free_busy_status"
-							type="select"
-							:label="__('Availability')"
-							:options="AVAILABILITY_OPTIONS"
-							class="w-full"
-						/>
-						<FormControl
-							v-model="event.privacy"
-							type="select"
-							:label="__('Visibility')"
-							:options="VISIBILITY_OPTIONS"
-							class="w-full"
-						/>
-					</div>
+          <!-- Availability and Privacy -->
+          <div class="flex space-x-4">
+            <FormControl
+              v-model="event.free_busy_status"
+              type="select"
+              :label="__('Availability')"
+              :options="AVAILABILITY_OPTIONS"
+              class="w-full"
+            />
+            <FormControl
+              v-model="event.privacy"
+              type="select"
+              :label="__('Visibility')"
+              :options="VISIBILITY_OPTIONS"
+              class="w-full"
+            />
+          </div>
 
-					<!-- Description -->
-					<FormControl
-						v-model="event.description"
-						:label="__('Description')"
-						type="textarea"
-						:placeholder="__('Event description')"
-					/>
-				</div>
-				<div class="col-span-4 flex h-full flex-col space-y-4 border-l pl-6">
-					<!-- RSVP -->
-					<template v-if="showRSVP">
-						<h3 class="text-base-medium">{{ __('RSVP') }}</h3>
-						<FormControl
-							v-model="userParticipant.participation_status"
-							type="select"
-							:label="__('Are you attending?')"
-							:options="RSVP_OPTIONS"
-							class="w-full"
-						/>
-					</template>
+          <!-- Description -->
+          <FormControl
+            v-model="event.description"
+            :label="__('Description')"
+            type="textarea"
+            :placeholder="__('Event description')"
+          />
+        </div>
+        <div class="col-span-4 flex h-full flex-col space-y-4 border-l pl-6">
+          <!-- RSVP -->
+          <template v-if="showRSVP">
+            <h3 class="text-base-medium">{{ __('RSVP') }}</h3>
+            <FormControl
+              v-model="userParticipant.participation_status"
+              type="select"
+              :label="__('Are you attending?')"
+              :options="RSVP_OPTIONS"
+              class="w-full"
+            />
+          </template>
 
-					<!-- Participants -->
-					<h3 class="text-base-medium">{{ __('Participants') }}</h3>
-					<Combobox
-						:options="mailContacts?.data || []"
-						:placeholder="__('Enter participants')"
-						@input="debouncedSearch($event)"
-						@keyup.enter="handleParticipantEnter($event)"
-					/>
-					<div class="max-h-[32rem] space-y-4 overflow-y-auto">
-						<EventParticipantList
-							:participants
-							@remove-participant="removeParticipant"
-						/>
-					</div>
-				</div>
-			</div>
-		</template>
-		<template #actions="{ close }">
-			<div class="flex justify-end gap-2">
-				<Button :label="__('Cancel')" variant="outline" @click="close" />
-				<Button
-					:label="__('Save')"
-					variant="solid"
-					:disabled="disableSave"
-					class="w-16"
-					@click="handleSaveClick"
-				/>
-			</div>
-		</template>
-	</Dialog>
-	<EventRepeatSettingsModal
-		v-if="event?.startDate"
-		v-model="showRepeatSettings"
-		:start-date="event.startDate"
-		:r-rule="event?.recurrence_rule"
-		@update-recurrence-rule="(val) => (event.recurrence_rule = val)"
-	/>
-	<Dialog v-model="showRecurringEventModal" :options="SHOW_RECURRING_EVENT_MODAL_OPTIONS">
-		<template #actions>
-			<div class="flex justify-end space-x-2">
-				<Button @click="handleSaveRecurringEvent(false)">{{ __('Entire series') }}</Button>
-			</div>
-		</template>
-	</Dialog>
-	<Dialog v-model="showNotifyParticipantsModal" :options="showNotifyParticipantsOptions">
-		<template #actions>
-			<div class="flex justify-end space-x-2">
-				<Button variant="outline" @click="submitEvent(false)"> {{ __('Skip') }} </Button>
-				<Button variant="solid" @click="submitEvent(true)">
-					{{ __('Send Email') }}
-				</Button>
-			</div>
-		</template>
-	</Dialog>
+          <!-- Participants -->
+          <h3 class="text-base-medium">{{ __('Participants') }}</h3>
+          <Combobox
+            :options="mailContacts?.data || []"
+            :placeholder="__('Enter participants')"
+            @input="debouncedSearch($event)"
+            @keyup.enter="handleParticipantEnter($event)"
+          />
+          <div class="max-h-[32rem] space-y-4 overflow-y-auto">
+            <EventParticipantList :participants @remove-participant="removeParticipant" />
+          </div>
+        </div>
+      </div>
+    </template>
+    <template #actions="{ close }">
+      <div class="flex justify-end gap-2">
+        <Button :label="__('Cancel')" variant="outline" @click="close" />
+        <Button
+          :label="__('Save')"
+          variant="solid"
+          :disabled="disableSave"
+          class="w-16"
+          @click="handleSaveClick"
+        />
+      </div>
+    </template>
+  </Dialog>
+  <EventRepeatSettingsModal
+    v-if="event?.startDate"
+    v-model="showRepeatSettings"
+    :start-date="event.startDate"
+    :r-rule="event?.recurrence_rule"
+    @update-recurrence-rule="(val) => (event.recurrence_rule = val)"
+  />
+  <Dialog v-model="showRecurringEventModal" :options="SHOW_RECURRING_EVENT_MODAL_OPTIONS">
+    <template #actions>
+      <div class="flex justify-end space-x-2">
+        <Button @click="handleSaveRecurringEvent(false)">{{ __('Entire series') }}</Button>
+      </div>
+    </template>
+  </Dialog>
+  <Dialog v-model="showNotifyParticipantsModal" :options="showNotifyParticipantsOptions">
+    <template #actions>
+      <div class="flex justify-end space-x-2">
+        <Button variant="outline" @click="submitEvent(false)"> {{ __('Skip') }} </Button>
+        <Button variant="solid" @click="submitEvent(true)">
+          {{ __('Send Email') }}
+        </Button>
+      </div>
+    </template>
+  </Dialog>
 </template>

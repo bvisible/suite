@@ -1,15 +1,15 @@
 <template>
-	<div
-		:class="inputClasses"
-		:contenteditable="editingTitle"
-		spellcheck="false"
-		@click="makeTitleEditable"
-		@focus="setCursorPositionAtEnd"
-		@blur="saveTitle"
-		@keydown.enter.prevent.stop="(e) => e.target.blur()"
-	>
-		{{ title }}
-	</div>
+  <div
+    :class="inputClasses"
+    :contenteditable="editingTitle"
+    spellcheck="false"
+    @click="makeTitleEditable"
+    @focus="setCursorPositionAtEnd"
+    @blur="saveTitle"
+    @keydown.enter.prevent.stop="(e) => e.target.blur()"
+  >
+    {{ title }}
+  </div>
 </template>
 
 <script setup>

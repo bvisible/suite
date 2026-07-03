@@ -1,5 +1,5 @@
 <template>
-	<div v-for="(style, name) in guideStyles" :key="name" :style="style"></div>
+  <div v-for="(style, name) in guideStyles" :key="name" :style="style"></div>
 </template>
 
 <script setup>

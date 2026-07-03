@@ -1,7 +1,7 @@
 <template>
-	<Dialog
-		v-model="show"
-		:options="{
+  <Dialog
+    v-model="show"
+    :options="{
 			title: selectedScript ? __('Edit Sieve Script') : __('New Sieve Script'),
 			size: '3xl',
 			actions: [
@@ -14,38 +14,38 @@
 				},
 			],
 		}"
-	>
-		<template #body-content>
-			<div class="space-y-4">
-				<FormControl v-model="script._name" :label="__('Script Name')" required />
-				<div class="space-y-1.5">
-					<label class="text-ink-gray-5 block text-xs">
-						{{ __('Script Content') }}
-					</label>
-					<FormControl
-						v-model="script.content"
-						type="textarea"
-						:rows="20"
-						required
-						class="font-mono"
-					/>
-				</div>
+  >
+    <template #body-content>
+      <div class="space-y-4">
+        <FormControl v-model="script._name" :label="__('Script Name')" required />
+        <div class="space-y-1.5">
+          <label class="text-ink-gray-5 block text-xs">
+            {{ __('Script Content') }}
+          </label>
+          <FormControl
+            v-model="script.content"
+            type="textarea"
+            :rows="20"
+            required
+            class="font-mono"
+          />
+        </div>
 
-				<hr />
-				<Switch
-					v-model="script.active"
-					:label="__('Activate Script')"
-					:description="__('Activate this script to apply your rules and filters.')"
-					class="!p-0"
-				/>
-				<Alert
-					v-if="script.active && activeScript && activeScript !== original._name"
-					:title="
+        <hr />
+        <Switch
+          v-model="script.active"
+          :label="__('Activate Script')"
+          :description="__('Activate this script to apply your rules and filters.')"
+          class="!p-0"
+        />
+        <Alert
+          v-if="script.active && activeScript && activeScript !== original._name"
+          :title="
 						isSystemScript(activeScript)
 							? __('{0} Enabled', [getScriptName(activeScript)])
 							: __('Active Script {0} Detected', [getScriptName(activeScript)])
 					"
-					:description="
+          :description="
 						isSystemScript(activeScript)
 							? __('Activating this script will disable {0}.', [
 									getScriptName(activeScript),
@@ -54,12 +54,12 @@
 									'Activating this script will deactivate the currently active script.',
 								)
 					"
-					theme="yellow"
-					:dismissable="false"
-				/>
-			</div>
-		</template>
-	</Dialog>
+          theme="yellow"
+          :dismissable="false"
+        />
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <script setup lang="ts">

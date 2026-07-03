@@ -31,42 +31,42 @@ const getParticipantStatusValues = (status: string) => {
 }
 </script>
 <template>
-	<div v-for="p in participants" :key="p.email">
-		<div class="flex items-center justify-between text-left">
-			<div class="flex items-center space-x-2">
-				<Avatar :image="p.user_image" :label="p._name || p.email" size="xl" />
-				<div class="flex flex-col space-y-0.5">
-					<div class="flex items-center space-x-1">
-						<span class="text-sm-medium">
-							{{ extractNameFromEmail(p._name || p.email) }}
-						</span>
-						<span v-if="p.email === organizer" class="text-ink-gray-4 text-xs">
-							({{ __('Organizer') }})
-						</span>
+  <div v-for="p in participants" :key="p.email">
+    <div class="flex items-center justify-between text-left">
+      <div class="flex items-center space-x-2">
+        <Avatar :image="p.user_image" :label="p._name || p.email" size="xl" />
+        <div class="flex flex-col space-y-0.5">
+          <div class="flex items-center space-x-1">
+            <span class="text-sm-medium">
+              {{ extractNameFromEmail(p._name || p.email) }}
+            </span>
+            <span v-if="p.email === organizer" class="text-ink-gray-4 text-xs">
+              ({{ __('Organizer') }})
+            </span>
 
-						<div
-							v-if="
+            <div
+              v-if="
 								p.participation_status && p.participation_status !== 'NEEDS-ACTION'
 							"
-							class="rounded-full p-px"
-							:class="getParticipantStatusValues(p.participation_status).class"
-						>
-							<component
-								:is="getParticipantStatusValues(p.participation_status).icon"
-								class="h-3 w-3"
-							/>
-						</div>
-					</div>
-					<span class="text-ink-gray-4 text-sm">{{ p.email }}</span>
-				</div>
-			</div>
+              class="rounded-full p-px"
+              :class="getParticipantStatusValues(p.participation_status).class"
+            >
+              <component
+                :is="getParticipantStatusValues(p.participation_status).icon"
+                class="h-3 w-3"
+              />
+            </div>
+          </div>
+          <span class="text-ink-gray-4 text-sm">{{ p.email }}</span>
+        </div>
+      </div>
 
-			<Button
-				v-if="showRemoveParticipant(p)"
-				variant="ghost"
-				icon="x"
-				@click="$emit('removeParticipant', p.email)"
-			/>
-		</div>
-	</div>
+      <Button
+        v-if="showRemoveParticipant(p)"
+        variant="ghost"
+        icon="x"
+        @click="$emit('removeParticipant', p.email)"
+      />
+    </div>
+  </div>
 </template>

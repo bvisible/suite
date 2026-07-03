@@ -82,9 +82,7 @@ function removeTag(tag: string) {
       class="shadow-sm m-0.25 mr-0 p-1.5 text-sm bg-white flex items-center justify-center gap-1.5 rounded p-0.5 ring-1 ring-outline-gray-2 shadow-xs"
     >
       <RenderIcon :icon="getIcon(item)" />
-      <TagsInputItemText class="text-xs text-ink-gray-8">{{
-        getLabel(item)
-      }}</TagsInputItemText>
+      <TagsInputItemText class="text-xs text-ink-gray-8">{{ getLabel(item) }}</TagsInputItemText>
       <TagsInputItemDelete
         class="p-0.5 rounded-sm bg-transparent hover:bg-surface-gray-1"
         @click="removeTag(getValue(item))"
@@ -112,10 +110,10 @@ function removeTag(tag: string) {
   </TagsInputRoot>
 </template>
 <style scoped>
-[data-state='active'] {
+[data-state="active"] {
   background: var(--surface-gray-1);
 }
-:deep([aria-label='Show popup']) {
+:deep([aria-label="Show popup"]) {
   display: none;
 }
 </style>

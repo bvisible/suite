@@ -34,7 +34,11 @@
         <button class="co-action" title="Refresh data" @click="$emit('refresh', chart.id)">
           <FeatherIcon name="refresh-cw" class="co-action-icon" />
         </button>
-        <button class="co-action co-action--danger" title="Delete chart" @click="$emit('delete', chart.id)">
+        <button
+          class="co-action co-action--danger"
+          title="Delete chart"
+          @click="$emit('delete', chart.id)"
+        >
           <FeatherIcon name="trash-2" class="co-action-icon" />
         </button>
       </div>
@@ -177,7 +181,7 @@ function _onLayerMousedown(e) {
 .co-layer {
   position: absolute;
   inset: 0;
-  pointer-events: none;  /* let canvas receive clicks; charts opt back in */
+  pointer-events: none; /* let canvas receive clicks; charts opt back in */
   /* Above .sn-pivot-fab (z-20) and .sn-pivot-highlight (z-15) so a chart
      dragged on top of a pivot table fully occludes both the pivot's edit
      fab and its dotted output border — otherwise they punch through the
@@ -186,53 +190,78 @@ function _onLayerMousedown(e) {
 }
 .co-host {
   position: absolute;
-  top: 0; left: 0;
+  top: 0;
+  left: 0;
   pointer-events: auto;
   cursor: move;
   background: var(--surface-base, #ffffff);
   border-radius: 10px;
   border: 1px solid var(--outline-gray-2, #e5e5e5);
   box-shadow:
-    0 0 0 1px rgba(0,0,0,.02),
-    0 4px 12px -4px rgba(0,0,0,.08);
-  transition: border-color .12s, box-shadow .12s;
+    0 0 0 1px rgba(0, 0, 0, 0.02),
+    0 4px 12px -4px rgba(0, 0, 0, 0.08);
+  transition:
+    border-color 0.12s,
+    box-shadow 0.12s;
 }
-.co-host:hover { border-color: var(--outline-gray-3, #d4d4d4); }
+.co-host:hover {
+  border-color: var(--outline-gray-3, #d4d4d4);
+}
 .co-host--selected {
-  border-color: var(--ink-cyan-6, #0891B2);
+  border-color: var(--ink-cyan-6, #0891b2);
   box-shadow:
-    0 0 0 2px rgba(8,145,178,.18),
-    0 6px 16px -4px rgba(0,0,0,.12);
+    0 0 0 2px rgba(8, 145, 178, 0.18),
+    0 6px 16px -4px rgba(0, 0, 0, 0.12);
 }
 
 .co-actions {
   position: absolute;
   top: -36px;
   right: 0;
-  display: flex; gap: 4px;
+  display: flex;
+  gap: 4px;
   padding: 4px;
   background: var(--surface-base);
   border: 1px solid var(--outline-gray-2);
   border-radius: 8px;
-  box-shadow: 0 4px 12px -4px rgba(0,0,0,.12);
+  box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.12);
 }
 .co-action {
-  width: 28px; height: 28px;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: transparent; border: 0; border-radius: 4px;
-  color: var(--ink-gray-7); cursor: pointer;
-  transition: background-color .1s, color .1s;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  color: var(--ink-gray-7);
+  cursor: pointer;
+  transition:
+    background-color 0.1s,
+    color 0.1s;
 }
-.co-action:hover            { background: var(--surface-gray-2); color: var(--ink-gray-9); }
-.co-action--danger:hover    { background: var(--surface-red-1, #fee2e2); color: var(--ink-red-6, #dc2626); }
-.co-action-icon             { width: 14px; height: 14px; }
+.co-action:hover {
+  background: var(--surface-gray-2);
+  color: var(--ink-gray-9);
+}
+.co-action--danger:hover {
+  background: var(--surface-red-1, #fee2e2);
+  color: var(--ink-red-6, #dc2626);
+}
+.co-action-icon {
+  width: 14px;
+  height: 14px;
+}
 
 .co-resize {
   position: absolute;
-  bottom: -4px; right: -4px;
-  width: 12px; height: 12px;
+  bottom: -4px;
+  right: -4px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  background: var(--ink-cyan-6, #0891B2);
+  background: var(--ink-cyan-6, #0891b2);
   border: 2px solid var(--surface-base);
   cursor: nwse-resize;
 }

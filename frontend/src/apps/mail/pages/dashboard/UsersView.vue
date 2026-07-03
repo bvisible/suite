@@ -1,79 +1,77 @@
 <template>
-	<div class="flex items-center space-x-3">
-		<FormControl v-model="search" :placeholder="__('Search')" class="w-80">
-			<template #prefix>
-				<FeatherIcon name="search" class="text-ink-gray-5 w-4" />
-			</template>
-		</FormControl>
-		<FormControl
-			v-model="roleFilter"
-			:placeholder="__('Role')"
-			class="w-40"
-			type="select"
-			:options="ROLE_FILTER_OPTIONS"
-		/>
-	</div>
-	<ListView
-		v-if="normalizedMembers"
-		ref="listView"
-		class="flex-1"
-		:columns="LIST_COLUMNS"
-		:rows="normalizedMembers"
-		:options="LIST_OPTIONS"
-		row-key="name"
-	>
-		<ListHeader />
-		<ListRows>
-			<template v-if="normalizedMembers.length">
-				<ListRow
-					v-for="row in normalizedMembers"
-					:key="row.name"
-					v-slot="{ column, item }"
-					:row="row"
-					class="hover:bg-surface-gray-1 cursor-pointer rounded"
-				>
-					<ListRowItem :item="item">
-						<template v-if="column.key === 'user'">
-							<div class="flex items-center space-x-2">
-								<Avatar :image="row.user_image" :label="row.full_name" size="lg" />
-								<div class="text-sm">
-									<p class="font-medium">{{ row.full_name }}</p>
-									<p class="text-ink-gray-5 mt-0.5">{{ row.name }}</p>
-								</div>
-							</div>
-						</template>
-						<template v-else-if="column.key === 'role'">
-							<Badge
-								:label="row.is_admin ? __('Admin') : __('User')"
-								:theme="row.is_admin ? 'orange' : 'blue'"
-							/>
-						</template>
-						<template v-else-if="column.key === 'last_active'">
-							<span class="text-ink-gray-5 text-sm">
-								{{
-									row.last_active && dayjs
+  <div class="flex items-center space-x-3">
+    <FormControl v-model="search" :placeholder="__('Search')" class="w-80">
+      <template #prefix>
+        <FeatherIcon name="search" class="text-ink-gray-5 w-4" />
+      </template>
+    </FormControl>
+    <FormControl
+      v-model="roleFilter"
+      :placeholder="__('Role')"
+      class="w-40"
+      type="select"
+      :options="ROLE_FILTER_OPTIONS"
+    />
+  </div>
+  <ListView
+    v-if="normalizedMembers"
+    ref="listView"
+    class="flex-1"
+    :columns="LIST_COLUMNS"
+    :rows="normalizedMembers"
+    :options="LIST_OPTIONS"
+    row-key="name"
+  >
+    <ListHeader />
+    <ListRows>
+      <template v-if="normalizedMembers.length">
+        <ListRow
+          v-for="row in normalizedMembers"
+          :key="row.name"
+          v-slot="{ column, item }"
+          :row="row"
+          class="hover:bg-surface-gray-1 cursor-pointer rounded"
+        >
+          <ListRowItem :item="item">
+            <template v-if="column.key === 'user'">
+              <div class="flex items-center space-x-2">
+                <Avatar :image="row.user_image" :label="row.full_name" size="lg" />
+                <div class="text-sm">
+                  <p class="font-medium">{{ row.full_name }}</p>
+                  <p class="text-ink-gray-5 mt-0.5">{{ row.name }}</p>
+                </div>
+              </div>
+            </template>
+            <template v-else-if="column.key === 'role'">
+              <Badge
+                :label="row.is_admin ? __('Admin') : __('User')"
+                :theme="row.is_admin ? 'orange' : 'blue'"
+              />
+            </template>
+            <template v-else-if="column.key === 'last_active'">
+              <span class="text-ink-gray-5 text-sm">
+                {{ row.last_active && dayjs
 										? dayjs(row.last_active).fromNow()
-										: __('Never')
-								}}
-							</span>
-						</template>
-					</ListRowItem>
-				</ListRow>
-			</template>
-			<ListEmptyState v-else />
-		</ListRows>
-		<ListSelectBanner>
-			<template #actions>
-				<Button
-					variant="ghost"
-					theme="red"
-					:label="__('Delete')"
-					@click="showDeleteMembers = true"
-				/>
-			</template>
-		</ListSelectBanner>
-	</ListView>
-	<Dialog v-model="showDeleteMembers" :options="DELETE_MEMBERS_OPTIONS" />
+										: __('Never') }}
+              </span>
+            </template>
+          </ListRowItem>
+        </ListRow>
+      </template>
+      <ListEmptyState v-else />
+    </ListRows>
+    <ListSelectBanner>
+      <template #actions>
+        <Button
+          variant="ghost"
+          theme="red"
+          :label="__('Delete')"
+          @click="showDeleteMembers = true"
+        />
+      </template>
+    </ListSelectBanner>
+  </ListView>
+  <Dialog v-model="showDeleteMembers" :options="DELETE_MEMBERS_OPTIONS" />
 </template>
 
 <script setup lang="ts">

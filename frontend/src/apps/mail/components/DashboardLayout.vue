@@ -1,27 +1,22 @@
 <template>
-	<div class="flex h-full flex-col">
-		<header class="flex items-center border-b px-3 py-2.5 sm:px-5">
-			<Button v-if="isMobile" icon="menu" variant="ghost" @click="openSidebar" />
-			<Breadcrumbs :items="breadcrumbs" class="mx-2" />
-			<Badge v-if="badgeLabel" :label="badgeLabel" :theme="badgeTheme" />
-			<div class="ml-auto flex space-x-2">
-				<slot name="actions">
-					<Button
-						v-if="buttonLabel"
-						:label="buttonLabel"
-						icon-left="plus"
-						@click="buttonAction"
-					/>
-				</slot>
-			</div>
-		</header>
-		<div
-			class="flex flex-1 flex-col overflow-y-auto"
-			:class="{ 'space-y-5 px-3 py-5 sm:px-5': !removeSpacing }"
-		>
-			<slot />
-		</div>
-	</div>
+  <div class="flex h-full flex-col">
+    <header class="flex items-center border-b px-3 py-2.5 sm:px-5">
+      <Button v-if="isMobile" icon="menu" variant="ghost" @click="openSidebar" />
+      <Breadcrumbs :items="breadcrumbs" class="mx-2" />
+      <Badge v-if="badgeLabel" :label="badgeLabel" :theme="badgeTheme" />
+      <div class="ml-auto flex space-x-2">
+        <slot name="actions">
+          <Button v-if="buttonLabel" :label="buttonLabel" icon-left="plus" @click="buttonAction" />
+        </slot>
+      </div>
+    </header>
+    <div
+      class="flex flex-1 flex-col overflow-y-auto"
+      :class="{ 'space-y-5 px-3 py-5 sm:px-5': !removeSpacing }"
+    >
+      <slot />
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">

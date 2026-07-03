@@ -1,65 +1,65 @@
 <template>
-	<div
-		class="flex h-screen w-screen select-none flex-col overflow-hidden"
-		@click="focusedSlide = null"
-	>
-		<EditorNavbar
-			@startSlideShow="startSlideShow"
-			@performDropdownAction="performNavbarDropdownAction"
-		/>
+  <div
+    class="flex h-screen w-screen select-none flex-col overflow-hidden"
+    @click="focusedSlide = null"
+  >
+    <EditorNavbar
+      @startSlideShow="startSlideShow"
+      @performDropdownAction="performNavbarDropdownAction"
+    />
 
-		<div class="relative flex h-screen bg-gray-300">
-			<SlideContainer
-				ref="slideContainer"
-				v-if="presentationDoc"
-				:highlight="slideHighlight"
-				v-model:hasOngoingInteraction="isSlideInteractionActive"
-			/>
+    <div class="relative flex h-screen bg-gray-300">
+      <SlideContainer
+        ref="slideContainer"
+        v-if="presentationDoc"
+        :highlight="slideHighlight"
+        v-model:hasOngoingInteraction="isSlideInteractionActive"
+      />
 
-			<NavigationPanel
-				class="absolute bottom-0 top-0"
-				@changeSlide="changeEditorSlide"
-				@openLayoutDialog="openLayoutDialog('insert')"
-			/>
+      <NavigationPanel
+        class="absolute bottom-0 top-0"
+        @changeSlide="changeEditorSlide"
+        @openLayoutDialog="openLayoutDialog('insert')"
+      />
 
-			<Toolbar
-				v-if="!inReadonlyMode && presentationDoc"
-				@setHighlight="setHighlight"
-				@openLayoutDialog="openLayoutDialog('insert')"
-				@duplicate="duplicateSlide"
-				@delete="deleteSlide(true)"
-			/>
+      <Toolbar
+        v-if="!inReadonlyMode && presentationDoc"
+        @setHighlight="setHighlight"
+        @openLayoutDialog="openLayoutDialog('insert')"
+        @duplicate="duplicateSlide"
+        @delete="deleteSlide(true)"
+      />
 
-			<PropertiesPanel
-				v-if="!inReadonlyMode"
-				class="absolute bottom-0 right-0 top-0"
-				@openLayoutDialog="openLayoutDialog('replace')"
-			/>
-		</div>
-	</div>
+      <PropertiesPanel
+        v-if="!inReadonlyMode"
+        class="absolute bottom-0 right-0 top-0"
+        @openLayoutDialog="openLayoutDialog('replace')"
+      />
+    </div>
+  </div>
 
-	<LayoutDialog
-		v-model="showLayoutDialog"
-		@insert="(layoutObj) => handleInsertSlide(null, layoutObj)"
-	/>
+  <LayoutDialog
+    v-model="showLayoutDialog"
+    @insert="(layoutObj) => handleInsertSlide(null, layoutObj)"
+  />
 
-	<ThemeDialog
-		v-model="showThemeDialog"
-		@create="(theme) => createPresentation(theme)"
-		@update="(theme) => updatePresentationTheme(theme)"
-		:update="themeDialogAction == 'update'"
-	/>
+  <ThemeDialog
+    v-model="showThemeDialog"
+    @create="(theme) => createPresentation(theme)"
+    @update="(theme) => updatePresentationTheme(theme)"
+    :update="themeDialogAction == 'update'"
+  />
 
-	<teleport to="body">
-		<ExportView v-if="showExportView" :slides="slides" />
-	</teleport>
+  <teleport to="body">
+    <ExportView v-if="showExportView" :slides="slides" />
+  </teleport>
 
-	<ThumbnailCapture
-		ref="thumbnailCaptureRef"
-		v-if="presentationDoc && !inReadonlyMode && slides.length"
-		:slide="slides[0]"
-		:disableCapture="isSlideInteractionActive"
-	/>
+  <ThumbnailCapture
+    ref="thumbnailCaptureRef"
+    v-if="presentationDoc && !inReadonlyMode && slides.length"
+    :slide="slides[0]"
+    :disableCapture="isSlideInteractionActive"
+  />
 </template>
 
 <script setup>

@@ -1,21 +1,17 @@
 <template>
-	<SettingsLayoutBase
-		:description="'Customize notification sounds for meeting events'"
-	>
-		<template #title>
-			Notifications
-		</template>
-		<template #content>
-			<div class="space-y-6">
-				<Switch
-					class="w-full"
-					label="Enable notification sounds"
-					description="Play sounds for all meeting events"
-					v-model="notificationChimesEnabledLocal"
-				/>
-			</div>
-		</template>
-	</SettingsLayoutBase>
+  <SettingsLayoutBase :description="'Customize notification sounds for meeting events'">
+    <template #title> Notifications </template>
+    <template #content>
+      <div class="space-y-6">
+        <Switch
+          class="w-full"
+          label="Enable notification sounds"
+          description="Play sounds for all meeting events"
+          v-model="notificationChimesEnabledLocal"
+        />
+      </div>
+    </template>
+  </SettingsLayoutBase>
 </template>
 
 <script setup lang="ts">

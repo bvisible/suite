@@ -1,73 +1,73 @@
 <template>
-	<DashboardLayout
-		v-if="domain?.data"
-		:breadcrumbs="BREADCRUMBS"
-		:badge-label="badge.label"
-		:badge-theme="badge.theme"
-	>
-		<template #actions>
-			<Dropdown :options="dropdownOptions" :button="{ icon: 'more-horizontal' }" />
-		</template>
-		<template #default>
-			<div class="bg-surface-blue-1 rounded-md border">
-				<div class="space-y-2 p-4">
-					<h3 class="font-medium">{{ BANNER.title }}</h3>
-					<p class="text-ink-gray-5 text-sm">{{ BANNER.message }}</p>
-				</div>
-			</div>
-			<div class="rounded-md border">
-				<h2 class="p-4">{{ __('DNS Records') }}</h2>
-				<DNSRecords
-					:title="__('Email Deliverability')"
-					:description="
+  <DashboardLayout
+    v-if="domain?.data"
+    :breadcrumbs="BREADCRUMBS"
+    :badge-label="badge.label"
+    :badge-theme="badge.theme"
+  >
+    <template #actions>
+      <Dropdown :options="dropdownOptions" :button="{ icon: 'more-horizontal' }" />
+    </template>
+    <template #default>
+      <div class="bg-surface-blue-1 rounded-md border">
+        <div class="space-y-2 p-4">
+          <h3 class="font-medium">{{ BANNER.title }}</h3>
+          <p class="text-ink-gray-5 text-sm">{{ BANNER.message }}</p>
+        </div>
+      </div>
+      <div class="rounded-md border">
+        <h2 class="p-4">{{ __('DNS Records') }}</h2>
+        <DNSRecords
+          :title="__('Email Deliverability')"
+          :description="
 						__('Email authentication records that protect your domain from spoofing.')
 					"
-					:records="emailDeliverabilityRecords"
-					:badge-label="__('Required')"
-					badge-theme="red"
-				/>
-				<DNSRecords
-					:title="__('Inbound Mail Routing')"
-					:description="
+          :records="emailDeliverabilityRecords"
+          :badge-label="__('Required')"
+          badge-theme="red"
+        />
+        <DNSRecords
+          :title="__('Inbound Mail Routing')"
+          :description="
 						__(
 							'Mail routing records that ensure messages sent to your domain are delivered to the correct mail server.',
 						)
 					"
-					:records="inboundMailRoutingRecords"
-					:badge-label="__('Recommended')"
-					badge-theme="orange"
-				/>
-				<DNSRecords
-					:title="__('Service Configuration Records')"
-					:description="
+          :records="inboundMailRoutingRecords"
+          :badge-label="__('Recommended')"
+          badge-theme="orange"
+        />
+        <DNSRecords
+          :title="__('Service Configuration Records')"
+          :description="
 						__(
 							'Service records that enable automatic mail setup and enforce secure transport for your domain.',
 						)
 					"
-					:records="serviceConfigurationRecords"
-				/>
-				<DNSRecords
-					:title="__('Service Discovery Records')"
-					:description="
+          :records="serviceConfigurationRecords"
+        />
+        <DNSRecords
+          :title="__('Service Discovery Records')"
+          :description="
 						__(
 							'Records that allow mail and sync apps to automatically locate and connect to your domain’s email, calendar, and contacts services.',
 						)
 					"
-					:records="serviceDiscoveryRecords"
-				/>
-				<DNSRecords
-					:title="__('Email Transport Security Records')"
-					:description="
+          :records="serviceDiscoveryRecords"
+        />
+        <DNSRecords
+          :title="__('Email Transport Security Records')"
+          :description="
 						__(
 							'TXT records that enforce encrypted mail delivery and provide reporting on failed or insecure SMTP connections.',
 						)
 					"
-					:records="transportSecurityRecords"
-				/>
-			</div>
-		</template>
-	</DashboardLayout>
-	<Dialog v-model="showConfirmDialog" :options="confirmDialogOptions" />
+          :records="transportSecurityRecords"
+        />
+      </div>
+    </template>
+  </DashboardLayout>
+  <Dialog v-model="showConfirmDialog" :options="confirmDialogOptions" />
 </template>
 <script setup lang="ts">
 import { computed, ref } from 'vue'
@@ -263,11 +263,11 @@ const BANNER = {
 <style scoped>
 .expand-enter-active,
 .expand-leave-active {
-	@apply max-h-full opacity-100 transition-all duration-700 ease-linear;
+  @apply max-h-full opacity-100 transition-all duration-700 ease-linear;
 }
 
 .expand-enter-from,
 .expand-leave-to {
-	@apply max-h-0 p-0 opacity-0;
+  @apply max-h-0 p-0 opacity-0;
 }
 </style>

@@ -1,20 +1,20 @@
 <template>
-	<div class="slides-container">
-		<div
-			v-for="slide in slides"
-			:key="slide.cliendId"
-			class="slide-page"
-			:style="getSlidePageStyles(slide)"
-		>
-			<SlideElement
-				v-for="element in slide?.elements"
-				:key="`export-${element.id}`"
-				mode="export"
-				:element="element"
-				:data-index="element.id"
-			/>
-		</div>
-	</div>
+  <div class="slides-container">
+    <div
+      v-for="slide in slides"
+      :key="slide.cliendId"
+      class="slide-page"
+      :style="getSlidePageStyles(slide)"
+    >
+      <SlideElement
+        v-for="element in slide?.elements"
+        :key="`export-${element.id}`"
+        mode="export"
+        :element="element"
+        :data-index="element.id"
+      />
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -39,35 +39,35 @@ const getSlidePageStyles = slide => {
 
 <style>
 @media print {
-	body > * {
-		display: none !important;
-	}
+  body > * {
+    display: none !important;
+  }
 
-	.slides-container {
-		display: block !important;
-	}
+  .slides-container {
+    display: block !important;
+  }
 
-	.slides-container .slide-page {
-		display: block !important;
-	}
+  .slides-container .slide-page {
+    display: block !important;
+  }
 
-	@page {
-		size: 960px 540px;
-		margin: 0;
-	}
+  @page {
+    size: 960px 540px;
+    margin: 0;
+  }
 }
 
 .slides-container {
-	display: none;
-	background: white;
+  display: none;
+  background: white;
 }
 
 .slide-page {
-	position: relative;
-	width: 960px !important;
-	height: 540px !important;
-	transform: none !important;
-	page-break-after: always;
-	overflow: hidden;
+  position: relative;
+  width: 960px !important;
+  height: 540px !important;
+  transform: none !important;
+  page-break-after: always;
+  overflow: hidden;
 }
 </style>

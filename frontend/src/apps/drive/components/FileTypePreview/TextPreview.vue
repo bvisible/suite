@@ -3,8 +3,7 @@
   <pre
     v-else
     class="overflow-y-auto h-[80vh] font-[InterVar] text-p-base text-ink-gray-8 sm:w-full border p-3 rounded overflow-x-auto"
-    >{{ blob }}</pre
-  >
+  >{{ blob }}</pre>
 </template>
 
 <script setup>
@@ -51,4 +50,3 @@ onMounted(() => {
   fetchContent()
 })
 </script>
-<style scoped></style>

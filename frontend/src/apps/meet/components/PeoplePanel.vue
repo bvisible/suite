@@ -1,79 +1,77 @@
 <template>
-	<Transition
-		enter-active-class="transition-all duration-300 ease-out"
-		enter-from-class="opacity-0 transform translate-x-full"
-		enter-to-class="opacity-100 transform translate-x-0"
-		leave-active-class="transition-all duration-300 ease-in"
-		leave-from-class="opacity-100 transform translate-x-0"
-		leave-to-class="opacity-0 transform translate-x-full"
-	>
-		<div v-show="open" class="h-full py-4 flex justify-end" data-testid="people-panel-wrapper">
-			<div
-				class="w-80 sm:w-96 bg-white border border-gray-200 shadow-xl flex flex-col z-40 h-full rounded-lg mr-4"
-				data-testid="people-panel"
-			>
-				<div class="flex items-center justify-between p-4 border-b border-gray-200">
-					<div class="text-ink-gray-900 text-base-medium">
-						People ({{ totalParticipantCount }})
-					</div>
-					<lucide-x
-						@click="$emit('close')"
-						class="w-4 h-4 text-gray-900 cursor-pointer hover:text-gray-600"
-					/>
-				</div>
+  <Transition
+    enter-active-class="transition-all duration-300 ease-out"
+    enter-from-class="opacity-0 transform translate-x-full"
+    enter-to-class="opacity-100 transform translate-x-0"
+    leave-active-class="transition-all duration-300 ease-in"
+    leave-from-class="opacity-100 transform translate-x-0"
+    leave-to-class="opacity-0 transform translate-x-full"
+  >
+    <div v-show="open" class="h-full py-4 flex justify-end" data-testid="people-panel-wrapper">
+      <div
+        class="w-80 sm:w-96 bg-white border border-gray-200 shadow-xl flex flex-col z-40 h-full rounded-lg mr-4"
+        data-testid="people-panel"
+      >
+        <div class="flex items-center justify-between p-4 border-b border-gray-200">
+          <div class="text-ink-gray-900 text-base-medium">People ({{ totalParticipantCount }})</div>
+          <lucide-x
+            @click="$emit('close')"
+            class="w-4 h-4 text-gray-900 cursor-pointer hover:text-gray-600"
+          />
+        </div>
 
-				<div class="p-4">
-					<FormControl
-						v-model="searchQuery"
-						type="text"
-						placeholder="Search people"
-						autocomplete="off"
-						data-testid="people-search"
-					>
-						<template #prefix>
-							<lucide-search class="w-4 h-4 text-ink-gray-5" />
-						</template>
-					</FormControl>
-				</div>
+        <div class="p-4">
+          <FormControl
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search people"
+            autocomplete="off"
+            data-testid="people-search"
+          >
+            <template #prefix>
+              <lucide-search class="w-4 h-4 text-ink-gray-5" />
+            </template>
+          </FormControl>
+        </div>
 
-				<div class="flex-1 overflow-y-auto">
-					<PeopleWaitingSection
-						v-if="isCreator"
-						:lobbyUsers="filteredLobbyUsers"
-						@approve="handleApproveLobbyUser"
-						@reject="handleRejectLobbyUser"
-						@approve-all="handleApproveAllLobbyUsers"
-					/>
+        <div class="flex-1 overflow-y-auto">
+          <PeopleWaitingSection
+            v-if="isCreator"
+            :lobbyUsers="filteredLobbyUsers"
+            @approve="handleApproveLobbyUser"
+            @reject="handleRejectLobbyUser"
+            @approve-all="handleApproveAllLobbyUsers"
+          />
 
-					<!-- All Participants -->
-					<div v-if="allVisibleParticipants.length > 0">
-						<div class="px-4 py-2 text-xs-medium text-ink-gray-5 tracking-wide bg-surface-gray-1">
-							Participants
-						</div>
-						<PeopleParticipantTile
-							v-for="participant in allVisibleParticipants"
-							:key="participant.user_id"
-							:participant="participant.participantData"
-							:isCurrentUser="participant.isCurrentUser"
-							:isHost="participant.isHost"
-							:canControlParticipant="participant.canControlParticipant"
-							@muteParticipant="handleMuteParticipant"
-							@kickParticipant="handleKickParticipant"
-							@lowerHand="handleLowerHand"
-							@promoteToCohost="handlePromoteToCohost"
-						/>
-					</div>
+          <!-- All Participants -->
+          <div v-if="allVisibleParticipants.length > 0">
+            <div class="px-4 py-2 text-xs-medium text-ink-gray-5 tracking-wide bg-surface-gray-1">
+              Participants
+            </div>
+            <PeopleParticipantTile
+              v-for="participant in allVisibleParticipants"
+              :key="participant.user_id"
+              :participant="participant.participantData"
+              :isCurrentUser="participant.isCurrentUser"
+              :isHost="participant.isHost"
+              :canControlParticipant="participant.canControlParticipant"
+              @muteParticipant="handleMuteParticipant"
+              @kickParticipant="handleKickParticipant"
+              @lowerHand="handleLowerHand"
+              @promoteToCohost="handlePromoteToCohost"
+            />
+          </div>
 
-					<div
-						v-if="allVisibleParticipants.length === 0 && filteredLobbyUsers.length === 0"
-						class="text-ink-gray-5 text-sm text-center mt-8 px-4"
-					>
-						{{ searchQuery ? "No participants found" : "No other participants" }}
-					</div>
-				</div>
-			</div>
-		</div>
-	</Transition>
+          <div
+            v-if="allVisibleParticipants.length === 0 && filteredLobbyUsers.length === 0"
+            class="text-ink-gray-5 text-sm text-center mt-8 px-4"
+          >
+            {{ searchQuery ? "No participants found" : "No other participants" }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </Transition>
 </template>
 
 <script setup lang="ts">

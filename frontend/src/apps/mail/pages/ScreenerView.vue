@@ -1,188 +1,180 @@
 <template>
-	<div v-if="screeningEnabled" class="flex h-full flex-col">
-		<header class="flex items-center justify-between border-b px-3 py-2.5 sm:px-5">
-			<div class="flex items-center space-x-2">
-				<Button v-if="isMobile" icon="menu" variant="ghost" @click="openSidebar" />
-				<Breadcrumbs :items="[{ label: __('Screener') }]" />
-			</div>
-			<HeaderActions @reload-mails="senders.reload()" />
-		</header>
+  <div v-if="screeningEnabled" class="flex h-full flex-col">
+    <header class="flex items-center justify-between border-b px-3 py-2.5 sm:px-5">
+      <div class="flex items-center space-x-2">
+        <Button v-if="isMobile" icon="menu" variant="ghost" @click="openSidebar" />
+        <Breadcrumbs :items="[{ label: __('Screener') }]" />
+      </div>
+      <HeaderActions @reload-mails="senders.reload()" />
+    </header>
 
-		<div class="relative flex flex-1 overflow-hidden">
-			<!-- Loading the sender list — centered like the mailbox empty/loading states. -->
-			<div
-				v-if="senders.loading && !senders.data"
-				class="flex h-[calc(100dvh-6.1rem)] w-full flex-col items-center justify-center"
-			>
-				<div class="text-ink-gray-5 flex items-center space-x-2">
-					<LoaderCircle class="h-5 w-5 animate-spin" />
-					<span>{{ __('Loading...') }}</span>
-				</div>
-			</div>
+    <div class="relative flex flex-1 overflow-hidden">
+      <!-- Loading the sender list — centered like the mailbox empty/loading states. -->
+      <div
+        v-if="senders.loading && !senders.data"
+        class="flex h-[calc(100dvh-6.1rem)] w-full flex-col items-center justify-center"
+      >
+        <div class="text-ink-gray-5 flex items-center space-x-2">
+          <LoaderCircle class="h-5 w-5 animate-spin" />
+          <span>{{ __('Loading...') }}</span>
+        </div>
+      </div>
 
-			<!-- Nothing to screen — one centered empty screen, no split. -->
-			<div
-				v-else-if="!senders.data?.length"
-				class="text-ink-gray-5 flex h-[calc(100dvh-6.1rem)] w-full flex-col items-center justify-center"
-			>
-				<NoMails class="text-ink-gray-2 mb-2 h-16 w-16" />
-				<p>{{ __('You have no new senders to screen.') }}</p>
-			</div>
+      <!-- Nothing to screen — one centered empty screen, no split. -->
+      <div
+        v-else-if="!senders.data?.length"
+        class="text-ink-gray-5 flex h-[calc(100dvh-6.1rem)] w-full flex-col items-center justify-center"
+      >
+        <NoMails class="text-ink-gray-2 mb-2 h-16 w-16" />
+        <p>{{ __('You have no new senders to screen.') }}</p>
+      </div>
 
-			<template v-else>
-				<!-- Sender list -->
-				<div
-					class="flex flex-col overflow-y-auto"
-					:class="!isMobile && showReadingPane ? 'w-1/3 border-r' : 'w-full'"
-				>
-					<div class="pb-20">
-						<!-- Count bar — matches the mailbox "All Mails" toolbar height/style. -->
-						<div class="flex min-h-[49px] items-center justify-between border-b px-5">
-							<span class="text-ink-gray-5 truncate">{{ waitingLabel }}</span>
-							<Button
-								:label="__('Clear All')"
-								variant="ghost"
-								class="-mr-2"
-								@click="showClearAll = true"
-							/>
-						</div>
+      <template v-else>
+        <!-- Sender list -->
+        <div
+          class="flex flex-col overflow-y-auto"
+          :class="!isMobile && showReadingPane ? 'w-1/3 border-r' : 'w-full'"
+        >
+          <div class="pb-20">
+            <!-- Count bar — matches the mailbox "All Mails" toolbar height/style. -->
+            <div class="flex min-h-[49px] items-center justify-between border-b px-5">
+              <span class="text-ink-gray-5 truncate">{{ waitingLabel }}</span>
+              <Button
+                :label="__('Clear All')"
+                variant="ghost"
+                class="-mr-2"
+                @click="showClearAll = true"
+              />
+            </div>
 
-						<div
-							v-for="sender in senders.data"
-							:key="sender.from_email"
-							:data-sender-email="sender.from_email"
-							class="sm:hover:bg-surface-gray-1 flex cursor-default select-none items-stretch gap-4 border-b px-5 py-2.5"
-							:class="{
+            <div
+              v-for="sender in senders.data"
+              :key="sender.from_email"
+              :data-sender-email="sender.from_email"
+              class="sm:hover:bg-surface-gray-1 flex cursor-default select-none items-stretch gap-4 border-b px-5 py-2.5"
+              :class="{
 								'!bg-surface-blue-1': openSender?.from_email === sender.from_email,
 							}"
-							@click="selectSender(sender)"
-						>
-							<div class="min-w-0 flex-1 space-y-1">
-								<div class="flex min-w-0 items-baseline gap-2">
-									<span
-										class="text-ink-gray-8 truncate text-[15px] !font-semibold sm:text-base"
-									>
-										{{ sender.from_name || sender.from_email }}
-									</span>
-									<span class="text-ink-gray-5 truncate text-[13px]">
-										{{ sender.from_email }}
-									</span>
-								</div>
-								<div
-									class="text-ink-gray-8 truncate text-sm !font-semibold !leading-[1.5]"
-								>
-									{{ sender.subject || __('[No subject]') }}
-								</div>
-								<div
-									v-if="sender.preview || sender.count > 1"
-									class="text-ink-gray-5 truncate text-sm !leading-[1.5]"
-								>
-									<span v-if="sender.preview">{{ sender.preview }}</span>
-									<span v-if="sender.count > 1">
-										{{ sender.preview ? ' · ' : ''
-										}}{{ __('{0} messages', [String(sender.count)]) }}
-									</span>
-								</div>
-							</div>
+              @click="selectSender(sender)"
+            >
+              <div class="min-w-0 flex-1 space-y-1">
+                <div class="flex min-w-0 items-baseline gap-2">
+                  <span class="text-ink-gray-8 truncate text-[15px] !font-semibold sm:text-base">
+                    {{ sender.from_name || sender.from_email }}
+                  </span>
+                  <span class="text-ink-gray-5 truncate text-[13px]">
+                    {{ sender.from_email }}
+                  </span>
+                </div>
+                <div class="text-ink-gray-8 truncate text-sm !font-semibold !leading-[1.5]">
+                  {{ sender.subject || __('[No subject]') }}
+                </div>
+                <div
+                  v-if="sender.preview || sender.count > 1"
+                  class="text-ink-gray-5 truncate text-sm !leading-[1.5]"
+                >
+                  <span v-if="sender.preview">{{ sender.preview }}</span>
+                  <span v-if="sender.count > 1">
+                    {{ sender.preview ? ' · ' : '' }}
+                    {{ __('{0} messages', [String(sender.count)]) }}
+                  </span>
+                </div>
+              </div>
 
-							<!-- Time top-right, persistent Block / Allow parked bottom-right -->
-							<div class="flex shrink-0 flex-col items-end justify-between">
-								<MailDate
-									:datetime="sender.received_at"
-									:in-list="true"
-									class="text-ink-gray-4 whitespace-nowrap pt-px text-xs tabular-nums"
-								/>
-								<div class="-mr-2 flex gap-2">
-									<Button
-										variant="outline"
-										:label="__('Block')"
-										@click.stop="screenOut([sender.from_email])"
-									/>
-									<Button
-										variant="outline"
-										:label="__('Allow')"
-										@click.stop="allow([sender.from_email])"
-									/>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
+              <!-- Time top-right, persistent Block / Allow parked bottom-right -->
+              <div class="flex shrink-0 flex-col items-end justify-between">
+                <MailDate
+                  :datetime="sender.received_at"
+                  :in-list="true"
+                  class="text-ink-gray-4 whitespace-nowrap pt-px text-xs tabular-nums"
+                />
+                <div class="-mr-2 flex gap-2">
+                  <Button
+                    variant="outline"
+                    :label="__('Block')"
+                    @click.stop="screenOut([sender.from_email])"
+                  />
+                  <Button
+                    variant="outline"
+                    :label="__('Allow')"
+                    @click.stop="allow([sender.from_email])"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-				<!-- Read-only thread preview — split when the reading pane is on, full-width otherwise -->
-				<div
-					class="bg-surface-base flex flex-col"
-					:class="{
+        <!-- Read-only thread preview — split when the reading pane is on, full-width otherwise -->
+        <div
+          class="bg-surface-base flex flex-col"
+          :class="{
 						'w-2/3': !isMobile && showReadingPane,
 						'absolute bottom-0 left-0 right-0 top-0': !isMobile && !showReadingPane,
 						'fixed inset-0': isMobile,
 						hidden: (isMobile || !showReadingPane) && !openSender,
 					}"
-				>
-					<template v-if="openSender">
-						<!-- Subject + Block/Allow; back button only when the preview owns the whole pane -->
-						<div
-							class="bg-surface-base sticky top-0 z-10 flex shrink-0 items-center justify-between gap-3 border-b p-2.5 sm:px-5"
-						>
-							<div class="flex min-w-0 items-center">
-								<Button
-									variant="ghost"
-									class="-ml-1.5 mr-2 shrink-0"
-									@click="closeSender"
-								>
-									<template #icon>
-										<ChevronLeft class="icon" />
-									</template>
-								</Button>
-								<h2 class="truncate font-semibold leading-5">
-									{{ openSender.subject || __('[No subject]') }}
-								</h2>
-							</div>
-							<div class="flex shrink-0 gap-2">
-								<Button
-									variant="outline"
-									:label="__('Block')"
-									@click="screenOut([openSender.from_email])"
-								/>
-								<Button
-									variant="solid"
-									:label="__('Allow')"
-									@click="allow([openSender.from_email])"
-								/>
-							</div>
-						</div>
+        >
+          <template v-if="openSender">
+            <!-- Subject + Block/Allow; back button only when the preview owns the whole pane -->
+            <div
+              class="bg-surface-base sticky top-0 z-10 flex shrink-0 items-center justify-between gap-3 border-b p-2.5 sm:px-5"
+            >
+              <div class="flex min-w-0 items-center">
+                <Button variant="ghost" class="-ml-1.5 mr-2 shrink-0" @click="closeSender">
+                  <template #icon>
+                    <ChevronLeft class="icon" />
+                  </template>
+                </Button>
+                <h2 class="truncate font-semibold leading-5">
+                  {{ openSender.subject || __('[No subject]') }}
+                </h2>
+              </div>
+              <div class="flex shrink-0 gap-2">
+                <Button
+                  variant="outline"
+                  :label="__('Block')"
+                  @click="screenOut([openSender.from_email])"
+                />
+                <Button
+                  variant="solid"
+                  :label="__('Allow')"
+                  @click="allow([openSender.from_email])"
+                />
+              </div>
+            </div>
 
-						<MailThreadSkeleton v-if="previewLoading" />
-						<MailThread
-							v-else-if="previewMails?.length"
-							:key="openSender.from_email"
-							class="min-h-0 flex-1"
-							readonly
-							mailbox=""
-							:thread-i-d="openSender.from_email"
-							:threads="[]"
-							:messages="previewMails"
-						/>
-					</template>
+            <MailThreadSkeleton v-if="previewLoading" />
+            <MailThread
+              v-else-if="previewMails?.length"
+              :key="openSender.from_email"
+              class="min-h-0 flex-1"
+              readonly
+              mailbox=""
+              :thread-i-d="openSender.from_email"
+              :threads="[]"
+              :messages="previewMails"
+            />
+          </template>
 
-					<div v-else class="flex-1 overflow-hidden">
-						<div
-							class="bg-surface-gray-1 m-5 flex h-[calc(100%-2.9em)] items-center justify-center rounded-md"
-						>
-							<div class="flex flex-col items-center space-y-3">
-								<NoMails class="text-ink-gray-2 h-16 w-16" />
-								<p class="text-ink-gray-4">
-									{{ __('Select a sender to view their emails.') }}
-								</p>
-							</div>
-						</div>
-					</div>
-				</div>
-			</template>
-		</div>
+          <div v-else class="flex-1 overflow-hidden">
+            <div
+              class="bg-surface-gray-1 m-5 flex h-[calc(100%-2.9em)] items-center justify-center rounded-md"
+            >
+              <div class="flex flex-col items-center space-y-3">
+                <NoMails class="text-ink-gray-2 h-16 w-16" />
+                <p class="text-ink-gray-4">
+                  {{ __('Select a sender to view their emails.') }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+    </div>
 
-		<Dialog v-model="showClearAll" :options="clearAllOptions" />
-	</div>
+    <Dialog v-model="showClearAll" :options="clearAllOptions" />
+  </div>
 </template>
 
 <script setup lang="ts">

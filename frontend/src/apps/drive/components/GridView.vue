@@ -1,9 +1,6 @@
 <template>
   <!-- pt-1 to accomodate borders -->
-  <div
-    v-if="rows?.length"
-    class="grid-container gap-5 p-5 pb-[60px] overflow-auto select-none"
-  >
+  <div v-if="rows?.length" class="grid-container gap-5 p-5 pb-[60px] overflow-auto select-none">
     <div
       v-for="file in rows"
       :id="file.name"

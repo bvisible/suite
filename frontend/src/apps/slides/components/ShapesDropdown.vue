@@ -1,11 +1,11 @@
 <template>
-	<Dropdown :options="shapeOptions" side="top" align="center" :offset="12">
-		<template #default="{ open }">
-			<div :class="triggerClass(open)">
-				<LucideShapes class="size-4 stroke-[1.5]" />
-			</div>
-		</template>
-	</Dropdown>
+  <Dropdown :options="shapeOptions" side="top" align="center" :offset="12">
+    <template #default="{ open }">
+      <div :class="triggerClass(open)">
+        <LucideShapes class="size-4 stroke-[1.5]" />
+      </div>
+    </template>
+  </Dropdown>
 </template>
 
 <script setup>

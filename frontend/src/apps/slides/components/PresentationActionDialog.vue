@@ -1,38 +1,37 @@
 <template>
-	<Dialog class="pb-0" size="sm" @close="handleDialogClose">
-		<template #title>
-			<div class="font-semibold">{{ dialogAction }} Presentation</div>
-		</template>
-		<template #default>
-			<FormControl
-				ref="inputRef"
-				v-if="dialogAction == 'Rename'"
-				:type="'text'"
-				size="md"
-				variant="subtle"
-				label="Presentation Title"
-				v-model="newPresentationTitle"
-			/>
-			<div v-else class="text-base">
-				This action will permanently delete
-				<strong>{{ presentation?.title }}</strong
-				>. Are you sure you want to continue?
-			</div>
-		</template>
-		<template #actions>
-			<Button
-				class="w-full"
-				variant="solid"
-				:theme="dialogAction == 'Delete' ? 'red' : 'gray'"
-				:label="actions[dialogAction].label"
-				@click="performAction()"
-			>
-				<template #prefix>
-					<component :is="actions[dialogAction].icon" size="14" class="stroke-[1.5]" />
-				</template>
-			</Button>
-		</template>
-	</Dialog>
+  <Dialog class="pb-0" size="sm" @close="handleDialogClose">
+    <template #title>
+      <div class="font-semibold">{{ dialogAction }} Presentation</div>
+    </template>
+    <template #default>
+      <FormControl
+        ref="inputRef"
+        v-if="dialogAction == 'Rename'"
+        :type="'text'"
+        size="md"
+        variant="subtle"
+        label="Presentation Title"
+        v-model="newPresentationTitle"
+      />
+      <div v-else class="text-base">
+        This action will permanently delete
+        <strong>{{ presentation?.title }}</strong>. Are you sure you want to continue?
+      </div>
+    </template>
+    <template #actions>
+      <Button
+        class="w-full"
+        variant="solid"
+        :theme="dialogAction == 'Delete' ? 'red' : 'gray'"
+        :label="actions[dialogAction].label"
+        @click="performAction()"
+      >
+        <template #prefix>
+          <component :is="actions[dialogAction].icon" size="14" class="stroke-[1.5]" />
+        </template>
+      </Button>
+    </template>
+  </Dialog>
 </template>
 
 <script setup>

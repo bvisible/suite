@@ -14,21 +14,15 @@
     @close="dialogType = ''"
   >
     <div class="flex gap-3">
-        <FormControl
-          v-model="newTitle"
-          v-focus
-          class="grow"
-          type="text"
-          @keyup.enter="submit"
-        />
-        <div
-          v-if="file_ext"
-          disabled
-          class="w-12 text-ink-gray-7 bg-surface-gray-2 rounded text-center self-center py-1.5 text-sm"
-        >
-          {{ file_ext }}
-        </div>
+      <FormControl v-model="newTitle" v-focus class="grow" type="text" @keyup.enter="submit" />
+      <div
+        v-if="file_ext"
+        disabled
+        class="w-12 text-ink-gray-7 bg-surface-gray-2 rounded text-center self-center py-1.5 text-sm"
+      >
+        {{ file_ext }}
       </div>
+    </div>
   </Dialog>
 </template>
 

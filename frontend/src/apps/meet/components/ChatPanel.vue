@@ -1,111 +1,111 @@
 <template>
-	<Transition
-		enter-active-class="transition-all duration-300 ease-out"
-		enter-from-class="opacity-0 transform translate-x-full"
-		enter-to-class="opacity-100 transform translate-x-0"
-		leave-active-class="transition-all duration-300 ease-in"
-		leave-from-class="opacity-100 transform translate-x-0"
-		leave-to-class="opacity-0 transform translate-x-full"
-	>
-		<div v-show="open" class="h-full py-4 flex justify-end" data-testid="chat-panel-wrapper">
-			<div
-				class="w-80 sm:w-96 bg-white border border-gray-200 shadow-xl flex flex-col z-40 h-full rounded-lg mr-4"
-				data-testid="chat-panel"
-			>
-				<div class="flex items-center justify-between p-4 border-b border-gray-200">
+  <Transition
+    enter-active-class="transition-all duration-300 ease-out"
+    enter-from-class="opacity-0 transform translate-x-full"
+    enter-to-class="opacity-100 transform translate-x-0"
+    leave-active-class="transition-all duration-300 ease-in"
+    leave-from-class="opacity-100 transform translate-x-0"
+    leave-to-class="opacity-0 transform translate-x-full"
+  >
+    <div v-show="open" class="h-full py-4 flex justify-end" data-testid="chat-panel-wrapper">
+      <div
+        class="w-80 sm:w-96 bg-white border border-gray-200 shadow-xl flex flex-col z-40 h-full rounded-lg mr-4"
+        data-testid="chat-panel"
+      >
+        <div class="flex items-center justify-between p-4 border-b border-gray-200">
+          <div class="text-gray-900 text-base font-medium">Chat</div>
 
-					 <div class="text-gray-900 text-base font-medium">Chat</div>
-                    
-                    <div class="flex items-center gap-1">
-                        <Dropdown 
-                            v-if="isHost || isCohost"
-                            :options="pollMenuOptions"
-                        >
-                            <Button variant="ghost" icon="more-horizontal" class="text-gray-600 hover:bg-gray-100" />
-                        </Dropdown>
+          <div class="flex items-center gap-1">
+            <Dropdown v-if="isHost || isCohost" :options="pollMenuOptions">
+              <Button
+                variant="ghost"
+                icon="more-horizontal"
+                class="text-gray-600 hover:bg-gray-100"
+              />
+            </Dropdown>
 
-                        <Button variant="ghost" class="text-gray-600 hover:bg-gray-100" @click="$emit('close')">
-                            <lucide-x class="w-4 h-4 text-gray-900 cursor-pointer hover:text-gray-600" />
-                        </Button>
-                    </div>
+            <Button variant="ghost" class="text-gray-600 hover:bg-gray-100" @click="$emit('close')">
+              <lucide-x class="w-4 h-4 text-gray-900 cursor-pointer hover:text-gray-600" />
+            </Button>
+          </div>
+        </div>
+
+        <div ref="listEl" class="flex-1 overflow-y-auto p-4 space-y-4" data-testid="chat-messages">
+          <template v-for="item in chatItems" :key="item.key">
+            <div v-if="item.type === 'poll'" class="min-w-0">
+              <div class="text-xs flex items-center gap-2">
+                <span class="truncate font-medium">{{ pollCreatorName(item.poll) }}</span>
+                <span class="text-gray-600">{{ time(item.timestamp) }}</span>
+              </div>
+              <div class="my-1">
+                <PollMessageCard :poll="item.poll" :is-guest="isGuest" />
+              </div>
+            </div>
+            <div v-else class="min-w-0">
+              <div class="text-xs flex items-center gap-2">
+                <span class="truncate font-medium">{{ item.group.user_name }}</span>
+                <span class="text-gray-600">{{ time(item.group.timestamp) }}</span>
+              </div>
+              <div class="my-1 space-y-2">
+                <div
+                  v-for="message in item.group.messages"
+                  :key="message.id"
+                  class="text-sm text-gray-900 whitespace-pre-wrap [overflow-wrap:anywhere] leading-4"
+                >
+                  <template v-for="(token, i) in tokenizeChatMessage(message.message)" :key="i">
+                    <a
+                      v-if="token.type === 'link'"
+                      :href="token.url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="text-blue-500 underline"
+                      >{{ token.text }}</a
+                    >
+                    <span v-else>{{ token.text }}</span>
+                  </template>
                 </div>
+              </div>
+            </div>
+          </template>
+          <div v-if="chatItems.length === 0" class="text-gray-500 text-sm text-center mt-8">
+            No messages yet
+          </div>
+        </div>
 
-			<div ref="listEl" class="flex-1 overflow-y-auto p-4 space-y-4" data-testid="chat-messages">
-				<template v-for="item in chatItems" :key="item.key">
-					<div v-if="item.type === 'poll'" class="min-w-0">
-						<div class="text-xs flex items-center gap-2">
-							<span class="truncate font-medium">{{ pollCreatorName(item.poll) }}</span>
-							<span class="text-gray-600">{{ time(item.timestamp) }}</span>
-						</div>
-						<div class="my-1">
-							<PollMessageCard :poll="item.poll" :is-guest="isGuest" />
-						</div>
-					</div>
-					<div v-else class="min-w-0">
-						<div class="text-xs flex items-center gap-2">
-							<span class="truncate font-medium">{{ item.group.user_name }}</span>
-							<span class="text-gray-600">{{ time(item.group.timestamp) }}</span>
-						</div>
-						<div class="my-1 space-y-2">
-							<div
-								v-for="message in item.group.messages"
-								:key="message.id"
-								class="text-sm text-gray-900 whitespace-pre-wrap [overflow-wrap:anywhere] leading-4"
-							>
-								<template
-									v-for="(token, i) in tokenizeChatMessage(message.message)"
-									:key="i"
-								>
-									<a
-										v-if="token.type === 'link'"
-										:href="token.url"
-										target="_blank"
-										rel="noopener noreferrer"
-										class="text-blue-500 underline"
-									>{{ token.text }}</a>
-									<span v-else>{{ token.text }}</span>
-								</template>
-							</div>
-						</div>
-					</div>
-				</template>
-				<div v-if="chatItems.length === 0" class="text-gray-500 text-sm text-center mt-8">
-					No messages yet
-				</div>
-			</div>
-
-				<form class="p-2 relative" @submit.prevent="handleSend">
-					<template v-if="canSendMessages">
-						<div class="flex gap-2">
-							<FormControl
-								size="md"
-								v-model="draft"
-								@keydown="handleKeydown"
-								placeholder="Type a message"
-								class="flex-1"
-								autocomplete="off"
-								data-testid="chat-input"
-							/>
-							<Button size="md" type="submit" variant="outline" data-testid="chat-send"> Send </Button>
-						</div>
-						<EmojiPicker
-							:show="showEmojiPicker"
-							:filtered-emojis="filteredEmojis"
-							:selected-index="selectedEmojiIndex"
-							@select="addEmoji"
-						/>
-					</template>
-					<div v-else class="text-center text-sm text-gray-500 py-3 bg-gray-50 rounded border border-gray-200 m-2">
-						The host has restricted chat to hosts and co-hosts only.
-					</div>
-				</form>
-				<CreatePollModal 
-                    v-model="showPollModal" 
-                    @submit="handlePollSubmit" 
-                />
-			</div>
-		</div>
-	</Transition>
+        <form class="p-2 relative" @submit.prevent="handleSend">
+          <template v-if="canSendMessages">
+            <div class="flex gap-2">
+              <FormControl
+                size="md"
+                v-model="draft"
+                @keydown="handleKeydown"
+                placeholder="Type a message"
+                class="flex-1"
+                autocomplete="off"
+                data-testid="chat-input"
+              />
+              <Button size="md" type="submit" variant="outline" data-testid="chat-send">
+                Send
+              </Button>
+            </div>
+            <EmojiPicker
+              :show="showEmojiPicker"
+              :filtered-emojis="filteredEmojis"
+              :selected-index="selectedEmojiIndex"
+              @select="addEmoji"
+            />
+          </template>
+          <div
+            v-else
+            class="text-center text-sm text-gray-500 py-3 bg-gray-50 rounded border border-gray-200 m-2"
+          >
+            The host has restricted chat to hosts and co-hosts only.
+          </div>
+        </form>
+        <CreatePollModal v-model="showPollModal" @submit="handlePollSubmit" />
+      </div>
+    </div>
+  </Transition>
 </template>
 
 <script setup lang="ts">

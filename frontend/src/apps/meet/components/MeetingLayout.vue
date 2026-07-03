@@ -1,33 +1,33 @@
 <template>
-	<div
-		ref="container"
-		class="flex-1 min-h-0"
-		data-testid="meeting-layout"
-		:class="
+  <div
+    ref="container"
+    class="flex-1 min-h-0"
+    data-testid="meeting-layout"
+    :class="
 			mode === 'sidebar'
 				? 'relative flex flex-col sm:flex-row overflow-hidden mb-2'
 				: 'relative h-full'
 		"
-	>
-		<!-- ── Pinned area (empty placeholder; the pinned tile will be rendered here) ─────────────────── -->
-		<div
-            v-if="mode === 'sidebar' && pinnedTiles.length > 0"
-            class="relative flex-1 sm:flex-1 flex gap-3 min-h-0 pointer-events-none"
-        >
-            <div
-                v-for="tile in pinnedTiles"
-                :key="`${tile.type}-${tile.id}`"
-                :ref="(el) => setPinnedPanelRef(el, tile)"
-                class="relative rounded-lg overflow-hidden flex-1 h-full"
-            ></div>
-        </div>
+  >
+    <!-- ── Pinned area (empty placeholder; the pinned tile will be rendered here) ─────────────────── -->
+    <div
+      v-if="mode === 'sidebar' && pinnedTiles.length > 0"
+      class="relative flex-1 sm:flex-1 flex gap-3 min-h-0 pointer-events-none"
+    >
+      <div
+        v-for="tile in pinnedTiles"
+        :key="`${tile.type}-${tile.id}`"
+        :ref="(el) => setPinnedPanelRef(el, tile)"
+        class="relative rounded-lg overflow-hidden flex-1 h-full"
+      ></div>
+    </div>
 
-		<!-- ── Tile strip / full grid ─────────────────────────────────────── -->
-		<TransitionGroup
-			name="tile"
-			tag="div"
-			class="h-full gap-2 overflow-hidden"
-			:class="[
+    <!-- ── Tile strip / full grid ─────────────────────────────────────── -->
+    <TransitionGroup
+      name="tile"
+      tag="div"
+      class="h-full gap-2 overflow-hidden"
+      :class="[
 				mode === 'sidebar'
 					? 'grid auto-rows-fr content-start mt-3 sm:mt-0 sm:ml-3'
 					: 'flex flex-wrap justify-center content-start',
@@ -38,63 +38,54 @@
 					: '',
 				mode === 'sidebar' && isMobile ? 'max-h-[120px]' : '',
 			]"
-			:style="{
+      :style="{
 				gridTemplateColumns:
 					mode === 'sidebar'
 						? `repeat(${gridColumns}, minmax(0, 1fr))`
 						: undefined,
 			}"
-		>
-			<!-- Local camera tile -->
-			<ParticipantTile
-				:key="`local-${localParticipant.user_id}`"
-				:participant="localParticipant"
-				:isLocal="true"
-				:isVideoEnabled="isCameraOn"
-				:isAudioEnabled="isMicOn"
-				:isActiveSpeaker="activeSpeakerIds.includes(localParticipant.user_id)"
-				:videoRef="setLocalVideoRef"
-				:tileCount="visibleTileCount"
-				:showReaction="pinnedTiles.length===0"
-				:style="tileStyle"
-			/>
+    >
+      <!-- Local camera tile -->
+      <ParticipantTile
+        :key="`local-${localParticipant.user_id}`"
+        :participant="localParticipant"
+        :isLocal="true"
+        :isVideoEnabled="isCameraOn"
+        :isAudioEnabled="isMicOn"
+        :isActiveSpeaker="activeSpeakerIds.includes(localParticipant.user_id)"
+        :videoRef="setLocalVideoRef"
+        :tileCount="visibleTileCount"
+        :showReaction="pinnedTiles.length===0"
+        :style="tileStyle"
+      />
 
-			<ParticipantTile
-				v-for="shareTile in allScreenShareTiles"
-				:key="shareTile.pinId"
-				v-bind="getScreenShareTileBindings(shareTile)"
-			/>
+      <ParticipantTile
+        v-for="shareTile in allScreenShareTiles"
+        :key="shareTile.pinId"
+        v-bind="getScreenShareTileBindings(shareTile)"
+      />
 
-			<!-- Remote participants -->
-			<template
-				v-for="participant in allParticipants"
-				:key="`group-${participant.user_id}`"
-			>
-				<ParticipantTile
-					v-bind="getParticipantTileBindings(participant)"
-				/>
-			</template>
+      <!-- Remote participants -->
+      <template v-for="participant in allParticipants" :key="`group-${participant.user_id}`">
+        <ParticipantTile v-bind="getParticipantTileBindings(participant)" />
+      </template>
 
-			<!-- Overflow tile -->
-			<GroupTile
-				v-if="displayParticipants.extra > 0"
-				key="layout-group"
-				:count="displayParticipants.extra"
-				:tooltip="hiddenParticipantsTooltip"
-				:participants="displayParticipants.hidden"
-				:size="mode === 'sidebar' ? 'small' : 'medium'"
-				:style="tileStyle"
-				@click="emit('open-people-panel')"
-			/>
-		</TransitionGroup>
+      <!-- Overflow tile -->
+      <GroupTile
+        v-if="displayParticipants.extra > 0"
+        key="layout-group"
+        :count="displayParticipants.extra"
+        :tooltip="hiddenParticipantsTooltip"
+        :participants="displayParticipants.hidden"
+        :size="mode === 'sidebar' ? 'small' : 'medium'"
+        :style="tileStyle"
+        @click="emit('open-people-panel')"
+      />
+    </TransitionGroup>
 
-		<!-- Floating reactions -->
-		<FloatingReactions
-			class="!z-[60]"
-			:reactions="floatingReactions"
-			:container-ref="container"
-		/>
-	</div>
+    <!-- Floating reactions -->
+    <FloatingReactions class="!z-[60]" :reactions="floatingReactions" :container-ref="container" />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -378,42 +369,41 @@ const floatingReactions = computed(() => {
 <style scoped>
 /* Pinned tile overlays the pinned panel placeholder */
 .pinned-tile {
-	border-radius: 0.5rem;
-	overflow: hidden;
-	pointer-events: auto;
-	will-change: transform, top, left, width, height;
-	backface-visibility: hidden;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  pointer-events: auto;
+  will-change: transform, top, left, width, height;
+  backface-visibility: hidden;
 }
 
 /* Hidden tiles stay mounted to preserve grid animation continuity */
 .hidden-tile {
-	position: absolute;
-	opacity: 0;
-	pointer-events: none;
-	transform: scale(0);
-	bottom: 0;
-	right: 0;
-	z-index: 0;
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0);
+  bottom: 0;
+  right: 0;
+  z-index: 0;
 }
 
 .tile-enter-from,
 .tile-leave-to {
-	opacity: 0;
-	transform: scale(0.85);
+  opacity: 0;
+  transform: scale(0.85);
 }
 
 .tile-enter-active,
 .tile-leave-active {
-	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .tile-move {
-	transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .tile-leave-active {
-	position: absolute;
-	z-index: 0;
+  position: absolute;
+  z-index: 0;
 }
-
 </style>

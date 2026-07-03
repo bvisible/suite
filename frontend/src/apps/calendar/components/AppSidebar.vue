@@ -131,15 +131,15 @@ const sidebarItems = computed(() => [
 </script>
 
 <template>
-	<Sidebar
-		:header="{
+  <Sidebar
+    :header="{
 			title,
 			subtitle,
 			menuItems,
 			logo: branding.data?.brand_html || CalendarLogo,
 		}"
-		:sections="sidebarItems"
-		:disable-collapse="true"
-	/>
-	<SettingsModal v-model="showSettings" />
+    :sections="sidebarItems"
+    :disable-collapse="true"
+  />
+  <SettingsModal v-model="showSettings" />
 </template>

@@ -1,6 +1,5 @@
 <template>
   <div class="sn-root">
-
     <!-- Load-time error state: the sheet doesn't exist, the caller lacks
          access to it, or the request failed for some other reason. We
          distinguish denied vs missing because the recovery is different
@@ -21,847 +20,1400 @@
         <template v-else>Couldn't open this sheet</template>
       </h2>
       <p class="sn-load-error-sub">
-        <template v-if="loadError.kind === 'denied'">Ask the owner to share it with you, then reload.</template>
-        <template v-else-if="loadError.kind === 'missing'">It may have been deleted, or the link is wrong.</template>
+        <template v-if="loadError.kind === 'denied'"
+          >Ask the owner to share it with you, then reload.</template
+        >
+        <template v-else-if="loadError.kind === 'missing'"
+          >It may have been deleted, or the link is wrong.</template
+        >
         <template v-else>{{ loadError.message }}</template>
       </p>
       <Button variant="solid" @click="emit('close')">Back to home</Button>
     </div>
 
     <template v-else>
-    <!-- Bar 1 · Identity -->
-    <div class="sn-topbar">
-      <div class="sn-topbar-left">
-        <!-- Brand mark doubles as the "back to home" action. Clicking it runs
+      <!-- Bar 1 · Identity -->
+      <div class="sn-topbar">
+        <div class="sn-topbar-left">
+          <!-- Brand mark doubles as the "back to home" action. Clicking it runs
              flushAndClose so any pending edits are saved before navigation. -->
-        <button class="sn-app-icon-btn" type="button" aria-label="Back to home" title="Back to home" @click="flushAndClose">
-          <svg class="sn-app-icon" width="28" height="28" viewBox="0 0 118 118" fill="none" aria-hidden="true">
-            <path d="M93.9278 0H23.1013C10.3428 0 0 10.3428 0 23.1013V93.9278C0 106.686 10.3428 117.029 23.1013 117.029H93.9278C106.686 117.029 117.029 106.686 117.029 93.9278V23.1013C117.029 10.3428 106.686 0 93.9278 0Z" fill="#278F5E"/>
-            <path d="M77.757 25.9364H23.5215V36.437H77.757C80.6447 36.437 83.0073 38.7996 83.0073 41.6873V75.3942C83.0073 78.2818 80.6447 80.6445 77.757 80.6445H39.2724C36.3847 80.6445 34.0221 78.2818 34.0221 75.3942V50.6653H23.5215V75.3942C23.5215 84.0572 30.6094 91.1451 39.2724 91.1451H77.757C86.42 91.1451 93.5079 84.0572 93.5079 75.3942V41.6873C93.5079 33.0243 86.42 25.9364 77.757 25.9364Z" fill="white"/>
-            <path d="M53.8678 59.6958H43.3672V70.0914H53.8678V59.6958Z" fill="white"/>
-            <path d="M73.6617 50.6653H63.1611V70.1439H73.6617V50.6653Z" fill="white"/>
-          </svg>
-        </button>
-        <input
-          name="sheet-title"
-          class="sn-title-input"
-          v-model="currentTitle"
-          :style="{ width: titleInputWidth }"
-          placeholder="Untitled Sheet"
-          spellcheck="false"
-          @focus="onTitleFocus"
-          @blur="onTitleBlur"
-        />
-        <!-- Save status — muted inline text; never competes with the title -->
-        <span v-if="isSaving" class="sn-save-status">
-          <FeatherIcon name="loader" class="sn-save-icon sn-save-spin" />
-          Saving…
-        </span>
-        <span v-else-if="justSaved" class="sn-save-status">
-          <FeatherIcon name="check" class="sn-save-icon" />
-          Saved
-        </span>
-        <template v-if="saveError">
-          <Badge theme="red" variant="subtle" size="sm" :label="saveError" :tooltip="saveError" />
-          <Button
-            variant="ghost"
-            size="sm"
-            icon="refresh-cw"
-            tooltip="Retry save"
-            :loading="isSaving"
-            @click="onRetrySave"
+          <button
+            class="sn-app-icon-btn"
+            type="button"
+            aria-label="Back to home"
+            title="Back to home"
+            @click="flushAndClose"
+          >
+            <svg
+              class="sn-app-icon"
+              width="28"
+              height="28"
+              viewBox="0 0 118 118"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M93.9278 0H23.1013C10.3428 0 0 10.3428 0 23.1013V93.9278C0 106.686 10.3428 117.029 23.1013 117.029H93.9278C106.686 117.029 117.029 106.686 117.029 93.9278V23.1013C117.029 10.3428 106.686 0 93.9278 0Z"
+                fill="#278F5E"
+              />
+              <path
+                d="M77.757 25.9364H23.5215V36.437H77.757C80.6447 36.437 83.0073 38.7996 83.0073 41.6873V75.3942C83.0073 78.2818 80.6447 80.6445 77.757 80.6445H39.2724C36.3847 80.6445 34.0221 78.2818 34.0221 75.3942V50.6653H23.5215V75.3942C23.5215 84.0572 30.6094 91.1451 39.2724 91.1451H77.757C86.42 91.1451 93.5079 84.0572 93.5079 75.3942V41.6873C93.5079 33.0243 86.42 25.9364 77.757 25.9364Z"
+                fill="white"
+              />
+              <path d="M53.8678 59.6958H43.3672V70.0914H53.8678V59.6958Z" fill="white" />
+              <path d="M73.6617 50.6653H63.1611V70.1439H73.6617V50.6653Z" fill="white" />
+            </svg>
+          </button>
+          <input
+            name="sheet-title"
+            class="sn-title-input"
+            v-model="currentTitle"
+            :style="{ width: titleInputWidth }"
+            placeholder="Untitled Sheet"
+            spellcheck="false"
+            @focus="onTitleFocus"
+            @blur="onTitleBlur"
           />
-        </template>
-      </div>
-      <div class="sn-topbar-right">
-        <!-- AI Assist entry point — shown only when an admin has configured a
+          <!-- Save status — muted inline text; never competes with the title -->
+          <span v-if="isSaving" class="sn-save-status">
+            <FeatherIcon name="loader" class="sn-save-icon sn-save-spin" />
+            Saving…
+          </span>
+          <span v-else-if="justSaved" class="sn-save-status">
+            <FeatherIcon name="check" class="sn-save-icon" />
+            Saved
+          </span>
+          <template v-if="saveError">
+            <Badge theme="red" variant="subtle" size="sm" :label="saveError" :tooltip="saveError" />
+            <Button
+              variant="ghost"
+              size="sm"
+              icon="refresh-cw"
+              tooltip="Retry save"
+              :loading="isSaving"
+              @click="onRetrySave"
+            />
+          </template>
+        </div>
+        <div class="sn-topbar-right">
+          <!-- AI Assist entry point — shown only when an admin has configured a
              key and enabled it (gated server-side via the boot flag). -->
-        <template v-if="aiEnabled">
-          <Button
-            variant="ghost"
-            size="sm"
-            icon="lucide-sparkles"
-            label="Ask AI"
-            tooltip="Ask AI to work on your selection"
-            @click="openAskBar"
+          <template v-if="aiEnabled">
+            <Button
+              variant="ghost"
+              size="sm"
+              icon="lucide-sparkles"
+              label="Ask AI"
+              tooltip="Ask AI to work on your selection"
+              @click="openAskBar"
+            />
+            <span class="sn-topbar-divider" aria-hidden="true" />
+          </template>
+          <Dropdown :options="fileDropdownOptions" placement="right">
+            <template #default="{ open }">
+              <Button
+                :variant="open ? 'subtle' : 'ghost'"
+                size="sm"
+                iconLeft="file-text"
+                iconRight="chevron-down"
+                label="File"
+                tooltip="Import / export"
+              />
+            </template>
+          </Dropdown>
+          <input
+            ref="csvInputRef"
+            name="csv-import"
+            type="file"
+            accept=".csv"
+            style="display:none"
+            @change="importCSV"
+          />
+          <input
+            ref="xlsxInputRef"
+            name="xlsx-import"
+            type="file"
+            accept=".xlsx,.xls,.xlsm,.ods"
+            style="display:none"
+            @change="importXLSX"
           />
           <span class="sn-topbar-divider" aria-hidden="true" />
-        </template>
-        <Dropdown :options="fileDropdownOptions" placement="right">
-          <template #default="{ open }">
-            <Button :variant="open ? 'subtle' : 'ghost'" size="sm" iconLeft="file-text" iconRight="chevron-down" label="File" tooltip="Import / export" />
-          </template>
-        </Dropdown>
-        <input ref="csvInputRef"  name="csv-import"  type="file" accept=".csv"                   style="display:none" @change="importCSV" />
-        <input ref="xlsxInputRef" name="xlsx-import" type="file" accept=".xlsx,.xls,.xlsm,.ods"  style="display:none" @change="importXLSX" />
-        <span class="sn-topbar-divider" aria-hidden="true" />
-        <!-- Notes: button toggles the side panel listing all notes across sheets.
+          <!-- Notes: button toggles the side panel listing all notes across sheets.
              Shift+F2 still opens the per-cell inline editor for quick capture. -->
-        <span class="sn-notes-btn-wrap">
-          <Button :variant="notesPanel.open ? 'subtle' : 'ghost'"
-                  size="sm" icon="lucide-message-square"
-                  :tooltip="`Notes${allNotes.length ? ` (${allNotes.length})` : ''} — Shift+F2 to add`"
-                  @click="toggleNotesPanel" />
-          <span v-if="allNotes.length" class="sn-notes-badge">{{ allNotes.length > 9 ? '9+' : allNotes.length }}</span>
-        </span>
-        <!-- Variant flips to "subtle" while the panel is open so the trigger
+          <span class="sn-notes-btn-wrap">
+            <Button
+              :variant="notesPanel.open ? 'subtle' : 'ghost'"
+              size="sm"
+              icon="lucide-message-square"
+              :tooltip="`Notes${allNotes.length ? ` (${allNotes.length})` : ''} — Shift+F2 to add`"
+              @click="toggleNotesPanel"
+            />
+            <span v-if="allNotes.length" class="sn-notes-badge"
+              >{{ allNotes.length > 9 ? '9+' : allNotes.length }}</span
+            >
+          </span>
+          <!-- Variant flips to "subtle" while the panel is open so the trigger
              reads as toggled, matching Frappe UI's standard toggle pattern. -->
-        <Button :variant="vhOpen ? 'subtle' : 'ghost'"
-                size="sm" icon="clock"
-                tooltip="Version history"
-                @click="vhOpen ? closeVersionHistory() : (notesPanel.open = false, openVersionHistory())" />
-        <Button variant="ghost" size="sm" icon="help-circle" tooltip="Keyboard shortcuts (?)" @click="showShortcutsHelp = true" />
-        <span class="sn-topbar-divider" aria-hidden="true" />
-        <!-- Presence avatars — other users currently in the workbook.
+          <Button
+            :variant="vhOpen ? 'subtle' : 'ghost'"
+            size="sm"
+            icon="clock"
+            tooltip="Version history"
+            @click="vhOpen ? closeVersionHistory() : (notesPanel.open = false, openVersionHistory())"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            icon="help-circle"
+            tooltip="Keyboard shortcuts (?)"
+            @click="showShortcutsHelp = true"
+          />
+          <span class="sn-topbar-divider" aria-hidden="true" />
+          <!-- Presence avatars — other users currently in the workbook.
              Outline = their cursor color; tooltip says which sub-sheet
              they're on so cross-sheet collaborators are discoverable. -->
-        <div v-if="presentUsers.length" class="sn-presence">
-          <Avatar
-            v-for="u in presentUsers.slice(0, 3)"
-            :key="u.user"
-            :label="u.initials"
-            :image="u.user_image || undefined"
-            size="sm"
-            :tooltip="u.sub_sheet && u.sub_sheet !== currentSheet
+          <div v-if="presentUsers.length" class="sn-presence">
+            <Avatar
+              v-for="u in presentUsers.slice(0, 3)"
+              :key="u.user"
+              :label="u.initials"
+              :image="u.user_image || undefined"
+              size="sm"
+              :tooltip="u.sub_sheet && u.sub_sheet !== currentSheet
               ? `${u.full_name} — on ${u.sub_sheet}`
               : u.full_name"
-            class="sn-presence-avatar"
-            :style="{ '--rc': u.color }"
+              class="sn-presence-avatar"
+              :style="{ '--rc': u.color }"
+            />
+            <span
+              v-if="presentUsers.length > 3"
+              class="sn-presence-more"
+              :title="`${presentUsers.length - 3} more people`"
+              >+{{ presentUsers.length - 3 }}</span
+            >
+          </div>
+          <!-- Share -->
+          <Button
+            variant="ghost"
+            size="sm"
+            icon="share-2"
+            :label="shareCount > 0 ? `Share · ${shareCount}` : 'Share'"
+            tooltip="Share this sheet"
+            @click="shareOpen = true"
           />
-          <span
-            v-if="presentUsers.length > 3"
-            class="sn-presence-more"
-            :title="`${presentUsers.length - 3} more people`"
-          >+{{ presentUsers.length - 3 }}</span>
+          <span class="sn-topbar-divider" aria-hidden="true" />
+          <Avatar
+            :label="userInitial"
+            :image="userImage || undefined"
+            size="sm"
+            :tooltip="userFullName || userEmail"
+            class="sn-user-avatar"
+          />
         </div>
-        <!-- Share -->
+      </div>
+
+      <!-- Bar 2 · Formatting toolbar -->
+      <div class="sn-toolbar">
+        <!-- Number format -->
+        <Dropdown :options="numberFormatDropdownOptions" placement="left" class="sn-numfmt">
+          <template #default="{ open }">
+            <Button
+              :variant="open ? 'subtle' : 'ghost'"
+              size="sm"
+              iconRight="chevron-down"
+              :label="numberFormatLabel"
+              tooltip="Number format"
+            />
+          </template>
+        </Dropdown>
+        <Dropdown :options="currencyDropdownOptions" placement="left" class="sn-currency">
+          <template #default="{ open }">
+            <Button
+              :variant="activeNumberFormatType === 'currency' ? 'subtle' : (open ? 'subtle' : 'ghost')"
+              size="sm"
+              :label="activeCurrencySymbol"
+              tooltip="Currency"
+            />
+          </template>
+        </Dropdown>
+        <Button
+          :variant="activeNumberFormatType === 'percentage' ? 'subtle' : 'ghost'"
+          size="sm"
+          label="%"
+          tooltip="Percentage"
+          @click="toggleNumberFmt('percentage')"
+        />
+        <Button
+          :variant="activeNumberFormatType === 'number'     ? 'subtle' : 'ghost'"
+          size="sm"
+          label=","
+          tooltip="Thousands separator"
+          @click="toggleNumberFmt('number')"
+        />
+        <div class="sn-tool-extra">
+          <Button
+            variant="ghost"
+            size="sm"
+            :icon="DecreaseDecimalIcon"
+            tooltip="Decrease decimal places"
+            @click="adjustDecimals(-1)"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            :icon="IncreaseDecimalIcon"
+            tooltip="Increase decimal places"
+            @click="adjustDecimals(+1)"
+          />
+        </div>
+
+        <div class="sn-vr" />
+
+        <!-- Font -->
+        <Dropdown :options="fontFamilyDropdownOptions" placement="left" class="sn-font-family">
+          <template #default="{ open }">
+            <Button
+              :variant="open ? 'subtle' : 'ghost'"
+              size="sm"
+              iconRight="chevron-down"
+              :label="activeFontFamilyLabel"
+              tooltip="Font family"
+            />
+          </template>
+        </Dropdown>
+        <Tooltip text="Font size">
+          <TextInput
+            type="number"
+            size="sm"
+            class="sn-font-size-input"
+            :model-value="activeFormat.fontSize || 13"
+            min="8"
+            max="72"
+            @change="onFontSizeInput"
+            @keydown.enter.prevent="onFontSizeInput"
+          />
+        </Tooltip>
+
+        <div class="sn-vr" />
+
+        <!-- Style -->
+        <Button
+          :variant="activeFormat.bold        ? 'subtle' : 'ghost'"
+          :class="{ 'sn-fmt-active': activeFormat.bold }"
+          size="sm"
+          icon="bold"
+          tooltip="Bold (Ctrl+B)"
+          @click="toggleFmt('bold')"
+        />
+        <Button
+          :variant="activeFormat.italic      ? 'subtle' : 'ghost'"
+          :class="{ 'sn-fmt-active': activeFormat.italic }"
+          size="sm"
+          icon="italic"
+          tooltip="Italic (Ctrl+I)"
+          @click="toggleFmt('italic')"
+        />
+        <Button
+          :variant="activeFormat.underline   ? 'subtle' : 'ghost'"
+          :class="{ 'sn-fmt-active': activeFormat.underline }"
+          size="sm"
+          icon="underline"
+          tooltip="Underline (Ctrl+U)"
+          @click="toggleFmt('underline')"
+        />
+        <div class="sn-tool-extra">
+          <Button
+            :variant="activeFormat.strikethrough ? 'subtle' : 'ghost'"
+            :class="{ 'sn-fmt-active': activeFormat.strikethrough }"
+            size="sm"
+            icon="lucide-strikethrough"
+            tooltip="Strikethrough (Ctrl+Shift+X)"
+            @click="toggleFmt('strikethrough')"
+          />
+        </div>
+
+        <div class="sn-vr" />
+
+        <!-- Align + Color -->
+        <Dropdown :options="alignDropdownOptions" placement="bottom">
+          <template #default="{ open }">
+            <Button
+              :variant="open ? 'subtle' : 'ghost'"
+              size="sm"
+              :icon="hAlignIcon"
+              tooltip="Alignment"
+            />
+          </template>
+        </Dropdown>
+        <ColorPicker
+          :model-value="activeFormat.color || ''"
+          allow-default
+          default-label="Default text color"
+          title="Text colour"
+          fallback="#171717"
+          @update:model-value="setColor('color', $event)"
+        >
+          <template #trigger="{ toggle, open }">
+            <Tooltip text="Text colour">
+              <button
+                type="button"
+                class="sn-swatch-btn"
+                :class="{ 'is-open': open }"
+                @click="toggle()"
+              >
+                <FeatherIcon name="type" class="sn-swatch-glyph" />
+                <span
+                  class="sn-swatch-underline"
+                  :style="{ background: activeFormat.color || '#171717' }"
+                ></span>
+              </button>
+            </Tooltip>
+          </template>
+        </ColorPicker>
+        <ColorPicker
+          :model-value="activeFormat.backgroundColor || ''"
+          allow-default
+          default-label="No fill"
+          title="Fill colour"
+          fallback="#ffffff"
+          @update:model-value="setColor('backgroundColor', $event)"
+        >
+          <template #trigger="{ toggle, open }">
+            <Tooltip text="Fill colour">
+              <button
+                type="button"
+                class="sn-swatch-btn"
+                :class="{ 'is-open': open }"
+                @click="toggle()"
+              >
+                <FeatherIcon name="droplet" class="sn-swatch-glyph" />
+                <span
+                  class="sn-swatch-underline sn-swatch-fill"
+                  :style="{ background: activeFormat.backgroundColor || '#ffffff' }"
+                ></span>
+              </button>
+            </Tooltip>
+          </template>
+        </ColorPicker>
+
+        <div class="sn-vr" />
+
+        <!-- Undo / Redo -->
         <Button
           variant="ghost"
           size="sm"
-          icon="share-2"
-          :label="shareCount > 0 ? `Share · ${shareCount}` : 'Share'"
-          tooltip="Share this sheet"
-          @click="shareOpen = true"
+          icon="corner-up-left"
+          tooltip="Undo (Ctrl+Z)"
+          :disabled="!canUndo"
+          @click="undo"
         />
-        <span class="sn-topbar-divider" aria-hidden="true" />
-        <Avatar
-          :label="userInitial"
-          :image="userImage || undefined"
+        <Button
+          variant="ghost"
           size="sm"
-          :tooltip="userFullName || userEmail"
-          class="sn-user-avatar"
+          icon="corner-up-right"
+          tooltip="Redo (Ctrl+Y)"
+          :disabled="!canRedo"
+          @click="redo"
         />
-      </div>
-    </div>
 
-    <!-- Bar 2 · Formatting toolbar -->
-    <div class="sn-toolbar">
-
-      <!-- Number format -->
-      <Dropdown :options="numberFormatDropdownOptions" placement="left" class="sn-numfmt">
-        <template #default="{ open }">
-          <Button :variant="open ? 'subtle' : 'ghost'" size="sm" iconRight="chevron-down" :label="numberFormatLabel" tooltip="Number format" />
-        </template>
-      </Dropdown>
-      <Dropdown :options="currencyDropdownOptions" placement="left" class="sn-currency">
-        <template #default="{ open }">
-          <Button :variant="activeNumberFormatType === 'currency' ? 'subtle' : (open ? 'subtle' : 'ghost')" size="sm" :label="activeCurrencySymbol" tooltip="Currency" />
-        </template>
-      </Dropdown>
-      <Button :variant="activeNumberFormatType === 'percentage' ? 'subtle' : 'ghost'" size="sm" label="%" tooltip="Percentage" @click="toggleNumberFmt('percentage')" />
-      <Button :variant="activeNumberFormatType === 'number'     ? 'subtle' : 'ghost'" size="sm" label="," tooltip="Thousands separator" @click="toggleNumberFmt('number')" />
-      <div class="sn-tool-extra">
-        <Button variant="ghost" size="sm" :icon="DecreaseDecimalIcon" tooltip="Decrease decimal places" @click="adjustDecimals(-1)" />
-        <Button variant="ghost" size="sm" :icon="IncreaseDecimalIcon" tooltip="Increase decimal places" @click="adjustDecimals(+1)" />
-      </div>
-
-      <div class="sn-vr" />
-
-      <!-- Font -->
-      <Dropdown :options="fontFamilyDropdownOptions" placement="left" class="sn-font-family">
-        <template #default="{ open }">
-          <Button :variant="open ? 'subtle' : 'ghost'" size="sm" iconRight="chevron-down" :label="activeFontFamilyLabel" tooltip="Font family" />
-        </template>
-      </Dropdown>
-      <Tooltip text="Font size">
-        <TextInput type="number" size="sm" class="sn-font-size-input" :model-value="activeFormat.fontSize || 13" min="8" max="72" @change="onFontSizeInput" @keydown.enter.prevent="onFontSizeInput" />
-      </Tooltip>
-
-      <div class="sn-vr" />
-
-      <!-- Style -->
-      <Button :variant="activeFormat.bold        ? 'subtle' : 'ghost'" :class="{ 'sn-fmt-active': activeFormat.bold }"        size="sm" icon="bold"                tooltip="Bold (Ctrl+B)"             @click="toggleFmt('bold')" />
-      <Button :variant="activeFormat.italic      ? 'subtle' : 'ghost'" :class="{ 'sn-fmt-active': activeFormat.italic }"      size="sm" icon="italic"              tooltip="Italic (Ctrl+I)"           @click="toggleFmt('italic')" />
-      <Button :variant="activeFormat.underline   ? 'subtle' : 'ghost'" :class="{ 'sn-fmt-active': activeFormat.underline }"   size="sm" icon="underline"           tooltip="Underline (Ctrl+U)"        @click="toggleFmt('underline')" />
-      <div class="sn-tool-extra">
-        <Button :variant="activeFormat.strikethrough ? 'subtle' : 'ghost'" :class="{ 'sn-fmt-active': activeFormat.strikethrough }" size="sm" icon="lucide-strikethrough" tooltip="Strikethrough (Ctrl+Shift+X)" @click="toggleFmt('strikethrough')" />
-      </div>
-
-      <div class="sn-vr" />
-
-      <!-- Align + Color -->
-      <Dropdown :options="alignDropdownOptions" placement="bottom">
-        <template #default="{ open }">
-          <Button :variant="open ? 'subtle' : 'ghost'" size="sm" :icon="hAlignIcon" tooltip="Alignment" />
-        </template>
-      </Dropdown>
-      <ColorPicker :model-value="activeFormat.color || ''" allow-default default-label="Default text color"
-                   title="Text colour" fallback="#171717" @update:model-value="setColor('color', $event)">
-        <template #trigger="{ toggle, open }">
-          <Tooltip text="Text colour">
-            <button type="button" class="sn-swatch-btn" :class="{ 'is-open': open }" @click="toggle()">
-              <FeatherIcon name="type" class="sn-swatch-glyph" />
-              <span class="sn-swatch-underline" :style="{ background: activeFormat.color || '#171717' }"></span>
-            </button>
-          </Tooltip>
-        </template>
-      </ColorPicker>
-      <ColorPicker :model-value="activeFormat.backgroundColor || ''" allow-default default-label="No fill"
-                   title="Fill colour" fallback="#ffffff" @update:model-value="setColor('backgroundColor', $event)">
-        <template #trigger="{ toggle, open }">
-          <Tooltip text="Fill colour">
-            <button type="button" class="sn-swatch-btn" :class="{ 'is-open': open }" @click="toggle()">
-              <FeatherIcon name="droplet" class="sn-swatch-glyph" />
-              <span class="sn-swatch-underline sn-swatch-fill" :style="{ background: activeFormat.backgroundColor || '#ffffff' }"></span>
-            </button>
-          </Tooltip>
-        </template>
-      </ColorPicker>
-
-      <div class="sn-vr" />
-
-      <!-- Undo / Redo -->
-      <Button variant="ghost" size="sm" icon="corner-up-left"  tooltip="Undo (Ctrl+Z)" :disabled="!canUndo" @click="undo" />
-      <Button variant="ghost" size="sm" icon="corner-up-right" tooltip="Redo (Ctrl+Y)" :disabled="!canRedo" @click="redo" />
-
-      <div class="sn-vr" />
-
-      <!-- Extra tools (visible at wide widths; hidden at narrow — overflow via ···) -->
-      <div class="sn-tool-extra">
-        <Button :variant="isPaintingFormat ? 'subtle' : 'ghost'" size="sm" icon="lucide-paint-roller"  tooltip="Format painter"             @click="toggleFormatPainter" />
-        <Button variant="ghost"                                   size="sm" icon="lucide-eraser"         tooltip="Clear formatting"           @click="clearFormatting" />
         <div class="sn-vr" />
-        <Button :variant="showSortFilter ? 'subtle' : 'ghost'"   size="sm" icon="filter"               tooltip="Toggle filter"              @click="showSortFilter = !showSortFilter" />
-        <div class="sn-vr" />
-        <Dropdown :options="textWrapDropdownOptions" placement="bottom">
-          <template #default="{ open }">
-            <Button :variant="open ? 'subtle' : 'ghost'" size="sm" :icon="textWrapIcon" tooltip="Text wrapping" />
-          </template>
-        </Dropdown>
-        <div class="sn-vr" />
-        <Button variant="ghost" size="sm" icon="lucide-blend"    tooltip="Conditional formatting"      @click="openCfDialog(null)" />
-        <Button variant="ghost" size="sm" icon="lucide-link"     tooltip="Insert hyperlink (Ctrl+L)"   @click="openHyperlinkDialog" />
-        <div class="sn-vr" />
-        <Dropdown :options="borderDropdownOptions" placement="bottom">
-          <template #default="{ open }">
-            <Button :variant="open ? 'subtle' : 'ghost'" size="sm" icon="lucide-layout-grid" tooltip="Borders" />
-          </template>
-        </Dropdown>
-        <!-- Custom merge glyph (Lucide table-cells-merge) — reads as
+
+        <!-- Extra tools (visible at wide widths; hidden at narrow — overflow via ···) -->
+        <div class="sn-tool-extra">
+          <Button
+            :variant="isPaintingFormat ? 'subtle' : 'ghost'"
+            size="sm"
+            icon="lucide-paint-roller"
+            tooltip="Format painter"
+            @click="toggleFormatPainter"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            icon="lucide-eraser"
+            tooltip="Clear formatting"
+            @click="clearFormatting"
+          />
+          <div class="sn-vr" />
+          <Button
+            :variant="showSortFilter ? 'subtle' : 'ghost'"
+            size="sm"
+            icon="filter"
+            tooltip="Toggle filter"
+            @click="showSortFilter = !showSortFilter"
+          />
+          <div class="sn-vr" />
+          <Dropdown :options="textWrapDropdownOptions" placement="bottom">
+            <template #default="{ open }">
+              <Button
+                :variant="open ? 'subtle' : 'ghost'"
+                size="sm"
+                :icon="textWrapIcon"
+                tooltip="Text wrapping"
+              />
+            </template>
+          </Dropdown>
+          <div class="sn-vr" />
+          <Button
+            variant="ghost"
+            size="sm"
+            icon="lucide-blend"
+            tooltip="Conditional formatting"
+            @click="openCfDialog(null)"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            icon="lucide-link"
+            tooltip="Insert hyperlink (Ctrl+L)"
+            @click="openHyperlinkDialog"
+          />
+          <div class="sn-vr" />
+          <Dropdown :options="borderDropdownOptions" placement="bottom">
+            <template #default="{ open }">
+              <Button
+                :variant="open ? 'subtle' : 'ghost'"
+                size="sm"
+                icon="lucide-layout-grid"
+                tooltip="Borders"
+              />
+            </template>
+          </Dropdown>
+          <!-- Custom merge glyph (Lucide table-cells-merge) — reads as
              "join two cells" better than the generic maximize-2 icon. -->
-        <Button variant="ghost" size="sm" tooltip="Merge / unmerge cells" @click="toggleMerge">
-          <template #icon>
-            <svg viewBox="0 0 24 24" class="sn-merge-glyph" aria-hidden="true"
-                 fill="none" stroke="currentColor" stroke-width="1.5"
-                 stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 21v-6" />
-              <path d="M12 9V3" />
-              <path d="M3 15h18" />
-              <path d="M3 9h18" />
-              <rect width="18" height="18" x="3" y="3" rx="2" />
-            </svg>
-          </template>
-        </Button>
-        <div class="sn-vr" />
-        <Button variant="ghost" size="sm" icon="bar-chart-2" tooltip="Insert chart" @click="openChartDialog()" />
-      </div>
+          <Button variant="ghost" size="sm" tooltip="Merge / unmerge cells" @click="toggleMerge">
+            <template #icon>
+              <svg
+                viewBox="0 0 24 24"
+                class="sn-merge-glyph"
+                aria-hidden="true"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 21v-6" />
+                <path d="M12 9V3" />
+                <path d="M3 15h18" />
+                <path d="M3 9h18" />
+                <rect width="18" height="18" x="3" y="3" rx="2" />
+              </svg>
+            </template>
+          </Button>
+          <div class="sn-vr" />
+          <Button
+            variant="ghost"
+            size="sm"
+            icon="bar-chart-2"
+            tooltip="Insert chart"
+            @click="openChartDialog()"
+          />
+        </div>
 
-      <!-- More -->
-      <div class="sn-tool-more">
-        <Dropdown :options="moreToolbarOptions" placement="left">
-          <template #default="{ open }">
-            <Button :variant="open ? 'subtle' : 'ghost'" size="sm" icon="more-horizontal" tooltip="More" />
-          </template>
-        </Dropdown>
-      </div>
-    </div>
-
-    <!-- Bar 3 · Formula bar -->
-    <div class="sn-formula-bar">
-      <span class="sn-cell-ref" :title="`Active cell ${activeCell}`">{{ activeCell }}</span>
-      <span class="sn-fx-label" aria-hidden="true">fx</span>
-      <div class="sn-formula-wrap">
-        <input
-          ref="formulaInputRef"
-          name="formula-bar"
-          class="sn-formula-input"
-          :value="formulaValue"
-          @input="onFormulaInput"
-          @keydown="onFormulaKey"
-          @blur="closeAc"
-          placeholder="Enter value or formula"
-          spellcheck="false"
-          autocomplete="off"
-        />
-        <div v-if="acVisible" class="sn-ac-list" :class="{ 'sn-ac-list--up': acUp }">
-          <div
-            v-for="(item, i) in acItems"
-            :key="item.name + item.kind"
-            class="sn-ac-item"
-            :class="{ active: i === acIdx }"
-            @mousedown.prevent="commitAc(item)"
-          >
-            <span class="sn-ac-name">{{ item.name }}</span>
-            <span v-if="item.kind === 'fn'"    class="sn-ac-sig">{{ AC_FUNS[item.name] }}</span>
-            <span v-else                        class="sn-ac-badge">sheet</span>
-          </div>
+        <!-- More -->
+        <div class="sn-tool-more">
+          <Dropdown :options="moreToolbarOptions" placement="left">
+            <template #default="{ open }">
+              <Button
+                :variant="open ? 'subtle' : 'ghost'"
+                size="sm"
+                icon="more-horizontal"
+                tooltip="More"
+              />
+            </template>
+          </Dropdown>
         </div>
       </div>
-    </div>
 
-    <!-- Version preview banner — only when previewing -->
-    <VersionPreviewBanner
-      :open="!!vhActive"
-      :version="vhVersions.find(v => v.name === vhActive)"
-      :restoring="vhRestoring"
-      :diff="vhDiff"
-      :step-index="vhStepIdx"
-      @restore="restorePreview"
-      @exit="exitPreview"
-      @name="nameCurrentPreview"
-      @step="stepPreviewDiff"
-    />
-
-    <!-- Canvas grid + filter overlay -->
-    <div ref="gridWrapRef" class="sn-grid-wrap"
-         :class="{ 'sn-painting-format': isPaintingFormat, 'sn-preview-locked': !!vhActive }">
-      <canvas ref="canvasRef" />
-
-      <!-- Initial-load shim. The canvas is mounted (so grid.resize / event
-           wiring works) but blank until loadSheet/autoCreate finishes —
-           without this overlay the first paint looks like a deleted sheet
-           for the first 100–500 ms on slow networks. -->
-      <div v-if="isInitialLoad" class="sn-canvas-loading" aria-busy="true">
-        <Spinner class="sn-canvas-loading-spinner" />
-      </div>
-
-<!-- Non-blocking spinner while a large pivot aggregates in the background. -->
-      <div v-if="pivotBuilding" class="sn-pivot-building" aria-busy="true">
-        <Spinner class="sn-canvas-loading-spinner" />
-        <span>Building pivot…</span>
-      </div>
-
-<!-- Floating charts (filtered to current sub-sheet by the overlay). -->
-      <ChartOverlay
-        :charts="chartList"
-        :current-sheet="currentSheet"
-        :get-matrix="getChartMatrix"
-        :data-version="chartDataVersion"
-        :selected-id="selectedChartId"
-        :suppressed="chartDialogOpen"
-        @select="selectChart"
-        @edit="openChartEdit"
-        @delete="onChartDelete"
-        @refresh="onChartRefresh"
-        @move="onChartMove"
-        @resize="onChartResize"
-      />
-
-      <VersionHistory
-        :open="vhOpen"
-        :versions="vhVersions"
-        :loading="vhLoading"
-        :error="vhError"
-        :active-version="vhActive"
-        @close="closeVersionHistory"
-        @select="previewVersion"
-        @name="nameVersionInline"
-        @copy="makeACopyInline"
-        @restore="restoreVersionInline"
-      />
-
-      <!-- Notes side panel — Google-Sheets-style global list. Lives inside
-           sn-grid-wrap so it docks the same right edge as Version History. -->
-      <aside v-if="notesPanel.open" class="sn-notes-panel" @click.stop>
-        <header class="sn-notes-header">
-          <div class="sn-notes-title">
-            Notes
-            <span v-if="allNotes.length" class="sn-notes-count">· {{ allNotes.length }}</span>
-          </div>
-          <Button variant="ghost" size="sm" icon="x" @click="notesPanel.open = false" />
-        </header>
-        <div class="sn-notes-toolbar">
-          <Button size="sm" variant="subtle" iconLeft="plus"
-                  :label="`Add note to ${activeCell}`" @click="addNoteFromPanel" />
-        </div>
-        <div v-if="!allNotes.length" class="sn-notes-empty">
-          <div class="sn-notes-empty-title">No notes yet.</div>
-          <div class="sn-notes-empty-hint">
-            Select a cell and press <KeyboardShortcut combo="Shift+F2" />, or use
-            the button above. Notes appear here once added.
-          </div>
-        </div>
-        <div v-else class="sn-notes-list">
-          <div v-for="g in notesGrouped" :key="g.sheet" class="sn-notes-group">
-            <div class="sn-notes-group-h">{{ g.sheet }}</div>
-            <div v-for="n in g.items" :key="g.sheet + ':' + n.id"
-                 class="sn-notes-row"
-                 :class="{ 'sn-notes-row-active': n.sheet === currentSheet && n.id === activeCell }"
-                 @click="jumpToNote(n)">
-              <div class="sn-notes-row-ref">{{ n.id }}</div>
-              <div class="sn-notes-row-text">{{ n.text }}</div>
+      <!-- Bar 3 · Formula bar -->
+      <div class="sn-formula-bar">
+        <span class="sn-cell-ref" :title="`Active cell ${activeCell}`">{{ activeCell }}</span>
+        <span class="sn-fx-label" aria-hidden="true">fx</span>
+        <div class="sn-formula-wrap">
+          <input
+            ref="formulaInputRef"
+            name="formula-bar"
+            class="sn-formula-input"
+            :value="formulaValue"
+            @input="onFormulaInput"
+            @keydown="onFormulaKey"
+            @blur="closeAc"
+            placeholder="Enter value or formula"
+            spellcheck="false"
+            autocomplete="off"
+          />
+          <div v-if="acVisible" class="sn-ac-list" :class="{ 'sn-ac-list--up': acUp }">
+            <div
+              v-for="(item, i) in acItems"
+              :key="item.name + item.kind"
+              class="sn-ac-item"
+              :class="{ active: i === acIdx }"
+              @mousedown.prevent="commitAc(item)"
+            >
+              <span class="sn-ac-name">{{ item.name }}</span>
+              <span v-if="item.kind === 'fn'" class="sn-ac-sig">{{ AC_FUNS[item.name] }}</span>
+              <span v-else class="sn-ac-badge">sheet</span>
             </div>
           </div>
         </div>
-      </aside>
-
-      <CellHistoryPopover
-        v-model="cellHistory.open"
-        :cell-ref="cellHistory.cell"
-        :entries="cellHistory.entries"
-        :loading="cellHistory.loading"
-        :error="cellHistory.error"
-      />
-
-      <SplitTextPopover
-        :open="splitText.open"
-        :anchor="splitText.anchor"
-        :selected="splitText.choice"
-        @choose="onSplitChoose"
-        @apply="onSplitApply"
-        @cancel="onSplitCancel"
-      />
-
-      <!-- Filter chevrons on row 0 (the user's header row of data) -->
-      <div v-if="showSortFilter" class="sn-filter-overlay">
-        <button
-          v-for="col in visibleFilterCols"
-          :key="col.col"
-          class="sn-filter-btn"
-          :class="{ active: filterConfig[col.col] }"
-          :style="col.style"
-          @click="openFilterPanel(col.col)"
-        >
-          <FeatherIcon name="chevron-down" class="sn-filter-btn-icon" />
-        </button>
       </div>
 
-      <!-- Remote cursor overlays — one per peer on the same sub-sheet.
+      <!-- Version preview banner — only when previewing -->
+      <VersionPreviewBanner
+        :open="!!vhActive"
+        :version="vhVersions.find(v => v.name === vhActive)"
+        :restoring="vhRestoring"
+        :diff="vhDiff"
+        :step-index="vhStepIdx"
+        @restore="restorePreview"
+        @exit="exitPreview"
+        @name="nameCurrentPreview"
+        @step="stepPreviewDiff"
+      />
+
+      <!-- Canvas grid + filter overlay -->
+      <div
+        ref="gridWrapRef"
+        class="sn-grid-wrap"
+        :class="{ 'sn-painting-format': isPaintingFormat, 'sn-preview-locked': !!vhActive }"
+      >
+        <canvas ref="canvasRef" />
+
+        <!-- Initial-load shim. The canvas is mounted (so grid.resize / event
+           wiring works) but blank until loadSheet/autoCreate finishes —
+           without this overlay the first paint looks like a deleted sheet
+           for the first 100–500 ms on slow networks. -->
+        <div v-if="isInitialLoad" class="sn-canvas-loading" aria-busy="true">
+          <Spinner class="sn-canvas-loading-spinner" />
+        </div>
+
+        <!-- Non-blocking spinner while a large pivot aggregates in the background. -->
+        <div v-if="pivotBuilding" class="sn-pivot-building" aria-busy="true">
+          <Spinner class="sn-canvas-loading-spinner" />
+          <span>Building pivot…</span>
+        </div>
+
+        <!-- Floating charts (filtered to current sub-sheet by the overlay). -->
+        <ChartOverlay
+          :charts="chartList"
+          :current-sheet="currentSheet"
+          :get-matrix="getChartMatrix"
+          :data-version="chartDataVersion"
+          :selected-id="selectedChartId"
+          :suppressed="chartDialogOpen"
+          @select="selectChart"
+          @edit="openChartEdit"
+          @delete="onChartDelete"
+          @refresh="onChartRefresh"
+          @move="onChartMove"
+          @resize="onChartResize"
+        />
+
+        <VersionHistory
+          :open="vhOpen"
+          :versions="vhVersions"
+          :loading="vhLoading"
+          :error="vhError"
+          :active-version="vhActive"
+          @close="closeVersionHistory"
+          @select="previewVersion"
+          @name="nameVersionInline"
+          @copy="makeACopyInline"
+          @restore="restoreVersionInline"
+        />
+
+        <!-- Notes side panel — Google-Sheets-style global list. Lives inside
+           sn-grid-wrap so it docks the same right edge as Version History. -->
+        <aside v-if="notesPanel.open" class="sn-notes-panel" @click.stop>
+          <header class="sn-notes-header">
+            <div class="sn-notes-title">
+              Notes
+              <span v-if="allNotes.length" class="sn-notes-count">· {{ allNotes.length }}</span>
+            </div>
+            <Button variant="ghost" size="sm" icon="x" @click="notesPanel.open = false" />
+          </header>
+          <div class="sn-notes-toolbar">
+            <Button
+              size="sm"
+              variant="subtle"
+              iconLeft="plus"
+              :label="`Add note to ${activeCell}`"
+              @click="addNoteFromPanel"
+            />
+          </div>
+          <div v-if="!allNotes.length" class="sn-notes-empty">
+            <div class="sn-notes-empty-title">No notes yet.</div>
+            <div class="sn-notes-empty-hint">
+              Select a cell and press <KeyboardShortcut combo="Shift+F2" />, or use the button
+              above. Notes appear here once added.
+            </div>
+          </div>
+          <div v-else class="sn-notes-list">
+            <div v-for="g in notesGrouped" :key="g.sheet" class="sn-notes-group">
+              <div class="sn-notes-group-h">{{ g.sheet }}</div>
+              <div
+                v-for="n in g.items"
+                :key="g.sheet + ':' + n.id"
+                class="sn-notes-row"
+                :class="{ 'sn-notes-row-active': n.sheet === currentSheet && n.id === activeCell }"
+                @click="jumpToNote(n)"
+              >
+                <div class="sn-notes-row-ref">{{ n.id }}</div>
+                <div class="sn-notes-row-text">{{ n.text }}</div>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <CellHistoryPopover
+          v-model="cellHistory.open"
+          :cell-ref="cellHistory.cell"
+          :entries="cellHistory.entries"
+          :loading="cellHistory.loading"
+          :error="cellHistory.error"
+        />
+
+        <SplitTextPopover
+          :open="splitText.open"
+          :anchor="splitText.anchor"
+          :selected="splitText.choice"
+          @choose="onSplitChoose"
+          @apply="onSplitApply"
+          @cancel="onSplitCancel"
+        />
+
+        <!-- Filter chevrons on row 0 (the user's header row of data) -->
+        <div v-if="showSortFilter" class="sn-filter-overlay">
+          <button
+            v-for="col in visibleFilterCols"
+            :key="col.col"
+            class="sn-filter-btn"
+            :class="{ active: filterConfig[col.col] }"
+            :style="col.style"
+            @click="openFilterPanel(col.col)"
+          >
+            <FeatherIcon name="chevron-down" class="sn-filter-btn-icon" />
+          </button>
+        </div>
+
+        <!-- Remote cursor overlays — one per peer on the same sub-sheet.
            `data-moved` flips when the peer's (row,col) actually changes so
            the CSS only animates left/top/width/height on real motion, not
            on the local viewport scroll. -->
-      <div
-        v-for="cur in visibleRemoteCursors"
-        :key="cur.user"
-        class="sn-remote-cursor"
-        :class="{ 'sn-remote-cursor--moved': cur.justMoved }"
-        :style="cur.style"
-        :title="cur.fullName"
-      >
-        <span class="sn-remote-cursor-label">{{ cur.firstName }}</span>
-      </div>
-
-      <!-- Pivot highlight overlay — thin coloured border drawn over the
-           pivot output range so users can tell it's a generated table.
-           pointer-events:none so the canvas keeps receiving clicks. -->
-      <div
-        v-if="activePivotConfig && pivotHighlightStyle"
-        class="sn-pivot-highlight"
-        :style="pivotHighlightStyle"
-        aria-hidden="true"
-      />
-
-      <!-- Pivot FAB — floats below the Grand Total row, like Google Sheets -->
-      <Dropdown v-if="activePivotConfig && pivotFabStyle" :options="pivotBannerMenuOptions" placement="top-start">
-        <template #default="{ open }">
-          <button class="sn-pivot-fab" :class="{ open }" :style="pivotFabStyle" title="Pivot table options">
-            <FeatherIcon name="edit-2" class="sn-pivot-fab-icon" />
-          </button>
-        </template>
-      </Dropdown>
-
-      <!-- Inline filter panel — sort + condition + Google-Sheets-style
-           "Filter by values" checklist with search and Select all/Clear. -->
-      <div v-if="filterPanel.open" class="sn-filter-panel" :style="filterPanelStyle">
-        <div class="sn-fp-title">Column {{ colLabel(filterPanel.col) }}</div>
-        <div class="sn-fp-row">
-          <Button class="sn-fp-grow" size="sm" iconLeft="arrow-up"   label="A → Z" tooltip="Sort ascending"  @click="doSort(filterPanel.col, 'asc')" />
-          <Button class="sn-fp-grow" size="sm" iconLeft="arrow-down" label="Z → A" tooltip="Sort descending" @click="doSort(filterPanel.col, 'desc')" />
+        <div
+          v-for="cur in visibleRemoteCursors"
+          :key="cur.user"
+          class="sn-remote-cursor"
+          :class="{ 'sn-remote-cursor--moved': cur.justMoved }"
+          :style="cur.style"
+          :title="cur.fullName"
+        >
+          <span class="sn-remote-cursor-label">{{ cur.firstName }}</span>
         </div>
 
-        <!-- Mode toggle: condition vs values. Labels are short ("Values" /
+        <!-- Pivot highlight overlay — thin coloured border drawn over the
+           pivot output range so users can tell it's a generated table.
+           pointer-events:none so the canvas keeps receiving clicks. -->
+        <div
+          v-if="activePivotConfig && pivotHighlightStyle"
+          class="sn-pivot-highlight"
+          :style="pivotHighlightStyle"
+          aria-hidden="true"
+        />
+
+        <!-- Pivot FAB — floats below the Grand Total row, like Google Sheets -->
+        <Dropdown
+          v-if="activePivotConfig && pivotFabStyle"
+          :options="pivotBannerMenuOptions"
+          placement="top-start"
+        >
+          <template #default="{ open }">
+            <button
+              class="sn-pivot-fab"
+              :class="{ open }"
+              :style="pivotFabStyle"
+              title="Pivot table options"
+            >
+              <FeatherIcon name="edit-2" class="sn-pivot-fab-icon" />
+            </button>
+          </template>
+        </Dropdown>
+
+        <!-- Inline filter panel — sort + condition + Google-Sheets-style
+           "Filter by values" checklist with search and Select all/Clear. -->
+        <div v-if="filterPanel.open" class="sn-filter-panel" :style="filterPanelStyle">
+          <div class="sn-fp-title">Column {{ colLabel(filterPanel.col) }}</div>
+          <div class="sn-fp-row">
+            <Button
+              class="sn-fp-grow"
+              size="sm"
+              iconLeft="arrow-up"
+              label="A → Z"
+              tooltip="Sort ascending"
+              @click="doSort(filterPanel.col, 'asc')"
+            />
+            <Button
+              class="sn-fp-grow"
+              size="sm"
+              iconLeft="arrow-down"
+              label="Z → A"
+              tooltip="Sort descending"
+              @click="doSort(filterPanel.col, 'desc')"
+            />
+          </div>
+
+          <!-- Mode toggle: condition vs values. Labels are short ("Values" /
              "Condition") so both fit inside the 260 px panel at the default
              Button text-base size — the full "Filter by …" wording overflowed
              at this width. Both modes share the Apply/Clear actions at the
              bottom, so the user can flip between modes before committing. -->
-        <div class="sn-fp-mode" role="tablist" aria-label="Filter mode">
-          <Button
-            class="sn-fp-grow"
-            size="sm"
-            :variant="filterPanel.mode === 'values' ? 'subtle' : 'ghost'"
-            label="Values"
-            @click="filterPanel.mode = 'values'"
-          />
-          <Button
-            class="sn-fp-grow"
-            size="sm"
-            :variant="filterPanel.mode === 'condition' ? 'subtle' : 'ghost'"
-            label="Condition"
-            @click="filterPanel.mode = 'condition'"
-          />
-        </div>
-
-        <!-- Filter by values -->
-        <template v-if="filterPanel.mode === 'values'">
-          <div class="sn-fp-vlinks">
-            <Button variant="ghost" size="sm" label="Select all" @click="selectAllFilterValues" />
-            <Button variant="ghost" size="sm" label="Clear" @click="clearAllFilterValues" />
-            <span class="sn-fp-count">Displaying {{ filterPanel.valueSet.size }}</span>
+          <div class="sn-fp-mode" role="tablist" aria-label="Filter mode">
+            <Button
+              class="sn-fp-grow"
+              size="sm"
+              :variant="filterPanel.mode === 'values' ? 'subtle' : 'ghost'"
+              label="Values"
+              @click="filterPanel.mode = 'values'"
+            />
+            <Button
+              class="sn-fp-grow"
+              size="sm"
+              :variant="filterPanel.mode === 'condition' ? 'subtle' : 'ghost'"
+              label="Condition"
+              @click="filterPanel.mode = 'condition'"
+            />
           </div>
-          <FormControl
-            type="text"
-            size="sm"
-            v-model="filterPanel.valueSearch"
-            placeholder="Search…"
-          >
-            <template #prefix>
-              <FeatherIcon name="search" class="sn-fp-search-icon" />
-            </template>
-          </FormControl>
-          <div class="sn-fp-values">
-            <div
-              v-for="v in filteredFilterValues"
-              :key="v || '__blanks__'"
-              class="sn-fp-value-row"
-              @click="toggleFilterValue(v)"
-            >
-              <Checkbox
-                :modelValue="filterPanel.valueSet.has(v)"
-                @update:modelValue="toggleFilterValue(v)"
-                @click.stop
-              />
-              <span class="sn-fp-value-text">{{ v === '' ? '(Blanks)' : v }}</span>
+
+          <!-- Filter by values -->
+          <template v-if="filterPanel.mode === 'values'">
+            <div class="sn-fp-vlinks">
+              <Button variant="ghost" size="sm" label="Select all" @click="selectAllFilterValues" />
+              <Button variant="ghost" size="sm" label="Clear" @click="clearAllFilterValues" />
+              <span class="sn-fp-count">Displaying {{ filterPanel.valueSet.size }}</span>
             </div>
-            <div v-if="!filteredFilterValues.length" class="sn-fp-empty">No matching values</div>
+            <FormControl
+              type="text"
+              size="sm"
+              v-model="filterPanel.valueSearch"
+              placeholder="Search…"
+            >
+              <template #prefix>
+                <FeatherIcon name="search" class="sn-fp-search-icon" />
+              </template>
+            </FormControl>
+            <div class="sn-fp-values">
+              <div
+                v-for="v in filteredFilterValues"
+                :key="v || '__blanks__'"
+                class="sn-fp-value-row"
+                @click="toggleFilterValue(v)"
+              >
+                <Checkbox
+                  :modelValue="filterPanel.valueSet.has(v)"
+                  @update:modelValue="toggleFilterValue(v)"
+                  @click.stop
+                />
+                <span class="sn-fp-value-text">{{ v === '' ? '(Blanks)' : v }}</span>
+              </div>
+              <div v-if="!filteredFilterValues.length" class="sn-fp-empty">No matching values</div>
+            </div>
+          </template>
+
+          <!-- Filter by condition -->
+          <template v-else>
+            <FormControl
+              type="select"
+              size="sm"
+              v-model="filterPanel.operator"
+              :options="FILTER_OPERATOR_OPTIONS"
+            />
+            <FormControl
+              v-if="!['empty','notempty'].includes(filterPanel.operator)"
+              type="text"
+              size="sm"
+              v-model="filterPanel.value"
+              placeholder="Value"
+              @keydown.enter="applyFilter"
+            />
+          </template>
+
+          <div class="sn-fp-actions">
+            <Button
+              class="sn-fp-grow"
+              variant="solid"
+              size="sm"
+              label="Apply"
+              @click="applyFilter"
+            />
+            <Button class="sn-fp-grow" size="sm" label="Clear" @click="clearFilterCol" />
+            <Button class="sn-fp-grow" size="sm" label="Close" @click="filterPanel.open = false" />
           </div>
-        </template>
-
-        <!-- Filter by condition -->
-        <template v-else>
-          <FormControl
-            type="select"
-            size="sm"
-            v-model="filterPanel.operator"
-            :options="FILTER_OPERATOR_OPTIONS"
-          />
-          <FormControl
-            v-if="!['empty','notempty'].includes(filterPanel.operator)"
-            type="text"
-            size="sm"
-            v-model="filterPanel.value"
-            placeholder="Value"
-            @keydown.enter="applyFilter"
-          />
-        </template>
-
-        <div class="sn-fp-actions">
-          <Button class="sn-fp-grow" variant="solid" size="sm" label="Apply" @click="applyFilter" />
-          <Button class="sn-fp-grow"                 size="sm" label="Clear" @click="clearFilterCol" />
-          <Button class="sn-fp-grow"                 size="sm" label="Close" @click="filterPanel.open = false" />
         </div>
       </div>
-    </div>
 
-    <!-- Add-more-rows strip — only when the user has scrolled near the bottom -->
-    <div v-if="showAddRows" class="sn-addrows">
-      <span class="sn-addrows-label">Add</span>
-      <input name="add-rows-count" class="sn-addrows-input" type="number" min="1" max="10000" v-model.number="addRowsCount" />
-      <span class="sn-addrows-label">more rows at the bottom</span>
-      <Button variant="subtle" size="sm" iconLeft="plus" label="Add" @click="doAddMoreRows" />
-    </div>
+      <!-- Add-more-rows strip — only when the user has scrolled near the bottom -->
+      <div v-if="showAddRows" class="sn-addrows">
+        <span class="sn-addrows-label">Add</span>
+        <input
+          name="add-rows-count"
+          class="sn-addrows-input"
+          type="number"
+          min="1"
+          max="10000"
+          v-model.number="addRowsCount"
+        />
+        <span class="sn-addrows-label">more rows at the bottom</span>
+        <Button variant="subtle" size="sm" iconLeft="plus" label="Add" @click="doAddMoreRows" />
+      </div>
 
-    <!-- Bottom · sheet tabs + selection stats -->
-    <div class="sn-bottom">
-      <!-- Pinned outside the scroll track so it stays reachable no matter
+      <!-- Bottom · sheet tabs + selection stats -->
+      <div class="sn-bottom">
+        <!-- Pinned outside the scroll track so it stays reachable no matter
            how many tabs there are. -->
-      <Button variant="ghost" size="sm" icon="plus" class="sn-tab-add" tooltip="Add sheet" @click="addSheet" />
-      <div class="sn-tabs-track">
-        <div
-          v-for="name in sheetNames"
-          :key="name"
-          class="sn-tab"
-          :class="{
+        <Button
+          variant="ghost"
+          size="sm"
+          icon="plus"
+          class="sn-tab-add"
+          tooltip="Add sheet"
+          @click="addSheet"
+        />
+        <div class="sn-tabs-track">
+          <div
+            v-for="name in sheetNames"
+            :key="name"
+            class="sn-tab"
+            :class="{
             'sn-tab--active':   name === currentSheet,
             'sn-tab--pivot':    isPivotSheet(name),
             'sn-tab-drag-over': tabDragOver === name && tabDragName !== name,
           }"
-          draggable="true"
-          @dragstart="onTabDragStart($event, name)"
-          @dragend="onTabDragEnd"
-          @dragover.prevent="onTabDragOver($event, name)"
-          @drop.prevent="onTabDrop($event, name)"
-        >
-          <!-- One visual unit: label + chevron share a single pill background
+            draggable="true"
+            @dragstart="onTabDragStart($event, name)"
+            @dragend="onTabDragEnd"
+            @dragover.prevent="onTabDragOver($event, name)"
+            @drop.prevent="onTabDrop($event, name)"
+          >
+            <!-- One visual unit: label + chevron share a single pill background
                so they read as one button. Chevron renders on every tab so
                the menu affordance is always visible; clicking it opens the
                tab menu, clicking the label switches sheets. -->
-          <Button
-            variant="ghost"
-            size="sm"
-            :iconLeft="isPivotSheet(name) ? 'layout' : undefined"
-            :label="name"
-            class="sn-tab-btn"
-            @mousedown="onTabMousedown($event, name)"
-            @click="onTabClick(name)"
-            @dblclick="openRenameDialog(name)"
-            @contextmenu.prevent="openTabMenu($event, name)"
-          />
-          <Button
-            variant="ghost"
-            size="sm"
-            icon="chevron-down"
-            class="sn-tab-chevron"
-            @click.stop="openTabMenu($event, name)"
-          />
-          <!-- Peer dots — one colored circle per peer currently on this
+            <Button
+              variant="ghost"
+              size="sm"
+              :iconLeft="isPivotSheet(name) ? 'layout' : undefined"
+              :label="name"
+              class="sn-tab-btn"
+              @mousedown="onTabMousedown($event, name)"
+              @click="onTabClick(name)"
+              @dblclick="openRenameDialog(name)"
+              @contextmenu.prevent="openTabMenu($event, name)"
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              icon="chevron-down"
+              class="sn-tab-chevron"
+              @click.stop="openTabMenu($event, name)"
+            />
+            <!-- Peer dots — one colored circle per peer currently on this
                tab. Capped at 3 + a "+N" overflow so a busy tab doesn't
                blow out the tab's width. -->
-          <span
-            v-if="peersBySubSheet.get(name)?.length"
-            class="sn-tab-peers"
-          >
-            <span
-              v-for="p in peersBySubSheet.get(name).slice(0, 3)"
-              :key="p.user"
-              class="sn-tab-peer-dot"
-              :style="{ '--rc': p.color }"
-              :title="p.full_name"
-            />
-            <span
-              v-if="peersBySubSheet.get(name).length > 3"
-              class="sn-tab-peer-more"
-              :title="`${peersBySubSheet.get(name).length - 3} more`"
-            >+{{ peersBySubSheet.get(name).length - 3 }}</span>
-          </span>
+            <span v-if="peersBySubSheet.get(name)?.length" class="sn-tab-peers">
+              <span
+                v-for="p in peersBySubSheet.get(name).slice(0, 3)"
+                :key="p.user"
+                class="sn-tab-peer-dot"
+                :style="{ '--rc': p.color }"
+                :title="p.full_name"
+              />
+              <span
+                v-if="peersBySubSheet.get(name).length > 3"
+                class="sn-tab-peer-more"
+                :title="`${peersBySubSheet.get(name).length - 3} more`"
+                >+{{ peersBySubSheet.get(name).length - 3 }}</span
+              >
+            </span>
+          </div>
+        </div>
+
+        <div v-if="selectionStats" class="sn-stats">
+          <span v-if="selectionStats.count > 0">Count: {{ selectionStats.count }}</span>
+          <span v-if="selectionStats.sum !== null">Sum: {{ formatStat(selectionStats.sum) }}</span>
+          <span v-if="selectionStats.avg !== null">Avg: {{ formatStat(selectionStats.avg) }}</span>
         </div>
       </div>
 
-      <div v-if="selectionStats" class="sn-stats">
-        <span v-if="selectionStats.count > 0">Count: {{ selectionStats.count }}</span>
-        <span v-if="selectionStats.sum !== null">Sum: {{ formatStat(selectionStats.sum) }}</span>
-        <span v-if="selectionStats.avg !== null">Avg: {{ formatStat(selectionStats.avg) }}</span>
+      <!-- Sheet-tab context menu (rename / duplicate / delete) -->
+      <div
+        v-if="tabMenu.open"
+        class="sn-ctx-menu"
+        :style="{ left: tabMenu.x + 'px', bottom: tabMenu.bottom + 'px' }"
+      >
+        <Button
+          variant="ghost"
+          size="sm"
+          iconLeft="edit-2"
+          label="Rename"
+          @click="openRenameDialog(tabMenu.name)"
+        />
+        <Button
+          variant="ghost"
+          size="sm"
+          iconLeft="copy"
+          label="Duplicate"
+          @click="doDuplicateSheet(tabMenu.name)"
+        />
+        <Button
+          variant="ghost"
+          size="sm"
+          iconLeft="trash-2"
+          label="Delete"
+          :disabled="sheetNames.length <= 1"
+          @click="doDeleteSheet(tabMenu.name)"
+        />
       </div>
-    </div>
 
-    <!-- Sheet-tab context menu (rename / duplicate / delete) -->
-    <div v-if="tabMenu.open" class="sn-ctx-menu" :style="{ left: tabMenu.x + 'px', bottom: tabMenu.bottom + 'px' }">
-      <Button variant="ghost" size="sm" iconLeft="edit-2"  label="Rename"    @click="openRenameDialog(tabMenu.name)" />
-      <Button variant="ghost" size="sm" iconLeft="copy"    label="Duplicate" @click="doDuplicateSheet(tabMenu.name)" />
-      <Button
-        variant="ghost"
-        size="sm"
-        iconLeft="trash-2"
-        label="Delete"
-        :disabled="sheetNames.length <= 1"
-        @click="doDeleteSheet(tabMenu.name)"
-      />
-    </div>
+      <!-- Rename sheet dialog -->
+      <Dialog v-model="showRenameDialog" :options="{ title: 'Rename sheet', size: 'sm' }">
+        <template #body-content>
+          <FormControl
+            ref="renameInputRef"
+            v-model="renameValue"
+            label="New name"
+            placeholder="Sheet name"
+            @keydown.enter="confirmRename"
+          />
+          <p v-if="renameError" class="sn-rename-err">{{ renameError }}</p>
+        </template>
+        <template #actions>
+          <div class="flex flex-row-reverse gap-2">
+            <Button variant="solid" @click="confirmRename">Rename</Button>
+            <Button @click="showRenameDialog = false">Cancel</Button>
+          </div>
+        </template>
+      </Dialog>
 
-    <!-- Rename sheet dialog -->
-    <Dialog v-model="showRenameDialog" :options="{ title: 'Rename sheet', size: 'sm' }">
-      <template #body-content>
-        <FormControl ref="renameInputRef" v-model="renameValue" label="New name" placeholder="Sheet name" @keydown.enter="confirmRename" />
-        <p v-if="renameError" class="sn-rename-err">{{ renameError }}</p>
-      </template>
-      <template #actions>
-        <div class="flex flex-row-reverse gap-2">
-          <Button variant="solid" @click="confirmRename">Rename</Button>
-          <Button @click="showRenameDialog = false">Cancel</Button>
-        </div>
-      </template>
-    </Dialog>
-
-    <!-- Right-click context menu (cursor-anchored; uses Frappe UI Buttons internally) -->
-    <div v-if="contextMenu.open" class="sn-ctx-menu"
-         :style="contextMenu.useBottom
+      <!-- Right-click context menu (cursor-anchored; uses Frappe UI Buttons internally) -->
+      <div
+        v-if="contextMenu.open"
+        class="sn-ctx-menu"
+        :style="contextMenu.useBottom
            ? { left: contextMenu.x + 'px', bottom: contextMenu.bottom + 'px', maxHeight: contextMenu.maxH + 'px' }
-           : { left: contextMenu.x + 'px', top:    contextMenu.y      + 'px', maxHeight: contextMenu.maxH + 'px' }">
+           : { left: contextMenu.x + 'px', top:    contextMenu.y      + 'px', maxHeight: contextMenu.maxH + 'px' }"
+      >
+        <!-- Column-header menu -->
+        <template v-if="contextMenu.mode === 'colHeader'">
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="arrow-left"
+            label="Insert column left"
+            @click="doInsertCol(false)"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="arrow-right"
+            label="Insert column right"
+            @click="doInsertCol(true)"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="plus"
+            label="Insert N columns…"
+            @click="openInsertMany('col', false)"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="trash-2"
+            label="Delete column"
+            @click="doDeleteCol()"
+          />
+          <hr class="sn-ctx-sep" />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="maximize-2"
+            label="Auto-fit width"
+            @click="doAutoFitCol()"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="eye-off"
+            label="Hide column"
+            @click="doHideCols()"
+          />
+          <Button
+            v-if="manualHiddenCols.size > 0"
+            variant="ghost"
+            size="sm"
+            iconLeft="eye"
+            label="Unhide all columns"
+            @click="doUnhideAllCols()"
+          />
+          <hr class="sn-ctx-sep" />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="lock"
+            label="Freeze up to this column"
+            @click="doFreezeCol()"
+          />
+          <Button
+            v-if="freezeCols > 0"
+            variant="ghost"
+            size="sm"
+            iconLeft="unlock"
+            label="Unfreeze columns"
+            @click="doUnfreezeCols()"
+          />
+        </template>
 
-      <!-- Column-header menu -->
-      <template v-if="contextMenu.mode === 'colHeader'">
-        <Button variant="ghost" size="sm" iconLeft="arrow-left"  label="Insert column left"  @click="doInsertCol(false)" />
-        <Button variant="ghost" size="sm" iconLeft="arrow-right" label="Insert column right" @click="doInsertCol(true)" />
-        <Button variant="ghost" size="sm" iconLeft="plus"        label="Insert N columns…"   @click="openInsertMany('col', false)" />
-        <Button variant="ghost" size="sm" iconLeft="trash-2"     label="Delete column"       @click="doDeleteCol()" />
-        <hr class="sn-ctx-sep" />
-        <Button variant="ghost" size="sm" iconLeft="maximize-2"  label="Auto-fit width"      @click="doAutoFitCol()" />
-        <Button variant="ghost" size="sm" iconLeft="eye-off"     label="Hide column"         @click="doHideCols()" />
-        <Button v-if="manualHiddenCols.size > 0" variant="ghost" size="sm" iconLeft="eye" label="Unhide all columns" @click="doUnhideAllCols()" />
-        <hr class="sn-ctx-sep" />
-        <Button variant="ghost" size="sm" iconLeft="lock"        label="Freeze up to this column" @click="doFreezeCol()" />
-        <Button v-if="freezeCols > 0" variant="ghost" size="sm" iconLeft="unlock" label="Unfreeze columns" @click="doUnfreezeCols()" />
-      </template>
+        <!-- Row-header menu -->
+        <template v-else-if="contextMenu.mode === 'rowHeader'">
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="arrow-up"
+            label="Insert row above"
+            @click="doInsertRow(false)"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="arrow-down"
+            label="Insert row below"
+            @click="doInsertRow(true)"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="plus"
+            label="Insert N rows…"
+            @click="openInsertMany('row', false)"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="trash-2"
+            label="Delete row"
+            @click="doDeleteRow()"
+          />
+          <hr class="sn-ctx-sep" />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="maximize-2"
+            label="Auto-fit height"
+            @click="doAutoFitRow()"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="eye-off"
+            label="Hide row"
+            @click="doHideRows()"
+          />
+          <Button
+            v-if="manualHiddenRows.size > 0"
+            variant="ghost"
+            size="sm"
+            iconLeft="eye"
+            label="Unhide all rows"
+            @click="doUnhideAllRows()"
+          />
+          <hr class="sn-ctx-sep" />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="lock"
+            label="Freeze up to this row"
+            @click="doFreezeRow()"
+          />
+          <Button
+            v-if="freezeRows > 0"
+            variant="ghost"
+            size="sm"
+            iconLeft="unlock"
+            label="Unfreeze rows"
+            @click="doUnfreezeRows()"
+          />
+        </template>
 
-      <!-- Row-header menu -->
-      <template v-else-if="contextMenu.mode === 'rowHeader'">
-        <Button variant="ghost" size="sm" iconLeft="arrow-up"    label="Insert row above" @click="doInsertRow(false)" />
-        <Button variant="ghost" size="sm" iconLeft="arrow-down"  label="Insert row below" @click="doInsertRow(true)" />
-        <Button variant="ghost" size="sm" iconLeft="plus"        label="Insert N rows…"   @click="openInsertMany('row', false)" />
-        <Button variant="ghost" size="sm" iconLeft="trash-2"     label="Delete row"       @click="doDeleteRow()" />
-        <hr class="sn-ctx-sep" />
-        <Button variant="ghost" size="sm" iconLeft="maximize-2"  label="Auto-fit height"  @click="doAutoFitRow()" />
-        <Button variant="ghost" size="sm" iconLeft="eye-off"     label="Hide row"         @click="doHideRows()" />
-        <Button v-if="manualHiddenRows.size > 0" variant="ghost" size="sm" iconLeft="eye" label="Unhide all rows" @click="doUnhideAllRows()" />
-        <hr class="sn-ctx-sep" />
-        <Button variant="ghost" size="sm" iconLeft="lock"        label="Freeze up to this row" @click="doFreezeRow()" />
-        <Button v-if="freezeRows > 0" variant="ghost" size="sm" iconLeft="unlock" label="Unfreeze rows" @click="doUnfreezeRows()" />
-      </template>
+        <!-- Cell menu (default) -->
+        <template v-else>
+          <Button
+            v-if="clipboardHas"
+            variant="ghost"
+            size="sm"
+            iconLeft="clipboard"
+            label="Paste values only"
+            @click="doPasteSpecial('values')"
+          />
+          <Button
+            v-if="clipboardHas"
+            variant="ghost"
+            size="sm"
+            iconLeft="clipboard"
+            label="Paste formats only"
+            @click="doPasteSpecial('formats')"
+          />
+          <Button
+            v-if="clipboardHas"
+            variant="ghost"
+            size="sm"
+            iconLeft="clipboard"
+            label="Paste formulas only"
+            @click="doPasteSpecial('formulas')"
+          />
+          <hr v-if="clipboardHas" class="sn-ctx-sep" />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="arrow-up"
+            label="Insert row above"
+            @click="doInsertRow(false)"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="arrow-down"
+            label="Insert row below"
+            @click="doInsertRow(true)"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="trash-2"
+            label="Delete row"
+            @click="doDeleteRow()"
+          />
+          <hr class="sn-ctx-sep" />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="arrow-left"
+            label="Insert column left"
+            @click="doInsertCol(false)"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="arrow-right"
+            label="Insert column right"
+            @click="doInsertCol(true)"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="trash-2"
+            label="Delete column"
+            @click="doDeleteCol()"
+          />
+          <hr class="sn-ctx-sep" />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="lock"
+            label="Freeze rows to here"
+            @click="doFreezeRow()"
+          />
+          <Button
+            v-if="freezeRows > 0"
+            variant="ghost"
+            size="sm"
+            iconLeft="unlock"
+            label="Unfreeze rows"
+            @click="doUnfreezeRows()"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="lock"
+            label="Freeze cols to here"
+            @click="doFreezeCol()"
+          />
+          <Button
+            v-if="freezeCols > 0"
+            variant="ghost"
+            size="sm"
+            iconLeft="unlock"
+            label="Unfreeze cols"
+            @click="doUnfreezeCols()"
+          />
+          <hr class="sn-ctx-sep" />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="check-square"
+            label="Data validation…"
+            @click="contextMenu.open=false; openValidationDialog()"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="blend"
+            label="Conditional format…"
+            @click="contextMenu.open=false; openCfDialog(null)"
+          />
+          <hr class="sn-ctx-sep" />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="columns"
+            label="Split text to columns"
+            @click="doSplitTextToColumns()"
+          />
+          <hr class="sn-ctx-sep" />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="layout"
+            label="Insert pivot table…"
+            @click="openPivotDialog()"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            iconLeft="bar-chart-2"
+            label="Insert chart…"
+            @click="openChartDialog()"
+          />
+        </template>
+      </div>
 
-      <!-- Cell menu (default) -->
-      <template v-else>
-        <Button v-if="clipboardHas" variant="ghost" size="sm" iconLeft="clipboard" label="Paste values only"  @click="doPasteSpecial('values')" />
-        <Button v-if="clipboardHas" variant="ghost" size="sm" iconLeft="clipboard" label="Paste formats only" @click="doPasteSpecial('formats')" />
-        <Button v-if="clipboardHas" variant="ghost" size="sm" iconLeft="clipboard" label="Paste formulas only" @click="doPasteSpecial('formulas')" />
-        <hr v-if="clipboardHas" class="sn-ctx-sep" />
-        <Button variant="ghost" size="sm" iconLeft="arrow-up"    label="Insert row above"     @click="doInsertRow(false)" />
-        <Button variant="ghost" size="sm" iconLeft="arrow-down"  label="Insert row below"     @click="doInsertRow(true)" />
-        <Button variant="ghost" size="sm" iconLeft="trash-2"     label="Delete row"           @click="doDeleteRow()" />
-        <hr class="sn-ctx-sep" />
-        <Button variant="ghost" size="sm" iconLeft="arrow-left"  label="Insert column left"   @click="doInsertCol(false)" />
-        <Button variant="ghost" size="sm" iconLeft="arrow-right" label="Insert column right"  @click="doInsertCol(true)" />
-        <Button variant="ghost" size="sm" iconLeft="trash-2"     label="Delete column"        @click="doDeleteCol()" />
-        <hr class="sn-ctx-sep" />
-        <Button variant="ghost" size="sm" iconLeft="lock"        label="Freeze rows to here"  @click="doFreezeRow()" />
-        <Button v-if="freezeRows > 0" variant="ghost" size="sm" iconLeft="unlock" label="Unfreeze rows" @click="doUnfreezeRows()" />
-        <Button variant="ghost" size="sm" iconLeft="lock"        label="Freeze cols to here"  @click="doFreezeCol()" />
-        <Button v-if="freezeCols > 0" variant="ghost" size="sm" iconLeft="unlock" label="Unfreeze cols" @click="doUnfreezeCols()" />
-        <hr class="sn-ctx-sep" />
-        <Button variant="ghost" size="sm" iconLeft="check-square"   label="Data validation…" @click="contextMenu.open=false; openValidationDialog()" />
-        <Button variant="ghost" size="sm" iconLeft="blend"          label="Conditional format…" @click="contextMenu.open=false; openCfDialog(null)" />
-        <hr class="sn-ctx-sep" />
-        <Button variant="ghost" size="sm" iconLeft="columns"        label="Split text to columns" @click="doSplitTextToColumns()" />
-        <hr class="sn-ctx-sep" />
-        <Button variant="ghost" size="sm" iconLeft="layout"         label="Insert pivot table…"   @click="openPivotDialog()" />
-        <Button variant="ghost" size="sm" iconLeft="bar-chart-2"    label="Insert chart…"          @click="openChartDialog()" />
-      </template>
+      <!-- Pivot dialog -->
+      <PivotDialog
+        v-model="pivotDialogOpen"
+        :sheet="sheet"
+        :current-sheet="currentSheet"
+        :initial-range="pivotInitialRange"
+        :pivot-id="pivotEditId"
+        :existing-config="pivotEditConfig"
+        @confirm="onPivotConfirm"
+      />
 
-    </div>
+      <!-- Chart dialog -->
+      <ChartDialog
+        v-model="chartDialogOpen"
+        :sheet="sheet"
+        :current-sheet="currentSheet"
+        :initial-range="chartInitialRange"
+        :chart-id="chartEditId"
+        :existing-config="chartEditConfig"
+        @confirm="onChartConfirm"
+      />
 
-    <!-- Pivot dialog -->
-    <PivotDialog
-      v-model="pivotDialogOpen"
-      :sheet="sheet"
-      :current-sheet="currentSheet"
-      :initial-range="pivotInitialRange"
-      :pivot-id="pivotEditId"
-      :existing-config="pivotEditConfig"
-      @confirm="onPivotConfirm"
-    />
+      <!-- Named ranges dialog -->
+      <NamedRangesDialog
+        v-model="namedRangesDialogOpen"
+        :named-ranges="namedRanges"
+        :sheet-names="sheetNames"
+        :current-sheet="currentSheet"
+        @changed="_onNamedRangesChanged"
+      />
 
-    <!-- Chart dialog -->
-    <ChartDialog
-      v-model="chartDialogOpen"
-      :sheet="sheet"
-      :current-sheet="currentSheet"
-      :initial-range="chartInitialRange"
-      :chart-id="chartEditId"
-      :existing-config="chartEditConfig"
-      @confirm="onChartConfirm"
-    />
+      <!-- Share dialog -->
+      <ShareDialog
+        v-model="shareOpen"
+        :sheet-id="props.id"
+        :sheet-title="currentTitle"
+        :owner-id="userEmail"
+        @shares-changed="shareCount = $event"
+      />
 
-    <!-- Named ranges dialog -->
-    <NamedRangesDialog
-      v-model="namedRangesDialogOpen"
-      :named-ranges="namedRanges"
-      :sheet-names="sheetNames"
-      :current-sheet="currentSheet"
-      @changed="_onNamedRangesChanged"
-    />
+      <!-- AI Assist settings (in-app, never the desk form) -->
+      <AISettingsDialog v-model="aiSettingsOpen" @saved="onAiSettingsSaved" />
 
-    <!-- Share dialog -->
-    <ShareDialog
-      v-model="shareOpen"
-      :sheet-id="props.id"
-      :sheet-title="currentTitle"
-      :owner-id="userEmail"
-      @shares-changed="shareCount = $event"
-    />
+      <!-- AI Assist "Ask" command bar -->
+      <AskBar
+        v-if="askOpen"
+        :busy="askBusy"
+        :selection-label="askSelectionLabel"
+        :error="askError"
+        :answer="askAnswer"
+        :pending="aiPending"
+        @submit="onAskSubmit"
+        @keep="onAskKeep"
+        @undo="onAskUndo"
+        @close="closeAskBar"
+      />
 
-    <!-- AI Assist settings (in-app, never the desk form) -->
-    <AISettingsDialog v-model="aiSettingsOpen" @saved="onAiSettingsSaved" />
+      <!-- Find & Replace panel -->
+      <FindReplace
+        v-if="showFindReplace"
+        :sheet="sheet"
+        :grid="grid"
+        @close="showFindReplace = false"
+        @navigate-to="onNavigateTo"
+      />
 
-    <!-- AI Assist "Ask" command bar -->
-    <AskBar
-      v-if="askOpen"
-      :busy="askBusy"
-      :selection-label="askSelectionLabel"
-      :error="askError"
-      :answer="askAnswer"
-      :pending="aiPending"
-      @submit="onAskSubmit"
-      @keep="onAskKeep"
-      @undo="onAskUndo"
-      @close="closeAskBar"
-    />
+      <!-- Cmd+K command palette -->
+      <CommandPalette
+        v-model:show="showCmdPalette"
+        v-model:searchQuery="cmdQuery"
+        :groups="cmdGroups"
+        @select="onCmdSelect"
+      />
 
-    <!-- Find & Replace panel -->
-    <FindReplace
-      v-if="showFindReplace"
-      :sheet="sheet"
-      :grid="grid"
-      @close="showFindReplace = false"
-      @navigate-to="onNavigateTo"
-    />
+      <!-- Hyperlink dialog (Ctrl+L) — stores fmt.hyperlink on the active cell -->
+      <Dialog v-model="showHyperlinkDialog" :options="{ title: 'Insert hyperlink', size: 'sm' }">
+        <template #body-content>
+          <div class="sn-form-stack">
+            <FormControl v-model="hyperlinkText" label="Display text" placeholder="Click here" />
+            <FormControl
+              v-model="hyperlinkUrl"
+              label="Link URL"
+              placeholder="https://example.com"
+              @keydown.enter="confirmHyperlink"
+            />
+          </div>
+        </template>
+        <template #actions>
+          <div class="flex flex-row-reverse gap-2">
+            <Button variant="solid" @click="confirmHyperlink">Apply</Button>
+            <Button v-if="hasActiveHyperlink" theme="red" @click="removeHyperlink">Remove</Button>
+            <Button @click="showHyperlinkDialog = false">Cancel</Button>
+          </div>
+        </template>
+      </Dialog>
 
-    <!-- Cmd+K command palette -->
-    <CommandPalette
-      v-model:show="showCmdPalette"
-      v-model:searchQuery="cmdQuery"
-      :groups="cmdGroups"
-      @select="onCmdSelect"
-    />
-
-    <!-- Hyperlink dialog (Ctrl+L) — stores fmt.hyperlink on the active cell -->
-    <Dialog v-model="showHyperlinkDialog" :options="{ title: 'Insert hyperlink', size: 'sm' }">
-      <template #body-content>
-        <div class="sn-form-stack">
-          <FormControl v-model="hyperlinkText" label="Display text" placeholder="Click here" />
-          <FormControl v-model="hyperlinkUrl"  label="Link URL" placeholder="https://example.com" @keydown.enter="confirmHyperlink" />
-        </div>
-      </template>
-      <template #actions>
-        <div class="flex flex-row-reverse gap-2">
-          <Button variant="solid" @click="confirmHyperlink">Apply</Button>
-          <Button v-if="hasActiveHyperlink" theme="red" @click="removeHyperlink">Remove</Button>
-          <Button @click="showHyperlinkDialog = false">Cancel</Button>
-        </div>
-      </template>
-    </Dialog>
-
-    <!-- Data validation dialog -->
-    <Dialog v-model="validationDialog.open" :options="{ title: 'Data validation', size: 'sm' }">
-      <template #body-content>
-        <div class="sn-form-stack">
-          <!-- Type -->
-          <FormControl type="select" label="Type" v-model="validationDialog.type"
-            :options="[
+      <!-- Data validation dialog -->
+      <Dialog v-model="validationDialog.open" :options="{ title: 'Data validation', size: 'sm' }">
+        <template #body-content>
+          <div class="sn-form-stack">
+            <!-- Type -->
+            <FormControl
+              type="select"
+              label="Type"
+              v-model="validationDialog.type"
+              :options="[
               { label: 'List of items',  value: 'list' },
               { label: 'Number',         value: 'number' },
               { label: 'Text length',    value: 'text_length' },
             ]"
-          />
+            />
 
-          <!-- List -->
-          <FormControl v-if="validationDialog.type === 'list'"
-            v-model="validationDialog.listRaw"
-            label="Items (comma-separated)"
-            placeholder="Yes, No, Maybe"
-          />
+            <!-- List -->
+            <FormControl
+              v-if="validationDialog.type === 'list'"
+              v-model="validationDialog.listRaw"
+              label="Items (comma-separated)"
+              placeholder="Yes, No, Maybe"
+            />
 
-          <!-- Operator (number / text_length) -->
-          <FormControl v-if="validationDialog.type !== 'list'"
-            type="select" label="Condition" v-model="validationDialog.operator"
-            :options="[
+            <!-- Operator (number / text_length) -->
+            <FormControl
+              v-if="validationDialog.type !== 'list'"
+              type="select"
+              label="Condition"
+              v-model="validationDialog.operator"
+              :options="[
               { label: 'Between',             value: 'between' },
               { label: 'Not between',         value: 'not_between' },
               { label: 'Greater than',        value: 'gt' },
@@ -871,217 +1423,331 @@
               { label: 'Equal to',            value: 'eq' },
               { label: 'Not equal to',        value: 'neq' },
             ]"
-          />
-
-          <!-- Values -->
-          <div v-if="validationDialog.type !== 'list'" class="sn-vd-vals">
-            <FormControl
-              v-model="validationDialog.val1"
-              type="number"
-              :label="['between','not_between'].includes(validationDialog.operator) ? 'Min' : 'Value'"
             />
+
+            <!-- Values -->
+            <div v-if="validationDialog.type !== 'list'" class="sn-vd-vals">
+              <FormControl
+                v-model="validationDialog.val1"
+                type="number"
+                :label="['between','not_between'].includes(validationDialog.operator) ? 'Min' : 'Value'"
+              />
+              <FormControl
+                v-if="['between','not_between'].includes(validationDialog.operator)"
+                v-model="validationDialog.val2"
+                type="number"
+                label="Max"
+              />
+            </div>
+
+            <!-- Custom error message -->
             <FormControl
-              v-if="['between','not_between'].includes(validationDialog.operator)"
-              v-model="validationDialog.val2"
-              type="number"
-              label="Max"
+              v-model="validationDialog.message"
+              label="Error message (optional)"
+              placeholder="This value is not allowed"
             />
           </div>
+        </template>
+        <template #actions>
+          <div class="flex flex-row-reverse gap-2">
+            <Button variant="solid" @click="confirmValidation">Apply</Button>
+            <Button variant="ghost" theme="red" @click="removeValidation">Remove rule</Button>
+            <Button @click="validationDialog.open = false">Cancel</Button>
+          </div>
+        </template>
+      </Dialog>
 
-          <!-- Custom error message -->
+      <!-- Insert N rows / columns dialog -->
+      <Dialog
+        v-model="showInsertManyDialog"
+        :options="{ title: insertMany.kind === 'row' ? 'Insert rows' : 'Insert columns', size: 'sm' }"
+      >
+        <template #body-content>
           <FormControl
-            v-model="validationDialog.message"
-            label="Error message (optional)"
-            placeholder="This value is not allowed"
+            v-model.number="insertMany.count"
+            type="number"
+            :min="1"
+            :max="1000"
+            :label="insertMany.kind === 'row' ? 'Number of rows' : 'Number of columns'"
+            @keydown.enter="confirmInsertMany"
           />
-        </div>
-      </template>
-      <template #actions>
-        <div class="flex flex-row-reverse gap-2">
-          <Button variant="solid" @click="confirmValidation">Apply</Button>
-          <Button variant="ghost" theme="red" @click="removeValidation">Remove rule</Button>
-          <Button @click="validationDialog.open = false">Cancel</Button>
-        </div>
-      </template>
-    </Dialog>
+        </template>
+        <template #actions>
+          <div class="flex flex-row-reverse gap-2">
+            <Button variant="solid" @click="confirmInsertMany">Insert</Button>
+            <Button @click="showInsertManyDialog = false">Cancel</Button>
+          </div>
+        </template>
+      </Dialog>
 
-    <!-- Insert N rows / columns dialog -->
-    <Dialog v-model="showInsertManyDialog" :options="{ title: insertMany.kind === 'row' ? 'Insert rows' : 'Insert columns', size: 'sm' }">
-      <template #body-content>
-        <FormControl
-          v-model.number="insertMany.count"
-          type="number"
-          :min="1"
-          :max="1000"
-          :label="insertMany.kind === 'row' ? 'Number of rows' : 'Number of columns'"
-          @keydown.enter="confirmInsertMany"
-        />
-      </template>
-      <template #actions>
-        <div class="flex flex-row-reverse gap-2">
-          <Button variant="solid" @click="confirmInsertMany">Insert</Button>
-          <Button @click="showInsertManyDialog = false">Cancel</Button>
-        </div>
-      </template>
-    </Dialog>
-
-    <!-- Keyboard shortcut help (?) — uses Frappe UI's KeyboardShortcut for the
+      <!-- Keyboard shortcut help (?) — uses Frappe UI's KeyboardShortcut for the
          key chips so modifiers render as proper Mac glyphs and look native. -->
-    <Dialog v-model="showShortcutsHelp" :options="{ title: 'Keyboard shortcuts', size: 'xl' }">
-      <template #body-content>
-        <div class="sn-help-grid">
-          <div v-for="g in SHORTCUT_GROUPS" :key="g.title" class="sn-help-group">
-            <div class="sn-help-title">{{ g.title }}</div>
-            <div v-for="s in g.items" :key="s.label" class="sn-help-row">
-              <span class="sn-help-label">{{ s.label }}</span>
-              <span class="sn-help-keys">
-                <template v-for="(combo, i) in s.combos" :key="combo">
-                  <KeyboardShortcut :combo="combo" />
-                  <span v-if="i < s.combos.length - 1" class="sn-help-or">or</span>
-                </template>
-              </span>
+      <Dialog v-model="showShortcutsHelp" :options="{ title: 'Keyboard shortcuts', size: 'xl' }">
+        <template #body-content>
+          <div class="sn-help-grid">
+            <div v-for="g in SHORTCUT_GROUPS" :key="g.title" class="sn-help-group">
+              <div class="sn-help-title">{{ g.title }}</div>
+              <div v-for="s in g.items" :key="s.label" class="sn-help-row">
+                <span class="sn-help-label">{{ s.label }}</span>
+                <span class="sn-help-keys">
+                  <template v-for="(combo, i) in s.combos" :key="combo">
+                    <KeyboardShortcut :combo="combo" />
+                    <span v-if="i < s.combos.length - 1" class="sn-help-or">or</span>
+                  </template>
+                </span>
+              </div>
             </div>
           </div>
+        </template>
+      </Dialog>
+
+      <!-- Comment panel (floating near cell) -->
+      <div
+        v-if="commentPanel.open"
+        class="sn-comment-panel"
+        :style="{ left: commentPanel.x + 'px', top: commentPanel.y + 'px' }"
+      >
+        <div class="sn-comment-header">
+          <span class="sn-comment-title">Note</span>
+          <Button variant="ghost" size="sm" icon="x" @click="commentPanel.open = false" />
         </div>
-      </template>
-    </Dialog>
+        <textarea
+          class="sn-comment-ta"
+          v-model="commentPanel.text"
+          rows="4"
+          placeholder="Add a note…"
+          @blur="saveComment"
+        />
+        <div class="sn-comment-actions">
+          <Button size="sm" variant="solid" @click="saveComment">Save</Button>
+          <Button size="sm" variant="ghost" theme="red" @click="deleteComment">Delete</Button>
+        </div>
+      </div>
 
-    <!-- Comment panel (floating near cell) -->
-    <div v-if="commentPanel.open" class="sn-comment-panel"
-         :style="{ left: commentPanel.x + 'px', top: commentPanel.y + 'px' }">
-      <div class="sn-comment-header">
-        <span class="sn-comment-title">Note</span>
-        <Button variant="ghost" size="sm" icon="x" @click="commentPanel.open = false" />
+      <!-- Validation dropdown panel -->
+      <div
+        v-if="dropdownPanel.open"
+        class="sn-dropdown-panel"
+        :style="{ left: dropdownPanel.x + 'px', top: dropdownPanel.y + 'px', minWidth: dropdownPanel.w + 'px' }"
+      >
+        <div
+          v-for="opt in dropdownPanel.options"
+          :key="opt"
+          class="sn-dropdown-opt"
+          :class="{ 'is-active': opt === dropdownPanel.value }"
+          @mousedown.prevent="pickDropdownOption(opt)"
+        >
+          <FeatherIcon
+            name="check"
+            class="sn-dropdown-check"
+            :style="{ visibility: opt === dropdownPanel.value ? 'visible' : 'hidden' }"
+          />
+          <span class="sn-dropdown-chip" :style="{ background: chipColor(opt) }">{{ opt }}</span>
+        </div>
+        <div
+          v-if="dropdownPanel.value"
+          class="sn-dropdown-opt sn-dropdown-clear"
+          @mousedown.prevent="pickDropdownOption('')"
+        >
+          <FeatherIcon name="x" class="sn-dropdown-check" />
+          <span class="sn-dropdown-label">Clear</span>
+        </div>
       </div>
-      <textarea class="sn-comment-ta" v-model="commentPanel.text" rows="4" placeholder="Add a note…" @blur="saveComment" />
-      <div class="sn-comment-actions">
-        <Button size="sm" variant="solid" @click="saveComment">Save</Button>
-        <Button size="sm" variant="ghost" theme="red" @click="deleteComment">Delete</Button>
-      </div>
-    </div>
 
-    <!-- Validation dropdown panel -->
-    <div v-if="dropdownPanel.open" class="sn-dropdown-panel"
-         :style="{ left: dropdownPanel.x + 'px', top: dropdownPanel.y + 'px', minWidth: dropdownPanel.w + 'px' }">
-      <div v-for="opt in dropdownPanel.options" :key="opt"
-           class="sn-dropdown-opt" :class="{ 'is-active': opt === dropdownPanel.value }"
-           @mousedown.prevent="pickDropdownOption(opt)">
-        <FeatherIcon name="check" class="sn-dropdown-check" :style="{ visibility: opt === dropdownPanel.value ? 'visible' : 'hidden' }" />
-        <span class="sn-dropdown-chip" :style="{ background: chipColor(opt) }">{{ opt }}</span>
-      </div>
-      <div v-if="dropdownPanel.value" class="sn-dropdown-opt sn-dropdown-clear"
-           @mousedown.prevent="pickDropdownOption('')">
-        <FeatherIcon name="x" class="sn-dropdown-check" />
-        <span class="sn-dropdown-label">Clear</span>
-      </div>
-    </div>
-
-    <!-- Conditional formatting dialog -->
-    <Dialog v-model="cfDialog.open" :options="{ title: 'Conditional formatting', size: 'sm' }">
-      <template #body-content>
-        <div class="sn-form-stack">
-          <!-- Existing rules — click to edit, ✕ to delete. Only shown when
+      <!-- Conditional formatting dialog -->
+      <Dialog v-model="cfDialog.open" :options="{ title: 'Conditional formatting', size: 'sm' }">
+        <template #body-content>
+          <div class="sn-form-stack">
+            <!-- Existing rules — click to edit, ✕ to delete. Only shown when
                the active sheet has any rules; otherwise we jump straight to
                the editor for the new rule. -->
-          <div v-if="cfRulesForSheet.length" class="sn-cf-rule-list">
-            <div class="sn-cf-rule-list-title">Rules on this sheet</div>
-            <div v-for="r in cfRulesForSheet" :key="r.id" class="sn-cf-rule-row"
-                 :class="{ 'sn-cf-rule-row--active': cfDialog.editId === r.id }">
-              <button type="button" class="sn-cf-rule-pick" @click="openCfDialog(r.id)">
-                {{ cfRuleLabel(r) }}
-              </button>
-              <Button variant="ghost" size="sm" icon="x" theme="red"
-                      @click="deleteCfRuleById(r.id)" tooltip="Delete rule" />
-            </div>
-          </div>
-
-          <FormControl type="select" label="Rule type" v-model="cfDialog.kind" :options="CF_KIND_OPTIONS" />
-
-          <!-- Classic single-colour rule (the original feature). -->
-          <template v-if="cfDialog.kind === 'classic'">
-            <FormControl type="select" label="Condition" v-model="cfDialog.condType" :options="CF_COND_OPTIONS" />
-            <FormControl v-if="!['empty','notempty'].includes(cfDialog.condType)"
-                         v-model="cfDialog.condValue" label="Value" placeholder="e.g. 0" />
-            <FormControl v-if="cfDialog.condType === 'between'"
-                         v-model="cfDialog.condValue2" label="And" placeholder="e.g. 100" />
-            <div class="sn-cf-fmt">
-              <ColorPicker v-model="cfDialog.fmtColor" allow-default default-label="Automatic" title="Text colour" fallback="#171717">
-                <template #trigger="{ toggle, open }">
-                  <button type="button" class="sn-swatch-btn" :class="{ 'is-open': open }" title="Text colour" @click="toggle()">
-                    <FeatherIcon name="type" class="sn-swatch-glyph" />
-                    <span class="sn-swatch-underline" :style="{ background: cfDialog.fmtColor || '#171717' }"></span>
-                  </button>
-                </template>
-              </ColorPicker>
-              <ColorPicker v-model="cfDialog.fmtBg" allow-default default-label="No fill" title="Fill colour" fallback="#ffffff">
-                <template #trigger="{ toggle, open }">
-                  <button type="button" class="sn-swatch-btn" :class="{ 'is-open': open }" title="Fill colour" @click="toggle()">
-                    <FeatherIcon name="droplet" class="sn-swatch-glyph" />
-                    <span class="sn-swatch-underline sn-swatch-fill" :style="{ background: cfDialog.fmtBg || '#ffffff' }"></span>
-                  </button>
-                </template>
-              </ColorPicker>
-              <span class="sn-cf-fmt-label">Apply to range: {{ cfRangeLabel }}</span>
-            </div>
-          </template>
-
-          <!-- Colour scale: 2- or 3-stop gradient mapped across the range's min/max. -->
-          <template v-else-if="cfDialog.kind === 'color-scale'">
-            <FormControl type="select" label="Variant" v-model="cfDialog.scaleVariant" :options="CF_SCALE_VARIANT_OPTIONS" />
-            <div class="sn-cf-scale">
-              <div class="sn-cf-stop">
-                <span>Min</span>
-                <ColorPicker v-model="cfDialog.scaleMin" title="Min colour" :fallback="cfDialog.scaleMin" />
-              </div>
-              <div v-if="cfDialog.scaleVariant === '3color'" class="sn-cf-stop">
-                <span>Mid</span>
-                <ColorPicker v-model="cfDialog.scaleMid" title="Mid colour" :fallback="cfDialog.scaleMid" />
-              </div>
-              <div class="sn-cf-stop">
-                <span>Max</span>
-                <ColorPicker v-model="cfDialog.scaleMax" title="Max colour" :fallback="cfDialog.scaleMax" />
+            <div v-if="cfRulesForSheet.length" class="sn-cf-rule-list">
+              <div class="sn-cf-rule-list-title">Rules on this sheet</div>
+              <div
+                v-for="r in cfRulesForSheet"
+                :key="r.id"
+                class="sn-cf-rule-row"
+                :class="{ 'sn-cf-rule-row--active': cfDialog.editId === r.id }"
+              >
+                <button type="button" class="sn-cf-rule-pick" @click="openCfDialog(r.id)">
+                  {{ cfRuleLabel(r) }}
+                </button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon="x"
+                  theme="red"
+                  @click="deleteCfRuleById(r.id)"
+                  tooltip="Delete rule"
+                />
               </div>
             </div>
-            <div
-              class="sn-cf-scale-preview"
-              :style="{ background: cfDialog.scaleVariant === '3color'
+
+            <FormControl
+              type="select"
+              label="Rule type"
+              v-model="cfDialog.kind"
+              :options="CF_KIND_OPTIONS"
+            />
+
+            <!-- Classic single-colour rule (the original feature). -->
+            <template v-if="cfDialog.kind === 'classic'">
+              <FormControl
+                type="select"
+                label="Condition"
+                v-model="cfDialog.condType"
+                :options="CF_COND_OPTIONS"
+              />
+              <FormControl
+                v-if="!['empty','notempty'].includes(cfDialog.condType)"
+                v-model="cfDialog.condValue"
+                label="Value"
+                placeholder="e.g. 0"
+              />
+              <FormControl
+                v-if="cfDialog.condType === 'between'"
+                v-model="cfDialog.condValue2"
+                label="And"
+                placeholder="e.g. 100"
+              />
+              <div class="sn-cf-fmt">
+                <ColorPicker
+                  v-model="cfDialog.fmtColor"
+                  allow-default
+                  default-label="Automatic"
+                  title="Text colour"
+                  fallback="#171717"
+                >
+                  <template #trigger="{ toggle, open }">
+                    <button
+                      type="button"
+                      class="sn-swatch-btn"
+                      :class="{ 'is-open': open }"
+                      title="Text colour"
+                      @click="toggle()"
+                    >
+                      <FeatherIcon name="type" class="sn-swatch-glyph" />
+                      <span
+                        class="sn-swatch-underline"
+                        :style="{ background: cfDialog.fmtColor || '#171717' }"
+                      ></span>
+                    </button>
+                  </template>
+                </ColorPicker>
+                <ColorPicker
+                  v-model="cfDialog.fmtBg"
+                  allow-default
+                  default-label="No fill"
+                  title="Fill colour"
+                  fallback="#ffffff"
+                >
+                  <template #trigger="{ toggle, open }">
+                    <button
+                      type="button"
+                      class="sn-swatch-btn"
+                      :class="{ 'is-open': open }"
+                      title="Fill colour"
+                      @click="toggle()"
+                    >
+                      <FeatherIcon name="droplet" class="sn-swatch-glyph" />
+                      <span
+                        class="sn-swatch-underline sn-swatch-fill"
+                        :style="{ background: cfDialog.fmtBg || '#ffffff' }"
+                      ></span>
+                    </button>
+                  </template>
+                </ColorPicker>
+                <span class="sn-cf-fmt-label">Apply to range: {{ cfRangeLabel }}</span>
+              </div>
+            </template>
+
+            <!-- Colour scale: 2- or 3-stop gradient mapped across the range's min/max. -->
+            <template v-else-if="cfDialog.kind === 'color-scale'">
+              <FormControl
+                type="select"
+                label="Variant"
+                v-model="cfDialog.scaleVariant"
+                :options="CF_SCALE_VARIANT_OPTIONS"
+              />
+              <div class="sn-cf-scale">
+                <div class="sn-cf-stop">
+                  <span>Min</span>
+                  <ColorPicker
+                    v-model="cfDialog.scaleMin"
+                    title="Min colour"
+                    :fallback="cfDialog.scaleMin"
+                  />
+                </div>
+                <div v-if="cfDialog.scaleVariant === '3color'" class="sn-cf-stop">
+                  <span>Mid</span>
+                  <ColorPicker
+                    v-model="cfDialog.scaleMid"
+                    title="Mid colour"
+                    :fallback="cfDialog.scaleMid"
+                  />
+                </div>
+                <div class="sn-cf-stop">
+                  <span>Max</span>
+                  <ColorPicker
+                    v-model="cfDialog.scaleMax"
+                    title="Max colour"
+                    :fallback="cfDialog.scaleMax"
+                  />
+                </div>
+              </div>
+              <div
+                class="sn-cf-scale-preview"
+                :style="{ background: cfDialog.scaleVariant === '3color'
                 ? `linear-gradient(90deg, ${cfDialog.scaleMin}, ${cfDialog.scaleMid}, ${cfDialog.scaleMax})`
                 : `linear-gradient(90deg, ${cfDialog.scaleMin}, ${cfDialog.scaleMax})` }"
-            />
-            <span class="sn-cf-fmt-label">Apply to range: {{ cfRangeLabel }}</span>
-          </template>
+              />
+              <span class="sn-cf-fmt-label">Apply to range: {{ cfRangeLabel }}</span>
+            </template>
 
-          <!-- Data bars: horizontal bar inside each cell, proportional to value. -->
-          <template v-else-if="cfDialog.kind === 'data-bar'">
-            <div class="sn-cf-stop">
-              <span>Bar colour</span>
-              <ColorPicker v-model="cfDialog.barColor" title="Bar colour" :fallback="cfDialog.barColor" />
-            </div>
-            <div class="sn-cf-bar-preview">
-              <div class="sn-cf-bar-row" v-for="t in [0.25, 0.5, 0.85]" :key="t">
-                <div class="sn-cf-bar-fill" :style="{ width: (t * 100) + '%', background: cfDialog.barColor }" />
+            <!-- Data bars: horizontal bar inside each cell, proportional to value. -->
+            <template v-else-if="cfDialog.kind === 'data-bar'">
+              <div class="sn-cf-stop">
+                <span>Bar colour</span>
+                <ColorPicker
+                  v-model="cfDialog.barColor"
+                  title="Bar colour"
+                  :fallback="cfDialog.barColor"
+                />
               </div>
-            </div>
-            <span class="sn-cf-fmt-label">Apply to range: {{ cfRangeLabel }}</span>
-          </template>
+              <div class="sn-cf-bar-preview">
+                <div class="sn-cf-bar-row" v-for="t in [0.25, 0.5, 0.85]" :key="t">
+                  <div
+                    class="sn-cf-bar-fill"
+                    :style="{ width: (t * 100) + '%', background: cfDialog.barColor }"
+                  />
+                </div>
+              </div>
+              <span class="sn-cf-fmt-label">Apply to range: {{ cfRangeLabel }}</span>
+            </template>
 
-          <!-- Icon sets: small icons at the start of each cell based on bucket. -->
-          <template v-else-if="cfDialog.kind === 'icon-set'">
-            <FormControl type="select" label="Icon set" v-model="cfDialog.iconSet" :options="CF_ICON_SET_OPTIONS" />
-            <span class="sn-cf-fmt-label">Apply to range: {{ cfRangeLabel }}</span>
-            <p class="sn-cf-hint">Values are split into three equal buckets across the range.</p>
-          </template>
-        </div>
-      </template>
-      <template #actions>
-        <div class="flex flex-row-reverse gap-2">
-          <Button variant="solid" @click="saveCfRule">Apply</Button>
-          <Button v-if="cfDialog.editId !== null" theme="red" @click="deleteCfRule">Delete</Button>
-          <Button @click="cfDialog.open = false">Cancel</Button>
-        </div>
-      </template>
-    </Dialog>
-
+            <!-- Icon sets: small icons at the start of each cell based on bucket. -->
+            <template v-else-if="cfDialog.kind === 'icon-set'">
+              <FormControl
+                type="select"
+                label="Icon set"
+                v-model="cfDialog.iconSet"
+                :options="CF_ICON_SET_OPTIONS"
+              />
+              <span class="sn-cf-fmt-label">Apply to range: {{ cfRangeLabel }}</span>
+              <p class="sn-cf-hint">Values are split into three equal buckets across the range.</p>
+            </template>
+          </div>
+        </template>
+        <template #actions>
+          <div class="flex flex-row-reverse gap-2">
+            <Button variant="solid" @click="saveCfRule">Apply</Button>
+            <Button v-if="cfDialog.editId !== null" theme="red" @click="deleteCfRule"
+              >Delete</Button
+            >
+            <Button @click="cfDialog.open = false">Cancel</Button>
+          </div>
+        </template>
+      </Dialog>
     </template>
   </div>
 </template>
@@ -5553,220 +6219,630 @@ function toggleShowFormulas() {
    (--surface-*, --outline-*, --ink-*). No raw Tailwind hexes. */
 
 /* ── Root layout ─────────────────────────────────────────────────────────── */
-.sn-root { display:flex; flex-direction:column; height:100vh; overflow:hidden; background:var(--surface-base); font-family:InterVar, ui-sans-serif, system-ui, sans-serif; color:var(--ink-gray-9); }
+.sn-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--surface-base);
+  font-family: InterVar, ui-sans-serif, system-ui, sans-serif;
+  color: var(--ink-gray-9);
+}
 
 /* ── Canvas loading overlay ──────────────────────────────────────────────── */
 /* Sits inside .sn-grid-wrap. The canvas is mounted underneath (the grid
    engine needs the canvas ref to wire up before loadSheet returns), so
    this is a translucent veil that fades when isInitialLoad flips. */
 .sn-canvas-loading {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--surface-base);
   z-index: 1;
-  pointer-events: none;   /* don't intercept clicks if it lingers a frame */
+  pointer-events: none; /* don't intercept clicks if it lingers a frame */
 }
-.sn-canvas-loading-spinner { color: var(--ink-gray-5); }
+.sn-canvas-loading-spinner {
+  color: var(--ink-gray-5);
+}
 .sn-pivot-building {
-  position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
-  display: flex; align-items: center; gap: 8px;
-  padding: 6px 14px; border-radius: 999px;
-  background: var(--surface-base); border: 1px solid var(--outline-gray-2);
-  box-shadow: 0 2px 8px rgba(0,0,0,.08);
-  font-size: 13px; color: var(--ink-gray-7);
-  z-index: 5; pointer-events: none;
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--surface-base);
+  border: 1px solid var(--outline-gray-2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  font-size: 13px;
+  color: var(--ink-gray-7);
+  z-index: 5;
+  pointer-events: none;
 }
 
 /* ── Load-time error state ───────────────────────────────────────────────── */
 .sn-load-error {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 12px; padding: 24px; text-align: center;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
 }
-.sn-load-error-icon  { line-height: 0; margin-bottom: 4px; }
-.sn-load-error-title { font-size: 16px; font-weight: 600; color: var(--ink-gray-9); margin: 0; }
-.sn-load-error-sub   { font-size: 13px; color: var(--ink-gray-6); margin: 0 0 8px; max-width: 360px; }
+.sn-load-error-icon {
+  line-height: 0;
+  margin-bottom: 4px;
+}
+.sn-load-error-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink-gray-9);
+  margin: 0;
+}
+.sn-load-error-sub {
+  font-size: 13px;
+  color: var(--ink-gray-6);
+  margin: 0 0 8px;
+  max-width: 360px;
+}
 
 /* ── Bar 1 · Identity / topbar ───────────────────────────────────────────── */
-.sn-topbar       { display:flex; align-items:center; justify-content:space-between; height:48px; padding:0 16px; border-bottom:1px solid var(--outline-gray-2); background:var(--surface-base); flex-shrink:0; }
+.sn-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--outline-gray-2);
+  background: var(--surface-base);
+  flex-shrink: 0;
+}
 /* Left cluster groups: brand+title tight (gap:4); status chips sit further away
    (gap:12) so the title reads as the focal point, not crowded by badges. */
-.sn-topbar-left  { display:flex; align-items:center; gap:8px; min-width:0; }
-.sn-topbar-left  > .sn-app-icon-btn + .sn-title-input { margin-left:-8px; }
-.sn-topbar-right { display:flex; align-items:center; gap:6px; flex-shrink:0; }
-
-.sn-app-icon { width:28px; height:28px; flex-shrink:0; display:block; }
-.sn-app-icon-btn {
-  display:inline-flex; align-items:center; justify-content:center;
-  width:36px; height:36px; padding:4px; margin:0; border:none; background:transparent; cursor:pointer;
-  border-radius:8px; transition:background-color .12s;
+.sn-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
-.sn-app-icon-btn:hover  { background:var(--surface-gray-2); }
-.sn-app-icon-btn:focus-visible { outline:2px solid var(--outline-gray-4); outline-offset:2px; }
+.sn-topbar-left > .sn-app-icon-btn + .sn-title-input {
+  margin-left: -8px;
+}
+.sn-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
 
-.sn-title-input { height:32px; border:1px solid transparent; border-radius:6px; padding:0 10px; font-size:15px; font-weight:600; color:var(--ink-gray-9); background:transparent; outline:none; font-family:inherit; letter-spacing:-.005em; transition:background-color .12s, border-color .12s, width .1s; }
+.sn-app-icon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: block;
+}
+.sn-app-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 4px;
+  margin: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.12s;
+}
+.sn-app-icon-btn:hover {
+  background: var(--surface-gray-2);
+}
+.sn-app-icon-btn:focus-visible {
+  outline: 2px solid var(--outline-gray-4);
+  outline-offset: 2px;
+}
 
-.sn-title-input:hover { background:var(--surface-gray-2); }
-.sn-title-input:focus { border-color:var(--outline-gray-4); background:var(--surface-base); box-shadow:0 0 0 2px rgba(23,23,23,.10); }
+.sn-title-input {
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-gray-9);
+  background: transparent;
+  outline: none;
+  font-family: inherit;
+  letter-spacing: -0.005em;
+  transition:
+    background-color 0.12s,
+    border-color 0.12s,
+    width 0.1s;
+}
+
+.sn-title-input:hover {
+  background: var(--surface-gray-2);
+}
+.sn-title-input:focus {
+  border-color: var(--outline-gray-4);
+  background: var(--surface-base);
+  box-shadow: 0 0 0 2px rgba(23, 23, 23, 0.1);
+}
 
 /* Hairline between action buttons and avatar — groups the cluster without
    relying on extra padding. */
-.sn-topbar-divider { width:1px; height:20px; background:var(--outline-gray-2); margin:0 4px; flex-shrink:0; }
+.sn-topbar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--outline-gray-2);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
 /* Notes count badge — workbook-wide teal badge on the notes icon. */
-.sn-notes-btn-wrap { position:relative; display:inline-flex; }
+.sn-notes-btn-wrap {
+  position: relative;
+  display: inline-flex;
+}
 .sn-notes-badge {
-  position:absolute; top:-3px; right:-3px; box-sizing:border-box;
-  min-width:15px; height:15px; padding:0 3px;
-  display:flex; align-items:center; justify-content:center;
-  font-size:9px; font-weight:600; line-height:1; color:#fff;
-  background:#0d7490; border-radius:999px; border:1.5px solid var(--surface-base);
-  pointer-events:none;
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  box-sizing: border-box;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1;
+  color: #fff;
+  background: #0d7490;
+  border-radius: 999px;
+  border: 1.5px solid var(--surface-base);
+  pointer-events: none;
 }
 
 /* Brand-coloured current-user avatar. Avatar's inner label uses
    `bg-surface-gray-2 text-ink-gray-5` by default — we override both so the
    chip reads as "you" against the otherwise-neutral topbar. Scoped styles
    need `:deep()` to reach into frappe-ui's component internals. */
-.sn-user-avatar :deep(div) { background: #0D7490 !important; color: #FFFFFF !important; }
+.sn-user-avatar :deep(div) {
+  background: #0d7490 !important;
+  color: #ffffff !important;
+}
 
 /* Presence avatars — stacked/overlapping, each with a white ring so they
    visually separate even when colors are similar. */
-.sn-presence { display:inline-flex; align-items:center; }
+.sn-presence {
+  display: inline-flex;
+  align-items: center;
+}
 .sn-presence-avatar {
-  margin-left:-6px; border-radius:50%;
+  margin-left: -6px;
+  border-radius: 50%;
   /* Outer ring = surface bg so the stack reads as overlapping pebbles;
      inner ring = the peer's cursor color so the avatar matches their
      cursor outline at a glance. `box-shadow` stacks two rings without
      pushing layout. */
-  box-shadow: 0 0 0 2px var(--surface-base),
-              0 0 0 4px var(--rc, var(--outline-gray-2));
+  box-shadow:
+    0 0 0 2px var(--surface-base),
+    0 0 0 4px var(--rc, var(--outline-gray-2));
 }
-.sn-presence-avatar:first-child { margin-left:0; }
+.sn-presence-avatar:first-child {
+  margin-left: 0;
+}
 .sn-presence-more {
-  display:inline-flex; align-items:center; justify-content:center;
-  width:26px; height:26px; border-radius:50%;
-  background:var(--surface-gray-3); border:2px solid var(--surface-base);
-  margin-left:-6px; font-size:10px; font-weight:600; color:var(--ink-gray-7);
-  flex-shrink:0; cursor:default;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--surface-gray-3);
+  border: 2px solid var(--surface-base);
+  margin-left: -6px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ink-gray-7);
+  flex-shrink: 0;
+  cursor: default;
 }
 
 /* Save status — small muted text, Espresso ink-gray-5.  Sits quietly next to
    the title; never competes for attention. */
-.sn-save-status { display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:400; letter-spacing:.01em; color:var(--ink-gray-5); white-space:nowrap; user-select:none; }
-.sn-save-icon   { width:12px; height:12px; flex-shrink:0; }
-@keyframes sn-spin { to { transform:rotate(360deg); } }
-.sn-save-spin   { animation:sn-spin .9s linear infinite; }
+.sn-save-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: var(--ink-gray-5);
+  white-space: nowrap;
+  user-select: none;
+}
+.sn-save-icon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+@keyframes sn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.sn-save-spin {
+  animation: sn-spin 0.9s linear infinite;
+}
 
 /* ── Pivot FAB ── */
 .sn-pivot-fab {
-  position: absolute; z-index: 20;
-  width: 28px; height: 28px; border-radius: 50%;
+  position: absolute;
+  z-index: 20;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
   background: var(--surface-base);
   border: 1px solid var(--outline-gray-2);
-  box-shadow: 0 2px 8px rgba(0,0,0,.12);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; color: var(--ink-gray-6);
-  transition: background .1s, color .1s, box-shadow .1s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ink-gray-6);
+  transition:
+    background 0.1s,
+    color 0.1s,
+    box-shadow 0.1s;
 }
-.sn-pivot-fab:hover, .sn-pivot-fab.open {
+.sn-pivot-fab:hover,
+.sn-pivot-fab.open {
   background: var(--surface-gray-1);
   color: var(--ink-gray-9);
-  box-shadow: 0 3px 12px rgba(0,0,0,.16);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.16);
 }
-.sn-pivot-fab-icon { width: 13px; height: 13px; }
+.sn-pivot-fab-icon {
+  width: 13px;
+  height: 13px;
+}
 
 /* Pivot highlight overlay — neutral outline drawn over the pivot output
    range, matching the rest of the espresso chrome (ink-gray scale rather
    than a saturated brand colour). pointer-events:none keeps clicks
    reaching the canvas underneath. */
 .sn-pivot-highlight {
-  position: absolute; z-index: 15; pointer-events: none;
+  position: absolute;
+  z-index: 15;
+  pointer-events: none;
   border: 1.5px solid var(--ink-gray-8);
   border-radius: 2px;
 }
 
 /* ── Bar 2 · Formula bar ─────────────────────────────────────────────────── */
 
-.sn-formula-bar   { display:flex; align-items:center; height:48px; padding:0 16px; border-bottom:1px solid var(--outline-gray-2); gap:8px; flex-shrink:0; background:var(--surface-base); }
+.sn-formula-bar {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--outline-gray-2);
+  gap: 8px;
+  flex-shrink: 0;
+  background: var(--surface-base);
+}
 /* Cell address tag */
-.sn-cell-ref      { box-sizing:border-box; min-width:50px; padding:0 8px; flex-shrink:0; text-align:center; font-size:12px; font-weight:600; letter-spacing:.04em; color:var(--ink-gray-7); background:var(--surface-base); border:1px solid var(--outline-gray-2); border-radius:6px; height:30px; line-height:1; display:flex; align-items:center; justify-content:center; font-variant-numeric:tabular-nums; font-family:ui-monospace, "SF Mono", Menlo, Consolas, monospace; cursor:default; user-select:none; transition:border-color .12s, background-color .12s; }
-.sn-cell-ref:hover { border-color:var(--outline-gray-3); background:var(--surface-gray-3); }
+.sn-cell-ref {
+  box-sizing: border-box;
+  min-width: 50px;
+  padding: 0 8px;
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink-gray-7);
+  background: var(--surface-base);
+  border: 1px solid var(--outline-gray-2);
+  border-radius: 6px;
+  height: 30px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  cursor: default;
+  user-select: none;
+  transition:
+    border-color 0.12s,
+    background-color 0.12s;
+}
+.sn-cell-ref:hover {
+  border-color: var(--outline-gray-3);
+  background: var(--surface-gray-3);
+}
 /* "fx" delimiter */
-.sn-fx-label      { font-size:14px; font-style:italic; font-weight:500; color:var(--ink-gray-4); letter-spacing:.02em; flex-shrink:0; padding:0 6px 0 2px; user-select:none; font-family:ui-serif, Georgia, "Times New Roman", serif; }
-.sn-formula-wrap  { position:relative; flex:1; display:flex; }
-.sn-formula-wrap .sn-formula-input { flex:1; }
-.sn-formula-input { box-sizing:border-box; width:100%; height:30px; line-height:1; border-radius:6px; outline:none; padding:0 10px; font-size:13px; color:var(--ink-gray-8); background:var(--surface-base); border:1px solid var(--outline-gray-2); font-family:'Fira Code', ui-monospace, 'SF Mono', Menlo, Consolas, monospace; letter-spacing:.005em; transition:background-color .15s, border-color .15s, box-shadow .15s; }
-.sn-formula-input::placeholder { color:var(--ink-gray-3); font-style:italic; font-family:inherit; }
-.sn-formula-input:hover { background:var(--surface-gray-3); border-color:var(--outline-gray-3); }
-.sn-formula-input:focus { border-color:var(--outline-gray-4); background:var(--surface-base); box-shadow:0 0 0 2px rgba(23,23,23,.08); }
-.sn-fbar-actions  { display:flex; align-items:center; gap:6px; flex-shrink:0; margin-left:4px; }
+.sn-fx-label {
+  font-size: 14px;
+  font-style: italic;
+  font-weight: 500;
+  color: var(--ink-gray-4);
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+  padding: 0 6px 0 2px;
+  user-select: none;
+  font-family: ui-serif, Georgia, "Times New Roman", serif;
+}
+.sn-formula-wrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+}
+.sn-formula-wrap .sn-formula-input {
+  flex: 1;
+}
+.sn-formula-input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 30px;
+  line-height: 1;
+  border-radius: 6px;
+  outline: none;
+  padding: 0 10px;
+  font-size: 13px;
+  color: var(--ink-gray-8);
+  background: var(--surface-base);
+  border: 1px solid var(--outline-gray-2);
+  font-family: "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  letter-spacing: 0.005em;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.sn-formula-input::placeholder {
+  color: var(--ink-gray-3);
+  font-style: italic;
+  font-family: inherit;
+}
+.sn-formula-input:hover {
+  background: var(--surface-gray-3);
+  border-color: var(--outline-gray-3);
+}
+.sn-formula-input:focus {
+  border-color: var(--outline-gray-4);
+  background: var(--surface-base);
+  box-shadow: 0 0 0 2px rgba(23, 23, 23, 0.08);
+}
+.sn-fbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
 
 /* Formula autocomplete — Frappe UI Autocomplete is form-field oriented, so the inline popover is bespoke but uses Espresso surfaces. */
-.sn-ac-list       { position:absolute; top:calc(100% + 4px); bottom:auto; left:0; right:0; background:var(--surface-elevation-2); border:1px solid var(--outline-gray-2); border-radius:8px; box-shadow:0 0 1px rgba(0,0,0,.35), 0 6px 8px -4px rgba(0,0,0,.1); z-index:300; max-height:240px; overflow-y:auto; padding:4px; }
-.sn-ac-list--up   { top:auto; bottom:calc(100% + 4px); }
-.sn-ac-item  { display:flex; align-items:baseline; gap:10px; padding:6px 10px; cursor:pointer; white-space:nowrap; border-radius:4px; }
-.sn-ac-item:hover, .sn-ac-item.active { background:var(--surface-gray-2); }
-.sn-ac-name  { font-weight:600; font-size:13px; color:var(--ink-gray-9); min-width:90px; letter-spacing:.02em; }
-.sn-ac-sig   { font-size:11px; color:var(--ink-gray-5); letter-spacing:.01em; }
-.sn-ac-badge { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-cyan-6, #0891b2); background:var(--surface-cyan-1, #ecfeff); border-radius:3px; padding:1px 5px; }
+.sn-ac-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  bottom: auto;
+  left: 0;
+  right: 0;
+  background: var(--surface-elevation-2);
+  border: 1px solid var(--outline-gray-2);
+  border-radius: 8px;
+  box-shadow:
+    0 0 1px rgba(0, 0, 0, 0.35),
+    0 6px 8px -4px rgba(0, 0, 0, 0.1);
+  z-index: 300;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 4px;
+}
+.sn-ac-list--up {
+  top: auto;
+  bottom: calc(100% + 4px);
+}
+.sn-ac-item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 6px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  border-radius: 4px;
+}
+.sn-ac-item:hover,
+.sn-ac-item.active {
+  background: var(--surface-gray-2);
+}
+.sn-ac-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--ink-gray-9);
+  min-width: 90px;
+  letter-spacing: 0.02em;
+}
+.sn-ac-sig {
+  font-size: 11px;
+  color: var(--ink-gray-5);
+  letter-spacing: 0.01em;
+}
+.sn-ac-badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-cyan-6, #0891b2);
+  background: var(--surface-cyan-1, #ecfeff);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
 /* Validation dialog two-column value row */
-.sn-vd-vals  { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.sn-vd-vals {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
 
 /* ── Bar 3 · Formatting toolbar ──────────────────────────────────────────── */
-.sn-toolbar { display:flex; align-items:center; gap:2px; height:44px; padding:0 15px; border-bottom:1px solid var(--outline-gray-2); background:var(--surface-base); flex-shrink:0; }
-.sn-toolbar :deep(.fui-form-control) { width:auto; }
-.sn-toolbar :deep(select) { min-width:118px; }
+.sn-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 44px;
+  padding: 0 15px;
+  border-bottom: 1px solid var(--outline-gray-2);
+  background: var(--surface-base);
+  flex-shrink: 0;
+}
+.sn-toolbar :deep(.fui-form-control) {
+  width: auto;
+}
+.sn-toolbar :deep(select) {
+  min-width: 118px;
+}
 /* Font family dropdown — uses a Button trigger that hugs the short label. */
-.sn-font-family :deep(button) { padding-left:6px; padding-right:4px; gap:2px; }
+.sn-font-family :deep(button) {
+  padding-left: 6px;
+  padding-right: 4px;
+  gap: 2px;
+}
 
-.sn-font-size-input { width:52px; margin:0 2px; }
-.sn-font-size-input :deep(input) { text-align:center; font-variant-numeric:tabular-nums; -moz-appearance:textfield; }
+.sn-font-size-input {
+  width: 52px;
+  margin: 0 2px;
+}
+.sn-font-size-input :deep(input) {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+}
 .sn-font-size-input :deep(input::-webkit-outer-spin-button),
-.sn-font-size-input :deep(input::-webkit-inner-spin-button) { -webkit-appearance:none; margin:0; }
-.sn-vr  { width:1px; height:18px; background:var(--outline-gray-2); margin:0 6px; flex-shrink:0; }
+.sn-font-size-input :deep(input::-webkit-inner-spin-button) {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.sn-vr {
+  width: 1px;
+  height: 18px;
+  background: var(--outline-gray-2);
+  margin: 0 6px;
+  flex-shrink: 0;
+}
 
 /* Active-format pip — toolbar buttons (Bold / Italic / Underline /
    Strikethrough) flip from the default subtle gray to brand cyan-50 when
    their format is applied on the selected cell. Same hex as the active
    selection wash, so the eye learns "cyan = applied here". */
 .sn-fmt-active :deep(button) {
-  background: #ECF8FB !important;
-  color: #0D7490 !important;
+  background: #ecf8fb !important;
+  color: #0d7490 !important;
 }
 .sn-fmt-active :deep(button:hover) {
-  background: #D8F1F6 !important;
+  background: #d8f1f6 !important;
 }
 
 /* Toolbar overflow — `.sn-tool-extra` groups stay inline at wide widths;
    collapse below 1280px into the `.sn-tool-more` "…" dropdown. Using
    `display:contents` on the wrappers means the buttons participate in the
    parent flex layout when shown, with zero visual nesting. */
-.sn-tool-extra { display: contents; }
-.sn-tool-more  { display: none; margin-left: auto; }
+.sn-tool-extra {
+  display: contents;
+}
+.sn-tool-more {
+  display: none;
+  margin-left: auto;
+}
 @media (max-width: 1280px) {
-  .sn-tool-extra { display: none; }
-  .sn-tool-more  { display: inline-flex; }
+  .sn-tool-extra {
+    display: none;
+  }
+  .sn-tool-more {
+    display: inline-flex;
+  }
 }
 
 /* Color-picker trigger buttons (FeatherIcon glyph above a colored underline).
    These open the ColorPicker popover; the swatch grid + hex + custom live there. */
-.sn-swatch-btn { position:relative; height:28px; width:28px; border-radius:6px; display:inline-flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; border:1px solid transparent; gap:1px; transition:background-color .12s; background:transparent; padding:0; }
-.sn-swatch-btn:hover, .sn-swatch-btn.is-open { background:var(--surface-gray-3); }
-.sn-swatch-glyph     { width:14px; height:14px; color:var(--ink-gray-8); pointer-events:none; }
-.sn-merge-glyph      { width:16px; height:16px; color:currentColor; pointer-events:none; }
-.sn-swatch-underline { width:16px; height:3px; border-radius:1px; pointer-events:none; }
-.sn-swatch-fill      { border:1px solid var(--outline-gray-2); }
+.sn-swatch-btn {
+  position: relative;
+  height: 28px;
+  width: 28px;
+  border-radius: 6px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid transparent;
+  gap: 1px;
+  transition: background-color 0.12s;
+  background: transparent;
+  padding: 0;
+}
+.sn-swatch-btn:hover,
+.sn-swatch-btn.is-open {
+  background: var(--surface-gray-3);
+}
+.sn-swatch-glyph {
+  width: 14px;
+  height: 14px;
+  color: var(--ink-gray-8);
+  pointer-events: none;
+}
+.sn-merge-glyph {
+  width: 16px;
+  height: 16px;
+  color: currentColor;
+  pointer-events: none;
+}
+.sn-swatch-underline {
+  width: 16px;
+  height: 3px;
+  border-radius: 1px;
+  pointer-events: none;
+}
+.sn-swatch-fill {
+  border: 1px solid var(--outline-gray-2);
+}
 
 /* ── Canvas grid ─────────────────────────────────────────────────────────── */
-.sn-grid-wrap        { flex:1; overflow:hidden; position:relative; background:var(--surface-base); }
-.sn-grid-wrap canvas { display:block; outline:none; }
+.sn-grid-wrap {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  background: var(--surface-base);
+}
+.sn-grid-wrap canvas {
+  display: block;
+  outline: none;
+}
 
-.sn-painting-format canvas { cursor: crosshair; }
+.sn-painting-format canvas {
+  cursor: crosshair;
+}
 /* Lock canvas interactions while a past version is being previewed.  The
    side panel + banner stay clickable because they live inside the same
    wrap but are absolutely positioned with pointer-events: auto restored. */
-.sn-preview-locked canvas { pointer-events: none; opacity: 0.95; }
-.sn-preview-locked .sn-vh-panel { pointer-events: auto; }
+.sn-preview-locked canvas {
+  pointer-events: none;
+  opacity: 0.95;
+}
+.sn-preview-locked .sn-vh-panel {
+  pointer-events: auto;
+}
 
 /* ── Filter overlay (chevrons sit on row 0 of data — the user's header row) ── */
 /* Covers the full canvas; button positions come from grid.colX() which already
@@ -5775,11 +6851,45 @@ function toggleShowFormulas() {
    ROW_HEADER_W) AND the column-header strip on top (24px = COL_HEADER_H);
    without the top inset, the chevrons follow row 0 up over A/B/C/D when
    the user scrolls past the header row. */
-.sn-filter-overlay { position:absolute; inset:0; pointer-events:none; overflow:hidden; clip-path:inset(24px 0 0 50px); }
-.sn-filter-btn     { position:absolute; border:1px solid var(--outline-gray-2); border-radius:4px; background:rgba(255,255,255,.92); cursor:pointer; pointer-events:all; padding:0; display:flex; align-items:center; justify-content:center; color:var(--ink-gray-7); box-shadow:0 1px 2px rgba(0,0,0,.05); transition:background-color .12s, border-color .12s, color .12s; }
-.sn-filter-btn:hover  { background:var(--surface-base); border-color:var(--outline-gray-4); color:var(--ink-gray-9); }
-.sn-filter-btn.active { background:var(--surface-gray-4); border-color:var(--outline-gray-4); color:var(--ink-gray-9); }
-.sn-filter-btn-icon   { width:12px; height:12px; }
+.sn-filter-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  clip-path: inset(24px 0 0 50px);
+}
+.sn-filter-btn {
+  position: absolute;
+  border: 1px solid var(--outline-gray-2);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.92);
+  cursor: pointer;
+  pointer-events: all;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-gray-7);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition:
+    background-color 0.12s,
+    border-color 0.12s,
+    color 0.12s;
+}
+.sn-filter-btn:hover {
+  background: var(--surface-base);
+  border-color: var(--outline-gray-4);
+  color: var(--ink-gray-9);
+}
+.sn-filter-btn.active {
+  background: var(--surface-gray-4);
+  border-color: var(--outline-gray-4);
+  color: var(--ink-gray-9);
+}
+.sn-filter-btn-icon {
+  width: 12px;
+  height: 12px;
+}
 
 /* Remote selection rectangle — solid 2px border in the peer's hashed
    colour plus a soft fill so multi-cell ranges read as a region, not just
@@ -5787,93 +6897,227 @@ function toggleShowFormulas() {
    that don't support it (all evergreen browsers do, and we use Chromium /
    WebKit / Firefox latest). */
 .sn-remote-cursor {
-  position:absolute; pointer-events:none; box-sizing:border-box;
-  border:2px solid var(--rc);
+  position: absolute;
+  pointer-events: none;
+  box-sizing: border-box;
+  border: 2px solid var(--rc);
   background: color-mix(in srgb, var(--rc) 10%, transparent);
   /* Default: no animation. The class below opts in for one paint cycle
      when the peer actually changes cells (vs. local scroll). */
   transition: none;
 }
 .sn-remote-cursor--moved {
-  transition: left .12s ease-out, top .12s ease-out,
-              width .12s ease-out, height .12s ease-out;
+  transition:
+    left 0.12s ease-out,
+    top 0.12s ease-out,
+    width 0.12s ease-out,
+    height 0.12s ease-out;
 }
 .sn-remote-cursor-label {
-  position:absolute; top:-18px; left:-1px;
-  background:var(--rc); color:var(--surface-base);
-  font-size:10px; font-weight:600;
-  padding:1px 5px; border-radius:3px 3px 3px 0;
-  white-space:nowrap; line-height:16px;
-  max-width:140px; overflow:hidden; text-overflow:ellipsis;
+  position: absolute;
+  top: -18px;
+  left: -1px;
+  background: var(--rc);
+  color: var(--surface-base);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 3px 3px 3px 0;
+  white-space: nowrap;
+  line-height: 16px;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.sn-filter-panel { position:absolute; z-index:100; background:var(--surface-elevation-2); border:1px solid var(--outline-elevation-2); border-radius:10px; box-shadow:0 0 1px rgba(0,0,0,.35), 0 6px 8px -4px rgba(0,0,0,.1); padding:12px; width:260px; display:flex; flex-direction:column; gap:8px; }
-.sn-fp-title   { font-size:12px; font-weight:600; letter-spacing:.02em; color:var(--ink-gray-8); padding-bottom:2px; }
-.sn-fp-row     { display:flex; gap:4px; }
-.sn-fp-mode    { display:flex; gap:2px; padding:2px; border:1px solid var(--outline-gray-2); border-radius:8px; background:var(--surface-base); }
-.sn-fp-actions { display:flex; gap:4px; padding-top:2px; }
-.sn-fp-grow    { flex:1; }
+.sn-filter-panel {
+  position: absolute;
+  z-index: 100;
+  background: var(--surface-elevation-2);
+  border: 1px solid var(--outline-elevation-2);
+  border-radius: 10px;
+  box-shadow:
+    0 0 1px rgba(0, 0, 0, 0.35),
+    0 6px 8px -4px rgba(0, 0, 0, 0.1);
+  padding: 12px;
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sn-fp-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-gray-8);
+  padding-bottom: 2px;
+}
+.sn-fp-row {
+  display: flex;
+  gap: 4px;
+}
+.sn-fp-mode {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--outline-gray-2);
+  border-radius: 8px;
+  background: var(--surface-base);
+}
+.sn-fp-actions {
+  display: flex;
+  gap: 4px;
+  padding-top: 2px;
+}
+.sn-fp-grow {
+  flex: 1;
+}
 
 /* "Filter by values" mode — every interactive element is a Frappe UI primitive
    (Button, Checkbox, FormControl), so the per-class rules here only handle
    layout and the value-list row chrome. */
-.sn-fp-vlinks         { display:flex; align-items:center; gap:2px; }
-.sn-fp-count          { margin-left:auto; font-size:11px; letter-spacing:.02em; color:var(--ink-gray-5); }
-.sn-fp-search-icon    { width:13px; height:13px; color:var(--ink-gray-5); }
-.sn-fp-values         { max-height:200px; overflow-y:auto; border:1px solid var(--outline-gray-2); border-radius:8px; padding:4px 0; background:var(--surface-base); }
-.sn-fp-value-row      { display:flex; align-items:center; gap:8px; padding:5px 10px; cursor:pointer; font-size:13px; letter-spacing:.01em; color:var(--ink-gray-8); }
-.sn-fp-value-row:hover { background:var(--surface-gray-2); }
-.sn-fp-value-text     { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.sn-fp-empty          { padding:12px 10px; font-size:12px; color:var(--ink-gray-5); text-align:center; }
+.sn-fp-vlinks {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.sn-fp-count {
+  margin-left: auto;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--ink-gray-5);
+}
+.sn-fp-search-icon {
+  width: 13px;
+  height: 13px;
+  color: var(--ink-gray-5);
+}
+.sn-fp-values {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--outline-gray-2);
+  border-radius: 8px;
+  padding: 4px 0;
+  background: var(--surface-base);
+}
+.sn-fp-value-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  color: var(--ink-gray-8);
+}
+.sn-fp-value-row:hover {
+  background: var(--surface-gray-2);
+}
+.sn-fp-value-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sn-fp-empty {
+  padding: 12px 10px;
+  font-size: 12px;
+  color: var(--ink-gray-5);
+  text-align: center;
+}
 
 /* ── Bottom · tabs + stats ───────────────────────────────────────────────── */
-.sn-bottom { display:flex; align-items:stretch; height:36px; border-top:1px solid var(--outline-gray-2); background:var(--surface-sidebar); flex-shrink:0; overflow:hidden; }
+.sn-bottom {
+  display: flex;
+  align-items: stretch;
+  height: 36px;
+  border-top: 1px solid var(--outline-gray-2);
+  background: var(--surface-sidebar);
+  flex-shrink: 0;
+  overflow: hidden;
+}
 
 .sn-tabs-track {
-  display:flex; align-items:stretch; flex:1; gap:0;
-  overflow-x:auto; overflow-y:hidden;
-  scrollbar-width:none; padding:0 6px;
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+  gap: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  padding: 0 6px;
 }
-.sn-tabs-track::-webkit-scrollbar { display:none; }
+.sn-tabs-track::-webkit-scrollbar {
+  display: none;
+}
 
 .sn-tab {
-  display:inline-flex; align-items:center; flex-shrink:0;
-  position:relative; cursor:grab;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  position: relative;
+  cursor: grab;
   /* The tab itself owns the pill background so label + chevron merge
      into a single visual unit — no inter-button seam, no double-pill
      look. The inner Buttons are transparent and rely on this wrapper
      for their background. */
-  border-radius:6px;
-  transition:background-color .12s;
+  border-radius: 6px;
+  transition: background-color 0.12s;
 }
-.sn-tab:active { cursor:grabbing; }
-.sn-tab:hover  { background:var(--surface-gray-2); }
+.sn-tab:active {
+  cursor: grabbing;
+}
+.sn-tab:hover {
+  background: var(--surface-gray-2);
+}
 .sn-tab--active,
-.sn-tab--active:hover { background:var(--surface-gray-3); }
+.sn-tab--active:hover {
+  background: var(--surface-gray-3);
+}
 
 /* Active indicator: 2px line at the bottom */
 .sn-tab--active::after {
-  content:''; position:absolute; bottom:-2px; left:6px; right:6px;
-  height:2px; background:var(--ink-gray-9); border-radius:1px 1px 0 0;
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 6px;
+  right: 6px;
+  height: 2px;
+  background: var(--ink-gray-9);
+  border-radius: 1px 1px 0 0;
 }
-.sn-tab--pivot.sn-tab--active::after { background:var(--ink-cyan-7, #0e7490); }
+.sn-tab--pivot.sn-tab--active::after {
+  background: var(--ink-cyan-7, #0e7490);
+}
 
 /* Main label Button — transparent so the wrapper's pill shows through.
    No internal hover/active background; that lives on `.sn-tab` itself. */
-.sn-tab-btn { max-width:148px; }
+.sn-tab-btn {
+  max-width: 148px;
+}
 .sn-tab-btn :deep(button) {
-  font-size:12px; font-weight:400; color:var(--ink-gray-7);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--ink-gray-7);
   /* Tight right padding so the label flows directly into the chevron and
      the pair reads as one pill on every tab. */
-  padding:0 2px 0 8px; height:28px;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  max-width:148px; border-radius:0;
-  background:transparent !important;
+  padding: 0 2px 0 8px;
+  height: 28px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 148px;
+  border-radius: 0;
+  background: transparent !important;
 }
-.sn-tab--active .sn-tab-btn :deep(button) { font-weight:600; color:var(--ink-gray-9); }
+.sn-tab--active .sn-tab-btn :deep(button) {
+  font-weight: 600;
+  color: var(--ink-gray-9);
+}
 
 /* Pivot icon tint */
-.sn-tab--pivot .sn-tab-btn :deep(.icon) { color:var(--ink-cyan-7, #0e7490); }
+.sn-tab--pivot .sn-tab-btn :deep(.icon) {
+  color: var(--ink-cyan-7, #0e7490);
+}
 
 /* ── Per-tab peer dots ──────────────────────────────────────────────────
    One coloured circle per remote user currently looking at this tab.
@@ -5881,31 +7125,44 @@ function toggleShowFormulas() {
    active. Capped to 3 visible + "+N" overflow so a popular tab can't
    blow out the tabs track. */
 .sn-tab-peers {
-  display:inline-flex; align-items:center; gap:2px;
-  margin-right:6px; pointer-events:auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-right: 6px;
+  pointer-events: auto;
 }
 .sn-tab-peer-dot {
-  display:inline-block; width:7px; height:7px;
-  border-radius:50%; background:var(--rc);
-  box-shadow:0 0 0 1px var(--surface-base);
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--rc);
+  box-shadow: 0 0 0 1px var(--surface-base);
 }
 .sn-tab-peer-more {
-  font-size:9px; font-weight:600; color:var(--ink-gray-7);
-  margin-left:2px; line-height:1;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--ink-gray-7);
+  margin-left: 2px;
+  line-height: 1;
 }
 
 /* Chevron — sits flush against the label inside the same pill so the two
    read as one button. Slightly muted on inactive tabs, full ink on the
    active one (matches the label's color shift). */
 .sn-tab-chevron :deep(button) {
-  padding:0 6px 0 0;
-  height:28px;
-  border-radius:0;
-  background:transparent !important;
-  color:var(--ink-gray-5);
+  padding: 0 6px 0 0;
+  height: 28px;
+  border-radius: 0;
+  background: transparent !important;
+  color: var(--ink-gray-5);
 }
-.sn-tab-chevron :deep(button:hover) { color:var(--ink-gray-9); }
-.sn-tab--active .sn-tab-chevron :deep(button) { color:var(--ink-gray-8); }
+.sn-tab-chevron :deep(button:hover) {
+  color: var(--ink-gray-9);
+}
+.sn-tab--active .sn-tab-chevron :deep(button) {
+  color: var(--ink-gray-8);
+}
 
 /* Add-sheet button — pin its inner Button to the same 28px height as the
    tab labels and center within the track so the `+` sits on the same row
@@ -5913,122 +7170,541 @@ function toggleShowFormulas() {
 /* Pinned at the start of the bottom bar (outside the scroll track) so it's
    always reachable regardless of how many tabs there are. Full-height flex
    box keeps the 28px button optically centered against the tab labels. */
-.sn-tab-add { flex-shrink:0; display:flex; align-items:center; align-self:center; margin:0 8px 0 12px; padding-right:8px; border-right:1px solid var(--outline-gray-2); }
-.sn-tab-add :deep(button) { height:28px; width:28px; padding:0; display:inline-flex; align-items:center; justify-content:center; }
+.sn-tab-add {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  align-self: center;
+  margin: 0 8px 0 12px;
+  padding-right: 8px;
+  border-right: 1px solid var(--outline-gray-2);
+}
+.sn-tab-add :deep(button) {
+  height: 28px;
+  width: 28px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 /* Feather `plus` sits ~1px high inside its box; pull the glyph down so it
    lands on the same optical row as the tab labels' text. */
-.sn-tab-add :deep(svg) { display:block; position:relative; top:1px; }
-
-.sn-tab-drag-over::before {
-  content:''; position:absolute; left:0; top:6px; bottom:6px;
-  width:2px; background:var(--ink-gray-9); border-radius:1px;
+.sn-tab-add :deep(svg) {
+  display: block;
+  position: relative;
+  top: 1px;
 }
 
-.sn-stats { display:flex; align-items:center; gap:14px; padding:0 14px; font-size:11px; letter-spacing:.02em; color:var(--ink-gray-6); flex-shrink:0; white-space:nowrap; border-left:1px solid var(--outline-gray-2); height:100%; }
+.sn-tab-drag-over::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: var(--ink-gray-9);
+  border-radius: 1px;
+}
+
+.sn-stats {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 14px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--ink-gray-6);
+  flex-shrink: 0;
+  white-space: nowrap;
+  border-left: 1px solid var(--outline-gray-2);
+  height: 100%;
+}
 
 /* ── Right-click context menu (positioned at cursor; uses Frappe UI Buttons inside) ── */
-.sn-ctx-menu { position:fixed; z-index:9000; background:var(--surface-elevation-2); border:1px solid var(--outline-elevation-2); border-radius:10px; box-shadow:0 0 1px rgba(0,0,0,.35), 0 6px 8px -4px rgba(0,0,0,.1); padding:4px; min-width:208px; display:flex; flex-direction:column; gap:1px; overflow-y:auto; }
+.sn-ctx-menu {
+  position: fixed;
+  z-index: 9000;
+  background: var(--surface-elevation-2);
+  border: 1px solid var(--outline-elevation-2);
+  border-radius: 10px;
+  box-shadow:
+    0 0 1px rgba(0, 0, 0, 0.35),
+    0 6px 8px -4px rgba(0, 0, 0, 0.1);
+  padding: 4px;
+  min-width: 208px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow-y: auto;
+}
 /* Frappe UI Button defaults to `justify-content:center`. Override inside
    context menus so every row's icon sits at the same left padding and the
    labels line up regardless of length. */
-.sn-ctx-menu :deep(button) { width:100%; justify-content:flex-start; padding-left:10px; padding-right:10px; }
-.sn-ctx-sep { height:1px; background:var(--outline-gray-1); margin:4px 0; border:none; }
-.sn-rename-err { margin:6px 0 0; font-size:12px; color:var(--ink-red-6); letter-spacing:.02em; }
+.sn-ctx-menu :deep(button) {
+  width: 100%;
+  justify-content: flex-start;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.sn-ctx-sep {
+  height: 1px;
+  background: var(--outline-gray-1);
+  margin: 4px 0;
+  border: none;
+}
+.sn-rename-err {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--ink-red-6);
+  letter-spacing: 0.02em;
+}
 
 /* Keyboard-shortcut help dialog — two-column grid of grouped Espresso list rows. */
-.sn-help-grid    { display:grid; grid-template-columns:1fr 1fr; gap:20px 28px; }
-.sn-help-group   { display:flex; flex-direction:column; gap:2px; }
-.sn-help-title   { font-size:11px; font-weight:600; letter-spacing:.06em; color:var(--ink-gray-5); text-transform:uppercase; padding:0 4px; margin-bottom:6px; }
-.sn-help-row     { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:6px 8px; border-radius:6px; }
-.sn-help-row:hover { background:var(--surface-gray-2); }
-.sn-help-label   { font-size:13px; letter-spacing:.02em; color:var(--ink-gray-9); }
-.sn-help-keys    { display:inline-flex; align-items:center; gap:6px; color:var(--ink-gray-7); }
-.sn-help-keys :deep(> div) {
-  padding:2px 6px; border:1px solid var(--outline-gray-2); border-radius:4px;
-  background:var(--surface-base); color:var(--ink-gray-8); min-height:20px;
+.sn-help-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 28px;
 }
-.sn-help-or      { font-size:11px; letter-spacing:.02em; color:var(--ink-gray-5); }
+.sn-help-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sn-help-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--ink-gray-5);
+  text-transform: uppercase;
+  padding: 0 4px;
+  margin-bottom: 6px;
+}
+.sn-help-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+.sn-help-row:hover {
+  background: var(--surface-gray-2);
+}
+.sn-help-label {
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--ink-gray-9);
+}
+.sn-help-keys {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-gray-7);
+}
+.sn-help-keys :deep(div) {
+  padding: 2px 6px;
+  border: 1px solid var(--outline-gray-2);
+  border-radius: 4px;
+  background: var(--surface-base);
+  color: var(--ink-gray-8);
+  min-height: 20px;
+}
+.sn-help-or {
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--ink-gray-5);
+}
 
 /* Sheet-tab drag visual — Espresso ink-gray-9 left edge on the drop target. */
-.sn-tab               { cursor:grab; }
-.sn-tab:active        { cursor:grabbing; }
+.sn-tab {
+  cursor: grab;
+}
+.sn-tab:active {
+  cursor: grabbing;
+}
 .sn-tab-drag-over::before {
-  content: ''; position:absolute; left:-1px; top:4px; bottom:4px; width:2px;
-  background: var(--ink-gray-9); border-radius:1px;
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  background: var(--ink-gray-9);
+  border-radius: 1px;
 }
 
 /* Add-more-rows strip — sits between the canvas and the bottom bar. */
-.sn-addrows         { display:flex; align-items:center; gap:8px; height:32px; padding:0 12px; border-top:1px solid var(--outline-gray-2); background:var(--surface-sidebar); flex-shrink:0; }
-.sn-addrows-label   { font-size:12px; letter-spacing:.02em; color:var(--ink-gray-6); }
-.sn-addrows-input   { width:72px; height:24px; border:1px solid var(--outline-gray-2); border-radius:6px; padding:0 8px; font-size:12px; color:var(--ink-gray-9); background:var(--surface-base); font-family:inherit; outline:none; }
-.sn-addrows-input:focus { border-color:var(--outline-gray-4); box-shadow:0 0 0 2px rgba(23,23,23,.10); }
+.sn-addrows {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px;
+  border-top: 1px solid var(--outline-gray-2);
+  background: var(--surface-sidebar);
+  flex-shrink: 0;
+}
+.sn-addrows-label {
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--ink-gray-6);
+}
+.sn-addrows-input {
+  width: 72px;
+  height: 24px;
+  border: 1px solid var(--outline-gray-2);
+  border-radius: 6px;
+  padding: 0 8px;
+  font-size: 12px;
+  color: var(--ink-gray-9);
+  background: var(--surface-base);
+  font-family: inherit;
+  outline: none;
+}
+.sn-addrows-input:focus {
+  border-color: var(--outline-gray-4);
+  box-shadow: 0 0 0 2px rgba(23, 23, 23, 0.1);
+}
 
 /* Comment panel */
-.sn-comment-panel  { position:fixed; z-index:8500; background:var(--surface-elevation-2); border:1px solid var(--outline-elevation-2); border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,.14); padding:12px; min-width:240px; display:flex; flex-direction:column; gap:8px; }
-.sn-comment-header { display:flex; align-items:center; justify-content:space-between; }
-.sn-comment-title  { font-size:12px; font-weight:600; letter-spacing:.04em; color:var(--ink-gray-7); text-transform:uppercase; }
-.sn-comment-close  { background:none; border:none; cursor:pointer; color:var(--ink-gray-5); font-size:14px; line-height:1; padding:2px 4px; }
-.sn-comment-ta     { resize:vertical; font-family:inherit; font-size:13px; color:var(--ink-gray-9); background:var(--surface-gray-1); border:1px solid var(--outline-gray-2); border-radius:6px; padding:6px 8px; min-height:64px; outline:none; }
-.sn-comment-ta:focus { border-color:var(--outline-gray-4); }
-.sn-comment-actions { display:flex; gap:6px; justify-content:flex-end; }
+.sn-comment-panel {
+  position: fixed;
+  z-index: 8500;
+  background: var(--surface-elevation-2);
+  border: 1px solid var(--outline-elevation-2);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+  padding: 12px;
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sn-comment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sn-comment-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink-gray-7);
+  text-transform: uppercase;
+}
+.sn-comment-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--ink-gray-5);
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px 4px;
+}
+.sn-comment-ta {
+  resize: vertical;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--ink-gray-9);
+  background: var(--surface-gray-1);
+  border: 1px solid var(--outline-gray-2);
+  border-radius: 6px;
+  padding: 6px 8px;
+  min-height: 64px;
+  outline: none;
+}
+.sn-comment-ta:focus {
+  border-color: var(--outline-gray-4);
+}
+.sn-comment-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
 
 /* Notes side panel — docks the right edge of sn-grid-wrap, same dock as
    Version History (only one of the two is open at a time). */
-.sn-notes-panel       { position:absolute; top:0; right:0; bottom:0; width:300px; background:var(--surface-base); border-left:1px solid var(--outline-gray-2); display:flex; flex-direction:column; z-index:30; box-shadow:-4px 0 12px -8px rgba(0,0,0,.08); animation:sn-notes-slide-in 160ms cubic-bezier(.2,.8,.25,1); }
-@keyframes sn-notes-slide-in { from { transform:translateX(16px); opacity:0; } to { transform:translateX(0); opacity:1; } }
-.sn-notes-header      { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-bottom:1px solid var(--outline-gray-2); }
-.sn-notes-title       { font-weight:600; color:var(--ink-gray-8); font-size:13px; display:flex; align-items:center; gap:6px; }
-.sn-notes-count       { font-weight:400; color:var(--ink-gray-5); font-size:12px; }
-.sn-notes-toolbar     { padding:8px 12px; border-bottom:1px solid var(--outline-gray-2); }
-.sn-notes-empty       { padding:24px 16px; text-align:center; color:var(--ink-gray-5); }
-.sn-notes-empty-title { font-size:13px; font-weight:500; color:var(--ink-gray-7); margin-bottom:6px; }
-.sn-notes-empty-hint  { font-size:12px; line-height:1.5; }
-.sn-notes-list        { flex:1; overflow-y:auto; padding:4px 0 12px; }
-.sn-notes-group       { padding:4px 0; }
-.sn-notes-group-h     { font-size:11px; font-weight:500; letter-spacing:.02em; color:var(--ink-gray-5); padding:8px 16px 4px; text-transform:uppercase; }
-.sn-notes-row         { padding:8px 12px; margin:1px 6px; border-radius:6px; cursor:pointer; transition:background-color .12s; }
-.sn-notes-row:hover   { background:var(--surface-gray-2); }
-.sn-notes-row-active  { background:var(--surface-gray-2); box-shadow:inset 2px 0 0 var(--ink-gray-7); }
-.sn-notes-row-ref     { font-size:12px; font-weight:600; color:var(--ink-gray-8); font-variant-numeric:tabular-nums; }
-.sn-notes-row-text    { font-size:12px; color:var(--ink-gray-6); margin-top:2px; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; word-break:break-word; }
+.sn-notes-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 300px;
+  background: var(--surface-base);
+  border-left: 1px solid var(--outline-gray-2);
+  display: flex;
+  flex-direction: column;
+  z-index: 30;
+  box-shadow: -4px 0 12px -8px rgba(0, 0, 0, 0.08);
+  animation: sn-notes-slide-in 160ms cubic-bezier(0.2, 0.8, 0.25, 1);
+}
+@keyframes sn-notes-slide-in {
+  from {
+    transform: translateX(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+.sn-notes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--outline-gray-2);
+}
+.sn-notes-title {
+  font-weight: 600;
+  color: var(--ink-gray-8);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sn-notes-count {
+  font-weight: 400;
+  color: var(--ink-gray-5);
+  font-size: 12px;
+}
+.sn-notes-toolbar {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--outline-gray-2);
+}
+.sn-notes-empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--ink-gray-5);
+}
+.sn-notes-empty-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-gray-7);
+  margin-bottom: 6px;
+}
+.sn-notes-empty-hint {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.sn-notes-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0 12px;
+}
+.sn-notes-group {
+  padding: 4px 0;
+}
+.sn-notes-group-h {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--ink-gray-5);
+  padding: 8px 16px 4px;
+  text-transform: uppercase;
+}
+.sn-notes-row {
+  padding: 8px 12px;
+  margin: 1px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.12s;
+}
+.sn-notes-row:hover {
+  background: var(--surface-gray-2);
+}
+.sn-notes-row-active {
+  background: var(--surface-gray-2);
+  box-shadow: inset 2px 0 0 var(--ink-gray-7);
+}
+.sn-notes-row-ref {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-gray-8);
+  font-variant-numeric: tabular-nums;
+}
+.sn-notes-row-text {
+  font-size: 12px;
+  color: var(--ink-gray-6);
+  margin-top: 2px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
 
 /* Validation dropdown panel */
-.sn-dropdown-panel { position:fixed; z-index:8500; padding:4px; background:var(--surface-elevation-2); border:1px solid var(--outline-elevation-2); border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,.12); min-width:140px; max-height:240px; overflow-y:auto; }
-.sn-dropdown-opt   { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:6px; font-size:13px; color:var(--ink-gray-9); cursor:pointer; white-space:nowrap; }
-.sn-dropdown-opt:hover { background:var(--surface-gray-2); }
-.sn-dropdown-opt.is-active { font-weight:500; }
-.sn-dropdown-check { width:14px; height:14px; flex-shrink:0; color:var(--ink-gray-7); }
-.sn-dropdown-chip  { max-width:200px; padding:2px 10px; border-radius:999px; color:var(--ink-gray-9); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.sn-dropdown-clear .sn-dropdown-label { overflow:hidden; text-overflow:ellipsis; }
-.sn-dropdown-clear { color:var(--ink-gray-6); border-top:1px solid var(--outline-gray-1); border-radius:0 0 6px 6px; margin-top:2px; padding-top:8px; }
+.sn-dropdown-panel {
+  position: fixed;
+  z-index: 8500;
+  padding: 4px;
+  background: var(--surface-elevation-2);
+  border: 1px solid var(--outline-elevation-2);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  min-width: 140px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+.sn-dropdown-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--ink-gray-9);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.sn-dropdown-opt:hover {
+  background: var(--surface-gray-2);
+}
+.sn-dropdown-opt.is-active {
+  font-weight: 500;
+}
+.sn-dropdown-check {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--ink-gray-7);
+}
+.sn-dropdown-chip {
+  max-width: 200px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  color: var(--ink-gray-9);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sn-dropdown-clear .sn-dropdown-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sn-dropdown-clear {
+  color: var(--ink-gray-6);
+  border-top: 1px solid var(--outline-gray-1);
+  border-radius: 0 0 6px 6px;
+  margin-top: 2px;
+  padding-top: 8px;
+}
 
 /* Conditional format dialog rows */
-.sn-form-stack  { display:flex; flex-direction:column; gap:12px; }
-.sn-cf-fmt      { display:flex; flex-direction:row; align-items:center; gap:12px; }
-.sn-cf-fmt-label { font-size:12px; color:var(--ink-gray-6); flex:1; }
-.sn-cf-hint     { font-size:11px; color:var(--ink-gray-5); margin:0; line-height:1.4; }
+.sn-form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sn-cf-fmt {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+.sn-cf-fmt-label {
+  font-size: 12px;
+  color: var(--ink-gray-6);
+  flex: 1;
+}
+.sn-cf-hint {
+  font-size: 11px;
+  color: var(--ink-gray-5);
+  margin: 0;
+  line-height: 1.4;
+}
 
 /* Colour-scale stop pickers + gradient preview strip */
-.sn-cf-scale          { display:flex; gap:12px; align-items:flex-end; }
-.sn-cf-stop           { display:flex; flex-direction:column; gap:4px; font-size:11px; color:var(--ink-gray-6); }
-.sn-cf-stop input     { width:32px; height:28px; padding:0; border:1px solid var(--outline-gray-2); border-radius:6px; cursor:pointer; }
-.sn-cf-scale-preview  {
-  height:18px; width:100%; border-radius:4px; border:1px solid var(--outline-gray-2);
+.sn-cf-scale {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+.sn-cf-stop {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--ink-gray-6);
+}
+.sn-cf-stop input {
+  width: 32px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--outline-gray-2);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.sn-cf-scale-preview {
+  height: 18px;
+  width: 100%;
+  border-radius: 4px;
+  border: 1px solid var(--outline-gray-2);
 }
 
 /* Data-bar preview rows — three bars at sample widths so users can sanity-check the colour. */
-.sn-cf-bar-preview    { display:flex; flex-direction:column; gap:4px; padding:6px; background:var(--surface-gray-1); border-radius:6px; border:1px solid var(--outline-gray-2); }
-.sn-cf-bar-row        { height:14px; background:var(--surface-base); border-radius:3px; overflow:hidden; }
-.sn-cf-bar-fill       { height:100%; opacity:.55; }
+.sn-cf-bar-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+  background: var(--surface-gray-1);
+  border-radius: 6px;
+  border: 1px solid var(--outline-gray-2);
+}
+.sn-cf-bar-row {
+  height: 14px;
+  background: var(--surface-base);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.sn-cf-bar-fill {
+  height: 100%;
+  opacity: 0.55;
+}
 
 /* Existing-rules list at the top of the CF dialog. */
-.sn-cf-rule-list       { display:flex; flex-direction:column; gap:4px; padding:8px; background:var(--surface-gray-1); border:1px solid var(--outline-gray-2); border-radius:6px; }
-.sn-cf-rule-list-title { font-size:11px; font-weight:500; color:var(--ink-gray-6); text-transform:uppercase; letter-spacing:.04em; padding:2px 4px 4px; }
-.sn-cf-rule-row        { display:flex; align-items:center; gap:4px; }
-.sn-cf-rule-pick       { flex:1; text-align:left; font-size:12px; color:var(--ink-gray-8); background:var(--surface-base); border:1px solid var(--outline-gray-2); border-radius:5px; padding:6px 8px; cursor:pointer; }
-.sn-cf-rule-pick:hover { background:var(--surface-gray-2); }
-.sn-cf-rule-row--active .sn-cf-rule-pick { border-color:var(--ink-gray-9); }
-
+.sn-cf-rule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  background: var(--surface-gray-1);
+  border: 1px solid var(--outline-gray-2);
+  border-radius: 6px;
+}
+.sn-cf-rule-list-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-gray-6);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 4px 4px;
+}
+.sn-cf-rule-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.sn-cf-rule-pick {
+  flex: 1;
+  text-align: left;
+  font-size: 12px;
+  color: var(--ink-gray-8);
+  background: var(--surface-base);
+  border: 1px solid var(--outline-gray-2);
+  border-radius: 5px;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+.sn-cf-rule-pick:hover {
+  background: var(--surface-gray-2);
+}
+.sn-cf-rule-row--active .sn-cf-rule-pick {
+  border-color: var(--ink-gray-9);
+}
 </style>
 
 <!-- Unscoped: frappe-ui's Dropdown teleports its menu to document.body, so
@@ -6037,7 +7713,7 @@ function toggleShowFormulas() {
      number-format picker stay scrollable instead of falling off-screen. -->
 <style>
 .dropdown-content,
-.dropdown-content [data-slot=content-body] {
+.dropdown-content [data-slot="content-body"] {
   max-height: min(60vh, 480px);
   overflow-y: auto;
 }

@@ -1,5 +1,5 @@
 <template>
-	<Dialog v-model="show" :options="dialogOptions" />
+  <Dialog v-model="show" :options="dialogOptions" />
 </template>
 
 <script setup lang="ts">

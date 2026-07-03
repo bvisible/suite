@@ -74,7 +74,7 @@
           None yet.
         </div>
         <div
-          v-for="[title, group] in Object.entries(groupedVersions)"
+          v-for="[ title, group ] in Object.entries(groupedVersions)"
           v-else
           :key="title"
           class="flex flex-col gap-1 mb-2 justify-start bg-surface-base"
@@ -312,7 +312,7 @@ const restore = version => {
 onKeyDown('Escape', () => (showVersions.value = false))
 </script>
 <style>
-@import url('@/apps/writer/styles/fonts.css');
+@import url("@/apps/writer/styles/fonts.css");
 
 .diff-view ins,
 .diff-view s {

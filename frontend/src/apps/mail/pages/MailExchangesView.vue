@@ -1,60 +1,56 @@
 <template>
-	<div class="flex h-screen flex-col">
-		<header class="flex items-center border-b px-5 py-2.5">
-			<Breadcrumbs :items="[{ label: __('Mail Exchanges') }]" />
-		</header>
-		<Tabs
-			v-model="tabIndex"
-			:tabs="TABS"
-			@update:model-value="
+  <div class="flex h-screen flex-col">
+    <header class="flex items-center border-b px-5 py-2.5">
+      <Breadcrumbs :items="[{ label: __('Mail Exchanges') }]" />
+    </header>
+    <Tabs
+      v-model="tabIndex"
+      :tabs="TABS"
+      @update:model-value="
 				$router.replace({ query: { operation: tabIndex ? 'Export' : 'Import' } })
 			"
-		>
-			<template #tab-panel>
-				<div class="m-5 flex flex-1 flex-col space-y-5 overflow-y-auto">
-					<div class="flex items-center space-x-3">
-						<FormControl
-							v-model="status"
-							:label="__('Status')"
-							type="select"
-							:options="STATUS_OPTIONS"
-							class="w-40"
-						/>
-					</div>
-					<ListView
-						v-if="mailExchanges.data"
-						:columns="listColumns"
-						:rows="mailExchanges.data"
-						:options="LIST_OPTIONS"
-						row-key="name"
-						class="flex-1"
-					>
-						<ListHeader />
-						<ListRows>
-							<template v-if="mailExchanges.data.length">
-								<ListRow
-									v-for="row in mailExchanges.data"
-									:key="row.name"
-									v-slot="{ item, column }"
-									:row="row"
-								>
-									<ListRowItem :item="item">
-										<Badge
-											v-if="column.key == 'status'"
-											:theme="getTheme(item)"
-											:label="item"
-										/>
-									</ListRowItem>
-								</ListRow>
-							</template>
-							<ListEmptyState v-else />
-						</ListRows>
-					</ListView>
-					<ErrorMessage v-if="mailExchanges.error" :message="mailExchanges.error" />
-				</div>
-			</template>
-		</Tabs>
-	</div>
+    >
+      <template #tab-panel>
+        <div class="m-5 flex flex-1 flex-col space-y-5 overflow-y-auto">
+          <div class="flex items-center space-x-3">
+            <FormControl
+              v-model="status"
+              :label="__('Status')"
+              type="select"
+              :options="STATUS_OPTIONS"
+              class="w-40"
+            />
+          </div>
+          <ListView
+            v-if="mailExchanges.data"
+            :columns="listColumns"
+            :rows="mailExchanges.data"
+            :options="LIST_OPTIONS"
+            row-key="name"
+            class="flex-1"
+          >
+            <ListHeader />
+            <ListRows>
+              <template v-if="mailExchanges.data.length">
+                <ListRow
+                  v-for="row in mailExchanges.data"
+                  :key="row.name"
+                  v-slot="{ item, column }"
+                  :row="row"
+                >
+                  <ListRowItem :item="item">
+                    <Badge v-if="column.key == 'status'" :theme="getTheme(item)" :label="item" />
+                  </ListRowItem>
+                </ListRow>
+              </template>
+              <ListEmptyState v-else />
+            </ListRows>
+          </ListView>
+          <ErrorMessage v-if="mailExchanges.error" :message="mailExchanges.error" />
+        </div>
+      </template>
+    </Tabs>
+  </div>
 </template>
 
 <script setup lang="ts">

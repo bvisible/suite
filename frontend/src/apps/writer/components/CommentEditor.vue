@@ -40,10 +40,7 @@
       "
     >
       <template #bottom="{ editor }">
-        <div
-          v-if="editable"
-          class="self-end me-1 flex-shrink-0 flex gap-1 mb-1.5"
-        >
+        <div v-if="editable" class="self-end me-1 flex-shrink-0 flex gap-1 mb-1.5">
           <Button
             v-if="!isEmpty"
             :disabled

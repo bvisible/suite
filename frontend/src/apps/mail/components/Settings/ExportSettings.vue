@@ -1,7 +1,7 @@
 <template>
-	<h1>{{ __('Export') }}</h1>
-	<TabButtons v-model="activeType" :buttons="typeButtons" />
-	<component :is="activeComponent" :key="activeType" />
+  <h1>{{ __('Export') }}</h1>
+  <TabButtons v-model="activeType" :buttons="typeButtons" />
+  <component :is="activeComponent" :key="activeType" />
 </template>
 
 <script setup lang="ts">

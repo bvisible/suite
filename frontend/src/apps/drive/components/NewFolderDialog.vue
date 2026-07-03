@@ -15,19 +15,19 @@
     @close="dialogType = ''"
   >
     <FormControl
-        v-model="folderName"
-        v-focus
-        label="Name:"
-        @keyup.enter="submit"
-        @keydown="createFolder.error = null"
-      >
-        <template #prefix>
-          <LucideFolderClosed class="size-4" />
-        </template>
-      </FormControl>
-      <div v-if="createFolder.error" class="pt-4 text-base font-sm text-ink-red-6">
-        {{ createFolder.error.messages[0] }}
-      </div>
+      v-model="folderName"
+      v-focus
+      label="Name:"
+      @keyup.enter="submit"
+      @keydown="createFolder.error = null"
+    >
+      <template #prefix>
+        <LucideFolderClosed class="size-4" />
+      </template>
+    </FormControl>
+    <div v-if="createFolder.error" class="pt-4 text-base font-sm text-ink-red-6">
+      {{ createFolder.error.messages[0] }}
+    </div>
   </Dialog>
 </template>
 

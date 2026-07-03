@@ -1,23 +1,23 @@
 <template>
-	<div>
-		<RotateHandle v-if="showRotateHandle" />
+  <div>
+    <RotateHandle v-if="showRotateHandle" />
 
-		<ResizeHandle
-			v-for="resizeHandle in resizeHandles"
-			v-show="resizeHandle.isVisible"
-			:key="resizeHandle.direction"
-			:direction="resizeHandle.direction"
-			:currentResizer="currentResizer"
-			@startResize="(e) => startResize(e, resizeHandle.direction)"
-		/>
+    <ResizeHandle
+      v-for="resizeHandle in resizeHandles"
+      v-show="resizeHandle.isVisible"
+      :key="resizeHandle.direction"
+      :direction="resizeHandle.direction"
+      :currentResizer="currentResizer"
+      @startResize="(e) => startResize(e, resizeHandle.direction)"
+    />
 
-		<ResizeIndicator
-			v-show="currentResizer"
-			:type="elementType"
-			:dimensions="dimensions"
-			:indicatorStyles="indicatorStyles"
-		/>
-	</div>
+    <ResizeIndicator
+      v-show="currentResizer"
+      :type="elementType"
+      :dimensions="dimensions"
+      :indicatorStyles="indicatorStyles"
+    />
+  </div>
 </template>
 
 <script setup>

@@ -1,55 +1,53 @@
 <template>
-	<div class="p-4">
-		<div v-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4">
-			<p class="text-sm text-red-800">
-				<lucide-alert-circle class="w-4 h-4 inline mr-2" />
-				{{ error }}
-			</p>
-		</div>
-		<div v-else-if="participants.length > 0" class="flex flex-col items-center">
-			<div class="relative flex mx-auto -space-x-2">
-				<div
-					v-for="participant in displayedParticipants"
-					:key="participant.user_id"
-					:style="{ zIndex: 0 }"
-				>
-					<div class="ring-2 ring-white rounded-full h-10">
-						<Avatar
-							:image="participant.avatar_url"
-							:label="getInitials(participant.full_name)"
-							size="2xl"
-							shape="circle"
-						/>
-					</div>
-				</div>
-				<div
-					v-if="extraCount > 0"
-					:style="{ zIndex: 0 }"
-				>
-					<div class="ring-2 ring-white rounded-full h-10 w-10 bg-surface-gray-2 flex items-center justify-center text-ink-gray-5 text-base-semibold">
-						+{{ extraCount }}
-					</div>
-				</div>
-			</div>
-			<div class="mt-4 text-base text-ink-gray-7">
-				<span v-if="displayedParticipants.length > 0">
-					{{ formattedNames }}
-				</span>
-				<span v-if="extraCount > 0">
-					{{ displayedParticipants.length > 0 ? ' and ' : '' }}{{ extraCount }} other{{ extraCount > 1 ? 's' : '' }}
-				</span>
-				<span v-if="displayedParticipants.length > 0">
-					{{ displayedParticipants.length > 1 ? ' are' : ' is' }}
-				</span>
-				in the meeting
-			</div>
-		</div>
-		<div v-else>
-			<p class="text-base text-ink-gray-7">
-				You'll be the first to join this meeting
-			</p>
-		</div>
-	</div>
+  <div class="p-4">
+    <div v-if="error" class="bg-red-50 border border-red-200 rounded-lg p-4">
+      <p class="text-sm text-red-800">
+        <lucide-alert-circle class="w-4 h-4 inline mr-2" />
+        {{ error }}
+      </p>
+    </div>
+    <div v-else-if="participants.length > 0" class="flex flex-col items-center">
+      <div class="relative flex mx-auto -space-x-2">
+        <div
+          v-for="participant in displayedParticipants"
+          :key="participant.user_id"
+          :style="{ zIndex: 0 }"
+        >
+          <div class="ring-2 ring-white rounded-full h-10">
+            <Avatar
+              :image="participant.avatar_url"
+              :label="getInitials(participant.full_name)"
+              size="2xl"
+              shape="circle"
+            />
+          </div>
+        </div>
+        <div v-if="extraCount > 0" :style="{ zIndex: 0 }">
+          <div
+            class="ring-2 ring-white rounded-full h-10 w-10 bg-surface-gray-2 flex items-center justify-center text-ink-gray-5 text-base-semibold"
+          >
+            +{{ extraCount }}
+          </div>
+        </div>
+      </div>
+      <div class="mt-4 text-base text-ink-gray-7">
+        <span v-if="displayedParticipants.length > 0">
+          {{ formattedNames }}
+        </span>
+        <span v-if="extraCount > 0">
+          {{ displayedParticipants.length > 0 ? ' and ' : '' }}{{ extraCount }}
+          other{{ extraCount > 1 ? 's' : '' }}
+        </span>
+        <span v-if="displayedParticipants.length > 0">
+          {{ displayedParticipants.length > 1 ? ' are' : ' is' }}
+        </span>
+        in the meeting
+      </div>
+    </div>
+    <div v-else>
+      <p class="text-base text-ink-gray-7">You'll be the first to join this meeting</p>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">

@@ -1,9 +1,15 @@
 <template>
-  <Navbar v-if="!verify?.error && !getEntities.error" :root-resource="verify"
+  <Navbar
+    v-if="!verify?.error && !getEntities.error"
+    :root-resource="verify"
     :breadcrumbs="pageBreadcrumbs"
-    :entities="activeEntity ? [activeEntity] : selectedEntitities" />
+    :entities="activeEntity ? [activeEntity] : selectedEntitities"
+  />
 
-  <ErrorPage v-if="verify?.error || getEntities.error" :error="verify?.error || getEntities.error" />
+  <ErrorPage
+    v-if="verify?.error || getEntities.error"
+    :error="verify?.error || getEntities.error"
+  />
 
   <div
     v-else
@@ -25,18 +31,34 @@
       <LoadingIndicator class="size-5 text-ink-gray-9" />
     </div>
     <NoFilesSection v-else-if="!props.getEntities.data?.length" :icon="icon" v-bind="empty" />
-    <ListView v-else-if="view === 'list'" v-model="selections" :folder-contents="rows && grouper(rows)"
-      :action-items="actionItems" :root-entity="verify?.data" @dropped="onDrop" />
-    <GridView v-else v-model="selections" :folder-contents="rows" :action-items="actionItems" @dropped="onDrop" />
+    <ListView
+      v-else-if="view === 'list'"
+      v-model="selections"
+      :folder-contents="rows && grouper(rows)"
+      :action-items="actionItems"
+      :root-entity="verify?.data"
+      @dropped="onDrop"
+    />
+    <GridView
+      v-else
+      v-model="selections"
+      :folder-contents="rows"
+      :action-items="actionItems"
+      @dropped="onDrop"
+    />
   </div>
   <p class="hidden absolute text-center top-1/2 left-[calc(50%-4rem)] w-32 z-10 font-bold">
     Drop to upload
   </p>
-  <Transition v-if="uploads.length > 0"
+  <Transition
+    v-if="uploads.length > 0"
     enter-active-class="transition duration-[150ms] ease-[cubic-bezier(.21,1.02,.73,1)]"
-    enter-from-class="translate-y-1 opacity-0" enter-to-class="translate-y-0 opacity-100"
+    enter-from-class="translate-y-1 opacity-0"
+    enter-to-class="translate-y-0 opacity-100"
     leave-active-class="transition duration-[150ms] ease-[cubic-bezier(.21,1.02,.73,1)]"
-    leave-from-class="translate-y-0 opacity-100" leave-to-class="translate-y-1 opacity-0">
+    leave-from-class="translate-y-0 opacity-100"
+    leave-to-class="translate-y-1 opacity-0"
+  >
     <UploadTracker />
   </Transition>
   <ListDialogs
@@ -465,7 +487,7 @@ socket.on('client-rename', ({ entity_name, title }) => {
   padding-right: 0;
 }
 
-.file-drag #drop-area+p {
+.file-drag #drop-area + p {
   display: block;
 }
 </style>

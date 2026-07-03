@@ -1,74 +1,74 @@
 <template>
-	<CollapsibleSection
-		title="Layout"
-		:key="activeElements?.length"
-		:initialState="activeElement?.type != 'text'"
-	>
-		<template #default>
-			<div class="flex flex-col gap-1.5">
-				<div :class="fieldLabelClasses">Position</div>
-				<div class="flex items-center gap-3">
-					<NumberInput
-						:modelValue="Math.round(selectionBounds.left)"
-						@update:modelValue="(val) => updatePosition('X', val)"
-						prefix="x"
-						:rangeStart="0"
-						:rangeStep="1"
-						:hideButtons="true"
-					/>
-					<NumberInput
-						:modelValue="Math.round(selectionBounds.top)"
-						@update:modelValue="(val) => updatePosition('Y', val)"
-						prefix="y"
-						:rangeStart="0"
-						:rangeStep="1"
-						:hideButtons="true"
-					/>
-				</div>
-			</div>
+  <CollapsibleSection
+    title="Layout"
+    :key="activeElements?.length"
+    :initialState="activeElement?.type != 'text'"
+  >
+    <template #default>
+      <div class="flex flex-col gap-1.5">
+        <div :class="fieldLabelClasses">Position</div>
+        <div class="flex items-center gap-3">
+          <NumberInput
+            :modelValue="Math.round(selectionBounds.left)"
+            @update:modelValue="(val) => updatePosition('X', val)"
+            prefix="x"
+            :rangeStart="0"
+            :rangeStep="1"
+            :hideButtons="true"
+          />
+          <NumberInput
+            :modelValue="Math.round(selectionBounds.top)"
+            @update:modelValue="(val) => updatePosition('Y', val)"
+            prefix="y"
+            :rangeStart="0"
+            :rangeStep="1"
+            :hideButtons="true"
+          />
+        </div>
+      </div>
 
-			<div v-if="activeElement" class="flex flex-col gap-1.5">
-				<div :class="fieldLabelClasses">Dimensions</div>
-				<div class="flex items-center gap-3">
-					<NumberInput
-						:modelValue="Math.round(selectionBounds.width)"
-						@update:modelValue="(val) => updateDimension('W', val)"
-						prefix="w"
-						:rangeStart="1"
-						:rangeStep="1"
-						:hideButtons="true"
-					/>
-					<NumberInput
-						:modelValue="Math.round(selectionBounds.height)"
-						@update:modelValue="(val) => updateDimension('H', val)"
-						prefix="h"
-						:rangeStart="1"
-						:rangeStep="1"
-						:hideButtons="true"
-						:disabled="!canEditHeight"
-					/>
-				</div>
-			</div>
+      <div v-if="activeElement" class="flex flex-col gap-1.5">
+        <div :class="fieldLabelClasses">Dimensions</div>
+        <div class="flex items-center gap-3">
+          <NumberInput
+            :modelValue="Math.round(selectionBounds.width)"
+            @update:modelValue="(val) => updateDimension('W', val)"
+            prefix="w"
+            :rangeStart="1"
+            :rangeStep="1"
+            :hideButtons="true"
+          />
+          <NumberInput
+            :modelValue="Math.round(selectionBounds.height)"
+            @update:modelValue="(val) => updateDimension('H', val)"
+            prefix="h"
+            :rangeStart="1"
+            :rangeStep="1"
+            :hideButtons="true"
+            :disabled="!canEditHeight"
+          />
+        </div>
+      </div>
 
-			<div class="flex flex-col gap-1.5">
-				<div :class="fieldLabelClasses">Arrange</div>
-				<div class="grid grid-cols-2 gap-3">
-					<Button
-						v-for="option in arrangeOptions"
-						:key="option.label"
-						variant="outline"
-						class="text-sm opacity-85"
-						:label="option.label"
-						@click="option.action"
-					>
-						<template #prefix>
-							<component :is="option.icon" />
-						</template>
-					</Button>
-				</div>
-			</div>
-		</template>
-	</CollapsibleSection>
+      <div class="flex flex-col gap-1.5">
+        <div :class="fieldLabelClasses">Arrange</div>
+        <div class="grid grid-cols-2 gap-3">
+          <Button
+            v-for="option in arrangeOptions"
+            :key="option.label"
+            variant="outline"
+            class="text-sm opacity-85"
+            :label="option.label"
+            @click="option.action"
+          >
+            <template #prefix>
+              <component :is="option.icon" />
+            </template>
+          </Button>
+        </div>
+      </div>
+    </template>
+  </CollapsibleSection>
 </template>
 
 <script setup>

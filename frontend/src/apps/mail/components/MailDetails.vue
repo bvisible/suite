@@ -1,17 +1,17 @@
 <template>
-	<div
-		class="grid grid-cols-5 gap-2 overflow-y-auto rounded border p-3 text-sm sm:max-h-96 sm:max-w-md sm:border-0"
-	>
-		<span class="text-ink-gray-5 col-span-1">{{ __('From:') }}</span>
-		<span class="col-span-4">
-			<span class="font-semibold"> {{ mail.from_name || mail.from_email }} </span>
-			<span v-if="mail.from_name"> {{ ` <${mail.from_email}>` }} </span>
-		</span>
-		<template v-for="field in FIELDS" :key="field.label">
-			<span class="text-ink-gray-4 col-span-1">{{ field.label }}</span>
-			<span class="col-span-4 leading-4">{{ field.value() }} </span>
-		</template>
-	</div>
+  <div
+    class="grid grid-cols-5 gap-2 overflow-y-auto rounded border p-3 text-sm sm:max-h-96 sm:max-w-md sm:border-0"
+  >
+    <span class="text-ink-gray-5 col-span-1">{{ __('From:') }}</span>
+    <span class="col-span-4">
+      <span class="font-semibold"> {{ mail.from_name || mail.from_email }} </span>
+      <span v-if="mail.from_name"> {{ ` <${mail.from_email}>` }} </span>
+    </span>
+    <template v-for="field in FIELDS" :key="field.label">
+      <span class="text-ink-gray-4 col-span-1">{{ field.label }}</span>
+      <span class="col-span-4 leading-4">{{ field.value() }} </span>
+    </template>
+  </div>
 </template>
 
 <script setup lang="ts">

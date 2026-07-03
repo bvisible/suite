@@ -1,70 +1,67 @@
 <template>
-	<div :class="sectionClasses">
-		<div class="flex flex-col gap-3">
-			<div class="flex items-center justify-between">
-				<div :class="sectionTitleClasses">Slide</div>
-				<div class="pe-0.5 text-2xs-semibold text-gray-700">
-					{{ slideIndex + 1 + ' of ' + slides.length }}
-				</div>
-			</div>
+  <div :class="sectionClasses">
+    <div class="flex flex-col gap-3">
+      <div class="flex items-center justify-between">
+        <div :class="sectionTitleClasses">Slide</div>
+        <div class="pe-0.5 text-2xs-semibold text-gray-700">
+          {{ slideIndex + 1 + ' of ' + slides.length }}
+        </div>
+      </div>
 
-			<div class="flex items-center justify-between">
-				<div :class="fieldLabelClasses">Background Color</div>
-				<ColorPicker
-					v-model="currentSlide.background"
-					@colordown="onBgUpdateStart"
-					@colorup="onBgUpdateEnd"
-				/>
-			</div>
-		</div>
-	</div>
+      <div class="flex items-center justify-between">
+        <div :class="fieldLabelClasses">Background Color</div>
+        <ColorPicker
+          v-model="currentSlide.background"
+          @colordown="onBgUpdateStart"
+          @colorup="onBgUpdateEnd"
+        />
+      </div>
+    </div>
+  </div>
 
-	<CollapsibleSection title="Transition">
-		<template #default>
-			<Select
-				:options="['Magic Move', 'Fade', 'Slide In', 'None']"
-				:modelValue="currentSlide.transition"
-				@update:modelValue="(option) => setSlideTransition(option)"
-			/>
+  <CollapsibleSection title="Transition">
+    <template #default>
+      <Select
+        :options="['Magic Move', 'Fade', 'Slide In', 'None']"
+        :modelValue="currentSlide.transition"
+        @update:modelValue="(option) => setSlideTransition(option)"
+      />
 
-			<SliderInput
-				v-show="currentSlide.transition && currentSlide.transition != 'None'"
-				label="Duration"
-				:rangeStart="0"
-				:rangeEnd="4"
-				:rangeStep="0.1"
-				:modelValue="parseFloat(currentSlide.transitionDuration)"
-				@update:modelValue="(value) => setTransitionAttribute('transitionDuration', value)"
-				@sliderdown="onTransitionUpdateStart"
-				@sliderup="onTransitionUpdateEnd"
-			/>
+      <SliderInput
+        v-show="currentSlide.transition && currentSlide.transition != 'None'"
+        label="Duration"
+        :rangeStart="0"
+        :rangeEnd="4"
+        :rangeStep="0.1"
+        :modelValue="parseFloat(currentSlide.transitionDuration)"
+        @update:modelValue="(value) => setTransitionAttribute('transitionDuration', value)"
+        @sliderdown="onTransitionUpdateStart"
+        @sliderup="onTransitionUpdateEnd"
+      />
 
-			<div
-				class="flex items-center justify-between"
-				v-if="currentSlide.transition == 'Magic Move'"
-			>
-				<div :class="fieldLabelClasses">Fade In Other Elements</div>
+      <div class="flex items-center justify-between" v-if="currentSlide.transition == 'Magic Move'">
+        <div :class="fieldLabelClasses">Fade In Other Elements</div>
 
-				<Checkbox
-					size="sm"
-					class="cursor-pointer px-1"
-					:modelValue="currentSlide.fadeUnmatchedElements"
-					@update:modelValue="(v) => setTransitionAttribute('fadeUnmatchedElements', v)"
-				/>
-			</div>
+        <Checkbox
+          size="sm"
+          class="cursor-pointer px-1"
+          :modelValue="currentSlide.fadeUnmatchedElements"
+          @update:modelValue="(v) => setTransitionAttribute('fadeUnmatchedElements', v)"
+        />
+      </div>
 
-			<Button
-				label="Apply To All Slides"
-				variant="outline"
-				class="text-sm"
-				@click="applyTransitionToAllSlides"
-			>
-				<template #prefix>
-					<LucideCheckCheck class="size-3.5 stroke-[1.5]" />
-				</template>
-			</Button>
-		</template>
-	</CollapsibleSection>
+      <Button
+        label="Apply To All Slides"
+        variant="outline"
+        class="text-sm"
+        @click="applyTransitionToAllSlides"
+      >
+        <template #prefix>
+          <LucideCheckCheck class="size-3.5 stroke-[1.5]" />
+        </template>
+      </Button>
+    </template>
+  </CollapsibleSection>
 </template>
 
 <script setup>

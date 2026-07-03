@@ -1,80 +1,70 @@
 <template>
-	<FormControl
-		v-model="calendarExport.format"
-		:label="__('Format')"
-		type="select"
-		variant="outline"
-		:options="FORMAT_OPTIONS"
-	/>
-	<FormControl
-		v-model="calendarExport.archive_type"
-		:label="__('Archive Type')"
-		type="select"
-		variant="outline"
-		:options="ARCHIVE_TYPE_OPTIONS"
-	/>
-	<Switch
-		v-model="customSelection"
-		:label="__('Custom Selection')"
-		:description="__('Apply filters to select specific events for export.')"
-		class="hover:!bg-surface-base !cursor-default !p-0"
-	/>
-	<template v-if="customSelection">
-		<FormControl
-			v-model="filter.inCalendar"
-			:label="__('Calendar')"
-			type="select"
-			variant="outline"
-			:options="calendarOptions"
-		/>
-		<FormControl v-model="filter.title" type="text" variant="outline" :label="__('Title')" />
-		<FormControl
-			v-model="filter.after"
-			type="date"
-			variant="outline"
-			:label="__('From Date')"
-		/>
-		<FormControl
-			v-model="filter.before"
-			type="date"
-			variant="outline"
-			:label="__('To Date')"
-		/>
-		<FormControl
-			v-model="calendarExport.limit"
-			:label="__('Max Number of Events')"
-			type="number"
-			variant="outline"
-			placeholder="1000"
-		/>
-		<FormControl
-			v-if="calendarExport.limit && calendarExport.limit > 0"
-			v-model="calendarExport.sort"
-			:label="__('Start From')"
-			type="select"
-			variant="outline"
-			:options="sortOptions"
-		/>
-	</template>
+  <FormControl
+    v-model="calendarExport.format"
+    :label="__('Format')"
+    type="select"
+    variant="outline"
+    :options="FORMAT_OPTIONS"
+  />
+  <FormControl
+    v-model="calendarExport.archive_type"
+    :label="__('Archive Type')"
+    type="select"
+    variant="outline"
+    :options="ARCHIVE_TYPE_OPTIONS"
+  />
+  <Switch
+    v-model="customSelection"
+    :label="__('Custom Selection')"
+    :description="__('Apply filters to select specific events for export.')"
+    class="hover:!bg-surface-base !cursor-default !p-0"
+  />
+  <template v-if="customSelection">
+    <FormControl
+      v-model="filter.inCalendar"
+      :label="__('Calendar')"
+      type="select"
+      variant="outline"
+      :options="calendarOptions"
+    />
+    <FormControl v-model="filter.title" type="text" variant="outline" :label="__('Title')" />
+    <FormControl v-model="filter.after" type="date" variant="outline" :label="__('From Date')" />
+    <FormControl v-model="filter.before" type="date" variant="outline" :label="__('To Date')" />
+    <FormControl
+      v-model="calendarExport.limit"
+      :label="__('Max Number of Events')"
+      type="number"
+      variant="outline"
+      placeholder="1000"
+    />
+    <FormControl
+      v-if="calendarExport.limit && calendarExport.limit > 0"
+      v-model="calendarExport.sort"
+      :label="__('Start From')"
+      type="select"
+      variant="outline"
+      :options="sortOptions"
+    />
+  </template>
 
-	<Button
-		class="min-h-7"
-		:label="__('Create Export')"
-		:loading="ongoingExport.data?.name"
-		:disabled="ongoingExport.loading || ongoingExport.error || createCalendarExport.loading"
-		@click="createCalendarExport.submit()"
-	/>
-	<div class="!mt-3 space-x-1 text-base">
-		<span class="text-ink-gray-5">{{ exportSubtitle }}</span>
-		<a class="hover:underline" :href="exportHref" target="_blank">
-			{{ exportLinkText }}
-		</a>
-	</div>
-	<ErrorMessage
-		v-if="createCalendarExport.error"
-		:message="createCalendarExport.error"
-		class="mb-2.5"
-	/>
+  <Button
+    class="min-h-7"
+    :label="__('Create Export')"
+    :loading="ongoingExport.data?.name"
+    :disabled="ongoingExport.loading || ongoingExport.error || createCalendarExport.loading"
+    @click="createCalendarExport.submit()"
+  />
+  <div class="!mt-3 space-x-1 text-base">
+    <span class="text-ink-gray-5">{{ exportSubtitle }}</span>
+    <a class="hover:underline" :href="exportHref" target="_blank">
+      {{ exportLinkText }}
+    </a>
+  </div>
+  <ErrorMessage
+    v-if="createCalendarExport.error"
+    :message="createCalendarExport.error"
+    class="mb-2.5"
+  />
 </template>
 
 <script setup lang="ts">

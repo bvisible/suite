@@ -1,38 +1,36 @@
 <template>
-	<div class="bg-surface-base fixed inset-0 z-10 flex flex-col">
-		<div class="sticky top-0 flex items-center border-b px-3 py-2.5">
-			<Button variant="ghost" class="mr-2" @click="emit('close')">
-				<template #icon>
-					<ChevronLeft class="text-ink-gray-5 h-4 w-4" />
-				</template>
-			</Button>
+  <div class="bg-surface-base fixed inset-0 z-10 flex flex-col">
+    <div class="sticky top-0 flex items-center border-b px-3 py-2.5">
+      <Button variant="ghost" class="mr-2" @click="emit('close')">
+        <template #icon>
+          <ChevronLeft class="text-ink-gray-5 h-4 w-4" />
+        </template>
+      </Button>
 
-			<h2 class="text-xl-semibold leading-5">{{ __('Settings') }}</h2>
-		</div>
+      <h2 class="text-xl-semibold leading-5">{{ __('Settings') }}</h2>
+    </div>
 
-		<div class="px-3 py-4">
-			<Switch
-				size="md"
-				:label="__('Enable Push Notifications')"
-				:class="{ 'p-2': description }"
-				:model-value="isPushNotificationsSettingEnabled"
-				:disabled="!isPushNotificationEnabled || isLoading"
-				:description
-				@update:model-value="togglePushNotifications"
-			/>
+    <div class="px-3 py-4">
+      <Switch
+        size="md"
+        :label="__('Enable Push Notifications')"
+        :class="{ 'p-2': description }"
+        :model-value="isPushNotificationsSettingEnabled"
+        :disabled="!isPushNotificationEnabled || isLoading"
+        :description
+        @update:model-value="togglePushNotifications"
+      />
 
-			<div v-if="isLoading" class="-mt-0.5 flex items-center gap-2 px-3">
-				<LoadingIndicator class="text-ink-gray-7 h-3 w-3" />
-				<span class="text-sm">
-					{{
-						isPushNotificationsSettingEnabled
+      <div v-if="isLoading" class="-mt-0.5 flex items-center gap-2 px-3">
+        <LoadingIndicator class="text-ink-gray-7 h-3 w-3" />
+        <span class="text-sm">
+          {{ isPushNotificationsSettingEnabled
 							? __('Disabling Push Notifications...')
-							: __('Enabling Push Notifications...')
-					}}
-				</span>
-			</div>
-		</div>
-	</div>
+							: __('Enabling Push Notifications...') }}
+        </span>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">

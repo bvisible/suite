@@ -1,10 +1,18 @@
 <template>
-  <CoreEditor ref="textEditor" v-model:show-settings="showSettings" v-model:edited="edited"
-    v-bind="{ ...props, ...commentsDetail }" :yjs-doc="doc" :extensions @save="
+  <CoreEditor
+    ref="textEditor"
+    v-model:show-settings="showSettings"
+    v-model:edited="edited"
+    v-bind="{ ...props, ...commentsDetail }"
+    :yjs-doc="doc"
+    :extensions
+    @save="
       (manual = false, html, func) => {
         save(manual, html).then(func)
       }
-    " @cleanup="cleanup" />
+    "
+    @cleanup="cleanup"
+  />
 </template>
 
 <script setup>

@@ -1,18 +1,18 @@
 <template>
-	<div :style="maskStyles">
-		<svg width="100vw" height="100vh">
-			<!-- everything that overflows the slideBounds will be covered by an overlay -->
-			<defs>
-				<mask id="hole-mask" x="0" y="0" width="100%" height="100%">
-					<!-- span entire mask area for backdrop -->
-					<rect width="100%" height="100%" fill="white" />
+  <div :style="maskStyles">
+    <svg width="100vw" height="100vh">
+      <!-- everything that overflows the slideBounds will be covered by an overlay -->
+      <defs>
+        <mask id="hole-mask" x="0" y="0" width="100%" height="100%">
+          <!-- span entire mask area for backdrop -->
+          <rect width="100%" height="100%" fill="white" />
 
-					<!-- cutout the section for the slide -->
-					<rect v-bind="rectAttributes" />
-				</mask>
-			</defs>
-		</svg>
-	</div>
+          <!-- cutout the section for the slide -->
+          <rect v-bind="rectAttributes" />
+        </mask>
+      </defs>
+    </svg>
+  </div>
 </template>
 
 <script setup>

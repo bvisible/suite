@@ -1,154 +1,146 @@
 <template>
-	<Teleport to="body">
-		<Transition
-			enter-active-class="transition-opacity duration-200"
-			enter-from-class="opacity-0"
-			enter-to-class="opacity-100"
-			leave-active-class="transition-opacity duration-200"
-			leave-from-class="opacity-100"
-			leave-to-class="opacity-0"
-		>
-			<div
-				v-if="show"
-				data-attachment-viewer
-				class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 p-2 text-gray-300 sm:p-4"
-				@click.self="closeViewer"
-			>
-				<div class="flex w-full justify-between">
-					<div class="flex max-w-2xl items-center space-x-2 truncate rounded">
-						<component
-							:is="getFileIcon(currentAttachment?.type)"
-							class="h-4 w-4 shrink-0"
-						/>
-						<span class="truncate text-base-medium">
-							{{ currentAttachment?.filename }}
-						</span>
-					</div>
-					<div class="shrink-0 space-x-2 sm:space-x-4">
-						<button
-							v-if="previewUrl && !fetchAttachment.loading && canPrint"
-							class="rounded p-1.5 hover:bg-white/20"
-							@click="printAttachment"
-						>
-							<Printer class="h-4 w-4" />
-						</button>
-						<button
-							v-if="previewUrl && !fetchAttachment.loading"
-							:disabled="isDownloading"
-							class="rounded p-1.5 hover:bg-white/20 disabled:opacity-50"
-							@click="downloadAttachment"
-						>
-							<Download class="h-4 w-4" />
-						</button>
-						<button class="rounded p-1.5 hover:bg-white/20" @click="closeViewer">
-							<X class="h-4 w-4" />
-						</button>
-					</div>
-				</div>
+  <Teleport to="body">
+    <Transition
+      enter-active-class="transition-opacity duration-200"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition-opacity duration-200"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="show"
+        data-attachment-viewer
+        class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 p-2 text-gray-300 sm:p-4"
+        @click.self="closeViewer"
+      >
+        <div class="flex w-full justify-between">
+          <div class="flex max-w-2xl items-center space-x-2 truncate rounded">
+            <component :is="getFileIcon(currentAttachment?.type)" class="h-4 w-4 shrink-0" />
+            <span class="truncate text-base-medium">
+              {{ currentAttachment?.filename }}
+            </span>
+          </div>
+          <div class="shrink-0 space-x-2 sm:space-x-4">
+            <button
+              v-if="previewUrl && !fetchAttachment.loading && canPrint"
+              class="rounded p-1.5 hover:bg-white/20"
+              @click="printAttachment"
+            >
+              <Printer class="h-4 w-4" />
+            </button>
+            <button
+              v-if="previewUrl && !fetchAttachment.loading"
+              :disabled="isDownloading"
+              class="rounded p-1.5 hover:bg-white/20 disabled:opacity-50"
+              @click="downloadAttachment"
+            >
+              <Download class="h-4 w-4" />
+            </button>
+            <button class="rounded p-1.5 hover:bg-white/20" @click="closeViewer">
+              <X class="h-4 w-4" />
+            </button>
+          </div>
+        </div>
 
-				<!-- Content area -->
-				<div
-					class="flex h-full w-full items-center justify-center"
-					@click.self="closeViewer"
-				>
-					<LoaderCircle v-if="fetchAttachment.loading" class="h-8 w-8 animate-spin" />
-					<div
-						v-else-if="previewUrl"
-						class="flex h-full w-full items-center justify-center"
-						@click.self="closeViewer"
-					>
-						<!-- Image Preview -->
-						<img
-							v-if="isImage"
-							:src="previewUrl"
-							:alt="currentAttachment?.filename"
-							class="max-h-[85vh] max-w-full object-contain"
-						/>
-						<!-- PDF Preview -->
-						<template v-else-if="isPDF">
-							<VuePdfEmbed
-								v-if="isMobile"
-								annotation-layer
-								text-layer
-								:source="previewUrl"
-								class="h-[85vh] w-full max-w-6xl space-y-2 overflow-auto"
-							/>
-							<embed
-								v-else
-								:src="previewUrl"
-								type="application/pdf"
-								class="h-[85vh] w-full max-w-6xl"
-							/>
-						</template>
+        <!-- Content area -->
+        <div class="flex h-full w-full items-center justify-center" @click.self="closeViewer">
+          <LoaderCircle v-if="fetchAttachment.loading" class="h-8 w-8 animate-spin" />
+          <div
+            v-else-if="previewUrl"
+            class="flex h-full w-full items-center justify-center"
+            @click.self="closeViewer"
+          >
+            <!-- Image Preview -->
+            <img
+              v-if="isImage"
+              :src="previewUrl"
+              :alt="currentAttachment?.filename"
+              class="max-h-[85vh] max-w-full object-contain"
+            />
+            <!-- PDF Preview -->
+            <template v-else-if="isPDF">
+              <VuePdfEmbed
+                v-if="isMobile"
+                annotation-layer
+                text-layer
+                :source="previewUrl"
+                class="h-[85vh] w-full max-w-6xl space-y-2 overflow-auto"
+              />
+              <embed
+                v-else
+                :src="previewUrl"
+                type="application/pdf"
+                class="h-[85vh] w-full max-w-6xl"
+              />
+            </template>
 
-						<!-- Video Preview -->
-						<video
-							v-else-if="isVideo"
-							:src="previewUrl"
-							:title="__('Video Preview')"
-							controls
-							class="max-h-[85vh] max-w-full"
-						/>
-						<!-- Audio Preview -->
-						<audio
-							v-else-if="isAudio"
-							:src="previewUrl"
-							:title="__('Audio Preview')"
-							controls
-							class="w-full max-w-2xl"
-						/>
-						<!-- Unsupported Preview -->
-						<div v-else class="flex flex-col items-center justify-center space-y-4">
-							<FileIcon class="h-16 w-16" />
-							<p class="text-sm">
-								{{ __('Preview not available for this file type') }}
-							</p>
-							<Button
-								:label="__('Download')"
-								:icon-left="Download"
-								:disabled="isDownloading"
-								@click="downloadAttachment"
-							/>
-						</div>
-					</div>
-					<div v-else class="flex flex-col items-center justify-center space-y-4">
-						<FileIcon class="h-16 w-16" />
-						<p class="text-sm">{{ __('Failed to load attachment') }}</p>
-					</div>
-				</div>
+            <!-- Video Preview -->
+            <video
+              v-else-if="isVideo"
+              :src="previewUrl"
+              :title="__('Video Preview')"
+              controls
+              class="max-h-[85vh] max-w-full"
+            />
+            <!-- Audio Preview -->
+            <audio
+              v-else-if="isAudio"
+              :src="previewUrl"
+              :title="__('Audio Preview')"
+              controls
+              class="w-full max-w-2xl"
+            />
+            <!-- Unsupported Preview -->
+            <div v-else class="flex flex-col items-center justify-center space-y-4">
+              <FileIcon class="h-16 w-16" />
+              <p class="text-sm">
+                {{ __('Preview not available for this file type') }}
+              </p>
+              <Button
+                :label="__('Download')"
+                :icon-left="Download"
+                :disabled="isDownloading"
+                @click="downloadAttachment"
+              />
+            </div>
+          </div>
+          <div v-else class="flex flex-col items-center justify-center space-y-4">
+            <FileIcon class="h-16 w-16" />
+            <p class="text-sm">{{ __('Failed to load attachment') }}</p>
+          </div>
+        </div>
 
-				<div
-					v-if="attachments && attachments.length > 1"
-					class="flex items-center max-sm:w-full max-sm:justify-between sm:space-x-4"
-				>
-					<button
-						:disabled="currentIndex === 0"
-						class="rounded p-1.5 disabled:opacity-50"
-						:class="{ 'hover:bg-white/20': currentIndex !== 0 }"
-						@click="previousAttachment"
-					>
-						<ChevronLeft class="h-4 w-4" />
-					</button>
-					<span class="text-sm">
-						{{
-							__('{0} of {1}', [
+        <div
+          v-if="attachments && attachments.length > 1"
+          class="flex items-center max-sm:w-full max-sm:justify-between sm:space-x-4"
+        >
+          <button
+            :disabled="currentIndex === 0"
+            class="rounded p-1.5 disabled:opacity-50"
+            :class="{ 'hover:bg-white/20': currentIndex !== 0 }"
+            @click="previousAttachment"
+          >
+            <ChevronLeft class="h-4 w-4" />
+          </button>
+          <span class="text-sm">
+            {{ __('{0} of {1}', [
 								(currentIndex + 1).toString(),
 								attachments.length.toString(),
-							])
-						}}
-					</span>
-					<button
-						:disabled="currentIndex === attachments.length - 1"
-						class="rounded p-1.5 disabled:opacity-50"
-						:class="{ 'hover:bg-white/20': currentIndex !== attachments.length - 1 }"
-						@click="nextAttachment"
-					>
-						<ChevronRight class="h-4 w-4" />
-					</button>
-				</div>
-			</div>
-		</Transition>
-	</Teleport>
+							]) }}
+          </span>
+          <button
+            :disabled="currentIndex === attachments.length - 1"
+            class="rounded p-1.5 disabled:opacity-50"
+            :class="{ 'hover:bg-white/20': currentIndex !== attachments.length - 1 }"
+            @click="nextAttachment"
+          >
+            <ChevronRight class="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">

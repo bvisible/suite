@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="flex flex-col items-center h-screen p-6 text-center mt-[10%] w-full"
-  >
+  <div class="flex flex-col items-center h-screen p-6 text-center mt-[10%] w-full">
     <div class="size-16 rounded-full bg-surface-gray-2 flex items-center justify-center">
       <LucideFileUser v-if="error.type === 'PermissionError'" class="size-8 text-ink-gray-5" />
       <LucideFileQuestionMark v-else class="size-8 text-ink-gray-5" />
@@ -10,11 +8,9 @@
     <p class="text-xl text-ink-gray-5 mt-4">
       <template v-if="typeof error === 'string'">{{ error }}</template>
       <template v-else>
-        {{
-          error.type === 'PageDoesNotExistError'
+        {{ error.type === 'PageDoesNotExistError'
             ? "This document doesn't exist."
-            : 'You do not have access to this.'
-        }}
+            : 'You do not have access to this.' }}
       </template>
     </p>
     <div class="w-50 flex gap-8 my-12">
@@ -24,9 +20,7 @@
         size="md"
         @click="$router.go(-1)"
       >
-        <div class="flex gap-2">
-          <LucideArrowBigLeft class="size-4" />Go Back
-        </div>
+        <div class="flex gap-2"><LucideArrowBigLeft class="size-4" />Go Back</div>
       </Button>
       <template v-if="$route.name != 'Home'">
         <Button

@@ -1,23 +1,23 @@
 <template>
-	<CollapsibleSection title="Alignment">
-		<template #default>
-			<div v-for="axis in axes" :key="axis" class="flex flex-col gap-1.5">
-				<div :class="fieldLabelClasses">{{ axis.label }}</div>
-				<div class="grid grid-cols-3 gap-3">
-					<div
-						v-for="option in axis.options"
-						:key="option.direction"
-						:class="getAlignmentButtonClasses(option.direction)"
-						@click="performAlignment(option.direction)"
-						@mouseenter="updateGuideVisibilityMap(option.guide, true)"
-						@mouseleave="updateGuideVisibilityMap(option.guide, false)"
-					>
-						<component :is="option.icon" size="18" :strokeWidth="1.5" />
-					</div>
-				</div>
-			</div>
-		</template>
-	</CollapsibleSection>
+  <CollapsibleSection title="Alignment">
+    <template #default>
+      <div v-for="axis in axes" :key="axis" class="flex flex-col gap-1.5">
+        <div :class="fieldLabelClasses">{{ axis.label }}</div>
+        <div class="grid grid-cols-3 gap-3">
+          <div
+            v-for="option in axis.options"
+            :key="option.direction"
+            :class="getAlignmentButtonClasses(option.direction)"
+            @click="performAlignment(option.direction)"
+            @mouseenter="updateGuideVisibilityMap(option.guide, true)"
+            @mouseleave="updateGuideVisibilityMap(option.guide, false)"
+          >
+            <component :is="option.icon" size="18" :strokeWidth="1.5" />
+          </div>
+        </div>
+      </div>
+    </template>
+  </CollapsibleSection>
 </template>
 
 <script setup>

@@ -1,53 +1,49 @@
 <template>
-	<Dialog v-model="showBlockSender" :options="options">
-		<template v-if="isMultiple" #body-content>
-			<div class="border-outline-gray-2 overflow-hidden rounded-md border">
-				<!-- Select all -->
-				<div
-					class="bg-surface-gray-1 flex cursor-pointer items-center gap-3 px-3.5 py-2.5"
-					@click="toggleAll"
-				>
-					<FormControl
-						type="checkbox"
-						:model-value="allSelected"
-						class="pointer-events-none"
-					/>
-					<span class="text-ink-gray-7 text-sm font-medium">
-						{{ allSelected ? __('Deselect all') : __('Select all') }}
-					</span>
-					<span class="text-ink-gray-5 ml-auto text-sm">
-						{{ __('{0} of {1} selected', [selectedCount, sendersToBlock.length]) }}
-					</span>
-				</div>
+  <Dialog v-model="showBlockSender" :options="options">
+    <template v-if="isMultiple" #body-content>
+      <div class="border-outline-gray-2 overflow-hidden rounded-md border">
+        <!-- Select all -->
+        <div
+          class="bg-surface-gray-1 flex cursor-pointer items-center gap-3 px-3.5 py-2.5"
+          @click="toggleAll"
+        >
+          <FormControl type="checkbox" :model-value="allSelected" class="pointer-events-none" />
+          <span class="text-ink-gray-7 text-sm font-medium">
+            {{ allSelected ? __('Deselect all') : __('Select all') }}
+          </span>
+          <span class="text-ink-gray-5 ml-auto text-sm">
+            {{ __('{0} of {1} selected', [selectedCount, sendersToBlock.length]) }}
+          </span>
+        </div>
 
-				<!-- Sender list -->
-				<div
-					class="divide-outline-gray-2 border-outline-gray-2 max-h-[290px] divide-y overflow-y-auto border-t"
-				>
-					<div
-						v-for="sender in sendersToBlock"
-						:key="sender.email"
-						class="hover:bg-surface-gray-1 flex cursor-pointer items-center gap-3 px-3.5 py-2.5 transition-colors"
-						@click="toggle(sender.email)"
-					>
-						<FormControl
-							type="checkbox"
-							:model-value="selected[sender.email]"
-							class="pointer-events-none"
-						/>
-						<div class="min-w-0 flex-1 space-y-0.5">
-							<div class="text-ink-gray-8 truncate text-sm font-medium">
-								{{ sender.name || sender.email }}
-							</div>
-							<div v-if="sender.name" class="text-ink-gray-5 truncate text-xs">
-								{{ sender.email }}
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</template>
-	</Dialog>
+        <!-- Sender list -->
+        <div
+          class="divide-outline-gray-2 border-outline-gray-2 max-h-[290px] divide-y overflow-y-auto border-t"
+        >
+          <div
+            v-for="sender in sendersToBlock"
+            :key="sender.email"
+            class="hover:bg-surface-gray-1 flex cursor-pointer items-center gap-3 px-3.5 py-2.5 transition-colors"
+            @click="toggle(sender.email)"
+          >
+            <FormControl
+              type="checkbox"
+              :model-value="selected[sender.email]"
+              class="pointer-events-none"
+            />
+            <div class="min-w-0 flex-1 space-y-0.5">
+              <div class="text-ink-gray-8 truncate text-sm font-medium">
+                {{ sender.name || sender.email }}
+              </div>
+              <div v-if="sender.name" class="text-ink-gray-5 truncate text-xs">
+                {{ sender.email }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <script setup lang="ts">

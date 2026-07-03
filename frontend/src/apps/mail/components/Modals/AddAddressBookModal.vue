@@ -1,7 +1,7 @@
 <template>
-	<Dialog
-		v-model="show"
-		:options="{
+  <Dialog
+    v-model="show"
+    :options="{
 			title: __('New Address Book'),
 			actions: [
 				{
@@ -12,28 +12,24 @@
 				},
 			],
 		}"
-	>
-		<template #body-content>
-			<div class="space-y-4">
-				<FormControl
-					v-model="addressBook.name"
-					:label="__('Name')"
-					:placeholder="__('Work Contacts')"
-				/>
-				<FormControl
-					v-model="addressBook.description"
-					type="textarea"
-					:label="__('Description')"
-					:placeholder="__('All my work-related contacts')"
-				/>
-				<FormControl
-					v-model="addressBook.default"
-					type="checkbox"
-					:label="__('Set as Default')"
-				/>
-			</div>
-		</template>
-	</Dialog>
+  >
+    <template #body-content>
+      <div class="space-y-4">
+        <FormControl
+          v-model="addressBook.name"
+          :label="__('Name')"
+          :placeholder="__('Work Contacts')"
+        />
+        <FormControl
+          v-model="addressBook.description"
+          type="textarea"
+          :label="__('Description')"
+          :placeholder="__('All my work-related contacts')"
+        />
+        <FormControl v-model="addressBook.default" type="checkbox" :label="__('Set as Default')" />
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <script setup lang="ts">

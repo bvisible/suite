@@ -1,36 +1,36 @@
 <template>
-	<h1>{{ __('Appearance') }}</h1>
-	<FormControl
-		v-model="colorScheme"
-		:label="__('Color Scheme')"
-		type="select"
-		variant="outline"
-		:options="COLOR_SCHEMES"
-	/>
-	<template v-if="user.data.is_jmap_configured">
-		<Switch
-			:model-value="showReadingPane"
-			:label="__('Show Reading Pane')"
-			:description="__('Preview emails alongside the message list.')"
-			class="!p-0"
-			@update:model-value="(v) => (showReadingPane = v)"
-		/>
-		<FormControl
-			:model-value="groupMessagesBy"
-			:label="__('Group Messages By')"
-			type="select"
-			variant="outline"
-			:options="GROUP_MESSAGES_OPTIONS"
-			@update:model-value="(v) => (groupMessagesBy = v)"
-		/>
-	</template>
-	<Button
-		:label="__('Save')"
-		variant="solid"
-		:loading="saveSettings.loading"
-		:disabled="isNotDirty"
-		@click="() => saveSettings.submit()"
-	/>
+  <h1>{{ __('Appearance') }}</h1>
+  <FormControl
+    v-model="colorScheme"
+    :label="__('Color Scheme')"
+    type="select"
+    variant="outline"
+    :options="COLOR_SCHEMES"
+  />
+  <template v-if="user.data.is_jmap_configured">
+    <Switch
+      :model-value="showReadingPane"
+      :label="__('Show Reading Pane')"
+      :description="__('Preview emails alongside the message list.')"
+      class="!p-0"
+      @update:model-value="(v) => (showReadingPane = v)"
+    />
+    <FormControl
+      :model-value="groupMessagesBy"
+      :label="__('Group Messages By')"
+      type="select"
+      variant="outline"
+      :options="GROUP_MESSAGES_OPTIONS"
+      @update:model-value="(v) => (groupMessagesBy = v)"
+    />
+  </template>
+  <Button
+    :label="__('Save')"
+    variant="solid"
+    :loading="saveSettings.loading"
+    :disabled="isNotDirty"
+    @click="() => saveSettings.submit()"
+  />
 </template>
 
 <script setup lang="ts">

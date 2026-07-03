@@ -1,9 +1,9 @@
 <template>
-	<Tooltip :text="tooltipText" :disabled="inList">
-		<div class="text-ink-gray-5 text-nowrap text-xs" :class="{ 'mr-1': !inList }">
-			{{ formattedDate }}
-		</div>
-	</Tooltip>
+  <Tooltip :text="tooltipText" :disabled="inList">
+    <div class="text-ink-gray-5 text-nowrap text-xs" :class="{ 'mr-1': !inList }">
+      {{ formattedDate }}
+    </div>
+  </Tooltip>
 </template>
 <script setup lang="ts">
 import { computed, inject } from 'vue'

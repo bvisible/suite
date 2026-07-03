@@ -1,84 +1,77 @@
 <template>
-	<aside v-if="open" class="sn-vh-panel" @click.stop>
-		<header class="sn-vh-header">
-			<div class="sn-vh-title">Version history</div>
-			<Button variant="ghost" size="sm" icon="x" @click="$emit('close')" />
-		</header>
+  <aside v-if="open" class="sn-vh-panel" @click.stop>
+    <header class="sn-vh-header">
+      <div class="sn-vh-title">Version history</div>
+      <Button variant="ghost" size="sm" icon="x" @click="$emit('close')" />
+    </header>
 
-		<div class="sn-vh-filter">
-			<Select v-model="filter" :options="FILTER_OPTIONS" size="sm" />
-		</div>
+    <div class="sn-vh-filter">
+      <Select v-model="filter" :options="FILTER_OPTIONS" size="sm" />
+    </div>
 
-		<div v-if="loading" class="sn-vh-empty">Loading…</div>
-		<div v-else-if="error" class="sn-vh-empty sn-vh-error">{{ error }}</div>
-		<div v-else-if="!visibleGroups.length" class="sn-vh-empty">
-			<div class="sn-vh-empty-title">
-				{{ filter === 'named' ? 'No named versions yet.' : 'No saved versions yet.' }}
-			</div>
-			<div class="sn-vh-empty-hint">
-				Edits are autosaved continuously — your data is safe.
-				Versions appear here after each save (rapid edits are grouped).
-			</div>
-		</div>
+    <div v-if="loading" class="sn-vh-empty">Loading…</div>
+    <div v-else-if="error" class="sn-vh-empty sn-vh-error">{{ error }}</div>
+    <div v-else-if="!visibleGroups.length" class="sn-vh-empty">
+      <div class="sn-vh-empty-title">
+        {{ filter === 'named' ? 'No named versions yet.' : 'No saved versions yet.' }}
+      </div>
+      <div class="sn-vh-empty-hint">
+        Edits are autosaved continuously — your data is safe. Versions appear here after each save
+        (rapid edits are grouped).
+      </div>
+    </div>
 
-		<div v-else class="sn-vh-list">
-			<div v-for="g in visibleGroups" :key="g.date" class="sn-vh-group">
-				<div class="sn-vh-group-h">{{ g.label }}</div>
-				<div
-					v-for="v in g.items"
-					:key="v.name"
-					class="sn-vh-row"
-					:class="{ 'sn-vh-row-active': v.name === activeVersion }"
-					@click="$emit('select', v.name)"
-				>
-					<Avatar :label="shortUser(v.user)" size="sm" />
-					<div class="sn-vh-row-body">
-						<div class="sn-vh-row-title">
-							{{ formatTime(v.timestamp) }}
-							<span v-if="v.collapsed_count > 1" class="sn-vh-count">
-								· {{ v.collapsed_count }} saves
-							</span>
-						</div>
-						<div class="sn-vh-meta">
-							<span class="sn-vh-user">{{ shortUser(v.user) }}</span>
-							<span v-if="rowSubtitle(v)" class="sn-vh-sep">·</span>
-							<span v-if="rowSubtitle(v)" class="sn-vh-subtitle">{{ rowSubtitle(v) }}</span>
-						</div>
-					</div>
-					<button
-						class="sn-vh-row-menu"
-						:class="{ 'sn-vh-row-menu-visible': v.name === activeVersion }"
-						:title="`More actions for ${formatTime(v.timestamp)}`"
-						@click.stop="toggleMenu(v.name, $event)"
-					>
-						<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
-							<circle cx="8" cy="3"  r="1.4" fill="currentColor"/>
-							<circle cx="8" cy="8"  r="1.4" fill="currentColor"/>
-							<circle cx="8" cy="13" r="1.4" fill="currentColor"/>
-						</svg>
-					</button>
-				</div>
-			</div>
-		</div>
+    <div v-else class="sn-vh-list">
+      <div v-for="g in visibleGroups" :key="g.date" class="sn-vh-group">
+        <div class="sn-vh-group-h">{{ g.label }}</div>
+        <div
+          v-for="v in g.items"
+          :key="v.name"
+          class="sn-vh-row"
+          :class="{ 'sn-vh-row-active': v.name === activeVersion }"
+          @click="$emit('select', v.name)"
+        >
+          <Avatar :label="shortUser(v.user)" size="sm" />
+          <div class="sn-vh-row-body">
+            <div class="sn-vh-row-title">
+              {{ formatTime(v.timestamp) }}
+              <span v-if="v.collapsed_count > 1" class="sn-vh-count">
+                · {{ v.collapsed_count }} saves
+              </span>
+            </div>
+            <div class="sn-vh-meta">
+              <span class="sn-vh-user">{{ shortUser(v.user) }}</span>
+              <span v-if="rowSubtitle(v)" class="sn-vh-sep">·</span>
+              <span v-if="rowSubtitle(v)" class="sn-vh-subtitle">{{ rowSubtitle(v) }}</span>
+            </div>
+          </div>
+          <button
+            class="sn-vh-row-menu"
+            :class="{ 'sn-vh-row-menu-visible': v.name === activeVersion }"
+            :title="`More actions for ${formatTime(v.timestamp)}`"
+            @click.stop="toggleMenu(v.name, $event)"
+          >
+            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+              <circle cx="8" cy="3" r="1.4" fill="currentColor" />
+              <circle cx="8" cy="8" r="1.4" fill="currentColor" />
+              <circle cx="8" cy="13" r="1.4" fill="currentColor" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
 
-		<!-- Per-row actions popover; absolutely positioned next to the trigger. -->
-		<div
-			v-if="menuFor"
-			class="sn-vh-menu-pop"
-			:style="menuStyle"
-			@click.stop
-		>
-			<button class="sn-vh-menu-item" @click="actionFromMenu('name')">
-				{{ menuRow?.version_name ? 'Rename this version' : 'Name this version' }}
-			</button>
-			<button class="sn-vh-menu-item" @click="actionFromMenu('copy')">
-				Make a copy
-			</button>
-			<button class="sn-vh-menu-item" @click="actionFromMenu('restore')">
-				Restore this version
-			</button>
-		</div>
-	</aside>
+    <!-- Per-row actions popover; absolutely positioned next to the trigger. -->
+    <div v-if="menuFor" class="sn-vh-menu-pop" :style="menuStyle" @click.stop>
+      <button class="sn-vh-menu-item" @click="actionFromMenu('name')">
+        {{ menuRow?.version_name ? 'Rename this version' : 'Name this version' }}
+      </button>
+      <button class="sn-vh-menu-item" @click="actionFromMenu('copy')">Make a copy</button>
+      <button class="sn-vh-menu-item" @click="actionFromMenu('restore')">
+        Restore this version
+      </button>
+    </div>
+  </aside>
 </template>
 
 <script setup>
@@ -222,128 +215,201 @@ function shortUser(u) {
 
 <style scoped>
 .sn-vh-panel {
-	position: absolute;
-	top:    0;
-	right:  0;
-	bottom: 0;
-	width:  320px;
-	background: var(--surface-base, #ffffff);
-	border-left: 1px solid var(--outline-gray-2, #e5e5e5);
-	display: flex;
-	flex-direction: column;
-	z-index: 30;
-	box-shadow: -4px 0 12px -8px rgba(0,0,0,0.08);
-	animation: sn-vh-slide-in 160ms cubic-bezier(.2, .8, .25, 1);
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 320px;
+  background: var(--surface-base, #ffffff);
+  border-left: 1px solid var(--outline-gray-2, #e5e5e5);
+  display: flex;
+  flex-direction: column;
+  z-index: 30;
+  box-shadow: -4px 0 12px -8px rgba(0, 0, 0, 0.08);
+  animation: sn-vh-slide-in 160ms cubic-bezier(0.2, 0.8, 0.25, 1);
 }
 @keyframes sn-vh-slide-in {
-	from { transform: translateX(16px); opacity: 0; }
-	to   { transform: translateX(0);    opacity: 1; }
+  from {
+    transform: translateX(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 .sn-vh-header {
-	display: flex; align-items: center; justify-content: space-between;
-	padding: 10px 12px;
-	border-bottom: 1px solid var(--outline-gray-2, #e5e5e5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--outline-gray-2, #e5e5e5);
 }
 .sn-vh-title {
-	font-weight: 600;
-	color: var(--ink-gray-8, #262626);
-	font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-gray-8, #262626);
+  font-size: 13px;
 }
 
 .sn-vh-filter {
-	padding: 8px 12px;
-	border-bottom: 1px solid var(--outline-gray-2, #e5e5e5);
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--outline-gray-2, #e5e5e5);
 }
 
-.sn-vh-list  { flex: 1; overflow-y: auto; padding: 4px 0 12px; }
-.sn-vh-group { padding: 4px 0; }
+.sn-vh-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0 12px;
+}
+.sn-vh-group {
+  padding: 4px 0;
+}
 .sn-vh-group-h {
-	font-size: 11px; font-weight: 500;
-	letter-spacing: 0.02em;
-	color: var(--ink-gray-5, #737373);
-	padding: 8px 16px 4px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--ink-gray-5, #737373);
+  padding: 8px 16px 4px;
 }
 
 /* Row layout: avatar | content | menu  ── tight, list-style Frappe-UI look. */
 .sn-vh-row {
-	display: flex; align-items: flex-start; gap: 10px;
-	padding: 8px 8px 8px 12px;
-	margin: 1px 6px;
-	background: transparent;
-	color: var(--ink-gray-8, #262626);
-	cursor: pointer;
-	border-radius: 6px;
-	transition: background 0.08s ease;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 8px 8px 12px;
+  margin: 1px 6px;
+  background: transparent;
+  color: var(--ink-gray-8, #262626);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.08s ease;
 }
-.sn-vh-row:hover           { background: var(--surface-gray-2, #f5f5f5); }
-.sn-vh-row-active          { background: var(--surface-gray-2, #f5f5f5); }
-.sn-vh-row-active:hover    { background: var(--surface-gray-3, #ebebeb); }
+.sn-vh-row:hover {
+  background: var(--surface-gray-2, #f5f5f5);
+}
+.sn-vh-row-active {
+  background: var(--surface-gray-2, #f5f5f5);
+}
+.sn-vh-row-active:hover {
+  background: var(--surface-gray-3, #ebebeb);
+}
 
-.sn-vh-row-body  { flex: 1; min-width: 0; padding-top: 1px; }
-.sn-vh-row-title {
-	font-size: 13px;
-	font-weight: 500;
-	color: var(--ink-gray-8, #262626);
-	line-height: 18px;
+.sn-vh-row-body {
+  flex: 1;
+  min-width: 0;
+  padding-top: 1px;
 }
-.sn-vh-count  { font-weight: 400; color: var(--ink-gray-5, #737373); }
+.sn-vh-row-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-gray-8, #262626);
+  line-height: 18px;
+}
+.sn-vh-count {
+  font-weight: 400;
+  color: var(--ink-gray-5, #737373);
+}
 
 .sn-vh-meta {
-	display: flex; align-items: center; gap: 4px;
-	font-size: 12px;
-	color: var(--ink-gray-6, #525252);
-	margin-top: 1px;
-	min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--ink-gray-6, #525252);
+  margin-top: 1px;
+  min-width: 0;
 }
-.sn-vh-sep      { color: var(--ink-gray-4, #a3a3a3); }
-.sn-vh-subtitle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sn-vh-sep {
+  color: var(--ink-gray-4, #a3a3a3);
+}
+.sn-vh-subtitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .sn-vh-row-menu {
-	width: 24px; height: 24px; flex-shrink: 0;
-	background: transparent; border: 0; cursor: pointer;
-	color: var(--ink-gray-5, #737373);
-	border-radius: 4px;
-	opacity: 0;
-	display: flex; align-items: center; justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: var(--ink-gray-5, #737373);
+  border-radius: 4px;
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.sn-vh-row:hover .sn-vh-row-menu { opacity: 1; }
-.sn-vh-row-menu-visible          { opacity: 1; }
+.sn-vh-row:hover .sn-vh-row-menu {
+  opacity: 1;
+}
+.sn-vh-row-menu-visible {
+  opacity: 1;
+}
 .sn-vh-row-menu:hover {
-	background: var(--surface-gray-3, #ebebeb);
-	color: var(--ink-gray-8, #262626);
+  background: var(--surface-gray-3, #ebebeb);
+  color: var(--ink-gray-8, #262626);
 }
 
 .sn-vh-empty {
-	padding: 28px 18px;
-	color: var(--ink-gray-5, #737373);
-	font-size: 13px; text-align: center;
+  padding: 28px 18px;
+  color: var(--ink-gray-5, #737373);
+  font-size: 13px;
+  text-align: center;
 }
-.sn-vh-empty-title { font-weight: 500; color: var(--ink-gray-7, #525252); margin-bottom: 6px; }
-.sn-vh-empty-hint  { font-size: 12px; line-height: 1.5; color: var(--ink-gray-5, #737373); }
-.sn-vh-error { color: var(--ink-red-5, #dc2626); }
+.sn-vh-empty-title {
+  font-weight: 500;
+  color: var(--ink-gray-7, #525252);
+  margin-bottom: 6px;
+}
+.sn-vh-empty-hint {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-gray-5, #737373);
+}
+.sn-vh-error {
+  color: var(--ink-red-5, #dc2626);
+}
 
 .sn-vh-menu-pop {
-	position: absolute;
-	background: var(--surface-base, #ffffff);
-	border: 1px solid var(--outline-gray-2, #e5e5e5);
-	border-radius: 6px;
-	box-shadow: 0 4px 12px -4px rgba(0,0,0,0.12);
-	padding: 4px;
-	min-width: 180px;
-	z-index: 31;
-	animation: sn-vh-menu-rise 120ms ease-out;
-	transform-origin: top right;
+  position: absolute;
+  background: var(--surface-base, #ffffff);
+  border: 1px solid var(--outline-gray-2, #e5e5e5);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.12);
+  padding: 4px;
+  min-width: 180px;
+  z-index: 31;
+  animation: sn-vh-menu-rise 120ms ease-out;
+  transform-origin: top right;
 }
 @keyframes sn-vh-menu-rise {
-	from { transform: translateY(-4px) scale(0.98); opacity: 0; }
-	to   { transform: translateY(0)    scale(1);    opacity: 1; }
+  from {
+    transform: translateY(-4px) scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
 }
 .sn-vh-menu-item {
-	display: block; width: 100%; text-align: left;
-	background: transparent; border: 0; cursor: pointer;
-	padding: 7px 10px; font: inherit;
-	color: var(--ink-gray-8, #262626);
-	font-size: 13px; border-radius: 4px;
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 7px 10px;
+  font: inherit;
+  color: var(--ink-gray-8, #262626);
+  font-size: 13px;
+  border-radius: 4px;
 }
-.sn-vh-menu-item:hover { background: var(--surface-gray-2, #f5f5f5); }
+.sn-vh-menu-item:hover {
+  background: var(--surface-gray-2, #f5f5f5);
+}
 </style>

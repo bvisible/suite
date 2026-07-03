@@ -1,11 +1,5 @@
 <template>
-  <Combobox
-    v-model="team"
-    placeholder="Select a team"
-    :options
-    :disabled
-    :open-on-click="true"
-  />
+  <Combobox v-model="team" placeholder="Select a team" :options :disabled :open-on-click="true" />
 </template>
 <script setup lang="ts">
 import { getTeams } from '../js/resources'

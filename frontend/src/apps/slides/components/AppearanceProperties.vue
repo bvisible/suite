@@ -1,25 +1,25 @@
 <template>
-	<CollapsibleSection title="Appearance">
-		<template #default>
-			<SliderInput
-				v-if="activeElement.type == 'text'"
-				label="Opacity"
-				:rangeStart="0"
-				:rangeEnd="100"
-				:modelValue="parseFloat(editorStyles.opacity)"
-				@update:modelValue="(value) => updateProperty('opacity', parseFloat(value))"
-			/>
-			<SliderInput
-				v-else
-				label="Opacity"
-				:rangeStart="0"
-				:rangeEnd="100"
-				v-model="activeElement.opacity"
-				@sliderdown="onOpacityUpdateStart"
-				@sliderup="onOpacityUpdateEnd"
-			/>
-		</template>
-	</CollapsibleSection>
+  <CollapsibleSection title="Appearance">
+    <template #default>
+      <SliderInput
+        v-if="activeElement.type == 'text'"
+        label="Opacity"
+        :rangeStart="0"
+        :rangeEnd="100"
+        :modelValue="parseFloat(editorStyles.opacity)"
+        @update:modelValue="(value) => updateProperty('opacity', parseFloat(value))"
+      />
+      <SliderInput
+        v-else
+        label="Opacity"
+        :rangeStart="0"
+        :rangeEnd="100"
+        v-model="activeElement.opacity"
+        @sliderdown="onOpacityUpdateStart"
+        @sliderup="onOpacityUpdateEnd"
+      />
+    </template>
+  </CollapsibleSection>
 </template>
 
 <script setup>

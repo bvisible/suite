@@ -1,72 +1,70 @@
 <template>
-	<div
-		v-if="isMobile && isSidebarOpen"
-		class="fixed inset-0 z-10 bg-black bg-opacity-50"
-		@click="closeSidebar"
-	/>
+  <div
+    v-if="isMobile && isSidebarOpen"
+    class="fixed inset-0 z-10 bg-black bg-opacity-50"
+    @click="closeSidebar"
+  />
 
-	<Transition>
-		<Sidebar
-			v-if="!isMobile || isSidebarOpen"
-			id="sidebar"
-			v-model:collapsed="isSidebarCollapsed"
-			:header="{
+  <Transition>
+    <Sidebar
+      v-if="!isMobile || isSidebarOpen"
+      id="sidebar"
+      v-model:collapsed="isSidebarCollapsed"
+      :header="{
 				title,
 				subtitle,
 				menuItems,
 				logo: branding.data?.brand_html || MailLogo,
 			}"
-			:sections="sidebarItems"
-			:class="{ 'fixed left-0 top-0 z-10 w-60 !bg-surface-base': isMobile }"
-			:disable-collapse="isMobile"
-		>
-			<template #footer-items="{ isCollapsed }">
-				<QuotaBar v-if="user.data.is_jmap_configured" :is-collapsed />
-			</template>
-			<template #sidebar-item="{ item }">
-				<SidebarItem
-					:label="item.label"
-					:icon="item.icon"
-					:to="item.to"
-					:is-active="
+      :sections="sidebarItems"
+      :class="{ 'fixed left-0 top-0 z-10 w-60 !bg-surface-base': isMobile }"
+      :disable-collapse="isMobile"
+    >
+      <template #footer-items="{ isCollapsed }">
+        <QuotaBar v-if="user.data.is_jmap_configured" :is-collapsed />
+      </template>
+      <template #sidebar-item="{ item }">
+        <SidebarItem
+          :label="item.label"
+          :icon="item.icon"
+          :to="item.to"
+          :is-active="
 						item.activeFor?.includes(
 							['mail-mailbox', 'mail-mail'].includes(route.name as string)
 								? route.params.mailbox
 								: route.name,
 						)
 					"
-					:on-click="item.onClick"
-					class="group"
-				>
-					<template #suffix>
-						<div class="flex items-center">
-							<Dropdown v-if="item.menuOptions" :options="item.menuOptions">
-								<Button variant="ghost" class="!bg-transparent" @click.stop>
-									<template #icon>
-										<Ellipsis
-											class="text-ink-gray-6 invisible h-4 w-4 group-hover:visible"
-										/>
-									</template>
-								</Button>
-							</Dropdown>
-							<span
-								class="text-ink-gray-4 text-sm"
-								:class="{ 'group-hover:hidden': item.menuOptions }"
-							>
-								{{ item.suffix }}
-							</span>
-						</div>
-					</template>
-				</SidebarItem>
-			</template>
-		</Sidebar>
-	</Transition>
+          :on-click="item.onClick"
+          class="group"
+        >
+          <template #suffix>
+            <div class="flex items-center">
+              <Dropdown v-if="item.menuOptions" :options="item.menuOptions">
+                <Button variant="ghost" class="!bg-transparent" @click.stop>
+                  <template #icon>
+                    <Ellipsis class="text-ink-gray-6 invisible h-4 w-4 group-hover:visible" />
+                  </template>
+                </Button>
+              </Dropdown>
+              <span
+                class="text-ink-gray-4 text-sm"
+                :class="{ 'group-hover:hidden': item.menuOptions }"
+              >
+                {{ item.suffix }}
+              </span>
+            </div>
+          </template>
+        </SidebarItem>
+      </template>
+    </Sidebar>
+  </Transition>
 
-	<SettingsModal v-if="!isMobile" v-model="showSettings" />
-	<PWASettings v-else-if="showSettings" @close="showSettings = false" />
-	<FolderModal v-model="showFolderModal" :mailbox="selectedMailbox" />
-	<DeleteFolderModal v-model="showDeleteMailbox" :mailbox="selectedMailbox" />
-	<ShortcutsModal v-model="showShortcuts" />
+  <SettingsModal v-if="!isMobile" v-model="showSettings" />
+  <PWASettings v-else-if="showSettings" @close="showSettings = false" />
+  <FolderModal v-model="showFolderModal" :mailbox="selectedMailbox" />
+  <DeleteFolderModal v-model="showDeleteMailbox" :mailbox="selectedMailbox" />
+  <ShortcutsModal v-model="showShortcuts" />
 </template>
 
 <script setup lang="ts">
@@ -400,11 +398,11 @@ onUnmounted(() => window.removeEventListener('keydown', handleKeyDown))
 <style scoped>
 .v-enter-from,
 .v-leave-to {
-	@apply -translate-x-full opacity-0;
+  @apply -translate-x-full opacity-0;
 }
 
 .v-enter-to,
 .v-leave-from {
-	@apply translate-x-0 opacity-100;
+  @apply translate-x-0 opacity-100;
 }
 </style>

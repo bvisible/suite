@@ -14,7 +14,9 @@
     </router-view>
     <SearchPopup v-if="isLoggedIn && showSearchPopup" v-model="showSearchPopup" />
     <button accesskey="u" class="hidden" @click="emitter.emit('uploadFile')" />
-    <FileUploader v-if="normalView && ['drive-Folder', 'drive-Home', 'drive-Team'].includes($route.name)" />
+    <FileUploader
+      v-if="normalView && ['drive-Folder', 'drive-Home', 'drive-Team'].includes($route.name)"
+    />
     <FDialogs />
   </FrappeUIProvider>
 </template>

@@ -1,19 +1,19 @@
 <template>
-	<h1>{{ __('Appearance') }}</h1>
-	<FormControl
-		v-model="colorScheme"
-		:label="__('Color Scheme')"
-		type="select"
-		variant="outline"
-		:options="COLOR_SCHEMES"
-	/>
-	<Button
-		:label="__('Save')"
-		variant="solid"
-		:loading="saveSettings.loading"
-		:disabled="isNotDirty"
-		@click="() => saveSettings.submit()"
-	/>
+  <h1>{{ __('Appearance') }}</h1>
+  <FormControl
+    v-model="colorScheme"
+    :label="__('Color Scheme')"
+    type="select"
+    variant="outline"
+    :options="COLOR_SCHEMES"
+  />
+  <Button
+    :label="__('Save')"
+    variant="solid"
+    :loading="saveSettings.loading"
+    :disabled="isNotDirty"
+    @click="() => saveSettings.submit()"
+  />
 </template>
 
 <script setup lang="ts">

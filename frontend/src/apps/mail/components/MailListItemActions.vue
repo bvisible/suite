@@ -1,19 +1,19 @@
 <template>
-	<template v-if="isHovered && !isMobile">
-		<Tooltip v-for="action in actions" :key="action.label" :text="action.label">
-			<button class="action-btn" @click.stop.prevent="action.onClick">
-				<component :is="action.icon" class="icon text-ink-gray-5" />
-			</button>
-		</Tooltip>
-	</template>
-	<Tooltip :text="mail.flagged ? __('Unstar Mail') : __('Star Mail')">
-		<button class="action-btn" @click.stop.prevent="emit('setFlagged', !mail.flagged)">
-			<Star
-				class="icon text-ink-gray-5"
-				:style="mail.flagged ? 'fill: var(--ink-amber-6); color: var(--ink-amber-6)' : ''"
-			/>
-		</button>
-	</Tooltip>
+  <template v-if="isHovered && !isMobile">
+    <Tooltip v-for="action in actions" :key="action.label" :text="action.label">
+      <button class="action-btn" @click.stop.prevent="action.onClick">
+        <component :is="action.icon" class="icon text-ink-gray-5" />
+      </button>
+    </Tooltip>
+  </template>
+  <Tooltip :text="mail.flagged ? __('Unstar Mail') : __('Star Mail')">
+    <button class="action-btn" @click.stop.prevent="emit('setFlagged', !mail.flagged)">
+      <Star
+        class="icon text-ink-gray-5"
+        :style="mail.flagged ? 'fill: var(--ink-amber-6); color: var(--ink-amber-6)' : ''"
+      />
+    </button>
+  </Tooltip>
 </template>
 
 <script setup lang="ts">
@@ -70,11 +70,11 @@ const actions = computed(() =>
 
 <style scoped>
 .action-btn {
-	@apply relative after:absolute after:-inset-4 after:content-[''] sm:after:-inset-1.5;
+  @apply relative after:absolute after:-inset-4 after:content-[''] sm:after:-inset-1.5;
 }
 
 .action-btn:hover > * {
-	color: var(--ink-gray-8) !important;
-	stroke-width: 2 !important;
+  color: var(--ink-gray-8) !important;
+  stroke-width: 2 !important;
 }
 </style>

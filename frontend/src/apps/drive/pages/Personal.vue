@@ -1,15 +1,19 @@
 <template>
-  <GenericPage :get-entities="getPersonal" :empty="{
+  <GenericPage
+    :get-entities="getPersonal"
+    :empty="{
     icon: LucideHome,
     title: 'No files yet',
     description: 'Upload to get started!',
-  }" :verify="!shareView && {
+  }"
+    :verify="!shareView && {
           data: {
             write: 1,
             upload: 1,
           },
         }
-        " />
+        "
+  />
 </template>
 
 <script setup>

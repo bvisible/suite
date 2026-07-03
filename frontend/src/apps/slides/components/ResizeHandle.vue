@@ -1,5 +1,5 @@
 <template>
-	<div :style="resizerStyles" @mousedown="$emit('startResize', $event)"></div>
+  <div :style="resizerStyles" @mousedown="$emit('startResize', $event)"></div>
 </template>
 <script setup>
 import { computed } from 'vue'

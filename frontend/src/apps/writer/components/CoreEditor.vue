@@ -1,24 +1,34 @@
 <template>
   <div class="flex flex-col w-full bg-surface-base">
-    <TextEditorFixedMenu v-if="editable && editor"
+    <TextEditorFixedMenu
+      v-if="editable && editor"
       class="w-full max-w-[100vw] py-1.5 !px-4 md:px-0 overflow-x-auto flex shrink-0 border-b border-outline-elevation-2"
-      :buttons="menuButtons" />
+      :buttons="menuButtons"
+    />
     <div class="flex flex-1 overflow-auto">
       <ToC v-if="editor" :editor :anchors />
       <div id="editor-scroll-container" class="flex w-full overflow-y-auto relative">
         <div class="h-full flex flex-col flex-grow" @click="onBackgroundClick">
-          <FTextEditor ref="textEditor" class="min-h-full flex flex-col"
+          <FTextEditor
+            ref="textEditor"
+            class="min-h-full flex flex-col"
             editor-class="overflow-x-auto pt-10 pb-24 px-5"
-            :upload-function="uploadFunction" :autofocus="true" :content="rawContent"
-            :mentions="{ mentions: allUsers.data, selectable: false }" placeholder="Start thinking..."
-            :extensions="editorExtensions" :bubble-menu="bubbleMenuButtons"
+            :upload-function="uploadFunction"
+            :autofocus="true"
+            :content="rawContent"
+            :mentions="{ mentions: allUsers.data, selectable: false }"
+            placeholder="Start thinking..."
+            :extensions="editorExtensions"
+            :bubble-menu="bubbleMenuButtons"
             :bubble-menu-options="bubbleMenuOpts"
             :editable
             :starterkit-options="starterkitOptions"
             @change="(val) => emit('editor-change', val)"
-            @keydown="onEditorKeydown">
+            @keydown="onEditorKeydown"
+          >
             <template #editor="{ editor }">
-              <EditorContent :editor="editor"
+              <EditorContent
+                :editor="editor"
                 class="md:mx-auto bg-surface-base prose prose-sm prose-v2 prose-table:table-fixed prose-td:p-2 prose-th:p-2 prose-td:border prose-th:border prose-td:relative prose-th:relative prose-th:bg-surface-gray-2"
                 :class="[
                   settings?.wide
@@ -26,14 +36,23 @@
                     : 'md:min-w-[48rem] md:max-w-[48rem]',
                   isPainting && 'cursor-crosshair',
                 ]"
-                :style="editorStyle" />
+                :style="editorStyle"
+              />
             </template>
           </FTextEditor>
         </div>
 
-        <FloatingComments v-if="commentsPainted" v-model:active-comment="activeComment"
-          :y-comments="comments" :file :show-comments :show-resolved :show-unanchored :editor
-          @save="saveComments">
+        <FloatingComments
+          v-if="commentsPainted"
+          v-model:active-comment="activeComment"
+          :y-comments="comments"
+          :file
+          :show-comments
+          :show-resolved
+          :show-unanchored
+          :editor
+          @save="saveComments"
+        >
           <div v-if="comments._map.size" class="sticky self-end top-4 right-4 z-10">
             <Dropdown :options="commentFilterOptions" placement="right">
               <Button :icon="LucideMessageSquareQuote" variant="outline" />
@@ -370,7 +389,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style>
-@import url('@/apps/writer/styles/editor.css');
+@import url("@/apps/writer/styles/editor.css");
 
 iframe {
   border: 1px solid var(--surface-gray-4) !important;

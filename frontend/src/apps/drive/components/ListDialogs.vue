@@ -36,11 +36,7 @@
     :entities="entities"
     @success="removeFromList(entities)"
   />
-  <InfoDialog
-    v-else-if="dialog === 'i'"
-    v-model="dialog"
-    :entity="entities[0]"
-  />
+  <InfoDialog v-else-if="dialog === 'i'" v-model="dialog" :entity="entities[0]" />
 
   <ConfirmDialog
     v-if="

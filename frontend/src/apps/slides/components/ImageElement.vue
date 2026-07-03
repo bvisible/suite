@@ -1,33 +1,33 @@
 <template>
-	<div>
-		<img
-			v-if="imageSrc"
-			class="object-cover"
-			:style="imageStyle"
-			:src="getAttachmentUrl(imageSrc)"
-		/>
-		<div
-			v-if="showReplaceImageButton"
-			class="absolute left-0 top-0 size-full overflow-hidden bg-gray-900 opacity-40 transition-opacity duration-500 ease-in-out"
-			:style="gradientOverlayStyles"
-		>
-			<FileUploader
-				:fileTypes="allowedImageFileTypes"
-				:uploadArgs="{
+  <div>
+    <img
+      v-if="imageSrc"
+      class="object-cover"
+      :style="imageStyle"
+      :src="getAttachmentUrl(imageSrc)"
+    />
+    <div
+      v-if="showReplaceImageButton"
+      class="absolute left-0 top-0 size-full overflow-hidden bg-gray-900 opacity-40 transition-opacity duration-500 ease-in-out"
+      :style="gradientOverlayStyles"
+    >
+      <FileUploader
+        :fileTypes="allowedImageFileTypes"
+        :uploadArgs="{
 					doctype: 'Presentation',
 					docname: presentationId,
 					private: true,
 				}"
-				@success="replaceTemplateImage"
-			>
-				<template #default="{ openFileSelector }">
-					<div :class="replaceButtonClasses" @click="openFileSelector">
-						<LucideReplace class="size-5 stroke-[1.5] text-gray-900" />
-					</div>
-				</template>
-			</FileUploader>
-		</div>
-	</div>
+        @success="replaceTemplateImage"
+      >
+        <template #default="{ openFileSelector }">
+          <div :class="replaceButtonClasses" @click="openFileSelector">
+            <LucideReplace class="size-5 stroke-[1.5] text-gray-900" />
+          </div>
+        </template>
+      </FileUploader>
+    </div>
+  </div>
 </template>
 
 <script setup>

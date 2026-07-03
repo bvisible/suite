@@ -1,40 +1,40 @@
 <template>
-	<Popover :placement="'bottom-end'">
-		<template #target="{ togglePopover }">
-			<Button @click="openSharePopover(togglePopover)" label="Share">
-				<template #prefix>
-					<LucideShare2 class="size-4 stroke-[1.5]" />
-				</template>
-			</Button>
-		</template>
-		<template #body="{ close }">
-			<div class="my-4 flex w-[24rem] flex-col gap-2 rounded-lg bg-white p-4 shadow-xl">
-				<div class="flex items-center justify-between">
-					<div class="flex items-center gap-2">
-						<LucideEarth class="size-4 stroke-[1.5] text-gray-700" />
-						<div class="text-base-medium text-gray-900">Allow Public Access</div>
-					</div>
-					<Switch
-						:modelValue="publicPresentation"
-						@update:modelValue="(value) => updateAccessLevel(value)"
-					/>
-				</div>
-				<div class="pl-0.5 text-sm text-gray-600">
-					Anyone with the link can view this presentation.
-				</div>
-				<Button
-					class="mt-2"
-					label="Copy Link"
-					@click="handleCopyLink(close)"
-					v-if="publicPresentation"
-				>
-					<template #prefix>
-						<LucideClipboard class="size-3.5 stroke-[1.5]" />
-					</template>
-				</Button>
-			</div>
-		</template>
-	</Popover>
+  <Popover :placement="'bottom-end'">
+    <template #target="{ togglePopover }">
+      <Button @click="openSharePopover(togglePopover)" label="Share">
+        <template #prefix>
+          <LucideShare2 class="size-4 stroke-[1.5]" />
+        </template>
+      </Button>
+    </template>
+    <template #body="{ close }">
+      <div class="my-4 flex w-[24rem] flex-col gap-2 rounded-lg bg-white p-4 shadow-xl">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <LucideEarth class="size-4 stroke-[1.5] text-gray-700" />
+            <div class="text-base-medium text-gray-900">Allow Public Access</div>
+          </div>
+          <Switch
+            :modelValue="publicPresentation"
+            @update:modelValue="(value) => updateAccessLevel(value)"
+          />
+        </div>
+        <div class="pl-0.5 text-sm text-gray-600">
+          Anyone with the link can view this presentation.
+        </div>
+        <Button
+          class="mt-2"
+          label="Copy Link"
+          @click="handleCopyLink(close)"
+          v-if="publicPresentation"
+        >
+          <template #prefix>
+            <LucideClipboard class="size-3.5 stroke-[1.5]" />
+          </template>
+        </Button>
+      </div>
+    </template>
+  </Popover>
 </template>
 
 <script setup>

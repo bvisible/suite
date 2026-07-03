@@ -1,7 +1,7 @@
 <template>
-	<div class="bg-surface-base fixed inset-0 z-10" :class="{ hidden: !show }">
-		<slot name="body" />
-	</div>
+  <div class="bg-surface-base fixed inset-0 z-10" :class="{ hidden: !show }">
+    <slot name="body" />
+  </div>
 </template>
 
 <script setup lang="ts">

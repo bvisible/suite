@@ -18,7 +18,7 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true,
+			"preset": "recommended",
 			"complexity": {
 				"noExcessiveCognitiveComplexity": "off"
 			},
@@ -50,6 +50,19 @@
 			"bracketSpacing": true,
 			"arrowParentheses": "asNeeded",
 			"bracketSameLine": true
+		}
+	},
+	"css": {
+		"parser": {
+			"tailwindDirectives": true
+		}
+	},
+	"html": {
+		"experimentalFullSupportEnabled": true,
+		"formatter": {
+			"enabled": true,
+			"indentScriptAndStyle": false,
+			"selfCloseVoidElements": "always"
 		}
 	},
 	"json": {

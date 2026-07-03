@@ -1,13 +1,13 @@
 <template>
-	<transition-group
-		tag="div"
-		@before-enter="beforeEnter"
-		@enter="enter"
-		@after-enter="afterEnter"
-		@before-leave="beforeLeave"
-	>
-		<slot></slot>
-	</transition-group>
+  <transition-group
+    tag="div"
+    @before-enter="beforeEnter"
+    @enter="enter"
+    @after-enter="afterEnter"
+    @before-leave="beforeLeave"
+  >
+    <slot></slot>
+  </transition-group>
 </template>
 
 <script setup>

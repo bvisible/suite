@@ -1,7 +1,6 @@
 <template>
   <Dialog v-model="show" :options="{ title: chartId ? 'Edit chart' : 'Insert chart', size: '4xl' }">
     <template #body-content>
-
       <!-- ── Source range ─────────────────────────────────────────────── -->
       <div class="cd-section">
         <p class="cd-label">Source range</p>
@@ -114,23 +113,48 @@
 
           <p class="cd-label" style="margin-top:14px">Options</p>
           <div class="cd-options">
-            <FormControl v-if="chartType !== 'pie'" type="checkbox" v-model="opts.showLegend"  label="Show legend" />
-            <FormControl                            type="checkbox" v-model="opts.dataLabels"  label="Show data labels" />
-            <FormControl v-if="chartType !== 'pie'" type="checkbox" v-model="opts.gridLines"   label="Show grid lines" />
-            <FormControl v-if="chartType === 'line' || chartType === 'area'" type="checkbox" v-model="opts.smooth"  label="Smooth curves" />
-            <FormControl v-if="chartType === 'bar'  || chartType === 'area'" type="checkbox" v-model="opts.stacked" label="Stacked" />
+            <FormControl
+              v-if="chartType !== 'pie'"
+              type="checkbox"
+              v-model="opts.showLegend"
+              label="Show legend"
+            />
+            <FormControl type="checkbox" v-model="opts.dataLabels" label="Show data labels" />
+            <FormControl
+              v-if="chartType !== 'pie'"
+              type="checkbox"
+              v-model="opts.gridLines"
+              label="Show grid lines"
+            />
+            <FormControl
+              v-if="chartType === 'line' || chartType === 'area'"
+              type="checkbox"
+              v-model="opts.smooth"
+              label="Smooth curves"
+            />
+            <FormControl
+              v-if="chartType === 'bar'  || chartType === 'area'"
+              type="checkbox"
+              v-model="opts.stacked"
+              label="Stacked"
+            />
           </div>
         </div>
 
         <div class="cd-preview">
           <p class="cd-label">Preview</p>
           <div class="cd-preview-frame">
-            <ChartView v-if="previewConfig" :config="previewConfig" :matrix="previewMatrix" width="auto" height="auto" />
+            <ChartView
+              v-if="previewConfig"
+              :config="previewConfig"
+              :matrix="previewMatrix"
+              width="auto"
+              height="auto"
+            />
             <div v-else class="cd-preview-placeholder">Pick a series to see a preview</div>
           </div>
         </div>
       </div>
-
     </template>
 
     <template #actions>
@@ -445,15 +469,36 @@ function _autoDetectRange() {
 </script>
 
 <style scoped>
-.cd-section { margin-bottom: 18px; }
-.cd-label   { font-size: 11px; font-weight: 600; color: var(--ink-gray-6); text-transform: uppercase; letter-spacing: .04em; margin: 0 0 6px; }
+.cd-section {
+  margin-bottom: 18px;
+}
+.cd-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-gray-6);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 6px;
+}
 
-.cd-range-row     { display: flex; align-items: center; gap: 10px; }
-.cd-range-input   { flex: 1; }
+.cd-range-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cd-range-input {
+  flex: 1;
+}
 /* FormControl(checkbox) renders its own label slot, so we only need
    `flex-shrink: 0` + bottom-alignment to keep it level with the Detect button. */
-.cd-header-toggle { flex-shrink: 0; }
-.cd-error         { font-size: 12px; color: var(--ink-red-5); margin: 4px 0 0; }
+.cd-header-toggle {
+  flex-shrink: 0;
+}
+.cd-error {
+  font-size: 12px;
+  color: var(--ink-red-5);
+  margin: 4px 0 0;
+}
 
 .cd-type-grid {
   display: grid;
@@ -461,20 +506,37 @@ function _autoDetectRange() {
   gap: 8px;
 }
 .cd-type-btn {
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
-  padding: 12px 8px; cursor: pointer;
-  background: var(--surface-base); border: 1px solid var(--outline-gray-2);
-  border-radius: 8px; font: inherit; font-size: 12px; color: var(--ink-gray-7);
-  transition: background .12s, border-color .12s, color .12s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 8px;
+  cursor: pointer;
+  background: var(--surface-base);
+  border: 1px solid var(--outline-gray-2);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--ink-gray-7);
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    color 0.12s;
 }
-.cd-type-btn:hover { background: var(--surface-gray-2); border-color: var(--outline-gray-3); }
+.cd-type-btn:hover {
+  background: var(--surface-gray-2);
+  border-color: var(--outline-gray-3);
+}
 .cd-type-btn--active {
   background: var(--surface-gray-3);
   border-color: var(--outline-gray-4);
   color: var(--ink-gray-9);
   font-weight: 500;
 }
-.cd-type-icon { width: 18px; height: 18px; }
+.cd-type-icon {
+  width: 18px;
+  height: 18px;
+}
 
 .cd-grid {
   display: grid;
@@ -483,17 +545,29 @@ function _autoDetectRange() {
   align-items: stretch;
   min-height: 380px;
 }
-.cd-encoding { display: flex; flex-direction: column; min-width: 0; }
+.cd-encoding {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
 
 .cd-series-head {
-  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin-bottom: 6px;
 }
 .cd-series-count {
-  font-weight: 500; font-size: 11px; color: var(--ink-gray-5);
-  margin-left: 6px; letter-spacing: 0;
+  font-weight: 500;
+  font-size: 11px;
+  color: var(--ink-gray-5);
+  margin-left: 6px;
+  letter-spacing: 0;
 }
-.cd-series-filter { margin-bottom: 6px; }
+.cd-series-filter {
+  margin-bottom: 6px;
+}
 
 .cd-series-list {
   border: 1px solid var(--outline-gray-2);
@@ -501,14 +575,23 @@ function _autoDetectRange() {
   padding: 6px;
   max-height: 220px;
   overflow-y: auto;
-  display: flex; flex-direction: column; gap: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 .cd-series-row {
-  display: flex; align-items: center; gap: 8px;
-  padding: 5px 6px; border-radius: 4px;
-  font-size: 13px; color: var(--ink-gray-8); cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--ink-gray-8);
+  cursor: pointer;
 }
-.cd-series-row:hover { background: var(--surface-gray-2); }
+.cd-series-row:hover {
+  background: var(--surface-gray-2);
+}
 /* Sticky master "Select / Deselect" row. The list scrolls under it, so the
    background must be fully opaque and the z-index high enough to keep
    subsequent rows behind. `top: -6px` cancels the negative margin so the
@@ -516,43 +599,81 @@ function _autoDetectRange() {
    doubles the visual separation so a scrolled-in row never appears to peek
    between the master's border and the first option below it. */
 .cd-series-row--master {
-  position: sticky; top: -6px;
+  position: sticky;
+  top: -6px;
   background: var(--surface-elevation-2, #fff);
   border-bottom: 1px solid var(--outline-gray-2);
-  box-shadow: 0 2px 4px -2px rgba(0, 0, 0, .08);
+  box-shadow: 0 2px 4px -2px rgba(0, 0, 0, 0.08);
   margin: -6px -6px 4px;
   padding: 8px 12px;
-  border-top-left-radius: 8px; border-top-right-radius: 8px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
   z-index: 2;
 }
-.cd-series-row--master strong { color: var(--ink-gray-7); font-weight: 500; }
-.cd-series-row--master:hover { background: var(--surface-gray-1); }
-.cd-series-row--disabled { opacity: .5; cursor: not-allowed; }
-.cd-series-row--disabled:hover { background: transparent; }
-.cd-series-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cd-series-row--master strong {
+  color: var(--ink-gray-7);
+  font-weight: 500;
+}
+.cd-series-row--master:hover {
+  background: var(--surface-gray-1);
+}
+.cd-series-row--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.cd-series-row--disabled:hover {
+  background: transparent;
+}
+.cd-series-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .cd-series-tag {
-  font-size: 10px; padding: 1px 5px; border-radius: 3px;
-  background: var(--surface-gray-2); color: var(--ink-gray-6); font-weight: 600;
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--surface-gray-2);
+  color: var(--ink-gray-6);
+  font-weight: 600;
 }
 .cd-series-empty {
-  padding: 12px 6px; text-align: center;
-  font-size: 12px; color: var(--ink-gray-5);
+  padding: 12px 6px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--ink-gray-5);
 }
 
-.cd-options { display: flex; flex-direction: column; gap: 4px; }
+.cd-options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
 
-.cd-preview { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.cd-preview {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
 .cd-preview-frame {
   flex: 1;
   background: var(--surface-gray-1);
   border: 1px solid var(--outline-gray-2);
   border-radius: 8px;
   min-height: 320px;
-  display: flex; align-items: stretch; justify-content: stretch;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
   overflow: hidden;
   padding: 8px;
 }
-.cd-preview-frame > * { flex: 1; min-width: 0; min-height: 0; }
+.cd-preview-frame > * {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
 .cd-preview-placeholder {
   color: var(--ink-gray-5);
   font-size: 12px;

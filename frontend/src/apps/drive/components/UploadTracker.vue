@@ -13,11 +13,13 @@
       </div>
       <div v-else-if="uploadsCompleted.length > 0" class=" truncate text-xl-medium">
         {{ uploadsCompleted.length }}
-        {{ uploadsCompleted.length == 1 ? 'file' : 'files' }} uploaded
+        {{ uploadsCompleted.length == 1 ? 'file' : 'files' }}
+        uploaded
       </div>
       <div v-else-if="uploadsFailed.length > 0" class=" truncate text-xl-medium">
         {{ uploadsFailed.length }}
-        {{ uploadsFailed.length == 1 ? 'upload' : 'uploads' }} failed
+        {{ uploadsFailed.length == 1 ? 'upload' : 'uploads' }}
+        failed
       </div>
       <div class="ml-auto flex items-center gap-4">
         <button class="focus:outline-none" @click.stop="collapsed = !collapsed">

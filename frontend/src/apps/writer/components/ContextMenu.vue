@@ -47,9 +47,7 @@ function handleClick() {
           @click="handleClick"
         >
           New Tab
-          <div
-            class="ml-auto pl-5 text-ink-gray-5 group-data-[highlighted]:text-ink-gray-7"
-          >
+          <div class="ml-auto pl-5 text-ink-gray-5 group-data-[highlighted]:text-ink-gray-7">
             ⌘+T
           </div>
         </ContextMenuItem>
@@ -59,9 +57,7 @@ function handleClick() {
           class="group text-base leading-none text-ink-gray-7 rounded flex items-center h-7 px-2 relative pl-7 select-none outline-none cursor-pointer data-[disabled]:opacity-50 data-[disabled]:pointer-events-none data-[highlighted]:bg-surface-gray-3"
         >
           New Window
-          <div
-            class="ml-auto pl-5 text-ink-gray-5 group-data-[highlighted]:text-ink-gray-7"
-          >
+          <div class="ml-auto pl-5 text-ink-gray-5 group-data-[highlighted]:text-ink-gray-7">
             ⌘+N
           </div>
         </ContextMenuItem>
@@ -72,9 +68,7 @@ function handleClick() {
           disabled
         >
           New Private Window
-          <div
-            class="ml-auto pl-5 text-ink-gray-5 group-data-[highlighted]:text-ink-gray-7"
-          >
+          <div class="ml-auto pl-5 text-ink-gray-5 group-data-[highlighted]:text-ink-gray-7">
             ⇧+⌘+N
           </div>
         </ContextMenuItem>
@@ -85,9 +79,7 @@ function handleClick() {
             class="group text-base leading-none text-ink-gray-7 rounded flex items-center h-7 px-2 relative pl-7 select-none w-full outline-none cursor-pointer data-[state=open]:bg-surface-gray-2 data-[disabled]:opacity-50 data-[disabled]:pointer-events-none data-[highlighted]:bg-surface-gray-3 data-[highlighted]:data-[state=open]:bg-surface-gray-3"
           >
             More Tools
-            <div
-              class="ml-auto pl-5 text-ink-gray-5 group-data-[highlighted]:text-ink-gray-7"
-            >
+            <div class="ml-auto pl-5 text-ink-gray-5 group-data-[highlighted]:text-ink-gray-7">
               <Icon icon="radix-icons:chevron-right" class="h-4 w-4" />
             </div>
           </ContextMenuSubTrigger>
@@ -101,9 +93,7 @@ function handleClick() {
                 class="group text-base leading-none text-ink-gray-7 rounded flex items-center h-7 px-2 relative pl-7 select-none outline-none cursor-pointer data-[highlighted]:bg-surface-gray-3"
               >
                 Save Page As…
-                <div
-                  class="ml-auto pl-5 text-ink-gray-5 group-data-[highlighted]:text-ink-gray-7"
-                >
+                <div class="ml-auto pl-5 text-ink-gray-5 group-data-[highlighted]:text-ink-gray-7">
                   ⌘+S
                 </div>
               </ContextMenuItem>
@@ -117,9 +107,7 @@ function handleClick() {
               >
                 Name Window…
               </ContextMenuItem>
-              <ContextMenuSeparator
-                class="h-[1px] bg-outline-gray-2 my-1.5 mx-1"
-              />
+              <ContextMenuSeparator class="h-[1px] bg-outline-gray-2 my-1.5 mx-1" />
               <ContextMenuItem
                 class="text-base leading-none text-ink-gray-7 rounded flex items-center h-7 px-2 relative pl-7 select-none outline-none cursor-pointer data-[highlighted]:bg-surface-gray-3"
               >
@@ -142,9 +130,7 @@ function handleClick() {
             <Icon icon="radix-icons:check" class="h-4 w-4" />
           </ContextMenuItemIndicator>
           Show Bookmarks
-          <div
-            class="ml-auto pl-5 text-ink-gray-5 group-data-[highlighted]:text-ink-gray-7"
-          >
+          <div class="ml-auto pl-5 text-ink-gray-5 group-data-[highlighted]:text-ink-gray-7">
             ⌘+B
           </div>
         </ContextMenuCheckboxItem>
@@ -164,9 +150,7 @@ function handleClick() {
         <ContextMenuSeparator class="h-[1px] bg-outline-gray-2 my-1.5 mx-1" />
 
         <!-- Radio Group -->
-        <ContextMenuLabel class="pl-7 text-xs leading-7 text-ink-gray-5">
-          People
-        </ContextMenuLabel>
+        <ContextMenuLabel class="pl-7 text-xs leading-7 text-ink-gray-5"> People </ContextMenuLabel>
         <ContextMenuRadioGroup v-model="person">
           <ContextMenuRadioItem
             class="text-base leading-none text-ink-gray-7 rounded flex items-center h-7 px-2 relative pl-7 select-none outline-none cursor-pointer data-[highlighted]:bg-surface-gray-3"

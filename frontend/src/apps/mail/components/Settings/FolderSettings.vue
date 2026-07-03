@@ -1,46 +1,46 @@
 <template>
-	<div class="flex items-center justify-between">
-		<h1>{{ __('Folders') }}</h1>
-		<Button icon-left="plus" :label="__('New')" @click="editMailbox()" />
-	</div>
-	<div v-if="managedMailboxes.length">
-		<div
-			v-for="mailbox in managedMailboxes"
-			:key="mailbox.name"
-			class="hover:bg-surface-gray-1 -mx-2 flex cursor-pointer items-center justify-between rounded px-3 py-1"
-			@click="editMailbox(mailbox)"
-		>
-			<div class="flex items-center gap-2">
-				<Icon
-					:name="getIcon(mailbox)"
-					class="icon shrink-0"
-					:class="FOLDER_ICON_COLOR_MAP[mailbox.color]"
-				/>
-				<span class="text-base">{{ mailbox._name }}</span>
-			</div>
-			<div class="flex items-center gap-3">
-				<EyeOff v-if="!mailbox.subscribed" class="text-ink-gray-5 h-4 w-4" />
-				<Dropdown :options="mailboxOptions(mailbox)">
-					<Button variant="" @click.stop>
-						<template #icon>
-							<Ellipsis class="text-ink-gray-5 h-4 w-4" />
-						</template>
-					</Button>
-				</Dropdown>
-			</div>
-		</div>
-	</div>
+  <div class="flex items-center justify-between">
+    <h1>{{ __('Folders') }}</h1>
+    <Button icon-left="plus" :label="__('New')" @click="editMailbox()" />
+  </div>
+  <div v-if="managedMailboxes.length">
+    <div
+      v-for="mailbox in managedMailboxes"
+      :key="mailbox.name"
+      class="hover:bg-surface-gray-1 -mx-2 flex cursor-pointer items-center justify-between rounded px-3 py-1"
+      @click="editMailbox(mailbox)"
+    >
+      <div class="flex items-center gap-2">
+        <Icon
+          :name="getIcon(mailbox)"
+          class="icon shrink-0"
+          :class="FOLDER_ICON_COLOR_MAP[mailbox.color]"
+        />
+        <span class="text-base">{{ mailbox._name }}</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <EyeOff v-if="!mailbox.subscribed" class="text-ink-gray-5 h-4 w-4" />
+        <Dropdown :options="mailboxOptions(mailbox)">
+          <Button variant="" @click.stop>
+            <template #icon>
+              <Ellipsis class="text-ink-gray-5 h-4 w-4" />
+            </template>
+          </Button>
+        </Dropdown>
+      </div>
+    </div>
+  </div>
 
-	<div v-else class="text-ink-gray-6 flex flex-col space-y-2 text-sm">
-		<p class="text-base-medium">{{ __('No folders found.') }}</p>
+  <div v-else class="text-ink-gray-6 flex flex-col space-y-2 text-sm">
+    <p class="text-base-medium">{{ __('No folders found.') }}</p>
 
-		<p>
-			{{ __('Folders let you organize your emails into different categories.') }}
-		</p>
-	</div>
+    <p>
+      {{ __('Folders let you organize your emails into different categories.') }}
+    </p>
+  </div>
 
-	<FolderModal v-model="showFolderModal" :mailbox="selectedMailbox" />
-	<DeleteFolderModal v-model="showDeleteFolderModal" :mailbox="selectedMailbox" />
+  <FolderModal v-model="showFolderModal" :mailbox="selectedMailbox" />
+  <DeleteFolderModal v-model="showDeleteFolderModal" :mailbox="selectedMailbox" />
 </template>
 
 <script setup lang="ts">

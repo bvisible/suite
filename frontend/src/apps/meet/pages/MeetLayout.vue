@@ -24,8 +24,8 @@ provide('$platform', getPlatform())
 </script>
 
 <template>
-	<FrappeUIProvider>
-		<router-view />
-		<Dialogs />
-	</FrappeUIProvider>
+  <FrappeUIProvider>
+    <router-view />
+    <Dialogs />
+  </FrappeUIProvider>
 </template>

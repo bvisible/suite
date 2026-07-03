@@ -1,58 +1,56 @@
 <template>
-	<DashboardLayout
-		:breadcrumbs="[{ label: __('Domains') }]"
-		:button-label="__('Add Domain')"
-		:button-action="() => (showAddDomain = true)"
-	>
-		<div class="flex items-center space-x-3">
-			<FormControl v-model="search" :placeholder="__('Search')" class="w-80">
-				<template #prefix>
-					<FeatherIcon name="search" class="text-ink-gray-5 w-4" />
-				</template>
-			</FormControl>
-			<FormControl
-				v-model="status"
-				:placeholder="__('Status')"
-				class="w-40"
-				type="select"
-				:options="STATUS_OPTIONS"
-			/>
-		</div>
-		<ListView
-			v-if="domains?.data"
-			class="flex-1"
-			:columns="LIST_COLUMNS"
-			:rows="domains.data"
-			:options="LIST_OPTIONS"
-			row-key="id"
-		>
-			<ListHeader />
-			<ListRows>
-				<template v-if="domains.data.length">
-					<ListRow
-						v-for="row in domains.data"
-						:key="row.id"
-						v-slot="{ column, item }"
-						:row="row"
-						class="hover:!bg-surface-gray-1"
-					>
-						<ListRowItem :item="item">
-							<Badge
-								v-if="column.key === 'is_enabled'"
-								:theme="item ? 'green' : 'gray'"
-								:label="item ? __('Enabled') : __('Disabled')"
-							/>
-							<span v-else-if="column.key === 'created_at'">{{
-								formatCreatedAt(item)
-							}}</span>
-						</ListRowItem>
-					</ListRow>
-				</template>
-				<ListEmptyState v-else />
-			</ListRows>
-		</ListView>
-	</DashboardLayout>
-	<AddDomainModal v-model="showAddDomain" @reload-domains="domains.reload()" />
+  <DashboardLayout
+    :breadcrumbs="[{ label: __('Domains') }]"
+    :button-label="__('Add Domain')"
+    :button-action="() => (showAddDomain = true)"
+  >
+    <div class="flex items-center space-x-3">
+      <FormControl v-model="search" :placeholder="__('Search')" class="w-80">
+        <template #prefix>
+          <FeatherIcon name="search" class="text-ink-gray-5 w-4" />
+        </template>
+      </FormControl>
+      <FormControl
+        v-model="status"
+        :placeholder="__('Status')"
+        class="w-40"
+        type="select"
+        :options="STATUS_OPTIONS"
+      />
+    </div>
+    <ListView
+      v-if="domains?.data"
+      class="flex-1"
+      :columns="LIST_COLUMNS"
+      :rows="domains.data"
+      :options="LIST_OPTIONS"
+      row-key="id"
+    >
+      <ListHeader />
+      <ListRows>
+        <template v-if="domains.data.length">
+          <ListRow
+            v-for="row in domains.data"
+            :key="row.id"
+            v-slot="{ column, item }"
+            :row="row"
+            class="hover:!bg-surface-gray-1"
+          >
+            <ListRowItem :item="item">
+              <Badge
+                v-if="column.key === 'is_enabled'"
+                :theme="item ? 'green' : 'gray'"
+                :label="item ? __('Enabled') : __('Disabled')"
+              />
+              <span v-else-if="column.key === 'created_at'">{{ formatCreatedAt(item) }}</span>
+            </ListRowItem>
+          </ListRow>
+        </template>
+        <ListEmptyState v-else />
+      </ListRows>
+    </ListView>
+  </DashboardLayout>
+  <AddDomainModal v-model="showAddDomain" @reload-domains="domains.reload()" />
 </template>
 <script setup lang="ts">
 import { ref, watch } from 'vue'

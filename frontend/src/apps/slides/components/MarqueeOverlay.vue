@@ -1,5 +1,5 @@
 <template>
-	<div v-if="isDrawing" :style="marqueeStyles"></div>
+  <div v-if="isDrawing" :style="marqueeStyles"></div>
 </template>
 <script setup>
 import { computed, inject, onMounted, onBeforeUnmount } from 'vue'

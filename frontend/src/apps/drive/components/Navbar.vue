@@ -1,6 +1,11 @@
 <template>
-  <nav v-if="breadcrumbItems?.length" id="navbar" ondragstart="return false;" ondrop="return false;"
-    class="bg-surface-base border-b px-5 py-2.5 h-12 flex justify-between">
+  <nav
+    v-if="breadcrumbItems?.length"
+    id="navbar"
+    ondragstart="return false;"
+    ondrop="return false;"
+    class="bg-surface-base border-b px-5 py-2.5 h-12 flex justify-between"
+  >
     <slot name="breadcrumbs">
       <Breadcrumbs :items="breadcrumbItems" class="select-none truncate max-w-[80%]">
         <template #prefix="{ item, index }">
@@ -18,40 +23,71 @@
         </div>
       </div>
 
-      <LucideStar v-if="rootEntity?.is_favourite" width="16" height="16"
-        class="my-auto text-ink-amber-6 stroke-current fill-current" />
+      <LucideStar
+        v-if="rootEntity?.is_favourite"
+        width="16"
+        height="16"
+        class="my-auto text-ink-amber-6 stroke-current fill-current"
+      />
       <template v-if="!isLoggedIn && !inIframe">
         <Button variant="outline" @click="redirectLogin">Sign In</Button>
-        <Button class="hidden md:block" variant="solid" label="Try out Drive"
-          @click="open('https://frappecloud.com/dashboard/signup?product=drive')" />
+        <Button
+          class="hidden md:block"
+          variant="solid"
+          label="Try out Drive"
+          @click="open('https://frappecloud.com/dashboard/signup?product=drive')"
+        />
       </template>
-      <Dropdown v-else-if="defaultActions" :options="defaultActions" placement="right" :button="{
+      <Dropdown
+        v-else-if="defaultActions"
+        :options="defaultActions"
+        placement="right"
+        :button="{
         variant: 'ghost',
         icon: LucideMoreHorizontal,
-      }" />
-      <Dropdown v-if="
+      }"
+      />
+      <Dropdown
+        v-if="
         ['drive-Folder', 'drive-Home', 'drive-Team'].includes($route.name) &&
         isLoggedIn &&
         // Assume upload to remove flash
         props.rootResource?.data?.upload !== false
-      " :button="{
+      "
+        :button="{
           variant: 'solid',
           id: 'create-button',
           label: 'Create',
           iconLeft: h(LucidePlus, { class: 'size-4' }),
-        }" :options="newEntityOptions" placement="right" />
-      <Button v-else-if="$route.name === 'drive-Documents' || $route.name === 'drive-Presentations'" id="create-button"
-        label="Create" variant="solid" :icon-left="h(LucidePlus, { class: 'size-4' })"
-        @click="newExternal($route.name === 'drive-Documents' ? 'Document' : 'Presentation')" />
-      <Button v-if="button" :disabled="!button.entities.data?.length" :theme="button.theme || 'gray'"
-        @click="openListDialog('cta-' + $route.name.replace('drive-', '').toLowerCase())">
+        }"
+        :options="newEntityOptions"
+        placement="right"
+      />
+      <Button
+        v-else-if="$route.name === 'drive-Documents' || $route.name === 'drive-Presentations'"
+        id="create-button"
+        label="Create"
+        variant="solid"
+        :icon-left="h(LucidePlus, { class: 'size-4' })"
+        @click="newExternal($route.name === 'drive-Documents' ? 'Document' : 'Presentation')"
+      />
+      <Button
+        v-if="button"
+        :disabled="!button.entities.data?.length"
+        :theme="button.theme || 'gray'"
+        @click="openListDialog('cta-' + $route.name.replace('drive-', '').toLowerCase())"
+      >
         <template #prefix>
           <component :is="button.icon" class="size-4" />
         </template>
         {{ button.label }}
       </Button>
     </div>
-    <EntityDialogs v-model="entityDialog" :resource="props.rootResource" :entities="dialogEntities" />
+    <EntityDialogs
+      v-model="entityDialog"
+      :resource="props.rootResource"
+      :entities="dialogEntities"
+    />
   </nav>
 </template>
 <script setup>

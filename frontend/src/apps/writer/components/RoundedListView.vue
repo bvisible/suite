@@ -1,10 +1,7 @@
 <template>
-  <div
-    ref="container"
-    class="mx-auto w-96 sm:w-[60%] pt-8 h-screen space pb-64"
-  >
+  <div ref="container" class="mx-auto w-96 sm:w-[60%] pt-8 h-screen space pb-64">
     <template
-      v-for="([group, files], i) in Object.entries(groups).filter(
+      v-for="([ group, files ], i) in Object.entries(groups).filter(
         ([_, f]) => f.length,
       )"
       :key="group"
@@ -75,30 +72,20 @@
               "
               class="group flex flex-col gap-2 md:flex-row p-3 md:items-center md:justify-between hover:bg-surface-gray-1 rounded cursor-pointer my-px -mx-3"
             >
-              <p
-                class="text-base-medium text-ink-gray-8 truncate md:w-1/2 overflow-clip"
-              >
+              <p class="text-base-medium text-ink-gray-8 truncate md:w-1/2 overflow-clip">
                 {{ row.file_name }}
               </p>
 
               <div
                 class="flex items-center justify-between gap-2 text-sm text-gray-600 flex-shrink-0"
               >
-                <div
-                  class="text-xs text-ink-gray-5 flex gap-2 md:gap-5 items-center"
-                >
-                  <LucideGlobe2
-                    v-if="row.share_count == -2"
-                    class="size-4 text-ink-gray-6"
-                  />
+                <div class="text-xs text-ink-gray-5 flex gap-2 md:gap-5 items-center">
+                  <LucideGlobe2 v-if="row.share_count == -2" class="size-4 text-ink-gray-6" />
                   <LucideBuilding2
                     v-else-if="row.share_count == -1"
                     class="size-4 text-ink-gray-6"
                   />
-                  <LucideUsers
-                    v-else-if="row.share_count > 0"
-                    class="size-4 text-ink-gray-6"
-                  />
+                  <LucideUsers v-else-if="row.share_count > 0" class="size-4 text-ink-gray-6" />
                   <template v-if="row.owner === currentUserId">
                     <Avatar
                       :image="$user(row.owner)?.user_image"
@@ -111,9 +98,9 @@
                   </template>
                 </div>
 
-                <span :title="row.recentDate" class="w-28 text-end">{{
-                  row.relativeModified
-                }}</span>
+                <span :title="row.recentDate" class="w-28 text-end"
+                  >{{ row.relativeModified }}</span
+                >
               </div>
             </div>
             <hr v-if="i !== files.length - 1" />
@@ -122,10 +109,7 @@
       </div>
     </template>
 
-    <div
-      v-if="props.resource.data?.length === 0"
-      class="flex flex-col items-center gap-2.5 my-10"
-    >
+    <div v-if="props.resource.data?.length === 0" class="flex flex-col items-center gap-2.5 my-10">
       <div class="flex flex-col gap-1.5 items-center">
         <LucideFileText class="size-8 text-ink-gray-4" />
         <p class="text-base-medium text-ink-gray-6">

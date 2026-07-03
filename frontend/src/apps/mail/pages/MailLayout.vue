@@ -1,10 +1,10 @@
 <template>
-	<FrappeUIProvider>
-		<component :is="Layout" class="mail-app-root">
-			<router-view />
-		</component>
-		<InstallPrompt v-if="isMobile" />
-	</FrappeUIProvider>
+  <FrappeUIProvider>
+    <component :is="Layout" class="mail-app-root">
+      <router-view />
+    </component>
+    <InstallPrompt v-if="isMobile" />
+  </FrappeUIProvider>
 </template>
 
 <script setup lang="ts">
@@ -140,15 +140,15 @@ onUnmounted(() => window.removeEventListener('keydown', handleThemeShortcut))
    variables (NOT @apply, which would break the build for these plugin-registered
    token classes); plain Tailwind utilities below still use @apply. */
 .mail-app-root {
-	@apply text-xl sm:text-lg text-ink-gray-8 bg-surface-base;
+  @apply text-xl sm:text-lg text-ink-gray-8 bg-surface-base;
 }
 
 .mail-app-root h1 {
-	@apply !font-semibold;
+  @apply !font-semibold;
 }
 
 .mail-app-root h2 {
-	@apply text-xl !font-medium sm:text-lg;
+  @apply text-xl !font-medium sm:text-lg;
 }
 
 /* frappe-ui Dialogs/Dropdowns teleport to <body>, escaping .mail-app-root, so the base text color
@@ -156,21 +156,21 @@ onUnmounted(() => window.removeEventListener('keydown', handleThemeShortcut))
    ink color in dark mode). Re-apply at <body> scope while mail is mounted (the `mail-app` class is
    added/removed by this layout). */
 body.mail-app {
-	color: var(--ink-gray-8);
+  color: var(--ink-gray-8);
 }
 
 body.mail-app h1 {
-	@apply !font-semibold;
+  @apply !font-semibold;
 }
 
 body.mail-app h2 {
-	@apply text-xl !font-medium sm:text-lg;
+  @apply text-xl !font-medium sm:text-lg;
 }
 
 .icon {
-	stroke-width: 1.5;
-	width: 1rem;
-	height: 1rem;
-	color: var(--ink-gray-6);
+  stroke-width: 1.5;
+  width: 1rem;
+  height: 1rem;
+  color: var(--ink-gray-6);
 }
 </style>

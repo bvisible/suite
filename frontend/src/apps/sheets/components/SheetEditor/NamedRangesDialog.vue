@@ -1,7 +1,6 @@
 <template>
   <Dialog v-model="show" :options="{ title: 'Named ranges', size: 'lg' }">
     <template #body-content>
-
       <!-- ── Add new ────────────────────────────────────────────────────── -->
       <div class="nr-section">
         <p class="nr-label">{{ editing ? 'Edit named range' : 'Add named range' }}</p>
@@ -37,8 +36,8 @@
         </div>
         <p v-if="formError" class="nr-error">{{ formError }}</p>
         <p class="nr-hint">
-          Names must start with a letter or "_" and contain only letters, digits, and "_".
-          They can't look like cell references or collide with built-in functions.
+          Names must start with a letter or "_" and contain only letters, digits, and "_". They
+          can't look like cell references or collide with built-in functions.
         </p>
       </div>
 
@@ -48,20 +47,29 @@
         <div v-if="!entries.length" class="nr-empty">No named ranges defined yet.</div>
         <div v-else class="nr-list">
           <div class="nr-row nr-row--head">
-            <div>Name</div><div>Sheet</div><div>Range</div><div></div>
+            <div>Name</div>
+            <div>Sheet</div>
+            <div>Range</div>
+            <div></div>
           </div>
           <div v-for="e in entries" :key="e.name" class="nr-row">
             <div class="nr-name"><code>{{ e.name }}</code></div>
             <div class="nr-sheet">{{ e.sheet || '(current)' }}</div>
             <div class="nr-range"><code>{{ e.range }}</code></div>
             <div class="nr-row-actions">
-              <Button size="sm" variant="ghost" icon="edit-2"  @click="_edit(e)"  tooltip="Edit"   />
-              <Button size="sm" variant="ghost" icon="trash-2" @click="_delete(e)" theme="red" tooltip="Delete" />
+              <Button size="sm" variant="ghost" icon="edit-2" @click="_edit(e)" tooltip="Edit" />
+              <Button
+                size="sm"
+                variant="ghost"
+                icon="trash-2"
+                @click="_delete(e)"
+                theme="red"
+                tooltip="Delete"
+              />
             </div>
           </div>
         </div>
       </div>
-
     </template>
 
     <template #actions>
@@ -162,11 +170,36 @@ function _submit() {
 </script>
 
 <style scoped>
-.nr-section { margin-bottom: 20px; }
-.nr-label   { font-size: 11px; font-weight: 600; color: var(--ink-gray-6); text-transform: uppercase; letter-spacing: .04em; margin: 0 0 6px; }
-.nr-hint    { font-size: 12px; color: var(--ink-gray-5); margin: 8px 0 0; line-height: 1.5; }
-.nr-error   { font-size: 12px; color: var(--ink-red-5); margin: 8px 0 0; }
-.nr-empty   { font-size: 13px; color: var(--ink-gray-5); padding: 16px; text-align: center; background: var(--surface-gray-1); border-radius: 8px; }
+.nr-section {
+  margin-bottom: 20px;
+}
+.nr-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-gray-6);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 6px;
+}
+.nr-hint {
+  font-size: 12px;
+  color: var(--ink-gray-5);
+  margin: 8px 0 0;
+  line-height: 1.5;
+}
+.nr-error {
+  font-size: 12px;
+  color: var(--ink-red-5);
+  margin: 8px 0 0;
+}
+.nr-empty {
+  font-size: 13px;
+  color: var(--ink-gray-5);
+  padding: 16px;
+  text-align: center;
+  background: var(--surface-gray-1);
+  border-radius: 8px;
+}
 
 .nr-form {
   display: grid;
@@ -175,7 +208,8 @@ function _submit() {
   align-items: end;
 }
 .nr-form-actions {
-  display: flex; gap: 6px;
+  display: flex;
+  gap: 6px;
 }
 
 .nr-list {
@@ -193,20 +227,29 @@ function _submit() {
   font-size: 13px;
   color: var(--ink-gray-8);
 }
-.nr-row:last-child { border-bottom: 0; }
+.nr-row:last-child {
+  border-bottom: 0;
+}
 .nr-row--head {
   font-size: 11px;
   font-weight: 600;
   color: var(--ink-gray-5);
   text-transform: uppercase;
-  letter-spacing: .04em;
+  letter-spacing: 0.04em;
   background: var(--surface-gray-1);
 }
-.nr-name code, .nr-range code {
+.nr-name code,
+.nr-range code {
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   font-size: 12.5px;
   color: var(--ink-gray-9);
 }
-.nr-sheet { color: var(--ink-gray-7); }
-.nr-row-actions { display: flex; gap: 4px; justify-content: flex-end; }
+.nr-sheet {
+  color: var(--ink-gray-7);
+}
+.nr-row-actions {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
 </style>

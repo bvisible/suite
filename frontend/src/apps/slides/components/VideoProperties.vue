@@ -1,40 +1,40 @@
 <template>
-	<CollapsibleSection title="Playback">
-		<template #default>
-			<div class="flex gap-4">
-				<div
-					v-for="(option, index) in playbackProperties"
-					:key="index"
-					:class="getPlaybackOptionClasses(option.property)"
-					@mouseenter="hoverOption = option.property"
-					@mouseleave="hoverOption = null"
-					@click="togglePlaybackOption(option.property)"
-				>
-					<component
-						:is="option.icon"
-						size="20"
-						:strokeWidth="1.2"
-						:class="getPlaybackTextClasses(option.property)"
-					/>
-					<div :class="getPlaybackTextClasses(option.property)">
-						{{ option.label }}
-					</div>
-				</div>
-			</div>
+  <CollapsibleSection title="Playback">
+    <template #default>
+      <div class="flex gap-4">
+        <div
+          v-for="(option, index) in playbackProperties"
+          :key="index"
+          :class="getPlaybackOptionClasses(option.property)"
+          @mouseenter="hoverOption = option.property"
+          @mouseleave="hoverOption = null"
+          @click="togglePlaybackOption(option.property)"
+        >
+          <component
+            :is="option.icon"
+            size="20"
+            :strokeWidth="1.2"
+            :class="getPlaybackTextClasses(option.property)"
+          />
+          <div :class="getPlaybackTextClasses(option.property)">
+            {{ option.label }}
+          </div>
+        </div>
+      </div>
 
-			<SliderInput
-				label="Speed"
-				:rangeStart="0.5"
-				:rangeEnd="2"
-				:rangeStep="0.1"
-				v-model="activeElement.playbackRate"
-				@sliderdown="onPlaybackRateUpdateStart"
-				@sliderup="onPlaybackRateUpdateEnd"
-			/>
-		</template>
-	</CollapsibleSection>
+      <SliderInput
+        label="Speed"
+        :rangeStart="0.5"
+        :rangeEnd="2"
+        :rangeStep="0.1"
+        v-model="activeElement.playbackRate"
+        @sliderdown="onPlaybackRateUpdateStart"
+        @sliderup="onPlaybackRateUpdateEnd"
+      />
+    </template>
+  </CollapsibleSection>
 
-	<MediaProperties />
+  <MediaProperties />
 </template>
 
 <script setup>

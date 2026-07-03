@@ -1,63 +1,59 @@
 <template>
-	<CollapsibleSection title="Border">
-		<template #default>
-			<div
-				class="flex h-8 w-full items-center justify-between rounded-[10px] border bg-gray-50 p-0.5"
-			>
-				<div
-					v-for="(style, index) in borderStyles"
-					:key="index"
-					:class="getTabClasses(style)"
-					@click="addBorder(style)"
-				>
-					<LucideBan v-if="style == 'none'" :class="getTabIconClasses(style)" />
-					<div
-						v-else
-						:class="getTabIconClasses(style)"
-						:style="{ borderStyle: style }"
-					></div>
-				</div>
-			</div>
+  <CollapsibleSection title="Border">
+    <template #default>
+      <div
+        class="flex h-8 w-full items-center justify-between rounded-[10px] border bg-gray-50 p-0.5"
+      >
+        <div
+          v-for="(style, index) in borderStyles"
+          :key="index"
+          :class="getTabClasses(style)"
+          @click="addBorder(style)"
+        >
+          <LucideBan v-if="style == 'none'" :class="getTabIconClasses(style)" />
+          <div v-else :class="getTabIconClasses(style)" :style="{ borderStyle: style }"></div>
+        </div>
+      </div>
 
-			<div v-if="activeElement.borderStyle != 'none'" class="flex flex-col gap-3">
-				<div class="flex items-center justify-between">
-					<div :class="fieldLabelClasses">Width</div>
-					<div class="w-28">
-						<NumberInput
-							v-model="activeElement.borderWidth"
-							suffix="px"
-							:rangeStart="0"
-							:rangeEnd="50"
-							:rangeStep="0.5"
-						/>
-					</div>
-				</div>
+      <div v-if="activeElement.borderStyle != 'none'" class="flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <div :class="fieldLabelClasses">Width</div>
+          <div class="w-28">
+            <NumberInput
+              v-model="activeElement.borderWidth"
+              suffix="px"
+              :rangeStart="0"
+              :rangeEnd="50"
+              :rangeStep="0.5"
+            />
+          </div>
+        </div>
 
-				<div class="flex items-center justify-between">
-					<div :class="fieldLabelClasses">Radius</div>
-					<div class="w-28">
-						<NumberInput
-							v-model="activeElement.borderRadius"
-							suffix="px"
-							:rangeStart="1"
-							:rangeEnd="50"
-						/>
-					</div>
-				</div>
+        <div class="flex items-center justify-between">
+          <div :class="fieldLabelClasses">Radius</div>
+          <div class="w-28">
+            <NumberInput
+              v-model="activeElement.borderRadius"
+              suffix="px"
+              :rangeStart="1"
+              :rangeEnd="50"
+            />
+          </div>
+        </div>
 
-				<div class="flex items-center justify-between">
-					<div :class="fieldLabelClasses">Color</div>
-					<ColorPicker
-						v-model="activeElement.borderColor"
-						@colordown="onBorderColorUpdateStart"
-						@colorup="onBorderColorUpdateEnd"
-					/>
-				</div>
-			</div>
-		</template>
-	</CollapsibleSection>
+        <div class="flex items-center justify-between">
+          <div :class="fieldLabelClasses">Color</div>
+          <ColorPicker
+            v-model="activeElement.borderColor"
+            @colordown="onBorderColorUpdateStart"
+            @colorup="onBorderColorUpdateEnd"
+          />
+        </div>
+      </div>
+    </template>
+  </CollapsibleSection>
 
-	<ShadowProperties />
+  <ShadowProperties />
 </template>
 
 <script setup>
