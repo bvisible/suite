@@ -20,26 +20,26 @@ import { slideBounds } from '@/apps/slides/stores/slide'
 import { computed } from 'vue'
 
 const maskStyles = computed(() => ({
-	position: 'absolute',
-	top: 0,
-	left: 0,
-	width: '100vw',
-	height: '100vh',
-	background: 'rgba(255, 255, 255, 0.6)',
-	backdropFilter: 'blur(0.6px)',
-	mask: 'url(#hole-mask)',
-	webkitMask: 'url(#hole-mask)',
-	pointerEvents: 'none',
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: '100vw',
+  height: '100vh',
+  background: 'rgba(255, 255, 255, 0.6)',
+  backdropFilter: 'blur(0.6px)',
+  mask: 'url(#hole-mask)',
+  webkitMask: 'url(#hole-mask)',
+  pointerEvents: 'none',
 }))
 
 const rectAttributes = computed(() => {
-	if (!slideBounds.left) return {}
-	return {
-		x: slideBounds.left,
-		y: slideBounds.top - 45,
-		width: slideBounds.width,
-		height: slideBounds.height,
-		fill: 'black',
-	}
+  if (!slideBounds.left) return {}
+  return {
+    x: slideBounds.left,
+    y: slideBounds.top - 45,
+    width: slideBounds.width,
+    height: slideBounds.height,
+    fill: 'black',
+  }
 })
 </script>

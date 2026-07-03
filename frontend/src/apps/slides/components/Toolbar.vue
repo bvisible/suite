@@ -64,39 +64,39 @@ import { handleScrollBarWheelEvent } from '@/apps/slides/utils/helpers'
 const emit = defineEmits(['openLayoutDialog', 'delete', 'duplicate', 'setHighlight'])
 
 const slideActions = [
-	{
-		label: 'Insert Slide',
-		icon: Square,
-		onClick: () => {
-			emit('openLayoutDialog')
-		},
-	},
-	{
-		label: 'Duplicate Slide',
-		icon: Copy,
-		onClick: (e) => {
-			emit('duplicate', e)
-		},
-	},
-	{
-		label: 'Delete Slide',
-		icon: Trash,
-		onClick: () => {
-			emit('delete')
-		},
-	},
+  {
+    label: 'Insert Slide',
+    icon: Square,
+    onClick: () => {
+      emit('openLayoutDialog')
+    },
+  },
+  {
+    label: 'Duplicate Slide',
+    icon: Copy,
+    onClick: e => {
+      emit('duplicate', e)
+    },
+  },
+  {
+    label: 'Delete Slide',
+    icon: Trash,
+    onClick: () => {
+      emit('delete')
+    },
+  },
 ]
 
-const handleUploadSuccess = (file) => {
-	const imageTypes = allowedImageFileTypes.map((type) => type.split('/')[1].toUpperCase())
-	const fileType = imageTypes.includes(file.file_type) ? 'image' : 'video'
+const handleUploadSuccess = file => {
+  const imageTypes = allowedImageFileTypes.map(type => type.split('/')[1].toUpperCase())
+  const fileType = imageTypes.includes(file.file_type) ? 'image' : 'video'
 
-	const toastProps = {
-		loading: file.file_name ? `Uploading: ${file.file_name}` : 'Uploading...',
-		success: (data) => (file.file_name ? `Uploaded: ${file.file_name}` : 'Uploaded'),
-		error: (data) => 'Upload failed. Please try again.',
-	}
+  const toastProps = {
+    loading: file.file_name ? `Uploading: ${file.file_name}` : 'Uploading...',
+    success: data => (file.file_name ? `Uploaded: ${file.file_name}` : 'Uploaded'),
+    error: data => 'Upload failed. Please try again.',
+  }
 
-	toast.promise(addMediaElement(file, fileType), toastProps)
+  toast.promise(addMediaElement(file, fileType), toastProps)
 }
 </script>

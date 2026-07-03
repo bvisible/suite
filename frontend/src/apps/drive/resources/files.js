@@ -13,14 +13,14 @@ export const COMMON_OPTIONS = {
   method: 'GET',
   debounce: 500,
   transform(data) {
-    return prettyData(data.filter((k) => !k.file_name?.startsWith('.')))
+    return prettyData(data.filter(k => !k.file_name?.startsWith('.')))
   },
 }
 
 export const getTeam = createResource({
   ...COMMON_OPTIONS,
   url: 'suite.drive.api.list.files',
-  makeParams: (params) => {
+  makeParams: params => {
     return {
       ...params,
       personal: 0,
@@ -32,7 +32,7 @@ export const getTeam = createResource({
 export const getFiles = createResource({
   ...COMMON_OPTIONS,
   url: 'suite.drive.api.list.files',
-  makeParams: (params) => {
+  makeParams: params => {
     return params
   },
   cache: 'team-folder-contents',
@@ -51,7 +51,7 @@ export const getPublicTeams = createResource({
   url: 'suite.drive.api.permissions.get_public_teams',
   method: 'GET',
   cache: 'public-teams',
-  transform: (d) => {
+  transform: d => {
     return d.reduce((acc, k) => ({ ...acc, [k.name]: k }), {})
   },
 })
@@ -59,30 +59,30 @@ export const getPublicTeams = createResource({
 export const getRecents = createResource({
   ...COMMON_OPTIONS,
   url: 'suite.drive.api.list.recents',
-  cache: 'recents-folder-contents'
+  cache: 'recents-folder-contents',
 })
 
 export const getPersonal = createResource({
   ...COMMON_OPTIONS,
   url: 'suite.drive.api.list.files',
   cache: 'personal-folder-contents',
-  makeParams: (params) => params,
+  makeParams: params => params,
 })
 
 export const getSiteFiles = createResource({
   ...COMMON_OPTIONS,
   url: 'suite.drive.api.list.files',
   cache: 'site-folder-contents',
-  makeParams: (params) => ({ ...params, entity_name: 'Home' }),
+  makeParams: params => ({ ...params, entity_name: 'Home' }),
   transform(data) {
     data = COMMON_OPTIONS.transform(data)
-    return data.filter((k) => k.name !== 'Home/Attachments')
+    return data.filter(k => k.name !== 'Home/Attachments')
   },
 })
 
 export const getAttachments = createResource({
   url: 'suite.drive.api.list.get_attachments',
-  makeParams: (params) => params,
+  makeParams: params => params,
   cache: 'attachments-folder-contents',
 })
 
@@ -95,7 +95,7 @@ export const getFavourites = createResource({
 export const getDocuments = createResource({
   ...COMMON_OPTIONS,
   url: 'suite.drive.api.list.files',
-  makeParams: (params) => {
+  makeParams: params => {
     return { ...params, file_kinds: '["Frappe Document"]' }
   },
   cache: 'document-folder-contents',
@@ -106,7 +106,7 @@ export const getSlides = createResource({
   url: 'suite.slides.doctype.presentation.presentation.get_presentations',
   cache: 'slides-folder-contents',
   transform(data) {
-    data = data.map((k) => ({
+    data = data.map(k => ({
       ...k,
       mime_type: 'frappe/slides',
       file_type: 'Presentation',
@@ -123,7 +123,7 @@ export const getShared = createResource({
   ...COMMON_OPTIONS,
   url: 'suite.drive.api.list.shared',
   cache: 'shared-folder-contents',
-  makeParams: (params) => {
+  makeParams: params => {
     return { shared_type: 'with', ...params }
   },
 })
@@ -132,25 +132,19 @@ export const getTrash = createResource({
   ...COMMON_OPTIONS,
   url: 'suite.drive.api.list.trash',
   cache: 'trash-folder-contents',
-  makeParams: (params) => {
+  makeParams: params => {
     return { ...params }
   },
 })
 
 // SETTERS
-export const LISTS = [
-  getPersonal,
-  getFiles,
-  getRecents,
-  getShared,
-  getFavourites,
-]
+export const LISTS = [getPersonal, getFiles, getRecents, getShared, getFavourites]
 export const mutate = (entities, func) => {
-  LISTS.forEach((l) =>
-    l.setData((d) => {
+  LISTS.forEach(l =>
+    l.setData(d => {
       if (!d) return
       entities.forEach(({ name, ...params }) => {
-        let el = d.find((k) => k.name === name)
+        let el = d.find(k => k.name === name)
         if (el) {
           func(el, params)
         }
@@ -167,7 +161,7 @@ export const updateMoved = (team, new_parent, special) => {
     createResource({
       ...COMMON_OPTIONS,
       url: 'suite.drive.api.list.files',
-      makeParams: (params) => ({
+      makeParams: params => ({
         ...params,
         entity_name: new_parent,
         personal: -2,
@@ -195,19 +189,16 @@ export const toggleFav = createResource({
   makeParams(data) {
     if (!data) {
       getFavourites.setData([])
-      mutate(getFavourites.data, (el) => (el.is_favourite = false))
+      mutate(getFavourites.data, el => (el.is_favourite = false))
       return { clear_all: true }
     }
     const entity_names = data.entities.map(({ name }) => name)
-    getFavourites.setData((d) => {
+    getFavourites.setData(d => {
       return data.entities[0].is_favourite
         ? [...d, ...data.entities]
         : d.filter(({ name }) => !entity_names.includes(name))
     })
-    mutate(
-      data.entities,
-      (el, { is_favourite }) => (el.is_favourite = is_favourite)
-    )
+    mutate(data.entities, (el, { is_favourite }) => (el.is_favourite = is_favourite))
     return {
       entities: data.entities,
     }
@@ -223,15 +214,13 @@ export const toggleFav = createResource({
 
 export const clearRecent = createResource({
   url: 'suite.drive.api.files.remove_recents',
-  makeParams: (data) => {
+  makeParams: data => {
     if (!data) {
       getRecents.setData([])
       return { clear_all: true }
     }
     const entity_names = data.entities.map(({ name }) => name)
-    getRecents.setData((d) =>
-      d.filter(({ name }) => !entity_names.includes(name))
-    )
+    getRecents.setData(d => d.filter(({ name }) => !entity_names.includes(name)))
     return {
       entity_names,
     }
@@ -246,19 +235,17 @@ export const clearRecent = createResource({
 
 export const clearTrash = createResource({
   url: 'suite.drive.api.files.delete_entities',
-  makeParams: (data) => {
+  makeParams: data => {
     if (!data) {
       getTrash.setData([])
       return { clear_all: true }
     }
-    return { entity_names: data.entities.map((e) => e.name) }
+    return { entity_names: data.entities.map(e => e.name) }
   },
   onSuccess: () => {
     // Buggy for some reason
     const files = clearTrash.params.entity_names?.length
-    toast(
-      `Permanently deleted ${files || 'all'} file${files === 1 ? '' : 's'}.`
-    )
+    toast(`Permanently deleted ${files || 'all'} file${files === 1 ? '' : 's'}.`)
   },
   onError(error) {
     toast({
@@ -271,16 +258,13 @@ export const clearTrash = createResource({
 export const rename = createResource({
   url: 'suite.drive.api.files.rename',
   method: 'POST',
-  makeParams: (data) => {
+  makeParams: data => {
     return {
       ...data,
     }
   },
   onSuccess: () => {
-    updateLastBreadcrumbLabel(
-      rename.params.new_title,
-      rename.params.entity_name,
-    )
+    updateLastBreadcrumbLabel(rename.params.new_title, rename.params.entity_name)
     if (activeEntity.value?.name === rename.params.entity_name) {
       activeEntity.value.file_name = rename.params.new_title
       activeEntity.value.modified = new Date()
@@ -301,9 +285,8 @@ export const rename = createResource({
 export const createDocument = createResource({
   method: 'POST',
   url: 'suite.writer.api.docs.create_document',
-  makeParams: (params) => params,
+  makeParams: params => params,
 })
-
 
 export const move = createResource({
   url: 'suite.drive.api.files.move',

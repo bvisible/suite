@@ -70,15 +70,15 @@ const props = defineProps({
 })
 const emit = defineEmits(['select', 'opened', 'closed'])
 
-const open           = ref(false)
-const query          = ref('')
-const highlight      = ref(0)
-const openUpward     = ref(false)
-const triggerRef     = ref(null)
-const popRef         = ref(null)
-const searchRef      = ref(null)
-const listRef        = ref(null)
-const popStyle       = ref({})
+const open = ref(false)
+const query = ref('')
+const highlight = ref(0)
+const openUpward = ref(false)
+const triggerRef = ref(null)
+const popRef = ref(null)
+const searchRef = ref(null)
+const listRef = ref(null)
+const popStyle = ref({})
 // Resolved at open time so the popover lands inside the host dialog's
 // outer overlay (HeadlessUI interactive zone) rather than naked <body>.
 const teleportTarget = ref('body')
@@ -94,12 +94,16 @@ const filtered = computed(() => {
   return props.fields.filter(f => f.toLowerCase().includes(q))
 })
 
-watch(filtered, () => { highlight.value = 0 })
+watch(filtered, () => {
+  highlight.value = 0
+})
 
-function toggle() { open.value ? close() : openPopover() }
+function toggle() {
+  open.value ? close() : openPopover()
+}
 
 async function openPopover() {
-  query.value     = ''
+  query.value = ''
   highlight.value = 0
   // Resolve the teleport target before opening — walk up from the trigger to
   // find any host that's a Frappe UI Dialog overlay (no transform, no clip
@@ -112,9 +116,11 @@ async function openPopover() {
   _position()
   // preventScroll: true keeps the dialog from autoscrolling and shifting
   // the trigger's viewport coordinates under us.
-  requestAnimationFrame(() => { searchRef.value?.focus({ preventScroll: true }) })
+  requestAnimationFrame(() => {
+    searchRef.value?.focus({ preventScroll: true })
+  })
   document.addEventListener('mousedown', _onOutsideClick, true)
-  document.addEventListener('keydown',   _onGlobalKey,    true)
+  document.addEventListener('keydown', _onGlobalKey, true)
   window.addEventListener('resize', _position)
   window.addEventListener('scroll', _onScroll, true)
 }
@@ -124,7 +130,7 @@ function close() {
   open.value = false
   emit('closed')
   document.removeEventListener('mousedown', _onOutsideClick, true)
-  document.removeEventListener('keydown',   _onGlobalKey,    true)
+  document.removeEventListener('keydown', _onGlobalKey, true)
   window.removeEventListener('resize', _position)
   window.removeEventListener('scroll', _onScroll, true)
 }
@@ -132,7 +138,10 @@ function close() {
 let _scrollRafId = 0
 function _onScroll() {
   if (_scrollRafId) return
-  _scrollRafId = requestAnimationFrame(() => { _scrollRafId = 0; _position() })
+  _scrollRafId = requestAnimationFrame(() => {
+    _scrollRafId = 0
+    _position()
+  })
 }
 
 function onSelect(f) {
@@ -173,8 +182,13 @@ function _position() {
   const maxH = Math.max(140, Math.min(POP_H, (up ? spaceAbove : spaceBelow) - pad))
   const left = Math.min(Math.max(pad, t.left), vw - width - pad)
   popStyle.value = up
-    ? { left: `${left}px`, bottom: `${vh - t.top + 6}px`, width: `${width}px`, maxHeight: `${maxH}px` }
-    : { left: `${left}px`, top:    `${t.bottom + 6}px`,    width: `${width}px`, maxHeight: `${maxH}px` }
+    ? {
+        left: `${left}px`,
+        bottom: `${vh - t.top + 6}px`,
+        width: `${width}px`,
+        maxHeight: `${maxH}px`,
+      }
+    : { left: `${left}px`, top: `${t.bottom + 6}px`, width: `${width}px`, maxHeight: `${maxH}px` }
 }
 
 // Walk up from the trigger to find a Frappe UI Dialog overlay container.
@@ -193,13 +207,16 @@ function _findOverlayHost() {
 }
 
 function _onOutsideClick(e) {
-  if (popRef.value?.contains(e.target))     return
+  if (popRef.value?.contains(e.target)) return
   if (triggerRef.value?.contains(e.target)) return
   close()
 }
 
 function _onGlobalKey(e) {
-  if (e.key === 'Escape') { e.stopPropagation(); close() }
+  if (e.key === 'Escape') {
+    e.stopPropagation()
+    close()
+  }
 }
 
 onBeforeUnmount(close)

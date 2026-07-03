@@ -134,120 +134,115 @@
 </template>
 
 <script setup lang="ts">
-import { Button, createResource, FormControl, toast } from "frappe-ui";
-import { computed, inject, nextTick, onMounted, ref, watch } from "vue";
-import ParticipantAvatarGroup from "../components/ParticipantAvatarGroup.vue";
-import PreviewToolbar from "../components/PreviewToolbar.vue";
-import { useMeetingPreviewPresence } from "../composables/useMeetingPreviewPresence";
-import { session } from "@/boot/session";
-import FrappeMeetingLogo from "../icons/FrappeMeetingLogo.vue";
-import { getErrorMessage } from "../utils/error";
-import MeetingAvatar from "./MeetingAvatar.vue";
+import { Button, createResource, FormControl, toast } from 'frappe-ui'
+import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
+import ParticipantAvatarGroup from '../components/ParticipantAvatarGroup.vue'
+import PreviewToolbar from '../components/PreviewToolbar.vue'
+import { useMeetingPreviewPresence } from '../composables/useMeetingPreviewPresence'
+import { session } from '@/boot/session'
+import FrappeMeetingLogo from '../icons/FrappeMeetingLogo.vue'
+import { getErrorMessage } from '../utils/error'
+import MeetingAvatar from './MeetingAvatar.vue'
 
 function redirectToLogin() {
-	const path = window.location.pathname.startsWith("/meet")
-		? window.location.pathname
-		: `/meet${window.location.pathname}`;
-	window.location.href = `/login?redirect-to=${encodeURIComponent(path)}`;
+  const path = window.location.pathname.startsWith('/meet')
+    ? window.location.pathname
+    : `/meet${window.location.pathname}`
+  window.location.href = `/login?redirect-to=${encodeURIComponent(path)}`
 }
 
 interface VideoElement {
-	$el?:
-		| HTMLElement
-		| { querySelector: (sel: string) => HTMLInputElement | null };
+  $el?: HTMLElement | { querySelector: (sel: string) => HTMLInputElement | null }
 }
 
 const props = defineProps<{
-	meetingId: string;
-	isCameraOn?: boolean;
-	isMicOn?: boolean;
-	cameraPermissionGranted?: boolean;
-	microphonePermissionGranted?: boolean;
-	isConnecting?: boolean;
-	userInitials?: string;
-	userAvatar?: string;
-	currentUserName?: string;
-	guestAuthToken?: string | null;
-	isWaitingForApproval?: boolean;
-	setLocalVideoRef?: ((el: HTMLVideoElement | null) => void) | null;
-}>();
+  meetingId: string
+  isCameraOn?: boolean
+  isMicOn?: boolean
+  cameraPermissionGranted?: boolean
+  microphonePermissionGranted?: boolean
+  isConnecting?: boolean
+  userInitials?: string
+  userAvatar?: string
+  currentUserName?: string
+  guestAuthToken?: string | null
+  isWaitingForApproval?: boolean
+  setLocalVideoRef?: ((el: HTMLVideoElement | null) => void) | null
+}>()
 
 const emit = defineEmits<{
-	"toggle-microphone": [];
-	"toggle-camera": [];
-	"join-from-preview": [];
-	"device-changed": [event: unknown];
-	"guest-join-complete": [data: { guestName: string; joinResult: unknown }];
-}>();
+  'toggle-microphone': []
+  'toggle-camera': []
+  'join-from-preview': []
+  'device-changed': [event: unknown]
+  'guest-join-complete': [data: { guestName: string; joinResult: unknown }]
+}>()
 
-const guestName = ref("");
+const guestName = ref('')
 
 onMounted(() => {
-	const savedGuestName = localStorage.getItem("guest_name");
-	if (savedGuestName && !session.isLoggedIn) {
-		guestName.value = savedGuestName;
-	}
-});
-const guestNameInputRef = ref<VideoElement | null>(null);
+  const savedGuestName = localStorage.getItem('guest_name')
+  if (savedGuestName && !session.isLoggedIn) {
+    guestName.value = savedGuestName
+  }
+})
+const guestNameInputRef = ref<VideoElement | null>(null)
 
 const joinGuestAPI = createResource({
-	url: "suite.meet.api.meeting.join_meeting_as_guest",
-	makeParams: () => {
-		return {
-			meeting_id: props.meetingId,
-			guest_name: guestName.value.trim(),
-		};
-	},
-});
+  url: 'suite.meet.api.meeting.join_meeting_as_guest',
+  makeParams: () => {
+    return {
+      meeting_id: props.meetingId,
+      guest_name: guestName.value.trim(),
+    }
+  },
+})
 
-const meetingTitle = inject("meetingTitle");
+const meetingTitle = inject('meetingTitle')
 
-const isGuest = computed(() => !session.isLoggedIn && !props.guestAuthToken);
+const isGuest = computed(() => !session.isLoggedIn && !props.guestAuthToken)
 
-const { participants, error: presenceError } = useMeetingPreviewPresence(
-	props.meetingId,
-);
+const { participants, error: presenceError } = useMeetingPreviewPresence(props.meetingId)
 
-watch(guestNameInputRef, (inputRef) => {
-	if (inputRef) {
-		nextTick(() => {
-			const input = inputRef.$el?.querySelector("input");
-			input?.focus();
-		});
-	}
-});
+watch(guestNameInputRef, inputRef => {
+  if (inputRef) {
+    nextTick(() => {
+      const input = inputRef.$el?.querySelector('input')
+      input?.focus()
+    })
+  }
+})
 
 const handleJoin = async () => {
-	if (presenceError.value) {
-		return;
-	}
+  if (presenceError.value) {
+    return
+  }
 
-	if (joinGuestAPI.loading || props.isConnecting) {
-		return;
-	}
+  if (joinGuestAPI.loading || props.isConnecting) {
+    return
+  }
 
-	if (isGuest.value) {
-		if (!guestName.value.trim()) {
-			return;
-		}
+  if (isGuest.value) {
+    if (!guestName.value.trim()) {
+      return
+    }
 
-		try {
-			const result = await joinGuestAPI.submit();
+    try {
+      const result = await joinGuestAPI.submit()
 
-			localStorage.setItem("guest_name", guestName.value.trim());
+      localStorage.setItem('guest_name', guestName.value.trim())
 
-			emit("guest-join-complete", {
-				guestName: guestName.value.trim(),
-				joinResult: result,
-			});
-		} catch (error) {
-			console.error("Failed to join as guest:", error);
-			const errorMessage =
-				getErrorMessage(error) || "Failed to join meeting as guest.";
-			toast.error(errorMessage);
-		}
-	} else {
-		emit("join-from-preview");
-	}
-};
+      emit('guest-join-complete', {
+        guestName: guestName.value.trim(),
+        joinResult: result,
+      })
+    } catch (error) {
+      console.error('Failed to join as guest:', error)
+      const errorMessage = getErrorMessage(error) || 'Failed to join meeting as guest.'
+      toast.error(errorMessage)
+    }
+  } else {
+    emit('join-from-preview')
+  }
+}
 </script>

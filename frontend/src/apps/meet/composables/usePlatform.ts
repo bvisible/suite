@@ -1,5 +1,5 @@
-import type { Platform } from "../types";
-import { getPlatform } from "../utils/device";
+import type { Platform } from '../types'
+import { getPlatform } from '../utils/device'
 
 /**
  * The standalone app exposed `getPlatform()` globally as `$platform` via
@@ -8,5 +8,5 @@ import { getPlatform } from "../utils/device";
  * meet-local composable instead.
  */
 export function usePlatform(): Platform {
-	return getPlatform();
+  return getPlatform()
 }

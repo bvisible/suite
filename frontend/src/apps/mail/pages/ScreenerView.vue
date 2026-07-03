@@ -212,27 +212,25 @@ const showReadingPane = computed(() => !!store.userResource?.data?.show_reading_
 // The Screener only exists when screening is enabled. If it's off, render nothing and send the user to
 // their inbox (the route is still reachable by URL even though the sidebar hides it).
 const screeningEnabled = computed(
-	() =>
-		!!store.userResource?.data?.accounts?.find((a) => a.id === store.accountId)
-			?.enable_screening,
+  () => !!store.userResource?.data?.accounts?.find(a => a.id === store.accountId)?.enable_screening
 )
 watch(
-	() => [!!store.userResource?.data, screeningEnabled.value, store.mailboxIds.inbox] as const,
-	([ready, enabled, inboxId]) => {
-		if (ready && !enabled && inboxId)
-			router.replace({
-				name: 'mail-mailbox',
-				params: { accountId: store.accountId, mailbox: inboxId },
-			})
-	},
-	{ immediate: true },
+  () => [!!store.userResource?.data, screeningEnabled.value, store.mailboxIds.inbox] as const,
+  ([ready, enabled, inboxId]) => {
+    if (ready && !enabled && inboxId)
+      router.replace({
+        name: 'mail-mailbox',
+        params: { accountId: store.accountId, mailbox: inboxId },
+      })
+  },
+  { immediate: true }
 )
 
 // The sender whose mail is open in the read-only preview, and that sender's messages.
 const openSender = ref<ScreeningSender | null>(null)
 const senderMails = createResource({
-	url: 'suite.mail.api.mail.get_screening_sender_mails',
-	makeParams: () => ({ account: store.accountId, from_email: openSender.value?.from_email }),
+  url: 'suite.mail.api.mail.get_screening_sender_mails',
+  makeParams: () => ({ account: store.accountId, from_email: openSender.value?.from_email }),
 })
 
 // The preview reads `previewMails`, not the resource's `.data`: fast navigation fires several fetches
@@ -244,117 +242,113 @@ const previewLoading = ref(false)
 let previewToken = 0
 
 const selectSender = (sender: ScreeningSender) => {
-	if (openSender.value?.from_email === sender.from_email) return
-	openSender.value = sender
+  if (openSender.value?.from_email === sender.from_email) return
+  openSender.value = sender
 
-	const token = ++previewToken
-	previewMails.value = undefined
-	previewLoading.value = true
-	;(senderMails.reload() as Promise<Mail[]>)
-		.then((mails) => {
-			if (token !== previewToken) return
-			previewMails.value = mails ?? []
-			previewLoading.value = false
-		})
-		.catch(() => {
-			if (token === previewToken) previewLoading.value = false
-		})
+  const token = ++previewToken
+  previewMails.value = undefined
+  previewLoading.value = true
+  ;(senderMails.reload() as Promise<Mail[]>)
+    .then(mails => {
+      if (token !== previewToken) return
+      previewMails.value = mails ?? []
+      previewLoading.value = false
+    })
+    .catch(() => {
+      if (token === previewToken) previewLoading.value = false
+    })
 }
 
 const closeSender = () => {
-	openSender.value = null
+  openSender.value = null
 }
 
 const senders = createResource({
-	url: 'suite.mail.api.mail.get_screening_senders',
-	makeParams: () => ({ account: store.accountId }),
-	auto: true,
+  url: 'suite.mail.api.mail.get_screening_senders',
+  makeParams: () => ({ account: store.accountId }),
+  auto: true,
 })
 
 // Once a mail is open, ↑/↓ (or k/j) step to the previous/next sender and Esc closes it. Else inert.
 const handleKeydown = (e: KeyboardEvent) => {
-	if (!openSender.value || shouldIgnoreKeypress(e)) return
-	const key = e.key.toLowerCase()
+  if (!openSender.value || shouldIgnoreKeypress(e)) return
+  const key = e.key.toLowerCase()
 
-	if (key === 'escape') {
-		e.preventDefault()
-		closeSender()
-		return
-	}
+  if (key === 'escape') {
+    e.preventDefault()
+    closeSender()
+    return
+  }
 
-	const offset =
-		key === 'arrowup' || key === 'k' ? -1 : key === 'arrowdown' || key === 'j' ? 1 : 0
-	if (!offset) return
+  const offset = key === 'arrowup' || key === 'k' ? -1 : key === 'arrowdown' || key === 'j' ? 1 : 0
+  if (!offset) return
 
-	e.preventDefault()
-	const list = senders.data ?? []
-	const cur = list.findIndex(
-		(s: ScreeningSender) => s.from_email === openSender.value!.from_email,
-	)
-	const next = list[cur + offset]
-	if (!next) return
+  e.preventDefault()
+  const list = senders.data ?? []
+  const cur = list.findIndex((s: ScreeningSender) => s.from_email === openSender.value!.from_email)
+  const next = list[cur + offset]
+  if (!next) return
 
-	selectSender(next)
-	nextTick(() =>
-		document
-			.querySelector(`[data-sender-email="${next.from_email}"]`)
-			?.scrollIntoView({ block: 'nearest' }),
-	)
+  selectSender(next)
+  nextTick(() =>
+    document
+      .querySelector(`[data-sender-email="${next.from_email}"]`)
+      ?.scrollIntoView({ block: 'nearest' })
+  )
 }
 
 // Poll the Screening folder's count and only refetch the (heavier) sender list when it changes — the
 // same cheap-count-then-reload approach the mailbox uses, so a quiet screener isn't reloaded every tick.
 const screeningCount = () =>
-	store.mailboxes.data?.find((m: MailboxData) => m.id === store.mailboxIds.screener)
-		?.total_threads
+  store.mailboxes.data?.find((m: MailboxData) => m.id === store.mailboxIds.screener)?.total_threads
 
 const pollForChanges = async () => {
-	const prev = screeningCount()
-	await store.mailboxes.reload()
-	if (screeningCount() !== prev) senders.reload()
+  const prev = screeningCount()
+  await store.mailboxes.reload()
+  if (screeningCount() !== prev) senders.reload()
 }
 
 let pollInterval: ReturnType<typeof setInterval>
 
 onMounted(() => {
-	window.addEventListener('keydown', handleKeydown)
-	pollInterval = setInterval(pollForChanges, 30000)
+  window.addEventListener('keydown', handleKeydown)
+  pollInterval = setInterval(pollForChanges, 30000)
 })
 
 onUnmounted(() => {
-	window.removeEventListener('keydown', handleKeydown)
-	clearInterval(pollInterval)
-	// Don't strand a queued batch on navigation — the acted rows were already removed optimistically.
-	if (flushTimer) {
-		clearTimeout(flushTimer)
-		flushScreening()
-	}
+  window.removeEventListener('keydown', handleKeydown)
+  clearInterval(pollInterval)
+  // Don't strand a queued batch on navigation — the acted rows were already removed optimistically.
+  if (flushTimer) {
+    clearTimeout(flushTimer)
+    flushScreening()
+  }
 })
 
 usePageMeta(() => {
-	const n = senders.data?.length ?? 0
-	return { title: n ? `(${n}) ${__('Screener')}` : __('Screener') }
+  const n = senders.data?.length ?? 0
+  return { title: n ? `(${n}) ${__('Screener')}` : __('Screener') }
 })
 
 const waitingLabel = computed(() => {
-	const n = senders.data?.length ?? 0
-	return n === 1 ? __('1 new sender.') : __('{0} new senders.', [String(n)])
+  const n = senders.data?.length ?? 0
+  return n === 1 ? __('1 new sender.') : __('{0} new senders.', [String(n)])
 })
 
 const allowResource = createResource({
-	url: 'suite.mail.api.mail.allow_screening_senders',
-	makeParams: ({ from_emails }: { from_emails: string[] }) => ({
-		account: store.accountId,
-		from_emails,
-	}),
+  url: 'suite.mail.api.mail.allow_screening_senders',
+  makeParams: ({ from_emails }: { from_emails: string[] }) => ({
+    account: store.accountId,
+    from_emails,
+  }),
 })
 
 const screenOutResource = createResource({
-	url: 'suite.mail.api.mail.screen_out_senders',
-	makeParams: ({ from_emails }: { from_emails: string[] }) => ({
-		account: store.accountId,
-		from_emails,
-	}),
+  url: 'suite.mail.api.mail.screen_out_senders',
+  makeParams: ({ from_emails }: { from_emails: string[] }) => ({
+    account: store.accountId,
+    from_emails,
+  }),
 })
 
 // Block/Allow clicks are coalesced and flushed as one batched request per action. Triaging senders in
@@ -368,82 +362,82 @@ let flushTimer: ReturnType<typeof setTimeout> | null = null
 let flushChain: Promise<void> = Promise.resolve()
 
 const flushScreening = () => {
-	flushTimer = null
-	const allowEmails = [...pending.allow]
-	const screenOutEmails = [...pending.screenOut]
-	pending.allow.clear()
-	pending.screenOut.clear()
-	if (!allowEmails.length && !screenOutEmails.length) return
+  flushTimer = null
+  const allowEmails = [...pending.allow]
+  const screenOutEmails = [...pending.screenOut]
+  pending.allow.clear()
+  pending.screenOut.clear()
+  if (!allowEmails.length && !screenOutEmails.length) return
 
-	// Chain onto the previous flush so requests never overlap (overlapping rebuilds are the bug).
-	flushChain = flushChain.then(async () => {
-		// Submit each action independently so one failing doesn't skip the other — a burst can mix
-		// allow and screen-out across different senders, and all were already optimistically removed.
-		let submitted = false
-		let firstError: unknown
-		if (allowEmails.length) {
-			try {
-				await allowResource.submit({ from_emails: allowEmails })
-				submitted = true
-			} catch (error) {
-				firstError ??= error
-			}
-		}
-		if (screenOutEmails.length) {
-			try {
-				await screenOutResource.submit({ from_emails: screenOutEmails })
-				submitted = true
-			} catch (error) {
-				firstError ??= error
-			}
-		}
-		// Allowing/screening senders changes inbox/junk counts too.
-		if (submitted) store.mailboxes.reload()
-		if (firstError) {
-			senders.reload()
-			raiseToast((firstError as Error).message || __('Action failed.'), 'error')
-		}
-	})
+  // Chain onto the previous flush so requests never overlap (overlapping rebuilds are the bug).
+  flushChain = flushChain.then(async () => {
+    // Submit each action independently so one failing doesn't skip the other — a burst can mix
+    // allow and screen-out across different senders, and all were already optimistically removed.
+    let submitted = false
+    let firstError: unknown
+    if (allowEmails.length) {
+      try {
+        await allowResource.submit({ from_emails: allowEmails })
+        submitted = true
+      } catch (error) {
+        firstError ??= error
+      }
+    }
+    if (screenOutEmails.length) {
+      try {
+        await screenOutResource.submit({ from_emails: screenOutEmails })
+        submitted = true
+      } catch (error) {
+        firstError ??= error
+      }
+    }
+    // Allowing/screening senders changes inbox/junk counts too.
+    if (submitted) store.mailboxes.reload()
+    if (firstError) {
+      senders.reload()
+      raiseToast((firstError as Error).message || __('Action failed.'), 'error')
+    }
+  })
 }
 
 const queueScreening = (action: 'allow' | 'screenOut', fromEmails: string[]) => {
-	const other = action === 'allow' ? pending.screenOut : pending.allow
-	for (const email of fromEmails) {
-		other.delete(email)
-		pending[action].add(email)
-	}
-	if (!flushTimer) flushTimer = setTimeout(flushScreening, SCREEN_FLUSH_DELAY)
+  const other = action === 'allow' ? pending.screenOut : pending.allow
+  for (const email of fromEmails) {
+    other.delete(email)
+    pending[action].add(email)
+  }
+  if (!flushTimer) flushTimer = setTimeout(flushScreening, SCREEN_FLUSH_DELAY)
 }
 
 const runAction = (action: 'allow' | 'screenOut', fromEmails: string[]) => {
-	if (!fromEmails.length) return
+  if (!fromEmails.length) return
 
-	// When acting on the sender open in the detail view, line up the next one down so you can triage
-	// straight through — resolved before the optimistic removal.
-	const list = senders.data ?? []
-	const actingOnOpen = !!openSender.value && fromEmails.includes(openSender.value.from_email)
-	let nextSender: ScreeningSender | undefined
-	if (actingOnOpen) {
-		const idx = list.findIndex(
-			(s: ScreeningSender) => s.from_email === openSender.value!.from_email,
-		)
-		nextSender = list
-			.slice(idx + 1)
-			.find((s: ScreeningSender) => !fromEmails.includes(s.from_email))
-	}
+  // When acting on the sender open in the detail view, line up the next one down so you can triage
+  // straight through — resolved before the optimistic removal.
+  const list = senders.data ?? []
+  const actingOnOpen = !!openSender.value && fromEmails.includes(openSender.value.from_email)
+  let nextSender: ScreeningSender | undefined
+  if (actingOnOpen) {
+    const idx = list.findIndex(
+      (s: ScreeningSender) => s.from_email === openSender.value!.from_email
+    )
+    nextSender = list
+      .slice(idx + 1)
+      .find((s: ScreeningSender) => !fromEmails.includes(s.from_email))
+  }
 
-	// Optimistically drop the acted senders so the rows leave immediately and every other row stays
-	// interactive. The row leaving is the only success feedback (no toast); only failures are surfaced
-	// — with a resync to bring the rows back.
-	senders.data = list.filter((s: ScreeningSender) => !fromEmails.includes(s.from_email))
+  // Optimistically drop the acted senders so the rows leave immediately and every other row stays
+  // interactive. The row leaving is the only success feedback (no toast); only failures are surfaced
+  // — with a resync to bring the rows back.
+  senders.data = list.filter((s: ScreeningSender) => !fromEmails.includes(s.from_email))
 
-	// Advance to the next sender (or close the preview if there's nothing below).
-	if (actingOnOpen) {
-		if (nextSender) selectSender(nextSender)
-		else closeSender()
-	}
+  // Advance to the next sender (or close the preview if there's nothing below).
+  if (actingOnOpen) {
+    if (nextSender) selectSender(nextSender)
+    else closeSender()
+  }
 
-	queueScreening(action, fromEmails)
+  queueScreening(action, fromEmails)
 }
 
 const allow = (fromEmails: string[]) => runAction('allow', fromEmails)
@@ -454,29 +448,29 @@ const screenOut = (fromEmails: string[]) => runAction('screenOut', fromEmails)
 const showClearAll = ref(false)
 
 const clearAllResource = createResource({
-	url: 'suite.mail.api.mail.move_screening_mails_to_inbox',
-	makeParams: () => ({ account: store.accountId }),
-	onSuccess: () => {
-		senders.data = []
-		closeSender()
-		showClearAll.value = false
-		store.mailboxes.reload()
-		raiseToast(__('Unscreened messages moved to Inbox.'))
-	},
+  url: 'suite.mail.api.mail.move_screening_mails_to_inbox',
+  makeParams: () => ({ account: store.accountId }),
+  onSuccess: () => {
+    senders.data = []
+    closeSender()
+    showClearAll.value = false
+    store.mailboxes.reload()
+    raiseToast(__('Unscreened messages moved to Inbox.'))
+  },
 })
 
 const clearAllOptions = computed(() => ({
-	title: __('Clear the Screener?'),
-	message: __(
-		'This will move current unscreened messages to your Inbox. Future emails from these senders will still go to the Screener.',
-	),
-	actions: [
-		{
-			label: __('Move to Inbox'),
-			variant: 'solid',
-			onClick: () => clearAllResource.submit(),
-			loading: clearAllResource.loading,
-		},
-	],
+  title: __('Clear the Screener?'),
+  message: __(
+    'This will move current unscreened messages to your Inbox. Future emails from these senders will still go to the Screener.'
+  ),
+  actions: [
+    {
+      label: __('Move to Inbox'),
+      variant: 'solid',
+      onClick: () => clearAllResource.submit(),
+      loading: clearAllResource.loading,
+    },
+  ],
 }))
 </script>

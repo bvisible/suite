@@ -36,62 +36,62 @@
 import { computed } from 'vue'
 
 const props = defineProps({
-	prefix: String,
-	suffix: String,
-	rangeStart: Number,
-	rangeEnd: Number,
-	rangeStep: {
-		type: Number,
-		default: 1,
-	},
-	hideButtons: {
-		type: Boolean,
-		default: false,
-	},
-	disabled: {
-		type: Boolean,
-		default: false,
-	},
+  prefix: String,
+  suffix: String,
+  rangeStart: Number,
+  rangeEnd: Number,
+  rangeStep: {
+    type: Number,
+    default: 1,
+  },
+  hideButtons: {
+    type: Boolean,
+    default: false,
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const modelValue = defineModel()
 
 const inputClasses = computed(() => {
-	let baseClasses =
-		'size-full border-none p-0 text-center text-xs font-medium text-gray-800 focus:border-none focus:outline-none focus:ring-0'
-	if (props.disabled) baseClasses += ' cursor-not-allowed text-gray-400'
-	if (props.hideButtons) baseClasses += ' rounded-r'
-	if (props.prefix) return `${baseClasses}`
-	else return `${baseClasses} rounded-l`
+  let baseClasses =
+    'size-full border-none p-0 text-center text-xs font-medium text-gray-800 focus:border-none focus:outline-none focus:ring-0'
+  if (props.disabled) baseClasses += ' cursor-not-allowed text-gray-400'
+  if (props.hideButtons) baseClasses += ' rounded-r'
+  if (props.prefix) return `${baseClasses}`
+  else return `${baseClasses} rounded-l`
 })
 
 const labelClasses = computed(() => {
-	let baseClasses = 'w-1/2 text-center text-xs font-medium text-gray-500'
-	if (props.disabled) baseClasses += ' text-gray-400'
-	return baseClasses
+  let baseClasses = 'w-1/2 text-center text-xs font-medium text-gray-500'
+  if (props.disabled) baseClasses += ' text-gray-400'
+  return baseClasses
 })
 
-const changeValue = (e) => {
-	if (props.disabled) return
+const changeValue = e => {
+  if (props.disabled) return
 
-	let value = parseFloat(e.target.value)
-	if (value < props.rangeStart) {
-		modelValue.value = props.rangeStart
-	} else if (value > props.rangeEnd) {
-		modelValue.value = props.rangeEnd
-	} else {
-		modelValue.value = value
-	}
+  let value = parseFloat(e.target.value)
+  if (value < props.rangeStart) {
+    modelValue.value = props.rangeStart
+  } else if (value > props.rangeEnd) {
+    modelValue.value = props.rangeEnd
+  } else {
+    modelValue.value = value
+  }
 }
 
-const updateValue = (change) => {
-	if (props.disabled) return
+const updateValue = change => {
+  if (props.disabled) return
 
-	if (change == 'increment') {
-		modelValue.value = Math.min(modelValue.value + props.rangeStep, props.rangeEnd)
-	} else if (change == 'decrement') {
-		modelValue.value = Math.max(modelValue.value - props.rangeStep, props.rangeStart)
-	}
+  if (change == 'increment') {
+    modelValue.value = Math.min(modelValue.value + props.rangeStep, props.rangeEnd)
+  } else if (change == 'decrement') {
+    modelValue.value = Math.max(modelValue.value - props.rangeStep, props.rangeStart)
+  }
 }
 </script>
 

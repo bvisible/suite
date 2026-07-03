@@ -17,49 +17,49 @@ const startWeekNumber = computed(() => Math.ceil(dayjs(startDate).date() / 7))
 // ─── State ────────────────────────────────────────────────────────────────────
 
 const getDefaultRepeat = () => ({
-	interval: 1,
-	frequency: 'daily',
-	end: ' ',
-	until: dayjs().add(1, 'week').format('YYYY-MM-DD'),
-	count: 10,
-	byDay: startDay.value ? [{ day: startDay.value }] : ([] as { day: string }[]),
-	repeatOn: 'day_of_month',
+  interval: 1,
+  frequency: 'daily',
+  end: ' ',
+  until: dayjs().add(1, 'week').format('YYYY-MM-DD'),
+  count: 10,
+  byDay: startDay.value ? [{ day: startDay.value }] : ([] as { day: string }[]),
+  repeatOn: 'day_of_month',
 })
 
 const parseRRule = () => {
-	const defaults = getDefaultRepeat()
-	const frequency = rRule.frequency ?? defaults.frequency
-	const interval = rRule.interval ?? 1
+  const defaults = getDefaultRepeat()
+  const frequency = rRule.frequency ?? defaults.frequency
+  const interval = rRule.interval ?? 1
 
-	let end = ' '
-	let until = dayjs().add(1, 'week').format('YYYY-MM-DD')
-	let count = 10
+  let end = ' '
+  let until = dayjs().add(1, 'week').format('YYYY-MM-DD')
+  let count = 10
 
-	if (rRule.until) {
-		end = 'On Date'
-		until = dayjs(rRule.until).format('YYYY-MM-DD')
-	} else if (rRule.count) {
-		end = 'After Occurrences'
-		count = rRule.count
-	}
+  if (rRule.until) {
+    end = 'On Date'
+    until = dayjs(rRule.until).format('YYYY-MM-DD')
+  } else if (rRule.count) {
+    end = 'After Occurrences'
+    count = rRule.count
+  }
 
-	let byDay: { day: string }[] = []
-	let repeatOn = 'day_of_month'
+  let byDay: { day: string }[] = []
+  let repeatOn = 'day_of_month'
 
-	if (frequency === 'weekly') {
-		byDay = (rRule.byDay ?? []).map((d: any) => ({ day: d.day }))
-		if (!byDay.length) byDay = [{ day: startDay.value }]
-	} else if (frequency === 'monthly') {
-		if (rRule.byMonthDay) {
-			const val = Array.isArray(rRule.byMonthDay) ? rRule.byMonthDay[0] : rRule.byMonthDay
-			repeatOn = val === -1 ? 'last_day_of_month' : 'day_of_month'
-		} else if (rRule.byDay?.length) {
-			const entry = rRule.byDay[0]
-			repeatOn = entry.nthOfPeriod === -1 ? 'last_day_of_week' : 'day_of_week'
-		}
-	}
+  if (frequency === 'weekly') {
+    byDay = (rRule.byDay ?? []).map((d: any) => ({ day: d.day }))
+    if (!byDay.length) byDay = [{ day: startDay.value }]
+  } else if (frequency === 'monthly') {
+    if (rRule.byMonthDay) {
+      const val = Array.isArray(rRule.byMonthDay) ? rRule.byMonthDay[0] : rRule.byMonthDay
+      repeatOn = val === -1 ? 'last_day_of_month' : 'day_of_month'
+    } else if (rRule.byDay?.length) {
+      const entry = rRule.byDay[0]
+      repeatOn = entry.nthOfPeriod === -1 ? 'last_day_of_week' : 'day_of_week'
+    }
+  }
 
-	return { frequency, interval, end, until, count, byDay, repeatOn }
+  return { frequency, interval, end, until, count, byDay, repeatOn }
 }
 
 const getRepeat = () => (rRule && Object.keys(rRule).length ? parseRRule() : getDefaultRepeat())
@@ -67,108 +67,108 @@ const getRepeat = () => (rRule && Object.keys(rRule).length ? parseRRule() : get
 const repeat = reactive({ ...getRepeat() })
 
 const toggleDay = (day: string) => {
-	const idx = repeat.byDay.findIndex((d) => d.day === day)
-	if (idx === -1) repeat.byDay.push({ day })
-	else repeat.byDay.splice(idx, 1)
+  const idx = repeat.byDay.findIndex(d => d.day === day)
+  if (idx === -1) repeat.byDay.push({ day })
+  else repeat.byDay.splice(idx, 1)
 }
 
 // ─── Watches ──────────────────────────────────────────────────────────────────
 
 // Re-sync state when dialog opens
-watch(show, (val) => {
-	if (val) Object.assign(repeat, getRepeat())
+watch(show, val => {
+  if (val) Object.assign(repeat, getRepeat())
 })
 
 // Set default byDay when switching to weekly
 watch(
-	() => repeat.frequency,
-	(freq) => {
-		if (freq === 'weekly' && !repeat.byDay.length) repeat.byDay = [{ day: startDay.value }]
-	},
+  () => repeat.frequency,
+  freq => {
+    if (freq === 'weekly' && !repeat.byDay.length) repeat.byDay = [{ day: startDay.value }]
+  }
 )
 
 // ─── Computed ─────────────────────────────────────────────────────────────────
 
 const monthlyRepeatOnOptions = computed(() => {
-	const date = dayjs(startDate)
-	const dayName = date.format('dddd')
-	const ordinals = [__('First'), __('Second'), __('Third'), __('Fourth'), __('Fifth')]
-	const daysInMonth = date.daysInMonth()
+  const date = dayjs(startDate)
+  const dayName = date.format('dddd')
+  const ordinals = [__('First'), __('Second'), __('Third'), __('Fourth'), __('Fifth')]
+  const daysInMonth = date.daysInMonth()
 
-	const options = [{ label: __('{0} of Month', [date.format('Do')]), value: 'day_of_month' }]
+  const options = [{ label: __('{0} of Month', [date.format('Do')]), value: 'day_of_month' }]
 
-	if (date.date() === daysInMonth)
-		options.push({ label: __('Last Day of Month'), value: 'last_day_of_month' })
+  if (date.date() === daysInMonth)
+    options.push({ label: __('Last Day of Month'), value: 'last_day_of_month' })
 
-	options.push({
-		label: __('{0} {1} of Month', [ordinals[startWeekNumber.value - 1], dayName]),
-		value: 'day_of_week',
-	})
+  options.push({
+    label: __('{0} {1} of Month', [ordinals[startWeekNumber.value - 1], dayName]),
+    value: 'day_of_week',
+  })
 
-	if (startWeekNumber.value === Math.ceil(daysInMonth / 7) || daysInMonth - date.date() < 7)
-		options.push({ label: __('Last {0} of Month', [dayName]), value: 'last_day_of_week' })
+  if (startWeekNumber.value === Math.ceil(daysInMonth / 7) || daysInMonth - date.date() < 7)
+    options.push({ label: __('Last {0} of Month', [dayName]), value: 'last_day_of_week' })
 
-	return options
+  return options
 })
 
 const recurrenceRule = computed(() => {
-	const rule: Record<
-		string,
-		string | string[] | number | number[] | { day: string; nthOfPeriod?: number }[]
-	> = { frequency: repeat.frequency, interval: repeat.interval }
+  const rule: Record<
+    string,
+    string | string[] | number | number[] | { day: string; nthOfPeriod?: number }[]
+  > = { frequency: repeat.frequency, interval: repeat.interval }
 
-	if (repeat.frequency === 'weekly' && repeat.byDay.length) {
-		rule.byDay = repeat.byDay
-	} else if (repeat.frequency === 'monthly') {
-		const monthlyByDay = {
-			day_of_week: [{ day: startDay.value, nthOfPeriod: startWeekNumber.value }],
-			last_day_of_week: [{ day: startDay.value, nthOfPeriod: -1 }],
-		}
-		const monthlyByMonthDay = {
-			day_of_month: [dayjs(startDate).date()],
-			last_day_of_month: [-1],
-		}
+  if (repeat.frequency === 'weekly' && repeat.byDay.length) {
+    rule.byDay = repeat.byDay
+  } else if (repeat.frequency === 'monthly') {
+    const monthlyByDay = {
+      day_of_week: [{ day: startDay.value, nthOfPeriod: startWeekNumber.value }],
+      last_day_of_week: [{ day: startDay.value, nthOfPeriod: -1 }],
+    }
+    const monthlyByMonthDay = {
+      day_of_month: [dayjs(startDate).date()],
+      last_day_of_month: [-1],
+    }
 
-		if (repeat.repeatOn in monthlyByDay) rule.byDay = monthlyByDay[repeat.repeatOn]
-		else rule.byMonthDay = monthlyByMonthDay[repeat.repeatOn]
-	}
+    if (repeat.repeatOn in monthlyByDay) rule.byDay = monthlyByDay[repeat.repeatOn]
+    else rule.byMonthDay = monthlyByMonthDay[repeat.repeatOn]
+  }
 
-	if (repeat.end === 'On Date') rule.until = `${repeat.until}T23:59:59Z`
-	else if (repeat.end === 'After Occurrences') rule.count = repeat.count
+  if (repeat.end === 'On Date') rule.until = `${repeat.until}T23:59:59Z`
+  else if (repeat.end === 'After Occurrences') rule.count = repeat.count
 
-	return rule
+  return rule
 })
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const WEEKDAYS = [
-	{ label: __('Sun'), value: 'su' },
-	{ label: __('Mon'), value: 'mo' },
-	{ label: __('Tue'), value: 'tu' },
-	{ label: __('Wed'), value: 'we' },
-	{ label: __('Thu'), value: 'th' },
-	{ label: __('Fri'), value: 'fr' },
-	{ label: __('Sat'), value: 'sa' },
+  { label: __('Sun'), value: 'su' },
+  { label: __('Mon'), value: 'mo' },
+  { label: __('Tue'), value: 'tu' },
+  { label: __('Wed'), value: 'we' },
+  { label: __('Thu'), value: 'th' },
+  { label: __('Fri'), value: 'fr' },
+  { label: __('Sat'), value: 'sa' },
 ]
 
 const END_OPTIONS = [
-	{ label: __('Never'), value: ' ' },
-	{ label: __('On Date'), value: 'On Date' },
-	{ label: __('After Occurrences'), value: 'After Occurrences' },
+  { label: __('Never'), value: ' ' },
+  { label: __('On Date'), value: 'On Date' },
+  { label: __('After Occurrences'), value: 'After Occurrences' },
 ]
 
 const DIALOG_OPTIONS = {
-	title: __('Repeat Settings'),
-	actions: [
-		{
-			label: __('Apply'),
-			variant: 'solid',
-			onClick: () => {
-				emit('updateRecurrenceRule', recurrenceRule.value)
-				show.value = false
-			},
-		},
-	],
+  title: __('Repeat Settings'),
+  actions: [
+    {
+      label: __('Apply'),
+      variant: 'solid',
+      onClick: () => {
+        emit('updateRecurrenceRule', recurrenceRule.value)
+        show.value = false
+      },
+    },
+  ],
 }
 </script>
 

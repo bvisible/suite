@@ -20,8 +20,8 @@ import { raiseToast } from '@/apps/mail/utils'
 const { code } = defineProps<{ code: string }>()
 
 const copyToClipBoard = () =>
-	navigator.clipboard
-		.writeText(code)
-		.then(() => raiseToast(__('Code copied to clipboard')))
-		.catch(() => raiseToast(__('Failed to copy code'), 'error'))
+  navigator.clipboard
+    .writeText(code)
+    .then(() => raiseToast(__('Code copied to clipboard')))
+    .catch(() => raiseToast(__('Failed to copy code'), 'error'))
 </script>

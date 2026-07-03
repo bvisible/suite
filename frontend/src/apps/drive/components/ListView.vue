@@ -58,10 +58,7 @@ import ContextMenu from '@/apps/drive/components/ContextMenu.vue'
 import CustomListRow from './CustomListRow.vue'
 import { openEntity, isModKey, getLink, getThumbnailUrl } from '@/apps/drive/utils/files'
 import { formatDate } from '@/apps/drive/utils/format'
-import {
-  WRITER_CONTENT_DOCTYPE,
-  PRESENTATION_CONTENT_DOCTYPE,
-} from '@/apps/drive/utils/files'
+import { WRITER_CONTENT_DOCTYPE, PRESENTATION_CONTENT_DOCTYPE } from '@/apps/drive/utils/files'
 
 import { onKeyDown } from '@vueuse/core'
 import { onOutsideClickDirective as vOnOutsideClick } from 'frappe-ui'
@@ -88,12 +85,12 @@ const formattedRows = computed(() => {
   if (!props.folderContents) return []
   if (Array.isArray(props.folderContents)) return props.folderContents
   return Object.keys(props.folderContents)
-    .map((k) => ({
+    .map(k => ({
       group: k,
       rows: props.folderContents[k] || [],
       collapsed: false,
     }))
-    .filter((g) => g.rows.length)
+    .filter(g => g.rows.length)
 })
 
 const selectedColumns = [
@@ -107,7 +104,7 @@ const selectedColumns = [
       content_doctype === PRESENTATION_CONTENT_DOCTYPE
         ? file_name
         : file_name.slice(0, file_name.lastIndexOf('.')),
-    getTooltip: (e) =>
+    getTooltip: e =>
       e.is_folder ||
       e.content_doctype === WRITER_CONTENT_DOCTYPE ||
       e.content_doctype === PRESENTATION_CONTENT_DOCTYPE
@@ -119,17 +116,29 @@ const selectedColumns = [
     suffix: ({ row }) => {
       if (row.share_count === props.rootEntity?.share_count) return
       if (row.share_count === -2) {
-        return h(Tooltip, { text: __('Public') }, {
-          default: () => h(LucideGlobe2, { class: 'size-4' })
-        })
+        return h(
+          Tooltip,
+          { text: __('Public') },
+          {
+            default: () => h(LucideGlobe2, { class: 'size-4' }),
+          }
+        )
       } else if (row.share_count === -1) {
-        return h(Tooltip, { text: __('Organization') }, {
-          default: () => h(LucideBuilding2, { class: 'size-4' })
-        })
+        return h(
+          Tooltip,
+          { text: __('Organization') },
+          {
+            default: () => h(LucideBuilding2, { class: 'size-4' }),
+          }
+        )
       } else if (row.share_count > 0) {
-        return h(Tooltip, { text: __('Shared with {0} users', [row.share_count]) }, {
-          default: () => h(LucideUsers, { class: 'size-4' })
-        })
+        return h(
+          Tooltip,
+          { text: __('Shared with {0} users', [row.share_count]) },
+          {
+            default: () => h(LucideUsers, { class: 'size-4' }),
+          }
+        )
       }
     },
   },
@@ -137,10 +146,8 @@ const selectedColumns = [
     label: __('Owner'),
     key: '',
     getLabel: ({ row }) =>
-      row.owner === useSessionStore().user
-        ? __('You')
-        : row.owner_full_name || row.owner || '-',
-    isEnabled: (n) => n !== 'Attachments',
+      row.owner === useSessionStore().user ? __('You') : row.owner_full_name || row.owner || '-',
+    isEnabled: n => n !== 'Attachments',
     prefix: ({ row }) => {
       if (!row.owner) return
       return h(Avatar, {
@@ -155,17 +162,17 @@ const selectedColumns = [
   {
     label: __('Last Modified'),
     getLabel: ({ row }) => row.relativeModified,
-    getTooltip: (row) => formatDate(row.modified),
+    getTooltip: row => formatDate(row.modified),
     key: 'modified',
-    isEnabled: (n) => n !== 'Recents' && n !== 'Attachments',
+    isEnabled: n => n !== 'Recents' && n !== 'Attachments',
     width: '15%',
   },
   {
     label: __('Last Accessed'),
     getLabel: ({ row }) => row.relativeAccessed,
-    getTooltip: (row) => formatDate(row.accessed),
+    getTooltip: row => formatDate(row.accessed),
     key: 'modified',
-    isEnabled: (n) => n === 'Recents',
+    isEnabled: n => n === 'Recents',
     width: '15%',
   },
   {
@@ -180,22 +187,21 @@ const selectedColumns = [
     width: route.name === 'drive-Attachments' ? '25%' : '8%',
   },
   { label: '', key: 'options', align: 'right', width: '5%' },
-].filter((k) => !k.isEnabled || k.isEnabled(route.name))
+].filter(k => !k.isEnabled || k.isEnabled(route.name))
 
-const setActive = (entityName) => {
-  const entity = props.folderContents.find((k) => k.name === entityName)
-  selectedRow.value =
-    !entity || entity.name !== activeEntity.value?.name ? entity : null
+const setActive = entityName => {
+  const entity = props.folderContents.find(k => k.name === entityName)
+  selectedRow.value = !entity || entity.name !== activeEntity.value?.name ? entity : null
 }
 
-watch(selectedRow, (k) => {
+watch(selectedRow, k => {
   setActiveEntity(k)
 })
-const dropdownActionItems = (row) => {
+const dropdownActionItems = row => {
   if (!row) return []
   return props.actionItems
-    .filter((a) => !a.isEnabled || a.isEnabled(row))
-    .map((a) => ({
+    .filter(a => !a.isEnabled || a.isEnabled(row))
+    .map(a => ({
       ...a,
       handler: () => {
         rowEvent.value = false
@@ -215,14 +221,14 @@ const contextMenu = (event, row) => {
   event.preventDefault()
 }
 
-const handleSelections = (sels) => {
+const handleSelections = sels => {
   selections.value = sels
   selectedRow.value = null
   setActiveEntity(null)
 }
 
 // Add keyboard shortcuts here as f-ui selections has to be mutated
-onKeyDown('a', (e) => {
+onKeyDown('a', e => {
   // How do I do this nicely?
   if (
     e.target.classList.contains('ProseMirror') ||
@@ -232,11 +238,11 @@ onKeyDown('a', (e) => {
     return
   if (e.metaKey) {
     container.value.selections.clear()
-    props.folderContents.map((k) => container.value.selections.add(k.name))
+    props.folderContents.map(k => container.value.selections.add(k.name))
     e.preventDefault()
   }
 })
-onKeyDown('Backspace', (e) => {
+onKeyDown('Backspace', e => {
   if (
     e.target.classList.contains('ProseMirror') ||
     e.target.tagName === 'INPUT' ||
@@ -245,7 +251,7 @@ onKeyDown('Backspace', (e) => {
     return
   if (e.metaKey) emitter.emit('remove')
 })
-onKeyDown('m', (e) => {
+onKeyDown('m', e => {
   if (
     e.target.classList.contains('ProseMirror') ||
     e.target.tagName === 'INPUT' ||
@@ -254,7 +260,7 @@ onKeyDown('m', (e) => {
     return
   if (e.ctrlKey) emitter.emit('move')
 })
-onKeyDown('Escape', (e) => {
+onKeyDown('Escape', e => {
   if (
     e.target.classList.contains('ProseMirror') ||
     e.target.tagName === 'INPUT' ||

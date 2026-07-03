@@ -75,7 +75,7 @@ const show = defineModel<boolean>()
 const { selectedScript } = defineProps<{ selectedScript?: SieveScript }>()
 
 const store = userStore()
-const activeScript = computed(() => store.sieveScripts.data?.find((s) => s.active)?._name)
+const activeScript = computed(() => store.sieveScripts.data?.find(s => s.active)?._name)
 
 const DEFAULT_SCRIPT = { _name: '', content: '', active: false }
 
@@ -83,42 +83,42 @@ const script = reactive({ ...DEFAULT_SCRIPT })
 const original = reactive({ ...DEFAULT_SCRIPT })
 
 const isNotDirty = computed(
-	() =>
-		script._name === original._name &&
-		script.content === original.content &&
-		script.active === original.active,
+  () =>
+    script._name === original._name &&
+    script.content === original.content &&
+    script.active === original.active
 )
 
 const createScript = createResource({
-	url: 'suite.mail.api.sieve.create_sieve_script',
-	makeParams: () => ({ account: store.accountId, ...script }),
-	onSuccess: () => {
-		raiseToast(__('Sieve script created.'))
-		store.sieveScripts.reload()
-		show.value = false
-	},
-	onError: (e) => raiseToast(e.messages[0], 'error'),
+  url: 'suite.mail.api.sieve.create_sieve_script',
+  makeParams: () => ({ account: store.accountId, ...script }),
+  onSuccess: () => {
+    raiseToast(__('Sieve script created.'))
+    store.sieveScripts.reload()
+    show.value = false
+  },
+  onError: e => raiseToast(e.messages[0], 'error'),
 })
 
 const updateScript = createResource({
-	url: 'suite.mail.api.sieve.update_sieve_script',
-	makeParams: () => ({ account: store.accountId, id: selectedScript!.id, ...script }),
-	onSuccess: () => {
-		raiseToast(__('Sieve script updated.'))
-		store.sieveScripts.reload()
-		show.value = false
-	},
-	onError: (e) => raiseToast(e.messages[0], 'error'),
+  url: 'suite.mail.api.sieve.update_sieve_script',
+  makeParams: () => ({ account: store.accountId, id: selectedScript!.id, ...script }),
+  onSuccess: () => {
+    raiseToast(__('Sieve script updated.'))
+    store.sieveScripts.reload()
+    show.value = false
+  },
+  onError: e => raiseToast(e.messages[0], 'error'),
 })
 
-watch(show, (val) => {
-	if (!val) {
-		Object.assign(script, DEFAULT_SCRIPT)
-		Object.assign(original, DEFAULT_SCRIPT)
-	} else if (selectedScript) {
-		script._name = original._name = selectedScript._name
-		script.content = original.content = selectedScript.content
-		script.active = original.active = !!selectedScript.active
-	}
+watch(show, val => {
+  if (!val) {
+    Object.assign(script, DEFAULT_SCRIPT)
+    Object.assign(original, DEFAULT_SCRIPT)
+  } else if (selectedScript) {
+    script._name = original._name = selectedScript._name
+    script.content = original.content = selectedScript.content
+    script.active = original.active = !!selectedScript.active
+  }
 })
 </script>

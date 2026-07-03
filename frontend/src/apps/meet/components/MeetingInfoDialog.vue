@@ -26,26 +26,26 @@
 </template>
 
 <script setup lang="ts">
-import { Dialog } from "frappe-ui";
-import { computed } from "vue";
-import { useE2EEState } from "../composables/useE2EEState";
-import ClickToCopyField from "./ClickToCopyField.vue";
+import { Dialog } from 'frappe-ui'
+import { computed } from 'vue'
+import { useE2EEState } from '../composables/useE2EEState'
+import ClickToCopyField from './ClickToCopyField.vue'
 
 const props = defineProps<{
-	modelValue?: boolean;
-	meetingId: string;
-	meetingTitle?: string;
-}>();
+  modelValue?: boolean
+  meetingId: string
+  meetingTitle?: string
+}>()
 
 const emit = defineEmits<{
-	"update:modelValue": [value: boolean];
-}>();
+  'update:modelValue': [value: boolean]
+}>()
 
 const show = computed({
-	get: () => props.modelValue,
-	set: (value) => emit("update:modelValue", value),
-});
+  get: () => props.modelValue,
+  set: value => emit('update:modelValue', value),
+})
 
-const meetingUrl = computed(() => window.location.href);
-const { sessionFingerprint: e2eeFingerprint } = useE2EEState();
+const meetingUrl = computed(() => window.location.href)
+const { sessionFingerprint: e2eeFingerprint } = useE2EEState()
 </script>

@@ -38,7 +38,7 @@
 <script setup>
 import { default as vFocus } from '@/apps/drive/utils/focus'
 import { ref } from 'vue'
-import { Dialog, createResource, FormControl} from 'frappe-ui'
+import { Dialog, createResource, FormControl } from 'frappe-ui'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()

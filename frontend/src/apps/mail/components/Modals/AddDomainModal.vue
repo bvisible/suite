@@ -58,26 +58,26 @@ const domainDescription = ref('')
 const emit = defineEmits(['reloadDomains'])
 
 watch(show, () => {
-	if (show.value) {
-		domainName.value = ''
-		domainDescription.value = ''
-		addDomain.reset()
-	}
+  if (show.value) {
+    domainName.value = ''
+    domainDescription.value = ''
+    addDomain.reset()
+  }
 })
 
 const addDomain = createResource({
-	url: 'suite.mail.api.admin.add_domain',
-	makeParams: () => ({
-		name: domainName.value,
-		description: domainDescription.value?.trim() || undefined,
-	}),
-	onSuccess: (data: string) => {
-		if (!data) return
+  url: 'suite.mail.api.admin.add_domain',
+  makeParams: () => ({
+    name: domainName.value,
+    description: domainDescription.value?.trim() || undefined,
+  }),
+  onSuccess: (data: string) => {
+    if (!data) return
 
-		show.value = false
-		emit('reloadDomains')
-		raiseToast(__('Domain added.'))
-		router.push({ name: 'mail-domain', params: { domainId: data } })
-	},
+    show.value = false
+    emit('reloadDomains')
+    raiseToast(__('Domain added.'))
+    router.push({ name: 'mail-domain', params: { domainId: data } })
+  },
 })
 </script>

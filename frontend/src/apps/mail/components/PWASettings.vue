@@ -45,53 +45,51 @@ import { raiseToast } from '@/apps/mail/utils'
 const emit = defineEmits(['close'])
 
 const isPushNotificationsSettingEnabled = ref(
-	window.frappePushNotification?.isNotificationEnabled(),
+  window.frappePushNotification?.isNotificationEnabled()
 )
 const isLoading = ref(false)
 
 const isPushNotificationEnabled = computed(
-	() => window.push_relay_server_url && isPushNotificationRelayEnabled.data,
+  () => window.push_relay_server_url && isPushNotificationRelayEnabled.data
 )
 
 const description = computed(() =>
-	!isPushNotificationEnabled.value
-		? __('Push notifications have been disabled on your site')
-		: '',
+  !isPushNotificationEnabled.value ? __('Push notifications have been disabled on your site') : ''
 )
 
 const togglePushNotifications = async (isEnabled: boolean) => {
-	if (isEnabled) return enablePushNotifications()
+  if (isEnabled) return enablePushNotifications()
 
-	isLoading.value = true
-	try {
-		await window.frappePushNotification.disableNotification()
-		isPushNotificationsSettingEnabled.value = false
-		raiseToast(__('Push notifications disabled'))
-	} catch (error) {
-		raiseToast(__(error.message), 'error')
-	}
-	isLoading.value = false
+  isLoading.value = true
+  try {
+    await window.frappePushNotification.disableNotification()
+    isPushNotificationsSettingEnabled.value = false
+    raiseToast(__('Push notifications disabled'))
+  } catch (error) {
+    raiseToast(__(error.message), 'error')
+  }
+  isLoading.value = false
 }
 
 const enablePushNotifications = async () => {
-	isLoading.value = true
-	try {
-		const data = await window.frappePushNotification.enableNotification()
-		if (data.permission_granted) isPushNotificationsSettingEnabled.value = true
-		else {
-			raiseToast(__('Push Notification permission denied'), 'error')
-			isPushNotificationsSettingEnabled.value = false
-		}
-	} catch (error) {
-		raiseToast(__(error.message), 'error')
-		isPushNotificationsSettingEnabled.value = false
-	}
-	isLoading.value = false
+  isLoading.value = true
+  try {
+    const data = await window.frappePushNotification.enableNotification()
+    if (data.permission_granted) isPushNotificationsSettingEnabled.value = true
+    else {
+      raiseToast(__('Push Notification permission denied'), 'error')
+      isPushNotificationsSettingEnabled.value = false
+    }
+  } catch (error) {
+    raiseToast(__(error.message), 'error')
+    isPushNotificationsSettingEnabled.value = false
+  }
+  isLoading.value = false
 }
 
 const isPushNotificationRelayEnabled = createResource({
-	url: 'suite.mail.api.account.is_push_notification_relay_enabled',
-	cache: 'mail:push_notifications_enabled',
-	auto: true,
+  url: 'suite.mail.api.account.is_push_notification_relay_enabled',
+  cache: 'mail:push_notifications_enabled',
+  auto: true,
 })
 </script>

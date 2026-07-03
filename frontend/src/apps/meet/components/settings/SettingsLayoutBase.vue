@@ -21,9 +21,9 @@
 
 <script setup lang="ts">
 interface Props {
-	title?: string;
-	description?: string;
+  title?: string
+  description?: string
 }
 
-const props = defineProps<Props>();
+const props = defineProps<Props>()
 </script>

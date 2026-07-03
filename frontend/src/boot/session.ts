@@ -11,12 +11,10 @@ export const getSessionUser = (): string | null => {
 
 const _getCookies = () =>
   Object.fromEntries(
-    document.cookie
-      .split('; ')
-      .map((c) => {
-        const [k, ...v] = c.split('=')
-        return [k, decodeURIComponent(v.join('='))]
-      }),
+    document.cookie.split('; ').map(c => {
+      const [k, ...v] = c.split('=')
+      return [k, decodeURIComponent(v.join('='))]
+    })
   )
 
 const _cookies = _getCookies()
@@ -94,13 +92,17 @@ export function useCurrentUser() {
   return {
     user: computed(() => store.user),
     isLoggedIn: computed(() => store.isLoggedIn),
-    fullName: computed(() => (userResource.data?.full_name as string | undefined) ?? fullName.value),
+    fullName: computed(
+      () => (userResource.data?.full_name as string | undefined) ?? fullName.value
+    ),
     imageURL: computed(() => (userResource.data?.avatar as string | undefined) ?? imageURL.value),
     systemUser: computed(() =>
       userResource.data
         ? ((userResource.data.roles as string[]) ?? []).includes('System Manager')
-        : systemUser.value,
+        : systemUser.value
     ),
-    jmapUser: computed(() => (userResource.data ? !!userResource.data.is_jmap_configured : jmapUser.value)),
+    jmapUser: computed(() =>
+      userResource.data ? !!userResource.data.is_jmap_configured : jmapUser.value
+    ),
   }
 }

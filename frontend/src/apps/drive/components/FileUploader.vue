@@ -16,7 +16,7 @@ const dropzone = ref()
 const computedFullPath = ref('')
 const emitter = inject('emitter')
 
-watch(route, (to) => {
+watch(route, to => {
   if (!dropzone.value) return
   if (to.name === 'drive-Document' || to.name === 'drive-File') {
     dropzone.value.removeEventListeners()
@@ -178,7 +178,7 @@ onMounted(() => {
     }
   })
   dropzone.value.on('queuecomplete', function () {
-    dropzone.value.files = dropzone.value.files.filter((file) => file.status === Dropzone.ERROR)
+    dropzone.value.files = dropzone.value.files.filter(file => file.status === Dropzone.ERROR)
     if (!dropzone.value.files.length) computedFullPath.value = ''
     emitter.emit('fetchFolderContents')
   })
@@ -236,7 +236,7 @@ emitter.on('uploadFile', () => {
     dropzone.value.hiddenFileInput.click()
   }
 })
-emitter.on('cancelUpload', (uuid) => {
+emitter.on('cancelUpload', uuid => {
   const files = dropzone.value.files
   for (let i = 0; i < files.length; i++) {
     if (files[i].upload.uuid === uuid) {
@@ -244,8 +244,8 @@ emitter.on('cancelUpload', (uuid) => {
     }
   }
 })
-emitter.on('retryUpload', (uuid) => {
-  const file = dropzone.value.files.find((f) => f.upload.uuid === uuid)
+emitter.on('retryUpload', uuid => {
+  const file = dropzone.value.files.find(f => f.upload.uuid === uuid)
   if (file) {
     file.status = Dropzone.ADDED
     dropzone.value.enqueueFile(file)

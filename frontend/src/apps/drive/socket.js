@@ -13,7 +13,7 @@ export function initSocket() {
     withCredentials: true,
     reconnectionAttempts: 5,
   })
-  socket.on('connect_error', (data) => {
+  socket.on('connect_error', data => {
     console.log(data)
   })
   return socket

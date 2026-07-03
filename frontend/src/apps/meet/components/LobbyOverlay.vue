@@ -30,9 +30,9 @@
 </template>
 
 <script setup lang="ts">
-import { Button } from "frappe-ui";
+import { Button } from 'frappe-ui'
 
 defineEmits<{
-	leave: [];
-}>();
+  leave: []
+}>()
 </script>

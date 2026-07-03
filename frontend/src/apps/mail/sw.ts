@@ -16,36 +16,33 @@ const jsonConfig = new URL(location.href).searchParams.get('config')
 
 // Firebase config initialization
 try {
-	const firebaseApp = initializeApp(JSON.parse(jsonConfig as string))
-	const messaging = getMessaging(firebaseApp)
+  const firebaseApp = initializeApp(JSON.parse(jsonConfig as string))
+  const messaging = getMessaging(firebaseApp)
 
-	const isChrome = () => navigator.userAgent.toLowerCase().includes('chrome')
+  const isChrome = () => navigator.userAgent.toLowerCase().includes('chrome')
 
-	onBackgroundMessage(messaging, (payload: import('firebase/messaging').MessagePayload) => {
-		const notificationTitle = payload.data?.title ?? ''
-		const notificationOptions: NotificationOptions = { body: payload.data?.body || '' }
-		if (payload.data?.notification_icon)
-			notificationOptions.icon = payload.data.notification_icon
+  onBackgroundMessage(messaging, (payload: import('firebase/messaging').MessagePayload) => {
+    const notificationTitle = payload.data?.title ?? ''
+    const notificationOptions: NotificationOptions = { body: payload.data?.body || '' }
+    if (payload.data?.notification_icon) notificationOptions.icon = payload.data.notification_icon
 
-		if (isChrome()) notificationOptions.data = { url: payload.data?.click_action }
-		else if (payload.data?.click_action)
-			notificationOptions.actions = [
-				{ action: payload.data.click_action, title: 'View Details' },
-			]
+    if (isChrome()) notificationOptions.data = { url: payload.data?.click_action }
+    else if (payload.data?.click_action)
+      notificationOptions.actions = [{ action: payload.data.click_action, title: 'View Details' }]
 
-		self.registration.showNotification(notificationTitle, notificationOptions)
-	})
+    self.registration.showNotification(notificationTitle, notificationOptions)
+  })
 
-	if (isChrome()) {
-		self.addEventListener('notificationclick', (event: NotificationEvent) => {
-			event.stopImmediatePropagation()
-			event.notification.close()
-			if (event.notification.data && (event.notification.data as { url?: string }).url)
-				clients.openWindow((event.notification.data as { url: string }).url)
-		})
-	}
+  if (isChrome()) {
+    self.addEventListener('notificationclick', (event: NotificationEvent) => {
+      event.stopImmediatePropagation()
+      event.notification.close()
+      if (event.notification.data && (event.notification.data as { url?: string }).url)
+        clients.openWindow((event.notification.data as { url: string }).url)
+    })
+  }
 } catch (error) {
-	console.log('Failed to initialize Firebase:', error)
+  console.log('Failed to initialize Firebase:', error)
 }
 
 self.skipWaiting()

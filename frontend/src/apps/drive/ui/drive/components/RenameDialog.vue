@@ -35,7 +35,7 @@
 <script setup>
 import { default as vFocus } from '@/apps/drive/utils/focus'
 import { ref } from 'vue'
-import { Dialog, FormControl} from 'frappe-ui'
+import { Dialog, FormControl } from 'frappe-ui'
 import { rename } from '../js/resources'
 
 const props = defineProps({ entity: Object, modelValue: String })
@@ -47,8 +47,7 @@ const newTitle = ref('')
 const file_ext = ref('')
 
 const keepWhole =
-  props.entity.is_folder ||
-  ['Document', 'Markdown', 'Link'].includes(props.entity.file_type)
+  props.entity.is_folder || ['Document', 'Markdown', 'Link'].includes(props.entity.file_type)
 if (keepWhole) {
   newTitle.value = props.entity.file_name
 } else {
@@ -62,8 +61,7 @@ if (keepWhole) {
 }
 
 const submit = () => {
-  const formattedTitle =
-    newTitle.value + (file_ext.value ? '.' + file_ext.value : '')
+  const formattedTitle = newTitle.value + (file_ext.value ? '.' + file_ext.value : '')
   rename.submit(
     {
       entity_name: props.entity.name,
@@ -74,7 +72,7 @@ const submit = () => {
         open.value = false
         emit('complete')
       },
-    },
+    }
   )
   emit('success', {
     name: props.entity.name,

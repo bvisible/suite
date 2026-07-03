@@ -61,16 +61,7 @@
 <script setup>
 import Navbar from '@/apps/writer/components/Navbar.vue'
 import ErrorPage from '@/apps/writer/components/ErrorPage.vue'
-import {
-  ref,
-  inject,
-  defineAsyncComponent,
-  provide,
-  watch,
-  h,
-  computed,
-  useTemplateRef,
-} from 'vue'
+import { ref, inject, defineAsyncComponent, provide, watch, h, computed, useTemplateRef } from 'vue'
 import { useSessionStore } from '@/boot/session'
 const currentUserId = computed(() => useSessionStore().user)
 const isLoggedIn = computed(() => useSessionStore().isLoggedIn)
@@ -88,7 +79,7 @@ import LucideLockOpen from '~icons/lucide/lock-open'
 import TextEditor from '@/apps/writer/components/TextEditor.vue'
 import NonCollabEditor from '@/apps/writer/components/NonCollabEditor.vue'
 const MarkdownEditor = defineAsyncComponent(
-  () => import('@/apps/writer/components/MarkdownEditor.vue'),
+  () => import('@/apps/writer/components/MarkdownEditor.vue')
 )
 
 const props = defineProps({
@@ -109,10 +100,7 @@ provide('isOffline', isOffline)
 
 const isOldSchema = computed(() => {
   if (!document.value?.doc) return false
-  return (
-    !document.value?.doc.collab &&
-    currentUserId.value !== document.value?.doc.owner
-  )
+  return !document.value?.doc.collab && currentUserId.value !== document.value?.doc.owner
 })
 
 const inIframe = inject('inIframe')
@@ -128,7 +116,7 @@ const editable = computed(() => {
     ? true
     : false
 })
-watch(showVersions, (v) => {
+watch(showVersions, v => {
   if (!v) versionPreview.value = null
 })
 usePageMeta(() => ({
@@ -139,18 +127,18 @@ usePageMeta(() => ({
 const globalSettings = !isLoggedIn.value
   ? { doc: {} }
   : useDoc({
-    doctype: 'Drive Settings',
-    name: currentUserId.value,
-    immediate: true,
-    transform: (doc) => {
-      if (typeof doc.writer_settings === 'string') {
-        doc.writer_settings = JSON.parse(doc.writer_settings) || {}
-      } else if (!doc.writer_settings) {
-        doc.writer_settings = {}
-      }
-      return doc
-    },
-  })
+      doctype: 'Drive Settings',
+      name: currentUserId.value,
+      immediate: true,
+      transform: doc => {
+        if (typeof doc.writer_settings === 'string') {
+          doc.writer_settings = JSON.parse(doc.writer_settings) || {}
+        } else if (!doc.writer_settings) {
+          doc.writer_settings = {}
+        }
+        return doc
+      },
+    })
 
 const settings = computed(() => {
   for (const [k, v] of Object.entries(document.value?.doc?.settings || {})) {
@@ -162,17 +150,15 @@ const settings = computed(() => {
   }
 })
 
-
 // Events
 window.addEventListener('offline', () => (isOffline.value = true))
 window.addEventListener('online', () => (isOffline.value = false))
 
 let toasted
-watch(isOldSchema, (v) => {
+watch(isOldSchema, v => {
   if (document.value?.doc?.settings && file.doc.write && v && !toasted) {
     toast({
-      title:
-        'This document uses an old schema. Collaborative editing is disabled.',
+      title: 'This document uses an old schema. Collaborative editing is disabled.',
       type: 'warning',
       duration: 8000,
     })

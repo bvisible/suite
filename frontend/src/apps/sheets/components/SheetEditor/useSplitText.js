@@ -1,6 +1,6 @@
-import { reactive }                         from 'vue'
-import { resolveSeparator, parseRow }        from '../../engine/split-text.js'
-import { cellId }                            from '../../utils/cells.js'
+import { reactive } from 'vue'
+import { resolveSeparator, parseRow } from '../../engine/split-text.js'
+import { cellId } from '../../utils/cells.js'
 
 /**
  * Manages the Split Text to Columns feature: preview, apply, and cancel.
@@ -40,12 +40,12 @@ export function useSplitText({
 }) {
   // Reactive state consumed by SplitTextPopover.vue
   const splitText = reactive({
-    open:      false,
-    anchor:    null,   // { x, y } pixel position for the popover
-    range:     null,   // { r0, c0, r1, c1 } — user's selection
-    choice:    'auto', // active separator choice
-    original:  null,   // { id → value } snapshot before the first preview
-    writeRect: null,   // widest rect any preview has written — needed for cancel
+    open: false,
+    anchor: null, // { x, y } pixel position for the popover
+    range: null, // { r0, c0, r1, c1 } — user's selection
+    choice: 'auto', // active separator choice
+    original: null, // { id → value } snapshot before the first preview
+    writeRect: null, // widest rect any preview has written — needed for cancel
   })
 
   // ── public entry-point ──────────────────────────────────────────────────────
@@ -57,26 +57,25 @@ export function useSplitText({
     const range = grid.getSelection()
     if (!range) return
 
-    splitText.range     = { ...range }
-    splitText.choice    = 'auto'
-    splitText.original  = null
+    splitText.range = { ...range }
+    splitText.choice = 'auto'
+    splitText.original = null
     splitText.writeRect = null
 
     const rect = grid.getCellRect?.(range.r0, range.c0)
     if (rect) {
-      const POP_W = 248, POP_H = 340
-      const wrap  = getGridWrap?.()
-      const wrapW = wrap?.offsetWidth  ?? Infinity
+      const POP_W = 248,
+        POP_H = 340
+      const wrap = getGridWrap?.()
+      const wrapW = wrap?.offsetWidth ?? Infinity
       const wrapH = wrap?.offsetHeight ?? Infinity
       const ax = Math.min(rect.x, wrapW - POP_W - 4)
-      const ay = rect.y + rect.height + POP_H > wrapH
-               ? rect.y - POP_H
-               : rect.y + rect.height
+      const ay = rect.y + rect.height + POP_H > wrapH ? rect.y - POP_H : rect.y + rect.height
       splitText.anchor = { x: Math.max(0, ax), y: Math.max(0, ay) }
     } else {
       splitText.anchor = null
     }
-    splitText.open       = true
+    splitText.open = true
 
     // Show a live preview immediately so the user can compare separators.
     _previewSplit('auto')
@@ -96,20 +95,20 @@ export function useSplitText({
       splitText.open = false
       return
     }
-    const sheet       = getSheet()
+    const sheet = getSheet()
     const subSheetName = sheet.getCurrentSheet()
-    const after       = captureRange(splitText.writeRect, subSheetName)
-    const before      = splitText.original
-    const refs        = diffRefs(before, after)
+    const after = captureRange(splitText.writeRect, subSheetName)
+    const before = splitText.original
+    const refs = diffRefs(before, after)
 
     if (refs.length) {
       queueOp({
-        opType:   'edit',
+        opType: 'edit',
         subSheet: subSheetName,
         cellRefs: refs,
         before,
         after,
-        summary:  `Split text into ${refs.length} cell${refs.length === 1 ? '' : 's'}`,
+        summary: `Split text into ${refs.length} cell${refs.length === 1 ? '' : 's'}`,
       })
     }
     markEdited()
@@ -124,9 +123,9 @@ export function useSplitText({
   // ── internal helpers ────────────────────────────────────────────────────────
 
   function _closeSplit() {
-    splitText.open      = false
-    splitText.range     = null
-    splitText.original  = null
+    splitText.open = false
+    splitText.range = null
+    splitText.original = null
     splitText.writeRect = null
   }
 
@@ -136,7 +135,7 @@ export function useSplitText({
    */
   function _revertSplitPreview() {
     if (!splitText.original) return
-    const sheet        = getSheet()
+    const sheet = getSheet()
     const subSheetName = sheet.getCurrentSheet()
     for (const [id, value] of Object.entries(splitText.original)) {
       sheet.setCell(id, value == null ? '' : value, subSheetName)
@@ -157,7 +156,7 @@ export function useSplitText({
    */
   function _previewSplit(choice) {
     if (!splitText.range) return
-    const sheet        = getSheet()
+    const sheet = getSheet()
     const subSheetName = sheet.getCurrentSheet()
     const selectionRange = splitText.range
 
@@ -167,13 +166,11 @@ export function useSplitText({
     const sourceCells = []
     for (let row = selectionRange.r0; row <= selectionRange.r1; row++) {
       for (let col = selectionRange.c0; col <= selectionRange.c1; col++) {
-        const id  = cellId(row, col)
-        const raw = splitText.original
-          ? splitText.original[id]
-          : sheet.getCell(id, subSheetName)
+        const id = cellId(row, col)
+        const raw = splitText.original ? splitText.original[id] : sheet.getCell(id, subSheetName)
 
         if (typeof raw === 'string' && raw.startsWith('=')) {
-          sourceCells.push({ row, col, value: null })   // skip formula cells
+          sourceCells.push({ row, col, value: null }) // skip formula cells
         } else {
           sourceCells.push({ row, col, value: raw == null ? '' : String(raw) })
         }
@@ -182,7 +179,7 @@ export function useSplitText({
 
     const separator = resolveSeparator(
       sourceCells.filter(cell => cell.value != null).map(cell => cell.value),
-      choice,
+      choice
     )
 
     // Split each source cell independently — first token replaces the source,
@@ -201,17 +198,27 @@ export function useSplitText({
         maximumColumn = Math.max(maximumColumn, split.col + split.tokens.length - 1)
       }
     }
-    const newRect = { r0: selectionRange.r0, r1: selectionRange.r1, c0: selectionRange.c0, c1: maximumColumn }
+    const newRect = {
+      r0: selectionRange.r0,
+      r1: selectionRange.r1,
+      c0: selectionRange.c0,
+      c1: maximumColumn,
+    }
 
     // Capture original snapshot once; grow it if a later preview overflows
     // further right than the first one.
     if (!splitText.original) {
-      splitText.original  = captureRange(newRect, subSheetName)
+      splitText.original = captureRange(newRect, subSheetName)
       splitText.writeRect = { ...newRect }
     } else if (newRect.c1 > splitText.writeRect.c1) {
       const extraColumns = captureRange(
-        { r0: selectionRange.r0, r1: selectionRange.r1, c0: splitText.writeRect.c1 + 1, c1: newRect.c1 },
-        subSheetName,
+        {
+          r0: selectionRange.r0,
+          r1: selectionRange.r1,
+          c0: splitText.writeRect.c1 + 1,
+          c1: newRect.c1,
+        },
+        subSheetName
       )
       Object.assign(splitText.original, extraColumns)
       splitText.writeRect.c1 = newRect.c1
@@ -229,7 +236,7 @@ export function useSplitText({
     for (const split of splits) {
       if (split.tokens == null) continue
       for (let tokenIndex = 0; tokenIndex < split.tokens.length; tokenIndex++) {
-        const id    = cellId(split.row, split.col + tokenIndex)
+        const id = cellId(split.row, split.col + tokenIndex)
         const token = split.tokens[tokenIndex]
         sheet.setCell(id, token != null ? token : '', subSheetName)
       }
@@ -249,6 +256,6 @@ export function useSplitText({
     onSplitApply,
     onSplitCancel,
     revertSplitPreview: _revertSplitPreview,
-    closeSplit:         _closeSplit,
+    closeSplit: _closeSplit,
   }
 }

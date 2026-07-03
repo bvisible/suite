@@ -52,62 +52,62 @@ import { presentationTheme, templateList } from '@/apps/slides/stores/presentati
 const THEME_PREVIEW_SCALE = 310 / 960
 
 const props = defineProps({
-	update: {
-		type: Boolean,
-		default: false,
-	},
+  update: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const showThemeDialog = defineModel({
-	name: 'showThemeDialog',
-	required: true,
+  name: 'showThemeDialog',
+  required: true,
 })
 
 const emit = defineEmits(['create'])
 
 const dialogTitle = computed(() => (props.update ? 'Set Theme' : 'Select Theme'))
 const dialogDescription = computed(() =>
-	props.update
-		? 'Update the theme for this presentation. All newly added slides will use this theme.'
-		: 'Select a theme for your new presentation. You can change this theme later.',
+  props.update
+    ? 'Update the theme for this presentation. All newly added slides will use this theme.'
+    : 'Select a theme for your new presentation. You can change this theme later.'
 )
 
-const performAction = (theme) => {
-	if (props.update) {
-		emit('update', theme)
-	} else {
-		emit('create', theme)
-	}
+const performAction = theme => {
+  if (props.update) {
+    emit('update', theme)
+  } else {
+    emit('create', theme)
+  }
 }
 
 watch(
-	() => showThemeDialog.value,
-	(visibility) => {
-		if (!visibility) return
-		nextTick(() => {
-			document.activeElement?.blur()
-		})
-	},
+  () => showThemeDialog.value,
+  visibility => {
+    if (!visibility) return
+    nextTick(() => {
+      document.activeElement?.blur()
+    })
+  }
 )
 
-const getThemeThumbnailClasses = (theme) => {
-	return props.update && theme == presentationTheme.value
-		? 'ring-2 ring-offset-1 ring-gray-400'
-		: ''
+const getThemeThumbnailClasses = theme => {
+  return props.update && theme == presentationTheme.value
+    ? 'ring-2 ring-offset-1 ring-gray-400'
+    : ''
 }
 
-const getThemePreviewLayout = (theme) => {
-	const thumbnailIdx = ['Light', 'Dark'].includes(theme.title) ? 2 : 0
-	return theme.layouts[thumbnailIdx] || theme.layouts[0]
+const getThemePreviewLayout = theme => {
+  const thumbnailIdx = ['Light', 'Dark'].includes(theme.title) ? 2 : 0
+  return theme.layouts[thumbnailIdx] || theme.layouts[0]
 }
 
-const getThemeThumbnailStyles = (theme) => {
-	const layout = getThemePreviewLayout(theme)
-	return getThumbnailCardStyles(layout?.thumbnail)
+const getThemeThumbnailStyles = theme => {
+  const layout = getThemePreviewLayout(theme)
+  return getThumbnailCardStyles(layout?.thumbnail)
 }
 
-const shouldRenderPreview = (theme) => {
-	const layout = getThemePreviewLayout(theme)
-	return layout && !layout.thumbnail
+const shouldRenderPreview = theme => {
+  const layout = getThemePreviewLayout(theme)
+  return layout && !layout.thumbnail
 }
 </script>

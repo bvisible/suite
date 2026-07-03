@@ -40,7 +40,7 @@ export function createCommentsEngine() {
     const entries = Object.entries(st)
       .map(([id, text]) => ({ id, p: parseCellId(id), text }))
       .filter(({ p }) => p && pred(p))
-    entries.sort((a, b) => descending ? b.p.row - a.p.row : a.p.row - b.p.row)
+    entries.sort((a, b) => (descending ? b.p.row - a.p.row : a.p.row - b.p.row))
     for (const { id, p, text } of entries) {
       delete st[id]
       const nid = newIdFn(p)
@@ -49,7 +49,12 @@ export function createCommentsEngine() {
   }
 
   function insertRow(atRow, sheet = 'Sheet1') {
-    _shift(sheet, p => p.row >= atRow, p => colLabel(p.col) + (p.row + 2), true)
+    _shift(
+      sheet,
+      p => p.row >= atRow,
+      p => colLabel(p.col) + (p.row + 2),
+      true
+    )
   }
 
   function deleteRow(atRow, sheet = 'Sheet1') {
@@ -58,7 +63,12 @@ export function createCommentsEngine() {
       const p = parseCellId(id)
       if (p && p.row === atRow) delete store[sheet][id]
     }
-    _shift(sheet, p => p.row > atRow, p => colLabel(p.col) + p.row, false)
+    _shift(
+      sheet,
+      p => p.row > atRow,
+      p => colLabel(p.col) + p.row,
+      false
+    )
   }
 
   function insertCol(atCol, sheet = 'Sheet1') {
@@ -102,9 +112,13 @@ export function createCommentsEngine() {
     store[newName] = deepClone(store[srcName] || {})
   }
 
-  function deleteSheet(name) { delete store[name] }
+  function deleteSheet(name) {
+    delete store[name]
+  }
 
-  function snapshot() { return deepClone(store) }
+  function snapshot() {
+    return deepClone(store)
+  }
 
   function restore(snap) {
     for (const k of Object.keys(store)) delete store[k]
@@ -112,9 +126,19 @@ export function createCommentsEngine() {
   }
 
   return {
-    get, set, clear, hasComment, getAll,
-    insertRow, deleteRow, insertCol, deleteCol,
-    renameSheet, duplicateSheet, deleteSheet,
-    snapshot, restore,
+    get,
+    set,
+    clear,
+    hasComment,
+    getAll,
+    insertRow,
+    deleteRow,
+    insertCol,
+    deleteCol,
+    renameSheet,
+    duplicateSheet,
+    deleteSheet,
+    snapshot,
+    restore,
   }
 }

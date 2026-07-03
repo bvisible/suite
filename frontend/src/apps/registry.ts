@@ -48,7 +48,7 @@ export const SUITE_APPS: SuiteApp[] = [
   { id: 'calendar', name: 'Calendar', prefix: '/calendar', logo: calendarLogo },
 ]
 
-export const SUITE_APP_SWITCHER_ITEMS: SuiteAppSwitcherItem[] = SUITE_APPS.map((app) => ({
+export const SUITE_APP_SWITCHER_ITEMS: SuiteAppSwitcherItem[] = SUITE_APPS.map(app => ({
   name: app.id,
   title: app.name,
   route: app.prefix,
@@ -65,10 +65,10 @@ export const DESK_APP_SWITCHER_ITEM: SuiteAppSwitcherItem = {
 export function getAppSwitcherItems(currentApp: string): SuiteAppSwitcherItem[] {
   const items = [
     ...(systemUser.value ? [DESK_APP_SWITCHER_ITEM] : []),
-    ...SUITE_APP_SWITCHER_ITEMS.filter((app) => app.name !== currentApp),
+    ...SUITE_APP_SWITCHER_ITEMS.filter(app => app.name !== currentApp),
   ]
   if (!jmapUser.value) {
-    return items.filter((app) => app.name !== 'mail' && app.name !== 'calendar')
+    return items.filter(app => app.name !== 'mail' && app.name !== 'calendar')
   }
   return items
 }

@@ -57,7 +57,7 @@ export const CharacterCount = Extension.create<CharacterCountOptions, CharacterC
   },
 
   onBeforeCreate() {
-    this.storage.characters = (options) => {
+    this.storage.characters = options => {
       const node = options?.node || this.editor.state.doc
       const mode = options?.mode || this.options.mode
 
@@ -70,10 +70,10 @@ export const CharacterCount = Extension.create<CharacterCountOptions, CharacterC
       return node.nodeSize
     }
 
-    this.storage.words = (options) => {
+    this.storage.words = options => {
       const node = options?.node || this.editor.state.doc
       const text = node.textBetween(0, node.content.size, ' ', ' ')
-      const words = text.split(' ').filter((word) => word !== '')
+      const words = text.split(' ').filter(word => word !== '')
 
       return words.length
     }

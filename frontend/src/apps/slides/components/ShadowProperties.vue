@@ -54,38 +54,38 @@ import { fieldLabelClasses } from '@/apps/slides/utils/constants'
 const setPropertyDeferred = inject('setPropertyDeferred')
 
 const shadowDefaults = {
-	shadowColor: '#000000ff',
-	shadowSpread: 0,
-	shadowOffsetX: 0,
-	shadowOffsetY: 0,
+  shadowColor: '#000000ff',
+  shadowSpread: 0,
+  shadowOffsetX: 0,
+  shadowOffsetY: 0,
 }
 
 watch(
-	activeElement,
-	(element) => {
-		if (!element) return
-		Object.entries(shadowDefaults).forEach(([property, value]) => {
-			if (element[property] == null) {
-				element[property] = value
-			}
-		})
-	},
-	{ immediate: true },
+  activeElement,
+  element => {
+    if (!element) return
+    Object.entries(shadowDefaults).forEach(([property, value]) => {
+      if (element[property] == null) {
+        element[property] = value
+      }
+    })
+  },
+  { immediate: true }
 )
 
 const { onStart: onShadowColorUpdateStart, onEnd: onShadowColorUpdateEnd } = setPropertyDeferred(
-	'element',
-	'shadowColor',
+  'element',
+  'shadowColor'
 )
 
 const { onStart: onShadowSpreadUpdateStart, onEnd: onShadowSpreadUpdateEnd } = setPropertyDeferred(
-	'element',
-	'shadowSpread',
+  'element',
+  'shadowSpread'
 )
 
 const { onStart: onShadowOffsetXUpdateStart, onEnd: onShadowOffsetXUpdateEnd } =
-	setPropertyDeferred('element', 'shadowOffsetX')
+  setPropertyDeferred('element', 'shadowOffsetX')
 
 const { onStart: onShadowOffsetYUpdateStart, onEnd: onShadowOffsetYUpdateEnd } =
-	setPropertyDeferred('element', 'shadowOffsetY')
+  setPropertyDeferred('element', 'shadowOffsetY')
 </script>

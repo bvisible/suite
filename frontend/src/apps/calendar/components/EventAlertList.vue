@@ -6,36 +6,36 @@ const { alerts } = defineProps<{ alerts: any[] }>()
 const emit = defineEmits(['update:alerts'])
 
 const updateAlert = (i: number, field: string, value: any) => {
-	const updated = alerts.map((a, idx) => (idx === i ? { ...a, [field]: value } : a))
-	emit('update:alerts', updated)
+  const updated = alerts.map((a, idx) => (idx === i ? { ...a, [field]: value } : a))
+  emit('update:alerts', updated)
 }
 
 const removeAlert = (i: number) => {
-	const updated = alerts.filter((_, idx) => idx !== i)
-	emit('update:alerts', updated)
+  const updated = alerts.filter((_, idx) => idx !== i)
+  emit('update:alerts', updated)
 }
 
 const ALERT_ACTION_OPTIONS = [
-	{ label: __('Screen Pop-up'), value: 'Display' },
-	{ label: __('Email Notice'), value: 'Email' },
-	{ label: __('Sound Alert'), value: 'Audio' },
+  { label: __('Screen Pop-up'), value: 'Display' },
+  { label: __('Email Notice'), value: 'Email' },
+  { label: __('Sound Alert'), value: 'Audio' },
 ]
 
 const UNIT_OPTIONS = [
-	{ label: __('Minutes'), value: 'minutes' },
-	{ label: __('Hours'), value: 'hours' },
-	{ label: __('Days'), value: 'days' },
-	{ label: __('Weeks'), value: 'weeks' },
+  { label: __('Minutes'), value: 'minutes' },
+  { label: __('Hours'), value: 'hours' },
+  { label: __('Days'), value: 'days' },
+  { label: __('Weeks'), value: 'weeks' },
 ]
 
 const DIRECTION_OPTIONS = [
-	{ label: __('Before'), value: -1 },
-	{ label: __('After'), value: 1 },
+  { label: __('Before'), value: -1 },
+  { label: __('After'), value: 1 },
 ]
 
 const RELATIVE_TO_OPTIONS = [
-	{ label: __('Start'), value: 'Start' },
-	{ label: __('End'), value: 'End' },
+  { label: __('Start'), value: 'Start' },
+  { label: __('End'), value: 'End' },
 ]
 </script>
 

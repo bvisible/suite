@@ -64,62 +64,62 @@ const dayjs = inject('$dayjs')
 const router = useRouter()
 
 const mailExchange = createResource({
-	url: 'frappe.client.get_value',
-	auto: true,
-	makeParams: () => ({
-		doctype: 'Mail Exchange',
-		filters: { name: id },
-		fieldname: [
-			'status',
-			'operation',
-			'started_at',
-			'completed_at',
-			'output',
-			'import_format',
-			'export_format',
-		],
-	}),
-	onSuccess: (data) => {
-		if (!data?.operation) router.replace({ name: 'mail-exchanges' })
-	},
-	onError: () => router.replace({ name: 'mail-exchanges' }),
+  url: 'frappe.client.get_value',
+  auto: true,
+  makeParams: () => ({
+    doctype: 'Mail Exchange',
+    filters: { name: id },
+    fieldname: [
+      'status',
+      'operation',
+      'started_at',
+      'completed_at',
+      'output',
+      'import_format',
+      'export_format',
+    ],
+  }),
+  onSuccess: data => {
+    if (!data?.operation) router.replace({ name: 'mail-exchanges' })
+  },
+  onError: () => router.replace({ name: 'mail-exchanges' }),
 })
 
 const operationDetails = computed(() => {
-	const format =
-		mailExchange.data?.operation === 'Import'
-			? mailExchange.data?.import_format
-			: mailExchange.data?.export_format
-	return `${format.toUpperCase()} · ${dayjs(mailExchange.data?.started_at).format('MMM D, YYYY [at] h:mm A')}`
+  const format =
+    mailExchange.data?.operation === 'Import'
+      ? mailExchange.data?.import_format
+      : mailExchange.data?.export_format
+  return `${format.toUpperCase()} · ${dayjs(mailExchange.data?.started_at).format('MMM D, YYYY [at] h:mm A')}`
 })
 
 const attachment = createResource({
-	url: 'frappe.client.get_value',
-	auto: true,
-	makeParams: () => ({
-		doctype: 'File',
-		fieldname: ['file_size', 'file_url', 'file_type', 'file_name'],
-		filters: {
-			attached_to_doctype: 'Mail Exchange',
-			attached_to_name: id,
-			attached_to_field: 'file',
-		},
-	}),
+  url: 'frappe.client.get_value',
+  auto: true,
+  makeParams: () => ({
+    doctype: 'File',
+    fieldname: ['file_size', 'file_url', 'file_type', 'file_name'],
+    filters: {
+      attached_to_doctype: 'Mail Exchange',
+      attached_to_name: id,
+      attached_to_field: 'file',
+    },
+  }),
 })
 
 const dropdownOptions = computed(() => [
-	{
-		label: __('View in Desk'),
-		icon: 'external-link',
-		onClick: () => window.open(`/app/mail-exchange/${id}`, '_blank')?.focus(),
-	},
+  {
+    label: __('View in Desk'),
+    icon: 'external-link',
+    onClick: () => window.open(`/app/mail-exchange/${id}`, '_blank')?.focus(),
+  },
 ])
 
 const breadcrumbs = computed(() => [
-	{
-		label: __('Mail Exchanges'),
-		route: `/mail-exchanges?operation=${mailExchange.data?.operation}`,
-	},
-	{ label: id },
+  {
+    label: __('Mail Exchanges'),
+    route: `/mail-exchanges?operation=${mailExchange.data?.operation}`,
+  },
+  { label: id },
 ])
 </script>

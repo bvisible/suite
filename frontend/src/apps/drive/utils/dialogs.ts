@@ -17,7 +17,7 @@ export function createDialog(options: UserDialogOptions) {
   })
 
   dialog.remove = () => {
-    dialogs.value = dialogs.value.filter((d) => d.key !== dialog.key)
+    dialogs.value = dialogs.value.filter(d => d.key !== dialog.key)
   }
 
   dialogs.value.push(dialog)

@@ -68,7 +68,7 @@ async function renderPage(num) {
   await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise
 }
 
-watch(currentPage, (num) => renderPage(num))
+watch(currentPage, num => renderPage(num))
 watch(scale, () => renderPage(currentPage.value))
 
 onMounted(() => {

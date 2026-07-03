@@ -51,7 +51,7 @@
   </div>
 </template>
 <script setup>
-import { createResource, Tree, Button} from 'frappe-ui'
+import { createResource, Tree, Button } from 'frappe-ui'
 import Alert from '@/apps/drive/components/Alert.vue'
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
@@ -89,7 +89,7 @@ function buildTree(items) {
 }
 
 function convertToArray(nodeObj) {
-  return Object.values(nodeObj).map((node) => {
+  return Object.values(nodeObj).map(node => {
     let children = undefined
     let totalChildren = 0
 
@@ -117,7 +117,7 @@ const preview = createResource({
 })
 watch(
   chosenTeam,
-  (team) => {
+  team => {
     preview.data = null
     preview.submit({ team })
   },
@@ -132,7 +132,7 @@ const syncFromDisk = createResource({
       text: "We'll give you an update when it's done.",
     })
   },
-  onSuccess: (d) => {
+  onSuccess: d => {
     toast({
       icon: LucideCloudCheck,
       title: 'Successfully synced',

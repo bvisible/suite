@@ -47,7 +47,7 @@
 <script setup>
 import { ref, h, watch } from 'vue'
 import { formatTimeAgo } from '@vueuse/core'
-import { createResource, Avatar, ListView, TabButtons, Button} from 'frappe-ui'
+import { createResource, Avatar, ListView, TabButtons, Button } from 'frappe-ui'
 import { notifCount } from '@/apps/drive/resources/permissions'
 import { formatDate } from '@/apps/drive/utils/format'
 import emitter from '@/apps/drive/emitter'
@@ -55,11 +55,11 @@ import LucideInbox from '~icons/lucide/inbox'
 
 const onlyUnread = ref(true)
 const options = {
-  getRowRoute: (row) => ({
+  getRowRoute: row => ({
     name: row.entity_type,
     params: { entityName: row.notif_doctype_name },
   }),
-  onRowClick: (row) => {
+  onRowClick: row => {
     if (row.type === 'Team') emitter.emit('showSettings', 1)
     if (onlyUnread.value) {
       markAsRead.submit({ name: row.name })
@@ -100,7 +100,7 @@ const columns = [
   },
 ]
 
-watch(onlyUnread, (newValue) => {
+watch(onlyUnread, newValue => {
   notifications.fetch({
     only_unread: newValue,
   })
@@ -113,7 +113,7 @@ const notifications = createResource({
     only_unread: onlyUnread.value,
   },
   onSuccess(data) {
-    data.forEach((item) => {
+    data.forEach(item => {
       item.relativeTime = formatTimeAgo(new Date(item.creation))
       item.creation = formatDate(item.creation)
     })

@@ -12,8 +12,7 @@ import { allUsers } from '@/apps/drive/ui/drive/js/resources'
  * (aliased to `$user` in those components).
  */
 export function useUsers() {
-  const getUser = (name: string) =>
-    allUsers.data?.find?.((k: { name: string }) => k.name === name)
+  const getUser = (name: string) => allUsers.data?.find?.((k: { name: string }) => k.name === name)
 
   return { allUsers, getUser }
 }

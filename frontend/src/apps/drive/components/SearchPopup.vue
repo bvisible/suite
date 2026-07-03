@@ -115,7 +115,7 @@ const searchResults = createResource({
   url: 'suite.drive.api.files.search',
 })
 
-watch(search, (val) => {
+watch(search, val => {
   if (val.length >= 3) {
     searchResults.submit({
       query: val,

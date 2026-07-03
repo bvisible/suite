@@ -63,9 +63,9 @@ const showDialog = ref(false)
 const iosInstallMessage = ref(false)
 
 const isIos = () => {
-	// Detects if device is on iOS
-	const userAgent = window.navigator.userAgent.toLowerCase()
-	return /iphone|ipad|ipod/.test(userAgent)
+  // Detects if device is on iOS
+  const userAgent = window.navigator.userAgent.toLowerCase()
+  return /iphone|ipad|ipod/.test(userAgent)
 }
 
 // Detects if device is in standalone mode
@@ -74,22 +74,22 @@ const isInStandaloneMode = () => 'standalone' in window.navigator && window.navi
 // Checks if should display install popup notification:
 if (isIos() && !isInStandaloneMode()) iosInstallMessage.value = true
 
-window.addEventListener('beforeinstallprompt', (e) => {
-	// Prevent the mini-infobar from appearing on mobile
-	e.preventDefault()
-	// Stash the event so it can be triggered later.
-	deferredPrompt.value = e
-	if (isIos() && !isInStandaloneMode()) iosInstallMessage.value = true
-	else showDialog.value = true
+window.addEventListener('beforeinstallprompt', e => {
+  // Prevent the mini-infobar from appearing on mobile
+  e.preventDefault()
+  // Stash the event so it can be triggered later.
+  deferredPrompt.value = e
+  if (isIos() && !isInStandaloneMode()) iosInstallMessage.value = true
+  else showDialog.value = true
 })
 
 window.addEventListener('appinstalled', () => {
-	showDialog.value = false
-	deferredPrompt.value = null
+  showDialog.value = false
+  deferredPrompt.value = null
 })
 
 const install = () => {
-	deferredPrompt.value.prompt()
-	showDialog.value = false
+  deferredPrompt.value.prompt()
+  showDialog.value = false
 }
 </script>

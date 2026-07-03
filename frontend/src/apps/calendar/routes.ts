@@ -33,59 +33,59 @@ import '@/apps/calendar/router'
 const ShortcutRedirect = { render: () => null }
 
 export const routes: RouteRecordRaw[] = [
-	{
-		path: '',
-		component: () => import('@/apps/calendar/pages/CalendarLayout.vue'),
-		children: [
-			{
-				path: 'account/:accountId/month/:year?/:month?/:day?',
-				name: 'calendar-month',
-				component: () => import('@/apps/calendar/pages/CalendarView.vue'),
-			},
-			{
-				path: 'account/:accountId/week/:year?/:month?/:day?',
-				name: 'calendar-week',
-				component: () => import('@/apps/calendar/pages/CalendarView.vue'),
-			},
-			{
-				path: 'account/:accountId/day/:year?/:month?/:day?',
-				name: 'calendar-day',
-				component: () => import('@/apps/calendar/pages/CalendarView.vue'),
-			},
-			// Shortcut routes: short paths that resolve to their full account-scoped
-			// equivalents once the active accountId is known (resolved in the guard).
-			{
-				path: '',
-				name: 'calendar-root-shortcut',
-				component: ShortcutRedirect,
-				meta: { shortcut: true },
-			},
-			{
-				path: 'account/:accountId?',
-				name: 'calendar-account-shortcut',
-				component: ShortcutRedirect,
-				meta: { shortcut: true },
-			},
-			{
-				path: 'month/:year?/:month?/:day?',
-				name: 'calendar-month-shortcut',
-				component: ShortcutRedirect,
-				meta: { shortcut: true },
-			},
-			{
-				path: 'week/:year?/:month?/:day?',
-				name: 'calendar-week-shortcut',
-				component: ShortcutRedirect,
-				meta: { shortcut: true },
-			},
-			{
-				path: 'day/:year?/:month?/:day?',
-				name: 'calendar-day-shortcut',
-				component: ShortcutRedirect,
-				meta: { shortcut: true },
-			},
-		],
-	},
+  {
+    path: '',
+    component: () => import('@/apps/calendar/pages/CalendarLayout.vue'),
+    children: [
+      {
+        path: 'account/:accountId/month/:year?/:month?/:day?',
+        name: 'calendar-month',
+        component: () => import('@/apps/calendar/pages/CalendarView.vue'),
+      },
+      {
+        path: 'account/:accountId/week/:year?/:month?/:day?',
+        name: 'calendar-week',
+        component: () => import('@/apps/calendar/pages/CalendarView.vue'),
+      },
+      {
+        path: 'account/:accountId/day/:year?/:month?/:day?',
+        name: 'calendar-day',
+        component: () => import('@/apps/calendar/pages/CalendarView.vue'),
+      },
+      // Shortcut routes: short paths that resolve to their full account-scoped
+      // equivalents once the active accountId is known (resolved in the guard).
+      {
+        path: '',
+        name: 'calendar-root-shortcut',
+        component: ShortcutRedirect,
+        meta: { shortcut: true },
+      },
+      {
+        path: 'account/:accountId?',
+        name: 'calendar-account-shortcut',
+        component: ShortcutRedirect,
+        meta: { shortcut: true },
+      },
+      {
+        path: 'month/:year?/:month?/:day?',
+        name: 'calendar-month-shortcut',
+        component: ShortcutRedirect,
+        meta: { shortcut: true },
+      },
+      {
+        path: 'week/:year?/:month?/:day?',
+        name: 'calendar-week-shortcut',
+        component: ShortcutRedirect,
+        meta: { shortcut: true },
+      },
+      {
+        path: 'day/:year?/:month?/:day?',
+        name: 'calendar-day-shortcut',
+        component: ShortcutRedirect,
+        meta: { shortcut: true },
+      },
+    ],
+  },
 ]
 
 export default routes
@@ -100,9 +100,9 @@ export default routes
 /* -------------------------------------------------------------------------- */
 
 const translations = createResource({
-	url: 'suite.mail.api.get_translations',
-	cache: 'translations',
-	transform: (data) => (window.translatedMessages = data),
+  url: 'suite.mail.api.get_translations',
+  cache: 'translations',
+  transform: data => (window.translatedMessages = data),
 })
 
 if (!window.translatedMessages) translations.fetch()

@@ -10,150 +10,150 @@ import { pairElementId } from '@/apps/slides/stores/element'
 import { getElementDiv } from '@/apps/slides/stores/elementRegistry'
 
 const props = defineProps({
-	// { x: { source, line } | null, y: { source, line } | null } from useSnapping
-	activeGuides: {
-		type: Object,
-		default: () => ({ x: null, y: null }),
-	},
-	ongoingInteraction: {
-		type: Boolean,
-		default: false,
-	},
+  // { x: { source, line } | null, y: { source, line } | null } from useSnapping
+  activeGuides: {
+    type: Object,
+    default: () => ({ x: null, y: null }),
+  },
+  ongoingInteraction: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const GUIDE_COLOR = '#70b6f080'
 const commonStyles = { position: 'absolute', zIndex: 9999 }
 
 const getScaledValue = (value, axis) => {
-	if (axis == 'X') return (value - slideBounds.left) / slideBounds.scale
-	return (value - slideBounds.top) / slideBounds.scale
+  if (axis == 'X') return (value - slideBounds.left) / slideBounds.scale
+  return (value - slideBounds.top) / slideBounds.scale
 }
 
 // paired element measured once per pairing (it can't move mid-gesture)
 const pairedBounds = computed(() => {
-	const div = getElementDiv(pairElementId.value)
-	if (!div) return null
+  const div = getElementDiv(pairElementId.value)
+  if (!div) return null
 
-	const rect = div.getBoundingClientRect()
-	const left = getScaledValue(rect.left, 'X')
-	const top = getScaledValue(rect.top, 'Y')
-	const right = getScaledValue(rect.right, 'X')
-	const bottom = getScaledValue(rect.bottom, 'Y')
+  const rect = div.getBoundingClientRect()
+  const left = getScaledValue(rect.left, 'X')
+  const top = getScaledValue(rect.top, 'Y')
+  const right = getScaledValue(rect.right, 'X')
+  const bottom = getScaledValue(rect.bottom, 'Y')
 
-	return { left, top, right, bottom, centerX: (left + right) / 2, centerY: (top + bottom) / 2 }
+  return { left, top, right, bottom, centerX: (left + right) / 2, centerY: (top + bottom) / 2 }
 })
 
 // the selection's edges in slide units
 const selectionEdges = computed(() => ({
-	left: selectionBounds.left,
-	right: selectionBounds.left + selectionBounds.width,
-	top: selectionBounds.top,
-	bottom: selectionBounds.top + selectionBounds.height,
+  left: selectionBounds.left,
+  right: selectionBounds.left + selectionBounds.width,
+  top: selectionBounds.top,
+  bottom: selectionBounds.top + selectionBounds.height,
 }))
 
 // solid center line through the slide (drag-to-center snap, or hovering a control)
 const getVerticalCenterStyle = () => {
-	const snapped = props.ongoingInteraction && props.activeGuides?.x?.source === 'slide'
-	if (!snapped && !guideVisibilityMap.centerY) return null
+  const snapped = props.ongoingInteraction && props.activeGuides?.x?.source === 'slide'
+  if (!snapped && !guideVisibilityMap.centerY) return null
 
-	return {
-		...commonStyles,
-		backgroundColor: GUIDE_COLOR,
-		width: '1px',
-		height: '100%',
-		left: '50%',
-		top: '0',
-	}
+  return {
+    ...commonStyles,
+    backgroundColor: GUIDE_COLOR,
+    width: '1px',
+    height: '100%',
+    left: '50%',
+    top: '0',
+  }
 }
 
 const getHorizontalCenterStyle = () => {
-	const snapped = props.ongoingInteraction && props.activeGuides?.y?.source === 'slide'
-	if (!snapped && !guideVisibilityMap.centerX) return null
+  const snapped = props.ongoingInteraction && props.activeGuides?.y?.source === 'slide'
+  if (!snapped && !guideVisibilityMap.centerX) return null
 
-	return {
-		...commonStyles,
-		backgroundColor: GUIDE_COLOR,
-		width: '100%',
-		height: '1px',
-		left: '0',
-		top: '50%',
-	}
+  return {
+    ...commonStyles,
+    backgroundColor: GUIDE_COLOR,
+    width: '100%',
+    height: '1px',
+    left: '0',
+    top: '50%',
+  }
 }
 
 // dashed line aligning the selection to a neighbour's edge/center; the line
 // sits on the neighbour's feature and spans the union of both elements
 const getVerticalElementStyle = () => {
-	const guide = props.activeGuides?.x
-	if (!props.ongoingInteraction || guide?.source !== 'element' || !pairedBounds.value) return null
+  const guide = props.activeGuides?.x
+  if (!props.ongoingInteraction || guide?.source !== 'element' || !pairedBounds.value) return null
 
-	const neighbour = pairedBounds.value
-	const selection = selectionEdges.value
+  const neighbour = pairedBounds.value
+  const selection = selectionEdges.value
 
-	// the dashed line spans from the topmost to the bottommost of the two elements
-	const top = Math.min(selection.top, neighbour.top)
-	const bottom = Math.max(selection.bottom, neighbour.bottom)
+  // the dashed line spans from the topmost to the bottommost of the two elements
+  const top = Math.min(selection.top, neighbour.top)
+  const bottom = Math.max(selection.bottom, neighbour.bottom)
 
-	return {
-		...commonStyles,
-		borderColor: GUIDE_COLOR,
-		borderStyle: 'dashed',
-		borderWidth: '0 0 0 1px',
-		left: `${neighbour[guide.line]}px`,
-		top: `${top}px`,
-		height: `${bottom - top}px`,
-	}
+  return {
+    ...commonStyles,
+    borderColor: GUIDE_COLOR,
+    borderStyle: 'dashed',
+    borderWidth: '0 0 0 1px',
+    left: `${neighbour[guide.line]}px`,
+    top: `${top}px`,
+    height: `${bottom - top}px`,
+  }
 }
 
 const getHorizontalElementStyle = () => {
-	const guide = props.activeGuides?.y
-	if (!props.ongoingInteraction || guide?.source !== 'element' || !pairedBounds.value) return null
+  const guide = props.activeGuides?.y
+  if (!props.ongoingInteraction || guide?.source !== 'element' || !pairedBounds.value) return null
 
-	const neighbour = pairedBounds.value
-	const selection = selectionEdges.value
+  const neighbour = pairedBounds.value
+  const selection = selectionEdges.value
 
-	// the dashed line spans from the leftmost to the rightmost of the two elements
-	const left = Math.min(selection.left, neighbour.left)
-	const right = Math.max(selection.right, neighbour.right)
+  // the dashed line spans from the leftmost to the rightmost of the two elements
+  const left = Math.min(selection.left, neighbour.left)
+  const right = Math.max(selection.right, neighbour.right)
 
-	return {
-		...commonStyles,
-		borderColor: GUIDE_COLOR,
-		borderStyle: 'dashed',
-		borderWidth: '1px 0 0 0',
-		top: `${neighbour[guide.line]}px`,
-		left: `${left}px`,
-		width: `${right - left}px`,
-	}
+  return {
+    ...commonStyles,
+    borderColor: GUIDE_COLOR,
+    borderStyle: 'dashed',
+    borderWidth: '1px 0 0 0',
+    top: `${neighbour[guide.line]}px`,
+    left: `${left}px`,
+    width: `${right - left}px`,
+  }
 }
 
 // slide-edge guides shown while hovering alignment controls
-const getEdgeStyle = (direction) => {
-	if (!guideVisibilityMap[direction]) return null
+const getEdgeStyle = direction => {
+  if (!guideVisibilityMap[direction]) return null
 
-	const isVertical = ['leftEdge', 'rightEdge'].includes(direction)
-	return {
-		...commonStyles,
-		backgroundColor: GUIDE_COLOR,
-		width: isVertical ? '1.5px' : '100%',
-		height: isVertical ? '100%' : '1.5px',
-		left: direction == 'rightEdge' ? 'calc(100% - 1.5px)' : '0',
-		top: direction == 'bottomEdge' ? 'calc(100% - 1.5px)' : '0',
-	}
+  const isVertical = ['leftEdge', 'rightEdge'].includes(direction)
+  return {
+    ...commonStyles,
+    backgroundColor: GUIDE_COLOR,
+    width: isVertical ? '1.5px' : '100%',
+    height: isVertical ? '100%' : '1.5px',
+    left: direction == 'rightEdge' ? 'calc(100% - 1.5px)' : '0',
+    top: direction == 'bottomEdge' ? 'calc(100% - 1.5px)' : '0',
+  }
 }
 
 const guideStyles = computed(() => {
-	const guides = {
-		centerVertical: getVerticalCenterStyle(),
-		centerHorizontal: getHorizontalCenterStyle(),
-		elementVertical: getVerticalElementStyle(),
-		elementHorizontal: getHorizontalElementStyle(),
-		leftEdge: getEdgeStyle('leftEdge'),
-		rightEdge: getEdgeStyle('rightEdge'),
-		topEdge: getEdgeStyle('topEdge'),
-		bottomEdge: getEdgeStyle('bottomEdge'),
-	}
+  const guides = {
+    centerVertical: getVerticalCenterStyle(),
+    centerHorizontal: getHorizontalCenterStyle(),
+    elementVertical: getVerticalElementStyle(),
+    elementHorizontal: getHorizontalElementStyle(),
+    leftEdge: getEdgeStyle('leftEdge'),
+    rightEdge: getEdgeStyle('rightEdge'),
+    topEdge: getEdgeStyle('topEdge'),
+    bottomEdge: getEdgeStyle('bottomEdge'),
+  }
 
-	// only keep visible guides so the v-for renders nothing when idle
-	return Object.fromEntries(Object.entries(guides).filter(([, style]) => style))
+  // only keep visible guides so the v-for renders nothing when idle
+  return Object.fromEntries(Object.entries(guides).filter(([, style]) => style))
 })
 </script>

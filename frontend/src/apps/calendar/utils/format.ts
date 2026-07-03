@@ -15,16 +15,12 @@ const getByDayMessage = (byDay?: { day: string; nthOfPeriod?: number }[]) => {
   if (!byDay?.length) return ''
   const [first] = byDay
 
-  if (first.nthOfPeriod === -1)
-    return __(' on the last {0}', [DAYS_MAP[first.day]])
+  if (first.nthOfPeriod === -1) return __(' on the last {0}', [DAYS_MAP[first.day]])
 
   if (first.nthOfPeriod != null)
-    return __(' on the {0} {1}', [
-      getNthLabel(first.nthOfPeriod),
-      DAYS_MAP[first.day],
-    ])
+    return __(' on the {0} {1}', [getNthLabel(first.nthOfPeriod), DAYS_MAP[first.day]])
 
-  return __(' on {0}', [byDay.map((d) => DAYS_MAP[d.day]).join(', ')])
+  return __(' on {0}', [byDay.map(d => DAYS_MAP[d.day]).join(', ')])
 }
 
 const getByMonthDayMessage = (byMonthDay?: number[]) => {
@@ -54,7 +50,7 @@ export const extractNameFromEmail = (email: string) =>
     ? email
         .split('@')[0]
         .replace(/[._-]/g, ' ')
-        .replace(/\b\w/g, (c) => c.toUpperCase())
+        .replace(/\b\w/g, c => c.toUpperCase())
     : email
 
 export const getRepeatFrequencyOptions = (interval: number) => [
@@ -69,23 +65,18 @@ export const getRepeatMessage = (recurrenceRule: RecurrenceRule) => {
   const message = __('Every {0} {1}', [
     interval === 1 ? '' : interval,
     getRepeatFrequencyOptions(interval)
-      .find((option) => option.value === recurrenceRule.frequency)!
+      .find(option => option.value === recurrenceRule.frequency)!
       .label.toLowerCase(),
   ])
 
   const suffix =
-    getByDayMessage(recurrenceRule.byDay) ||
-    getByMonthDayMessage(recurrenceRule.byMonthDay)
+    getByDayMessage(recurrenceRule.byDay) || getByMonthDayMessage(recurrenceRule.byMonthDay)
 
   const fullMessage = `${message}${suffix}`
 
   if (recurrenceRule?.until)
-    return __('{0} until {1}', [
-      fullMessage,
-      dayjs(recurrenceRule.until).format('MMM DD, YYYY'),
-    ])
-  if (recurrenceRule?.count)
-    return __('{0}, {1} times', [fullMessage, recurrenceRule.count])
+    return __('{0} until {1}', [fullMessage, dayjs(recurrenceRule.until).format('MMM DD, YYYY')])
+  if (recurrenceRule?.count) return __('{0}, {1} times', [fullMessage, recurrenceRule.count])
 
   return fullMessage
 }

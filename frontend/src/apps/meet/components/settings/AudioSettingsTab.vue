@@ -23,35 +23,33 @@
 </template>
 
 <script setup lang="ts">
-import { Switch } from "frappe-ui";
-import { type Ref, ref, watch } from "vue";
+import { Switch } from 'frappe-ui'
+import { type Ref, ref, watch } from 'vue'
 import {
-	noiseCancellationEnabled,
-	pushToTalkEnabled,
-	setNoiseCancellationEnabled,
-	setPushToTalkEnabled,
-} from "../../data/mediaPreferences";
-import SettingsLayoutBase from "./SettingsLayoutBase.vue";
+  noiseCancellationEnabled,
+  pushToTalkEnabled,
+  setNoiseCancellationEnabled,
+  setPushToTalkEnabled,
+} from '../../data/mediaPreferences'
+import SettingsLayoutBase from './SettingsLayoutBase.vue'
 
-const noiseCancellationEnabledLocal: Ref<boolean> = ref(
-	noiseCancellationEnabled.value,
-);
+const noiseCancellationEnabledLocal: Ref<boolean> = ref(noiseCancellationEnabled.value)
 
-watch(noiseCancellationEnabledLocal, (newValue) => {
-	setNoiseCancellationEnabled(newValue);
-});
+watch(noiseCancellationEnabledLocal, newValue => {
+  setNoiseCancellationEnabled(newValue)
+})
 
-watch(noiseCancellationEnabled, (newValue) => {
-	noiseCancellationEnabledLocal.value = newValue;
-});
+watch(noiseCancellationEnabled, newValue => {
+  noiseCancellationEnabledLocal.value = newValue
+})
 
-const pushToTalkEnabledLocal: Ref<boolean> = ref(pushToTalkEnabled.value);
+const pushToTalkEnabledLocal: Ref<boolean> = ref(pushToTalkEnabled.value)
 
-watch(pushToTalkEnabledLocal, (newValue) => {
-	setPushToTalkEnabled(newValue);
-});
+watch(pushToTalkEnabledLocal, newValue => {
+  setPushToTalkEnabled(newValue)
+})
 
-watch(pushToTalkEnabled, (newValue) => {
-	pushToTalkEnabledLocal.value = newValue;
-});
+watch(pushToTalkEnabled, newValue => {
+  pushToTalkEnabledLocal.value = newValue
+})
 </script>

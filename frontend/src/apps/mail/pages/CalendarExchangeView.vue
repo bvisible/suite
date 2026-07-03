@@ -64,62 +64,62 @@ const dayjs = inject('$dayjs')
 const router = useRouter()
 
 const calendarExchange = createResource({
-	url: 'frappe.client.get_value',
-	auto: true,
-	makeParams: () => ({
-		doctype: 'Calendar Exchange',
-		filters: { name: id },
-		fieldname: [
-			'status',
-			'operation',
-			'started_at',
-			'completed_at',
-			'output',
-			'import_format',
-			'export_format',
-		],
-	}),
-	onSuccess: (data) => {
-		if (!data?.operation) router.replace('/mail/calendar-exchanges')
-	},
-	onError: () => router.replace('/mail/calendar-exchanges'),
+  url: 'frappe.client.get_value',
+  auto: true,
+  makeParams: () => ({
+    doctype: 'Calendar Exchange',
+    filters: { name: id },
+    fieldname: [
+      'status',
+      'operation',
+      'started_at',
+      'completed_at',
+      'output',
+      'import_format',
+      'export_format',
+    ],
+  }),
+  onSuccess: data => {
+    if (!data?.operation) router.replace('/mail/calendar-exchanges')
+  },
+  onError: () => router.replace('/mail/calendar-exchanges'),
 })
 
 const operationDetails = computed(() => {
-	const format =
-		calendarExchange.data?.operation === 'Import'
-			? calendarExchange.data?.import_format
-			: calendarExchange.data?.export_format
-	return `${format.toUpperCase()} · ${dayjs(calendarExchange.data?.started_at).format('MMM D, YYYY [at] h:mm A')}`
+  const format =
+    calendarExchange.data?.operation === 'Import'
+      ? calendarExchange.data?.import_format
+      : calendarExchange.data?.export_format
+  return `${format.toUpperCase()} · ${dayjs(calendarExchange.data?.started_at).format('MMM D, YYYY [at] h:mm A')}`
 })
 
 const attachment = createResource({
-	url: 'frappe.client.get_value',
-	auto: true,
-	makeParams: () => ({
-		doctype: 'File',
-		fieldname: ['file_size', 'file_url', 'file_type', 'file_name'],
-		filters: {
-			attached_to_doctype: 'Calendar Exchange',
-			attached_to_name: id,
-			attached_to_field: 'file',
-		},
-	}),
+  url: 'frappe.client.get_value',
+  auto: true,
+  makeParams: () => ({
+    doctype: 'File',
+    fieldname: ['file_size', 'file_url', 'file_type', 'file_name'],
+    filters: {
+      attached_to_doctype: 'Calendar Exchange',
+      attached_to_name: id,
+      attached_to_field: 'file',
+    },
+  }),
 })
 
 const dropdownOptions = computed(() => [
-	{
-		label: __('View in Desk'),
-		icon: 'external-link',
-		onClick: () => window.open(`/app/calendar-exchange/${id}`, '_blank')?.focus(),
-	},
+  {
+    label: __('View in Desk'),
+    icon: 'external-link',
+    onClick: () => window.open(`/app/calendar-exchange/${id}`, '_blank')?.focus(),
+  },
 ])
 
 const breadcrumbs = computed(() => [
-	{
-		label: __('Calendar Exchanges'),
-		route: `/mail/calendar-exchanges?operation=${calendarExchange.data?.operation}`,
-	},
-	{ label: id },
+  {
+    label: __('Calendar Exchanges'),
+    route: `/mail/calendar-exchanges?operation=${calendarExchange.data?.operation}`,
+  },
+  { label: id },
 ])
 </script>

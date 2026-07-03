@@ -39,21 +39,21 @@ import { Trash2 } from 'lucide-vue-next'
 import { Button, ListEmptyState, ListHeader, ListRow, ListRows, ListView } from 'frappe-ui'
 
 const { data, emptyStateDescription } = defineProps<{
-	data: { name: string; email: string; display_name?: string }[]
-	emptyStateDescription: string
+  data: { name: string; email: string; display_name?: string }[]
+  emptyStateDescription: string
 }>()
 
 const emit = defineEmits(['delete'])
 
 const replyToOptions = computed(() => ({
-	showTooltip: false,
-	selectable: false,
-	emptyState: { description: emptyStateDescription },
+  showTooltip: false,
+  selectable: false,
+  emptyState: { description: emptyStateDescription },
 }))
 
 const REPLY_TO_COLUMNS = [
-	{ label: __('Email'), key: 'email' },
-	{ label: __('Display Name'), key: 'display_name' },
-	{ label: '', key: 'delete' },
+  { label: __('Email'), key: 'email' },
+  { label: __('Display Name'), key: 'display_name' },
+  { label: '', key: 'delete' },
 ]
 </script>

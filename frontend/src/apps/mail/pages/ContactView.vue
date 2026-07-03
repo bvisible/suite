@@ -213,17 +213,17 @@ import { capitalize, computed, inject, ref, useTemplateRef } from 'vue'
 import { useRouter } from 'vue-router'
 import { Trash2 } from 'lucide-vue-next'
 import {
-	Button,
-	Dialog,
-	Dropdown,
-	ListEmptyState,
-	ListHeader,
-	ListRows,
-	ListSelectBanner,
-	ListView,
-	createDocumentResource,
-	createResource,
-	usePageMeta,
+  Button,
+  Dialog,
+  Dropdown,
+  ListEmptyState,
+  ListHeader,
+  ListRows,
+  ListSelectBanner,
+  ListView,
+  createDocumentResource,
+  createResource,
+  usePageMeta,
 } from 'frappe-ui'
 
 import { raiseToast } from '@/apps/mail/utils'
@@ -258,162 +258,162 @@ const showDeleteContact = ref(false)
 const store = userStore()
 
 const contact = createDocumentResource({
-	doctype: 'Contact Card',
-	name: `${store.accountId}|${contactName}`,
-	onError: () => router.replace({ name: 'mail-contacts', params: { accountId } }),
-	setValue: {
-		onSuccess: () => raiseToast(__('Contact updated.')),
-		onError: (error) => {
-			contact.reload()
-			raiseToast(error.messages[0], 'error')
-		},
-	},
+  doctype: 'Contact Card',
+  name: `${store.accountId}|${contactName}`,
+  onError: () => router.replace({ name: 'mail-contacts', params: { accountId } }),
+  setValue: {
+    onSuccess: () => raiseToast(__('Contact updated.')),
+    onError: error => {
+      contact.reload()
+      raiseToast(error.messages[0], 'error')
+    },
+  },
 })
 
 const deleteContact = createResource({
-	url: 'suite.mail.doctype.contact_card.contact_card.delete_contact_cards',
-	makeParams: () => ({ account: accountId, ids: [contact.doc.id] }),
-	onSuccess: () => {
-		showDeleteContact.value = false
-		raiseToast(__('Contact deleted.'))
-		router.push({ name: 'mail-contacts', params: { accountId } })
-	},
-	onError: (error) => {
-		showDeleteContact.value = false
-		raiseToast(error.messages[0], 'error')
-	},
+  url: 'suite.mail.doctype.contact_card.contact_card.delete_contact_cards',
+  makeParams: () => ({ account: accountId, ids: [contact.doc.id] }),
+  onSuccess: () => {
+    showDeleteContact.value = false
+    raiseToast(__('Contact deleted.'))
+    router.push({ name: 'mail-contacts', params: { accountId } })
+  },
+  onError: error => {
+    showDeleteContact.value = false
+    raiseToast(error.messages[0], 'error')
+  },
 })
 
 const deleteContactOptions = computed(() => ({
-	title: __('Delete Contact'),
-	message: __('Are you sure you want to delete the contact for {0}?', [contact.doc?.full_name]),
-	icon: { name: 'alert-triangle', appearance: 'warning' },
-	actions: [{ label: __('Confirm'), variant: 'solid', onClick: deleteContact.submit }],
+  title: __('Delete Contact'),
+  message: __('Are you sure you want to delete the contact for {0}?', [contact.doc?.full_name]),
+  icon: { name: 'alert-triangle', appearance: 'warning' },
+  actions: [{ label: __('Confirm'), variant: 'solid', onClick: deleteContact.submit }],
 }))
 
 const addressBooksList = useTemplateRef('addressBooksList')
 const removeAddressBooksOptions = computed(() => ({
-	title: __('Remove from Address Books'),
-	message: __('Are you sure you want to remove this contact from the selected address books?'),
-	icon: { name: 'alert-triangle', appearance: 'warning' },
-	actions: [
-		{
-			label: __('Confirm'),
-			variant: 'solid',
-			onClick: () => {
-				contact.doc.address_books = contact.doc.address_books.filter(
-					(ab) => !addressBooksList.value?.selections.has(ab.address_book_id),
-				)
-				contact.save.submit()
-				addressBooksList.value?.toggleAllRows()
-				showRemoveAddressBooks.value = false
-			},
-		},
-	],
+  title: __('Remove from Address Books'),
+  message: __('Are you sure you want to remove this contact from the selected address books?'),
+  icon: { name: 'alert-triangle', appearance: 'warning' },
+  actions: [
+    {
+      label: __('Confirm'),
+      variant: 'solid',
+      onClick: () => {
+        contact.doc.address_books = contact.doc.address_books.filter(
+          ab => !addressBooksList.value?.selections.has(ab.address_book_id)
+        )
+        contact.save.submit()
+        addressBooksList.value?.toggleAllRows()
+        showRemoveAddressBooks.value = false
+      },
+    },
+  ],
 }))
 
 const emailsList = useTemplateRef('emailsList')
 const removeEmailsOptions = computed(() => ({
-	title: __('Remove Emails'),
-	message: __('Are you sure you want to remove the selected emails?'),
-	icon: { name: 'alert-triangle', appearance: 'warning' },
-	actions: [
-		{
-			label: __('Confirm'),
-			variant: 'solid',
-			onClick: () => {
-				contact.doc.emails = contact.doc.emails.filter(
-					(e) => !emailsList.value?.selections.has(e.address),
-				)
-				contact.save.submit()
-				emailsList.value?.toggleAllRows()
-				showRemoveEmails.value = false
-			},
-		},
-	],
+  title: __('Remove Emails'),
+  message: __('Are you sure you want to remove the selected emails?'),
+  icon: { name: 'alert-triangle', appearance: 'warning' },
+  actions: [
+    {
+      label: __('Confirm'),
+      variant: 'solid',
+      onClick: () => {
+        contact.doc.emails = contact.doc.emails.filter(
+          e => !emailsList.value?.selections.has(e.address)
+        )
+        contact.save.submit()
+        emailsList.value?.toggleAllRows()
+        showRemoveEmails.value = false
+      },
+    },
+  ],
 }))
 
 const phonesList = useTemplateRef('phonesList')
 const removePhonesOptions = computed(() => ({
-	title: __('Remove Phones'),
-	message: __('Are you sure you want to remove the selected phones?'),
-	icon: { name: 'alert-triangle', appearance: 'warning' },
-	actions: [
-		{
-			label: __('Confirm'),
-			variant: 'solid',
-			onClick: () => {
-				contact.doc.phones = contact.doc.phones.filter(
-					(p) => !phonesList.value?.selections.has(p.number),
-				)
-				contact.save.submit()
-				phonesList.value?.toggleAllRows()
-				showRemovePhones.value = false
-			},
-		},
-	],
+  title: __('Remove Phones'),
+  message: __('Are you sure you want to remove the selected phones?'),
+  icon: { name: 'alert-triangle', appearance: 'warning' },
+  actions: [
+    {
+      label: __('Confirm'),
+      variant: 'solid',
+      onClick: () => {
+        contact.doc.phones = contact.doc.phones.filter(
+          p => !phonesList.value?.selections.has(p.number)
+        )
+        contact.save.submit()
+        phonesList.value?.toggleAllRows()
+        showRemovePhones.value = false
+      },
+    },
+  ],
 }))
 
 const addressesList = useTemplateRef('addressesList')
 const removeAddressesOptions = computed(() => ({
-	title: __('Remove Addresses'),
-	message: __('Are you sure you want to remove the selected addresses?'),
-	icon: { name: 'alert-triangle', appearance: 'warning' },
-	actions: [
-		{
-			label: __('Confirm'),
-			variant: 'solid',
-			onClick: () => {
-				contact.doc.addresses = contact.doc.addresses.filter(
-					(address) => !addressesList.value?.selections.has(address.idx),
-				)
-				contact.save.submit()
-				addressesList.value?.toggleAllRows()
-				showRemoveAddresses.value = false
-			},
-		},
-	],
+  title: __('Remove Addresses'),
+  message: __('Are you sure you want to remove the selected addresses?'),
+  icon: { name: 'alert-triangle', appearance: 'warning' },
+  actions: [
+    {
+      label: __('Confirm'),
+      variant: 'solid',
+      onClick: () => {
+        contact.doc.addresses = contact.doc.addresses.filter(
+          address => !addressesList.value?.selections.has(address.idx)
+        )
+        contact.save.submit()
+        addressesList.value?.toggleAllRows()
+        showRemoveAddresses.value = false
+      },
+    },
+  ],
 }))
 
 const contactDisplay = computed(
-	() => contact.doc?.full_name || contact.doc?.emails[0]?.address || contactName,
+  () => contact.doc?.full_name || contact.doc?.emails[0]?.address || contactName
 )
 
 usePageMeta(() => ({ title: contactDisplay.value }))
 
 const breadcrumbs = computed(() => [
-	{ label: __('Contacts'), route: '/mail/contacts' },
-	{ label: contactDisplay.value },
+  { label: __('Contacts'), route: '/mail/contacts' },
+  { label: contactDisplay.value },
 ])
 
 const ADDRESS_BOOK_COLUMNS = [{ label: __('Name'), key: 'address_book_name' }]
 
 const EMAIL_COLUMNS = [
-	{ label: __('Address'), key: 'address' },
-	{ label: __('Type'), key: 'type' },
-	{ label: __('Label'), key: 'label' },
+  { label: __('Address'), key: 'address' },
+  { label: __('Type'), key: 'type' },
+  { label: __('Label'), key: 'label' },
 ]
 
 const PHONE_COLUMNS = [
-	{ label: __('Number'), key: 'number' },
-	{ label: __('Type'), key: 'type' },
-	{ label: __('Label'), key: 'label' },
+  { label: __('Number'), key: 'number' },
+  { label: __('Type'), key: 'type' },
+  { label: __('Label'), key: 'label' },
 ]
 
 const ADDRESS_COLUMNS = [
-	{ label: __('Type'), key: 'type', width: '15%' },
-	{ label: __('Street'), key: 'street', width: '20%' },
-	{ label: __('Locality'), key: 'locality', width: '20%' },
-	{ label: __('Region'), key: 'region', width: '15%' },
-	{ label: __('Postcode'), key: 'postcode', width: '15%' },
-	{ label: __('Country'), key: 'country', width: '15%' },
+  { label: __('Type'), key: 'type', width: '15%' },
+  { label: __('Street'), key: 'street', width: '20%' },
+  { label: __('Locality'), key: 'locality', width: '20%' },
+  { label: __('Region'), key: 'region', width: '15%' },
+  { label: __('Postcode'), key: 'postcode', width: '15%' },
+  { label: __('Country'), key: 'country', width: '15%' },
 ]
 
 const DROPDOWN_OPTIONS = [
-	{
-		label: __('Delete'),
-		onClick: () => (showDeleteContact.value = true),
-		icon: Trash2,
-	},
+  {
+    label: __('Delete'),
+    onClick: () => (showDeleteContact.value = true),
+    icon: Trash2,
+  },
 ]
 </script>

@@ -19,7 +19,7 @@ function HexToHSV(color: HashString): { h: number; s: number; v: number } {
   const [r, g, b] = color
     .replace('#', '')
     .match(/.{1,2}/g)
-    ?.map((x) => parseInt(x, 16)) || [0, 0, 0]
+    ?.map(x => parseInt(x, 16)) || [0, 0, 0]
 
   const max = Math.max(r, g, b)
   const min = Math.min(r, g, b)
@@ -30,10 +30,10 @@ function HexToHSV(color: HashString): { h: number; s: number; v: number } {
     max === min
       ? 0
       : max === r
-      ? (g - b) / d + (g < b ? 6 : 0)
-      : max === g
-      ? (b - r) / d + 2
-      : (r - g) / d + 4
+        ? (g - b) / d + (g < b ? 6 : 0)
+        : max === g
+          ? (b - r) / d + 2
+          : (r - g) / d + 4
   return { h: h * 60, s, v }
 }
 
@@ -76,7 +76,7 @@ function HSVToHex(h: number, s: number, v: number): HashString {
   r = Math.round(r * 255)
   g = Math.round(g * 255)
   b = Math.round(b * 255)
-  return `#${[r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')}`
+  return `#${[r, g, b].map(x => x.toString(16).padStart(2, '0')).join('')}`
 }
 
 function getRandomColor() {
@@ -84,7 +84,7 @@ function getRandomColor() {
 }
 
 async function confirm(message: string): Promise<boolean> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const confirmed = window.confirm(message)
     resolve(confirmed)
   })
@@ -106,8 +106,8 @@ function RGBToHex(rgb: RGBString): HashString {
     .replace('rgb(', '')
     .replace(')', '')
     .split(',')
-    .map((x) => parseInt(x))
-  return `#${[r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')}`
+    .map(x => parseInt(x))
+  return `#${[r, g, b].map(x => x.toString(16).padStart(2, '0')).join('')}`
 }
 
 function getRGB(color: HashString | RGBString | string | null): HashString {

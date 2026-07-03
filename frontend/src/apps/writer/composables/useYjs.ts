@@ -3,10 +3,7 @@ import { IndexeddbPersistence } from 'y-indexeddb'
 import { WebrtcProvider } from 'y-webrtc'
 import { toUint8Array, fromUint8Array } from 'js-base64'
 import { debounce, toast, FrappeNetworkError } from 'frappe-ui'
-import {
-  absolutePositionToRelativePosition,
-  ySyncPluginKey,
-} from '@tiptap/y-tiptap'
+import { absolutePositionToRelativePosition, ySyncPluginKey } from '@tiptap/y-tiptap'
 import { rebuild } from '@/apps/writer/extensions/comments'
 import { inject, ref } from 'vue'
 import { updateComments } from '@/apps/writer/resources'
@@ -38,14 +35,11 @@ export const useComments = (document, editor) => {
     Y.applyUpdate(commentsDoc, toUint8Array(document.doc.ycomments))
   }
 
-  const dbComments = new IndexeddbPersistence(
-    'wdoc-comments-' + document.doc.name,
-    commentsDoc,
-  )
+  const dbComments = new IndexeddbPersistence('wdoc-comments-' + document.doc.name, commentsDoc)
   const providerComments = new WebrtcProvider(
     'wdoc-comments-' + document.doc.name,
     commentsDoc,
-    REALTIME_CONFIG,
+    REALTIME_CONFIG
   )
 
   const comments = commentsDoc.getMap('comments')
@@ -60,18 +54,10 @@ export const useComments = (document, editor) => {
       anchorText,
       anchor: {
         from: Y.encodeRelativePosition(
-          absolutePositionToRelativePosition(
-            from,
-            ystate.type,
-            ystate.binding.mapping,
-          ),
+          absolutePositionToRelativePosition(from, ystate.type, ystate.binding.mapping)
         ),
         to: Y.encodeRelativePosition(
-          absolutePositionToRelativePosition(
-            to,
-            ystate.type,
-            ystate.binding.mapping,
-          ),
+          absolutePositionToRelativePosition(to, ystate.type, ystate.binding.mapping)
         ),
       },
     })
@@ -91,21 +77,17 @@ export const useComments = (document, editor) => {
 export function useYjs(id, document, editor, edited) {
   const isOffline = inject('isOffline')
   const doc = new Y.Doc({ gc: true })
-  if (document.doc.content)
-    Y.applyUpdate(doc, toUint8Array(document.doc.content), 'server')
+  if (document.doc.content) Y.applyUpdate(doc, toUint8Array(document.doc.content), 'server')
   const roomName = 'fdoc-' + id
   const db = new IndexeddbPersistence(roomName, doc)
   const loaded = ref(false)
   db.on('synced', () => (loaded.value = true))
 
-  new Promise((resolve) => {
+  new Promise(resolve => {
     if (document.isFinished) resolve(document.doc)
     else {
-      const stop = document.onSuccess((freshDoc) => {
-        const diff = Y.diffUpdate(
-          toUint8Array(freshDoc.content),
-          Y.encodeStateVector(doc),
-        )
+      const stop = document.onSuccess(freshDoc => {
+        const diff = Y.diffUpdate(toUint8Array(freshDoc.content), Y.encodeStateVector(doc))
         Y.applyUpdate(doc, diff, 'server')
         stop()
       })
@@ -123,9 +105,7 @@ export function useYjs(id, document, editor, edited) {
       html,
     })
     if (data?.skipped) {
-      console.log(
-        'Server skipped update - probably because other people are collaborating',
-      )
+      console.log('Server skipped update - probably because other people are collaborating')
     } else if (document.saveDoc.error) {
       if (isOffline.value) {
         console.warn('Skipping save as client is offline.')
@@ -149,10 +129,7 @@ export function useYjs(id, document, editor, edited) {
   permanentUserData.setUserMapping(doc, doc.clientID, useSessionStore().user)
 
   // Comments
-  const { cleanup: cleanupComments, ...commentsData } = useComments(
-    document,
-    editor,
-  )
+  const { cleanup: cleanupComments, ...commentsData } = useComments(document, editor)
   return {
     doc,
     cleanup: () => {

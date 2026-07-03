@@ -73,49 +73,49 @@ const { buttons } = useTextEditorButtons()
 const showConfirmDialog = ref(false)
 
 const activeSieveScript = computed(
-	() => store.sieveScripts.data?.find((s) => s.active && s._name !== 'vacation')?._name,
+  () => store.sieveScripts.data?.find(s => s.active && s._name !== 'vacation')?._name
 )
 
 const handleSave = () => {
-	if (activeSieveScript.value && vacationResponse.data.enabled) showConfirmDialog.value = true
-	else updateVacationResponse.submit()
+  if (activeSieveScript.value && vacationResponse.data.enabled) showConfirmDialog.value = true
+  else updateVacationResponse.submit()
 }
 
 const original = reactive({})
 
 const vacationResponse = createResource({
-	url: 'suite.mail.doctype.vacation_response.vacation_response.get_vacation_response',
-	makeParams: () => ({ account: store.accountId }),
-	auto: true,
-	transform: (doc: VacationResponse) => {
-		doc['enabled'] = !!doc['enabled']
-		if (doc['from_date']) doc['from_date'] = dayjs(doc['from_date']).format('YYYY-MM-DDTHH:mm')
-		if (doc['to_date']) doc['to_date'] = dayjs(doc['to_date']).format('YYYY-MM-DDTHH:mm')
-		Object.assign(original, doc)
-		return doc
-	},
+  url: 'suite.mail.doctype.vacation_response.vacation_response.get_vacation_response',
+  makeParams: () => ({ account: store.accountId }),
+  auto: true,
+  transform: (doc: VacationResponse) => {
+    doc['enabled'] = !!doc['enabled']
+    if (doc['from_date']) doc['from_date'] = dayjs(doc['from_date']).format('YYYY-MM-DDTHH:mm')
+    if (doc['to_date']) doc['to_date'] = dayjs(doc['to_date']).format('YYYY-MM-DDTHH:mm')
+    Object.assign(original, doc)
+    return doc
+  },
 })
 
 const updateVacationResponse = createResource({
-	url: 'suite.mail.doctype.vacation_response.vacation_response.update_vacation_response',
-	makeParams: () => ({
-		account: store.accountId,
-		enabled: vacationResponse.data.enabled,
-		from_date: vacationResponse.data.from_date,
-		to_date: vacationResponse.data.to_date,
-		subject: vacationResponse.data.subject,
-		text_body: convertHtmlToText(vacationResponse.data.html_body),
-		html_body: vacationResponse.data.html_body,
-	}),
-	onSuccess: () => {
-		vacationResponse.reload()
-		store.sieveScripts.reload()
-		raiseToast(__('Vacation response updated.'))
-		showConfirmDialog.value = false
-	},
-	onError: (error) => {
-		raiseToast(error.messages[0], 'error')
-		showConfirmDialog.value = false
-	},
+  url: 'suite.mail.doctype.vacation_response.vacation_response.update_vacation_response',
+  makeParams: () => ({
+    account: store.accountId,
+    enabled: vacationResponse.data.enabled,
+    from_date: vacationResponse.data.from_date,
+    to_date: vacationResponse.data.to_date,
+    subject: vacationResponse.data.subject,
+    text_body: convertHtmlToText(vacationResponse.data.html_body),
+    html_body: vacationResponse.data.html_body,
+  }),
+  onSuccess: () => {
+    vacationResponse.reload()
+    store.sieveScripts.reload()
+    raiseToast(__('Vacation response updated.'))
+    showConfirmDialog.value = false
+  },
+  onError: error => {
+    raiseToast(error.messages[0], 'error')
+    showConfirmDialog.value = false
+  },
 })
 </script>

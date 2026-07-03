@@ -62,12 +62,9 @@ onBeforeUnmount(() => {
 
 // Local saving with IndexedDB
 const db = ref()
-watch(db, (db) => {
+watch(db, db => {
   if (!props.file.write) return
-  db
-    .transaction(['content'])
-    .objectStore('content')
-    .get(props.file.name).onsuccess = (val) => {
+  db.transaction(['content']).objectStore('content').get(props.file.name).onsuccess = val => {
     if (
       val.target.result?.val?.length > 20 &&
       val.target.result.saved > new Date(props.file.modified)
@@ -78,7 +75,7 @@ watch(db, (db) => {
 
 if (props.file.write) {
   const request = window.indexedDB.open('Writer', 1)
-  request.onsuccess = (event) => {
+  request.onsuccess = event => {
     db.value = event.target.result
   }
   request.onupgradeneeded = () => {

@@ -80,31 +80,31 @@
 import { computed, inject, ref, useTemplateRef, watch } from 'vue'
 import { watchDebounced } from '@vueuse/core'
 import {
-	Avatar,
-	Badge,
-	Button,
-	Dialog,
-	FeatherIcon,
-	FormControl,
-	ListEmptyState,
-	ListHeader,
-	ListRow,
-	ListRowItem,
-	ListRows,
-	ListSelectBanner,
-	ListView,
-	createResource,
+  Avatar,
+  Badge,
+  Button,
+  Dialog,
+  FeatherIcon,
+  FormControl,
+  ListEmptyState,
+  ListHeader,
+  ListRow,
+  ListRowItem,
+  ListRows,
+  ListSelectBanner,
+  ListView,
+  createResource,
 } from 'frappe-ui'
 
 import { raiseToast } from '@/apps/mail/utils'
 
 type DayjsFn = (value?: string | Date | null) => { fromNow: () => string }
 type MemberRow = {
-	name: string
-	full_name: string
-	user_image?: string
-	last_active?: string | null
-	is_admin: boolean
+  name: string
+  full_name: string
+  user_image?: string
+  last_active?: string | null
+  is_admin: boolean
 }
 
 const dayjs = inject<DayjsFn>('$dayjs')
@@ -113,35 +113,35 @@ const search = ref('')
 const roleFilter = ref<'all' | 'admin' | 'user'>('all')
 const showDeleteMembers = ref(false)
 const listView = useTemplateRef<{
-	selections?: Set<string>
-	toggleAllRows?: () => void
+  selections?: Set<string>
+  toggleAllRows?: () => void
 }>('listView')
 
 const members = createResource({
-	url: 'suite.mail.api.admin.get_members',
-	makeParams: () => {
-		const params: { search: string; is_admin?: boolean } = {
-			search: search.value,
-		}
+  url: 'suite.mail.api.admin.get_members',
+  makeParams: () => {
+    const params: { search: string; is_admin?: boolean } = {
+      search: search.value,
+    }
 
-		if (roleFilter.value !== 'all') {
-			params.is_admin = roleFilter.value === 'admin'
-		}
+    if (roleFilter.value !== 'all') {
+      params.is_admin = roleFilter.value === 'admin'
+    }
 
-		return params
-	},
-	auto: true,
-	cache: ['mailMembers', search.value, roleFilter.value],
+    return params
+  },
+  auto: true,
+  cache: ['mailMembers', search.value, roleFilter.value],
 })
 
 const normalizedMembers = computed<MemberRow[]>(() => {
-	const map = new Map<string, MemberRow>()
+  const map = new Map<string, MemberRow>()
 
-	for (const row of (members.data || []) as MemberRow[]) {
-		if (!map.has(row.name)) map.set(row.name, row)
-	}
+  for (const row of (members.data || []) as MemberRow[]) {
+    if (!map.has(row.name)) map.set(row.name, row)
+  }
 
-	return Array.from(map.values())
+  return Array.from(map.values())
 })
 
 watchDebounced(() => search.value, members.reload, { debounce: 300 })
@@ -151,43 +151,43 @@ const reloadMembers = () => members.reload()
 defineExpose({ reloadMembers })
 
 const LIST_COLUMNS = [
-	{ label: __('User'), key: 'user' },
-	{ label: __('Role'), key: 'role' },
-	{ label: __('Last Active'), key: 'last_active' },
+  { label: __('User'), key: 'user' },
+  { label: __('Role'), key: 'role' },
+  { label: __('Last Active'), key: 'last_active' },
 ]
 
 const ROLE_FILTER_OPTIONS = [
-	{ label: __('All'), value: 'all' },
-	{ label: __('Admin'), value: 'admin' },
-	{ label: __('User'), value: 'user' },
+  { label: __('All'), value: 'all' },
+  { label: __('Admin'), value: 'admin' },
+  { label: __('User'), value: 'user' },
 ]
 
 const LIST_OPTIONS = {
-	showTooltip: false,
-	rowHeight: 50,
-	emptyState: { description: __('No members found.') },
+  showTooltip: false,
+  rowHeight: 50,
+  emptyState: { description: __('No members found.') },
 }
 
 const deleteMembers = createResource({
-	url: 'suite.mail.api.admin.delete_members',
-	makeParams: () => ({ names: Array.from(listView.value?.selections || []) }),
-	onSuccess: () => {
-		members.reload()
-		showDeleteMembers.value = false
-		raiseToast(__('Members deleted.'))
-		listView.value?.toggleAllRows?.()
-	},
-	onError: (error: { messages?: string[] }) => {
-		showDeleteMembers.value = false
-		raiseToast(error.messages?.[0] || __('Failed to delete members.'), 'error')
-	},
+  url: 'suite.mail.api.admin.delete_members',
+  makeParams: () => ({ names: Array.from(listView.value?.selections || []) }),
+  onSuccess: () => {
+    members.reload()
+    showDeleteMembers.value = false
+    raiseToast(__('Members deleted.'))
+    listView.value?.toggleAllRows?.()
+  },
+  onError: (error: { messages?: string[] }) => {
+    showDeleteMembers.value = false
+    raiseToast(error.messages?.[0] || __('Failed to delete members.'), 'error')
+  },
 })
 
 const DELETE_MEMBERS_OPTIONS = {
-	title: __('Delete Members'),
-	message: __(
-		'Are you sure you want to delete the selected members? This action cannot be undone.',
-	),
-	actions: [{ label: __('Confirm'), variant: 'solid', onClick: deleteMembers.submit }],
+  title: __('Delete Members'),
+  message: __(
+    'Are you sure you want to delete the selected members? This action cannot be undone.'
+  ),
+  actions: [{ label: __('Confirm'), variant: 'solid', onClick: deleteMembers.submit }],
 }
 </script>

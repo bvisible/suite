@@ -209,55 +209,61 @@
 
 <script setup lang="ts">
 import {
-	computed,
-	inject,
-	nextTick,
-	onMounted,
-	onUnmounted,
-	reactive,
-	ref,
-	useTemplateRef,
-	watch,
+  computed,
+  inject,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  reactive,
+  ref,
+  useTemplateRef,
+  watch,
 } from 'vue'
 import { useRouter } from 'vue-router'
 import { EditorContent } from '@tiptap/vue-3'
 import { watchDebounced } from '@vueuse/core'
 import {
-	ChevronDown,
-	ChevronUp,
-	ExternalLink,
-	Forward,
-	Reply,
-	ReplyAll,
-	UploadCloud,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+  Forward,
+  Reply,
+  ReplyAll,
+  UploadCloud,
 } from 'lucide-vue-next'
 import {
-	Button,
-	Combobox,
-	Dropdown,
-	FeatherIcon,
-	ImageExtension,
-	Progress,
-	TextEditor,
-	Tooltip,
-	createResource,
-	useFileUpload,
+  Button,
+  Combobox,
+  Dropdown,
+  FeatherIcon,
+  ImageExtension,
+  Progress,
+  TextEditor,
+  Tooltip,
+  createResource,
+  useFileUpload,
 } from 'frappe-ui'
 
 import { getAttachmentUrl } from '@/apps/mail/resources'
 import {
-	formatBytes,
-	isOverlayPresent,
-	processInlineImages,
-	raiseToast,
-	randomString,
+  formatBytes,
+  isOverlayPresent,
+  processInlineImages,
+  raiseToast,
+  randomString,
 } from '@/apps/mail/utils'
 import { useScreenSize, useVisualViewport } from '@/apps/mail/utils/composables'
 import { CustomParagraphExtension } from '@/apps/mail/utils/text-editor'
 import { userStore } from '@/apps/mail/stores/user'
 import ComposeMailToolbar from '@/apps/mail/components/ComposeMailToolbar.vue'
 
-import type { Attachment, ComposeMailData, File as FileDoc, Identity, UserResource } from '@/apps/mail/types'
+import type {
+  Attachment,
+  ComposeMailData,
+  File as FileDoc,
+  Identity,
+  UserResource,
+} from '@/apps/mail/types'
 
 import RecipientInput from './Controls/RecipientInput.vue'
 import ContactsModal from './Modals/ContactsModal.vue'
@@ -265,13 +271,13 @@ import ContactsModal from './Modals/ContactsModal.vue'
 const show = defineModel<boolean>()
 
 const {
-	reloadMails,
-	mailDetails,
-	isInThread = false,
+  reloadMails,
+  mailDetails,
+  isInThread = false,
 } = defineProps<{
-	reloadMails: () => void
-	mailDetails?: ComposeMailData
-	isInThread?: boolean
+  reloadMails: () => void
+  mailDetails?: ComposeMailData
+  isInThread?: boolean
 }>()
 
 const emit = defineEmits(['discardMail', 'reply', 'replyAll', 'forward', 'popOut'])
@@ -283,13 +289,13 @@ const store = userStore()
 const { identities } = store
 
 const viewSentMessage = (threadID: string) =>
-	router.push({
-		name: 'mail-mail',
-		params: { accountId: store.accountId, mailbox: store.mailboxIds.sent, threadID },
-	})
+  router.push({
+    name: 'mail-mail',
+    params: { accountId: store.accountId, mailbox: store.mailboxIds.sent, threadID },
+  })
 
 const getIdentity = (email: string) =>
-	identities.data?.find((identity: Identity) => identity.email === email)
+  identities.data?.find((identity: Identity) => identity.email === email)
 
 // Editor
 
@@ -303,23 +309,23 @@ const showContactsModal = ref(false)
 const insertContactsInto = ref('')
 
 const insertContacts = (insertInto: string) => {
-	insertContactsInto.value = insertInto
-	showContactsModal.value = true
+  insertContactsInto.value = insertInto
+  showContactsModal.value = true
 }
 
 const showCcBcc = ref(!!mailDetails?.cc?.length || !!mailDetails?.bcc?.length)
 const toggleCcBcc = () => {
-	showCcBcc.value = !showCcBcc.value
-	if (showCcBcc.value) nextTick(() => ccInput.value?.setFocus())
+  showCcBcc.value = !showCcBcc.value
+  if (showCcBcc.value) nextTick(() => ccInput.value?.setFocus())
 }
 
 const appendEmoji = (emoji: string) => {
-	textEditor.value.editor.commands.insertContent(emoji)
-	textEditor.value.editor.commands.focus()
+  textEditor.value.editor.commands.insertContent(emoji)
+  textEditor.value.editor.commands.focus()
 }
 
 const editorHeight = useVisualViewport(
-	(viewport) => `${viewport.height - viewport.offsetTop - 113}px`,
+  viewport => `${viewport.height - viewport.offsetTop - 113}px`
 )
 
 // Setup & hooks
@@ -327,34 +333,34 @@ const editorHeight = useVisualViewport(
 const user = inject('$user') as UserResource
 
 const getDefaultFromEmail = () => {
-	const identityEmails = identities.data?.map((i: Identity) => i.email) ?? []
-	// The default outgoing email is now per-account; pick the active account's.
-	const defaultOutgoingEmail = user.data?.accounts?.find(
-		(a) => a.id === store.accountId,
-	)?.default_outgoing_email
+  const identityEmails = identities.data?.map((i: Identity) => i.email) ?? []
+  // The default outgoing email is now per-account; pick the active account's.
+  const defaultOutgoingEmail = user.data?.accounts?.find(
+    a => a.id === store.accountId
+  )?.default_outgoing_email
 
-	return (
-		identityEmails.find((e) => e === mailDetails?.from_email) ??
-		identityEmails.find((e) => e === defaultOutgoingEmail) ??
-		identityEmails[0] ??
-		user.data.name
-	)
+  return (
+    identityEmails.find(e => e === mailDetails?.from_email) ??
+    identityEmails.find(e => e === defaultOutgoingEmail) ??
+    identityEmails[0] ??
+    user.data.name
+  )
 }
 
 const mail = reactive<ComposeMailData>({
-	name: mailDetails?.name || '',
-	id: mailDetails?.id || '',
-	from_email: getDefaultFromEmail(),
-	to: mailDetails?.to || [],
-	cc: mailDetails?.cc || [],
-	bcc: mailDetails?.bcc || [],
-	attachments: mailDetails?.attachments || [],
-	subject: mailDetails?.subject || '',
-	html_body: mailDetails?.html_body || '',
-	quoted_content: mailDetails?.quoted_content || '',
-	in_reply_to: mailDetails?.in_reply_to || '',
-	in_reply_to_id: mailDetails?.in_reply_to_id || '',
-	forwarded_from_id: mailDetails?.forwarded_from_id || '',
+  name: mailDetails?.name || '',
+  id: mailDetails?.id || '',
+  from_email: getDefaultFromEmail(),
+  to: mailDetails?.to || [],
+  cc: mailDetails?.cc || [],
+  bcc: mailDetails?.bcc || [],
+  attachments: mailDetails?.attachments || [],
+  subject: mailDetails?.subject || '',
+  html_body: mailDetails?.html_body || '',
+  quoted_content: mailDetails?.quoted_content || '',
+  in_reply_to: mailDetails?.in_reply_to || '',
+  in_reply_to_id: mailDetails?.in_reply_to_id || '',
+  forwarded_from_id: mailDetails?.forwarded_from_id || '',
 })
 
 const originalMail = ref<ComposeMailData>()
@@ -362,9 +368,9 @@ const updateOriginalMail = () => (originalMail.value = JSON.parse(JSON.stringify
 const isDraftUpdated = computed(() => JSON.stringify(mail) !== JSON.stringify(originalMail.value))
 
 onMounted(() => {
-	updateOriginalMail()
-	if (!mailDetails?.in_reply_to) setTimeout(() => toInput.value?.setFocus(), 50)
-	else textEditor.value.editor.commands.focus()
+  updateOriginalMail()
+  if (!mailDetails?.in_reply_to) setTimeout(() => toInput.value?.setFocus(), 50)
+  else textEditor.value.editor.commands.focus()
 })
 
 onUnmounted(() => saveDraft())
@@ -376,116 +382,113 @@ watchDebounced(mail, () => saveDraft(), { debounce: 2000 })
 const isSavingDraft = ref(false)
 
 const saveDraft = async () => {
-	if (!isDraftUpdated.value || isLoading.value || isDiscarding.value) return
+  if (!isDraftUpdated.value || isLoading.value || isDiscarding.value) return
 
-	isSavingDraft.value = true
-	if (mail.id) await updateDraft.submit({ submit: false })
-	else if (!isMailEmpty.value) await createMail.submit({ save_as_draft: true })
-	isSavingDraft.value = false
+  isSavingDraft.value = true
+  if (mail.id) await updateDraft.submit({ submit: false })
+  else if (!isMailEmpty.value) await createMail.submit({ save_as_draft: true })
+  isSavingDraft.value = false
 }
 
 const sendMail = async () => {
-	if (deleteMail.loading) return
+  if (deleteMail.loading) return
 
-	if (isRecipientsEmpty.value)
-		return raiseToast(__('Please add at least one recipient.'), 'error')
+  if (isRecipientsEmpty.value) return raiseToast(__('Please add at least one recipient.'), 'error')
 
-	isSavingDraft.value = false
-	show.value = false
-	if (createMail.loading) await createMail.promise
-	if (updateDraft.loading) await updateDraft.promise
+  isSavingDraft.value = false
+  show.value = false
+  if (createMail.loading) await createMail.promise
+  if (updateDraft.loading) await updateDraft.promise
 
-	if (mail.id) updateDraft.submit({ submit: true })
-	else createMail.submit({ save_as_draft: false })
+  if (mail.id) updateDraft.submit({ submit: true })
+  else createMail.submit({ save_as_draft: false })
 }
 
 const isDiscarding = ref(false)
 
 const discardMail = async () => {
-	if (deleteMail.loading) return
+  if (deleteMail.loading) return
 
-	isDiscarding.value = true
-	show.value = false
-	if (createMail.loading) await createMail.promise
-	if (updateDraft.loading) await updateDraft.promise
-	if (mail.id) deleteMail.submit()
-	else emit('discardMail')
+  isDiscarding.value = true
+  show.value = false
+  if (createMail.loading) await createMail.promise
+  if (updateDraft.loading) await updateDraft.promise
+  if (mail.id) deleteMail.submit()
+  else emit('discardMail')
 }
 
-watch(show, (val) => {
-	if (val) return
-	isDiscarding.value = false
-	isSavingDraft.value = false
+watch(show, val => {
+  if (val) return
+  isDiscarding.value = false
+  isSavingDraft.value = false
 })
 
 defineExpose({ sendMail, discardMail })
 
 const onMailUpdateSuccess = ({
-	id,
-	status,
-	error,
-	thread_id,
+  id,
+  status,
+  error,
+  thread_id,
 }: {
-	id: string
-	status: string
-	error: string
-	thread_id?: string
+  id: string
+  status: string
+  error: string
+  thread_id?: string
 }) => {
-	if (id) mail.id = id
-	updateOriginalMail()
-	if (error) return raiseToast(error, 'error')
-	if (isDiscarding.value) return
+  if (id) mail.id = id
+  updateOriginalMail()
+  if (error) return raiseToast(error, 'error')
+  if (isDiscarding.value) return
 
-	if (!isInThread || status === 'Submitted') reloadMails()
-	if (show.value) return
+  if (!isInThread || status === 'Submitted') reloadMails()
+  if (show.value) return
 
-	if (status === 'Drafted' && isSavingDraft.value) raiseToast(__('Draft saved.'))
-	else if (status === 'Submitted')
-		raiseToast(
-			__('Message sent.'),
-			'success',
-			thread_id
-				? { label: __('View'), onClick: () => viewSentMessage(thread_id) }
-				: undefined,
-		)
+  if (status === 'Drafted' && isSavingDraft.value) raiseToast(__('Draft saved.'))
+  else if (status === 'Submitted')
+    raiseToast(
+      __('Message sent.'),
+      'success',
+      thread_id ? { label: __('View'), onClick: () => viewSentMessage(thread_id) } : undefined
+    )
 }
 
 // Resources
 
 const createMail = createResource({
-	url: 'suite.mail.api.mail.create_mail',
-	makeParams: ({ save_as_draft }: { save_as_draft: boolean }) => ({
-		account: store.accountId,
-		...mail,
-		...processInlineImages(mail),
-		from_name: getIdentity(mail.from_email!)._name,
-		save_as_draft,
-	}),
-	onSuccess: onMailUpdateSuccess,
-	onError: (error) => raiseToast(error.message, 'error'),
+  url: 'suite.mail.api.mail.create_mail',
+  makeParams: ({ save_as_draft }: { save_as_draft: boolean }) => ({
+    account: store.accountId,
+    ...mail,
+    ...processInlineImages(mail),
+    from_name: getIdentity(mail.from_email!)._name,
+    save_as_draft,
+  }),
+  onSuccess: onMailUpdateSuccess,
+  onError: error => raiseToast(error.message, 'error'),
 })
 
 const updateDraft = createResource({
-	url: 'suite.mail.api.mail.update_draft_mail',
-	makeParams: ({ submit }: { submit: boolean }) => ({
-		account: store.accountId,
-		...mail,
-		...processInlineImages(mail),
-		from_name: getIdentity(mail.from_email!)._name,
-		submit,
-	}),
-	onSuccess: onMailUpdateSuccess,
-	onError: (error) => raiseToast(error.message, 'error'),
+  url: 'suite.mail.api.mail.update_draft_mail',
+  makeParams: ({ submit }: { submit: boolean }) => ({
+    account: store.accountId,
+    ...mail,
+    ...processInlineImages(mail),
+    from_name: getIdentity(mail.from_email!)._name,
+    submit,
+  }),
+  onSuccess: onMailUpdateSuccess,
+  onError: error => raiseToast(error.message, 'error'),
 })
 
 const deleteMail = createResource({
-	url: 'suite.mail.api.mail.delete_mail',
-	makeParams: () => ({ account: store.accountId, id: mail.id }),
-	onSuccess: () => {
-		reloadMails()
-		raiseToast(__('Draft discarded.'))
-	},
-	onError: (error) => raiseToast(error.message, 'error'),
+  url: 'suite.mail.api.mail.delete_mail',
+  makeParams: () => ({ account: store.accountId, id: mail.id }),
+  onSuccess: () => {
+    reloadMails()
+    raiseToast(__('Draft discarded.'))
+  },
+  onError: error => raiseToast(error.message, 'error'),
 })
 
 const isLoading = computed(() => createMail.loading || updateDraft.loading || deleteMail.loading)
@@ -493,167 +496,165 @@ const isLoading = computed(() => createMail.loading || updateDraft.loading || de
 // Local draft actions
 
 const localDraftActions = computed(() => [
-	{
-		group: '',
-		items: [
-			{ label: __('Reply'), icon: Reply, onClick: () => emit('reply') },
-			{
-				label: __('Reply All'),
-				icon: ReplyAll,
-				onClick: () => emit('replyAll'),
-			},
-			{
-				label: __('Forward'),
-				icon: Forward,
-				onClick: () => emit('forward'),
-			},
-		],
-	},
-	{
-		group: '',
-		items: [
-			{
-				label: __('Pop Out'),
-				icon: ExternalLink,
-				onClick: () => emit('popOut', mail),
-				condition: () => !isLoading.value,
-			},
-		],
-	},
+  {
+    group: '',
+    items: [
+      { label: __('Reply'), icon: Reply, onClick: () => emit('reply') },
+      {
+        label: __('Reply All'),
+        icon: ReplyAll,
+        onClick: () => emit('replyAll'),
+      },
+      {
+        label: __('Forward'),
+        icon: Forward,
+        onClick: () => emit('forward'),
+      },
+    ],
+  },
+  {
+    group: '',
+    items: [
+      {
+        label: __('Pop Out'),
+        icon: ExternalLink,
+        onClick: () => emit('popOut', mail),
+        condition: () => !isLoading.value,
+      },
+    ],
+  },
 ])
 
 // Mail content
 
-const isRecipientsEmpty = computed(() => [mail.to, mail.cc, mail.bcc].every((d) => !d.length))
+const isRecipientsEmpty = computed(() => [mail.to, mail.cc, mail.bcc].every(d => !d.length))
 
 const isBodyEmpty = computed(() => {
-	if (!mail.html_body) return true
+  if (!mail.html_body) return true
 
-	const element = document.createElement('div')
-	element.innerHTML = mail.html_body
+  const element = document.createElement('div')
+  element.innerHTML = mail.html_body
 
-	const hasText = element.textContent?.trim()
-	const hasMedia = element.querySelector('img, video, svg') !== null
+  const hasText = element.textContent?.trim()
+  const hasMedia = element.querySelector('img, video, svg') !== null
 
-	return !hasText && !hasMedia
+  return !hasText && !hasMedia
 })
 
 const isMailEmpty = computed(() => {
-	const isSubjectEmpty = !mail.subject
-	const isQuotedContentEmpty = !mail.quoted_content
-	const isAttachmentsEmpty = !mail.attachments?.length
+  const isSubjectEmpty = !mail.subject
+  const isQuotedContentEmpty = !mail.quoted_content
+  const isAttachmentsEmpty = !mail.attachments?.length
 
-	return (
-		isSubjectEmpty &&
-		isQuotedContentEmpty &&
-		isRecipientsEmpty.value &&
-		isAttachmentsEmpty &&
-		isBodyEmpty.value
-	)
+  return (
+    isSubjectEmpty &&
+    isQuotedContentEmpty &&
+    isRecipientsEmpty.value &&
+    isAttachmentsEmpty &&
+    isBodyEmpty.value
+  )
 })
 
 const openQuotedContent = () => {
-	mail.html_body += `<br>${mail.quoted_content}`
-	mail.quoted_content = ''
+  mail.html_body += `<br>${mail.quoted_content}`
+  mail.quoted_content = ''
 }
 
 const buildSignature = (email?: string) => {
-	const identity = getIdentity(email!)
-	return identity?.text_signature
-		? `<div><br></div><div><br></div>${identity.html_signature}`
-		: ''
+  const identity = getIdentity(email!)
+  return identity?.text_signature ? `<div><br></div><div><br></div>${identity.html_signature}` : ''
 }
 
 const bodyText = (html: string) => {
-	const element = document.createElement('div')
-	element.innerHTML = html || ''
-	return element.textContent?.trim() ?? ''
+  const element = document.createElement('div')
+  element.innerHTML = html || ''
+  return element.textContent?.trim() ?? ''
 }
 
 // Swap the signature when the From identity changes — but only while the body is still the
 // auto-inserted signature (or empty), so a message the user has written isn't overwritten.
 // Compared by text so the editor's HTML normalization doesn't defeat the match.
 watch(
-	() => mail.from_email,
-	(val, oldVal) => {
-		if (isBodyEmpty.value || bodyText(mail.html_body) === bodyText(buildSignature(oldVal))) {
-			mail.html_body = buildSignature(val)
-		}
-	},
-	{ immediate: true },
+  () => mail.from_email,
+  (val, oldVal) => {
+    if (isBodyEmpty.value || bodyText(mail.html_body) === bodyText(buildSignature(oldVal))) {
+      mail.html_body = buildSignature(val)
+    }
+  },
+  { immediate: true }
 )
 
 // Attachments
 
 const openAttachment = async (blob_id?: string, type?: string) => {
-	if (!blob_id) return
+  if (!blob_id) return
 
-	const url = await getAttachmentUrl(blob_id, type)
-	window.open(url, '_blank')
+  const url = await getAttachmentUrl(blob_id, type)
+  window.open(url, '_blank')
 }
 
 // Custom Extensions
 
 const uploadFunction = async (file: File) => {
-	const fileUpload = useFileUpload()
-	return fileUpload.upload(file, {
-		private: true,
-		folder: 'Home/Frappe Mail',
-		upload_endpoint: '/api/method/suite.mail.api.mail.upload_file',
-	})
+  const fileUpload = useFileUpload()
+  return fileUpload.upload(file, {
+    private: true,
+    folder: 'Home/Frappe Mail',
+    upload_endpoint: '/api/method/suite.mail.api.mail.upload_file',
+  })
 }
 
 const CustomImageExtension = ImageExtension.extend({
-	addAttributes() {
-		return {
-			...this.parent?.(),
-			'data-cid': {
-				default: null,
-				parseHTML: (element) => element.getAttribute('data-cid'),
-				renderHTML: (attributes) => {
-					const src = attributes.src || ''
-					if (
-						!attributes['data-cid'] &&
-						(src.startsWith('/files') || src.startsWith('/private/files'))
-					)
-						attributes['data-cid'] = randomString(10)
-					return { 'data-cid': attributes['data-cid'] }
-				},
-			},
-		}
-	},
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      'data-cid': {
+        default: null,
+        parseHTML: element => element.getAttribute('data-cid'),
+        renderHTML: attributes => {
+          const src = attributes.src || ''
+          if (
+            !attributes['data-cid'] &&
+            (src.startsWith('/files') || src.startsWith('/private/files'))
+          )
+            attributes['data-cid'] = randomString(10)
+          return { 'data-cid': attributes['data-cid'] }
+        },
+      },
+    }
+  },
 }).configure({
-	HTMLAttributes: { width: '600', style: 'max-width:100%; height:auto' },
-	uploadFunction,
+  HTMLAttributes: { width: '600', style: 'max-width:100%; height:auto' },
+  uploadFunction,
 })
 
 const TYPE_ICON_MAP = {
-	reply: Reply,
-	replyAll: ReplyAll,
-	forward: Forward,
+  reply: Reply,
+  replyAll: ReplyAll,
+  forward: Forward,
 }
 
 // Shortcuts
 
 const handleKeydown = (e: KeyboardEvent) => {
-	if (!show.value || (isInThread && isOverlayPresent())) return
+  if (!show.value || (isInThread && isOverlayPresent())) return
 
-	handleSendShortcut(e)
-	handleDiscardShortcut(e)
+  handleSendShortcut(e)
+  handleDiscardShortcut(e)
 }
 
 const handleSendShortcut = (e: KeyboardEvent) => {
-	if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-		e.preventDefault()
-		sendMail()
-	}
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    e.preventDefault()
+    sendMail()
+  }
 }
 
 const handleDiscardShortcut = (e: KeyboardEvent) => {
-	if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd') {
-		e.preventDefault()
-		discardMail()
-	}
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd') {
+    e.preventDefault()
+    discardMail()
+  }
 }
 
 onMounted(() => window.addEventListener('keydown', handleKeydown, true))
@@ -665,61 +666,60 @@ const isDragging = ref(false)
 let dragCounter = 0
 
 const handleDragEnter = (e: DragEvent) => {
-	e.preventDefault()
-	dragCounter++
-	if (e.dataTransfer?.types.includes('Files')) isDragging.value = true
+  e.preventDefault()
+  dragCounter++
+  if (e.dataTransfer?.types.includes('Files')) isDragging.value = true
 }
 
 const handleDragOver = (e: DragEvent) => {
-	e.preventDefault()
-	if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'
+  e.preventDefault()
+  if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'
 }
 
 const handleDragLeave = (e: DragEvent) => {
-	e.preventDefault()
-	dragCounter--
-	if (dragCounter === 0) isDragging.value = false
+  e.preventDefault()
+  dragCounter--
+  if (dragCounter === 0) isDragging.value = false
 }
 
 const handleDrop = (e: DragEvent) => {
-	e.preventDefault()
-	isDragging.value = false
-	dragCounter = 0
+  e.preventDefault()
+  isDragging.value = false
+  dragCounter = 0
 
-	const files = Array.from(e.dataTransfer?.files ?? [])
-	uploadFiles(files)
+  const files = Array.from(e.dataTransfer?.files ?? [])
+  uploadFiles(files)
 }
 
 const fileUploads = ref<ReturnType<typeof useFileUpload>[]>([])
 
 const uploadFiles = async (files: File[]) => {
-	if (!files.length) return
+  if (!files.length) return
 
-	const results = await Promise.allSettled(files.map(uploadFile))
-	results.forEach((res, i) => {
-		if (res.status === 'rejected')
-			raiseToast(__('Failed to upload {0}', [files[i].name]), 'error')
-	})
+  const results = await Promise.allSettled(files.map(uploadFile))
+  results.forEach((res, i) => {
+    if (res.status === 'rejected') raiseToast(__('Failed to upload {0}', [files[i].name]), 'error')
+  })
 }
 
 const uploadFile = async (file: File) => {
-	const fileUpload = useFileUpload()
-	fileUploads.value.push({ name: file.name, size: file.size, ...fileUpload })
+  const fileUpload = useFileUpload()
+  fileUploads.value.push({ name: file.name, size: file.size, ...fileUpload })
 
-	const doc = (await fileUpload.upload(file, {
-		private: true,
-		folder: 'Home/Frappe Mail',
-		upload_endpoint: '/api/method/suite.mail.api.mail.upload_file',
-	})) as FileDoc
+  const doc = (await fileUpload.upload(file, {
+    private: true,
+    folder: 'Home/Frappe Mail',
+    upload_endpoint: '/api/method/suite.mail.api.mail.upload_file',
+  })) as FileDoc
 
-	attachDoc(doc)
+  attachDoc(doc)
 }
 
 const attachDoc = (doc: FileDoc) =>
-	mail.attachments.push({
-		file_name: doc.file_name,
-		file_url: doc.file_url,
-		file_size: doc.file_size,
-		disposition: 'attachment',
-	})
+  mail.attachments.push({
+    file_name: doc.file_name,
+    file_url: doc.file_url,
+    file_size: doc.file_size,
+    disposition: 'attachment',
+  })
 </script>

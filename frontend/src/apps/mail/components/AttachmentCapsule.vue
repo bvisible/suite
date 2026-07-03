@@ -31,19 +31,19 @@ import { getAttachmentUrl } from '@/apps/mail/resources'
 import { downloadUrlAsFile, getFileIcon } from '@/apps/mail/utils'
 
 const { fileName, blobID, type } = defineProps<{
-	fileName: string
-	blobID?: string
-	type?: string
+  fileName: string
+  blobID?: string
+  type?: string
 }>()
 
 const isDownloading = ref(false)
 
 const downloadAttachment = async () => {
-	if (!blobID) return
+  if (!blobID) return
 
-	isDownloading.value = true
-	const url = await getAttachmentUrl(blobID, type)
-	downloadUrlAsFile(url, fileName || 'attachment')
-	isDownloading.value = false
+  isDownloading.value = true
+  const url = await getAttachmentUrl(blobID, type)
+  downloadUrlAsFile(url, fileName || 'attachment')
+  isDownloading.value = false
 }
 </script>

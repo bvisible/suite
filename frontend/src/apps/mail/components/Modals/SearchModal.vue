@@ -182,96 +182,96 @@ const route = useRoute()
 const { isMobile } = useScreenSize()
 
 const searchInput = useTemplateRef('searchInput')
-watch(show, (val) => {
-	if (val) nextTick(() => searchInput.value?.focus())
+watch(show, val => {
+  if (val) nextTick(() => searchInput.value?.focus())
 })
 
 const getDefaultFilter = (reset = false) =>
-	Object.fromEntries(
-		[
-			'text',
-			'inMailbox',
-			'subject',
-			'from',
-			'to',
-			'cc',
-			'bcc',
-			'after',
-			'before',
-			'hasAttachment',
-			'isRead',
-		].map((key) => [key, reset ? '' : route.query[key] || '']),
-	)
+  Object.fromEntries(
+    [
+      'text',
+      'inMailbox',
+      'subject',
+      'from',
+      'to',
+      'cc',
+      'bcc',
+      'after',
+      'before',
+      'hasAttachment',
+      'isRead',
+    ].map(key => [key, reset ? '' : route.query[key] || ''])
+  )
 
 const filter = reactive({ ...getDefaultFilter() })
 const filteredFilter = computed(() =>
-	Object.fromEntries(
-		Object.entries(filter)
-			.map(([k, v]) => [k, typeof v === 'string' ? v.trim() : v])
-			.filter(([, v]) => Boolean(v)),
-	),
+  Object.fromEntries(
+    Object.entries(filter)
+      .map(([k, v]) => [k, typeof v === 'string' ? v.trim() : v])
+      .filter(([, v]) => Boolean(v))
+  )
 )
 const advancedFiltersLength = computed(
-	() => Object.keys(filteredFilter.value).filter((k) => k !== 'text').length,
+  () => Object.keys(filteredFilter.value).filter(k => k !== 'text').length
 )
 const showAdvancedFilters = ref(false)
 
 const mailboxOptions = computed(() =>
-	[{ label: __('All folders'), value: '' }].concat(
-		mailboxes.data.map((m: { id: string; _name: string }) => ({
-			label: m._name,
-			value: m.id,
-		})),
-	),
+  [{ label: __('All folders'), value: '' }].concat(
+    mailboxes.data.map((m: { id: string; _name: string }) => ({
+      label: m._name,
+      value: m.id,
+    }))
+  )
 )
 
 const results = createResource({
-	url: 'suite.mail.api.mail.search_mails',
-	makeParams: () => ({ account: store.accountId, filter: filteredFilter.value }),
+  url: 'suite.mail.api.mail.search_mails',
+  makeParams: () => ({ account: store.accountId, filter: filteredFilter.value }),
 })
 
-const noOfAttachments = (result) =>
-	result.attachments?.filter((m) => m.filename && m.disposition === 'attachment').length || 0
+const noOfAttachments = result =>
+  result.attachments?.filter(m => m.filename && m.disposition === 'attachment').length || 0
 
 watchDebounced(
-	() => filter.text,
-	(val) => {
-		if (val) results.reload()
-		else results.reset()
-	},
-	{ debounce: 250 },
+  () => filter.text,
+  val => {
+    if (val) results.reload()
+    else results.reset()
+  },
+  { debounce: 250 }
 )
 
 const openSearchPage = () => {
-	router.push({ name: 'mail-mailbox', params: { mailbox: 'search' }, query: filteredFilter.value })
-	show.value = false
+  router.push({ name: 'mail-mailbox', params: { mailbox: 'search' }, query: filteredFilter.value })
+  show.value = false
 }
 
 const router = useRouter()
 
 const openThread = (threadID: string) => {
-	router.push({
-		name: 'mail-mail',
-		params: { mailbox: 'search', threadID },
-		query: filteredFilter.value,
-	})
-	show.value = false
+  router.push({
+    name: 'mail-mail',
+    params: { mailbox: 'search', threadID },
+    query: filteredFilter.value,
+  })
+  show.value = false
 }
 
 const getInterlocutors = (result: {
-	from_name?: string
-	from_email: string
-	recipients?: Recipient[]
+  from_name?: string
+  from_email: string
+  recipients?: Recipient[]
 }) => {
-	const sender = result.from_name || result.from_email
-	if (!result.recipients?.length) return sender
+  const sender = result.from_name || result.from_email
+  if (!result.recipients?.length) return sender
 
-	const seen = new Set<string>()
-	const recipients = result.recipients
-		.filter((r) => r.email !== result.from_email && !seen.has(r.email) && seen.add(r.email))
-		.map((r) => r.display_name || r.email)
-		.join(', ')
+  const seen = new Set<string>()
+  const recipients = result.recipients
+    .filter(r => r.email !== result.from_email && !seen.has(r.email) && seen.add(r.email))
+    .map(r => r.display_name || r.email)
+    .join(', ')
 
-	return `${sender}, ${recipients}`
+  return `${sender}, ${recipients}`
 }
 </script>

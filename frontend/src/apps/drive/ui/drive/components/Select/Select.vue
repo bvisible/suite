@@ -37,20 +37,16 @@ const selected = defineModel<SelectValue_>()
 const selectedOption = computed<SimpleOption | SimpleOption[]>(() => {
   if (!selected.value) return null
   if (props.multiple) {
-    return selected.value.map((k) =>
-      flatOptions.value.find((opt) => getValue(opt) === k),
-    )
+    return selected.value.map(k => flatOptions.value.find(opt => getValue(opt) === k))
   }
-  return flatOptions.value.find((opt) => getValue(opt) === selected.value)
+  return flatOptions.value.find(opt => getValue(opt) === selected.value)
 })
 const selectedOptionIcon = computed(() =>
-  selectedOption.value && !props.multiple
-    ? getIcon(selectedOption.value)
-    : null,
+  selectedOption.value && !props.multiple ? getIcon(selectedOption.value) : null
 )
 
 const flatOptions = computed<SimpleOption[]>(() =>
-  props.options.flatMap((opt) => (isGroup(opt) ? opt.options : opt)),
+  props.options.flatMap(opt => (isGroup(opt) ? opt.options : opt))
 )
 
 const labelFunction = (val: SelectValue_, selected = false) => {

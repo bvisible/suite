@@ -19,33 +19,33 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed } from 'vue'
 
 const props = defineProps<{
-	image?: string;
-	label?: string;
-	tiles?: number;
-}>();
+  image?: string
+  label?: string
+  tiles?: number
+}>()
 
 // Dynamic sizing tiers based on total visible tiles
 // Uses responsive classes that scale down on smaller screens
 // Base sizes are for large screens, with smaller sizes for mobile/tablet
 const sizeClasses = computed(() => {
-	// For 1-4 tiles: larger avatars, responsive down on mobile
-	if (props.tiles <= 4) return "w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28";
-	// For 5-9 tiles: medium avatars
-	if (props.tiles <= 9) return "w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20";
-	// For 10-16 tiles: smaller avatars
-	if (props.tiles <= 16) return "w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16";
-	// For overflow (>16 tiles): extra small
-	return "w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12";
-});
+  // For 1-4 tiles: larger avatars, responsive down on mobile
+  if (props.tiles <= 4) return 'w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28'
+  // For 5-9 tiles: medium avatars
+  if (props.tiles <= 9) return 'w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20'
+  // For 10-16 tiles: smaller avatars
+  if (props.tiles <= 16) return 'w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16'
+  // For overflow (>16 tiles): extra small
+  return 'w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12'
+})
 
 const textClasses = computed(() => {
-	if (props.tiles <= 9) return "text-3xl sm:text-4xl md:text-5xl tracking-wide";
-	if (props.tiles <= 16) return "text-xl sm:text-3xl";
-	return "text-sm";
-});
+  if (props.tiles <= 9) return 'text-3xl sm:text-4xl md:text-5xl tracking-wide'
+  if (props.tiles <= 16) return 'text-xl sm:text-3xl'
+  return 'text-sm'
+})
 </script>
 
 <style scoped>

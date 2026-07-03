@@ -120,12 +120,7 @@
 </template>
 
 <script setup>
-import {
-  Dialog,
-  Button,
-  LoadingIndicator,
-  createResource,
-} from 'frappe-ui'
+import { Dialog, Button, LoadingIndicator, createResource } from 'frappe-ui'
 import { ref, inject } from 'vue'
 import { onKeyDown } from '@vueuse/core'
 import { formatDate } from '../js/utils'
@@ -133,7 +128,6 @@ import { formatDate } from '../js/utils'
 import LucideBuilding2 from '~icons/lucide/building-2'
 import LucideLock from '~icons/lucide/lock'
 import LucideGlobe2 from '~icons/lucide/globe-2'
-
 
 const dialogType = defineModel()
 const open = ref(true)
@@ -147,14 +141,13 @@ const props = defineProps({
 // Refactor to share with ShareDialog
 const getGeneralAccess = createResource({
   url: 'suite.drive.api.permissions.get_user_access',
-  makeParams: (params) => ({
+  makeParams: params => ({
     ...params,
     entity: props.entity.name,
   }),
-  transform: (data) => {
+  transform: data => {
     if (!data || !data.read) {
-      if (getGeneralAccess.params.user === 'Guest')
-        getGeneralAccess.fetch({ team: 1 })
+      if (getGeneralAccess.params.user === 'Guest') getGeneralAccess.fetch({ team: 1 })
       else
         return {
           type: 'restricted',

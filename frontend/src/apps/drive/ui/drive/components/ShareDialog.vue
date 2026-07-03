@@ -175,11 +175,7 @@
 import { ref, computed, watch, markRaw, h } from 'vue'
 import { useSessionStore } from '@/boot/session'
 const currentUserId = computed(() => useSessionStore().user)
-import {
-  Avatar,
-  Dialog,
-  LoadingIndicator,
-  createResource, Button} from 'frappe-ui'
+import { Avatar, Dialog, LoadingIndicator, createResource, Button } from 'frappe-ui'
 import Select from './Select/Select.vue'
 import TeamSelector from './TeamSelector.vue'
 import TagInput from './TagInput/TagInput.vue'
@@ -239,7 +235,7 @@ const accessOptions = computed(() =>
       cond: props.entity.write,
       icon: LucidePencil,
     },
-  ]),
+  ])
 )
 
 // General access
@@ -249,23 +245,18 @@ const chosenTeam = ref()
 
 const getGeneralAccess = createResource({
   url: 'suite.drive.api.permissions.get_user_access',
-  makeParams: (params) => ({
+  makeParams: params => ({
     ...params,
     entity: props.entity.name,
   }),
-  onSuccess: (data) => {
+  onSuccess: data => {
     if (!data || !data.read) {
-      if (getGeneralAccess.params.user === 'Guest')
-        getGeneralAccess.fetch({ team: 1 })
+      if (getGeneralAccess.params.user === 'Guest') getGeneralAccess.fetch({ team: 1 })
       return
     }
     generalAccessLevel.value = getGeneralAccess.params.team ? 'team' : 'public'
     chosenTeam.value = data.team
-    generalPerms.value = data.write
-      ? 'editor'
-      : data.upload
-        ? 'upload'
-        : 'reader'
+    generalPerms.value = data.write ? 'editor' : data.upload ? 'upload' : 'reader'
   },
 })
 getGeneralAccess.fetch({ user: 'Guest' })
@@ -300,8 +291,7 @@ const updateGeneralAccess = (level, perms) => {
 watch(
   chosenTeam,
   (now, prev) =>
-    (prev || selectingTeam) &&
-    updateGeneralAccess(generalAccessLevel.value, generalPerms.value),
+    (prev || selectingTeam) && updateGeneralAccess(generalAccessLevel.value, generalPerms.value)
 )
 
 // Invite specific users
@@ -312,11 +302,9 @@ watch(
   [() => props.users.data, () => props.usersWithAccess.data],
   ([users, existingUsers]) => {
     if (!existingUsers || !users) return []
-    filteredUsers.value = users.filter(
-      (k) => !existingUsers.find(({ user }) => user === k.name),
-    )
+    filteredUsers.value = users.filter(k => !existingUsers.find(({ user }) => user === k.name))
   },
-  { immediate: true },
+  { immediate: true }
 )
 
 const inviteUsers = () => {
@@ -328,7 +316,7 @@ const inviteUsers = () => {
       ...access,
     }
     props.updateAccess.submit(r)
-    const userObj = filteredUsers.value.find((k) => k.value === user)
+    const userObj = filteredUsers.value.find(k => k.value === user)
     // For new records
     if (!userObj.email) userObj.email = userObj.label
     props.usersWithAccess.data.push({
@@ -359,7 +347,7 @@ const updatePermissions = (user, val, entity_name, idx) => {
 }
 
 // Util functions
-const getAccess = (val) => ({
+const getAccess = val => ({
   read: 1,
   comment: 1,
   upload: val === 'upload' || val === 'editor' ? 1 : 0,

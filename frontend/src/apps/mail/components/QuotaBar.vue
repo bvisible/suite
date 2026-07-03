@@ -34,26 +34,26 @@ const { isCollapsed } = defineProps<{ isCollapsed: boolean }>()
 const store = userStore()
 
 const quota = createResource({
-	url: 'suite.mail.api.account.get_quota',
-	auto: true,
-	makeParams: () => ({ account: store.accountId }),
-	cache: ['quota', store.accountId],
+  url: 'suite.mail.api.account.get_quota',
+  auto: true,
+  makeParams: () => ({ account: store.accountId }),
+  cache: ['quota', store.accountId],
 })
 
 watch(
-	() => store.accountId,
-	() => quota.reload(),
+  () => store.accountId,
+  () => quota.reload()
 )
 
 const displayedQuota = computed(() => {
-	if (!quota.data) return ''
+  if (!quota.data) return ''
 
-	if (quota.data.disk_quota <= 0)
-		return __('Unlimited ({0} used)', [formatBytes(quota.data.used_quota)])
+  if (quota.data.disk_quota <= 0)
+    return __('Unlimited ({0} used)', [formatBytes(quota.data.used_quota)])
 
-	return __('{0}% of {1} used', [
-		quota.data.used_percentage.toFixed(2),
-		formatBytes(quota.data.disk_quota),
-	])
+  return __('{0}% of {1} used', [
+    quota.data.used_percentage.toFixed(2),
+    formatBytes(quota.data.disk_quota),
+  ])
 })
 </script>

@@ -189,90 +189,90 @@
 </template>
 
 <script setup lang="ts">
-import { Button } from "frappe-ui";
-import { ref } from "vue";
-import audioNotificationManager from "../utils/audioNotifications";
+import { Button } from 'frappe-ui'
+import { ref } from 'vue'
+import audioNotificationManager from '../utils/audioNotifications'
 
-const isPlaying = ref(false);
+const isPlaying = ref(false)
 
 // Play individual notifications
 const playJoinNotification = async () => {
-	isPlaying.value = true;
-	try {
-		await audioNotificationManager.playJoinNotification();
-	} finally {
-		setTimeout(() => {
-			isPlaying.value = false;
-		}, 100);
-	}
-};
+  isPlaying.value = true
+  try {
+    await audioNotificationManager.playJoinNotification()
+  } finally {
+    setTimeout(() => {
+      isPlaying.value = false
+    }, 100)
+  }
+}
 
 const playLeaveNotification = async () => {
-	isPlaying.value = true;
-	try {
-		await audioNotificationManager.playLeaveNotification();
-	} finally {
-		setTimeout(() => {
-			isPlaying.value = false;
-		}, 100);
-	}
-};
+  isPlaying.value = true
+  try {
+    await audioNotificationManager.playLeaveNotification()
+  } finally {
+    setTimeout(() => {
+      isPlaying.value = false
+    }, 100)
+  }
+}
 
 const playJoinRequestNotification = async () => {
-	isPlaying.value = true;
-	try {
-		await audioNotificationManager.playJoinRequestNotification();
-	} finally {
-		setTimeout(() => {
-			isPlaying.value = false;
-		}, 100);
-	}
-};
+  isPlaying.value = true
+  try {
+    await audioNotificationManager.playJoinRequestNotification()
+  } finally {
+    setTimeout(() => {
+      isPlaying.value = false
+    }, 100)
+  }
+}
 
 const playChatNotification = async () => {
-	isPlaying.value = true;
-	try {
-		await audioNotificationManager.playChatNotification();
-	} finally {
-		setTimeout(() => {
-			isPlaying.value = false;
-		}, 100);
-	}
-};
+  isPlaying.value = true
+  try {
+    await audioNotificationManager.playChatNotification()
+  } finally {
+    setTimeout(() => {
+      isPlaying.value = false
+    }, 100)
+  }
+}
 
 const playRaiseHandNotification = async () => {
-	isPlaying.value = true;
-	try {
-		await audioNotificationManager.playRaiseHandNotification();
-	} finally {
-		setTimeout(() => {
-			isPlaying.value = false;
-		}, 100);
-	}
-};
+  isPlaying.value = true
+  try {
+    await audioNotificationManager.playRaiseHandNotification()
+  } finally {
+    setTimeout(() => {
+      isPlaying.value = false
+    }, 100)
+  }
+}
 
 // Play all notifications in sequence
 const playAllNotifications = async () => {
-	isPlaying.value = true;
+  isPlaying.value = true
 
-	try {
-		await audioNotificationManager.playJoinNotification();
-		await new Promise((resolve) => setTimeout(resolve, 1000));
+  try {
+    await audioNotificationManager.playJoinNotification()
+    await new Promise(resolve => setTimeout(resolve, 1000))
 
-		await audioNotificationManager.playLeaveNotification();
-		await new Promise((resolve) => setTimeout(resolve, 1000));
+    await audioNotificationManager.playLeaveNotification()
+    await new Promise(resolve => setTimeout(resolve, 1000))
 
-		await audioNotificationManager.playJoinRequestNotification();
-		await new Promise((resolve) => setTimeout(resolve, 1000));
+    await audioNotificationManager.playJoinRequestNotification()
+    await new Promise(resolve => setTimeout(resolve, 1000))
 
-		await audioNotificationManager.playChatNotification();
-		await new Promise((resolve) => setTimeout(resolve, 1000));
+    await audioNotificationManager.playChatNotification()
+    await new Promise(resolve => setTimeout(resolve, 1000))
 
-		await audioNotificationManager.playRaiseHandNotification();
-	} finally {
-		setTimeout(() => {
-			isPlaying.value = false;
-		}, 100);
-	}
-};
+    await audioNotificationManager.playRaiseHandNotification()
+  } finally {
+    setTimeout(() => {
+      isPlaying.value = false
+    }, 100)
+  }
+}
 </script>

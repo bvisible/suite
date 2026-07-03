@@ -11,7 +11,7 @@ const EmbedExtension = Node.create({
   addCommands() {
     return {
       embedDocument:
-        (entity) =>
+        entity =>
         ({ editor }) => {
           editor.commands.setIframe({
             src: `/drive/w/${entity.name}/`,
@@ -81,7 +81,7 @@ const items = computed(() =>
   // getDocuments.data
   //   .sort((a, b) => (a.modified > b.modified ? -1 : 1))
   //   .filter((k) => k.name !== router.currentRoute.value.params.entityName)
-  [],
+  []
 )
 export async function openEmbedSuggestion(view, from, editor) {
   component = new VueRenderer(DocumentList, {
@@ -127,7 +127,7 @@ function closePopup() {
 
 watch(
   search,
-  async (val) => {
+  async val => {
     if (component)
       component.updateProps({
         loading: true,
@@ -147,5 +147,5 @@ watch(
     //   },
     // )
   },
-  { immediate: true },
+  { immediate: true }
 )

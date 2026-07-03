@@ -423,7 +423,12 @@ import { useSessionStore } from '@/boot/session'
 const currentUserId = computed(() => useSessionStore().user)
 import { getTeams } from '@/apps/drive/resources/files'
 import icons from '@/apps/drive/utils/icons'
-import { getInvites, rejectInvite, acceptInvite, createTeam } from '@/apps/drive/resources/permissions'
+import {
+  getInvites,
+  rejectInvite,
+  acceptInvite,
+  createTeam,
+} from '@/apps/drive/resources/permissions'
 import {
   Avatar,
   Dropdown,
@@ -434,7 +439,9 @@ import {
   createResource,
   FormControl,
   FormLabel,
-  Checkbox, Button} from 'frappe-ui'
+  Checkbox,
+  Button,
+} from 'frappe-ui'
 import SyncBreakdown from '@/apps/drive/components/SyncBreakdown.vue'
 import { createDialog } from '@/apps/drive/utils/dialogs'
 import { teamUsers, getDiskSettings } from '@/apps/drive/resources/permissions'
@@ -472,7 +479,7 @@ const team = ref(route.params.team || (getTeams.data ? Object.keys(getTeams.data
 const teamData = computed(() => getTeams.data?.[team.value] || {})
 watch(
   team,
-  (team) => {
+  team => {
     if (!team) return
     teamUsers.fetch({ team })
     invites.fetch({ team })
@@ -495,7 +502,7 @@ const teamName = ref('')
 const selectedIcon = ref('building')
 const s3Bucket = ref('')
 const prefix = ref('')
-watch(showEditTeam, (val) => {
+watch(showEditTeam, val => {
   if (val) {
     teamName.value = teamData.value.title
     selectedIcon.value = teamData.value.icon
@@ -531,7 +538,7 @@ const tabs = [
   },
 ]
 
-const updateAccess = (level) => {
+const updateAccess = level => {
   selectedUser.value.access_level = level
   updateUserAccess.submit({
     team: team.value,
@@ -571,9 +578,9 @@ function emailTest() {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return emailInput.value
     .split(/,|\s/)
-    .filter((email) => email)
-    .filter((email) => emailRegex.test(email))
-    .filter((email) => !invited.value.includes(email))
+    .filter(email => email)
+    .filter(email => emailRegex.test(email))
+    .filter(email => !invited.value.includes(email))
 }
 
 function extractEmails() {

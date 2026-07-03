@@ -30,12 +30,12 @@ import { Badge, Breadcrumbs, Button } from 'frappe-ui'
 import { useScreenSize, useSidebar } from '@/apps/mail/utils/composables'
 
 const { removeSpacing = false } = defineProps<{
-	breadcrumbs: { label: string; route?: string }[]
-	buttonLabel?: string
-	buttonAction?: () => void
-	badgeLabel?: string
-	badgeTheme?: 'green' | 'red' | 'gray' | 'orange' | 'blue'
-	removeSpacing?: boolean
+  breadcrumbs: { label: string; route?: string }[]
+  buttonLabel?: string
+  buttonAction?: () => void
+  badgeLabel?: string
+  badgeTheme?: 'green' | 'red' | 'gray' | 'orange' | 'blue'
+  removeSpacing?: boolean
 }>()
 
 const { isMobile } = useScreenSize()

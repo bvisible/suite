@@ -282,16 +282,7 @@
   </div>
 </template>
 <script setup>
-import {
-  computed,
-  reactive,
-  watch,
-  onMounted,
-  ref,
-  h,
-  onBeforeUnmount,
-  nextTick,
-} from 'vue'
+import { computed, reactive, watch, onMounted, ref, h, onBeforeUnmount, nextTick } from 'vue'
 import { Avatar, Button, Dropdown, onOutsideClickDirective as vOnOutsideClick } from 'frappe-ui'
 import { formatDate } from '@/apps/writer/utils/format'
 import { dynamicList } from '@/apps/writer/utils/'
@@ -334,7 +325,7 @@ const commentPositions = computed(() => {
   const positions = new Map()
 
   props.editor.state.doc.descendants((node, pos) => {
-    node.marks.forEach((mark) => {
+    node.marks.forEach(mark => {
       if (mark.type.name === 'comment' && mark.attrs.commentId) {
         if (!positions.has(mark.attrs.commentId)) {
           positions.set(mark.attrs.commentId, pos)
@@ -350,7 +341,7 @@ function useYMapReactive(yMap) {
 
   const update = () => {
     const arr = []
-    yMap.forEach((v) => {
+    yMap.forEach(v => {
       let pos
       if (!v.anchor?.from) pos = commentPositions.value.get(v.id) ?? 0
       else pos = getEditorPos(v.anchor.from, props.editor)
@@ -369,21 +360,19 @@ function useYMapReactive(yMap) {
 const comments = useYMapReactive(props.yComments)
 
 const filteredComments = computed(() => {
-  const filtered = props.showResolved
-    ? comments.value
-    : comments.value.filter((k) => !k.resolved)
+  const filtered = props.showResolved ? comments.value : comments.value.filter(k => !k.resolved)
   return filtered
 })
 watch(
   () => props.showResolved,
-  () => rebuild(props.editor),
+  () => rebuild(props.editor)
 )
 
 watch([activeComment, () => props.showUnanchored], () => {
   setCommentHeights()
 })
 
-const sanitize = (comment) => {
+const sanitize = comment => {
   delete comment.new
   comment.edit = false
   const obj = { ...comment }
@@ -411,9 +400,7 @@ const updateComment = (comment, thread, editor) => {
   if (comment.id === thread.id) {
     props.yComments.set(comment.id, sanitize(comment))
   } else {
-    thread.replies = thread.replies.map((r) =>
-      r.id === comment.id ? sanitize(comment) : r,
-    )
+    thread.replies = thread.replies.map(r => (r.id === comment.id ? sanitize(comment) : r))
     props.yComments.set(thread.id, sanitize(thread))
   }
   emit('save')
@@ -437,10 +424,10 @@ const newReply = (comment, editor) => {
 }
 
 const removeReply = (commentId, replyId) => {
-  const comment = comments.value.find((c) => c.id === commentId)
+  const comment = comments.value.find(c => c.id === commentId)
   if (!comment) return
 
-  const updatedReplies = comment.replies.filter((r) => r.id !== replyId)
+  const updatedReplies = comment.replies.filter(r => r.id !== replyId)
   const updatedComment = { ...comment, replies: updatedReplies }
   props.yComments.set(commentId, updatedComment)
 
@@ -448,7 +435,7 @@ const removeReply = (commentId, replyId) => {
   emit('save')
 }
 
-const removeComment = (commentId) => {
+const removeComment = commentId => {
   props.yComments.delete(commentId)
   setCommentHeights()
   emit('save')
@@ -461,15 +448,11 @@ const resolve = (comment, value = true) => {
   emit('save')
 }
 
-const isEmpty = (editorContent) => {
-  return (
-    !editorContent ||
-    !editorContent.length ||
-    editorContent.replace(/\s/g, '') == '<p></p>'
-  )
+const isEmpty = editorContent => {
+  return !editorContent || !editorContent.length || editorContent.replace(/\s/g, '') == '<p></p>'
 }
 
-const formatDateOrTime = (datetimeNum) => {
+const formatDateOrTime = datetimeNum => {
   const now = new Date()
   const datetime = new Date(datetimeNum)
   const isToday =
@@ -501,8 +484,7 @@ const setCommentHeights = useDebounceFn(() => {
         }
         const adjustedTop = anchorTop ? Math.max(anchorTop, lastBottom) : 0
         comment.top = adjustedTop
-        if (adjustedTop)
-          lastBottom = adjustedTop + commentRefs[comment.id].offsetHeight + 12
+        if (adjustedTop) lastBottom = adjustedTop + commentRefs[comment.id].offsetHeight + 12
       } catch (e) {
         console.log(e)
       }
@@ -533,8 +515,7 @@ props.editor.on('update', () => {
 })
 
 const purgeNewEmptyComments = () => {
-  for (const comment of comments.value)
-    if (comment.new) removeComment(comment.id, true)
+  for (const comment of comments.value) if (comment.new) removeComment(comment.id, true)
 }
 
 onBeforeUnmount(purgeNewEmptyComments)

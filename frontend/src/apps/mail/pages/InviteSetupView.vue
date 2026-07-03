@@ -64,38 +64,38 @@ const password = ref('')
 const errorMessage = ref('')
 
 const getAccountRequest = createResource({
-	url: 'suite.mail.api.account.get_account_request',
-	makeParams: () => ({ request_key: requestKey }),
-	onSuccess: (data) => {
-		if ((data?.backup_email || data?.account) && !data?.is_verified && !data?.is_expired)
-			email.value = data.account || data.backup_email
-		else router.replace({ name: 'mail-signup' })
-	},
+  url: 'suite.mail.api.account.get_account_request',
+  makeParams: () => ({ request_key: requestKey }),
+  onSuccess: data => {
+    if ((data?.backup_email || data?.account) && !data?.is_verified && !data?.is_expired)
+      email.value = data.account || data.backup_email
+    else router.replace({ name: 'mail-signup' })
+  },
 })
 
 const createAccount = createResource({
-	url: 'suite.mail.api.account.create_account',
-	makeParams: () => ({
-		request_key: requestKey,
-		first_name: firstName.value,
-		last_name: lastName.value,
-		password: password.value,
-	}),
-	onSuccess: () => {
-		errorMessage.value = ''
-		login.submit({ usr: email.value, pwd: password.value })
-	},
-	onError: (error) => (errorMessage.value = error.messages[0]),
+  url: 'suite.mail.api.account.create_account',
+  makeParams: () => ({
+    request_key: requestKey,
+    first_name: firstName.value,
+    last_name: lastName.value,
+    password: password.value,
+  }),
+  onSuccess: () => {
+    errorMessage.value = ''
+    login.submit({ usr: email.value, pwd: password.value })
+  },
+  onError: error => (errorMessage.value = error.messages[0]),
 })
 
 watch(
-	() => requestKey,
-	(val) => {
-		if (!val) return
-		if (val.length === 32) getAccountRequest.submit()
-		else router.replace({ name: 'mail-signup' })
-	},
-	{ immediate: true },
+  () => requestKey,
+  val => {
+    if (!val) return
+    if (val.length === 32) getAccountRequest.submit()
+    else router.replace({ name: 'mail-signup' })
+  },
+  { immediate: true }
 )
 
 const submit = () => createAccount.submit()

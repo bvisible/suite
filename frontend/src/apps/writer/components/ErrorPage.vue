@@ -61,11 +61,9 @@ const props = defineProps({ error: Object })
 const redirectLogin = () => (window.location.href = '/drive/login')
 watchEffect(() => {
   if (
-    (String(props.error).includes('FORBIDDEN') ||
-      props.error.exc_type === 'PermissionError') &&
+    (String(props.error).includes('FORBIDDEN') || props.error.exc_type === 'PermissionError') &&
     !isLoggedIn.value
   )
     redirectLogin()
-
 })
 </script>

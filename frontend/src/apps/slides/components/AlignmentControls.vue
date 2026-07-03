@@ -24,12 +24,12 @@
 import { computed } from 'vue'
 
 import {
-	AlignStartVertical,
-	AlignCenterVertical,
-	AlignEndVertical,
-	AlignStartHorizontal,
-	AlignCenterHorizontal,
-	AlignEndHorizontal,
+  AlignStartVertical,
+  AlignCenterVertical,
+  AlignEndVertical,
+  AlignStartHorizontal,
+  AlignCenterHorizontal,
+  AlignEndHorizontal,
 } from 'lucide-vue-next'
 
 import CollapsibleSection from '@/apps/slides/components/controls/CollapsibleSection.vue'
@@ -39,97 +39,97 @@ import { fieldLabelClasses } from '@/apps/slides/utils/constants'
 import { updatePosition } from '@/apps/slides/stores/element'
 
 const horizontalAlignmentOptions = [
-	{
-		direction: 'left',
-		guide: 'leftEdge',
-		icon: AlignStartVertical,
-	},
-	{
-		direction: 'centerY',
-		guide: 'centerY',
-		icon: AlignCenterVertical,
-	},
-	{
-		direction: 'right',
-		guide: 'rightEdge',
-		icon: AlignEndVertical,
-	},
+  {
+    direction: 'left',
+    guide: 'leftEdge',
+    icon: AlignStartVertical,
+  },
+  {
+    direction: 'centerY',
+    guide: 'centerY',
+    icon: AlignCenterVertical,
+  },
+  {
+    direction: 'right',
+    guide: 'rightEdge',
+    icon: AlignEndVertical,
+  },
 ]
 
 const verticalAlignmentOptions = [
-	{
-		direction: 'top',
-		guide: 'topEdge',
-		icon: AlignStartHorizontal,
-	},
-	{
-		direction: 'centerX',
-		guide: 'centerX',
-		icon: AlignCenterHorizontal,
-	},
-	{
-		direction: 'bottom',
-		guide: 'bottomEdge',
-		icon: AlignEndHorizontal,
-	},
+  {
+    direction: 'top',
+    guide: 'topEdge',
+    icon: AlignStartHorizontal,
+  },
+  {
+    direction: 'centerX',
+    guide: 'centerX',
+    icon: AlignCenterHorizontal,
+  },
+  {
+    direction: 'bottom',
+    guide: 'bottomEdge',
+    icon: AlignEndHorizontal,
+  },
 ]
 
 const axes = [
-	{
-		label: 'Horizontal',
-		options: horizontalAlignmentOptions,
-	},
-	{
-		label: 'Vertical',
-		options: verticalAlignmentOptions,
-	},
+  {
+    label: 'Horizontal',
+    options: horizontalAlignmentOptions,
+  },
+  {
+    label: 'Vertical',
+    options: verticalAlignmentOptions,
+  },
 ]
 
 const alignmentPositions = computed(() => {
-	const slideWidth = slideBounds.width / slideBounds.scale
-	const slideHeight = slideBounds.height / slideBounds.scale
+  const slideWidth = slideBounds.width / slideBounds.scale
+  const slideHeight = slideBounds.height / slideBounds.scale
 
-	const { width: selectionWidth, height: selectionHeight } = selectionBounds
+  const { width: selectionWidth, height: selectionHeight } = selectionBounds
 
-	return {
-		left: 0,
-		centerY: (slideWidth - selectionWidth) / 2,
-		right: slideWidth - selectionWidth,
-		top: 0,
-		centerX: (slideHeight - selectionHeight) / 2,
-		bottom: slideHeight - selectionHeight,
-	}
+  return {
+    left: 0,
+    centerY: (slideWidth - selectionWidth) / 2,
+    right: slideWidth - selectionWidth,
+    top: 0,
+    centerX: (slideHeight - selectionHeight) / 2,
+    bottom: slideHeight - selectionHeight,
+  }
 })
 
-const isAligned = (direction) => {
-	const axis = ['left', 'centerY', 'right'].includes(direction) ? 'X' : 'Y'
+const isAligned = direction => {
+  const axis = ['left', 'centerY', 'right'].includes(direction) ? 'X' : 'Y'
 
-	const expectedPos = Math.round(alignmentPositions.value[direction])
+  const expectedPos = Math.round(alignmentPositions.value[direction])
 
-	const currentPos =
-		axis == 'X' ? Math.round(selectionBounds.left) : Math.round(selectionBounds.top)
+  const currentPos =
+    axis == 'X' ? Math.round(selectionBounds.left) : Math.round(selectionBounds.top)
 
-	return expectedPos == currentPos
+  return expectedPos == currentPos
 }
 
-const getAlignmentButtonClasses = (direction) => {
-	const baseClasses =
-		'flex cursor-pointer items-center justify-center rounded border py-1.5 hover:border-gray-400'
+const getAlignmentButtonClasses = direction => {
+  const baseClasses =
+    'flex cursor-pointer items-center justify-center rounded border py-1.5 hover:border-gray-400'
 
-	const activeClasses = isAligned(direction)
-		? 'border-gray-500 text-gray-900'
-		: 'text-gray-600 hover:text-gray-700'
+  const activeClasses = isAligned(direction)
+    ? 'border-gray-500 text-gray-900'
+    : 'text-gray-600 hover:text-gray-700'
 
-	return `${baseClasses} ${activeClasses}`
+  return `${baseClasses} ${activeClasses}`
 }
 
-const performAlignment = (direction) => {
-	const axis = ['left', 'centerY', 'right'].includes(direction) ? 'X' : 'Y'
-	const value = Math.round(alignmentPositions.value[direction])
-	updatePosition(axis, value)
+const performAlignment = direction => {
+  const axis = ['left', 'centerY', 'right'].includes(direction) ? 'X' : 'Y'
+  const value = Math.round(alignmentPositions.value[direction])
+  updatePosition(axis, value)
 }
 
 const updateGuideVisibilityMap = (direction, value) => {
-	guideVisibilityMap[direction] = value
+  guideVisibilityMap[direction] = value
 }
 </script>

@@ -98,76 +98,76 @@ const { login } = sessionStore()
 const usernameVerified = ref(false)
 
 const user = reactive({
-	first_name: '',
-	last_name: '',
-	username: '',
-	domain: '',
-	email: '',
-	password: '',
+  first_name: '',
+  last_name: '',
+  username: '',
+  domain: '',
+  email: '',
+  password: '',
 })
 
 createResource({
-	url: 'suite.mail.api.get_signup_settings',
-	auto: true,
-	onSuccess: (data) => {
-		if (!Number(data.allow_signup)) {
-			router.push({ name: 'mail-login' })
-		}
-	},
+  url: 'suite.mail.api.get_signup_settings',
+  auto: true,
+  onSuccess: data => {
+    if (!Number(data.allow_signup)) {
+      router.push({ name: 'mail-login' })
+    }
+  },
 })
 
 const signupDomains = createResource({
-	url: 'suite.mail.api.get_signup_domains',
-	auto: true,
-	onSuccess: (data) => (user.domain = data[0]),
+  url: 'suite.mail.api.get_signup_domains',
+  auto: true,
+  onSuccess: data => (user.domain = data[0]),
 })
 
 const validateUsername = createResource({
-	url: 'suite.mail.api.account.validate_email_assigned',
-	makeParams: () => ({ email: `${user.username}@${user.domain}` }),
-	onSuccess: () => {
-		usernameVerified.value = true
-		router.push({ query: { step: '2' } })
-	},
+  url: 'suite.mail.api.account.validate_email_assigned',
+  makeParams: () => ({ email: `${user.username}@${user.domain}` }),
+  onSuccess: () => {
+    usernameVerified.value = true
+    router.push({ query: { step: '2' } })
+  },
 })
 
 const signup = createResource({
-	url: 'suite.mail.api.account.signup',
-	makeParams: () => ({ ...user }),
-	onSuccess: () => login.submit({ usr: `${user.username}@${user.domain}`, pwd: user.password }),
+  url: 'suite.mail.api.account.signup',
+  makeParams: () => ({ ...user }),
+  onSuccess: () => login.submit({ usr: `${user.username}@${user.domain}`, pwd: user.password }),
 })
 
 const next = () => {
-	if (route.query.step === '1') validateUsername.submit()
-	else if (route.query.step === '3') signup.submit()
-	else router.push({ query: { step: Number(route.query.step || 0) + 1 } })
+  if (route.query.step === '1') validateUsername.submit()
+  else if (route.query.step === '3') signup.submit()
+  else router.push({ query: { step: Number(route.query.step || 0) + 1 } })
 }
 
 watch(
-	() => route.query.step,
-	(step) => {
-		switch (step) {
-			case '3':
-				if (!user.email) {
-					router.replace({ query: { step: '2' } })
-					break
-				}
-			// fallthrough
-			case '2':
-				if (!usernameVerified.value) {
-					router.replace({ query: { step: '1' } })
-					break
-				}
-			// fallthrough
-			case '1':
-				if (!user.first_name) {
-					router.replace({ query: {} })
-				}
-				break
-			default:
-				router.replace({ query: {} })
-		}
-	},
-	{ immediate: true },
+  () => route.query.step,
+  step => {
+    switch (step) {
+      case '3':
+        if (!user.email) {
+          router.replace({ query: { step: '2' } })
+          break
+        }
+      // fallthrough
+      case '2':
+        if (!usernameVerified.value) {
+          router.replace({ query: { step: '1' } })
+          break
+        }
+      // fallthrough
+      case '1':
+        if (!user.first_name) {
+          router.replace({ query: {} })
+        }
+        break
+      default:
+        router.replace({ query: {} })
+    }
+  },
+  { immediate: true }
 )
 </script>

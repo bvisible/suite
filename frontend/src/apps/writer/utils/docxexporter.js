@@ -81,7 +81,7 @@ function cssColorToDocx(c) {
   if (/^[0-9a-f]{3}$/i.test(hex))
     return hex
       .split('')
-      .map((ch) => ch + ch)
+      .map(ch => ch + ch)
       .join('')
       .toUpperCase()
 }
@@ -147,7 +147,7 @@ function inlineToRuns(node, inherited = {}) {
   }
 
   const runs = []
-  node.childNodes.forEach((child) => {
+  node.childNodes.forEach(child => {
     if (child.nodeName === 'BR') {
       runs.push(new TextRun({ ...next, text: '', break: 1 }))
     } else {
@@ -159,7 +159,7 @@ function inlineToRuns(node, inherited = {}) {
 
 function paragraphFromP(p, defaultFont) {
   const runs = []
-  p.childNodes.forEach((n) => runs.push(...inlineToRuns(n, { font: defaultFont })))
+  p.childNodes.forEach(n => runs.push(...inlineToRuns(n, { font: defaultFont })))
   if (!runs.length) runs.push(new TextRun({ text: '\u00A0', font: defaultFont }))
 
   const alignMap = {
@@ -191,11 +191,11 @@ function paragraphsFromUL(ul, defaultFont) {
   const isTask = ul.getAttribute('data-type') === 'taskList'
   const out = []
 
-  ul.querySelectorAll(':scope > li').forEach((li) => {
+  ul.querySelectorAll(':scope > li').forEach(li => {
     const checked = (li.getAttribute('data-checked') || '').toLowerCase() === 'true'
 
     const runs = []
-    const collect = (n) => {
+    const collect = n => {
       if (n.nodeName === 'P') {
         runs.push(...inlineToRuns(n, { font: defaultFont }))
       } else {
@@ -214,7 +214,7 @@ function paragraphsFromUL(ul, defaultFont) {
             new TextRun({ text: checkbox, font: defaultFont, size: 28 }),
             ...(runs.length ? runs : [new TextRun({ text: '', font: defaultFont })]),
           ],
-        }),
+        })
       )
     } else {
       out.push(
@@ -222,7 +222,7 @@ function paragraphsFromUL(ul, defaultFont) {
           spacing: { before: 120, after: 120 },
           children: runs.length ? runs : [new TextRun({ text: '', font: defaultFont })],
           numbering: { reference: 'bullets', level: 0 },
-        }),
+        })
       )
     }
   })
@@ -231,9 +231,9 @@ function paragraphsFromUL(ul, defaultFont) {
 
 function paragraphsFromOL(ol, defaultFont) {
   const out = []
-  ol.querySelectorAll(':scope > li').forEach((li) => {
+  ol.querySelectorAll(':scope > li').forEach(li => {
     const runs = []
-    const collect = (n) => {
+    const collect = n => {
       if (n.nodeName === 'P') {
         runs.push(...inlineToRuns(n, { font: defaultFont }))
       } else {
@@ -246,7 +246,7 @@ function paragraphsFromOL(ol, defaultFont) {
         spacing: { before: 120, after: 120 },
         children: runs.length ? runs : [new TextRun({ text: '', font: defaultFont })],
         numbering: { reference: 'numbers', level: 0 },
-      }),
+      })
     )
   })
   return out
@@ -254,7 +254,7 @@ function paragraphsFromOL(ol, defaultFont) {
 
 function countCols(tr) {
   let c = 0
-  tr.querySelectorAll('th,td').forEach((td) => {
+  tr.querySelectorAll('th,td').forEach(td => {
     const cs = parseInt(td.getAttribute('colspan') || '1', 10)
     c += Number.isFinite(cs) && cs > 1 ? cs : 1
   })
@@ -267,29 +267,29 @@ function tableFromTABLE(tbl, defaultFont) {
 
   const trs = tbl.querySelectorAll(':scope > thead > tr, :scope > tbody > tr, :scope > tr')
   let totalCols = 0
-  trs.forEach((tr) => (totalCols = Math.max(totalCols, countCols(tr))))
+  trs.forEach(tr => (totalCols = Math.max(totalCols, countCols(tr))))
   if (!totalCols) totalCols = 1
 
   const colWidth = Math.floor(TABLE_DXA / totalCols)
   const columnWidths = Array.from({ length: totalCols }, () => colWidth)
 
   const rows = []
-  trs.forEach((tr) => {
+  trs.forEach(tr => {
     const cells = []
-    tr.querySelectorAll('th,td').forEach((cell) => {
+    tr.querySelectorAll('th,td').forEach(cell => {
       const isHeader = cell.tagName.toLowerCase() === 'th'
 
       const paras = []
-      const pushP = (n) => {
+      const pushP = n => {
         if (n.nodeName === 'P') {
           const runs = inlineToRuns(
             n,
-            isHeader ? { bold: true, font: defaultFont } : { font: defaultFont },
+            isHeader ? { bold: true, font: defaultFont } : { font: defaultFont }
           )
           paras.push(
             new Paragraph({
               children: runs.length ? runs : [new TextRun({ text: '\u00A0', font: defaultFont })],
-            }),
+            })
           )
         } else {
           n.childNodes?.forEach(pushP)
@@ -300,7 +300,7 @@ function tableFromTABLE(tbl, defaultFont) {
         paras.push(
           new Paragraph({
             children: [new TextRun({ text: '\u00A0', font: defaultFont })],
-          }),
+          })
         )
 
       const borders = {
@@ -322,7 +322,7 @@ function tableFromTABLE(tbl, defaultFont) {
           },
           verticalAlign: VerticalAlign.CENTER,
           shading: isHeader ? { fill: headerFill } : undefined,
-        }),
+        })
       )
     })
     rows.push(new TableRow({ children: cells }))
@@ -344,7 +344,7 @@ function paragraphsFromBlockquote(el, defaultFont) {
   const openQuote = '\u201C'
   const closeQuote = '\u201D'
 
-  const collectP = (n) => {
+  const collectP = n => {
     if (n.nodeName === 'P') {
       const runs = inlineToRuns(n, { italics: true, font: defaultFont })
       const children = isFirst
@@ -366,7 +366,7 @@ function paragraphsFromBlockquote(el, defaultFont) {
           indent: { left: 720 },
           spacing: { before: 240, after: 240 },
           children: lastChildren,
-        }),
+        })
       )
       isFirst = false
     } else if (n.nodeType === Node.TEXT_NODE && n.nodeValue?.trim()) {
@@ -385,7 +385,7 @@ function paragraphsFromBlockquote(el, defaultFont) {
           indent: { left: 720 },
           spacing: { before: 240, after: 240 },
           children: lastChildren,
-        }),
+        })
       )
       isFirst = false
     } else {
@@ -416,7 +416,7 @@ function paragraphsFromBlockquote(el, defaultFont) {
           new TextRun({ text: '\u00A0', italics: true, font: defaultFont }),
           new TextRun({ text: closeQuote, italics: true, font: defaultFont }),
         ],
-      }),
+      })
     )
   }
 
@@ -554,27 +554,27 @@ export async function downloadDocxFromHtml(html, filename, settings = {}) {
     else if (tag === 'blockquote') children.push(...paragraphsFromBlockquote(el, defaultFont))
     else if (tag === 'pre') {
       const runs = []
-      el.childNodes.forEach((n) => runs.push(...inlineToRuns(n, { font: defaultFont })))
+      el.childNodes.forEach(n => runs.push(...inlineToRuns(n, { font: defaultFont })))
       children.push(
         new Paragraph({
           spacing: { before: 120, after: 120 },
           shading: { fill: '0D0D0D' },
           children: runs.length ? runs : [new TextRun({ text: '', font: defaultFont })],
-        }),
+        })
       )
     } else if (tag === 'table') {
       children.push(
         new Paragraph({
           children: [new TextRun({ text: '', font: defaultFont })],
           spacing: { before: TABLE_SPACE_BEFORE },
-        }),
+        })
       )
       children.push(tableFromTABLE(el, defaultFont))
       children.push(
         new Paragraph({
           children: [new TextRun({ text: '', font: defaultFont })],
           spacing: { after: TABLE_SPACE_AFTER },
-        }),
+        })
       )
     } else if (tag === 'img') {
       const src = el.getAttribute('src')

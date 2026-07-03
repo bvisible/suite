@@ -34,24 +34,24 @@ const show = defineModel<boolean>()
 const emit = defineEmits(['reloadMails', 'sendMail', 'discardMail'])
 
 const close = () => {
-	if (show.value) {
-		show.value = false
-		emit('reloadMails')
-	}
+  if (show.value) {
+    show.value = false
+    emit('reloadMails')
+  }
 }
 
-watch(show, (val) => {
-	if (val) history.pushState(null, '')
+watch(show, val => {
+  if (val) history.pushState(null, '')
 })
 
 onMounted(() => window.addEventListener('popstate', close))
 onUnmounted(() => window.removeEventListener('popstate', close))
 
 const ACTIONS = [
-	{
-		label: __('Discard'),
-		onClick: () => emit('discardMail'),
-		icon: Trash2,
-	},
+  {
+    label: __('Discard'),
+    onClick: () => emit('discardMail'),
+    icon: Trash2,
+  },
 ]
 </script>

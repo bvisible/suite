@@ -54,33 +54,33 @@ const route = useRoute()
 const message = ref('')
 
 interface MimeField {
-	label: string
-	value: string
+  label: string
+  value: string
 }
 
 interface Mime {
-	message?: string
-	message_id: MimeField
-	created_at: MimeField
-	subject: MimeField
-	from: MimeField
-	to: MimeField
-	cc?: MimeField
-	bcc?: MimeField
-	spf?: MimeField
-	dkim?: MimeField
-	dmarc?: MimeField
+  message?: string
+  message_id: MimeField
+  created_at: MimeField
+  subject: MimeField
+  from: MimeField
+  to: MimeField
+  cc?: MimeField
+  bcc?: MimeField
+  spf?: MimeField
+  dkim?: MimeField
+  dmarc?: MimeField
 }
 
 const mime = createResource({
-	url: 'suite.mail.api.mail.get_mime_message',
-	auto: true,
-	makeParams: () => ({ name: route.params.id }),
-	transform: (data: Mime) => {
-		message.value = data.message as string
-		delete data.message
-		if (data.cc && !data.cc.value) delete data.cc
-		if (data.bcc && !data.bcc.value) delete data.bcc
-	},
+  url: 'suite.mail.api.mail.get_mime_message',
+  auto: true,
+  makeParams: () => ({ name: route.params.id }),
+  transform: (data: Mime) => {
+    message.value = data.message as string
+    delete data.message
+    if (data.cc && !data.cc.value) delete data.cc
+    if (data.bcc && !data.bcc.value) delete data.bcc
+  },
 })
 </script>

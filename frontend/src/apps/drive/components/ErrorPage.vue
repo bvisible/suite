@@ -43,15 +43,11 @@ const isLoggedIn = computed(() => useSessionStore().isLoggedIn)
 
 const goToLogin = () => {
   window.location.href =
-    "/login?redirect-to=" +
-    encodeURIComponent("/drive" + router.currentRoute.value.path)
+    '/login?redirect-to=' + encodeURIComponent('/drive' + router.currentRoute.value.path)
 }
 
 watchEffect(() => {
-  if (
-    props.error.exc_type === 'PermissionError' &&
-    !isLoggedIn.value
-  ) {
+  if (props.error.exc_type === 'PermissionError' && !isLoggedIn.value) {
     goToLogin()
   }
   setPageBreadcrumbs([])

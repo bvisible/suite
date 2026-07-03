@@ -52,7 +52,7 @@ function isDisabled(option: SimpleOption): boolean {
 function getIcon(option: SimpleOption): string | Component | undefined {
   return typeof option === 'object' ? option.icon : undefined
 }
-const RenderIcon: FunctionalComponent<{ icon?: string | Component }> = (props) => {
+const RenderIcon: FunctionalComponent<{ icon?: string | Component }> = props => {
   if (!props.icon) return null
   const iconContent =
     typeof props.icon === 'string' ? h('span', props.icon) : h(props.icon, { class: 'w-4 h-4' })
@@ -95,16 +95,16 @@ const selected = defineModel<Value>()
 const selectedOption = computed<SimpleOption | SimpleOption[]>(() => {
   if (!selected.value) return null
   if (props.multiple) {
-    return selected.value.map((k) => flatOptions.value.find((opt) => getValue(opt) === k))
+    return selected.value.map(k => flatOptions.value.find(opt => getValue(opt) === k))
   }
-  return flatOptions.value.find((opt) => getValue(opt) === selected.value)
+  return flatOptions.value.find(opt => getValue(opt) === selected.value)
 })
 const selectedOptionIcon = computed(() =>
   selectedOption.value && !props.multiple ? getIcon(selectedOption.value) : null
 )
 
 const flatOptions = computed<SimpleOption[]>(() =>
-  props.options.flatMap((opt) => (isGroup(opt) ? opt.options : opt))
+  props.options.flatMap(opt => (isGroup(opt) ? opt.options : opt))
 )
 
 const labelFunction = (val: Value, selected = false) => {

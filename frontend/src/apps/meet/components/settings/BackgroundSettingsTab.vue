@@ -107,526 +107,506 @@
 </template>
 
 <script setup lang="ts">
-import { toast } from "frappe-ui";
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import { useBackgroundEffects } from "../../composables/useBackgroundEffects";
-import { useMeetingContext } from "../../composables/useMeetingContext";
+import { toast } from 'frappe-ui'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useBackgroundEffects } from '../../composables/useBackgroundEffects'
+import { useMeetingContext } from '../../composables/useMeetingContext'
 import {
-	addCustomBackgroundImage,
-	allBackgroundOptions,
-	availableBackgroundImages,
-	backgroundBlurEnabled,
-	backgroundImageEnabled,
-	blurIntensity,
-	customBackgroundImages,
-	removeCustomBackgroundImage,
-	selectedBackgroundImage,
-	setBackgroundBlurEnabled,
-	setBackgroundImageEnabled,
-	setBlurIntensity,
-	setSelectedBackgroundImage,
-} from "../../data/backgroundEffects";
-import { selectedCameraId } from "../../data/mediaPreferences";
-import SettingsLayoutBase from "./SettingsLayoutBase.vue";
+  addCustomBackgroundImage,
+  allBackgroundOptions,
+  availableBackgroundImages,
+  backgroundBlurEnabled,
+  backgroundImageEnabled,
+  blurIntensity,
+  customBackgroundImages,
+  removeCustomBackgroundImage,
+  selectedBackgroundImage,
+  setBackgroundBlurEnabled,
+  setBackgroundImageEnabled,
+  setBlurIntensity,
+  setSelectedBackgroundImage,
+} from '../../data/backgroundEffects'
+import { selectedCameraId } from '../../data/mediaPreferences'
+import SettingsLayoutBase from './SettingsLayoutBase.vue'
 
 interface BackgroundOption {
-	name: string;
-	label: string;
-	type?: "none" | "blur";
-	url?: string | null;
-	isAddButton?: boolean;
-	isCustom?: boolean;
+  name: string
+  label: string
+  type?: 'none' | 'blur'
+  url?: string | null
+  isAddButton?: boolean
+  isCustom?: boolean
 }
 
 interface BackgroundImageOption {
-	label: string;
-	value: string;
+  label: string
+  value: string
 }
 
 const props = withDefaults(
-	defineProps<{
-		isVisible?: boolean;
-	}>(),
-	{
-		isVisible: true,
-	},
-);
+  defineProps<{
+    isVisible?: boolean
+  }>(),
+  {
+    isVisible: true,
+  }
+)
 
-const meetingContext = useMeetingContext();
-const isInMeeting = computed(() => !!meetingContext?.isInMeeting?.value);
-const processedStream = computed(() => meetingContext?.processedStream || null);
-const onBackgroundEffectsChanged = meetingContext?.onBackgroundEffectsChanged;
+const meetingContext = useMeetingContext()
+const isInMeeting = computed(() => !!meetingContext?.isInMeeting?.value)
+const processedStream = computed(() => meetingContext?.processedStream || null)
+const onBackgroundEffectsChanged = meetingContext?.onBackgroundEffectsChanged
 
 // Video preview
-const videoPreviewRef = ref<HTMLVideoElement | null>(null);
-const previewStream = ref<MediaStream | null>(null);
-const isLoadingPreview = ref(false);
-const pendingPreviewRefresh = ref(false);
-const fileInputRef = ref<HTMLInputElement | null>(null);
+const videoPreviewRef = ref<HTMLVideoElement | null>(null)
+const previewStream = ref<MediaStream | null>(null)
+const isLoadingPreview = ref(false)
+const pendingPreviewRefresh = ref(false)
+const fileInputRef = ref<HTMLInputElement | null>(null)
 let previewSession: {
-	cleanup: () => void;
-	updateOptions?: (opts: unknown) => Promise<void>;
-	stream?: MediaStream;
-} | null = null;
-let previewInputStream: MediaStream | null = null; // Raw stream feeding the preview pipeline
-let isPreviewStreamDedicated = false; // Track if preview stream is dedicated (not meeting's processed stream; needed when cam is off in meeting)
+  cleanup: () => void
+  updateOptions?: (opts: unknown) => Promise<void>
+  stream?: MediaStream
+} | null = null
+let previewInputStream: MediaStream | null = null // Raw stream feeding the preview pipeline
+let isPreviewStreamDedicated = false // Track if preview stream is dedicated (not meeting's processed stream; needed when cam is off in meeting)
 
 // Background effects
-const backgroundBlurEnabledLocal = ref(backgroundBlurEnabled.value);
-const backgroundImageEnabledLocal = ref(backgroundImageEnabled.value);
+const backgroundBlurEnabledLocal = ref(backgroundBlurEnabled.value)
+const backgroundImageEnabledLocal = ref(backgroundImageEnabled.value)
 const selectedBackgroundImageLocal = ref<BackgroundImageOption | string | null>(
-	selectedBackgroundImage.value,
-);
-const blurIntensityLocal = ref(blurIntensity.value);
+  selectedBackgroundImage.value
+)
+const blurIntensityLocal = ref(blurIntensity.value)
 
 const allBackgroundOptionsTyped = computed(
-	() => allBackgroundOptions.value as unknown as BackgroundOption[],
-);
+  () => allBackgroundOptions.value as unknown as BackgroundOption[]
+)
 
 // Background effects composable
-const { applyBackgroundEffects, stopProcessing: stopBackgroundProcessing } =
-	useBackgroundEffects();
+const { applyBackgroundEffects, stopProcessing: stopBackgroundProcessing } = useBackgroundEffects()
 
 const backgroundImageOptions = computed<BackgroundImageOption[]>(() =>
-	availableBackgroundImages.map((image) => ({
-		label: image.label,
-		value: image.name,
-	})),
-);
+  availableBackgroundImages.map(image => ({
+    label: image.label,
+    value: image.name,
+  }))
+)
 
 // Selected background option
 const selectedBackgroundOption = computed({
-	get() {
-		if (backgroundBlurEnabledLocal.value) {
-			return blurIntensityLocal.value <= 11 ? "blur-low" : "blur-high";
-		}
-		if (
-			backgroundImageEnabledLocal.value &&
-			selectedBackgroundImageLocal.value
-		) {
-			const img = selectedBackgroundImageLocal.value;
-			if (typeof img === "string") {
-				return img;
-			}
-			return img.value || img;
-		}
-		return "none";
-	},
-	set(value) {
-		if (value === "none") {
-			handleBackgroundBlurToggle(false);
-			handleBackgroundImageToggle(false);
-			return;
-		}
-		if (value === "blur-low") {
-			blurIntensityLocal.value = 9;
-			setBlurIntensity(9);
-			handleBackgroundBlurToggle(true);
-			return;
-		}
-		if (value === "blur-high") {
-			blurIntensityLocal.value = 20;
-			setBlurIntensity(20);
-			handleBackgroundBlurToggle(true);
-			return;
-		}
+  get() {
+    if (backgroundBlurEnabledLocal.value) {
+      return blurIntensityLocal.value <= 11 ? 'blur-low' : 'blur-high'
+    }
+    if (backgroundImageEnabledLocal.value && selectedBackgroundImageLocal.value) {
+      const img = selectedBackgroundImageLocal.value
+      if (typeof img === 'string') {
+        return img
+      }
+      return img.value || img
+    }
+    return 'none'
+  },
+  set(value) {
+    if (value === 'none') {
+      handleBackgroundBlurToggle(false)
+      handleBackgroundImageToggle(false)
+      return
+    }
+    if (value === 'blur-low') {
+      blurIntensityLocal.value = 9
+      setBlurIntensity(9)
+      handleBackgroundBlurToggle(true)
+      return
+    }
+    if (value === 'blur-high') {
+      blurIntensityLocal.value = 20
+      setBlurIntensity(20)
+      handleBackgroundBlurToggle(true)
+      return
+    }
 
-		const predefinedImage = backgroundImageOptions.value.find(
-			(opt) => opt.value === value,
-		);
-		if (predefinedImage) {
-			selectedBackgroundImageLocal.value = predefinedImage;
-			setSelectedBackgroundImage(predefinedImage.value);
-			handleBackgroundImageToggle(true);
-			return;
-		}
+    const predefinedImage = backgroundImageOptions.value.find(opt => opt.value === value)
+    if (predefinedImage) {
+      selectedBackgroundImageLocal.value = predefinedImage
+      setSelectedBackgroundImage(predefinedImage.value)
+      handleBackgroundImageToggle(true)
+      return
+    }
 
-		const customImage = customBackgroundImages.value.find(
-			(img) => img.name === value,
-		);
-		if (customImage) {
-			selectedBackgroundImageLocal.value = {
-				label: customImage.label,
-				value: customImage.name,
-			};
-			setSelectedBackgroundImage(customImage.name);
-			handleBackgroundImageToggle(true);
-		}
-	},
-});
+    const customImage = customBackgroundImages.value.find(img => img.name === value)
+    if (customImage) {
+      selectedBackgroundImageLocal.value = {
+        label: customImage.label,
+        value: customImage.name,
+      }
+      setSelectedBackgroundImage(customImage.name)
+      handleBackgroundImageToggle(true)
+    }
+  },
+})
 
 function handleBackgroundOptionClick(option: BackgroundOption) {
-	if (option.isAddButton) {
-		fileInputRef.value?.click();
-	} else {
-		selectedBackgroundOption.value = option.name;
-	}
+  if (option.isAddButton) {
+    fileInputRef.value?.click()
+  } else {
+    selectedBackgroundOption.value = option.name
+  }
 }
 
 async function handleFileSelect(event: Event) {
-	const target = event.target as HTMLInputElement;
-	const file = target.files?.[0];
-	if (!file) return;
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
 
-	try {
-		const customImage = await addCustomBackgroundImage(file);
-		selectedBackgroundOption.value = customImage.name;
-		toast.success(`Added custom background: ${file.name}`);
-	} catch (error) {
-		console.error("Failed to add custom image:", error);
-		toast.error(error.message || "Failed to add custom background image");
-	}
+  try {
+    const customImage = await addCustomBackgroundImage(file)
+    selectedBackgroundOption.value = customImage.name
+    toast.success(`Added custom background: ${file.name}`)
+  } catch (error) {
+    console.error('Failed to add custom image:', error)
+    toast.error(error.message || 'Failed to add custom background image')
+  }
 
-	target.value = "";
+  target.value = ''
 }
 
 async function handleDeleteCustomImage(imageId: string) {
-	try {
-		await removeCustomBackgroundImage(imageId);
-		toast.success("Custom background removed");
-	} catch (error) {
-		console.error("Failed to remove custom image:", error);
-		toast.error("Failed to remove custom background");
-	}
+  try {
+    await removeCustomBackgroundImage(imageId)
+    toast.success('Custom background removed')
+  } catch (error) {
+    console.error('Failed to remove custom image:', error)
+    toast.error('Failed to remove custom background')
+  }
 }
 
 async function startVideoPreview(deviceId: string) {
-	try {
-		isLoadingPreview.value = true;
+  try {
+    isLoadingPreview.value = true
 
-		// Stop any existing processing before creating a new preview session
-		stopBackgroundProcessing();
+    // Stop any existing processing before creating a new preview session
+    stopBackgroundProcessing()
 
-		if (previewSession) {
-			previewSession.cleanup();
-			previewSession = null;
-		}
+    if (previewSession) {
+      previewSession.cleanup()
+      previewSession = null
+    }
 
-		if (previewStream.value && isPreviewStreamDedicated) {
-			for (const track of previewStream.value.getTracks()) {
-				track.stop();
-			}
-		}
+    if (previewStream.value && isPreviewStreamDedicated) {
+      for (const track of previewStream.value.getTracks()) {
+        track.stop()
+      }
+    }
 
-		if (previewInputStream) {
-			for (const track of previewInputStream.getTracks()) {
-				track.stop();
-			}
-			previewInputStream = null;
-		}
+    if (previewInputStream) {
+      for (const track of previewInputStream.getTracks()) {
+        track.stop()
+      }
+      previewInputStream = null
+    }
 
-		previewStream.value = null;
-		isPreviewStreamDedicated = false;
+    previewStream.value = null
+    isPreviewStreamDedicated = false
 
-		// If in a meeting, don't create a new stream
-		// Reuse processedStream to avoid breaking
-		if (isInMeeting.value && processedStream.value) {
-			previewStream.value = processedStream.value;
-			if (videoPreviewRef.value) {
-				videoPreviewRef.value.srcObject = previewStream.value;
-			}
-			isLoadingPreview.value = false;
-			return;
-		}
+    // If in a meeting, don't create a new stream
+    // Reuse processedStream to avoid breaking
+    if (isInMeeting.value && processedStream.value) {
+      previewStream.value = processedStream.value
+      if (videoPreviewRef.value) {
+        videoPreviewRef.value.srcObject = previewStream.value
+      }
+      isLoadingPreview.value = false
+      return
+    }
 
-		// This is a dedicated stream that we created
-		// for when we don't have a cam on in a meeting
-		isPreviewStreamDedicated = true;
+    // This is a dedicated stream that we created
+    // for when we don't have a cam on in a meeting
+    isPreviewStreamDedicated = true
 
-		const constraints: MediaStreamConstraints = {
-			video: deviceId ? { deviceId: { exact: deviceId } } : true,
-			audio: false,
-		};
+    const constraints: MediaStreamConstraints = {
+      video: deviceId ? { deviceId: { exact: deviceId } } : true,
+      audio: false,
+    }
 
-		const rawStream = await navigator.mediaDevices.getUserMedia(constraints);
-		previewInputStream = rawStream;
+    const rawStream = await navigator.mediaDevices.getUserMedia(constraints)
+    previewInputStream = rawStream
 
-		const hasBackgroundEffects =
-			backgroundBlurEnabledLocal.value || backgroundImageEnabledLocal.value;
+    const hasBackgroundEffects =
+      backgroundBlurEnabledLocal.value || backgroundImageEnabledLocal.value
 
-		if (hasBackgroundEffects) {
-			try {
-				previewSession = await applyBackgroundEffects(rawStream, {
-					backgroundBlurEnabled: backgroundBlurEnabledLocal.value,
-					backgroundImageEnabled: backgroundImageEnabledLocal.value,
-					selectedBackgroundImage: (() => {
-						const img = selectedBackgroundImageLocal.value;
-						if (typeof img === "string") return img;
-						if (img && typeof img === "object") return img.value;
-						return null;
-					})(),
-					blurIntensity: blurIntensityLocal.value,
-				});
-				previewStream.value = previewSession.stream;
-			} catch (error) {
-				console.error("Failed to apply background effects to preview:", error);
-				previewSession = null;
-				previewStream.value = rawStream;
-			}
-		} else {
-			previewStream.value = rawStream;
-		}
+    if (hasBackgroundEffects) {
+      try {
+        previewSession = await applyBackgroundEffects(rawStream, {
+          backgroundBlurEnabled: backgroundBlurEnabledLocal.value,
+          backgroundImageEnabled: backgroundImageEnabledLocal.value,
+          selectedBackgroundImage: (() => {
+            const img = selectedBackgroundImageLocal.value
+            if (typeof img === 'string') return img
+            if (img && typeof img === 'object') return img.value
+            return null
+          })(),
+          blurIntensity: blurIntensityLocal.value,
+        })
+        previewStream.value = previewSession.stream
+      } catch (error) {
+        console.error('Failed to apply background effects to preview:', error)
+        previewSession = null
+        previewStream.value = rawStream
+      }
+    } else {
+      previewStream.value = rawStream
+    }
 
-		if (videoPreviewRef.value) {
-			videoPreviewRef.value.srcObject = previewStream.value;
-		}
+    if (videoPreviewRef.value) {
+      videoPreviewRef.value.srcObject = previewStream.value
+    }
 
-		isLoadingPreview.value = false;
-	} catch (error) {
-		console.error("Failed to start video preview:", error);
-		previewStream.value = null;
-		previewSession = null;
-		if (previewInputStream) {
-			for (const track of previewInputStream.getTracks()) {
-				track.stop();
-			}
-			previewInputStream = null;
-		}
-		isLoadingPreview.value = false;
-	}
+    isLoadingPreview.value = false
+  } catch (error) {
+    console.error('Failed to start video preview:', error)
+    previewStream.value = null
+    previewSession = null
+    if (previewInputStream) {
+      for (const track of previewInputStream.getTracks()) {
+        track.stop()
+      }
+      previewInputStream = null
+    }
+    isLoadingPreview.value = false
+  }
 }
 
 function stopVideoPreview() {
-	isLoadingPreview.value = false;
-	stopBackgroundProcessing();
+  isLoadingPreview.value = false
+  stopBackgroundProcessing()
 
-	if (previewSession) {
-		previewSession.cleanup();
-		previewSession = null;
-	}
+  if (previewSession) {
+    previewSession.cleanup()
+    previewSession = null
+  }
 
-	if (previewStream.value && isPreviewStreamDedicated) {
-		for (const track of previewStream.value.getTracks()) {
-			track.stop();
-		}
-		previewStream.value = null;
-		isPreviewStreamDedicated = false;
-	}
+  if (previewStream.value && isPreviewStreamDedicated) {
+    for (const track of previewStream.value.getTracks()) {
+      track.stop()
+    }
+    previewStream.value = null
+    isPreviewStreamDedicated = false
+  }
 
-	if (previewInputStream) {
-		for (const track of previewInputStream.getTracks()) {
-			track.stop();
-		}
-		previewInputStream = null;
-	}
+  if (previewInputStream) {
+    for (const track of previewInputStream.getTracks()) {
+      track.stop()
+    }
+    previewInputStream = null
+  }
 
-	if (videoPreviewRef.value) {
-		videoPreviewRef.value.srcObject = null;
-	}
+  if (videoPreviewRef.value) {
+    videoPreviewRef.value.srcObject = null
+  }
 }
 
 async function applyPreviewOptions() {
-	// the meeting logic will handle it
-	// via the localStorage watcher in useMeetingLogic
-	const shouldSkipPreviewUpdate =
-		isInMeeting.value && !isPreviewStreamDedicated;
-	if (shouldSkipPreviewUpdate) {
-		return;
-	}
+  // the meeting logic will handle it
+  // via the localStorage watcher in useMeetingLogic
+  const shouldSkipPreviewUpdate = isInMeeting.value && !isPreviewStreamDedicated
+  if (shouldSkipPreviewUpdate) {
+    return
+  }
 
-	if (!previewSession || typeof previewSession.updateOptions !== "function") {
-		if (selectedCameraId.value) {
-			await startVideoPreview(selectedCameraId.value);
-		}
-		return;
-	}
+  if (!previewSession || typeof previewSession.updateOptions !== 'function') {
+    if (selectedCameraId.value) {
+      await startVideoPreview(selectedCameraId.value)
+    }
+    return
+  }
 
-	const selectedImageValue = (() => {
-		const img = selectedBackgroundImageLocal.value;
-		if (typeof img === "string") return img;
-		if (img && typeof img === "object") return img.value;
-		return null;
-	})();
+  const selectedImageValue = (() => {
+    const img = selectedBackgroundImageLocal.value
+    if (typeof img === 'string') return img
+    if (img && typeof img === 'object') return img.value
+    return null
+  })()
 
-	try {
-		await previewSession.updateOptions({
-			backgroundBlurEnabled: backgroundBlurEnabledLocal.value,
-			backgroundImageEnabled: backgroundImageEnabledLocal.value,
-			selectedBackgroundImage: selectedImageValue,
-			blurIntensity: blurIntensityLocal.value,
-		});
-	} catch (error) {
-		console.error("Failed to update preview background options:", error);
-		if (selectedCameraId.value) {
-			await startVideoPreview(selectedCameraId.value);
-		}
-	}
+  try {
+    await previewSession.updateOptions({
+      backgroundBlurEnabled: backgroundBlurEnabledLocal.value,
+      backgroundImageEnabled: backgroundImageEnabledLocal.value,
+      selectedBackgroundImage: selectedImageValue,
+      blurIntensity: blurIntensityLocal.value,
+    })
+  } catch (error) {
+    console.error('Failed to update preview background options:', error)
+    if (selectedCameraId.value) {
+      await startVideoPreview(selectedCameraId.value)
+    }
+  }
 }
 
 function handleImageError(event: Event) {
-	// Replace broken image with a placeholder
-	const target = event.target as HTMLImageElement;
-	target.style.display = "none";
-	const parent = target.parentElement;
-	if (parent) {
-		const placeholder =
-			parent.querySelector(".image-placeholder") ||
-			document.createElement("div");
-		placeholder.className =
-			"image-placeholder absolute inset-0 bg-gray-200 flex items-center justify-center";
-		placeholder.innerHTML =
-			'<svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>';
-		if (!parent.contains(placeholder)) {
-			parent.appendChild(placeholder);
-		}
-	}
+  // Replace broken image with a placeholder
+  const target = event.target as HTMLImageElement
+  target.style.display = 'none'
+  const parent = target.parentElement
+  if (parent) {
+    const placeholder = parent.querySelector('.image-placeholder') || document.createElement('div')
+    placeholder.className =
+      'image-placeholder absolute inset-0 bg-gray-200 flex items-center justify-center'
+    placeholder.innerHTML =
+      '<svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>'
+    if (!parent.contains(placeholder)) {
+      parent.appendChild(placeholder)
+    }
+  }
 }
 
 function handleBackgroundBlurToggle(enabled: boolean) {
-	backgroundBlurEnabledLocal.value = enabled;
+  backgroundBlurEnabledLocal.value = enabled
 
-	if (enabled && backgroundImageEnabledLocal.value) {
-		backgroundImageEnabledLocal.value = false;
-		setBackgroundImageEnabled(false);
-	}
+  if (enabled && backgroundImageEnabledLocal.value) {
+    backgroundImageEnabledLocal.value = false
+    setBackgroundImageEnabled(false)
+  }
 
-	setBackgroundBlurEnabled(enabled);
+  setBackgroundBlurEnabled(enabled)
 }
 
 function handleBackgroundImageToggle(enabled: boolean) {
-	backgroundImageEnabledLocal.value = enabled;
+  backgroundImageEnabledLocal.value = enabled
 
-	if (enabled && backgroundBlurEnabledLocal.value) {
-		backgroundBlurEnabledLocal.value = false;
-		setBackgroundBlurEnabled(false);
-	}
+  if (enabled && backgroundBlurEnabledLocal.value) {
+    backgroundBlurEnabledLocal.value = false
+    setBackgroundBlurEnabled(false)
+  }
 
-	setBackgroundImageEnabled(enabled);
+  setBackgroundImageEnabled(enabled)
 
-	// Auto-select first image if enabling and none selected
-	if (
-		enabled &&
-		!selectedBackgroundImageLocal.value &&
-		availableBackgroundImages.length > 0
-	) {
-		const firstImage = availableBackgroundImages[0];
-		const firstOption = backgroundImageOptions.value.find(
-			(option) => option.value === firstImage.name,
-		);
-		selectedBackgroundImageLocal.value = firstOption || null;
-		setSelectedBackgroundImage(firstImage.name);
-	}
+  // Auto-select first image if enabling and none selected
+  if (enabled && !selectedBackgroundImageLocal.value && availableBackgroundImages.length > 0) {
+    const firstImage = availableBackgroundImages[0]
+    const firstOption = backgroundImageOptions.value.find(
+      option => option.value === firstImage.name
+    )
+    selectedBackgroundImageLocal.value = firstOption || null
+    setSelectedBackgroundImage(firstImage.name)
+  }
 }
 
 // Watch for background effects changes to update preview
 watch(
-	[
-		backgroundBlurEnabledLocal,
-		backgroundImageEnabledLocal,
-		selectedBackgroundImageLocal,
-		blurIntensityLocal,
-	],
-	() => {
-		const shouldUpdateMeeting =
-			isInMeeting.value && typeof onBackgroundEffectsChanged === "function";
-		const shouldUpdatePreview =
-			!isInMeeting.value || isPreviewStreamDedicated || !processedStream.value;
+  [
+    backgroundBlurEnabledLocal,
+    backgroundImageEnabledLocal,
+    selectedBackgroundImageLocal,
+    blurIntensityLocal,
+  ],
+  () => {
+    const shouldUpdateMeeting =
+      isInMeeting.value && typeof onBackgroundEffectsChanged === 'function'
+    const shouldUpdatePreview =
+      !isInMeeting.value || isPreviewStreamDedicated || !processedStream.value
 
-		if (shouldUpdateMeeting) {
-			onBackgroundEffectsChanged();
-		}
+    if (shouldUpdateMeeting) {
+      onBackgroundEffectsChanged()
+    }
 
-		if (!shouldUpdatePreview) {
-			return;
-		}
+    if (!shouldUpdatePreview) {
+      return
+    }
 
-		if (isLoadingPreview.value) {
-			pendingPreviewRefresh.value = true;
-			return;
-		}
+    if (isLoadingPreview.value) {
+      pendingPreviewRefresh.value = true
+      return
+    }
 
-		void applyPreviewOptions();
-	},
-);
+    void applyPreviewOptions()
+  }
+)
 
-watch(isLoadingPreview, (loading) => {
-	if (!loading && pendingPreviewRefresh.value) {
-		pendingPreviewRefresh.value = false;
-		void applyPreviewOptions();
-	}
-});
+watch(isLoadingPreview, loading => {
+  if (!loading && pendingPreviewRefresh.value) {
+    pendingPreviewRefresh.value = false
+    void applyPreviewOptions()
+  }
+})
 
-watch(backgroundBlurEnabled, (newVal) => {
-	backgroundBlurEnabledLocal.value = newVal;
-});
+watch(backgroundBlurEnabled, newVal => {
+  backgroundBlurEnabledLocal.value = newVal
+})
 
-watch(backgroundImageEnabled, (newVal) => {
-	backgroundImageEnabledLocal.value = newVal;
-});
+watch(backgroundImageEnabled, newVal => {
+  backgroundImageEnabledLocal.value = newVal
+})
 
-watch(selectedBackgroundImage, (newVal) => {
-	// for autocomplete
-	const matchingOption = backgroundImageOptions.value.find(
-		(option) => option.value === newVal,
-	);
+watch(selectedBackgroundImage, newVal => {
+  // for autocomplete
+  const matchingOption = backgroundImageOptions.value.find(option => option.value === newVal)
 
-	if (matchingOption) {
-		selectedBackgroundImageLocal.value = matchingOption;
-	} else if (newVal) {
-		// if custom image, create a local option object
-		const customImage = customBackgroundImages.value.find(
-			(img) => img.name === newVal,
-		);
-		if (customImage) {
-			selectedBackgroundImageLocal.value = {
-				label: customImage.label,
-				value: customImage.name,
-			};
-		} else {
-			// no custom image found
-			selectedBackgroundImageLocal.value = null;
-		}
-	} else {
-		// No selection
-		selectedBackgroundImageLocal.value = null;
-	}
-});
+  if (matchingOption) {
+    selectedBackgroundImageLocal.value = matchingOption
+  } else if (newVal) {
+    // if custom image, create a local option object
+    const customImage = customBackgroundImages.value.find(img => img.name === newVal)
+    if (customImage) {
+      selectedBackgroundImageLocal.value = {
+        label: customImage.label,
+        value: customImage.name,
+      }
+    } else {
+      // no custom image found
+      selectedBackgroundImageLocal.value = null
+    }
+  } else {
+    // No selection
+    selectedBackgroundImageLocal.value = null
+  }
+})
 
-watch(selectedBackgroundImageLocal, (newImageOption) => {
-	const imageValue = (() => {
-		if (typeof newImageOption === "string") return newImageOption;
-		if (newImageOption && typeof newImageOption === "object")
-			return newImageOption.value;
-		return "";
-	})();
-	if (imageValue && imageValue !== selectedBackgroundImage.value) {
-		setSelectedBackgroundImage(imageValue);
-		setBackgroundImageEnabled(true);
-	} else if (
-		!imageValue &&
-		selectedBackgroundImage.value &&
-		!selectedBackgroundImage.value.startsWith("custom_")
-	) {
-		setBackgroundImageEnabled(false);
-		setSelectedBackgroundImage("");
-	}
-});
+watch(selectedBackgroundImageLocal, newImageOption => {
+  const imageValue = (() => {
+    if (typeof newImageOption === 'string') return newImageOption
+    if (newImageOption && typeof newImageOption === 'object') return newImageOption.value
+    return ''
+  })()
+  if (imageValue && imageValue !== selectedBackgroundImage.value) {
+    setSelectedBackgroundImage(imageValue)
+    setBackgroundImageEnabled(true)
+  } else if (
+    !imageValue &&
+    selectedBackgroundImage.value &&
+    !selectedBackgroundImage.value.startsWith('custom_')
+  ) {
+    setBackgroundImageEnabled(false)
+    setSelectedBackgroundImage('')
+  }
+})
 
-watch(processedStream, (newStream) => {
-	if (isInMeeting.value && newStream && videoPreviewRef.value) {
-		previewStream.value = newStream;
-		videoPreviewRef.value.srcObject = newStream;
-	}
-});
+watch(processedStream, newStream => {
+  if (isInMeeting.value && newStream && videoPreviewRef.value) {
+    previewStream.value = newStream
+    videoPreviewRef.value.srcObject = newStream
+  }
+})
 
 onMounted(() => {
-	if (selectedCameraId.value) {
-		startVideoPreview(selectedCameraId.value);
-	}
-});
+  if (selectedCameraId.value) {
+    startVideoPreview(selectedCameraId.value)
+  }
+})
 
 onUnmounted(() => {
-	stopVideoPreview();
-	stopBackgroundProcessing();
-});
+  stopVideoPreview()
+  stopBackgroundProcessing()
+})
 
 watch(
-	() => props.isVisible,
-	(isVisible) => {
-		if (!isVisible) {
-			stopVideoPreview();
-			stopBackgroundProcessing();
-		}
-	},
-);
+  () => props.isVisible,
+  isVisible => {
+    if (!isVisible) {
+      stopVideoPreview()
+      stopBackgroundProcessing()
+    }
+  }
+)
 </script>

@@ -49,15 +49,15 @@ const firstName = ref(user.data?.first_name)
 const lastName = ref(user.data?.last_name)
 
 const setName = createResource({
-	url: 'frappe.client.set_value',
-	makeParams: () => ({
-		doctype: 'User',
-		name: user.data?.name,
-		fieldname: { first_name: firstName.value, last_name: lastName.value },
-	}),
-	onSuccess: () => {
-		raiseToast(__('Profile updated.'))
-		user.reload()
-	},
+  url: 'frappe.client.set_value',
+  makeParams: () => ({
+    doctype: 'User',
+    name: user.data?.name,
+    fieldname: { first_name: firstName.value, last_name: lastName.value },
+  }),
+  onSuccess: () => {
+    raiseToast(__('Profile updated.'))
+    user.reload()
+  },
 })
 </script>

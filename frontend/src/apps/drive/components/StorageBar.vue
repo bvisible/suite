@@ -62,7 +62,7 @@ const route = useRoute()
 const team = computed(() => route.params.team)
 watch(
   team,
-  (val) =>
+  val =>
     storageBar.fetch({
       team: val || '',
       entity_name: route.params.entityName || '',

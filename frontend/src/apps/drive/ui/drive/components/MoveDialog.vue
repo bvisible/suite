@@ -268,9 +268,7 @@ const tree = reactive({
 
 // State variables
 const selected = ref('')
-const breadcrumbs = ref([
-  { name: '', file_name: tabIndex.value === 0 ? 'Home' : 'Team' },
-])
+const breadcrumbs = ref([{ name: '', file_name: tabIndex.value === 0 ? 'Home' : 'Team' }])
 
 const tabs = [
   {
@@ -289,7 +287,7 @@ const tabs = [
 
 const folderContents = createResource({
   url: 'suite.drive.api.list.files',
-  makeParams: (params) => ({
+  makeParams: params => ({
     ...params,
     team: chosenTeam.value,
     file_kinds: '["Folder"]',
@@ -298,9 +296,9 @@ const folderContents = createResource({
 
 const fetchFolderContents = (tree, params = {}, nested = false) => {
   folderContents.fetch(params, {
-    onSuccess: (data) => {
+    onSuccess: data => {
       tree.children = []
-      data.forEach((item) => {
+      data.forEach(item => {
         const node = reactive({
           ...item,
           label: item.file_name,
@@ -309,12 +307,7 @@ const fetchFolderContents = (tree, params = {}, nested = false) => {
         })
         node.isCollapsed = true
         tree.children.push(node)
-        if (!nested)
-          fetchFolderContents(
-            node,
-            { ...params, entity_name: node.value },
-            true,
-          )
+        if (!nested) fetchFolderContents(node, { ...params, entity_name: node.value }, true)
       })
       tree.loading = false
     },
@@ -326,7 +319,7 @@ const selectedPerms = createResource({
   makeParams: () => ({
     entity_name: selected.value,
   }),
-  onSuccess: (data) => {
+  onSuccess: data => {
     const team = getTeams.data[data.team]
     const first = [
       {
@@ -343,8 +336,7 @@ watch(
   ([newValue, team], [prev, _]) => {
     selected.value = ''
     tree.loading = true
-    if ((newValue === 1 && !team) || (newValue === 0 && prev == newValue))
-      return
+    if ((newValue === 1 && !team) || (newValue === 0 && prev == newValue)) return
     tree.children = []
     switch (newValue) {
       case 0:
@@ -353,9 +345,7 @@ watch(
         fetchFolderContents(tree)
         break
       case 1:
-        breadcrumbs.value = [
-          { name: '', file_name: getTeams.data[team].title },
-        ]
+        breadcrumbs.value = [{ name: '', file_name: getTeams.data[team].title }]
         fetchFolderContents(tree)
         break
       case 2:
@@ -366,7 +356,7 @@ watch(
         break
     }
   },
-  { immediate: true },
+  { immediate: true }
 )
 
 // Breadcrumb logic
@@ -379,7 +369,7 @@ const slicedBreadcrumbs = computed(() => {
 
 const dropDownBreadcrumbs = computed(() => {
   const allExceptLastTwo = breadcrumbs.value.slice(0, -3)
-  return allExceptLastTwo.map((item) => {
+  return allExceptLastTwo.map(item => {
     return {
       ...item,
       icon: null,
@@ -432,7 +422,7 @@ function openEntity(node) {
 }
 
 function closeEntity(name) {
-  const index = breadcrumbs.value.findIndex((obj) => obj.name === name)
+  const index = breadcrumbs.value.findIndex(obj => obj.name === name)
   if (breadcrumbs.value.length > 1 && index !== breadcrumbs.value.length - 1) {
     breadcrumbs.value = breadcrumbs.value.slice(0, index + 1)
     selected.value = breadcrumbs.value[breadcrumbs.value.length - 1].name
@@ -446,7 +436,7 @@ function closeEntity(name) {
 const moveFile = async () => {
   emit('success')
   await move.submit({
-    entity_names: props.entities.map((obj) => obj.name),
+    entity_names: props.entities.map(obj => obj.name),
     new_parent: selected.value,
     team: chosenTeam.value,
   })

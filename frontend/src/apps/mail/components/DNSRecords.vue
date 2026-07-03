@@ -38,17 +38,17 @@ import { Badge, ListHeader, ListRow, ListRowItem, ListRows, ListView, Tooltip } 
 import { copyToClipBoard } from '@/apps/mail/utils'
 
 const { title, description, records } = defineProps<{
-	title: string
-	description: string
-	records: Record<string, string>[]
-	badgeLabel?: string
-	badgeTheme?: 'green' | 'red' | 'gray' | 'orange' | 'blue'
+  title: string
+  description: string
+  records: Record<string, string>[]
+  badgeLabel?: string
+  badgeTheme?: 'green' | 'red' | 'gray' | 'orange' | 'blue'
 }>()
 
 const LIST_COLUMNS = [
-	{ label: __('Type'), key: 'type', width: '12%' },
-	{ label: __('Hostname'), key: 'name', width: '24%' },
-	{ label: __('TTL (Recommended)'), key: 'ttl', width: '14%' },
-	{ label: __('Value'), key: 'value', width: '50%' },
+  { label: __('Type'), key: 'type', width: '12%' },
+  { label: __('Hostname'), key: 'name', width: '24%' },
+  { label: __('TTL (Recommended)'), key: 'ttl', width: '14%' },
+  { label: __('Value'), key: 'value', width: '50%' },
 ]
 </script>

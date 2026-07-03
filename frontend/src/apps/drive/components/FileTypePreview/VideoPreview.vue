@@ -40,7 +40,7 @@ const type = ref(
 )
 const mediaRef = ref('')
 
-const handleMediaReady = (event) => {
+const handleMediaReady = event => {
   mediaRef.value = event.target
   if (mediaRef.value.readyState === 1) {
     loading.value = false
@@ -49,7 +49,7 @@ const handleMediaReady = (event) => {
 
 watch(
   () => props.previewEntity,
-  (newValue) => {
+  newValue => {
     loading.value = true
     src.value = `/api/method/suite.drive.api.files.stream_file_content?entity_name=${newValue.name}`
     type.value = newValue.mime_type

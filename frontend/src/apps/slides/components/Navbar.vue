@@ -50,11 +50,11 @@ import { ArrowLeft, Palette, Plus, Copy, Trash, Download } from 'lucide-vue-next
 import slidesLogo from '@/apps/slides/assets/slides-logo.svg'
 
 const props = defineProps({
-	showNavbarDropdown: {
-		type: Boolean,
-		default: false,
-	},
-	primaryButton: Object,
+  showNavbarDropdown: {
+    type: Boolean,
+    default: false,
+  },
+  primaryButton: Object,
 })
 
 const emit = defineEmits(['performDropdownAction'])
@@ -62,66 +62,66 @@ const emit = defineEmits(['performDropdownAction'])
 const router = useRouter()
 
 const getContextMenuOptions = () => {
-	return [
-		{
-			group: '',
-			options: [
-				{
-					label: 'Back to Home',
-					icon: h(ArrowLeft, { class: 'stroke-[1.5] !size-3.5' }),
-					onClick: () => {
-						router.replace({
-							name: 'slides-home',
-						})
-					},
-				},
-			],
-		},
-		{
-			group: 'Presentation',
-			options: [
-				{
-					label: 'New',
-					icon: h(Plus, { class: 'stroke-[1.5] !size-3.5' }),
-					onClick: () => {
-						emit('performDropdownAction', 'create')
-					},
-				},
-				{
-					label: 'Duplicate',
-					icon: h(Copy, { class: 'stroke-[1.5] !size-3.5' }),
-					onClick: () => {
-						emit('performDropdownAction', 'duplicate')
-					},
-				},
-				{
-					label: 'Delete',
-					icon: h(Trash, { class: 'stroke-[1.5] !size-3.5' }),
-					onClick: () => {
-						emit('performDropdownAction', 'delete')
-					},
-				},
-			],
-		},
-		{
-			group: '',
-			options: [
-				{
-					label: 'Export',
-					icon: h(Download, { class: 'stroke-[1.5] !size-3.5' }),
-					onClick: () => {
-						emit('performDropdownAction', 'export')
-					},
-				},
-				{
-					label: 'Template Theme',
-					icon: h(Palette, { class: 'stroke-[1.5] !size-3.5' }),
-					onClick: () => {
-						emit('performDropdownAction', 'updateTheme')
-					},
-				},
-			],
-		},
-	]
+  return [
+    {
+      group: '',
+      options: [
+        {
+          label: 'Back to Home',
+          icon: h(ArrowLeft, { class: 'stroke-[1.5] !size-3.5' }),
+          onClick: () => {
+            router.replace({
+              name: 'slides-home',
+            })
+          },
+        },
+      ],
+    },
+    {
+      group: 'Presentation',
+      options: [
+        {
+          label: 'New',
+          icon: h(Plus, { class: 'stroke-[1.5] !size-3.5' }),
+          onClick: () => {
+            emit('performDropdownAction', 'create')
+          },
+        },
+        {
+          label: 'Duplicate',
+          icon: h(Copy, { class: 'stroke-[1.5] !size-3.5' }),
+          onClick: () => {
+            emit('performDropdownAction', 'duplicate')
+          },
+        },
+        {
+          label: 'Delete',
+          icon: h(Trash, { class: 'stroke-[1.5] !size-3.5' }),
+          onClick: () => {
+            emit('performDropdownAction', 'delete')
+          },
+        },
+      ],
+    },
+    {
+      group: '',
+      options: [
+        {
+          label: 'Export',
+          icon: h(Download, { class: 'stroke-[1.5] !size-3.5' }),
+          onClick: () => {
+            emit('performDropdownAction', 'export')
+          },
+        },
+        {
+          label: 'Template Theme',
+          icon: h(Palette, { class: 'stroke-[1.5] !size-3.5' }),
+          onClick: () => {
+            emit('performDropdownAction', 'updateTheme')
+          },
+        },
+      ],
+    },
+  ]
 }
 </script>

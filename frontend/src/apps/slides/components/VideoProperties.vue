@@ -54,39 +54,39 @@ const setPropertyDeferred = inject('setPropertyDeferred')
 const hoverOption = ref(null)
 
 const playbackProperties = [
-	{
-		property: 'autoplay',
-		label: 'Autoplay',
-		icon: TvMinimalPlay,
-	},
-	{
-		property: 'loop',
-		label: 'Loop',
-		icon: Repeat2,
-	},
+  {
+    property: 'autoplay',
+    label: 'Autoplay',
+    icon: TvMinimalPlay,
+  },
+  {
+    property: 'loop',
+    label: 'Loop',
+    icon: Repeat2,
+  },
 ]
 
-const getPlaybackOptionClasses = (option) => {
-	return {
-		'cursor-pointer flex flex-col w-1/2 items-center justify-center gap-1 rounded border p-1': true,
-		'border-gray-800 bg-gray-50': hoverOption.value == option || activeElement.value[option],
-	}
+const getPlaybackOptionClasses = option => {
+  return {
+    'cursor-pointer flex flex-col w-1/2 items-center justify-center gap-1 rounded border p-1': true,
+    'border-gray-800 bg-gray-50': hoverOption.value == option || activeElement.value[option],
+  }
 }
 
-const getPlaybackTextClasses = (option) => {
-	return {
-		'text-xs': true,
-		'text-gray-800': hoverOption.value == option || activeElement.value[option],
-		'text-gray-600': hoverOption.value != option && !activeElement.value[option],
-	}
+const getPlaybackTextClasses = option => {
+  return {
+    'text-xs': true,
+    'text-gray-800': hoverOption.value == option || activeElement.value[option],
+    'text-gray-600': hoverOption.value != option && !activeElement.value[option],
+  }
 }
 
-const togglePlaybackOption = (option) => {
-	setProperty(option, !activeElement.value[option])
+const togglePlaybackOption = option => {
+  setProperty(option, !activeElement.value[option])
 }
 
 const { onStart: onPlaybackRateUpdateStart, onEnd: onPlaybackRateUpdateEnd } = setPropertyDeferred(
-	'element',
-	'playbackRate',
+  'element',
+  'playbackRate'
 )
 </script>

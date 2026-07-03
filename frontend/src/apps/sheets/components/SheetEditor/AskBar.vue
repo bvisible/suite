@@ -57,16 +57,16 @@ import { ref, onMounted, nextTick } from 'vue'
 import { Badge, Spinner } from 'frappe-ui'
 
 defineProps({
-  busy:           { type: Boolean, default: false },
-  selectionLabel: { type: String,  default: '' },
-  error:          { type: String,  default: '' },
-  answer:         { type: String,  default: '' },
+  busy: { type: Boolean, default: false },
+  selectionLabel: { type: String, default: '' },
+  error: { type: String, default: '' },
+  answer: { type: String, default: '' },
   // null, or { count } when a change has been applied and awaits Keep/Undo
-  pending:        { type: Object,  default: null },
+  pending: { type: Object, default: null },
 })
 const emit = defineEmits(['submit', 'close', 'keep', 'undo'])
 
-const text     = ref('')
+const text = ref('')
 const inputRef = ref(null)
 
 function onEnter() {

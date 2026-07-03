@@ -61,7 +61,7 @@ const inputClasses = computed(() => {
   else return `${baseClasses} rounded-l`
 })
 
-const changeValue = (e) => {
+const changeValue = e => {
   let value = parseFloat(e.target.value)
   if (value < props.rangeStart) {
     modelValue.value = props.rangeStart
@@ -72,7 +72,7 @@ const changeValue = (e) => {
   }
 }
 
-const updateValue = (change) => {
+const updateValue = change => {
   if (change == 'increment') {
     modelValue.value = Math.min(modelValue.value + props.rangeStep, props.rangeEnd)
   } else if (change == 'decrement') {

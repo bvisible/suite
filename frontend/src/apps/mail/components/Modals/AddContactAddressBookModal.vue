@@ -28,25 +28,25 @@ const { addressBooks } = userStore()
 const addressBook = ref('')
 
 const options = computed(() => ({
-	title: __('Add to Address Book'),
-	actions: [
-		{
-			label: __('Save'),
-			variant: 'solid',
-			disabled: !addressBook.value,
-			onClick: () => {
-				emit('add', {
-					address_book: addressBook.value,
-					address_book_name:
-						addressBooks.data.find((ab) => ab.name === addressBook.value)?._name || '',
-				})
-				show.value = false
-			},
-		},
-	],
+  title: __('Add to Address Book'),
+  actions: [
+    {
+      label: __('Save'),
+      variant: 'solid',
+      disabled: !addressBook.value,
+      onClick: () => {
+        emit('add', {
+          address_book: addressBook.value,
+          address_book_name:
+            addressBooks.data.find(ab => ab.name === addressBook.value)?._name || '',
+        })
+        show.value = false
+      },
+    },
+  ],
 }))
 
-watch(show, (val) => {
-	if (val) addressBook.value = ''
+watch(show, val => {
+  if (val) addressBook.value = ''
 })
 </script>

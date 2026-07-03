@@ -12,233 +12,233 @@ import VideoIcon from '@/apps/mail/components/Icons/VideoIcon.vue'
 import type { ComposeMailData, MailboxData, Recipient } from '@/apps/mail/types'
 
 export const toTitleCase = (str: string) =>
-	str
-		?.toLowerCase()
-		.split(' ')
-		.map(function (word: string) {
-			return word.charAt(0).toUpperCase().concat(word.substr(1))
-		})
-		.join(' ') || ''
+  str
+    ?.toLowerCase()
+    .split(' ')
+    .map(function (word: string) {
+      return word.charAt(0).toUpperCase().concat(word.substr(1))
+    })
+    .join(' ') || ''
 
 export function startResizing(event) {
-	const startX = event.clientX
-	const sidebar = document.getElementsByClassName('mailSidebar')[0]
-	const startWidth = sidebar.offsetWidth
+  const startX = event.clientX
+  const sidebar = document.getElementsByClassName('mailSidebar')[0]
+  const startWidth = sidebar.offsetWidth
 
-	const onMouseMove = (event) => {
-		const diff = event.clientX - startX
-		let newWidth = startWidth + diff
-		if (newWidth < 200) {
-			newWidth = 200
-		}
-		sidebar.style.width = newWidth + 'px'
-	}
+  const onMouseMove = event => {
+    const diff = event.clientX - startX
+    let newWidth = startWidth + diff
+    if (newWidth < 200) {
+      newWidth = 200
+    }
+    sidebar.style.width = newWidth + 'px'
+  }
 
-	const onMouseUp = () => {
-		document.removeEventListener('mousemove', onMouseMove)
-		document.removeEventListener('mouseup', onMouseUp)
-	}
+  const onMouseUp = () => {
+    document.removeEventListener('mousemove', onMouseMove)
+    document.removeEventListener('mouseup', onMouseUp)
+  }
 
-	document.addEventListener('mousemove', onMouseMove)
-	document.addEventListener('mouseup', onMouseUp)
+  document.addEventListener('mousemove', onMouseMove)
+  document.addEventListener('mouseup', onMouseUp)
 }
 
 export const formatBytes = (bytes: number) => {
-	if (!+bytes) return '0 Bytes'
+  if (!+bytes) return '0 Bytes'
 
-	const k = 1024
-	const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
 
-	const i = Math.floor(Math.log(bytes) / Math.log(k))
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
 
-	return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`
 }
 
 export const raiseToast = (
-	message: string,
-	type = 'success',
-	action?: { label: string; onClick: () => void },
+  message: string,
+  type = 'success',
+  action?: { label: string; onClick: () => void }
 ) => {
-	if (type === 'success') return toast.success(message, action ? { action } : undefined)
+  if (type === 'success') return toast.success(message, action ? { action } : undefined)
 
-	const div = document.createElement('div')
-	div.innerHTML = message
-	// strip html tags
-	const text =
-		div.textContent || div.innerText || __('Failed to perform action. Please try again later.')
-	toast.error(text)
+  const div = document.createElement('div')
+  div.innerHTML = message
+  // strip html tags
+  const text =
+    div.textContent || div.innerText || __('Failed to perform action. Please try again later.')
+  toast.error(text)
 }
 
 export const raisePromiseToast = (
-	action: () => Promise<unknown>,
-	loading: string,
-	success: string,
-	undoAction?: () => void,
+  action: () => Promise<unknown>,
+  loading: string,
+  success: string,
+  undoAction?: () => void
 ) => {
-	toast.removeAll()
+  toast.removeAll()
 
-	const error = __('Action failed. Please try again later.')
+  const error = __('Action failed. Please try again later.')
 
-	if (undoAction)
-		return toast.promise(action(), {
-			loading,
-			success: {
-				message: success,
-				action: { label: __('Undo'), onClick: () => undoAction() },
-			},
-			error,
-		})
+  if (undoAction)
+    return toast.promise(action(), {
+      loading,
+      success: {
+        message: success,
+        action: { label: __('Undo'), onClick: () => undoAction() },
+      },
+      error,
+    })
 
-	toast.promise(action(), { loading, success, error })
+  toast.promise(action(), { loading, success, error })
 }
 
 export const copyToClipBoard = async (text: string) => {
-	try {
-		await navigator.clipboard.writeText(text)
-		raiseToast(__('Copied to clipboard.'))
-	} catch {
-		raiseToast(__('Failed to copy.'), 'error')
-	}
+  try {
+    await navigator.clipboard.writeText(text)
+    raiseToast(__('Copied to clipboard.'))
+  } catch {
+    raiseToast(__('Failed to copy.'), 'error')
+  }
 }
 
 export const getGroupedRecipients = (
-	recipients: Recipient[],
-	formatToString = true,
-	showEmail = false,
+  recipients: Recipient[],
+  formatToString = true,
+  showEmail = false
 ) => {
-	const to = []
-	const cc = []
-	const bcc = []
+  const to = []
+  const cc = []
+  const bcc = []
 
-	for (const r of recipients) {
-		if (r.type === 'To') to.push(formatToString ? r : { ...r })
-		else if (r.type === 'Cc') cc.push(formatToString ? r : { ...r })
-		else if (r.type === 'Bcc') bcc.push(formatToString ? r : { ...r })
-	}
+  for (const r of recipients) {
+    if (r.type === 'To') to.push(formatToString ? r : { ...r })
+    else if (r.type === 'Cc') cc.push(formatToString ? r : { ...r })
+    else if (r.type === 'Bcc') bcc.push(formatToString ? r : { ...r })
+  }
 
-	if (!formatToString) return { to, cc, bcc }
+  if (!formatToString) return { to, cc, bcc }
 
-	const format = (list: Recipient[]) =>
-		list
-			?.map(({ display_name, email }) =>
-				showEmail && display_name ? `${display_name} <${email}>` : display_name || email,
-			)
-			.join(', ')
+  const format = (list: Recipient[]) =>
+    list
+      ?.map(({ display_name, email }) =>
+        showEmail && display_name ? `${display_name} <${email}>` : display_name || email
+      )
+      .join(', ')
 
-	return {
-		to: format(to as Recipient[]),
-		cc: format(cc as Recipient[]),
-		bcc: format(bcc as Recipient[]),
-	}
+  return {
+    to: format(to as Recipient[]),
+    cc: format(cc as Recipient[]),
+    bcc: format(bcc as Recipient[]),
+  }
 }
 
 export const getFormattedRecipients = (mailRecipients: Recipient[]) => {
-	const groupedRecipients = getGroupedRecipients(mailRecipients)
+  const groupedRecipients = getGroupedRecipients(mailRecipients)
 
-	let formattedRecipients = ''
-	if (groupedRecipients.to) formattedRecipients += __('To:') + ` ${groupedRecipients.to} `
-	if (groupedRecipients.cc) formattedRecipients += __('Cc:') + ` ${groupedRecipients.cc} `
-	if (groupedRecipients.bcc) formattedRecipients += __('Bcc:') + ` ${groupedRecipients.bcc} `
-	return formattedRecipients
+  let formattedRecipients = ''
+  if (groupedRecipients.to) formattedRecipients += __('To:') + ` ${groupedRecipients.to} `
+  if (groupedRecipients.cc) formattedRecipients += __('Cc:') + ` ${groupedRecipients.cc} `
+  if (groupedRecipients.bcc) formattedRecipients += __('Bcc:') + ` ${groupedRecipients.bcc} `
+  return formattedRecipients
 }
 
 export const getFormattedDate = (date: Date | string, omitDate = false) => {
-	const dateObj = dayjs(date)
-	const isCurrentYear = dateObj.year() === dayjs().year()
-	if (omitDate) return dateObj.format(isCurrentYear ? 'MMMM' : 'MMMM YYYY')
-	if (dateObj.isToday()) return __('Today')
-	if (dateObj.isYesterday()) return __('Yesterday')
-	return dateObj.format(isCurrentYear ? 'D MMMM' : 'D MMMM YYYY')
+  const dateObj = dayjs(date)
+  const isCurrentYear = dateObj.year() === dayjs().year()
+  if (omitDate) return dateObj.format(isCurrentYear ? 'MMMM' : 'MMMM YYYY')
+  if (dateObj.isToday()) return __('Today')
+  if (dateObj.isYesterday()) return __('Yesterday')
+  return dateObj.format(isCurrentYear ? 'D MMMM' : 'D MMMM YYYY')
 }
 
 export const getFirstAlphabet = (str?: string) => str?.match(/\p{L}/u)?.[0]
 
 export const getTheme = (
-	status: 'Draft' | 'Queued' | 'In Progress' | 'Completed' | 'Failed' | 'Cancelled',
+  status: 'Draft' | 'Queued' | 'In Progress' | 'Completed' | 'Failed' | 'Cancelled'
 ) => {
-	switch (status) {
-		case 'Draft':
-			return 'gray'
-		case 'Completed':
-			return 'green'
-		case 'Failed':
-		case 'Cancelled':
-			return 'red'
-		default:
-			return 'blue'
-	}
+  switch (status) {
+    case 'Draft':
+      return 'gray'
+    case 'Completed':
+      return 'green'
+    case 'Failed':
+    case 'Cancelled':
+      return 'red'
+    default:
+      return 'blue'
+  }
 }
 
 export const extractQuotedContent = (htmlBody?: string) => {
-	if (!htmlBody) return { quoted_content: '', html_body: '' }
+  if (!htmlBody) return { quoted_content: '', html_body: '' }
 
-	const parser = new DOMParser()
-	const doc = parser.parseFromString(htmlBody, 'text/html')
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(htmlBody, 'text/html')
 
-	const topLevelDiv = Array.from(doc.body.children).find(
-		(el) => el.tagName.toLowerCase() === 'div' && el.classList.contains('frappe_mail_quote'),
-	)
+  const topLevelDiv = Array.from(doc.body.children).find(
+    el => el.tagName.toLowerCase() === 'div' && el.classList.contains('frappe_mail_quote')
+  )
 
-	let quoted_content = ''
-	if (topLevelDiv) {
-		quoted_content = topLevelDiv.outerHTML
-		topLevelDiv.remove()
-	}
+  let quoted_content = ''
+  if (topLevelDiv) {
+    quoted_content = topLevelDiv.outerHTML
+    topLevelDiv.remove()
+  }
 
-	return { quoted_content, html_body: doc.body.innerHTML }
+  return { quoted_content, html_body: doc.body.innerHTML }
 }
 
 export const isMac = navigator.platform.toUpperCase().includes('MAC')
 
 export const isOverlayPresent = () =>
-	!!document.querySelector(
-		'[role="dialog"]:not([role="alert"]), [role="alertdialog"], .modal-open, [data-state="open"]:not([data-reka-collection-item]), [data-attachment-viewer]',
-	)
+  !!document.querySelector(
+    '[role="dialog"]:not([role="alert"]), [role="alertdialog"], .modal-open, [data-state="open"]:not([data-reka-collection-item]), [data-attachment-viewer]'
+  )
 
 export const shouldIgnoreKeypress = (
-	e: KeyboardEvent,
-	allowCtrlAndMeta: boolean = false,
+  e: KeyboardEvent,
+  allowCtrlAndMeta: boolean = false
 ): boolean => {
-	if (isOverlayPresent()) return true
+  if (isOverlayPresent()) return true
 
-	if (!allowCtrlAndMeta && (e.ctrlKey || e.metaKey)) return true
+  if (!allowCtrlAndMeta && (e.ctrlKey || e.metaKey)) return true
 
-	const target = e.target as HTMLElement
-	return (
-		(target.tagName === 'INPUT' && (target as HTMLInputElement).type !== 'checkbox') ||
-		target.tagName === 'TEXTAREA' ||
-		target.isContentEditable ||
-		e.altKey
-	)
+  const target = e.target as HTMLElement
+  return (
+    (target.tagName === 'INPUT' && (target as HTMLInputElement).type !== 'checkbox') ||
+    target.tagName === 'TEXTAREA' ||
+    target.isContentEditable ||
+    e.altKey
+  )
 }
 
 export const convertHtmlToText = (html: string) => {
-	if (!html) return ''
+  if (!html) return ''
 
-	const parser = new DOMParser()
-	const doc = parser.parseFromString(html, 'text/html')
-	const body = doc.body || doc.documentElement
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(html, 'text/html')
+  const body = doc.body || doc.documentElement
 
-	const anchors = body.querySelectorAll('a')
-	const buttons = body.querySelectorAll('button')
-	const inputs = body.querySelectorAll('input')
+  const anchors = body.querySelectorAll('a')
+  const buttons = body.querySelectorAll('button')
+  const inputs = body.querySelectorAll('input')
 
-	anchors.forEach((anchor) => {
-		const text = document.createTextNode(anchor.textContent)
-		anchor.parentNode?.replaceChild(text, anchor)
-	})
+  anchors.forEach(anchor => {
+    const text = document.createTextNode(anchor.textContent)
+    anchor.parentNode?.replaceChild(text, anchor)
+  })
 
-	buttons.forEach((button) => button.remove())
+  buttons.forEach(button => button.remove())
 
-	inputs.forEach((input) => {
-		const type = input.getAttribute('type') || 'text'
-		if (['button', 'submit', 'reset'].includes(type)) {
-			input.remove()
-		}
-	})
+  inputs.forEach(input => {
+    const type = input.getAttribute('type') || 'text'
+    if (['button', 'submit', 'reset'].includes(type)) {
+      input.remove()
+    }
+  })
 
-	const text = body.textContent || body.innerText || ''
-	return text.replace(/\s+/g, ' ').trim()
+  const text = body.textContent || body.innerText || ''
+  return text.replace(/\s+/g, ' ').trim()
 }
 
 export const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
@@ -248,7 +248,7 @@ export const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
 // trailing hyphen), joined by dots, at most 253 chars overall — so the Add button never enables a value
 // the API would reject.
 export const isDomain = (s: string) =>
-	/^@(?=.{1,253}$)(?!-)[A-Za-z0-9-]{1,63}(?<!-)(?:\.(?!-)[A-Za-z0-9-]{1,63}(?<!-))+$/.test(s)
+  /^@(?=.{1,253}$)(?!-)[A-Za-z0-9-]{1,63}(?<!-)(?:\.(?!-)[A-Za-z0-9-]{1,63}(?<!-))+$/.test(s)
 
 // A screened value: either a full email address or a whole domain (@example.com).
 export const isEmailOrDomain = (s: string) => isEmail(s) || isDomain(s)
@@ -257,15 +257,15 @@ export const isEmailOrDomain = (s: string) => isEmail(s) || isDomain(s)
 // '@domain' entry (@example.com) that matches every sender from that domain. Case-insensitive, mirroring
 // the backend's sieve matching so a sender from an accepted/blocked domain is treated consistently.
 export const matchesScreenedValue = (email: string, value: string) => {
-	const normalizedEmail = (email ?? '').trim().toLowerCase()
-	const normalizedValue = (value ?? '').trim().toLowerCase()
-	if (!normalizedEmail || !normalizedValue) return false
+  const normalizedEmail = (email ?? '').trim().toLowerCase()
+  const normalizedValue = (value ?? '').trim().toLowerCase()
+  if (!normalizedEmail || !normalizedValue) return false
 
-	if (normalizedValue.startsWith('@')) {
-		return normalizedEmail.split('@').pop() === normalizedValue.slice(1)
-	}
+  if (normalizedValue.startsWith('@')) {
+    return normalizedEmail.split('@').pop() === normalizedValue.slice(1)
+  }
 
-	return normalizedEmail === normalizedValue
+  return normalizedEmail === normalizedValue
 }
 
 // An externally-hosted reference (http/https or protocol-relative //). cid: (inline attachments) and
@@ -277,154 +277,152 @@ const REMOTE_CSS_URL = /url\(\s*['"]?(?:https?:)?\/\//i
 // whether any remote asset is present at all — a remote <img>, or a remote url(...) in an inline style or
 // <style> block (background images, fonts). Used to decide the "images blocked" banner and its count.
 export const analyzeRemoteAssets = (html?: string): { images: number; hasRemote: boolean } => {
-	if (!html) return { images: 0, hasRemote: false }
+  if (!html) return { images: 0, hasRemote: false }
 
-	const doc = new DOMParser().parseFromString(html, 'text/html')
+  const doc = new DOMParser().parseFromString(html, 'text/html')
 
-	const images = Array.from(doc.querySelectorAll('img')).filter((img) =>
-		REMOTE_URL.test(img.getAttribute('src') || ''),
-	).length
+  const images = Array.from(doc.querySelectorAll('img')).filter(img =>
+    REMOTE_URL.test(img.getAttribute('src') || '')
+  ).length
 
-	const hasRemoteCss =
-		Array.from(doc.querySelectorAll('[style]')).some((el) =>
-			REMOTE_CSS_URL.test(el.getAttribute('style') || ''),
-		) ||
-		Array.from(doc.querySelectorAll('style')).some((el) =>
-			REMOTE_CSS_URL.test(el.textContent || ''),
-		)
+  const hasRemoteCss =
+    Array.from(doc.querySelectorAll('[style]')).some(el =>
+      REMOTE_CSS_URL.test(el.getAttribute('style') || '')
+    ) ||
+    Array.from(doc.querySelectorAll('style')).some(el => REMOTE_CSS_URL.test(el.textContent || ''))
 
-	return { images, hasRemote: images > 0 || hasRemoteCss }
+  return { images, hasRemote: images > 0 || hasRemoteCss }
 }
 
 // Blank remote url(...) in a CSS string. Regex here is unavoidable — there's no DOM API to rewrite a
 // url() inside a style string without pulling in the full CSSOM.
 const blankRemoteCssUrls = (css: string) =>
-	css.replace(/url\(\s*(['"]?)(?:https?:)?\/\/[^'")]*\1\s*\)/gi, 'url()')
+  css.replace(/url\(\s*(['"]?)(?:https?:)?\/\/[^'")]*\1\s*\)/gi, 'url()')
 
 // Neutralize remote assets so the browser never requests them. Parses the (already-sanitized) HTML into a
 // DOM and edits it there — robust against markup/attribute quirks regex would trip on: each remote <img>
 // has its src stashed on data-blocked-src (and is tagged for hiding), and remote url(...) in inline styles
 // and <style> blocks is blanked. Inline (cid:) and data: assets are left to load as normal.
 export const blockRemoteAssets = (html: string) => {
-	const doc = new DOMParser().parseFromString(html, 'text/html')
+  const doc = new DOMParser().parseFromString(html, 'text/html')
 
-	doc.querySelectorAll('img').forEach((img) => {
-		const src = img.getAttribute('src') || ''
-		if (!REMOTE_URL.test(src)) return
-		img.setAttribute('data-blocked-src', src)
-		img.removeAttribute('src')
-		img.setAttribute('data-blocked-image', '')
-	})
+  doc.querySelectorAll('img').forEach(img => {
+    const src = img.getAttribute('src') || ''
+    if (!REMOTE_URL.test(src)) return
+    img.setAttribute('data-blocked-src', src)
+    img.removeAttribute('src')
+    img.setAttribute('data-blocked-image', '')
+  })
 
-	doc.querySelectorAll('[style]').forEach((el) => {
-		const style = el.getAttribute('style') || ''
-		const cleaned = blankRemoteCssUrls(style)
-		if (cleaned !== style) el.setAttribute('style', cleaned)
-	})
+  doc.querySelectorAll('[style]').forEach(el => {
+    const style = el.getAttribute('style') || ''
+    const cleaned = blankRemoteCssUrls(style)
+    if (cleaned !== style) el.setAttribute('style', cleaned)
+  })
 
-	doc.querySelectorAll('style').forEach((styleEl) => {
-		const css = styleEl.textContent || ''
-		const cleaned = blankRemoteCssUrls(css)
-		if (cleaned !== css) styleEl.textContent = cleaned
-	})
+  doc.querySelectorAll('style').forEach(styleEl => {
+    const css = styleEl.textContent || ''
+    const cleaned = blankRemoteCssUrls(css)
+    if (cleaned !== css) styleEl.textContent = cleaned
+  })
 
-	return doc.documentElement.outerHTML
+  return doc.documentElement.outerHTML
 }
 
 export const getFileIcon = (type?: string) => {
-	if (!type) return Paperclip
-	if (type?.startsWith('image/')) return ImageIcon
-	if (type === 'application/pdf') return PDFIcon
-	if (type?.startsWith('video/')) return VideoIcon
-	if (type?.startsWith('audio/')) return AudioIcon
+  if (!type) return Paperclip
+  if (type?.startsWith('image/')) return ImageIcon
+  if (type === 'application/pdf') return PDFIcon
+  if (type?.startsWith('video/')) return VideoIcon
+  if (type?.startsWith('audio/')) return AudioIcon
 
-	return File
+  return File
 }
 
 export const randomString = (length: number) => {
-	const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-	let result = ''
-	for (let i = 0; i < length; i++) {
-		result += chars.charAt(Math.floor(Math.random() * chars.length))
-	}
-	return result
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  let result = ''
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return result
 }
 
 export const processInlineImages = (mail: ComposeMailData) => {
-	const htmlBody = mail.html_body! + mail.quoted_content
-	const $ = cheerio.load(htmlBody)
+  const htmlBody = mail.html_body! + mail.quoted_content
+  const $ = cheerio.load(htmlBody)
 
-	const regularAttachments = mail.attachments?.filter((a) => a.disposition !== 'inline') || []
-	const inlineAttachments = mail.attachments?.filter((a) => a.disposition === 'inline') || []
-	const processedAttachments = [...regularAttachments]
+  const regularAttachments = mail.attachments?.filter(a => a.disposition !== 'inline') || []
+  const inlineAttachments = mail.attachments?.filter(a => a.disposition === 'inline') || []
+  const processedAttachments = [...regularAttachments]
 
-	$('img').each((_, img) => {
-		const $img = $(img)
-		const src = $img.attr('src')
-		if (!src) return
+  $('img').each((_, img) => {
+    const $img = $(img)
+    const src = $img.attr('src')
+    if (!src) return
 
-		const cid = $img.attr('data-cid')
-		if (!cid) return
+    const cid = $img.attr('data-cid')
+    if (!cid) return
 
-		$img.attr('src', `cid:${cid}`)
+    $img.attr('src', `cid:${cid}`)
 
-		if (src.startsWith('/files') || src.startsWith('/private/files')) {
-			processedAttachments.push({ file_url: src, disposition: 'inline', cid })
-			return
-		}
+    if (src.startsWith('/files') || src.startsWith('/private/files')) {
+      processedAttachments.push({ file_url: src, disposition: 'inline', cid })
+      return
+    }
 
-		const url = new URL(src, window.location.origin)
-		const blob_id = url.searchParams.get('blob_id')
-		if (!blob_id) return
+    const url = new URL(src, window.location.origin)
+    const blob_id = url.searchParams.get('blob_id')
+    if (!blob_id) return
 
-		const attachment = inlineAttachments.find((a) => a.blob_id === blob_id)
-		if (attachment) processedAttachments.push({ ...attachment, cid })
-	})
+    const attachment = inlineAttachments.find(a => a.blob_id === blob_id)
+    if (attachment) processedAttachments.push({ ...attachment, cid })
+  })
 
-	return { html_body: $.html(), attachments: processedAttachments }
+  return { html_body: $.html(), attachments: processedAttachments }
 }
 
 export const extractNameFromEmail = (email: string) =>
-	email
-		.split('@')[0]
-		.replace(/[._-]/g, ' ')
-		.replace(/\b\w/g, (c) => c.toUpperCase())
+  email
+    .split('@')[0]
+    .replace(/[._-]/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase())
 
 export const getScriptName = (scriptName: string) => {
-	if (scriptName === 'vacation') return __('Vacation Response')
-	if (scriptName === 'frappe_mail_automation') return __('Folder Automation')
-	return `'${scriptName}'`
+  if (scriptName === 'vacation') return __('Vacation Response')
+  if (scriptName === 'frappe_mail_automation') return __('Folder Automation')
+  return `'${scriptName}'`
 }
 
 export const isSystemScript = (scriptName: string) =>
-	['vacation', 'frappe_mail_automation'].includes(scriptName)
+  ['vacation', 'frappe_mail_automation'].includes(scriptName)
 
 export const hasHtmlContent = (content: string | null | undefined): boolean => {
-	if (!content) return false
-	return /<(html|head|body|div|p|span|table|td|tr|a|img|br|hr|h[1-6]|ul|ol|li|strong|em|b|i|font|style)[^>]*>/i.test(
-		content,
-	)
+  if (!content) return false
+  return /<(html|head|body|div|p|span|table|td|tr|a|img|br|hr|h[1-6]|ul|ol|li|strong|em|b|i|font|style)[^>]*>/i.test(
+    content
+  )
 }
 
 export const getIcon = (mailbox: MailboxData) => {
-	// The Screener is a system folder: its 'eye' icon is authoritative and can't be overridden by a
-	// stray Mailbox Settings icon (it must never render as a generic folder).
-	if (mailbox._name === SCREENER_MAILBOX_NAME) return 'eye'
-	if (mailbox.icon) return mailbox.icon
-	if (mailbox.role && mailbox.role in FOLDER_ICON_MAP) return FOLDER_ICON_MAP[mailbox.role]
-	return 'folder'
+  // The Screener is a system folder: its 'eye' icon is authoritative and can't be overridden by a
+  // stray Mailbox Settings icon (it must never render as a generic folder).
+  if (mailbox._name === SCREENER_MAILBOX_NAME) return 'eye'
+  if (mailbox.icon) return mailbox.icon
+  if (mailbox.role && mailbox.role in FOLDER_ICON_MAP) return FOLDER_ICON_MAP[mailbox.role]
+  return 'folder'
 }
 
 // The Screening folder is surfaced to users as the "Screener".
 export const getMailboxName = (mailbox: MailboxData) =>
-	mailbox._name === SCREENER_MAILBOX_NAME ? __('Screener') : mailbox._name
+  mailbox._name === SCREENER_MAILBOX_NAME ? __('Screener') : mailbox._name
 
 export const downloadUrlAsFile = (url: string, filename: string) => {
-	const link = document.createElement('a')
-	link.href = url
-	link.download = filename
-	document.body.appendChild(link)
-	link.click()
-	document.body.removeChild(link)
-	URL.revokeObjectURL(url)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
 }

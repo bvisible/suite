@@ -64,7 +64,7 @@ export default routes
 const translations = createResource({
   url: 'suite.drive.api.product.get_translations',
   cache: 'translations',
-  transform: (data) => (window.translatedMessages = data),
+  transform: data => (window.translatedMessages = data),
 })
 
 if (!window.translatedMessages) translations.fetch()

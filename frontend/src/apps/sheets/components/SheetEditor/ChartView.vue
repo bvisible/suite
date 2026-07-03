@@ -27,24 +27,31 @@ import { computed, defineAsyncComponent, onBeforeUnmount, shallowRef, watch } fr
 // frame) or the string "auto" (preview / responsive contexts where the
 // parent controls layout via flex/grid). Echarts `autoresize` handles the
 // reflow in both cases.
-const _toCssDim = (v) => (v === 'auto' || v == null) ? '100%' : (typeof v === 'number' ? v + 'px' : v)
+const _toCssDim = v => (v === 'auto' || v == null ? '100%' : typeof v === 'number' ? v + 'px' : v)
 import { use as echartsUse } from 'echarts/core'
-import { CanvasRenderer }    from 'echarts/renderers'
+import { CanvasRenderer } from 'echarts/renderers'
+import { LineChart, BarChart, PieChart, ScatterChart } from 'echarts/charts'
 import {
-  LineChart, BarChart, PieChart, ScatterChart,
-} from 'echarts/charts'
-import {
-  TitleComponent, TooltipComponent, LegendComponent,
-  GridComponent, DataZoomComponent,
+  TitleComponent,
+  TooltipComponent,
+  LegendComponent,
+  GridComponent,
+  DataZoomComponent,
 } from 'echarts/components'
 import { buildOption } from '../../engine/chart-data.js'
 
 // One-time global registration. Idempotent — repeated calls are no-ops.
 echartsUse([
   CanvasRenderer,
-  LineChart, BarChart, PieChart, ScatterChart,
-  TitleComponent, TooltipComponent, LegendComponent,
-  GridComponent, DataZoomComponent,
+  LineChart,
+  BarChart,
+  PieChart,
+  ScatterChart,
+  TitleComponent,
+  TooltipComponent,
+  LegendComponent,
+  GridComponent,
+  DataZoomComponent,
 ])
 
 // `vue-echarts` is itself heavy; lazy-load the component so editor mount
@@ -53,13 +60,13 @@ const VChart = defineAsyncComponent(() => import('vue-echarts'))
 
 const props = defineProps({
   config: { type: Object, required: true },
-  matrix: { type: Array,  default: () => [] },
-  width:  { type: [Number, String], default: 480 },
+  matrix: { type: Array, default: () => [] },
+  width: { type: [Number, String], default: 480 },
   height: { type: [Number, String], default: 320 },
 })
 
 const _wrapStyle = computed(() => ({
-  width:  _toCssDim(props.width),
+  width: _toCssDim(props.width),
   height: _toCssDim(props.height),
 }))
 
@@ -88,7 +95,7 @@ watch(
       option.value = buildOption(props.config, props.matrix)
     })
   },
-  { immediate: true, deep: true },
+  { immediate: true, deep: true }
 )
 
 onBeforeUnmount(() => cancelAnimationFrame(_rafId))

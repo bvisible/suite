@@ -48,16 +48,16 @@ import ProfileSettings from '@/apps/calendar/components/Settings/ProfileSettings
 const show = defineModel<boolean>({ default: false })
 
 const TABS = [
-	{
-		label: __('Profile'),
-		icon: User,
-		component: markRaw(ProfileSettings),
-	},
-	{
-		label: __('Appearance'),
-		icon: Palette,
-		component: markRaw(AppearanceSettings),
-	},
+  {
+    label: __('Profile'),
+    icon: User,
+    component: markRaw(ProfileSettings),
+  },
+  {
+    label: __('Appearance'),
+    icon: Palette,
+    component: markRaw(AppearanceSettings),
+  },
 ]
 
 const activeTab = ref(TABS[0])

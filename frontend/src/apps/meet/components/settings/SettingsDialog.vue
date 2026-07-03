@@ -86,178 +86,171 @@
 
 
 <script setup lang="ts">
-import { Dialog, Tabs as FTabs } from "frappe-ui";
-import { type Component, computed, h, markRaw, ref, watch } from "vue";
-import LucideAudioLines from "~icons/lucide/audio-lines";
-import LucideBell from "~icons/lucide/bell";
-import LucideCamera from "~icons/lucide/camera";
-import LucideLayoutDashboard from "~icons/lucide/layout-dashboard";
-import LucideMonitorSmartphone from "~icons/lucide/monitor-smartphone";
-import LucideUser from "~icons/lucide/user";
-import { useMeetingDoc } from "../../composables/useMeetingDoc";
-import { isMobile } from "../../utils/device";
-import AudioSettingsTab from "./AudioSettingsTab.vue";
-import BackgroundSettingsTab from "./BackgroundSettingsTab.vue";
-import DeviceSettingsTab from "./DeviceSettingsTab.vue";
-import LayoutSettingsTab from "./LayoutSettingsTab.vue";
-import MeetingAccessSettingsTab from "./MeetingAccessSettingsTab.vue";
-import NotificationSettingsTab from "./NotificationSettingsTab.vue";
+import { Dialog, Tabs as FTabs } from 'frappe-ui'
+import { type Component, computed, h, markRaw, ref, watch } from 'vue'
+import LucideAudioLines from '~icons/lucide/audio-lines'
+import LucideBell from '~icons/lucide/bell'
+import LucideCamera from '~icons/lucide/camera'
+import LucideLayoutDashboard from '~icons/lucide/layout-dashboard'
+import LucideMonitorSmartphone from '~icons/lucide/monitor-smartphone'
+import LucideUser from '~icons/lucide/user'
+import { useMeetingDoc } from '../../composables/useMeetingDoc'
+import { isMobile } from '../../utils/device'
+import AudioSettingsTab from './AudioSettingsTab.vue'
+import BackgroundSettingsTab from './BackgroundSettingsTab.vue'
+import DeviceSettingsTab from './DeviceSettingsTab.vue'
+import LayoutSettingsTab from './LayoutSettingsTab.vue'
+import MeetingAccessSettingsTab from './MeetingAccessSettingsTab.vue'
+import NotificationSettingsTab from './NotificationSettingsTab.vue'
 
 interface TabItem {
-	label: string;
-	value: string;
-	icon: Component;
-	component: ReturnType<typeof markRaw>;
-	condition?: () => boolean;
-	hideLabel?: boolean;
-	groupLabel?: string;
+  label: string
+  value: string
+  icon: Component
+  component: ReturnType<typeof markRaw>
+  condition?: () => boolean
+  hideLabel?: boolean
+  groupLabel?: string
 }
 
 interface TabGroup {
-	label: string;
-	items: TabItem[];
+  label: string
+  items: TabItem[]
 }
 
 const props = defineProps<{
-	modelValue?: boolean;
-	meetingId?: string;
-	isPreview?: boolean;
-}>();
+  modelValue?: boolean
+  meetingId?: string
+  isPreview?: boolean
+}>()
 
 const emit = defineEmits<{
-	"device-changed": [event: unknown];
-	"update:modelValue": [value: boolean];
-}>();
+  'device-changed': [event: unknown]
+  'update:modelValue': [value: boolean]
+}>()
 
-const { isCurrentUserHost, isCurrentUserCohost, getMeetingDoc } =
-	useMeetingDoc();
+const { isCurrentUserHost, isCurrentUserCohost, getMeetingDoc } = useMeetingDoc()
 
 // sometimes we won't see meeting access tab right after creating a meeting
 // this loads the meeting doc to avoid that
 if (props.meetingId) {
-	getMeetingDoc(props.meetingId);
+  getMeetingDoc(props.meetingId)
 }
 
 const show = computed({
-	get: () => props.modelValue,
-	set: (value) => emit("update:modelValue", value),
-});
+  get: () => props.modelValue,
+  set: value => emit('update:modelValue', value),
+})
 
 function isTabVisible(tab) {
-	return typeof tab.condition === "function" ? tab.condition() : true;
+  return typeof tab.condition === 'function' ? tab.condition() : true
 }
 
 // Settings tabs structure
 const tabs = computed(() => {
-	const allTabs = [];
+  const allTabs = []
 
-	if (
-		(isCurrentUserHost.value || isCurrentUserCohost.value) &&
-		!props.isPreview
-	) {
-		allTabs.push({
-			label: "Meeting",
-			items: [
-				{
-					label: "Meeting Access",
-					value: "meeting-access",
-					icon: h(LucideUser),
-					component: markRaw(MeetingAccessSettingsTab),
-				},
-			],
-		});
-	}
+  if ((isCurrentUserHost.value || isCurrentUserCohost.value) && !props.isPreview) {
+    allTabs.push({
+      label: 'Meeting',
+      items: [
+        {
+          label: 'Meeting Access',
+          value: 'meeting-access',
+          icon: h(LucideUser),
+          component: markRaw(MeetingAccessSettingsTab),
+        },
+      ],
+    })
+  }
 
-	allTabs.push({
-		label: "General",
-		items: [
-			{
-				label: "Devices",
-				value: "devices",
-				icon: h(LucideMonitorSmartphone),
-				component: markRaw(DeviceSettingsTab),
-			},
-			{
-				label: "Audio",
-				value: "audio",
-				icon: h(LucideAudioLines),
-				component: markRaw(AudioSettingsTab),
-			},
-			{
-				label: "Background",
-				value: "background",
-				icon: h(LucideCamera),
-				component: markRaw(BackgroundSettingsTab),
-			},
-			{
-				label: "Notifications",
-				value: "notifications",
-				icon: h(LucideBell),
-				component: markRaw(NotificationSettingsTab),
-			},
-			{
-				label: "Layout",
-				value: "layout",
-				icon: h(LucideLayoutDashboard),
-				condition: () => !props.isPreview,
-				component: markRaw(LayoutSettingsTab),
-			},
-		],
-	});
+  allTabs.push({
+    label: 'General',
+    items: [
+      {
+        label: 'Devices',
+        value: 'devices',
+        icon: h(LucideMonitorSmartphone),
+        component: markRaw(DeviceSettingsTab),
+      },
+      {
+        label: 'Audio',
+        value: 'audio',
+        icon: h(LucideAudioLines),
+        component: markRaw(AudioSettingsTab),
+      },
+      {
+        label: 'Background',
+        value: 'background',
+        icon: h(LucideCamera),
+        component: markRaw(BackgroundSettingsTab),
+      },
+      {
+        label: 'Notifications',
+        value: 'notifications',
+        icon: h(LucideBell),
+        component: markRaw(NotificationSettingsTab),
+      },
+      {
+        label: 'Layout',
+        value: 'layout',
+        icon: h(LucideLayoutDashboard),
+        condition: () => !props.isPreview,
+        component: markRaw(LayoutSettingsTab),
+      },
+    ],
+  })
 
-	return allTabs
-		.map((group) => ({
-			...group,
-			items: group.items.filter(isTabVisible),
-		}))
-		.filter((group) => group.items.length > 0);
-});
+  return allTabs
+    .map(group => ({
+      ...group,
+      items: group.items.filter(isTabVisible),
+    }))
+    .filter(group => group.items.length > 0)
+})
 
 const flatTabs = computed(() =>
-	tabs.value.flatMap((group) =>
-		group.items.map((item) => ({
-			...item,
-			groupLabel: group.label,
-		})),
-	),
-);
+  tabs.value.flatMap(group =>
+    group.items.map(item => ({
+      ...item,
+      groupLabel: group.label,
+    }))
+  )
+)
 
-const activeTabValue = ref(null);
+const activeTabValue = ref(null)
 const tabIndex = computed({
-	get: () => {
-		const index = flatTabs.value.findIndex(
-			(tab) => tab.value === activeTabValue.value,
-		);
+  get: () => {
+    const index = flatTabs.value.findIndex(tab => tab.value === activeTabValue.value)
 
-		return index === -1 ? 0 : index;
-	},
-	set: (index) => {
-		activeTabValue.value = flatTabs.value[index]?.value ?? null;
-	},
-});
+    return index === -1 ? 0 : index
+  },
+  set: index => {
+    activeTabValue.value = flatTabs.value[index]?.value ?? null
+  },
+})
 const activeTab = computed(
-	() =>
-		flatTabs.value.find((tab) => tab.value === activeTabValue.value) ?? null,
-);
+  () => flatTabs.value.find(tab => tab.value === activeTabValue.value) ?? null
+)
 
 watch(
-	flatTabs,
-	(newTabs) => {
-		if (!newTabs.length) {
-			activeTabValue.value = null;
-			return;
-		}
+  flatTabs,
+  newTabs => {
+    if (!newTabs.length) {
+      activeTabValue.value = null
+      return
+    }
 
-		if (!newTabs.some((tab) => tab.value === activeTabValue.value)) {
-			activeTabValue.value = newTabs[0].value;
-		}
-	},
-	{ immediate: true },
-);
+    if (!newTabs.some(tab => tab.value === activeTabValue.value)) {
+      activeTabValue.value = newTabs[0].value
+    }
+  },
+  { immediate: true }
+)
 
 function onTabChange(tab) {
-	if (flatTabs.value.some((item) => item.value === tab.value)) {
-		activeTabValue.value = tab.value;
-	}
+  if (flatTabs.value.some(item => item.value === tab.value)) {
+    activeTabValue.value = tab.value
+  }
 }
 </script>

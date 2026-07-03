@@ -124,12 +124,12 @@ const route = useRoute()
 
 const storageBreakdown = createResource({
   url: 'suite.drive.api.storage.storage_breakdown',
-  makeParams: (p) => p,
+  makeParams: p => p,
   onSuccess(data) {
     const res = {}
     usedSpace.value = 0
     spaceLimit.value = data.limit
-    data.total.forEach((item) => {
+    data.total.forEach(item => {
       const kind =
         Object.entries(MIME_LIST_MAP).find(([type, list]) =>
           list.includes(item.mime_type) ? type : false
@@ -138,7 +138,7 @@ const storageBreakdown = createResource({
       res[kind].file_size += item.file_size
       usedSpace.value += item.file_size
     })
-    Object.keys(res).forEach((kind) => {
+    Object.keys(res).forEach(kind => {
       res[kind].color = COLOR_MAP[kind]
       res[kind].kind = kind
       res[kind].percentageRaw = (100 * res[kind].file_size) / spaceLimit.value
@@ -152,7 +152,7 @@ const storageBreakdown = createResource({
 
 watch(
   showFileStorage,
-  (val) =>
+  val =>
     storageBreakdown.fetch({
       team: route.params.team || localStorage.getItem('recentTeam'),
       owned_only: val,

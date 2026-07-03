@@ -13,7 +13,7 @@ export function htmlToMarkdown(text) {
 export function detectMarkdown(text) {
   const lines = text.split('\n')
   const markdown = lines.filter(
-    (line) =>
+    line =>
       line.startsWith('![') ||
       line.startsWith('#') ||
       line.startsWith('> ') ||

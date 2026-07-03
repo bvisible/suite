@@ -52,16 +52,16 @@ const show = defineModel<boolean>({ default: false })
 const user = inject('$user')
 
 const setProfilePhoto = createResource({
-	url: 'frappe.client.set_value',
-	makeParams: ({ image }: { image: string | null }) => ({
-		doctype: 'User',
-		name: user.data?.name,
-		fieldname: 'user_image',
-		value: image,
-	}),
-	onSuccess: () => {
-		raiseToast(__('Profile photo updated.'))
-		user.reload()
-	},
+  url: 'frappe.client.set_value',
+  makeParams: ({ image }: { image: string | null }) => ({
+    doctype: 'User',
+    name: user.data?.name,
+    fieldname: 'user_image',
+    value: image,
+  }),
+  onSuccess: () => {
+    raiseToast(__('Profile photo updated.'))
+    user.reload()
+  },
 })
 </script>

@@ -27,24 +27,24 @@ import { fieldLabelClasses } from '@/apps/slides/utils/constants'
 import { inject } from 'vue'
 
 const imageOrientationProperties = [
-	{
-		property: 'invertX',
-		label: 'Flip Horizontal',
-		icon: FlipHorizontal,
-	},
-	{
-		property: 'invertY',
-		label: 'Flip Vertical',
-		icon: FlipVertical,
-	},
+  {
+    property: 'invertX',
+    label: 'Flip Horizontal',
+    icon: FlipHorizontal,
+  },
+  {
+    property: 'invertY',
+    label: 'Flip Vertical',
+    icon: FlipVertical,
+  },
 ]
 
 const setProperty = inject('setProperty')
 
-const toggleImageOrientation = (direction) => {
-	const currentValue = activeElement.value[direction.property]
-	let newValue = 1
-	if (!currentValue || currentValue == 1) newValue = -1
-	setProperty(direction.property, newValue)
+const toggleImageOrientation = direction => {
+  const currentValue = activeElement.value[direction.property]
+  let newValue = 1
+  if (!currentValue || currentValue == 1) newValue = -1
+  setProperty(direction.property, newValue)
 }
 </script>

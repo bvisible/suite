@@ -64,14 +64,14 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef } from 'vue'
 import {
-	Button,
-	Dialog,
-	FormControl,
-	ListHeader,
-	ListRows,
-	ListSelectBanner,
-	ListView,
-	createResource,
+  Button,
+  Dialog,
+  FormControl,
+  ListHeader,
+  ListRows,
+  ListSelectBanner,
+  ListView,
+  createResource,
 } from 'frappe-ui'
 
 import { isEmailOrDomain, raiseToast } from '@/apps/mail/utils'
@@ -90,81 +90,81 @@ const showRemoveModal = ref(false)
 // 'Accepted' lets the sender's mail reach the inbox; 'Reject' discards it silently; 'Spam' files it
 // into the Spam folder.
 const ACTION_OPTIONS = [
-	{ label: __('Accept'), value: 'Accepted' },
-	{ label: __('Block'), value: 'Reject' },
-	{ label: __('Move to Junk'), value: 'Spam' },
+  { label: __('Accept'), value: 'Accepted' },
+  { label: __('Block'), value: 'Reject' },
+  { label: __('Move to Junk'), value: 'Spam' },
 ]
 const ACTION_LABELS: Partial<Record<ScreeningAction, string>> = {
-	Accepted: __('Accept'),
-	Reject: __('Block'),
-	Spam: __('Move to Junk'),
+  Accepted: __('Accept'),
+  Reject: __('Block'),
+  Spam: __('Move to Junk'),
 }
 
 // Mirror the backend's normalisation (trim; lowercase a '@domain' entry) so '@Frappe.io' is caught as
 // a duplicate of a stored '@frappe.io'.
 const normalizeScreenedValue = (value: string) => {
-	const trimmed = value.trim()
-	return trimmed.startsWith('@') ? '@' + trimmed.slice(1).toLowerCase() : trimmed
+  const trimmed = value.trim()
+  return trimmed.startsWith('@') ? '@' + trimmed.slice(1).toLowerCase() : trimmed
 }
 
 const isAlreadyScreened = computed(() =>
-	(screenedAddresses.data ?? []).some(
-		(a: ScreenedAddress) => a.email === normalizeScreenedValue(email.value),
-	),
+  (screenedAddresses.data ?? []).some(
+    (a: ScreenedAddress) => a.email === normalizeScreenedValue(email.value)
+  )
 )
 
 const rows = computed(() =>
-	(screenedAddresses.data ?? []).map((a: ScreenedAddress) => ({
-		email: a.email,
-		action: ACTION_LABELS[a.action] ?? a.action,
-	})),
+  (screenedAddresses.data ?? []).map((a: ScreenedAddress) => ({
+    email: a.email,
+    action: ACTION_LABELS[a.action] ?? a.action,
+  }))
 )
 
 const screenEmailAddress = createResource({
-	url: 'suite.mail.api.mail.screen_email_address',
-	makeParams: () => ({ account: store.accountId, email: email.value, action: action.value }),
-	onSuccess: () => {
-		raiseToast(__('Sender screened.'))
-		email.value = ''
-		screenedAddresses.reload()
-	},
+  url: 'suite.mail.api.mail.screen_email_address',
+  makeParams: () => ({ account: store.accountId, email: email.value, action: action.value }),
+  onSuccess: () => {
+    raiseToast(__('Sender screened.'))
+    email.value = ''
+    screenedAddresses.reload()
+  },
 })
 
 const unscreenEmailAddresses = createResource({
-	url: 'suite.mail.api.mail.unscreen_email_addresses',
-	makeParams: () => ({
-		account: store.accountId,
-		emails: Array.from(listViewRef.value?.selections),
-	}),
-	onSuccess: () => {
-		raiseToast(__('Senders removed.'))
-		showRemoveModal.value = false
-		listViewRef.value?.toggleAllRows()
-		screenedAddresses.reload()
-	},
+  url: 'suite.mail.api.mail.unscreen_email_addresses',
+  makeParams: () => ({
+    account: store.accountId,
+    emails: Array.from(listViewRef.value?.selections),
+  }),
+  onSuccess: () => {
+    raiseToast(__('Senders removed.'))
+    showRemoveModal.value = false
+    listViewRef.value?.toggleAllRows()
+    screenedAddresses.reload()
+  },
 })
 
 const removeModalOptions = computed(() => ({
-	title: __('Remove Screened Senders'),
-	message: __('Are you sure you want to remove the selected senders from your screened list?'),
-	actions: [
-		{
-			label: __('Confirm'),
-			variant: 'solid',
-			onClick: () => unscreenEmailAddresses.submit(),
-			loading: unscreenEmailAddresses.loading,
-		},
-	],
+  title: __('Remove Screened Senders'),
+  message: __('Are you sure you want to remove the selected senders from your screened list?'),
+  actions: [
+    {
+      label: __('Confirm'),
+      variant: 'solid',
+      onClick: () => unscreenEmailAddresses.submit(),
+      loading: unscreenEmailAddresses.loading,
+    },
+  ],
 }))
 
 // `fr` units (numbers) so the columns share the row width instead of overflowing (percentages plus the
 // checkbox column would exceed 100% and add a horizontal scrollbar).
 const COLUMNS = [
-	{ label: __('Email or Domain'), key: 'email', width: 4 },
-	{ label: __('Action'), key: 'action', width: 1 },
+  { label: __('Email or Domain'), key: 'email', width: 4 },
+  { label: __('Action'), key: 'action', width: 1 },
 ]
 
 const MESSAGE = __(
-	'Screen specific senders — or a whole domain (e.g. @example.com) — to either reject their messages or send them straight to Spam.',
+  'Screen specific senders — or a whole domain (e.g. @example.com) — to either reject their messages or send them straight to Spam.'
 )
 </script>

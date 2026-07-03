@@ -38,7 +38,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:modelValue'])
 
-const getLabel = (key) => document.querySelector(`[accesskey='${key}']`)?.accessKeyLabel
+const getLabel = key => document.querySelector(`[accesskey='${key}']`)?.accessKeyLabel
 
 const metaKey = computed(() => {
   const platform = navigator.platform.toLowerCase()

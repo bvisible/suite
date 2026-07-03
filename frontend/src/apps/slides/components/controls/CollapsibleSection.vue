@@ -28,15 +28,15 @@ import { ChevronRight, ChevronUp } from 'lucide-vue-next'
 import { sectionClasses, sectionTitleClasses } from '@/apps/slides/utils/constants'
 
 const props = defineProps({
-	title: String,
-	titleClasses: {
-		type: String,
-		default: sectionTitleClasses,
-	},
-	initialState: {
-		type: Boolean,
-		default: true,
-	},
+  title: String,
+  titleClasses: {
+    type: String,
+    default: sectionTitleClasses,
+  },
+  initialState: {
+    type: Boolean,
+    default: true,
+  },
 })
 
 const showContent = ref(props.initialState)

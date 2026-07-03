@@ -84,33 +84,33 @@ const setProperty = inject('setProperty')
 const setPropertyDeferred = inject('setPropertyDeferred')
 
 const arrowDirection = computed(() => {
-	const el = activeElement.value
-	if (!el) return 'none'
-	if (el.markerStart && el.markerEnd) return 'both'
-	if (el.markerStart) return 'left'
-	if (el.markerEnd) return 'right'
-	return 'none'
+  const el = activeElement.value
+  if (!el) return 'none'
+  if (el.markerStart && el.markerEnd) return 'both'
+  if (el.markerStart) return 'left'
+  if (el.markerEnd) return 'right'
+  return 'none'
 })
 
 const arrowOptions = [
-	{ label: 'None', value: 'none' },
-	{ label: 'Left', value: 'left' },
-	{ label: 'Right', value: 'right' },
-	{ label: 'Both', value: 'both' },
+  { label: 'None', value: 'none' },
+  { label: 'Left', value: 'left' },
+  { label: 'Right', value: 'right' },
+  { label: 'Both', value: 'both' },
 ]
 
-const updateArrowDirection = (val) => {
-	setProperty('markerStart', val === 'left' || val === 'both')
-	setProperty('markerEnd', val === 'right' || val === 'both')
+const updateArrowDirection = val => {
+  setProperty('markerStart', val === 'left' || val === 'both')
+  setProperty('markerEnd', val === 'right' || val === 'both')
 }
 
 const { onStart: onFillColorUpdateStart, onEnd: onFillColorUpdateEnd } = setPropertyDeferred(
-	'element',
-	'fillColor',
+  'element',
+  'fillColor'
 )
 
 const { onStart: onStrokeColorUpdateStart, onEnd: onStrokeColorUpdateEnd } = setPropertyDeferred(
-	'element',
-	'strokeColor',
+  'element',
+  'strokeColor'
 )
 </script>

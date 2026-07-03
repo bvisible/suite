@@ -44,7 +44,7 @@
   </ListRowItem>
 </template>
 <script setup>
-import { ListRowItem, Button} from 'frappe-ui'
+import { ListRowItem, Button } from 'frappe-ui'
 import { ref } from 'vue'
 
 const props = defineProps({

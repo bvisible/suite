@@ -219,7 +219,12 @@ import { Check, Download, Loader } from 'lucide-vue-next'
 import { Avatar, Badge, Checkbox, Popover, Tooltip } from 'frappe-ui'
 
 import { getAttachmentUrl } from '@/apps/mail/resources'
-import { downloadUrlAsFile, getFileIcon, getFirstAlphabet, getFormattedRecipients } from '@/apps/mail/utils'
+import {
+  downloadUrlAsFile,
+  getFileIcon,
+  getFirstAlphabet,
+  getFormattedRecipients,
+} from '@/apps/mail/utils'
 import { useScreenSize } from '@/apps/mail/utils/composables'
 import { userStore } from '@/apps/mail/stores/user'
 import AttachmentCapsule from '@/apps/mail/components/AttachmentCapsule.vue'
@@ -230,41 +235,41 @@ import MailListItemActions from '@/apps/mail/components/MailListItemActions.vue'
 import type { Attachment, Thread } from '@/apps/mail/types'
 
 const { mailbox, mail, isSelected } = defineProps<{
-	mailbox: string
-	mail: Thread
-	isSelected: boolean
+  mailbox: string
+  mail: Thread
+  isSelected: boolean
 }>()
 
 const emit = defineEmits([
-	'setSeen',
-	'archiveThread',
-	'trashThread',
-	'deleteThread',
-	'setFlagged',
-	'setSelected',
+  'setSeen',
+  'archiveThread',
+  'trashThread',
+  'deleteThread',
+  'setFlagged',
+  'setSelected',
 ])
 
 const user = inject('$user')
 const { isMobile } = useScreenSize()
 const { mailboxIds } = userStore()
 
-const mailboxes = computed(() => mail.mailboxes.map((m) => m.mailbox_id))
+const mailboxes = computed(() => mail.mailboxes.map(m => m.mailbox_id))
 
-const mailboxesToShow = computed(() => mail.mailboxes.filter((m) => m.mailbox_id !== mailbox))
+const mailboxesToShow = computed(() => mail.mailboxes.filter(m => m.mailbox_id !== mailbox))
 
 const attachments = computed(
-	() => mail.attachments.filter((m) => m.filename && m.disposition === 'attachment') || [],
+  () => mail.attachments.filter(m => m.filename && m.disposition === 'attachment') || []
 )
 
 const isFullWidth = computed(() => !(user.data.show_reading_pane || isMobile.value))
 
 const header = computed(() => {
-	const isOutgoing =
-		mailboxes.value.includes(mailboxIds.sent) || mailboxes.value.includes(mailboxIds.drafts)
+  const isOutgoing =
+    mailboxes.value.includes(mailboxIds.sent) || mailboxes.value.includes(mailboxIds.drafts)
 
-	return isOutgoing
-		? getFormattedRecipients(mail.recipients) || __('To:')
-		: mail.from_name || mail.from_email
+  return isOutgoing
+    ? getFormattedRecipients(mail.recipients) || __('To:')
+    : mail.from_name || mail.from_email
 })
 
 const isHovered = ref(false)
@@ -273,8 +278,8 @@ const showAttachmentViewer = ref(false)
 const attachmentIndex = ref(0)
 
 const openAttachment = (idx: number) => {
-	attachmentIndex.value = idx
-	showAttachmentViewer.value = true
+  attachmentIndex.value = idx
+  showAttachmentViewer.value = true
 }
 
 defineExpose({ id: mail.thread_id })
@@ -284,19 +289,15 @@ defineExpose({ id: mail.thread_id })
 const currentlyDownloading = ref<string[]>([])
 
 const downloadAttachment = async (attachment: Attachment) => {
-	currentlyDownloading.value.push(attachment.blob_id)
-	const url = await getAttachmentUrl(attachment.blob_id, attachment.type)
-	if (!url) {
-		currentlyDownloading.value = currentlyDownloading.value.filter(
-			(id) => id !== attachment.blob_id,
-		)
-		return
-	}
+  currentlyDownloading.value.push(attachment.blob_id)
+  const url = await getAttachmentUrl(attachment.blob_id, attachment.type)
+  if (!url) {
+    currentlyDownloading.value = currentlyDownloading.value.filter(id => id !== attachment.blob_id)
+    return
+  }
 
-	downloadUrlAsFile(url, attachment.filename || 'attachment')
-	currentlyDownloading.value = currentlyDownloading.value.filter(
-		(id) => id !== attachment.blob_id,
-	)
+  downloadUrlAsFile(url, attachment.filename || 'attachment')
+  currentlyDownloading.value = currentlyDownloading.value.filter(id => id !== attachment.blob_id)
 }
 
 // touch
@@ -309,35 +310,35 @@ let touchTimer: ReturnType<typeof setTimeout> | null = null
 const isTouching = ref(false)
 
 const onTouchStart = (e: TouchEvent) => {
-	touchMoved = false
-	touchStartX = e.touches[0].clientX
-	touchStartY = e.touches[0].clientY
-	isTouching.value = true
-	document.addEventListener('touchmove', onTouchMove, { passive: true })
+  touchMoved = false
+  touchStartX = e.touches[0].clientX
+  touchStartY = e.touches[0].clientY
+  isTouching.value = true
+  document.addEventListener('touchmove', onTouchMove, { passive: true })
 
-	touchTimer = setTimeout(() => {
-		if (!touchMoved) emit('setSelected', !isSelected)
-	}, 450)
+  touchTimer = setTimeout(() => {
+    if (!touchMoved) emit('setSelected', !isSelected)
+  }, 450)
 }
 
 const clearTouchTimer = () => {
-	isTouching.value = false
-	document.removeEventListener('touchmove', onTouchMove)
+  isTouching.value = false
+  document.removeEventListener('touchmove', onTouchMove)
 
-	if (touchTimer) {
-		clearTimeout(touchTimer)
-		touchTimer = null
-	}
+  if (touchTimer) {
+    clearTimeout(touchTimer)
+    touchTimer = null
+  }
 }
 
 const onTouchMove = (e: TouchEvent) => {
-	const touch = e.touches[0]
-	const dx = Math.abs(touch.clientX - touchStartX)
-	const dy = Math.abs(touch.clientY - touchStartY)
-	if (dx > 10 || dy > 10) {
-		touchMoved = true
-		clearTouchTimer()
-	}
+  const touch = e.touches[0]
+  const dx = Math.abs(touch.clientX - touchStartX)
+  const dy = Math.abs(touch.clientY - touchStartY)
+  if (dx > 10 || dy > 10) {
+    touchMoved = true
+    clearTouchTimer()
+  }
 }
 </script>
 

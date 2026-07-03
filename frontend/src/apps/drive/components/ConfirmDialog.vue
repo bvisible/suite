@@ -16,7 +16,13 @@ import { ref, computed } from 'vue'
 import { createResource, Dialog, ErrorMessage, toast } from 'frappe-ui'
 import { useTimeAgo } from '@vueuse/core'
 
-import { mutate, getTrash, toggleFav, clearRecent, clearTrash } from '@/apps/drive/resources/files.js'
+import {
+  mutate,
+  getTrash,
+  toggleFav,
+  clearRecent,
+  clearTrash,
+} from '@/apps/drive/resources/files.js'
 import { sortEntities } from '@/apps/drive/utils/files.js'
 
 import LucideRotateCcw from '~icons/lucide/rotate-ccw'
@@ -42,9 +48,7 @@ const dialogData = computed(() => {
       }.`,
       url: 'suite.drive.api.files.remove_or_restore',
       onSuccess: () => {
-        getTrash.setData((d) =>
-          d.filter((k) => !props.entities.map((l) => l.name).includes(k.name))
-        )
+        getTrash.setData(d => d.filter(k => !props.entities.map(l => l.name).includes(k.name)))
       },
       button: {
         variant: 'solid',
@@ -67,7 +71,7 @@ const dialogData = computed(() => {
         getTrash.setData(
           sortEntities([
             ...getTrash.data,
-            ...props.entities.map((k) => {
+            ...props.entities.map(k => {
               k.modified = Date()
               k.relativeModified = useTimeAgo(k.modified)
               return k
@@ -143,7 +147,7 @@ const updateResource = createResource({
       entity_names:
         typeof props.entities === 'string'
           ? JSON.stringify([props.entities])
-          : JSON.stringify(props.entities.map((entity) => entity.name)),
+          : JSON.stringify(props.entities.map(entity => entity.name)),
     }
   },
   onSuccess(data) {

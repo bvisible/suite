@@ -21,24 +21,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref } from 'vue'
 
 interface EmojiItem {
-	emoji: string;
-	keywords: string[];
+  emoji: string
+  keywords: string[]
 }
 
 interface Props {
-	show: boolean;
-	filteredEmojis: EmojiItem[];
-	selectedIndex: number;
+  show: boolean
+  filteredEmojis: EmojiItem[]
+  selectedIndex: number
 }
 
-const props = defineProps<Props>();
+const props = defineProps<Props>()
 
 const emit = defineEmits<{
-	select: [item: EmojiItem];
-}>();
+  select: [item: EmojiItem]
+}>()
 
-const dropdown = ref<HTMLDivElement | null>(null);
+const dropdown = ref<HTMLDivElement | null>(null)
 </script>

@@ -31,9 +31,9 @@ import { Dialog, FormControl } from 'frappe-ui'
 const show = defineModel<boolean>()
 
 const { name, description, isDefault } = defineProps<{
-	name: string
-	description?: string
-	isDefault: boolean
+  name: string
+  description?: string
+  isDefault: boolean
 }>()
 
 const emit = defineEmits(['save'])
@@ -41,24 +41,24 @@ const emit = defineEmits(['save'])
 const addressBook = reactive({ name, description, isDefault })
 
 const options = computed(() => ({
-	title: __('Edit General Information'),
-	actions: [
-		{
-			label: __('Save'),
-			variant: 'solid',
-			disabled:
-				addressBook.name === name &&
-				addressBook.description === description &&
-				addressBook.isDefault === isDefault,
-			onClick: () => {
-				emit('save', addressBook)
-				show.value = false
-			},
-		},
-	],
+  title: __('Edit General Information'),
+  actions: [
+    {
+      label: __('Save'),
+      variant: 'solid',
+      disabled:
+        addressBook.name === name &&
+        addressBook.description === description &&
+        addressBook.isDefault === isDefault,
+      onClick: () => {
+        emit('save', addressBook)
+        show.value = false
+      },
+    },
+  ],
 }))
 
-watch(show, (val) => {
-	if (val) Object.assign(addressBook, { name, description, isDefault })
+watch(show, val => {
+  if (val) Object.assign(addressBook, { name, description, isDefault })
 })
 </script>

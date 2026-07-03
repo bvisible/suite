@@ -162,10 +162,10 @@ import { Badge, Button, Dialog, Spinner, Dropdown, Avatar } from 'frappe-ui'
 import { call } from '../../utils/api.js'
 
 const props = defineProps({
-  modelValue:  { type: Boolean, default: false },
-  sheetId:     { type: String,  default: '' },
-  sheetTitle:  { type: String,  default: '' },
-  ownerId:     { type: String,  default: '' },
+  modelValue: { type: Boolean, default: false },
+  sheetId: { type: String, default: '' },
+  sheetTitle: { type: String, default: '' },
+  ownerId: { type: String, default: '' },
 })
 const emit = defineEmits(['update:modelValue', 'shares-changed'])
 
@@ -173,15 +173,15 @@ const emit = defineEmits(['update:modelValue', 'shares-changed'])
 
 const show = computed({
   get: () => props.modelValue,
-  set: (v) => emit('update:modelValue', v),
+  set: v => emit('update:modelValue', v),
 })
 
 const dialogTitle = computed(() => `Sharing "${props.sheetTitle || 'Untitled Sheet'}"`)
 
-watch(show, (open) => {
+watch(show, open => {
   if (open) {
     errorMessage.value = ''
-    staged.value      = []
+    staged.value = []
     pendingRole.value = '0'
     searchQuery.value = ''
     searchResults.value = []
@@ -198,35 +198,55 @@ watch(show, (open) => {
 // the user has read it.
 const errorMessage = ref('')
 function _flashError(err) {
-  const msg = (err && err.message) ? String(err.message) : 'Something went wrong'
+  const msg = err && err.message ? String(err.message) : 'Something went wrong'
   errorMessage.value = msg
-  setTimeout(() => { if (errorMessage.value === msg) errorMessage.value = '' }, 5000)
+  setTimeout(() => {
+    if (errorMessage.value === msg) errorMessage.value = ''
+  }, 5000)
 }
 
 // ── owner ──────────────────────────────────────────────────────────────────
 
-const ownerFullName = computed(() =>
-  window.frappe?.session?.user_fullname
-  || window.frappe?.boot?.user_info?.[props.ownerId]?.fullname
-  || props.ownerId
-  || 'You'
+const ownerFullName = computed(
+  () =>
+    window.frappe?.session?.user_fullname ||
+    window.frappe?.boot?.user_info?.[props.ownerId]?.fullname ||
+    props.ownerId ||
+    'You'
 )
 const ownerInitials = computed(() =>
-  ownerFullName.value.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()
+  ownerFullName.value
+    .split(' ')
+    .map(p => p[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
 )
 
 // ── general access ─────────────────────────────────────────────────────────
 
 const generalAccess = ref('restricted')
-const generalRole   = ref('0')
+const generalRole = ref('0')
 
 const generalAccessOpts = computed(() => [
-  { label: 'Restricted',        onClick: () => applyGeneralAccess('restricted') },
+  { label: 'Restricted', onClick: () => applyGeneralAccess('restricted') },
   { label: 'Accessible to all', onClick: () => applyGeneralAccess('all') },
 ])
 const generalRoleOpts = computed(() => [
-  { label: 'Can view', onClick: () => { generalRole.value = '0'; applyGeneralAccess('all') } },
-  { label: 'Can edit', onClick: () => { generalRole.value = '1'; applyGeneralAccess('all') } },
+  {
+    label: 'Can view',
+    onClick: () => {
+      generalRole.value = '0'
+      applyGeneralAccess('all')
+    },
+  },
+  {
+    label: 'Can edit',
+    onClick: () => {
+      generalRole.value = '1'
+      applyGeneralAccess('all')
+    },
+  },
 ])
 
 async function applyGeneralAccess(type) {
@@ -236,13 +256,15 @@ async function applyGeneralAccess(type) {
   try {
     if (type === 'all') {
       await call('suite.sheets.api.share_sheet', {
-        name: props.sheetId, everyone: 1, write: generalRole.value === '1' ? 1 : 0,
+        name: props.sheetId,
+        everyone: 1,
+        write: generalRole.value === '1' ? 1 : 0,
       })
     } else {
       await call('suite.sheets.api.unshare_sheet', { name: props.sheetId, everyone: 1 })
     }
   } catch (err) {
-    generalAccess.value = prevAccess   // revert visual state
+    generalAccess.value = prevAccess // revert visual state
     _flashError(err)
   }
 }
@@ -250,7 +272,7 @@ async function applyGeneralAccess(type) {
 // ── shares ─────────────────────────────────────────────────────────────────
 
 const loading = ref(false)
-const shares  = ref([])
+const shares = ref([])
 
 async function fetchShares() {
   if (!props.sheetId) return
@@ -263,7 +285,7 @@ async function fetchShares() {
     const everyoneRow = rows.find(r => r.everyone)
     if (everyoneRow) {
       generalAccess.value = 'all'
-      generalRole.value   = everyoneRow.write ? '1' : '0'
+      generalRole.value = everyoneRow.write ? '1' : '0'
     } else {
       generalAccess.value = 'restricted'
     }
@@ -273,23 +295,27 @@ async function fetchShares() {
     emit('shares-changed', shares.value.length)
   } catch (err) {
     _flashError(err)
+  } finally {
+    loading.value = false
   }
-  finally { loading.value = false }
 }
 
 function memberRoleOpts(s) {
   return [
-    { label: 'Can view',      onClick: () => changeRole(s, false) },
-    { label: 'Can edit',      onClick: () => changeRole(s, true)  },
-    { label: 'Remove access', onClick: () => removeShare(s)       },
+    { label: 'Can view', onClick: () => changeRole(s, false) },
+    { label: 'Can edit', onClick: () => changeRole(s, true) },
+    { label: 'Remove access', onClick: () => removeShare(s) },
   ]
 }
 
 async function changeRole(s, write) {
-  const prev = s.write; s.write = write
+  const prev = s.write
+  s.write = write
   try {
     await call('suite.sheets.api.share_sheet', {
-      name: props.sheetId, user: s.user, write: write ? 1 : 0,
+      name: props.sheetId,
+      user: s.user,
+      write: write ? 1 : 0,
     })
   } catch (err) {
     s.write = prev
@@ -310,14 +336,17 @@ async function removeShare(s) {
 
 // ── search ─────────────────────────────────────────────────────────────────
 
-const searchQuery   = ref('')
+const searchQuery = ref('')
 const searchResults = ref([])
-let   _searchTimer  = null
+let _searchTimer = null
 
 function onSearchInput(val) {
   clearTimeout(_searchTimer)
   const q = (val || '').trim()
-  if (q.length < 2) { searchResults.value = []; return }
+  if (q.length < 2) {
+    searchResults.value = []
+    return
+  }
   _searchTimer = setTimeout(() => searchUsers(q), 250)
 }
 
@@ -336,17 +365,21 @@ async function searchUsers(q) {
     })
     // Exclude both existing members and users already staged as chips so
     // the same person can't be added twice.
-    const existing = new Set([
-      ...shares.value.map(s => s.user),
-      ...staged.value.map(c => c.user),
-    ])
+    const existing = new Set([...shares.value.map(s => s.user), ...staged.value.map(c => c.user)])
     searchResults.value = rows
       .filter(r => !existing.has(r.name))
       .map(r => ({
         ...r,
-        initials: r.full_name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase(),
+        initials: r.full_name
+          .split(' ')
+          .map(p => p[0])
+          .join('')
+          .slice(0, 2)
+          .toUpperCase(),
       }))
-  } catch (_) { searchResults.value = [] }
+  } catch (_) {
+    searchResults.value = []
+  }
 }
 
 // ── chip staging ───────────────────────────────────────────────────────────
@@ -357,24 +390,39 @@ async function searchUsers(q) {
 // reduces notification noise (each invitee gets one email instead of N)
 // and makes the role choice deliberate.
 
-const staged      = ref([])         // [{ user, full_name, user_image, initials }]
-const pendingRole = ref('0')        // '0' = Can view, '1' = Can edit
-const inviting    = ref(false)
+const staged = ref([]) // [{ user, full_name, user_image, initials }]
+const pendingRole = ref('0') // '0' = Can view, '1' = Can edit
+const inviting = ref(false)
 
 const pendingRoleOpts = computed(() => [
-  { label: 'Can view', onClick: () => { pendingRole.value = '0' } },
-  { label: 'Can edit', onClick: () => { pendingRole.value = '1' } },
+  {
+    label: 'Can view',
+    onClick: () => {
+      pendingRole.value = '0'
+    },
+  },
+  {
+    label: 'Can edit',
+    onClick: () => {
+      pendingRole.value = '1'
+    },
+  },
 ])
 
 function addChip(u) {
   staged.value.push({
-    user: u.name, full_name: u.full_name, user_image: u.user_image, initials: u.initials,
+    user: u.name,
+    full_name: u.full_name,
+    user_image: u.user_image,
+    initials: u.initials,
   })
-  searchQuery.value   = ''
+  searchQuery.value = ''
   searchResults.value = []
 }
 
-function removeChip(i) { staged.value.splice(i, 1) }
+function removeChip(i) {
+  staged.value.splice(i, 1)
+}
 
 // Backspace in an empty input pops the last chip — small ergonomic win
 // users expect from chip-style inputs (Gmail, Drive, Linear, etc.).
@@ -414,7 +462,9 @@ async function inviteStaged() {
 }
 
 async function copyLink() {
-  try { await navigator.clipboard.writeText(window.location.href) } catch (_) {}
+  try {
+    await navigator.clipboard.writeText(window.location.href)
+  } catch (_) {}
 }
 </script>
 

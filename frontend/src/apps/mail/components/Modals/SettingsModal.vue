@@ -40,18 +40,18 @@
 <script setup lang="ts">
 import { computed, inject, markRaw, ref, watch } from 'vue'
 import {
-	Ban,
-	Code,
-	Feather,
-	Fingerprint,
-	Folders,
-	HardDriveDownload,
-	HardDriveUpload,
-	Mailbox,
-	Palette,
-	TreePalm,
-	User,
-	Zap,
+  Ban,
+  Code,
+  Feather,
+  Fingerprint,
+  Folders,
+  HardDriveDownload,
+  HardDriveUpload,
+  Mailbox,
+  Palette,
+  TreePalm,
+  User,
+  Zap,
 } from 'lucide-vue-next'
 import { Button, Dialog } from 'frappe-ui'
 
@@ -75,87 +75,87 @@ const { settingsTab } = useSettings()
 const user = inject('$user')
 
 const tabs = computed(() => {
-	const allTabs = [
-		{
-			label: __('Profile'),
-			icon: User,
-			component: markRaw(ProfileSettings),
-		},
-		{
-			label: __('Account'),
-			icon: Mailbox,
-			component: markRaw(Account),
-			condition: user.data.is_jmap_configured,
-		},
-		{
-			label: __('Identity'),
-			icon: Fingerprint,
-			component: markRaw(IdentitySettings),
-			condition: user.data.is_jmap_configured,
-		},
-		{
-			label: __('Appearance'),
-			icon: Palette,
-			component: markRaw(AppearanceSettings),
-		},
-		{
-			label: __('Folders'),
-			icon: Folders,
-			component: markRaw(FolderSettings),
-			condition: user.data.is_jmap_configured,
-		},
-		{
-			label: __('Signatures'),
-			icon: Feather,
-			component: markRaw(SignatureSettings),
-			condition: user.data.is_jmap_configured,
-		},
-		{
-			label: __('Vacation Response'),
-			icon: TreePalm,
-			component: markRaw(VacationResponseSettings),
-			condition: user.data.is_jmap_configured,
-		},
-		{
-			label: __('Automation'),
-			icon: Zap,
-			component: markRaw(AutomationSettings),
-			condition: user.data.is_jmap_configured,
-		},
-		{
-			label: __('Screened Senders'),
-			icon: Ban,
-			component: markRaw(BlockListSettings),
-			condition: user.data.is_jmap_configured,
-		},
-		{
-			label: __('Import'),
-			icon: HardDriveDownload,
-			component: markRaw(ImportSettings),
-			condition: user.data.is_jmap_configured,
-		},
-		{
-			label: __('Export'),
-			icon: HardDriveUpload,
-			component: markRaw(ExportSettings),
-			condition: user.data.is_jmap_configured,
-		},
-		{
-			label: __('Advanced'),
-			icon: Code,
-			component: markRaw(AdvancedSettings),
-			condition: user.data.is_jmap_configured,
-		},
-	]
-	return allTabs.filter((tab) => tab.condition === undefined || tab.condition)
+  const allTabs = [
+    {
+      label: __('Profile'),
+      icon: User,
+      component: markRaw(ProfileSettings),
+    },
+    {
+      label: __('Account'),
+      icon: Mailbox,
+      component: markRaw(Account),
+      condition: user.data.is_jmap_configured,
+    },
+    {
+      label: __('Identity'),
+      icon: Fingerprint,
+      component: markRaw(IdentitySettings),
+      condition: user.data.is_jmap_configured,
+    },
+    {
+      label: __('Appearance'),
+      icon: Palette,
+      component: markRaw(AppearanceSettings),
+    },
+    {
+      label: __('Folders'),
+      icon: Folders,
+      component: markRaw(FolderSettings),
+      condition: user.data.is_jmap_configured,
+    },
+    {
+      label: __('Signatures'),
+      icon: Feather,
+      component: markRaw(SignatureSettings),
+      condition: user.data.is_jmap_configured,
+    },
+    {
+      label: __('Vacation Response'),
+      icon: TreePalm,
+      component: markRaw(VacationResponseSettings),
+      condition: user.data.is_jmap_configured,
+    },
+    {
+      label: __('Automation'),
+      icon: Zap,
+      component: markRaw(AutomationSettings),
+      condition: user.data.is_jmap_configured,
+    },
+    {
+      label: __('Screened Senders'),
+      icon: Ban,
+      component: markRaw(BlockListSettings),
+      condition: user.data.is_jmap_configured,
+    },
+    {
+      label: __('Import'),
+      icon: HardDriveDownload,
+      component: markRaw(ImportSettings),
+      condition: user.data.is_jmap_configured,
+    },
+    {
+      label: __('Export'),
+      icon: HardDriveUpload,
+      component: markRaw(ExportSettings),
+      condition: user.data.is_jmap_configured,
+    },
+    {
+      label: __('Advanced'),
+      icon: Code,
+      component: markRaw(AdvancedSettings),
+      condition: user.data.is_jmap_configured,
+    },
+  ]
+  return allTabs.filter(tab => tab.condition === undefined || tab.condition)
 })
 const activeTab = ref(tabs.value[0])
 
 // When opened via useSettings().openSettings('<label>'), jump to that tab.
-watch(show, (open) => {
-	if (!open || !settingsTab.value) return
-	const match = tabs.value.find((tab) => tab.label === settingsTab.value)
-	if (match) activeTab.value = match
-	settingsTab.value = ''
+watch(show, open => {
+  if (!open || !settingsTab.value) return
+  const match = tabs.value.find(tab => tab.label === settingsTab.value)
+  if (match) activeTab.value = match
+  settingsTab.value = ''
 })
 </script>

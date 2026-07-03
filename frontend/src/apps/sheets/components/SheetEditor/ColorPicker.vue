@@ -55,39 +55,135 @@ import { Popover, FeatherIcon } from 'frappe-ui'
 // Tailwind palette, one family per row (50→900), flattened in row order so the
 // grid reads as 9 columns × 8 families — same source palette Gameplan uses.
 const PALETTE = {
-  gray:   ['#f3f4f6', '#e5e7eb', '#d1d5db', '#9ca3af', '#6b7280', '#4b5563', '#374151', '#1f2937', '#111827'],
-  red:    ['#fee2e2', '#fecaca', '#fca5a5', '#f87171', '#ef4444', '#dc2626', '#b91c1c', '#991b1b', '#7f1d1d'],
-  orange: ['#ffedd5', '#fed7aa', '#fdba74', '#fb923c', '#f97316', '#ea580c', '#c2410c', '#9a3412', '#7c2d12'],
-  yellow: ['#fef9c3', '#fef08a', '#fde047', '#facc15', '#eab308', '#ca8a04', '#a16207', '#854d0e', '#713f12'],
-  green:  ['#dcfce7', '#bbf7d0', '#86efac', '#4ade80', '#22c55e', '#16a34a', '#15803d', '#166534', '#14532d'],
-  teal:   ['#ccfbf1', '#99f6e4', '#5eead4', '#2dd4bf', '#14b8a6', '#0d9488', '#0f766e', '#115e59', '#134e4a'],
-  blue:   ['#dbeafe', '#bfdbfe', '#93c5fd', '#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8', '#1e40af', '#1e3a8a'],
-  purple: ['#f3e8ff', '#e9d5ff', '#d8b4fe', '#c084fc', '#a855f7', '#9333ea', '#7e22ce', '#6b21a8', '#581c87'],
-  pink:   ['#fce7f3', '#fbcfe8', '#f9a8d4', '#f472b6', '#ec4899', '#db2777', '#be185d', '#9d174d', '#831843'],
+  gray: [
+    '#f3f4f6',
+    '#e5e7eb',
+    '#d1d5db',
+    '#9ca3af',
+    '#6b7280',
+    '#4b5563',
+    '#374151',
+    '#1f2937',
+    '#111827',
+  ],
+  red: [
+    '#fee2e2',
+    '#fecaca',
+    '#fca5a5',
+    '#f87171',
+    '#ef4444',
+    '#dc2626',
+    '#b91c1c',
+    '#991b1b',
+    '#7f1d1d',
+  ],
+  orange: [
+    '#ffedd5',
+    '#fed7aa',
+    '#fdba74',
+    '#fb923c',
+    '#f97316',
+    '#ea580c',
+    '#c2410c',
+    '#9a3412',
+    '#7c2d12',
+  ],
+  yellow: [
+    '#fef9c3',
+    '#fef08a',
+    '#fde047',
+    '#facc15',
+    '#eab308',
+    '#ca8a04',
+    '#a16207',
+    '#854d0e',
+    '#713f12',
+  ],
+  green: [
+    '#dcfce7',
+    '#bbf7d0',
+    '#86efac',
+    '#4ade80',
+    '#22c55e',
+    '#16a34a',
+    '#15803d',
+    '#166534',
+    '#14532d',
+  ],
+  teal: [
+    '#ccfbf1',
+    '#99f6e4',
+    '#5eead4',
+    '#2dd4bf',
+    '#14b8a6',
+    '#0d9488',
+    '#0f766e',
+    '#115e59',
+    '#134e4a',
+  ],
+  blue: [
+    '#dbeafe',
+    '#bfdbfe',
+    '#93c5fd',
+    '#60a5fa',
+    '#3b82f6',
+    '#2563eb',
+    '#1d4ed8',
+    '#1e40af',
+    '#1e3a8a',
+  ],
+  purple: [
+    '#f3e8ff',
+    '#e9d5ff',
+    '#d8b4fe',
+    '#c084fc',
+    '#a855f7',
+    '#9333ea',
+    '#7e22ce',
+    '#6b21a8',
+    '#581c87',
+  ],
+  pink: [
+    '#fce7f3',
+    '#fbcfe8',
+    '#f9a8d4',
+    '#f472b6',
+    '#ec4899',
+    '#db2777',
+    '#be185d',
+    '#9d174d',
+    '#831843',
+  ],
 }
 const COLORS = Object.values(PALETTE).flat()
 
 const props = defineProps({
-  modelValue:   { type: String, default: '' },
+  modelValue: { type: String, default: '' },
   allowDefault: { type: Boolean, default: false },
   defaultValue: { type: String, default: '' },
   defaultLabel: { type: String, default: 'Default' },
-  title:        { type: String, default: 'Colour' },
-  placement:    { type: String, default: 'bottom-start' },
+  title: { type: String, default: 'Colour' },
+  placement: { type: String, default: 'bottom-start' },
   // The native picker needs a literal hex even when modelValue is unset.
-  fallback:     { type: String, default: '#000000' },
+  fallback: { type: String, default: '#000000' },
 })
 const emit = defineEmits(['update:modelValue'])
 
 const isHex = v => typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v)
 const eqHex = (a, b) => isHex(a) && isHex(b) && a.toLowerCase() === b.toLowerCase()
-const norm  = s => s.replace(/[^0-9a-fA-F]/g, '').slice(0, 6)
+const norm = s => s.replace(/[^0-9a-fA-F]/g, '').slice(0, 6)
 
-const nativeValue = () => isHex(props.modelValue) ? props.modelValue : (isHex(props.fallback) ? props.fallback : '#000000')
+const nativeValue = () =>
+  isHex(props.modelValue) ? props.modelValue : isHex(props.fallback) ? props.fallback : '#000000'
 
 // Editable hex field, kept in sync with the model.
 const hexBody = ref(isHex(props.modelValue) ? props.modelValue.slice(1) : '')
-watch(() => props.modelValue, v => { hexBody.value = isHex(v) ? v.slice(1) : '' })
+watch(
+  () => props.modelValue,
+  v => {
+    hexBody.value = isHex(v) ? v.slice(1) : ''
+  }
+)
 
 function choose(v, close) {
   emit('update:modelValue', v)
@@ -97,7 +193,13 @@ function choose(v, close) {
 function commitHex(close) {
   const h = hexBody.value
   if (h.length !== 3 && h.length !== 6) return
-  const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h
+  const full =
+    h.length === 3
+      ? h
+          .split('')
+          .map(c => c + c)
+          .join('')
+      : h
   choose('#' + full.toLowerCase(), close)
 }
 
@@ -105,8 +207,10 @@ function commitHex(close) {
 function contrast(hex) {
   if (!isHex(hex)) return '#1F2937'
   const n = parseInt(hex.slice(1), 16)
-  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255
-  return (0.299 * r + 0.587 * g + 0.114 * b) > 150 ? '#1F2937' : '#FFFFFF'
+  const r = (n >> 16) & 255,
+    g = (n >> 8) & 255,
+    b = n & 255
+  return 0.299 * r + 0.587 * g + 0.114 * b > 150 ? '#1F2937' : '#FFFFFF'
 }
 </script>
 

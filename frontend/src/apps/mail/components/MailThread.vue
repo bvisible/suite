@@ -364,15 +364,15 @@
 
 <script setup lang="ts">
 import {
-	computed,
-	inject,
-	nextTick,
-	onMounted,
-	onUnmounted,
-	reactive,
-	ref,
-	useTemplateRef,
-	watch,
+  computed,
+  inject,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  reactive,
+  ref,
+  useTemplateRef,
+  watch,
 } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ChevronDown, Download, Forward, Reply, ReplyAll } from 'lucide-vue-next'
@@ -380,16 +380,16 @@ import { Alert, Avatar, Badge, Button, createResource } from 'frappe-ui'
 
 import { getAttachmentsZipUrl } from '@/apps/mail/resources'
 import {
-	downloadUrlAsFile,
-	extractQuotedContent,
-	getFirstAlphabet,
-	getFormattedDate,
-	getFormattedRecipients,
-	getGroupedRecipients,
-	hasHtmlContent,
-	matchesScreenedValue,
-	raiseToast,
-	shouldIgnoreKeypress,
+  downloadUrlAsFile,
+  extractQuotedContent,
+  getFirstAlphabet,
+  getFormattedDate,
+  getFormattedRecipients,
+  getGroupedRecipients,
+  hasHtmlContent,
+  matchesScreenedValue,
+  raiseToast,
+  shouldIgnoreKeypress,
 } from '@/apps/mail/utils'
 import { useScreenSize, useSettings, useTheme } from '@/apps/mail/utils/composables'
 import { userStore } from '@/apps/mail/stores/user'
@@ -408,39 +408,39 @@ import ThreadDivider from '@/apps/mail/components/ThreadDivider.vue'
 import ThreadHeader from '@/apps/mail/components/ThreadHeader.vue'
 
 import type {
-	Attachment,
-	ComposeMailData,
-	Identity,
-	Mail,
-	Mailbox,
-	ScreenedAddress,
+  Attachment,
+  ComposeMailData,
+  Identity,
+  Mail,
+  Mailbox,
+  ScreenedAddress,
 } from '@/apps/mail/types'
 
 const { mailbox, threadID, threads, messages, canGoPrev, canGoNext, readonly } = defineProps<{
-	mailbox: string
-	threadID?: string
-	threads: string[]
-	messages?: Mail[]
-	canGoPrev?: boolean
-	canGoNext?: boolean
-	// Read-only thread (e.g. the Screener): renders the messages but hides every action — the thread
-	// toolbar, per-message actions, the block banner and the reply/forward bar — and never marks read.
-	readonly?: boolean
+  mailbox: string
+  threadID?: string
+  threads: string[]
+  messages?: Mail[]
+  canGoPrev?: boolean
+  canGoNext?: boolean
+  // Read-only thread (e.g. the Screener): renders the messages but hides every action — the thread
+  // toolbar, per-message actions, the block banner and the reply/forward bar — and never marks read.
+  readonly?: boolean
 }>()
 
 const emit = defineEmits([
-	'reloadMails',
-	'setSpamStatus',
-	'archiveThread',
-	'deleteThread',
-	'setSeen',
-	'setFlagged',
-	'moveThread',
-	'addThreadToMailbox',
-	'removeThreadFromMailbox',
-	'prevThread',
-	'nextThread',
-	'syncUnseen',
+  'reloadMails',
+  'setSpamStatus',
+  'archiveThread',
+  'deleteThread',
+  'setSeen',
+  'setFlagged',
+  'moveThread',
+  'addThreadToMailbox',
+  'removeThreadFromMailbox',
+  'prevThread',
+  'nextThread',
+  'syncUnseen',
 ])
 
 const { isMobile } = useScreenSize()
@@ -453,24 +453,24 @@ const { mailboxes, mailboxIds, identities, screenedAddresses } = store
 // A sender is "blocked" when screened with the Reject action (their mail is discarded) — either by their
 // exact address or by an accepted/blocked '@domain' entry covering them.
 const isSenderBlocked = (email: string) =>
-	!!screenedAddresses.data?.some(
-		(a: ScreenedAddress) => a.action === 'Reject' && matchesScreenedValue(email, a.email),
-	)
+  !!screenedAddresses.data?.some(
+    (a: ScreenedAddress) => a.action === 'Reject' && matchesScreenedValue(email, a.email)
+  )
 
 // Trusted senders — you, or anyone you've accepted — load images normally. For everyone else, the
 // account's "Block Remote Images" setting withholds remote images (read-tracking pixels) until you opt in.
 const blockRemoteImagesEnabled = computed(
-	() =>
-		store.userResource?.data?.accounts?.find((a) => a.id === store.accountId)
-			?.block_remote_images ?? true,
+  () =>
+    store.userResource?.data?.accounts?.find(a => a.id === store.accountId)?.block_remote_images ??
+    true
 )
 const isScreenedIn = (email: string) =>
-	!!identities.data?.some((i: Identity) => i.email === email) ||
-	!!screenedAddresses.data?.some(
-		(a: ScreenedAddress) => a.action === 'Accepted' && matchesScreenedValue(email, a.email),
-	)
+  !!identities.data?.some((i: Identity) => i.email === email) ||
+  !!screenedAddresses.data?.some(
+    (a: ScreenedAddress) => a.action === 'Accepted' && matchesScreenedValue(email, a.email)
+  )
 const shouldBlockImages = (mail: { from_email: string }) =>
-	blockRemoteImagesEnabled.value && !isScreenedIn(mail.from_email)
+  blockRemoteImagesEnabled.value && !isScreenedIn(mail.from_email)
 
 const { dataTheme } = useTheme()
 
@@ -482,53 +482,54 @@ const threadContainerRef = useTemplateRef('threadContainer')
 const draftMails = reactive<{ [key: string]: ComposeMailData }>({})
 
 const mailsByDay = computed(() => {
-	const groups: { date: string; mails: Mail[] }[] = []
-	for (const mail of thread.value || []) {
-		const day = dayjs(mail.received_at).format('YYYY-MM-DD')
-		const last = groups.at(-1)
-		if (last && last.date === day) last.mails.push(mail)
-		else groups.push({ date: day, mails: [mail] })
-	}
-	return groups
+  const groups: { date: string; mails: Mail[] }[] = []
+  for (const mail of thread.value || []) {
+    const day = dayjs(mail.received_at).format('YYYY-MM-DD')
+    const last = groups.at(-1)
+    if (last && last.date === day) last.mails.push(mail)
+    else groups.push({ date: day, mails: [mail] })
+  }
+  return groups
 })
 
 const shouldShowDateDivider = (mails: Mail[]) =>
-	!isMobile.value &&
-	mailsByDay.value.length > 1 &&
-	user.data.group_messages_by === 'Day' &&
-	!mails.every((m) => collapsedMailNames.value.has(m.name))
+  !isMobile.value &&
+  mailsByDay.value.length > 1 &&
+  user.data.group_messages_by === 'Day' &&
+  !mails.every(m => collapsedMailNames.value.has(m.name))
 
 const collapsedMailNames = computed(() => {
-	if (!firstMailOfCollapsedGroup.value) return new Set<string>()
-	const lastMailName = thread.value?.at(-1)?.name
-	const seenMails = (thread.value || []).filter(
-		(m) => m.seen && !m.name.startsWith('draft') && m.name !== lastMailName,
-	)
-	if (seenMails.length < 4) return new Set<string>()
-	return new Set(seenMails.slice(1, -1).map((m) => m.name))
+  if (!firstMailOfCollapsedGroup.value) return new Set<string>()
+  const lastMailName = thread.value?.at(-1)?.name
+  const seenMails = (thread.value || []).filter(
+    m => m.seen && !m.name.startsWith('draft') && m.name !== lastMailName
+  )
+  if (seenMails.length < 4) return new Set<string>()
+  return new Set(seenMails.slice(1, -1).map(m => m.name))
 })
 
 const mailBeforeUnseenMarker = computed(() => {
-	if (!firstUnseenMail.value) return null
-	const data = thread.value || []
-	const idx = data.findIndex((m) => m.id === firstUnseenMail.value)
-	return idx > 0 ? data[idx - 1].name : null
+  if (!firstUnseenMail.value) return null
+  const data = thread.value || []
+  const idx = data.findIndex(m => m.id === firstUnseenMail.value)
+  return idx > 0 ? data[idx - 1].name : null
 })
 
-const isSomeSeen = computed(() => (thread.value || []).some((m) => m.seen))
-const unseenCount = computed(() => (thread.value || []).filter((m) => !m.seen && !m.draft).length)
-const firstUnseenMail = computed(() => thread.value?.find((m) => !m.seen && !m.draft)?.id)
+const isSomeSeen = computed(() => (thread.value || []).some(m => m.seen))
+const unseenCount = computed(() => (thread.value || []).filter(m => !m.seen && !m.draft).length)
+const firstUnseenMail = computed(() => thread.value?.find(m => !m.seen && !m.draft)?.id)
 
 const unseenMessage = computed(() =>
-	unseenCount.value === 1
-		? __('1 new message')
-		: __('{0} new messages', [String(unseenCount.value)]),
+  unseenCount.value === 1
+    ? __('1 new message')
+    : __('{0} new messages', [String(unseenCount.value)])
 )
 
 const shouldShowUnseenMarker = (id: string) =>
-	isSomeSeen.value && firstUnseenMail.value && id == firstUnseenMail.value
+  isSomeSeen.value && firstUnseenMail.value && id == firstUnseenMail.value
 
-const goToMailbox = () => router.push({ name: 'mail-mailbox', params: { mailbox }, query: route.query })
+const goToMailbox = () =>
+  router.push({ name: 'mail-mailbox', params: { mailbox }, query: route.query })
 
 // The thread's messages normally arrive from the parent (loaded via `get_threads`). When the open
 // thread isn't in that list (e.g. a search result, or one on another page), fall back to fetching it
@@ -536,70 +537,70 @@ const goToMailbox = () => router.push({ name: 'mail-mailbox', params: { mailbox 
 const thread = ref<Mail[]>([])
 
 const threadFallback = createResource({
-	url: 'suite.mail.api.mail.get_thread',
-	makeParams: () => ({ account: store.accountId, thread_id: threadID }),
-	onSuccess: (mails: Mail[]) => {
-		// Thread no longer exists (e.g. deleted) — bail to the mailbox instead of a blank page.
-		if (!mails?.length) {
-			goToMailbox()
-			emit('reloadMails')
-			return
-		}
-		loadThread()
-	},
-	onError: () => goToMailbox(),
+  url: 'suite.mail.api.mail.get_thread',
+  makeParams: () => ({ account: store.accountId, thread_id: threadID }),
+  onSuccess: (mails: Mail[]) => {
+    // Thread no longer exists (e.g. deleted) — bail to the mailbox instead of a blank page.
+    if (!mails?.length) {
+      goToMailbox()
+      emit('reloadMails')
+      return
+    }
+    loadThread()
+  },
+  onError: () => goToMailbox(),
 })
 
 const transformThreadMails = (mails: Mail[]) =>
-	mails
-		// Read-only views (the Screener) pass an explicit message list that isn't scoped to a mailbox.
-		.filter((mail) => readonly || filterRelevantMails(mail))
-		.map((mail) => ({
-			...mail,
-			groupedRecipients: getGroupedRecipients(mail.recipients, false),
-			collapsed: !!mail.seen,
-			show: true,
-		}))
+  mails
+    // Read-only views (the Screener) pass an explicit message list that isn't scoped to a mailbox.
+    .filter(mail => readonly || filterRelevantMails(mail))
+    .map(mail => ({
+      ...mail,
+      groupedRecipients: getGroupedRecipients(mail.recipients, false),
+      collapsed: !!mail.seen,
+      show: true,
+    }))
 
 // Messages from the list when present, otherwise the directly-fetched fallback (matched to the
 // current thread so a stale fetch from a previously opened thread is ignored).
 const sourceMessages = (): Mail[] | undefined => {
-	if (messages?.length) return messages
-	const fetched = threadFallback.data as Mail[] | undefined
-	return fetched?.[0]?.thread_id === threadID ? fetched : undefined
+  if (messages?.length) return messages
+  const fetched = threadFallback.data as Mail[] | undefined
+  return fetched?.[0]?.thread_id === threadID ? fetched : undefined
 }
 
 const loadThread = () => {
-	if (!threadID) return
+  if (!threadID) return
 
-	const source = sourceMessages()
-	if (!source?.length) {
-		// Not in the list — fetch the thread directly.
-		if (!messages?.length && !threadFallback.loading) threadFallback.reload()
-		return
-	}
+  const source = sourceMessages()
+  if (!source?.length) {
+    // Not in the list — fetch the thread directly.
+    if (!messages?.length && !threadFallback.loading) threadFallback.reload()
+    return
+  }
 
-	const data = transformThreadMails(source)
+  const data = transformThreadMails(source)
 
-	if (!data.length) {
-		goToMailbox()
-		emit('reloadMails')
-		return
-	}
+  if (!data.length) {
+    goToMailbox()
+    emit('reloadMails')
+    return
+  }
 
-	thread.value = data
-	setCollapsedGroup(data)
+  thread.value = data
+  setCollapsedGroup(data)
 
-	data.forEach((mail) => {
-		if (mail.draft) {
-			mail.groupedRecipients = getGroupedRecipients(mail.recipients, false)
-			populateDraftMails(mail)
-		}
-	})
+  data.forEach(mail => {
+    if (mail.draft) {
+      mail.groupedRecipients = getGroupedRecipients(mail.recipients, false)
+      populateDraftMails(mail)
+    }
+  })
 
-	// Opening a thread marks every message in the whole conversation read — including copies in other
-	// mailboxes (e.g. Sent) that aren't shown in this view. Read-only views (the Screener) never do this.
-	if (!readonly && source.some((mail) => !mail.seen)) setThreadSeen(true)
+  // Opening a thread marks every message in the whole conversation read — including copies in other
+  // mailboxes (e.g. Sent) that aren't shown in this view. Read-only views (the Screener) never do this.
+  if (!readonly && source.some(mail => !mail.seen)) setThreadSeen(true)
 }
 
 // Mark the whole conversation seen/unseen — every message across all mailboxes, not just the ones
@@ -607,84 +608,84 @@ const loadThread = () => {
 // all). Persisted via the parent (list + server) WITHOUT mutating the displayed messages, so the
 // "unread from here" marker survives reopening. Works for list and get_thread-fallback threads alike.
 const setThreadSeen = (seen: boolean) => {
-	const ids = (sourceMessages() ?? thread.value).map((mail) => mail.id)
-	emit('setSeen', seen, ids)
+  const ids = (sourceMessages() ?? thread.value).map(mail => mail.id)
+  emit('setSeen', seen, ids)
 }
 
 // "Mark Unread from Here": mark the given messages unseen in the displayed list and the fallback
 // cache, so the unread-from-here marker appears immediately and survives reopening a fallback thread
 // (whose source is the cache, not the parent's list data).
 const handleSyncUnseen = (ids: string[]) => {
-	const markUnseen = (mail: Mail) => {
-		if (ids.includes(mail.id)) mail.seen = 0
-	}
-	thread.value.forEach(markUnseen)
-	;(threadFallback.data as Mail[] | undefined)?.forEach(markUnseen)
-	emit('syncUnseen', ids)
+  const markUnseen = (mail: Mail) => {
+    if (ids.includes(mail.id)) mail.seen = 0
+  }
+  thread.value.forEach(markUnseen)
+  ;(threadFallback.data as Mail[] | undefined)?.forEach(markUnseen)
+  emit('syncUnseen', ids)
 }
 
 // A reply that arrives while the thread is open (picked up by a background list reload) is appended
 // in place. Re-deriving would clobber unsaved inline drafts, so only the genuinely new messages are
 // added — before any trailing draft so the in-progress reply stays at the bottom.
 const syncWithSource = () => {
-	const source = sourceMessages()
-	if (!source?.length) return
+  const source = sourceMessages()
+  if (!source?.length) return
 
-	// Refresh existing mails' mailbox membership from the list (e.g. after a move/undo), in place so
-	// unsaved inline drafts and collapse state survive.
-	const sourceById = new Map(source.map((mail) => [mail.id, mail]))
-	thread.value.forEach((mail) => {
-		const fresh = sourceById.get(mail.id)
-		if (fresh) mail.mailboxes = fresh.mailboxes
-	})
+  // Refresh existing mails' mailbox membership from the list (e.g. after a move/undo), in place so
+  // unsaved inline drafts and collapse state survive.
+  const sourceById = new Map(source.map(mail => [mail.id, mail]))
+  thread.value.forEach(mail => {
+    const fresh = sourceById.get(mail.id)
+    if (fresh) mail.mailboxes = fresh.mailboxes
+  })
 
-	// Append any newly-arrived messages, before a trailing draft. Drafts are excluded: the only draft
-	// that belongs in an open thread is the one being composed locally (tracked as a `draft:` item whose
-	// saved id isn't known here), so a draft returning from a background reload would otherwise be
-	// mistaken for a new message and spawn a duplicate, blank compose editor.
-	const existing = new Set(thread.value.map((mail) => mail.id))
-	const additions = transformThreadMails(source).filter(
-		(mail) => !existing.has(mail.id) && !mail.draft,
-	)
-	if (!additions.length) return
+  // Append any newly-arrived messages, before a trailing draft. Drafts are excluded: the only draft
+  // that belongs in an open thread is the one being composed locally (tracked as a `draft:` item whose
+  // saved id isn't known here), so a draft returning from a background reload would otherwise be
+  // mistaken for a new message and spawn a duplicate, blank compose editor.
+  const existing = new Set(thread.value.map(mail => mail.id))
+  const additions = transformThreadMails(source).filter(
+    mail => !existing.has(mail.id) && !mail.draft
+  )
+  if (!additions.length) return
 
-	const draftIndex = thread.value.findIndex((mail) => mail.draft)
-	if (draftIndex === -1) thread.value.push(...additions)
-	else thread.value.splice(draftIndex, 0, ...additions)
-	setCollapsedGroup(thread.value)
+  const draftIndex = thread.value.findIndex(mail => mail.draft)
+  if (draftIndex === -1) thread.value.push(...additions)
+  else thread.value.splice(draftIndex, 0, ...additions)
+  setCollapsedGroup(thread.value)
 }
 
 const firstMailOfCollapsedGroup = ref<string | null>(null)
 const mailBeforeCollapsedGroup = ref<string | null>(null)
 
 const resetCollapsedGroup = () => {
-	firstMailOfCollapsedGroup.value = null
-	mailBeforeCollapsedGroup.value = null
+  firstMailOfCollapsedGroup.value = null
+  mailBeforeCollapsedGroup.value = null
 }
 
 const setCollapsedGroup = (data: Mail[]) => {
-	const lastMailName = data.at(-1)?.name
-	const seenMails = data.filter((m) => m.seen && m.name !== lastMailName)
-	if (seenMails.length < 4) {
-		resetCollapsedGroup()
-		return
-	}
+  const lastMailName = data.at(-1)?.name
+  const seenMails = data.filter(m => m.seen && m.name !== lastMailName)
+  if (seenMails.length < 4) {
+    resetCollapsedGroup()
+    return
+  }
 
-	firstMailOfCollapsedGroup.value = seenMails[1]?.name ?? null
-	const triggerIdx = data.findIndex((m) => m.name === firstMailOfCollapsedGroup.value)
-	mailBeforeCollapsedGroup.value = triggerIdx > 0 ? data[triggerIdx - 1].name : null
+  firstMailOfCollapsedGroup.value = seenMails[1]?.name ?? null
+  const triggerIdx = data.findIndex(m => m.name === firstMailOfCollapsedGroup.value)
+  mailBeforeCollapsedGroup.value = triggerIdx > 0 ? data[triggerIdx - 1].name : null
 }
 
 const filterRelevantMails = (mail: Mail) => {
-	if (mailbox === 'search') return true
+  if (mailbox === 'search') return true
 
-	const mailboxes = mail.mailboxes.map((m) => m.mailbox_id)
-	const trash = mailboxIds.trash
-	if (mailbox === trash) return mailboxes.includes(trash)
+  const mailboxes = mail.mailboxes.map(m => m.mailbox_id)
+  const trash = mailboxIds.trash
+  if (mailbox === trash) return mailboxes.includes(trash)
 
-	if (mailbox === mailboxIds.junk) return !!mail.junk
+  if (mailbox === mailboxIds.junk) return !!mail.junk
 
-	return !mailboxes.includes(trash) && !mail.junk
+  return !mailboxes.includes(trash) && !mail.junk
 }
 
 // Explicit refresh: ask the parent to reload `get_threads`, then re-derive once the `messages` prop
@@ -693,246 +694,244 @@ const filterRelevantMails = (mail: Mail) => {
 let forceReload = false
 
 const reload = () => {
-	if (!threadID) return
-	// A directly-fetched thread isn't in the list, so refresh it in place.
-	if (!messages?.length) return threadFallback.reload()
-	forceReload = true
-	emit('reloadMails')
+  if (!threadID) return
+  // A directly-fetched thread isn't in the list, so refresh it in place.
+  if (!messages?.length) return threadFallback.reload()
+  forceReload = true
+  emit('reloadMails')
 }
 
 watch(
-	() => threadID,
-	() => {
-		resetCollapsedGroup()
-		thread.value = []
-		loadThread()
-	},
+  () => threadID,
+  () => {
+    resetCollapsedGroup()
+    thread.value = []
+    loadThread()
+  }
 )
 
 watch(
-	() => messages,
-	() => {
-		if (forceReload || !thread.value.length) {
-			forceReload = false
-			loadThread()
-			return
-		}
-		// Otherwise keep unsaved drafts but sync existing mails and pull in any newly-arrived ones.
-		syncWithSource()
-	},
+  () => messages,
+  () => {
+    if (forceReload || !thread.value.length) {
+      forceReload = false
+      loadThread()
+      return
+    }
+    // Otherwise keep unsaved drafts but sync existing mails and pull in any newly-arrived ones.
+    syncWithSource()
+  }
 )
 
 onMounted(() => loadThread())
 
 const unblockEmailAddress = createResource({
-	url: 'suite.mail.api.mail.unscreen_email_addresses',
-	makeParams: (email) => ({ account: store.accountId, emails: [email] }),
-	onSuccess: () => {
-		raiseToast(__('Sender unblocked.'))
-		screenedAddresses.reload()
-	},
+  url: 'suite.mail.api.mail.unscreen_email_addresses',
+  makeParams: email => ({ account: store.accountId, emails: [email] }),
+  onSuccess: () => {
+    raiseToast(__('Sender unblocked.'))
+    screenedAddresses.reload()
+  },
 })
 
 // Trusting a sender accepts them (screened in), so their remote images load now and going forward.
 const trustSender = createResource({
-	url: 'suite.mail.api.mail.screen_email_addresses',
-	makeParams: (email: string) => ({
-		account: store.accountId,
-		emails: [email],
-		action: 'Accepted',
-	}),
-	onSuccess: () => {
-		raiseToast(__('Sender marked as trusted.'))
-		screenedAddresses.reload()
-	},
+  url: 'suite.mail.api.mail.screen_email_addresses',
+  makeParams: (email: string) => ({
+    account: store.accountId,
+    emails: [email],
+    action: 'Accepted',
+  }),
+  onSuccess: () => {
+    raiseToast(__('Sender marked as trusted.'))
+    screenedAddresses.reload()
+  },
 })
 
 const handleReload = (isUndo = false) => {
-	if (thread.value.length == 1) {
-		emit('reloadMails')
-		if (!isUndo) return goToMailbox()
-	}
-	reload()
+  if (thread.value.length == 1) {
+    emit('reloadMails')
+    if (!isUndo) return goToMailbox()
+  }
+  reload()
 }
 
 const replyForwardActions = computed(() =>
-	[
-		{
-			label: __('Reply'),
-			tooltip: __('Reply (R)'),
-			onClick: () => reply(thread.value.at(-1)),
-			icon: Reply,
-		},
-		{
-			label: __('Reply All'),
-			tooltip: __('Reply All (Shift+R)'),
-			onClick: () => replyAll(thread.value.at(-1)),
-			icon: ReplyAll,
-			condition: showReplyAll(thread.value.at(-1)),
-		},
-		{
-			label: __('Forward'),
-			tooltip: __('Forward (F)'),
-			onClick: () => forward(thread.value.at(-1)),
-			icon: Forward,
-		},
-	].filter((action) => action.condition !== false),
+  [
+    {
+      label: __('Reply'),
+      tooltip: __('Reply (R)'),
+      onClick: () => reply(thread.value.at(-1)),
+      icon: Reply,
+    },
+    {
+      label: __('Reply All'),
+      tooltip: __('Reply All (Shift+R)'),
+      onClick: () => replyAll(thread.value.at(-1)),
+      icon: ReplyAll,
+      condition: showReplyAll(thread.value.at(-1)),
+    },
+    {
+      label: __('Forward'),
+      tooltip: __('Forward (F)'),
+      onClick: () => forward(thread.value.at(-1)),
+      icon: Forward,
+    },
+  ].filter(action => action.condition !== false)
 )
 
 const showMailDetails = ref<string>()
 
 const filteredAttachments = (mail: Mail) =>
-	mail.attachments.filter(
-		(a: Attachment) => a.disposition === 'attachment' || !a.type.startsWith('image/'),
-	)
+  mail.attachments.filter(
+    (a: Attachment) => a.disposition === 'attachment' || !a.type.startsWith('image/')
+  )
 
 const showAttachmentViewer = ref(false)
 const attachments = ref<Attachment[]>([])
 const attachmentIndex = ref(0)
 
 const openAttachment = (mailAttachments: Attachment[], idx: number) => {
-	attachments.value = mailAttachments
-	attachmentIndex.value = idx
-	showAttachmentViewer.value = true
+  attachments.value = mailAttachments
+  attachmentIndex.value = idx
+  showAttachmentViewer.value = true
 }
 
 const zippableAttachments = (mail: Mail) =>
-	filteredAttachments(mail).filter((a: Attachment) => a.blob_id)
+  filteredAttachments(mail).filter((a: Attachment) => a.blob_id)
 
 const downloadingZipMail = ref<string | null>(null)
 
 const downloadAttachmentsAsZip = async (mail: Mail) => {
-	const mailAttachments = zippableAttachments(mail)
-	if (mailAttachments.length < 2) return
+  const mailAttachments = zippableAttachments(mail)
+  if (mailAttachments.length < 2) return
 
-	downloadingZipMail.value = mail.name
-	try {
-		const url = await getAttachmentsZipUrl(mailAttachments)
-		downloadUrlAsFile(url, `${mail.subject || 'attachments'}.zip`)
-	} finally {
-		downloadingZipMail.value = null
-	}
+  downloadingZipMail.value = mail.name
+  try {
+    const url = await getAttachmentsZipUrl(mailAttachments)
+    downloadUrlAsFile(url, `${mail.subject || 'attachments'}.zip`)
+  } finally {
+    downloadingZipMail.value = null
+  }
 }
 
 const isCollapsed = (mail: Mail) =>
-	!!(mail.collapsed && mail !== thread.value[thread.value.length - 1])
+  !!(mail.collapsed && mail !== thread.value[thread.value.length - 1])
 
 const showReplyAll = (mail: Mail) =>
-	!mail.draft &&
-	mail.groupedRecipients.to
-		?.concat(mail.groupedRecipients.cc)
-		.filter((m) => !isUserEmail(m.email)).length > 0
+  !mail.draft &&
+  mail.groupedRecipients.to?.concat(mail.groupedRecipients.cc).filter(m => !isUserEmail(m.email))
+    .length > 0
 
 const populateDraftMails = (mail: Mail) =>
-	(draftMails[mail.name] = {
-		name: mail.name,
-		id: mail.id,
-		from_email: mail.from_email,
-		to: mail.groupedRecipients.to,
-		cc: mail.groupedRecipients.cc,
-		bcc: mail.groupedRecipients.bcc,
-		subject: mail.subject || '',
-		in_reply_to: mail.message_id,
-		in_reply_to_id: mail.id,
-		attachments: mail.attachments || [],
-		...extractQuotedContent(mail.html_body),
-	})
+  (draftMails[mail.name] = {
+    name: mail.name,
+    id: mail.id,
+    from_email: mail.from_email,
+    to: mail.groupedRecipients.to,
+    cc: mail.groupedRecipients.cc,
+    bcc: mail.groupedRecipients.bcc,
+    subject: mail.subject || '',
+    in_reply_to: mail.message_id,
+    in_reply_to_id: mail.id,
+    attachments: mail.attachments || [],
+    ...extractQuotedContent(mail.html_body),
+  })
 
 const reply = (mail: Mail) =>
-	createLocalDraft(mail, {
-		...getReplyDetails(mail),
-		...getReplyRecipients(mail),
-		type: 'reply',
-	})
+  createLocalDraft(mail, {
+    ...getReplyDetails(mail),
+    ...getReplyRecipients(mail),
+    type: 'reply',
+  })
 
 const replyAll = (mail: Mail) =>
-	createLocalDraft(mail, {
-		...getReplyDetails(mail),
-		...getReplyAllRecipients(mail),
-		type: 'replyAll',
-	})
+  createLocalDraft(mail, {
+    ...getReplyDetails(mail),
+    ...getReplyAllRecipients(mail),
+    type: 'replyAll',
+  })
 
 const forward = (mail: Mail) =>
-	createLocalDraft(mail, {
-		subject: `Fwd: ${mail.subject || ''}`,
-		html_body: getForwardedContent(mail),
-		attachments: mail.attachments || [],
-		forwarded_from_id: mail.id,
-		type: 'forward',
-	})
+  createLocalDraft(mail, {
+    subject: `Fwd: ${mail.subject || ''}`,
+    html_body: getForwardedContent(mail),
+    attachments: mail.attachments || [],
+    forwarded_from_id: mail.id,
+    type: 'forward',
+  })
 
 const createLocalDraft = (mail: Mail, draftDetails: ComposeMailData) => {
-	mail.collapsed = false
-	const name = `draft:${mail.name}`
-	if (name in draftMails) discardLocalDraft(name)
+  mail.collapsed = false
+  const name = `draft:${mail.name}`
+  if (name in draftMails) discardLocalDraft(name)
 
-	nextTick(() => {
-		draftMails[name] = { name, ...draftDetails }
-		const index = thread.value.indexOf(mail)
-		const draft = thread.value.find((m: Mail) => m.name === name)
-		if (index !== -1 && !draft)
-			thread.value.splice(index + 1, 0, { ...draftMails[name], draft: 1, show: true })
-		if (isMobile.value) popOutDraft(draftMails[name])
-		else
-			setTimeout(() =>
-				threadContainerRef.value
-					?.querySelector(`[data-mail-name="${name}"]`)
-					?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
-			)
-	})
+  nextTick(() => {
+    draftMails[name] = { name, ...draftDetails }
+    const index = thread.value.indexOf(mail)
+    const draft = thread.value.find((m: Mail) => m.name === name)
+    if (index !== -1 && !draft)
+      thread.value.splice(index + 1, 0, { ...draftMails[name], draft: 1, show: true })
+    if (isMobile.value) popOutDraft(draftMails[name])
+    else
+      setTimeout(() =>
+        threadContainerRef.value
+          ?.querySelector(`[data-mail-name="${name}"]`)
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      )
+  })
 }
 
 const discardLocalDraft = (mail: string) => {
-	delete draftMails[mail]
-	thread.value = thread.value.filter((m: Mail) => m.name !== mail)
+  delete draftMails[mail]
+  thread.value = thread.value.filter((m: Mail) => m.name !== mail)
 }
 
 // Shortcuts
 
 const handleKeydown = (e: KeyboardEvent) => {
-	// Read-only views (the Screener) expose no reply/forward, so their shortcuts are inert too.
-	if (readonly || shouldIgnoreKeypress(e)) return
+  // Read-only views (the Screener) expose no reply/forward, so their shortcuts are inert too.
+  if (readonly || shouldIgnoreKeypress(e)) return
 
-	const key = e.key.toLowerCase()
-	const lastMail = thread.value?.at(-1)
-	if (!lastMail || lastMail.draft) return
+  const key = e.key.toLowerCase()
+  const lastMail = thread.value?.at(-1)
+  if (!lastMail || lastMail.draft) return
 
-	// Reply/Reply All shortcut
-	if (key === 'r') {
-		e.preventDefault()
-		if (e.shiftKey) replyAll(lastMail)
-		else reply(lastMail)
-		return
-	}
+  // Reply/Reply All shortcut
+  if (key === 'r') {
+    e.preventDefault()
+    if (e.shiftKey) replyAll(lastMail)
+    else reply(lastMail)
+    return
+  }
 
-	// Forward shortcut
-	if (key === 'f') {
-		e.preventDefault()
-		forward(lastMail)
-	}
+  // Forward shortcut
+  if (key === 'f') {
+    e.preventDefault()
+    forward(lastMail)
+  }
 }
 
 onMounted(() => window.addEventListener('keydown', handleKeydown))
 onUnmounted(() => window.removeEventListener('keydown', handleKeydown))
 
 const syncFlagged = (ids: string[], flagged: boolean) =>
-	thread.value?.forEach((mail: Mail) => {
-		if (ids.includes(mail.id)) mail.flagged = flagged ? 1 : 0
-	})
+  thread.value?.forEach((mail: Mail) => {
+    if (ids.includes(mail.id)) mail.flagged = flagged ? 1 : 0
+  })
 
 const syncMailboxMembership = (mailboxId: string, add: boolean) => {
-	if (add) {
-		const mb = mailboxes.data?.find((m) => m.id === mailboxId)
-		if (!mb) return
-		const entry: Mailbox = { mailbox: mb.name, mailbox_id: mb.id, mailbox_name: mb._name }
-		thread.value?.forEach((mail: Mail) => {
-			if (!mail.mailboxes.some((m) => m.mailbox_id === mailboxId)) mail.mailboxes.push(entry)
-		})
-	} else if (thread.value?.every((mail: Mail) => mail.mailboxes.length > 1))
-		thread.value?.forEach(
-			(mail: Mail) =>
-				(mail.mailboxes = mail.mailboxes.filter((m) => m.mailbox_id !== mailboxId)),
-		)
+  if (add) {
+    const mb = mailboxes.data?.find(m => m.id === mailboxId)
+    if (!mb) return
+    const entry: Mailbox = { mailbox: mb.name, mailbox_id: mb.id, mailbox_name: mb._name }
+    thread.value?.forEach((mail: Mail) => {
+      if (!mail.mailboxes.some(m => m.mailbox_id === mailboxId)) mail.mailboxes.push(entry)
+    })
+  } else if (thread.value?.every((mail: Mail) => mail.mailboxes.length > 1))
+    thread.value?.forEach(
+      (mail: Mail) => (mail.mailboxes = mail.mailboxes.filter(m => m.mailbox_id !== mailboxId))
+    )
 }
 
 defineExpose({ syncFlagged, syncMailboxMembership })
@@ -941,52 +940,51 @@ const focusedDraft = ref<string>()
 const showSendModal = ref(false)
 
 const popOutDraft = (mail: ComposeMailData) => {
-	draftMails[mail.name as string] = mail
-	focusedDraft.value = mail.name
-	showSendModal.value = true
+  draftMails[mail.name as string] = mail
+  focusedDraft.value = mail.name
+  showSendModal.value = true
 }
 
 const getSourceMail = (mail: string) =>
-	thread.value.find((m: Mail) => m.name === mail.split(':')[1])
+  thread.value.find((m: Mail) => m.name === mail.split(':')[1])
 
 const getReplyDetails = (mail: Mail) => ({
-	subject: mail.subject?.startsWith('Re: ') ? mail.subject : `Re: ${mail.subject}`,
-	quoted_content: getQuotedContent(mail),
-	attachments: mail.attachments?.filter((a: Attachment) => a.disposition === 'inline') || [],
-	in_reply_to: mail.message_id,
-	in_reply_to_id: mail.id,
+  subject: mail.subject?.startsWith('Re: ') ? mail.subject : `Re: ${mail.subject}`,
+  quoted_content: getQuotedContent(mail),
+  attachments: mail.attachments?.filter((a: Attachment) => a.disposition === 'inline') || [],
+  in_reply_to: mail.message_id,
+  in_reply_to_id: mail.id,
 })
 
 const getReplyRecipients = (mail: Mail) => ({
-	to: isUserEmail(mail.from_email)
-		? mail.groupedRecipients.to
-		: mail.reply_to.length
-			? mail.reply_to
-			: [{ email: mail.from_email }],
+  to: isUserEmail(mail.from_email)
+    ? mail.groupedRecipients.to
+    : mail.reply_to.length
+      ? mail.reply_to
+      : [{ email: mail.from_email }],
 })
 
 const getReplyAllRecipients = (mail: Mail) => {
-	if (isUserEmail(mail.from_email))
-		return { to: mail.groupedRecipients.to, cc: mail.groupedRecipients.cc }
-	else
-		return {
-			to: mail.reply_to.length ? mail.reply_to : [{ email: mail.from_email }],
-			cc: [...mail.groupedRecipients.to, ...mail.groupedRecipients.cc].filter(
-				(r) => !isUserEmail(r.email),
-			),
-		}
+  if (isUserEmail(mail.from_email))
+    return { to: mail.groupedRecipients.to, cc: mail.groupedRecipients.cc }
+  else
+    return {
+      to: mail.reply_to.length ? mail.reply_to : [{ email: mail.from_email }],
+      cc: [...mail.groupedRecipients.to, ...mail.groupedRecipients.cc].filter(
+        r => !isUserEmail(r.email)
+      ),
+    }
 }
 
-const isUserEmail = (email: string) =>
-	identities.data.map((i: Identity) => i.email).includes(email)
+const isUserEmail = (email: string) => identities.data.map((i: Identity) => i.email).includes(email)
 
 const getBodyContent = (mail: Mail) => {
-	if (hasHtmlContent(mail.html_body)) return mail.html_body
-	return `<pre style="white-space: pre-wrap; word-break: break-word">${mail.html_body || mail.text_body || '&nbsp;'}</pre>`
+  if (hasHtmlContent(mail.html_body)) return mail.html_body
+  return `<pre style="white-space: pre-wrap; word-break: break-word">${mail.html_body || mail.text_body || '&nbsp;'}</pre>`
 }
 
 const getQuotedContent = (mail: Mail) =>
-	`
+  `
 		<div class="frappe_mail_quote">
 			On ${dayjs(mail.received_at).format('DD MMM YYYY [at] h:mm A')}, ${mail.from_email} wrote:
 			<blockquote style="margin-left: 8px">
@@ -996,8 +994,8 @@ const getQuotedContent = (mail: Mail) =>
 	`
 
 const getForwardedContent = (mail: Mail) => {
-	const recipients = getGroupedRecipients(mail.recipients, true, true)
-	return `
+  const recipients = getGroupedRecipients(mail.recipients, true, true)
+  return `
 		<div class="frappe_mail_fwd">
 			<br><br>
 			---------- Forwarded message ---------<br>

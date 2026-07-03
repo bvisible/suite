@@ -43,11 +43,11 @@ const router = useRouter()
 // setter only navigates on an actual tab change, avoiding the redundant same-route push that the
 // previous tabIndex<->route watch pair triggered.
 const tabIndex = computed({
-	get: () => (route.name === 'mail-invites' ? 1 : 0),
-	set: (val) => {
-		const name = val ? 'mail-invites' : 'mail-members'
-		if (route.name !== name) router.push({ name })
-	},
+  get: () => (route.name === 'mail-invites' ? 1 : 0),
+  set: val => {
+    const name = val ? 'mail-invites' : 'mail-members'
+    if (route.name !== name) router.push({ name })
+  },
 })
 
 // add/invite members
@@ -58,7 +58,7 @@ const usersView = useTemplateRef('usersView')
 const invitesView = useTemplateRef('invitesView')
 
 const reload = () => {
-	if (tabIndex.value === 0) usersView?.value?.reloadMembers()
-	else invitesView?.value?.reloadInvites()
+  if (tabIndex.value === 0) usersView?.value?.reloadMembers()
+  else invitesView?.value?.reloadInvites()
 }
 </script>

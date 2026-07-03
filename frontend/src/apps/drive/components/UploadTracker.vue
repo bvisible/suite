@@ -90,7 +90,7 @@
   </div>
 </template>
 <script setup>
-import { Dialog, Button} from 'frappe-ui'
+import { Dialog, Button } from 'frappe-ui'
 import ProgressRing from '@/apps/drive/components/ProgressRing.vue'
 import LucideInfo from '~icons/lucide/info'
 import LucidePlus from '~icons/lucide/plus'
@@ -98,7 +98,12 @@ import LucideMinus from '~icons/lucide/minus'
 import LucideFolderOpenDot from '~icons/lucide/folder-open-dot'
 import LucideX from '~icons/lucide/x'
 import LucideRefreshCcw from '~icons/lucide/refresh-ccw'
-import { uploadsInProgress, uploadsCompleted, uploadsFailed, clearUploads } from '@/apps/drive/data/uploads'
+import {
+  uploadsInProgress,
+  uploadsCompleted,
+  uploadsFailed,
+  clearUploads,
+} from '@/apps/drive/data/uploads'
 import { useRouter } from 'vue-router'
 import { ref } from 'vue'
 
@@ -113,7 +118,7 @@ const currentTabGetter = () => {
   return uploadsFailed.value.concat(uploadsInProgress.value, uploadsCompleted.value)
 }
 
-const openFile = (upload) => {
+const openFile = upload => {
   selectedUpload.value = upload
   if (upload.error) {
     showErrorDialog.value = true

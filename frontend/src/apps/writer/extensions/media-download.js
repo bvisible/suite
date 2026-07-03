@@ -21,7 +21,7 @@ export default Extension.create({
           let currentHeading = null
           let currentHeadingCount = 0
 
-          state.doc.descendants((node) => {
+          state.doc.descendants(node => {
             // If it's a heading, remember its text
             if (node.type.name === 'heading') {
               currentHeadingCount = 0

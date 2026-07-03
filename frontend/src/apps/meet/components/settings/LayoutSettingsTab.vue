@@ -19,21 +19,18 @@
 </template>
 
 <script setup lang="ts">
-import { Switch } from "frappe-ui";
-import { type Ref, ref, watch } from "vue";
-import {
-	autoHideToolbar,
-	setAutoHideToolbar,
-} from "../../data/mediaPreferences";
-import SettingsLayoutBase from "./SettingsLayoutBase.vue";
+import { Switch } from 'frappe-ui'
+import { type Ref, ref, watch } from 'vue'
+import { autoHideToolbar, setAutoHideToolbar } from '../../data/mediaPreferences'
+import SettingsLayoutBase from './SettingsLayoutBase.vue'
 
-const autoHideToolbarLocal: Ref<boolean> = ref(autoHideToolbar.value);
+const autoHideToolbarLocal: Ref<boolean> = ref(autoHideToolbar.value)
 
-watch(autoHideToolbarLocal, (newValue) => {
-	setAutoHideToolbar(newValue);
-});
+watch(autoHideToolbarLocal, newValue => {
+  setAutoHideToolbar(newValue)
+})
 
-watch(autoHideToolbar, (newValue) => {
-	autoHideToolbarLocal.value = newValue;
-});
+watch(autoHideToolbar, newValue => {
+  autoHideToolbarLocal.value = newValue
+})
 </script>

@@ -42,17 +42,17 @@
 import { computed, ref, useTemplateRef, watch } from 'vue'
 import { useDebounceFn, watchDebounced } from '@vueuse/core'
 import {
-	Button,
-	Dialog,
-	FeatherIcon,
-	FormControl,
-	ListEmptyState,
-	ListHeader,
-	ListRows,
-	ListSelectBanner,
-	ListView,
-	createResource,
-	usePageMeta,
+  Button,
+  Dialog,
+  FeatherIcon,
+  FormControl,
+  ListEmptyState,
+  ListHeader,
+  ListRows,
+  ListSelectBanner,
+  ListView,
+  createResource,
+  usePageMeta,
 } from 'frappe-ui'
 
 import { extractNameFromEmail, raiseToast } from '@/apps/mail/utils'
@@ -74,82 +74,79 @@ const search = ref('')
 const limit = ref(50)
 
 const contacts = createResource({
-	url: 'suite.mail.api.contacts.get_contact_cards',
-	auto: true,
-	makeParams: () => ({
-		account: store.accountId,
-		filter: { text: search.value },
-		limit: limit.value,
-	}),
-	transform: (data) =>
-		data.map((c) => {
-			const full_name = c.full_name || extractNameFromEmail(c.emails[0]?.address || '')
+  url: 'suite.mail.api.contacts.get_contact_cards',
+  auto: true,
+  makeParams: () => ({
+    account: store.accountId,
+    filter: { text: search.value },
+    limit: limit.value,
+  }),
+  transform: data =>
+    data.map(c => {
+      const full_name = c.full_name || extractNameFromEmail(c.emails[0]?.address || '')
 
-			let email = ''
-			if (c.emails.length === 1) email = c.emails[0].address
-			else if (c.emails.length > 1)
-				email = __('{0} + {1} more', [c.emails[0].address, c.emails.length - 1])
+      let email = ''
+      if (c.emails.length === 1) email = c.emails[0].address
+      else if (c.emails.length > 1)
+        email = __('{0} + {1} more', [c.emails[0].address, c.emails.length - 1])
 
-			return { ...c, full_name, email }
-		}),
+      return { ...c, full_name, email }
+    }),
 })
 
 watch(
-	() => store.accountId,
-	() => contacts.reload(),
+  () => store.accountId,
+  () => contacts.reload()
 )
 
 watchDebounced(() => search.value, contacts.reload, { debounce: 300 })
 
-const loadMoreContacts = useDebounceFn((e) => {
-	const { scrollTop, scrollHeight, clientHeight } = e.target
-	if (scrollTop + clientHeight >= scrollHeight - 10 && contacts.data?.length === limit.value) {
-		limit.value += 50
-		contacts.reload()
-		setTimeout(
-			() => e.target.scrollTo({ top: e.target.scrollHeight, behavior: 'smooth' }),
-			100,
-		)
-	}
+const loadMoreContacts = useDebounceFn(e => {
+  const { scrollTop, scrollHeight, clientHeight } = e.target
+  if (scrollTop + clientHeight >= scrollHeight - 10 && contacts.data?.length === limit.value) {
+    limit.value += 50
+    contacts.reload()
+    setTimeout(() => e.target.scrollTo({ top: e.target.scrollHeight, behavior: 'smooth' }), 100)
+  }
 }, 500)
 
 const deleteContacts = createResource({
-	url: 'suite.mail.doctype.contact_card.contact_card.delete_contact_cards',
-	makeParams: () => ({
-		account: store.accountId,
-		ids: Array.from(listView.value?.selections),
-	}),
-	onSuccess: () => {
-		contacts.reload()
-		showDeleteContacts.value = false
-		raiseToast(__('Contacts deleted.'))
-		listView.value?.toggleAllRows()
-	},
-	onError: (error) => {
-		showDeleteContacts.value = false
-		raiseToast(error.messages[0], 'error')
-	},
+  url: 'suite.mail.doctype.contact_card.contact_card.delete_contact_cards',
+  makeParams: () => ({
+    account: store.accountId,
+    ids: Array.from(listView.value?.selections),
+  }),
+  onSuccess: () => {
+    contacts.reload()
+    showDeleteContacts.value = false
+    raiseToast(__('Contacts deleted.'))
+    listView.value?.toggleAllRows()
+  },
+  onError: error => {
+    showDeleteContacts.value = false
+    raiseToast(error.messages[0], 'error')
+  },
 })
 
 const listOptions = computed(() => ({
-	showTooltip: false,
-	emptyState: { description: contacts.loading ? __('Loading...') : __('No contacts found.') },
-	getRowRoute: (row) => ({
-		name: 'mail-contact',
-		params: { accountId, contactName: row.id },
-	}),
+  showTooltip: false,
+  emptyState: { description: contacts.loading ? __('Loading...') : __('No contacts found.') },
+  getRowRoute: row => ({
+    name: 'mail-contact',
+    params: { accountId, contactName: row.id },
+  }),
 }))
 
 const LIST_COLUMNS = [
-	{ label: __('Name'), key: 'full_name' },
-	{ label: __('Kind'), key: 'kind' },
-	{ label: __('Email'), key: 'email' },
+  { label: __('Name'), key: 'full_name' },
+  { label: __('Kind'), key: 'kind' },
+  { label: __('Email'), key: 'email' },
 ]
 
 const DELETE_CONTACTS_OPTIONS = {
-	title: __('Delete Contacts'),
-	message: __('Are you sure you want to delete the selected contacts?'),
-	icon: { name: 'alert-triangle', appearance: 'warning' },
-	actions: [{ label: __('Confirm'), variant: 'solid', onClick: deleteContacts.submit }],
+  title: __('Delete Contacts'),
+  message: __('Are you sure you want to delete the selected contacts?'),
+  icon: { name: 'alert-triangle', appearance: 'warning' },
+  actions: [{ label: __('Confirm'), variant: 'solid', onClick: deleteContacts.submit }],
 }
 </script>

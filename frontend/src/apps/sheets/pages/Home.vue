@@ -252,9 +252,9 @@ function newSheet() {
   router.push({ name: 'sheets-editor', params: { id: 'new' } })
 }
 
-const sheets       = ref([])
-const loading      = ref(true)
-const searchQuery  = ref('')
+const sheets = ref([])
+const loading = ref(true)
+const searchQuery = ref('')
 
 // Inline error banner used by the destructive actions (delete / duplicate).
 // Mirrors the editor's `saveError` pattern — Frappe UI Badge, auto-dismissed
@@ -262,7 +262,9 @@ const searchQuery  = ref('')
 const errorMessage = ref('')
 function _flashError(msg) {
   errorMessage.value = msg
-  setTimeout(() => { if (errorMessage.value === msg) errorMessage.value = '' }, 4000)
+  setTimeout(() => {
+    if (errorMessage.value === msg) errorMessage.value = ''
+  }, 4000)
 }
 
 // Persisted view preference. Default to list for a dense, scannable
@@ -282,7 +284,11 @@ function _readViewMode() {
 function setViewMode(mode) {
   if (mode !== 'grid' && mode !== 'list') return
   viewMode.value = mode
-  try { localStorage.setItem(VIEW_KEY, mode) } catch (_) { /* private mode */ }
+  try {
+    localStorage.setItem(VIEW_KEY, mode)
+  } catch (_) {
+    /* private mode */
+  }
 }
 
 // Ownership comes from the API as a server-computed `is_owner` flag,
@@ -291,7 +297,9 @@ function setViewMode(mode) {
 // the logged-in user on its own. Comparing sheet.owner against an empty
 // `window.frappe?.session?.user` made every sheet look "shared" and
 // hid the owner-only Rename/Delete actions.
-function isOwnedByMe(sheet) { return !!sheet.is_owner }
+function isOwnedByMe(sheet) {
+  return !!sheet.is_owner
+}
 
 function shortOwner(sheet) {
   const u = sheet.owner
@@ -329,8 +337,7 @@ const listColumns = [
     key: 'owner',
     width: 1,
     getLabel: ({ row }) => shortOwner(row),
-    prefix: ({ row }) =>
-      h(Avatar, { label: ownerInitials(row), size: 'xs', shape: 'circle' }),
+    prefix: ({ row }) => h(Avatar, { label: ownerInitials(row), size: 'xs', shape: 'circle' }),
   },
   {
     label: 'Last Modified',
@@ -348,7 +355,7 @@ const listOptions = computed(() => ({
   selectable: false,
   showTooltip: true,
   rowHeight: 40,
-  onRowClick: (row) => openSheet(row.name),
+  onRowClick: row => openSheet(row.name),
   emptyState: searchQuery.value
     ? {
         title: `No matches for "${searchQuery.value}"`,
@@ -390,13 +397,13 @@ function cardActions(sheet) {
 }
 
 const showDeleteDialog = ref(false)
-const deleteTarget     = ref(null)
-const deleting         = ref(false)
+const deleteTarget = ref(null)
+const deleting = ref(false)
 
 const showRenameDialog = ref(false)
-const renameTarget     = ref(null)
-const renameValue      = ref('')
-const renaming         = ref(false)
+const renameTarget = ref(null)
+const renameValue = ref('')
+const renaming = ref(false)
 
 onMounted(fetchSheets)
 
@@ -413,15 +420,15 @@ function formatDate(iso) {
   const d = new Date(iso)
   const now = new Date()
   const diff = (now - d) / 1000
-  if (diff < 60)           return 'just now'
-  if (diff < 3600)         return `${Math.floor(diff / 60)}m ago`
-  if (diff < 86400)        return `${Math.floor(diff / 3600)}h ago`
-  if (diff < 86400 * 7)   return `${Math.floor(diff / 86400)}d ago`
+  if (diff < 60) return 'just now'
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
+  if (diff < 86400 * 7) return `${Math.floor(diff / 86400)}d ago`
   return d.toLocaleDateString()
 }
 
 function confirmDelete(sheet) {
-  deleteTarget.value    = sheet
+  deleteTarget.value = sheet
   showDeleteDialog.value = true
 }
 
@@ -441,14 +448,14 @@ async function doDelete() {
 }
 
 function openRenameDialog(sheet) {
-  renameTarget.value     = sheet
-  renameValue.value      = sheet.title || ''
+  renameTarget.value = sheet
+  renameValue.value = sheet.title || ''
   showRenameDialog.value = true
 }
 
 async function confirmRename() {
   const target = renameTarget.value
-  const title  = renameValue.value.trim()
+  const title = renameValue.value.trim()
   if (!target || !title) return
   renaming.value = true
   try {

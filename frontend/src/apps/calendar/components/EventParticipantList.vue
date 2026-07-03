@@ -7,27 +7,27 @@ import { extractNameFromEmail } from '@/apps/calendar/utils/format'
 import { userStore } from '@/apps/calendar/stores/user'
 
 const { participants, dontShowRemove } = defineProps<{
-	participants: any[]
-	dontShowRemove?: boolean
+  participants: any[]
+  dontShowRemove?: boolean
 }>()
 
 defineEmits(['removeParticipant'])
 
 const { identities } = userStore()
 
-const organizer = computed(() => participants.find((p) => p.isOrganizer)?.email)
+const organizer = computed(() => participants.find(p => p.isOrganizer)?.email)
 
 const isUserOrganizer = computed(() =>
-	identities.data.some((id) => id.email === organizer.value?.replace('mailto:', '')),
+  identities.data.some(id => id.email === organizer.value?.replace('mailto:', ''))
 )
 
 const showRemoveParticipant = (participant: any) =>
-	!participant.isOrganizer && (isUserOrganizer.value || participant.isNew) && !dontShowRemove
+  !participant.isOrganizer && (isUserOrganizer.value || participant.isNew) && !dontShowRemove
 
 const getParticipantStatusValues = (status: string) => {
-	if (status === 'ACCEPTED') return { icon: Check, class: 'bg-surface-green-1 text-ink-green-6' }
-	if (status === 'TENTATIVE') return { icon: Minus, class: 'bg-surface-gray-1 text-ink-gray-6' }
-	return { icon: X, class: 'bg-surface-red-1 text-ink-red-6' }
+  if (status === 'ACCEPTED') return { icon: Check, class: 'bg-surface-green-1 text-ink-green-6' }
+  if (status === 'TENTATIVE') return { icon: Minus, class: 'bg-surface-gray-1 text-ink-gray-6' }
+  return { icon: X, class: 'bg-surface-red-1 text-ink-red-6' }
 }
 </script>
 <template>

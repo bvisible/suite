@@ -64,14 +64,14 @@
 
 <script setup>
 import {
-	ref,
-	watch,
-	onMounted,
-	onBeforeUnmount,
-	provide,
-	inject,
-	nextTick,
-	useTemplateRef,
+  ref,
+  watch,
+  onMounted,
+  onBeforeUnmount,
+  provide,
+  inject,
+  nextTick,
+  useTemplateRef,
 } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 
@@ -88,37 +88,37 @@ import LayoutDialog from '@/apps/slides/components/LayoutDialog.vue'
 import ThumbnailCapture from '@/apps/slides/components/ThumbnailCapture.vue'
 
 import {
-	presentationId,
-	initPresentationDoc,
-	presentationDoc,
-	unsyncedPresentationRecord,
-	templateList,
-	templateListResource,
-	inReadonlyMode,
-	createPresentationResource,
-	duplicatePresentation,
-	deletePresentation,
-	presentationTheme,
-	resetEditorState,
+  presentationId,
+  initPresentationDoc,
+  presentationDoc,
+  unsyncedPresentationRecord,
+  templateList,
+  templateListResource,
+  inReadonlyMode,
+  createPresentationResource,
+  duplicatePresentation,
+  deletePresentation,
+  presentationTheme,
+  resetEditorState,
 } from '@/apps/slides/stores/presentation'
 import {
-	slides,
-	slideIndex,
-	selectionBounds,
-	focusedSlide,
-	setSlideIndex,
-	changeEditorSlide,
-	deleteSlide,
-	duplicateSlide,
-	addEmptySlide,
-	handleInsertSlide,
+  slides,
+  slideIndex,
+  selectionBounds,
+  focusedSlide,
+  setSlideIndex,
+  changeEditorSlide,
+  deleteSlide,
+  duplicateSlide,
+  addEmptySlide,
+  handleInsertSlide,
 } from '@/apps/slides/stores/slide'
 import { resetFocus, focusElementId } from '@/apps/slides/stores/element'
 import {
-	commandHistory,
-	setCommandHistory,
-	actions as historyMetaActions,
-	actionOrder as historyMetaActionOrder,
+  commandHistory,
+  setCommandHistory,
+  actions as historyMetaActions,
+  actionOrder as historyMetaActionOrder,
 } from '@/apps/slides/stores/historyMeta'
 
 import { useShortcuts } from '@/apps/slides/composables/useShortcuts'
@@ -136,16 +136,16 @@ let autosaveInterval = null
 const thumbnailCaptureRef = useTemplateRef('thumbnailCaptureRef')
 
 const props = defineProps({
-	presentationId: String,
-	slug: String,
-	activeSlideId: {
-		type: Number,
-		required: true,
-	},
-	editorAccess: {
-		type: String,
-		default: 'none',
-	},
+  presentationId: String,
+  slug: String,
+  activeSlideId: {
+    type: Number,
+    required: true,
+  },
+  editorAccess: {
+    type: String,
+    default: 'none',
+  },
 })
 
 const showThemeDialog = ref(false)
@@ -159,8 +159,8 @@ const insertIndex = ref(null)
 const showExportView = ref(false)
 
 const historyMetaForCommandHistory = {
-	actions: historyMetaActions,
-	actionOrder: historyMetaActionOrder,
+  actions: historyMetaActions,
+  actionOrder: historyMetaActionOrder,
 }
 const commandHistoryInstance = useCommandHistory(slides, historyMetaForCommandHistory)
 setCommandHistory(commandHistoryInstance)
@@ -168,158 +168,158 @@ setCommandHistory(commandHistoryInstance)
 useShortcuts(inReadonlyMode, inSlideShowMode)
 
 usePageMeta(() => {
-	return {
-		title: presentationDoc.value?.title || 'Slides',
-	}
+  return {
+    title: presentationDoc.value?.title || 'Slides',
+  }
 })
 
-const setHighlight = (value) => {
-	slideHighlight.value = value
+const setHighlight = value => {
+  slideHighlight.value = value
 }
 
 const handleAutoSave = () => {
-	if (isSlideInteractionActive.value || focusElementId.value != null) return
-	saveChanges()
+  if (isSlideInteractionActive.value || focusElementId.value != null) return
+  saveChanges()
 }
 
-const updateRoute = async (slug) => {
-	if (props.slug == slug) return
-	router.replace({
-		name: 'slides-editor',
-		params: { presentationId: presentationId.value, slug: slug },
-		query: { slide: slideIndex.value + 1 },
-	})
+const updateRoute = async slug => {
+  if (props.slug == slug) return
+  router.replace({
+    name: 'slides-editor',
+    params: { presentationId: presentationId.value, slug: slug },
+    query: { slide: slideIndex.value + 1 },
+  })
 }
 
 const initAutoSave = () => {
-	autosaveInterval = setInterval(handleAutoSave, 500)
+  autosaveInterval = setInterval(handleAutoSave, 500)
 }
 
-const loadPresentation = async (id) => {
-	presentationDoc.value = await initPresentationDoc(id, inReadonlyMode.value)
+const loadPresentation = async id => {
+  presentationDoc.value = await initPresentationDoc(id, inReadonlyMode.value)
 }
 
 const updateUnsyncedRecord = () => {
-	unsyncedPresentationRecord.value = {
-		...unsyncedPresentationRecord.value,
-		modified: presentationDoc.value.modified,
-		thumbnail: presentationDoc.value.thumbnail,
-		slide_count: slides.value.length,
-	}
+  unsyncedPresentationRecord.value = {
+    ...unsyncedPresentationRecord.value,
+    modified: presentationDoc.value.modified,
+    thumbnail: presentationDoc.value.thumbnail,
+    slide_count: slides.value.length,
+  }
 }
 
-const handleBeforeUnload = (e) => {
-	if (dirty.value) {
-		e.preventDefault()
-		e.returnValue = ''
-	}
+const handleBeforeUnload = e => {
+  if (dirty.value) {
+    e.preventDefault()
+    e.returnValue = ''
+  }
 }
 
 const loadTemplates = () => {
-	if (templateList.value.length || inReadonlyMode.value) return
-	templateListResource.fetch()
+  if (templateList.value.length || inReadonlyMode.value) return
+  templateListResource.fetch()
 }
 
 const performBeforeLoadOperations = () => {
-	if (inReadonlyMode.value) return
+  if (inReadonlyMode.value) return
 
-	window.addEventListener('beforeunload', handleBeforeUnload)
+  window.addEventListener('beforeunload', handleBeforeUnload)
 }
 
 const performAfterLoadOperations = () => {
-	setSlideIndex(props.activeSlideId)
-	updateRoute(presentationDoc.value.slug)
+  setSlideIndex(props.activeSlideId)
+  updateRoute(presentationDoc.value.slug)
 
-	if (inReadonlyMode.value) return
+  if (inReadonlyMode.value) return
 
-	initAutoSave()
+  initAutoSave()
 }
 
 const loadEditorState = async () => {
-	const id = props.presentationId
-	if (!id) return
+  const id = props.presentationId
+  if (!id) return
 
-	performBeforeLoadOperations()
-	if (presentationDoc.value && presentationId.value === id && slides.value.length) {
-		performAfterLoadOperations()
-		return
-	}
+  performBeforeLoadOperations()
+  if (presentationDoc.value && presentationId.value === id && slides.value.length) {
+    performAfterLoadOperations()
+    return
+  }
 
-	await loadPresentation(id)
-	performAfterLoadOperations()
+  await loadPresentation(id)
+  performAfterLoadOperations()
 }
 
 const handleMounted = () => {
-	// templates load from Home.vue
-	// but if user lands directly on editor check and load them
-	loadTemplates()
+  // templates load from Home.vue
+  // but if user lands directly on editor check and load them
+  loadTemplates()
 }
 
 const hideOpenDialogs = () => {
-	showThemeDialog.value = false
-	showLayoutDialog.value = false
+  showThemeDialog.value = false
+  showLayoutDialog.value = false
 }
 
 const handleBeforeUnmount = () => {
-	thumbnailCaptureRef.value?.reset()
-	updateUnsyncedRecord()
-	clearInterval(autosaveInterval)
+  thumbnailCaptureRef.value?.reset()
+  updateUnsyncedRecord()
+  clearInterval(autosaveInterval)
 
-	if (router.currentRoute.value.name !== 'slides-slideshow') {
-		resetFocus()
-		saveCurrentState()
-	}
-	window.removeEventListener('beforeunload', handleBeforeUnload)
-	window.removeEventListener('popstate', hideOpenDialogs)
+  if (router.currentRoute.value.name !== 'slides-slideshow') {
+    resetFocus()
+    saveCurrentState()
+  }
+  window.removeEventListener('beforeunload', handleBeforeUnload)
+  window.removeEventListener('popstate', hideOpenDialogs)
 }
 
 watch(
-	() => props.activeSlideId,
-	(index) => {
-		if (!slides.value.length) return
-		setSlideIndex(index)
-	},
-	{ immediate: true },
+  () => props.activeSlideId,
+  index => {
+    if (!slides.value.length) return
+    setSlideIndex(index)
+  },
+  { immediate: true }
 )
 
 watch(
-	() => route.name,
-	(name) => {
-		if (!['slides-editor-new', 'slides-editor'].includes(name)) return
-		inReadonlyMode.value = props.editorAccess == 'view'
-		if (name === 'slides-editor-new') {
-			resetEditorState()
-			themeDialogAction.value = 'create'
-			showThemeDialog.value = true
-			return
-		}
-		loadEditorState()
-	},
-	{ immediate: true },
+  () => route.name,
+  name => {
+    if (!['slides-editor-new', 'slides-editor'].includes(name)) return
+    inReadonlyMode.value = props.editorAccess == 'view'
+    if (name === 'slides-editor-new') {
+      resetEditorState()
+      themeDialogAction.value = 'create'
+      showThemeDialog.value = true
+      return
+    }
+    loadEditorState()
+  },
+  { immediate: true }
 )
 
 watch(
-	() => props.presentationId,
-	(id, prevId) => {
-		if (!id || !prevId || id === prevId) return
-		inReadonlyMode.value = props.editorAccess == 'view'
-		thumbnailCaptureRef.value?.reset()
-		commandHistory.clearHistory()
-		loadEditorState()
-	},
+  () => props.presentationId,
+  (id, prevId) => {
+    if (!id || !prevId || id === prevId) return
+    inReadonlyMode.value = props.editorAccess == 'view'
+    thumbnailCaptureRef.value?.reset()
+    commandHistory.clearHistory()
+    loadEditorState()
+  }
 )
 
 onBeforeRouteLeave(() => {
-	hideOpenDialogs()
+  hideOpenDialogs()
 })
 
 window.addEventListener('popstate', hideOpenDialogs)
 
 watch(
-	() => props.editorAccess,
-	(doc) => {
-		inReadonlyMode.value = doc === 'view'
-	},
+  () => props.editorAccess,
+  doc => {
+    inReadonlyMode.value = doc === 'view'
+  }
 )
 
 onMounted(() => handleMounted())
@@ -329,97 +329,97 @@ onBeforeUnmount(() => handleBeforeUnmount())
 provide('inReadonlyMode', inReadonlyMode)
 provide('inSlideShowMode', inSlideShowMode)
 
-const navigateToPresentation = async (name) => {
-	if (route.name === 'slides-editor-new') {
-		await router.replace({
-			name: 'slides-editor',
-			params: { presentationId: name },
-			query: { slide: 1 },
-		})
-	} else {
-		await router.push({
-			name: 'slides-editor',
-			params: { presentationId: name },
-			query: { slide: 1 },
-		})
-	}
+const navigateToPresentation = async name => {
+  if (route.name === 'slides-editor-new') {
+    await router.replace({
+      name: 'slides-editor',
+      params: { presentationId: name },
+      query: { slide: 1 },
+    })
+  } else {
+    await router.push({
+      name: 'slides-editor',
+      params: { presentationId: name },
+      query: { slide: 1 },
+    })
+  }
 }
 
-const createPresentation = async (theme) => {
-	showThemeDialog.value = false
-	const newPresentation = await createPresentationResource.submit({
-		template: theme,
-	})
-	const name = newPresentation?.name
+const createPresentation = async theme => {
+  showThemeDialog.value = false
+  const newPresentation = await createPresentationResource.submit({
+    template: theme,
+  })
+  const name = newPresentation?.name
 
-	if (!name) {
-		console.error('Failed to create new presentation')
-		return
-	}
+  if (!name) {
+    console.error('Failed to create new presentation')
+    return
+  }
 
-	if (isDriveInstalled) {
-		const parent = route.query.parent || ''
-		call('suite.slides.api.file.create_drive_file', {
-			name: name,
-			parent: parent,
-		})
-	}
+  if (isDriveInstalled) {
+    const parent = route.query.parent || ''
+    call('suite.slides.api.file.create_drive_file', {
+      name: name,
+      parent: parent,
+    })
+  }
 
-	navigateToPresentation(name)
+  navigateToPresentation(name)
 }
 
-const updatePresentationTheme = async (theme) => {
-	if (!presentationId.value) return
+const updatePresentationTheme = async theme => {
+  if (!presentationId.value) return
 
-	showThemeDialog.value = false
+  showThemeDialog.value = false
 
-	call('frappe.client.set_value', {
-		doctype: 'Presentation',
-		name: presentationId.value,
-		fieldname: 'theme',
-		value: theme,
-	}).then(() => {
-		presentationDoc.value.theme = theme
-	})
+  call('frappe.client.set_value', {
+    doctype: 'Presentation',
+    name: presentationId.value,
+    fieldname: 'theme',
+    value: theme,
+  }).then(() => {
+    presentationDoc.value.theme = theme
+  })
 }
 
-const performNavbarDropdownAction = async (action) => {
-	if (action == 'create') {
-		await router.push({ name: 'slides-editor-new' })
-	} else if (action == 'duplicate') {
-		const newPresentation = await duplicatePresentation(presentationId.value)
-		navigateToPresentation(newPresentation)
-	} else if (action == 'delete') {
-		await deletePresentation(presentationId.value)
-		unsyncedPresentationRecord.value = { name: presentationId.value, deleted: true }
-		router.push({ name: 'slides-home' })
-	} else if (action == 'updateTheme') {
-		themeDialogAction.value = 'update'
-		showThemeDialog.value = true
-	} else if (action == 'export') {
-		exportPdf()
-	}
+const performNavbarDropdownAction = async action => {
+  if (action == 'create') {
+    await router.push({ name: 'slides-editor-new' })
+  } else if (action == 'duplicate') {
+    const newPresentation = await duplicatePresentation(presentationId.value)
+    navigateToPresentation(newPresentation)
+  } else if (action == 'delete') {
+    await deletePresentation(presentationId.value)
+    unsyncedPresentationRecord.value = { name: presentationId.value, deleted: true }
+    router.push({ name: 'slides-home' })
+  } else if (action == 'updateTheme') {
+    themeDialogAction.value = 'update'
+    showThemeDialog.value = true
+  } else if (action == 'export') {
+    exportPdf()
+  }
 }
 
 const openLayoutDialog = (action, index) => {
-	showLayoutDialog.value = true
-	layoutAction.value = action
-	insertIndex.value = index
+  showLayoutDialog.value = true
+  layoutAction.value = action
+  insertIndex.value = index
 }
 
 const cleanup = () => {
-	showExportView.value = false
-	window.removeEventListener('afterprint', cleanup)
+  showExportView.value = false
+  window.removeEventListener('afterprint', cleanup)
 }
 
 const exportPdf = () => {
-	showExportView.value = true
+  showExportView.value = true
 
-	nextTick(() => {
-		setTimeout(() => {
-			window.addEventListener('afterprint', cleanup, { once: true })
-			window.print()
-		}, 200)
-	})
+  nextTick(() => {
+    setTimeout(() => {
+      window.addEventListener('afterprint', cleanup, { once: true })
+      window.print()
+    }, 200)
+  })
 }
 </script>

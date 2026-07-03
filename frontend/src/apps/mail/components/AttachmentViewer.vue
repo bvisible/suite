@@ -161,13 +161,13 @@ import { computed, defineAsyncComponent, onMounted, onUnmounted, ref, watch } fr
 // the MailboxView route chunk (only loaded when a PDF attachment is opened).
 const VuePdfEmbed = defineAsyncComponent(() => import('vue-pdf-embed'))
 import {
-	ChevronLeft,
-	ChevronRight,
-	Download,
-	FileIcon,
-	LoaderCircle,
-	Printer,
-	X,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  FileIcon,
+  LoaderCircle,
+  Printer,
+  X,
 } from 'lucide-vue-next'
 import { Button } from 'frappe-ui'
 
@@ -178,8 +178,8 @@ import { useScreenSize } from '@/apps/mail/utils/composables'
 import type { Attachment } from '@/apps/mail/types'
 
 const { attachments, initialIndex } = defineProps<{
-	attachments?: Attachment[]
-	initialIndex?: number
+  attachments?: Attachment[]
+  initialIndex?: number
 }>()
 
 const { isMobile } = useScreenSize()
@@ -197,75 +197,75 @@ const isAudio = computed(() => currentAttachment.value?.type?.startsWith('audio/
 const canPrint = computed(() => isImage.value || isPDF.value)
 
 const closeViewer = () => {
-	show.value = false
-	if (previewUrl.value) {
-		URL.revokeObjectURL(previewUrl.value)
-		previewUrl.value = null
-	}
+  show.value = false
+  if (previewUrl.value) {
+    URL.revokeObjectURL(previewUrl.value)
+    previewUrl.value = null
+  }
 }
 
 const previousAttachment = () => {
-	if (currentIndex.value > 0) currentIndex.value--
+  if (currentIndex.value > 0) currentIndex.value--
 }
 
 const nextAttachment = () => {
-	if (attachments && currentIndex.value < attachments.length - 1) currentIndex.value++
+  if (attachments && currentIndex.value < attachments.length - 1) currentIndex.value++
 }
 
 const loadAttachment = async () => {
-	if (!currentAttachment.value?.blob_id) return
+  if (!currentAttachment.value?.blob_id) return
 
-	if (previewUrl.value) {
-		URL.revokeObjectURL(previewUrl.value)
-		previewUrl.value = null
-	}
+  if (previewUrl.value) {
+    URL.revokeObjectURL(previewUrl.value)
+    previewUrl.value = null
+  }
 
-	previewUrl.value = await getAttachmentUrl(
-		currentAttachment.value.blob_id,
-		currentAttachment.value.type,
-	)
+  previewUrl.value = await getAttachmentUrl(
+    currentAttachment.value.blob_id,
+    currentAttachment.value.type
+  )
 }
 
 const downloadAttachment = () => {
-	if (!currentAttachment.value?.blob_id || !previewUrl.value) return
+  if (!currentAttachment.value?.blob_id || !previewUrl.value) return
 
-	isDownloading.value = true
-	const link = document.createElement('a')
-	link.href = previewUrl.value
-	link.download = currentAttachment.value?.filename || 'attachment'
-	document.body.appendChild(link)
-	link.click()
-	document.body.removeChild(link)
-	isDownloading.value = false
+  isDownloading.value = true
+  const link = document.createElement('a')
+  link.href = previewUrl.value
+  link.download = currentAttachment.value?.filename || 'attachment'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  isDownloading.value = false
 }
 
 const printAttachment = () => {
-	if (!previewUrl.value || !canPrint.value) return
+  if (!previewUrl.value || !canPrint.value) return
 
-	const iframe = document.createElement('iframe')
-	iframe.style.position = 'fixed'
-	iframe.style.right = '0'
-	iframe.style.bottom = '0'
-	iframe.style.width = '0'
-	iframe.style.height = '0'
-	iframe.style.border = 'none'
-	document.body.appendChild(iframe)
+  const iframe = document.createElement('iframe')
+  iframe.style.position = 'fixed'
+  iframe.style.right = '0'
+  iframe.style.bottom = '0'
+  iframe.style.width = '0'
+  iframe.style.height = '0'
+  iframe.style.border = 'none'
+  document.body.appendChild(iframe)
 
-	const iframeDoc = iframe.contentWindow?.document
-	if (!iframeDoc) return document.body.removeChild(iframe)
+  const iframeDoc = iframe.contentWindow?.document
+  if (!iframeDoc) return document.body.removeChild(iframe)
 
-	if (isPDF.value) {
-		iframe.style.width = '100%'
-		iframe.style.height = '100%'
-		iframe.src = previewUrl.value
-		iframe.onload = () => {
-			iframe.contentWindow?.print()
-			setTimeout(() => document.body.removeChild(iframe), 1000)
-		}
-		return
-	}
+  if (isPDF.value) {
+    iframe.style.width = '100%'
+    iframe.style.height = '100%'
+    iframe.src = previewUrl.value
+    iframe.onload = () => {
+      iframe.contentWindow?.print()
+      setTimeout(() => document.body.removeChild(iframe), 1000)
+    }
+    return
+  }
 
-	iframe.srcdoc = `
+  iframe.srcdoc = `
 			<html>
 				<head>
 					<title>${currentAttachment.value?.filename || 'Print'}</title>
@@ -281,29 +281,29 @@ const printAttachment = () => {
 			</html>
 		`
 
-	iframe.onload = () => {
-		iframe.contentWindow?.print()
-		setTimeout(() => document.body.removeChild(iframe), 1000)
-	}
+  iframe.onload = () => {
+    iframe.contentWindow?.print()
+    setTimeout(() => document.body.removeChild(iframe), 1000)
+  }
 }
 
-watch(show, (val) => {
-	if (!val) return
+watch(show, val => {
+  if (!val) return
 
-	if (currentIndex.value === initialIndex) loadAttachment()
-	else currentIndex.value = initialIndex || 0
+  if (currentIndex.value === initialIndex) loadAttachment()
+  else currentIndex.value = initialIndex || 0
 })
 
 watch(currentIndex, () => {
-	if (show.value) loadAttachment()
+  if (show.value) loadAttachment()
 })
 
 const handleKeyDown = (event: KeyboardEvent) => {
-	if (!show.value) return
+  if (!show.value) return
 
-	if (event.key === 'ArrowLeft') return previousAttachment()
-	if (event.key === 'ArrowRight') return nextAttachment()
-	if (event.key === 'Escape') return closeViewer()
+  if (event.key === 'ArrowLeft') return previousAttachment()
+  if (event.key === 'ArrowRight') return nextAttachment()
+  if (event.key === 'Escape') return closeViewer()
 }
 
 onMounted(() => window.addEventListener('keydown', handleKeyDown))

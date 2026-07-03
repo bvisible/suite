@@ -26,7 +26,7 @@ import { TabButtons } from 'frappe-ui'
 
 const activeTabId = ref()
 onMounted(() => {
-  const handleTabChange = (e) => {
+  const handleTabChange = e => {
     activeTabId.value = e.detail.tabId
   }
 
@@ -42,7 +42,7 @@ const props = defineProps({
 // Get all tabs from the document
 const tabs = computed(() => {
   const t = []
-  props.editor.state.doc.descendants((node) => {
+  props.editor.state.doc.descendants(node => {
     if (node.type.name === 'tab') {
       t.push({ id: node.attrs.id, label: node.attrs.label })
     }

@@ -34,7 +34,12 @@ import { EditorContent, generateHTML } from '@tiptap/vue-3'
 
 import { useTextEditor } from '@/apps/slides/composables/useTextEditor'
 
-import { focusElementId, activeElement, activeElementIds, setEditableState } from '@/apps/slides/stores/element'
+import {
+  focusElementId,
+  activeElement,
+  activeElementIds,
+  setEditableState,
+} from '@/apps/slides/stores/element'
 import { isAffectedByMagicMove } from '@/apps/slides/stores/transition'
 import { extensions } from '@/apps/slides/stores/tiptapSetup'
 import { slideIndex } from '@/apps/slides/stores/slide'
@@ -42,79 +47,79 @@ import { slideIndex } from '@/apps/slides/stores/slide'
 const { activeEditor, baseFontSize } = useTextEditor()
 
 const props = defineProps({
-	mode: {
-		type: String,
-		default: 'editor',
-	},
-	// When true (inside a shape), the editor mounts only when this element is
-	// explicitly focused for text editing — not just when it's selected.
-	embedded: {
-		type: Boolean,
-		default: false,
-	},
+  mode: {
+    type: String,
+    default: 'editor',
+  },
+  // When true (inside a shape), the editor mounts only when this element is
+  // explicitly focused for text editing — not just when it's selected.
+  embedded: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const inReadonlyMode = inject('inReadonlyMode', ref(false))
 const inSlideShowMode = inject('inSlideShowMode', ref(false))
 
 const showEditor = computed(() => {
-	if (props.mode != 'editor') return false
-	if (props.embedded) return focusElementId.value == element.value.id && !!activeEditor.value
-	return activeElement.value?.id == element.value.id
+  if (props.mode != 'editor') return false
+  if (props.embedded) return focusElementId.value == element.value.id && !!activeEditor.value
+  return activeElement.value?.id == element.value.id
 })
 
 const element = defineModel('element', {
-	type: Object,
-	default: null,
+  type: Object,
+  default: null,
 })
 
 const isEditable = computed(() => focusElementId.value == element.value.id)
 
 const editorStyles = computed(() => ({
-	cursor: isEditable.value ? 'text' : '',
-	userSelect: isEditable.value ? 'text' : 'none',
+  cursor: isEditable.value ? 'text' : '',
+  userSelect: isEditable.value ? 'text' : 'none',
 }))
 
 const elementLineHeightStyle = computed(() => {
-	const lh = element.value?.lineHeight
-	if (!lh) return {}
-	return { '--el-line-height': lh }
+  const lh = element.value?.lineHeight
+  if (!lh) return {}
+  return { '--el-line-height': lh }
 })
 
-const handleMouseDown = (e) => {
-	if (!isEditable.value || inReadonlyMode.value) return
+const handleMouseDown = e => {
+  if (!isEditable.value || inReadonlyMode.value) return
 
-	e.stopPropagation()
+  e.stopPropagation()
 }
 
-const handleDoubleClick = (e) => {
-	e.stopPropagation()
-	if (inSlideShowMode.value || isEditable.value || inReadonlyMode.value) return
+const handleDoubleClick = e => {
+  e.stopPropagation()
+  if (inSlideShowMode.value || isEditable.value || inReadonlyMode.value) return
 
-	activeElementIds.value = [element.value.id]
-	focusElementId.value = element.value.id
+  activeElementIds.value = [element.value.id]
+  focusElementId.value = element.value.id
 
-	if (activeElement.value.id == element.value.id && activeEditor.value) {
-		setEditableState()
-	}
+  if (activeElement.value.id == element.value.id && activeEditor.value) {
+    setEditableState()
+  }
 }
 
 const normalizeContent = () => {
-	const content = element.value.content
-	if (content && typeof content == 'object') {
-		element.value.content = generateHTML(content, extensions)
-	}
+  const content = element.value.content
+  if (content && typeof content == 'object') {
+    element.value.content = generateHTML(content, extensions)
+  }
 }
 
 const isAutoWidth = computed(() => {
-	return !element.value.width || element.value.width == 'auto'
+  return !element.value.width || element.value.width == 'auto'
 })
 
 const showMagicMoveText = computed(
-	() =>
-		inSlideShowMode.value &&
-		isAffectedByMagicMove(slideIndex.value) &&
-		![null, undefined, ''].includes(element.value.refId),
+  () =>
+    inSlideShowMode.value &&
+    isAffectedByMagicMove(slideIndex.value) &&
+    ![null, undefined, ''].includes(element.value.refId)
 )
 
 onBeforeMount(() => normalizeContent())

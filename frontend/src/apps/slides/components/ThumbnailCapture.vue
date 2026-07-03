@@ -17,14 +17,14 @@ import SlidePreview from '@/apps/slides/components/SlidePreview.vue'
 import { useThumbnailCapture } from '@/apps/slides/composables/useThumbnailCapture'
 
 const props = defineProps({
-	slide: {
-		type: Object,
-		default: null,
-	},
-	disableCapture: {
-		type: Boolean,
-		default: false,
-	},
+  slide: {
+    type: Object,
+    default: null,
+  },
+  disableCapture: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const captureRef = useTemplateRef('captureRef')

@@ -48,23 +48,23 @@ import { computed, ref, watch } from 'vue'
 import { Button, FormControl } from 'frappe-ui'
 
 const props = defineProps({
-	open:     { type: Boolean, default: false },
-	anchor:   { type: Object,  default: null },
-	selected: { type: String,  default: 'auto' },
+  open: { type: Boolean, default: false },
+  anchor: { type: Object, default: null },
+  selected: { type: String, default: 'auto' },
 })
 const emit = defineEmits(['choose', 'apply', 'cancel'])
 
 const OPTIONS = [
-	{ value: 'auto',      label: 'Detect automatically' },
-	{ value: 'comma',     label: 'Comma' },
-	{ value: 'semicolon', label: 'Semicolon' },
-	{ value: 'period',    label: 'Period' },
-	{ value: 'space',     label: 'Space' },
-	{ value: 'tab',       label: 'Tab' },
+  { value: 'auto', label: 'Detect automatically' },
+  { value: 'comma', label: 'Comma' },
+  { value: 'semicolon', label: 'Semicolon' },
+  { value: 'period', label: 'Period' },
+  { value: 'space', label: 'Space' },
+  { value: 'tab', label: 'Tab' },
 ]
 
-const customValue    = ref('')
-const customActive   = ref(false)
+const customValue = ref('')
+const customActive = ref(false)
 const customInputRef = ref(null)
 
 // Suppress the customValue watcher during programmatic clears (e.g. when
@@ -74,19 +74,27 @@ const customInputRef = ref(null)
 // the user's actual pick.
 let _suppressCustomWatch = false
 function _clearCustomSilently() {
-	_suppressCustomWatch = true
-	customValue.value = ''
-	queueMicrotask(() => { _suppressCustomWatch = false })
+  _suppressCustomWatch = true
+  customValue.value = ''
+  queueMicrotask(() => {
+    _suppressCustomWatch = false
+  })
 }
 
-watch(() => props.open, (v) => {
-	if (!v) { _clearCustomSilently(); customActive.value = false }
-})
+watch(
+  () => props.open,
+  v => {
+    if (!v) {
+      _clearCustomSilently()
+      customActive.value = false
+    }
+  }
+)
 
 function onChoose(value) {
-	customActive.value = false
-	_clearCustomSilently()
-	emit('choose', value)
+  customActive.value = false
+  _clearCustomSilently()
+  emit('choose', value)
 }
 
 // Watch the bound ref directly instead of @input on the FormControl —
@@ -95,20 +103,20 @@ function onChoose(value) {
 // the *previous* value and silently fall through to the 'auto' branch.
 // The watcher fires AFTER customValue is up to date, so the dot the user
 // just typed always reaches `_previewSplit` as the custom separator.
-watch(customValue, (v) => {
-	if (_suppressCustomWatch) return
-	if (!v) {
-		customActive.value = false
-		emit('choose', 'auto')
-		return
-	}
-	customActive.value = true
-	emit('choose', { kind: 'custom', value: v })
+watch(customValue, v => {
+  if (_suppressCustomWatch) return
+  if (!v) {
+    customActive.value = false
+    emit('choose', 'auto')
+    return
+  }
+  customActive.value = true
+  emit('choose', { kind: 'custom', value: v })
 })
 
 const style = computed(() => {
-	if (!props.anchor) return { display: 'none' }
-	return { left: `${props.anchor.x + 4}px`, top: `${props.anchor.y + 4}px` }
+  if (!props.anchor) return { display: 'none' }
+  return { left: `${props.anchor.x + 4}px`, top: `${props.anchor.y + 4}px` }
 })
 </script>
 

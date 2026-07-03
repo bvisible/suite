@@ -6,7 +6,7 @@ import { relativePositionToAbsolutePosition, ySyncPluginKey } from '@tiptap/y-ti
 import * as Y from 'yjs'
 export const commentPluginKey = new PluginKey('comment-anchors')
 
-export const rebuild = (editor) => {
+export const rebuild = editor => {
   editor
     .chain()
     .command(({ tr }) => {
@@ -18,13 +18,13 @@ export const rebuild = (editor) => {
 
 export const getEditorPos = (relativePos, editor) => {
   const ystate = ySyncPluginKey.getState(editor.state)
-  const collab = editor.extensionManager.extensions.find((ext) => ext.name === 'collaboration')
+  const collab = editor.extensionManager.extensions.find(ext => ext.name === 'collaboration')
 
   return relativePositionToAbsolutePosition(
     collab?.options.document,
     ystate.type,
     Y.decodeRelativePosition(relativePos),
-    ystate.binding.mapping,
+    ystate.binding.mapping
   )
 }
 
@@ -33,19 +33,19 @@ const createDecorations = (editor, yDoc, comments, active, showResolved) => {
     if (!comments._map.size) return DecorationSet.empty
     const ystate = ySyncPluginKey.getState(editor.state)
     const decos = []
-    comments.forEach((comment) => {
+    comments.forEach(comment => {
       if (!comment.anchor.from || (!showResolved && comment.resolved) || !ystate) return
       const from = relativePositionToAbsolutePosition(
         yDoc,
         ystate.type,
         Y.decodeRelativePosition(comment.anchor.from),
-        ystate.binding.mapping,
+        ystate.binding.mapping
       )
       const to = relativePositionToAbsolutePosition(
         yDoc,
         ystate.type,
         Y.decodeRelativePosition(comment.anchor.to),
-        ystate.binding.mapping,
+        ystate.binding.mapping
       )
 
       decos.push(
@@ -54,7 +54,7 @@ const createDecorations = (editor, yDoc, comments, active, showResolved) => {
           class: comment.id === active ? 'active' : '',
           'data-comment-name': comment.id,
           'data-resolved': comment.resolved,
-        }),
+        })
       )
     })
     return DecorationSet.create(editor.state.doc, decos)
@@ -89,9 +89,9 @@ export const CommentExtension = Extension.create({
               doc,
               comments,
               activeComment.value,
-              showResolved.value,
+              showResolved.value
             )
-            comments.observe((val) => {
+            comments.observe(val => {
               rebuild(ext.editor)
             })
             if (onDecorationsPainted) setTimeout(onDecorationsPainted, 100)
@@ -111,7 +111,7 @@ export const CommentExtension = Extension.create({
                 doc,
                 comments,
                 activeComment.value,
-                showResolved.value,
+                showResolved.value
               )
             }
             return oldSet.map(tr.mapping, tr.doc)

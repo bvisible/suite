@@ -30,7 +30,7 @@ const props = defineProps({
 })
 watch(
   () => getTeams.data,
-  (teams) => {
+  teams => {
     if (props.allowBlank || team.value) return
     if (props.none) {
       team.value = props.none === true ? 'all' : 'home'
@@ -38,10 +38,10 @@ watch(
       team.value = Object.values(teams)[0]?.name
     }
   },
-  { immediate: true },
+  { immediate: true }
 )
 const options = computed<DropdownItem[]>(() => {
-  const res = Object.values(getTeams.data).map((k) => ({
+  const res = Object.values(getTeams.data).map(k => ({
     label: k.title,
     value: k.name,
     icon: icons[k.icon || 'building'],

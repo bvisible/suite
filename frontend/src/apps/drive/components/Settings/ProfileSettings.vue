@@ -115,7 +115,7 @@ const options = {
   default_team: defaultTeam,
 }
 for (const k in options) {
-  watch(options[k], (v) => {
+  watch(options[k], v => {
     setSettings.submit({
       updates: { [k]: v.value || v },
     })
@@ -141,7 +141,7 @@ const updateProfile = () => {
     })
 }
 
-const validateFile = (file) => {
+const validateFile = file => {
   const extension = file.name.split('.').pop().toLowerCase()
   if (!['jpg', 'jpeg', 'png'].includes(extension)) {
     alert('Not a valid Image file')

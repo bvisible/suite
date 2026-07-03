@@ -10,7 +10,7 @@ export const ExtendedBubbleMenu = BubbleMenu.extend({
     return [
       new Plugin({
         key: this.options.pluginKey,
-        view: (view) => {
+        view: view => {
           const original = new BubbleMenuView({
             view,
             ...this.options,

@@ -106,11 +106,11 @@ const contextMenu = (event, row) => {
   event.preventDefault()
 }
 
-const dropdownActionItems = (row) => {
+const dropdownActionItems = row => {
   if (!row) return []
   return props.actionItems
-    .filter((a) => !a.isEnabled || a.isEnabled(row))
-    .map((a) => ({
+    .filter(a => !a.isEnabled || a.isEnabled(row))
+    .map(a => ({
       ...a,
       handler: () => {
         rowEvent.value = false
@@ -119,13 +119,12 @@ const dropdownActionItems = (row) => {
       },
     }))
 }
-const open = (row) =>
-  !selections.value.size && route.name !== 'Trash' && openEntity(row)
+const open = row => !selections.value.size && route.name !== 'Trash' && openEntity(row)
 
 const draggedItem = ref(null)
 const dragOverItem = ref(null)
 
-onKeyDown('a', (e) => {
+onKeyDown('a', e => {
   if (
     e.target.classList.contains('ProseMirror') ||
     e.target.tagName === 'INPUT' ||
@@ -133,11 +132,11 @@ onKeyDown('a', (e) => {
   )
     return
   if (e.metaKey) {
-    selections.value = new Set(props.folderContents.map((k) => k.name))
+    selections.value = new Set(props.folderContents.map(k => k.name))
     e.preventDefault()
   }
 })
-onKeyDown('Backspace', (e) => {
+onKeyDown('Backspace', e => {
   if (
     e.target.classList.contains('ProseMirror') ||
     e.target.tagName === 'INPUT' ||
@@ -146,7 +145,7 @@ onKeyDown('Backspace', (e) => {
     return
   if (e.metaKey) emitter.emit('remove')
 })
-onKeyDown('m', (e) => {
+onKeyDown('m', e => {
   if (
     e.target.classList.contains('ProseMirror') ||
     e.target.tagName === 'INPUT' ||
@@ -155,7 +154,7 @@ onKeyDown('m', (e) => {
     return
   if (e.ctrlKey) emitter.emit('move')
 })
-onKeyDown('Escape', (e) => {
+onKeyDown('Escape', e => {
   if (
     e.target.classList.contains('ProseMirror') ||
     e.target.tagName === 'INPUT' ||

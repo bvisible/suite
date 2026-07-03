@@ -38,32 +38,32 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed } from 'vue'
 
 const emit = defineEmits<{
-	click: [];
-}>();
+  click: []
+}>()
 
 const props = defineProps<{
-	count: number;
-	tooltip?: string;
-	participants?: Array<{
-		user_id: string;
-		user_name?: string;
-		avatar?: string;
-		initials?: string;
-	}>;
-	size?: "small" | "medium";
-}>();
+  count: number
+  tooltip?: string
+  participants?: Array<{
+    user_id: string
+    user_name?: string
+    avatar?: string
+    initials?: string
+  }>
+  size?: 'small' | 'medium'
+}>()
 
 const sizeClasses = computed(() => {
-	// Responsive sizing: smaller on mobile, larger on desktop
-	return props.size === "medium"
-		? "w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16"
-		: "w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8";
-});
+  // Responsive sizing: smaller on mobile, larger on desktop
+  return props.size === 'medium'
+    ? 'w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16'
+    : 'w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8'
+})
 
 const textSizeClass = computed(() => {
-	return props.size === "medium" ? "text-xl sm:text-3xl" : "text-xs";
-});
+  return props.size === 'medium' ? 'text-xl sm:text-3xl' : 'text-xs'
+})
 </script>

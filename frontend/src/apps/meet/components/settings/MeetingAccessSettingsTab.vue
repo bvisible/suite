@@ -58,74 +58,74 @@
 </template>
 
 <script setup lang="ts">
-import { debounce, FormControl, Switch, toast } from "frappe-ui";
-import { onMounted, ref, watch } from "vue";
-import { useChatStore } from "@/apps/meet/composables/useChatStore";
-import { useMeetingDoc } from "../../composables/useMeetingDoc";
-import E2EESettingsSection from "./E2EESettingsSection.vue";
-import SettingsLayoutBase from "./SettingsLayoutBase.vue";
+import { debounce, FormControl, Switch, toast } from 'frappe-ui'
+import { onMounted, ref, watch } from 'vue'
+import { useChatStore } from '@/apps/meet/composables/useChatStore'
+import { useMeetingDoc } from '../../composables/useMeetingDoc'
+import E2EESettingsSection from './E2EESettingsSection.vue'
+import SettingsLayoutBase from './SettingsLayoutBase.vue'
 
 const props = defineProps({
-	meetingId: {
-		type: String,
-		required: true,
-	},
-});
+  meetingId: {
+    type: String,
+    required: true,
+  },
+})
 
 const {
-	getMeetingDoc,
-	allowGuest: globalAllowGuest,
-	meetingType: globalMeetingType,
-	e2eeEnabled: globalE2EEEnabled,
-} = useMeetingDoc();
+  getMeetingDoc,
+  allowGuest: globalAllowGuest,
+  meetingType: globalMeetingType,
+  e2eeEnabled: globalE2EEEnabled,
+} = useMeetingDoc()
 
-const chatStore = useChatStore();
+const chatStore = useChatStore()
 
-const allowGuest = ref<boolean>(globalAllowGuest.value);
-const meetingType = ref<string>(globalMeetingType.value);
-const hostOnlyChat = ref<boolean>(chatStore.hostOnlyChat);
+const allowGuest = ref<boolean>(globalAllowGuest.value)
+const meetingType = ref<string>(globalMeetingType.value)
+const hostOnlyChat = ref<boolean>(chatStore.hostOnlyChat)
 
-const meetingDoc = getMeetingDoc(props.meetingId);
+const meetingDoc = getMeetingDoc(props.meetingId)
 
 onMounted(async () => {
-	try {
-		allowGuest.value = globalAllowGuest.value;
-		meetingType.value = globalMeetingType.value;
-		if (meetingDoc.doc?.host_only_chat !== undefined) {
-			hostOnlyChat.value = !!meetingDoc.doc.host_only_chat;
-		}
-	} catch (error) {
-		console.error("Failed to load meeting settings");
-	}
-});
+  try {
+    allowGuest.value = globalAllowGuest.value
+    meetingType.value = globalMeetingType.value
+    if (meetingDoc.doc?.host_only_chat !== undefined) {
+      hostOnlyChat.value = !!meetingDoc.doc.host_only_chat
+    }
+  } catch (error) {
+    console.error('Failed to load meeting settings')
+  }
+})
 
 const saveSettings = debounce(async () => {
-	if (meetingDoc.updateSettings.loading) return;
+  if (meetingDoc.updateSettings.loading) return
 
-	try {
-		await meetingDoc.updateSettings.submit({
-			allow_guest: allowGuest.value,
-			meeting_type: meetingType.value,
-			host_only_chat: hostOnlyChat.value,
-		});
+  try {
+    await meetingDoc.updateSettings.submit({
+      allow_guest: allowGuest.value,
+      meeting_type: meetingType.value,
+      host_only_chat: hostOnlyChat.value,
+    })
 
-		await meetingDoc.reload();
-	} catch (error) {
-		console.error("Failed to update meeting settings:", error);
-		toast.error("Failed to update meeting settings");
+    await meetingDoc.reload()
+  } catch (error) {
+    console.error('Failed to update meeting settings:', error)
+    toast.error('Failed to update meeting settings')
 
-		if (meetingDoc.doc?.host_only_chat !== undefined) {
-			hostOnlyChat.value = !!meetingDoc.doc.host_only_chat;
-		}
-	}
-}, 300);
+    if (meetingDoc.doc?.host_only_chat !== undefined) {
+      hostOnlyChat.value = !!meetingDoc.doc.host_only_chat
+    }
+  }
+}, 300)
 
-watch(hostOnlyChat, (newValue) => {
-	chatStore.hostOnlyChat = newValue;
-});
+watch(hostOnlyChat, newValue => {
+  chatStore.hostOnlyChat = newValue
+})
 watch([allowGuest, meetingType, hostOnlyChat], () => {
-	if (!meetingDoc.get.loading) {
-		saveSettings();
-	}
-});
+  if (!meetingDoc.get.loading) {
+    saveSettings()
+  }
+})
 </script>

@@ -35,35 +35,35 @@
 </template>
 
 <script setup lang="ts">
-import { Dialog, FormControl } from "frappe-ui";
-import { computed, ref } from "vue";
+import { Dialog, FormControl } from 'frappe-ui'
+import { computed, ref } from 'vue'
 
 interface Props {
-	participantName: string;
-	modelValue?: boolean;
+  participantName: string
+  modelValue?: boolean
 }
 
 interface Emits {
-	(e: "update:modelValue", value: boolean): void;
-	(e: "confirm", ban: boolean): void;
+  (e: 'update:modelValue', value: boolean): void
+  (e: 'confirm', ban: boolean): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
-	modelValue: false,
-});
+  modelValue: false,
+})
 
-const emit = defineEmits<Emits>();
+const emit = defineEmits<Emits>()
 
-const banFromMeeting = ref(false);
+const banFromMeeting = ref(false)
 
 const showDialog = computed({
-	get: () => props.modelValue,
-	set: (value: boolean) => emit("update:modelValue", value),
-});
+  get: () => props.modelValue,
+  set: (value: boolean) => emit('update:modelValue', value),
+})
 
 const handleKickConfirm = () => {
-	emit("confirm", banFromMeeting.value);
-	banFromMeeting.value = false;
-	showDialog.value = false;
-};
+  emit('confirm', banFromMeeting.value)
+  banFromMeeting.value = false
+  showDialog.value = false
+}
 </script>

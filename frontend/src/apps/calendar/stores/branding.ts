@@ -11,15 +11,15 @@ import { createResource } from 'frappe-ui'
  * preserved as-is (endpoint reconciliation is a later phase).
  */
 export const brandingStore = defineStore('calendar-branding', () => {
-	const branding = createResource({
-		url: 'suite.mail.api.get_branding',
-		cache: 'brand',
-		auto: true,
-		onSuccess: (data) => {
-			const icon = document.querySelector<HTMLLinkElement>("link[rel='icon']")
-			if (icon && data?.favicon) icon.href = data.favicon
-		},
-	})
+  const branding = createResource({
+    url: 'suite.mail.api.get_branding',
+    cache: 'brand',
+    auto: true,
+    onSuccess: data => {
+      const icon = document.querySelector<HTMLLinkElement>("link[rel='icon']")
+      if (icon && data?.favicon) icon.href = data.favicon
+    },
+  })
 
-	return { branding }
+  return { branding }
 })

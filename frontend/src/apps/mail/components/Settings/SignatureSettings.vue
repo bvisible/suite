@@ -57,38 +57,38 @@ const showSetSignature = ref(false)
 const showEditSignature = ref(false)
 
 const signatures = useList({
-	doctype: 'Mail Signature',
-	immediate: true,
-	fields: ['name', 'signature_name', 'html_body'],
-	filters: { user: user.data.name },
-	cacheKey: ['mailSignatures', user.data.name],
+  doctype: 'Mail Signature',
+  immediate: true,
+  fields: ['name', 'signature_name', 'html_body'],
+  filters: { user: user.data.name },
+  cacheKey: ['mailSignatures', user.data.name],
 })
 
 const editSignature = (signature: string) => {
-	selectedSignature.value = signature
-	showEditSignature.value = true
+  selectedSignature.value = signature
+  showEditSignature.value = true
 }
 
 const signatureOptions = (signature: MailSignature) => [
-	{
-		label: __('Set Default'),
-		icon: Pin,
-		onClick: () => {
-			selectedSignature.value = signature.html_body!
-			showSetSignature.value = true
-		},
-		condition: () => signature.html_body,
-	},
-	{
-		label: __('Edit'),
-		icon: Edit2,
-		onClick: () => editSignature(signature.name),
-	},
-	{
-		label: __('Delete'),
-		icon: Trash2,
-		theme: 'red',
-		onClick: () => signatures.delete.submit({ name: signature.name }),
-	},
+  {
+    label: __('Set Default'),
+    icon: Pin,
+    onClick: () => {
+      selectedSignature.value = signature.html_body!
+      showSetSignature.value = true
+    },
+    condition: () => signature.html_body,
+  },
+  {
+    label: __('Edit'),
+    icon: Edit2,
+    onClick: () => editSignature(signature.name),
+  },
+  {
+    label: __('Delete'),
+    icon: Trash2,
+    theme: 'red',
+    onClick: () => signatures.delete.submit({ name: signature.name }),
+  },
 ]
 </script>

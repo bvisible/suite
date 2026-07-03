@@ -1,7 +1,7 @@
 import { toast as fToast } from 'frappe-ui'
 import { h } from 'vue'
 
-const toast = (obj) => {
+const toast = obj => {
   if (typeof obj === 'string') return fToast.success(obj)
   const { title, buttons, icon, duration, type } = obj
   fToast.create({

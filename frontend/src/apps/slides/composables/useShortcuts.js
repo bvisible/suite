@@ -6,32 +6,32 @@ import { commandHistory } from '@/apps/slides/stores/historyMeta'
 import { useTextEditor } from '@/apps/slides/composables/useTextEditor'
 
 import {
-	slideIndex,
-	changeSlide,
-	saveSlide,
-	selectionBounds,
-	updateSelectionBounds,
-	deleteSlide,
-	changeEditorSlide,
-	duplicateSlide,
-	addEmptySlide,
+  slideIndex,
+  changeSlide,
+  saveSlide,
+  selectionBounds,
+  updateSelectionBounds,
+  deleteSlide,
+  changeEditorSlide,
+  duplicateSlide,
+  addEmptySlide,
 } from '@/apps/slides/stores/slide'
 import {
-	focusElementId,
-	resetFocus,
-	addTextElement,
-	selectAllElements,
-	activeElementIds,
-	activeElements,
-	deleteElements,
-	duplicateElements,
-	activeElement,
+  focusElementId,
+  resetFocus,
+  addTextElement,
+  selectAllElements,
+  activeElementIds,
+  activeElements,
+  deleteElements,
+  duplicateElements,
+  activeElement,
 } from '@/apps/slides/stores/element'
 import {
-	changeSlideInSlideshow,
-	startSlideShow,
-	performNextStep,
-	performPreviousStep,
+  changeSlideInSlideshow,
+  startSlideShow,
+  performNextStep,
+  performPreviousStep,
 } from '@/apps/slides/stores/slideshow'
 
 import { markDirty } from '@/apps/slides/stores/saving'
@@ -42,228 +42,223 @@ const { toggleNavigationPanel } = useNavigationPanel()
 const { activeEditor, toggleMark } = useTextEditor()
 
 export const useShortcuts = (inReadonlyMode, inSlideShowMode) => {
-	let keydownListener
+  let keydownListener
 
-	const handleReadonlyModeShortcuts = (e) => {
-		switch (e.key) {
-			case 'ArrowUp':
-				changeSlide(slideIndex.value - 1)
-				break
-			case 'ArrowDown':
-				changeSlide(slideIndex.value + 1)
-				break
-			case 'b':
-				if (isCmdOrCtrl(e)) toggleNavigationPanel(e)
-				break
-			case 'F5':
-				e.preventDefault()
-				startSlideShow()
-				break
-		}
-	}
+  const handleReadonlyModeShortcuts = e => {
+    switch (e.key) {
+      case 'ArrowUp':
+        changeSlide(slideIndex.value - 1)
+        break
+      case 'ArrowDown':
+        changeSlide(slideIndex.value + 1)
+        break
+      case 'b':
+        if (isCmdOrCtrl(e)) toggleNavigationPanel(e)
+        break
+      case 'F5':
+        e.preventDefault()
+        startSlideShow()
+        break
+    }
+  }
 
-	const handleGlobalShortcuts = (e) => {
-		if (isCmdOrCtrl(e) && e.code === 'KeyP') {
-			e.preventDefault()
-			startSlideShow()
-			return
-		}
+  const handleGlobalShortcuts = e => {
+    if (isCmdOrCtrl(e) && e.code === 'KeyP') {
+      e.preventDefault()
+      startSlideShow()
+      return
+    }
 
-		switch (e.key) {
-			case 'Escape':
-				resetFocus()
-				break
-			case 't':
-				addTextElement()
-				break
-			case 'b':
-				if (isCmdOrCtrl(e)) toggleNavigationPanel(e)
-				break
-			case 'a':
-				if (isCmdOrCtrl(e)) selectAllElements(e)
-				break
-			case 's':
-				if (isCmdOrCtrl(e)) saveSlide(e)
-				break
-			case 'Enter':
-				addEmptySlide(e)
-				break
-			case 'F5':
-				e.preventDefault()
-				startSlideShow()
-				break
-		}
-	}
+    switch (e.key) {
+      case 'Escape':
+        resetFocus()
+        break
+      case 't':
+        addTextElement()
+        break
+      case 'b':
+        if (isCmdOrCtrl(e)) toggleNavigationPanel(e)
+        break
+      case 'a':
+        if (isCmdOrCtrl(e)) selectAllElements(e)
+        break
+      case 's':
+        if (isCmdOrCtrl(e)) saveSlide(e)
+        break
+      case 'Enter':
+        addEmptySlide(e)
+        break
+      case 'F5':
+        e.preventDefault()
+        startSlideShow()
+        break
+    }
+  }
 
-	const handleArrowKeys = (key) => {
-		let dx = 0
-		let dy = 0
+  const handleArrowKeys = key => {
+    let dx = 0
+    let dy = 0
 
-		if (key == 'ArrowLeft') dx = -1
-		else if (key == 'ArrowRight') dx = 1
-		else if (key == 'ArrowUp') dy = -1
-		else if (key == 'ArrowDown') dy = 1
+    if (key == 'ArrowLeft') dx = -1
+    else if (key == 'ArrowRight') dx = 1
+    else if (key == 'ArrowUp') dy = -1
+    else if (key == 'ArrowDown') dy = 1
 
-		updateSelectionBounds({
-			left: selectionBounds.left + dx,
-			top: selectionBounds.top + dy,
-		})
+    updateSelectionBounds({
+      left: selectionBounds.left + dx,
+      top: selectionBounds.top + dy,
+    })
 
-		activeElements.value.forEach((element) => {
-			element.left += dx
-			element.top += dy
-		})
+    activeElements.value.forEach(element => {
+      element.left += dx
+      element.top += dy
+    })
 
-		markDirty()
-	}
+    markDirty()
+  }
 
-	const handleElementShortcuts = (e) => {
-		switch (e.key) {
-			case 'ArrowLeft':
-			case 'ArrowRight':
-			case 'ArrowUp':
-			case 'ArrowDown':
-				handleArrowKeys(e.key)
-				break
-			case 'Delete':
-			case 'Backspace':
-				deleteElements(e)
-				break
-			case 'd':
-				if (isCmdOrCtrl(e)) duplicateElements(e, activeElements.value)
-				break
-			case 'b':
-				if (activeEditor.value && isCmdOrCtrl(e)) toggleMark('bold')
-				break
-			case 'i':
-				if (activeEditor.value && isCmdOrCtrl(e)) toggleMark('italic')
-				break
-			case 'u':
-				if (activeEditor.value && isCmdOrCtrl(e)) toggleMark('underline')
-				break
-		}
-	}
+  const handleElementShortcuts = e => {
+    switch (e.key) {
+      case 'ArrowLeft':
+      case 'ArrowRight':
+      case 'ArrowUp':
+      case 'ArrowDown':
+        handleArrowKeys(e.key)
+        break
+      case 'Delete':
+      case 'Backspace':
+        deleteElements(e)
+        break
+      case 'd':
+        if (isCmdOrCtrl(e)) duplicateElements(e, activeElements.value)
+        break
+      case 'b':
+        if (activeEditor.value && isCmdOrCtrl(e)) toggleMark('bold')
+        break
+      case 'i':
+        if (activeEditor.value && isCmdOrCtrl(e)) toggleMark('italic')
+        break
+      case 'u':
+        if (activeEditor.value && isCmdOrCtrl(e)) toggleMark('underline')
+        break
+    }
+  }
 
-	const handleSlideShortcuts = (e) => {
-		switch (e.key) {
-			case 'ArrowUp':
-				changeEditorSlide(slideIndex.value - 1)
-				break
-			case 'ArrowDown':
-				changeEditorSlide(slideIndex.value + 1)
-				break
-			case 'Delete':
-			case 'Backspace':
-				deleteSlide()
-				break
-			case 'd':
-				if (isCmdOrCtrl(e)) duplicateSlide(e)
-				break
-		}
-	}
+  const handleSlideShortcuts = e => {
+    switch (e.key) {
+      case 'ArrowUp':
+        changeEditorSlide(slideIndex.value - 1)
+        break
+      case 'ArrowDown':
+        changeEditorSlide(slideIndex.value + 1)
+        break
+      case 'Delete':
+      case 'Backspace':
+        deleteSlide()
+        break
+      case 'd':
+        if (isCmdOrCtrl(e)) duplicateSlide(e)
+        break
+    }
+  }
 
-	const getCurrentHistoryOperation = (e) => {
-		return isCmdOrCtrl(e) && e.shiftKey ? 'redo' : isCmdOrCtrl(e) && !e.shiftKey ? 'undo' : null
-	}
+  const getCurrentHistoryOperation = e => {
+    return isCmdOrCtrl(e) && e.shiftKey ? 'redo' : isCmdOrCtrl(e) && !e.shiftKey ? 'undo' : null
+  }
 
-	const isEditorFocused = () => {
-		return activeEditor.value?.isEditable
-	}
+  const isEditorFocused = () => {
+    return activeEditor.value?.isEditable
+  }
 
-	const handleFocusShortcuts = (e) => {
-		if (e.key != 'z') return
+  const handleFocusShortcuts = e => {
+    if (e.key != 'z') return
 
-		const operation = getCurrentHistoryOperation(e)
-		if (!operation) return
+    const operation = getCurrentHistoryOperation(e)
+    if (!operation) return
 
-		e.preventDefault()
+    e.preventDefault()
 
-		if (operation == 'undo' && !activeEditor.value?.can().undo()) {
-			commandHistory.undo()
-		} else if (operation == 'redo' && !activeEditor.value?.can().redo()) {
-			commandHistory.redo()
-		}
-	}
+    if (operation == 'undo' && !activeEditor.value?.can().undo()) {
+      commandHistory.undo()
+    } else if (operation == 'redo' && !activeEditor.value?.can().redo()) {
+      commandHistory.redo()
+    }
+  }
 
-	const handleHistoryShortcuts = (e) => {
-		const operation = getCurrentHistoryOperation(e)
-		if (!operation) return
+  const handleHistoryShortcuts = e => {
+    const operation = getCurrentHistoryOperation(e)
+    if (!operation) return
 
-		e.preventDefault()
+    e.preventDefault()
 
-		if (activeEditor.value?.can()[operation]() && activeElement.value?.type == 'text') {
-			activeEditor.value.commands[operation]()
-			return
-		}
+    if (activeEditor.value?.can()[operation]() && activeElement.value?.type == 'text') {
+      activeEditor.value.commands[operation]()
+      return
+    }
 
-		if (operation == 'undo' && commandHistory.canUndo.value) {
-			if (activeElement.value?.type == 'text') activeElementIds.value = []
-			commandHistory.undo()
-		} else if (operation == 'redo' && commandHistory.canRedo.value) {
-			if (activeElement.value?.type == 'text') activeElementIds.value = []
-			commandHistory.redo()
-		}
-	}
+    if (operation == 'undo' && commandHistory.canUndo.value) {
+      if (activeElement.value?.type == 'text') activeElementIds.value = []
+      commandHistory.undo()
+    } else if (operation == 'redo' && commandHistory.canRedo.value) {
+      if (activeElement.value?.type == 'text') activeElementIds.value = []
+      commandHistory.redo()
+    }
+  }
 
-	const handleOutOfFocusShortcuts = (e) => {
-		if (e.key == 'z') return handleHistoryShortcuts(e)
+  const handleOutOfFocusShortcuts = e => {
+    if (e.key == 'z') return handleHistoryShortcuts(e)
 
-		const activeTag = document.activeElement.tagName
-		const activeType = document.activeElement.type
+    const activeTag = document.activeElement.tagName
+    const activeType = document.activeElement.type
 
-		const isControl = activeTag == 'INPUT'
-		const isRenaming = document.activeElement.isContentEditable
+    const isControl = activeTag == 'INPUT'
+    const isRenaming = document.activeElement.isContentEditable
 
-		if (isControl || isRenaming) return
+    if (isControl || isRenaming) return
 
-		handleGlobalShortcuts(e)
+    handleGlobalShortcuts(e)
 
-		activeElementIds.value.length ? handleElementShortcuts(e) : handleSlideShortcuts(e)
-	}
+    activeElementIds.value.length ? handleElementShortcuts(e) : handleSlideShortcuts(e)
+  }
 
-	const handleEditModeShortcuts = (e) => {
-		const focused = isEditorFocused()
+  const handleEditModeShortcuts = e => {
+    const focused = isEditorFocused()
 
-		if (focused) {
-			handleFocusShortcuts(e)
-		} else {
-			handleOutOfFocusShortcuts(e)
-		}
-	}
+    if (focused) {
+      handleFocusShortcuts(e)
+    } else {
+      handleOutOfFocusShortcuts(e)
+    }
+  }
 
-	const handleSlideShowModeShortcuts = (e) => {
-		if (
-			e.key == 'ArrowRight' ||
-			e.key == 'ArrowDown' ||
-			e.code == 'Space' ||
-			e.key == 'PageDown'
-		) {
-			performNextStep()
-		} else if (e.key == 'ArrowLeft' || e.key == 'ArrowUp' || e.key == 'PageUp') {
-			performPreviousStep()
-		} else if (e.key == 'F5') {
-			e.preventDefault()
-			changeSlideInSlideshow(0)
-		}
-	}
+  const handleSlideShowModeShortcuts = e => {
+    if (e.key == 'ArrowRight' || e.key == 'ArrowDown' || e.code == 'Space' || e.key == 'PageDown') {
+      performNextStep()
+    } else if (e.key == 'ArrowLeft' || e.key == 'ArrowUp' || e.key == 'PageUp') {
+      performPreviousStep()
+    } else if (e.key == 'F5') {
+      e.preventDefault()
+      changeSlideInSlideshow(0)
+    }
+  }
 
-	const handleKeyDown = (e) => {
-		if (inSlideShowMode.value) handleSlideShowModeShortcuts(e)
-		else if (inReadonlyMode.value) handleReadonlyModeShortcuts(e)
-		else handleEditModeShortcuts(e)
-	}
+  const handleKeyDown = e => {
+    if (inSlideShowMode.value) handleSlideShowModeShortcuts(e)
+    else if (inReadonlyMode.value) handleReadonlyModeShortcuts(e)
+    else handleEditModeShortcuts(e)
+  }
 
-	const cleanup = () => {
-		keydownListener?.()
-		keydownListener = null
-	}
+  const cleanup = () => {
+    keydownListener?.()
+    keydownListener = null
+  }
 
-	onMounted(() => {
-		cleanup()
-		keydownListener = useEventListener(document, 'keydown', handleKeyDown)
-	})
+  onMounted(() => {
+    cleanup()
+    keydownListener = useEventListener(document, 'keydown', handleKeyDown)
+  })
 
-	onBeforeUnmount(() => {
-		cleanup()
-	})
+  onBeforeUnmount(() => {
+    cleanup()
+  })
 }

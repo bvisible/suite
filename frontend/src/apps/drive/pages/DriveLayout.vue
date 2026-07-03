@@ -47,12 +47,9 @@ provide('inIframe', inIframe)
 const showSearchPopup = ref(false)
 const isLoggedIn = computed(() => useSessionStore().isLoggedIn)
 const normalView = computed(
-  () =>
-    !inIframe &&
-    isLoggedIn.value &&
-    !['drive-Teams', 'drive-Setup'].includes(route.name)
+  () => !inIframe && isLoggedIn.value && !['drive-Teams', 'drive-Setup'].includes(route.name)
 )
-emitter.on('showSearchPopup', (data) => {
+emitter.on('showSearchPopup', data => {
   showSearchPopup.value = data
 })
 
@@ -76,7 +73,7 @@ for (const k in EMITTERS) {
   document.body.appendChild(btn)
 }
 
-onKeyDown((e) => {
+onKeyDown(e => {
   if (
     e.target.classList.contains('ProseMirror') ||
     e.target.tagName === 'INPUT' ||

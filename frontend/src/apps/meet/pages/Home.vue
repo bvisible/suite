@@ -83,70 +83,63 @@
 </template>
 
 <script setup lang="ts">
-import {
-	Button,
-	createResource,
-	Dropdown,
-	FormControl,
-	toast,
-} from "frappe-ui";
-import { ref } from "vue";
-import { useRouter } from "vue-router";
-import { useConnectionState } from "../composables/useConnectionState";
-import FrappeMeetingLogo from "../icons/FrappeMeetingLogo.vue";
+import { Button, createResource, Dropdown, FormControl, toast } from 'frappe-ui'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useConnectionState } from '../composables/useConnectionState'
+import FrappeMeetingLogo from '../icons/FrappeMeetingLogo.vue'
 
-const router = useRouter();
-const connectionState = useConnectionState();
-const meetingCode = ref("");
-const meetingCodeError = ref("");
+const router = useRouter()
+const connectionState = useConnectionState()
+const meetingCode = ref('')
+const meetingCodeError = ref('')
 
 const createMeeting = createResource({
-	url: "suite.meet.api.meeting.create",
-	method: "POST",
-	onSuccess: (meeting_code) => {
-		router.push({
-			name: "meet-meeting",
-			params: { meetingId: meeting_code },
-		});
-		connectionState.justCreated = true;
-	},
-	onError: (error) => {
-		console.error("Error creating meeting:", error);
-		toast.error("Failed to create meeting. Please try again.");
-	},
-});
+  url: 'suite.meet.api.meeting.create',
+  method: 'POST',
+  onSuccess: meeting_code => {
+    router.push({
+      name: 'meet-meeting',
+      params: { meetingId: meeting_code },
+    })
+    connectionState.justCreated = true
+  },
+  onError: error => {
+    console.error('Error creating meeting:', error)
+    toast.error('Failed to create meeting. Please try again.')
+  },
+})
 
-const startNewMeeting = (meetingType) => {
-	toast.promise(createMeeting.submit({ meeting_type: meetingType }), {
-		loading: "Creating meeting...",
-		success: "Meeting created successfully!",
-		error: "Failed to create meeting. Please try again.",
-	});
-};
+const startNewMeeting = meetingType => {
+  toast.promise(createMeeting.submit({ meeting_type: meetingType }), {
+    loading: 'Creating meeting...',
+    success: 'Meeting created successfully!',
+    error: 'Failed to create meeting. Please try again.',
+  })
+}
 
 const joinMeeting = () => {
-	meetingCodeError.value = "";
+  meetingCodeError.value = ''
 
-	if (!meetingCode.value.trim()) {
-		meetingCodeError.value = "Please enter a meeting code";
-		return;
-	}
+  if (!meetingCode.value.trim()) {
+    meetingCodeError.value = 'Please enter a meeting code'
+    return
+  }
 
-	if (!isMeetingCodeValid(meetingCode.value.trim())) {
-		meetingCodeError.value =
-			"Please enter a valid meeting code (format: xxxx-xxxx-xxxx)";
-		return;
-	}
+  if (!isMeetingCodeValid(meetingCode.value.trim())) {
+    meetingCodeError.value = 'Please enter a valid meeting code (format: xxxx-xxxx-xxxx)'
+    return
+  }
 
-	router.push({
-		name: "meet-meeting",
-		params: { meetingId: meetingCode.value.trim() },
-	});
-};
+  router.push({
+    name: 'meet-meeting',
+    params: { meetingId: meetingCode.value.trim() },
+  })
+}
 
-const isMeetingCodeValid = (code) => {
-	// Ensure code is of the form xxxx-xxxx-xxxx
-	const regex = /^[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}$/;
-	return regex.test(code);
-};
+const isMeetingCodeValid = code => {
+  // Ensure code is of the form xxxx-xxxx-xxxx
+  const regex = /^[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}$/
+  return regex.test(code)
+}
 </script>

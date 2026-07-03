@@ -26,14 +26,14 @@ const props = defineProps({
 })
 watch(
   () => props.entityName,
-  (name) => setCurrentFolder({ name: name || '' }),
-  { immediate: true },
+  name => setCurrentFolder({ name: name || '' }),
+  { immediate: true }
 )
 
 const getFolderContents = createResource({
   ...COMMON_OPTIONS,
   url: 'suite.drive.api.list.files',
-  makeParams: (params) => ({
+  makeParams: params => ({
     ...params,
     entity_name: props.entityName,
   }),
@@ -41,7 +41,7 @@ const getFolderContents = createResource({
 })
 setCache(getFolderContents, ['folder', props.entityName])
 
-const onSuccess = (entity) => {
+const onSuccess = entity => {
   if (router.currentRoute.value.params.entityName !== entity.name) return
   document.title = 'Folder - ' + entity.file_name
   setBreadCrumbs(entity)
@@ -57,5 +57,5 @@ const folder = createResource({
   },
   onSuccess,
 })
-watch(entityName, (v) => folder.fetch({ entity_name: v }), { immediate: true })
+watch(entityName, v => folder.fetch({ entity_name: v }), { immediate: true })
 </script>

@@ -65,18 +65,18 @@ import { computed, inject, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { CalendarPlus, CalendarRange } from 'lucide-vue-next'
 import {
-	Badge,
-	Breadcrumbs,
-	ErrorMessage,
-	FormControl,
-	ListEmptyState,
-	ListHeader,
-	ListRow,
-	ListRowItem,
-	ListRows,
-	ListView,
-	Tabs,
-	useList,
+  Badge,
+  Breadcrumbs,
+  ErrorMessage,
+  FormControl,
+  ListEmptyState,
+  ListHeader,
+  ListRow,
+  ListRowItem,
+  ListRows,
+  ListView,
+  Tabs,
+  useList,
 } from 'frappe-ui'
 
 import { getTheme } from '@/apps/mail/utils'
@@ -89,62 +89,55 @@ const tabIndex = ref(route.query.operation === 'Export' ? 1 : 0)
 const status = ref(' ')
 
 const STATUS_OPTIONS = [
-	{ label: '', value: ' ' },
-	{ label: __('Draft'), value: 'Draft' },
-	{ label: __('Queued'), value: 'Queued' },
-	{ label: __('In Progress'), value: 'In Progress' },
-	{ label: __('Completed'), value: 'Completed' },
-	{ label: __('Failed'), value: 'Failed' },
-	{ label: __('Cancelled'), value: 'Cancelled' },
+  { label: '', value: ' ' },
+  { label: __('Draft'), value: 'Draft' },
+  { label: __('Queued'), value: 'Queued' },
+  { label: __('In Progress'), value: 'In Progress' },
+  { label: __('Completed'), value: 'Completed' },
+  { label: __('Failed'), value: 'Failed' },
+  { label: __('Cancelled'), value: 'Cancelled' },
 ]
 
 const calendarExchanges = useList({
-	doctype: 'Calendar Exchange',
-	fields: [
-		'name',
-		'status',
-		'import_format',
-		'export_format',
-		'export_archive_type',
-		'started_at',
-	],
-	filters: () => {
-		const filters: Record<string, string> = {
-			user: user.data.name,
-			operation: tabIndex.value ? 'Export' : 'Import',
-		}
-		if (status.value !== ' ') filters.status = status.value
-		return filters
-	},
-	orderBy: 'creation desc',
-	transform: (data) =>
-		data.map((row) => ({
-			...row,
-			started_at: row.started_at ? dayjs(row.started_at).format('MMM D, YYYY h:mm A') : '-',
-		})),
+  doctype: 'Calendar Exchange',
+  fields: ['name', 'status', 'import_format', 'export_format', 'export_archive_type', 'started_at'],
+  filters: () => {
+    const filters: Record<string, string> = {
+      user: user.data.name,
+      operation: tabIndex.value ? 'Export' : 'Import',
+    }
+    if (status.value !== ' ') filters.status = status.value
+    return filters
+  },
+  orderBy: 'creation desc',
+  transform: data =>
+    data.map(row => ({
+      ...row,
+      started_at: row.started_at ? dayjs(row.started_at).format('MMM D, YYYY h:mm A') : '-',
+    })),
 })
 
 const listColumns = computed(() => {
-	const columns = [
-		{ label: __('Started'), key: 'started_at' },
-		{ label: __('Status'), key: 'status' },
-		{
-			label: __('Format'),
-			key: tabIndex.value ? 'export_format' : 'import_format',
-		},
-	]
-	if (tabIndex.value) columns.push({ label: __('Archive Type'), key: 'export_archive_type' })
-	return columns
+  const columns = [
+    { label: __('Started'), key: 'started_at' },
+    { label: __('Status'), key: 'status' },
+    {
+      label: __('Format'),
+      key: tabIndex.value ? 'export_format' : 'import_format',
+    },
+  ]
+  if (tabIndex.value) columns.push({ label: __('Archive Type'), key: 'export_archive_type' })
+  return columns
 })
 
 const LIST_OPTIONS = {
-	selectable: false,
-	getRowRoute: (row) => ({ name: 'mail-calendar-exchange', params: { id: row.name } }),
-	emptyState: { description: __('No calendar exchanges found.') },
+  selectable: false,
+  getRowRoute: row => ({ name: 'mail-calendar-exchange', params: { id: row.name } }),
+  emptyState: { description: __('No calendar exchanges found.') },
 }
 
 const TABS = [
-	{ label: __('Import'), icon: CalendarPlus },
-	{ label: __('Export'), icon: CalendarRange },
+  { label: __('Import'), icon: CalendarPlus },
+  { label: __('Export'), icon: CalendarRange },
 ]
 </script>

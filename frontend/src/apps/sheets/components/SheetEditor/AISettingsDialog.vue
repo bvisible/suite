@@ -87,32 +87,34 @@ const emit = defineEmits(['update:modelValue', 'saved'])
 
 const show = computed({
   get: () => props.modelValue,
-  set: (v) => emit('update:modelValue', v),
+  set: v => emit('update:modelValue', v),
 })
 
-const loading  = ref(false)
-const saving   = ref(false)
-const enabled  = ref(false)
-const model    = ref('claude-opus-4-8')
-const apiKey   = ref('')          // only sent if the admin types a new key
-const keyIsSet = ref(false)       // whether a key is already on file (the real key is never fetched)
+const loading = ref(false)
+const saving = ref(false)
+const enabled = ref(false)
+const model = ref('claude-opus-4-8')
+const apiKey = ref('') // only sent if the admin types a new key
+const keyIsSet = ref(false) // whether a key is already on file (the real key is never fetched)
 
 const errorMessage = ref('')
 function _flashError(err) {
-  const msg = (err && err.message) ? String(err.message) : 'Something went wrong'
+  const msg = err && err.message ? String(err.message) : 'Something went wrong'
   errorMessage.value = msg
-  setTimeout(() => { if (errorMessage.value === msg) errorMessage.value = '' }, 5000)
+  setTimeout(() => {
+    if (errorMessage.value === msg) errorMessage.value = ''
+  }, 5000)
 }
 
-watch(show, async (open) => {
+watch(show, async open => {
   if (!open) return
   errorMessage.value = ''
   apiKey.value = ''
   loading.value = true
   try {
     const s = await call('suite.sheets.api.get_ai_settings')
-    enabled.value  = !!s.enabled
-    model.value    = s.model || 'claude-opus-4-8'
+    enabled.value = !!s.enabled
+    model.value = s.model || 'claude-opus-4-8'
     keyIsSet.value = !!s.keyIsSet
   } catch (err) {
     _flashError(err)
@@ -125,7 +127,7 @@ async function save() {
   saving.value = true
   try {
     const s = await call('suite.sheets.api.save_ai_settings', {
-      api_key: apiKey.value,                 // '' = keep existing key
+      api_key: apiKey.value, // '' = keep existing key
       enabled: enabled.value ? 1 : 0,
       model: model.value || '',
     })

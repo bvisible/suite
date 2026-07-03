@@ -4,9 +4,9 @@ import { reactive, onMounted, ref, toRaw, watchEffect } from 'vue'
 const slots = defineSlots()
 const initialValues = reactive({})
 
-const getKey = (input) => input.props.label || input.props.id
+const getKey = input => input.props.label || input.props.id
 
-const addToInitial = (inputs) => {
+const addToInitial = inputs => {
   for (const input of inputs) {
     if (input?.props && 'modelValue' in input.props && getKey(input)) {
       initialValues[getKey(input)] = toRaw(input.props.modelValue)
@@ -17,7 +17,7 @@ const addToInitial = (inputs) => {
   }
 }
 
-const checkChanges = (inputs) => {
+const checkChanges = inputs => {
   let dirty = false
   error.value = null
   for (const input of inputs) {
@@ -45,7 +45,7 @@ watchEffect(() => {
   const inputs = slots.default?.(false) || []
   dirty.value = checkChanges(inputs)
 })
-const setDirty = (val) => (dirty.value = val)
+const setDirty = val => (dirty.value = val)
 </script>
 
 <template>

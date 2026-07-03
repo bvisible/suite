@@ -29,22 +29,22 @@ const colorScheme = ref(user.data.color_scheme)
 const isNotDirty = computed(() => colorScheme.value === user.data.color_scheme)
 
 const saveSettings = createResource({
-	url: 'frappe.client.set_value',
-	makeParams: () => ({
-		doctype: 'User Settings',
-		name: user.data.user_settings,
-		fieldname: { color_scheme: colorScheme.value },
-	}),
-	onSuccess: () => {
-		raiseToast(__('Appearance updated.'))
-		user.reload()
-	},
-	onError: () => raiseToast(__('Unable to save appearance settings.'), 'error'),
+  url: 'frappe.client.set_value',
+  makeParams: () => ({
+    doctype: 'User Settings',
+    name: user.data.user_settings,
+    fieldname: { color_scheme: colorScheme.value },
+  }),
+  onSuccess: () => {
+    raiseToast(__('Appearance updated.'))
+    user.reload()
+  },
+  onError: () => raiseToast(__('Unable to save appearance settings.'), 'error'),
 })
 
 const COLOR_SCHEMES = [
-	{ label: __('System Default'), value: 'System Default' },
-	{ label: __('Light Mode'), value: 'Light Mode' },
-	{ label: __('Dark Mode'), value: 'Dark Mode' },
+  { label: __('System Default'), value: 'System Default' },
+  { label: __('Light Mode'), value: 'Light Mode' },
+  { label: __('Dark Mode'), value: 'Dark Mode' },
 ]
 </script>

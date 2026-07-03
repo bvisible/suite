@@ -103,7 +103,13 @@ import LucideLink from '~icons/lucide/link'
 import LucideTrash from '~icons/lucide/trash'
 import LucideLeftClose from '~icons/lucide/panel-left-close'
 import { ref, watch, computed, h, onMounted, onBeforeUnmount } from 'vue'
-import { Button, TextInput, ContextMenu, focusDirective as vFocus, onOutsideClickDirective as vOnOutsideClick } from 'frappe-ui'
+import {
+  Button,
+  TextInput,
+  ContextMenu,
+  focusDirective as vFocus,
+  onOutsideClickDirective as vOnOutsideClick,
+} from 'frappe-ui'
 import { copyToClipboard } from '@/apps/drive/ui/drive/js/utils'
 
 const props = defineProps({
@@ -115,13 +121,13 @@ const props = defineProps({
 })
 
 const show = ref(JSON.parse(localStorage.getItem('showToc') || true))
-watch(show, (v) => localStorage.setItem('showToc', v))
+watch(show, v => localStorage.setItem('showToc', v))
 const showHeadings = ref(true)
 
 // Get all tabs from the document
 const tabs = computed(() => {
   const t = []
-  props.editor.state.doc.descendants((node) => {
+  props.editor.state.doc.descendants(node => {
     if (node.type.name === 'tab') {
       t.push({ id: node.attrs.id, label: node.attrs.label })
     }
@@ -132,7 +138,7 @@ const tabs = computed(() => {
 // Get active tab ID
 const activeTabId = ref()
 onMounted(() => {
-  const handleTabChange = (e) => {
+  const handleTabChange = e => {
     activeTabId.value = e.detail.tabId
     finishRenaming(true)
   }
@@ -163,10 +169,8 @@ const currentTabAnchors = computed(() => {
   if (tabStart === null) return []
 
   // Filter anchors that are within the active tab's position range
-  return props.anchors.filter((anchor) => {
-    const element = props.editor.view.dom.querySelector(
-      `[data-toc-id="${anchor.id}"]`,
-    )
+  return props.anchors.filter(anchor => {
+    const element = props.editor.view.dom.querySelector(`[data-toc-id="${anchor.id}"]`)
     if (!element) return false
 
     const pos = props.editor.view.posAtDOM(element, 0)
@@ -175,12 +179,10 @@ const currentTabAnchors = computed(() => {
 })
 
 const maxLevel = computed(() =>
-  currentTabAnchors.value.length
-    ? Math.min(...currentTabAnchors.value.map((k) => k.level)) - 1
-    : 0,
+  currentTabAnchors.value.length ? Math.min(...currentTabAnchors.value.map(k => k.level)) - 1 : 0
 )
 
-const onAnchorClick = (id) => {
+const onAnchorClick = id => {
   if (!props.editor) return
   const view = props.editor.view
   const tr = view.state.tr
@@ -204,9 +206,9 @@ const editingTabId = ref(null)
 const editingTabLabel = ref('')
 const delayedEdit = ref(false)
 
-const startRenaming = (tabId) => {
+const startRenaming = tabId => {
   editingTabId.value = tabId
-  editingTabLabel.value = tabs.value.find((tab) => tab.id === tabId).label
+  editingTabLabel.value = tabs.value.find(tab => tab.id === tabId).label
   nextTick(() => {
     setTimeout(() => {
       delayedEdit.value = true
@@ -216,10 +218,7 @@ const startRenaming = (tabId) => {
 
 const finishRenaming = (esc = false) => {
   if (!esc && editingTabId.value && editingTabLabel.value.trim()) {
-    props.editor.commands.renameTab(
-      editingTabId.value,
-      editingTabLabel.value.trim(),
-    )
+    props.editor.commands.renameTab(editingTabId.value, editingTabLabel.value.trim())
   }
   editingTabId.value = null
   editingTabLabel.value = ''
@@ -285,7 +284,7 @@ const onDrop = () => {
   onDragEnd()
 }
 
-const onDragEnd = (event) => {
+const onDragEnd = event => {
   if (event?.target?._cleanupDrag) {
     event.target._cleanupDrag()
   }
@@ -331,10 +330,7 @@ const tabActions = [
   {
     label: 'Copy Link',
     icon: LucideLink,
-    onClick: () =>
-      copyToClipboard(
-        window.location.href.split('#')[0] + '#' + activeTabId.value,
-      ),
+    onClick: () => copyToClipboard(window.location.href.split('#')[0] + '#' + activeTabId.value),
   },
   {
     group: true,

@@ -25,69 +25,90 @@
 import { deepClone } from '../utils/deep-clone.js'
 
 export function createChartEngine() {
-	let _charts  = {}   // id → ChartConfig
-	let _nextId  = 1
-	let _onChange = null
+  let _charts = {} // id → ChartConfig
+  let _nextId = 1
+  let _onChange = null
 
-	function _newId() { return `chart_${_nextId++}` }
-	function _notify() { _onChange?.() }
+  function _newId() {
+    return `chart_${_nextId++}`
+  }
+  function _notify() {
+    _onChange?.()
+  }
 
-	function setOnChange(cb) { _onChange = cb }
+  function setOnChange(cb) {
+    _onChange = cb
+  }
 
-	function add(config) {
-		const id = config.id || _newId()
-		_charts[id] = { ...config, id }
-		_notify()
-		return id
-	}
+  function add(config) {
+    const id = config.id || _newId()
+    _charts[id] = { ...config, id }
+    _notify()
+    return id
+  }
 
-	function update(id, patch) {
-		if (!_charts[id]) return
-		_charts[id] = { ..._charts[id], ...patch, id }
-		_notify()
-	}
+  function update(id, patch) {
+    if (!_charts[id]) return
+    _charts[id] = { ..._charts[id], ...patch, id }
+    _notify()
+  }
 
-	function remove(id) {
-		if (id in _charts) { delete _charts[id]; _notify() }
-	}
+  function remove(id) {
+    if (id in _charts) {
+      delete _charts[id]
+      _notify()
+    }
+  }
 
-	function get(id)  { return _charts[id] }
-	function list()   { return Object.values(_charts) }
+  function get(id) {
+    return _charts[id]
+  }
+  function list() {
+    return Object.values(_charts)
+  }
 
-	function listForSheet(sheetName) {
-		return Object.values(_charts).filter(c => c.position?.sheet === sheetName)
-	}
+  function listForSheet(sheetName) {
+    return Object.values(_charts).filter(c => c.position?.sheet === sheetName)
+  }
 
-	// True when `sheetName` is the source for any chart — drives "should I
-	// recompute" decisions when cells change.
-	function affectsChart(sheetName) {
-		return Object.values(_charts).some(c => c.sourceSheet === sheetName)
-	}
+  // True when `sheetName` is the source for any chart — drives "should I
+  // recompute" decisions when cells change.
+  function affectsChart(sheetName) {
+    return Object.values(_charts).some(c => c.sourceSheet === sheetName)
+  }
 
-	function snapshot() {
-		return { charts: deepClone(_charts), nextId: _nextId }
-	}
+  function snapshot() {
+    return { charts: deepClone(_charts), nextId: _nextId }
+  }
 
-	function restore(data) {
-		if (!data) return
-		_charts = deepClone(data.charts || {})
-		_nextId = data.nextId || 1
-		// Defensive: keep nextId ahead of any restored id so future _newId()
-		// can't collide with one that's already there.
-		for (const id of Object.keys(_charts)) {
-			const m = /^chart_(\d+)$/.exec(id)
-			if (m) {
-				const n = parseInt(m[1], 10)
-				if (n >= _nextId) _nextId = n + 1
-			}
-		}
-		_notify()
-	}
+  function restore(data) {
+    if (!data) return
+    _charts = deepClone(data.charts || {})
+    _nextId = data.nextId || 1
+    // Defensive: keep nextId ahead of any restored id so future _newId()
+    // can't collide with one that's already there.
+    for (const id of Object.keys(_charts)) {
+      const m = /^chart_(\d+)$/.exec(id)
+      if (m) {
+        const n = parseInt(m[1], 10)
+        if (n >= _nextId) _nextId = n + 1
+      }
+    }
+    _notify()
+  }
 
-	return {
-		add, update, remove, get, list, listForSheet, affectsChart,
-		snapshot, restore, setOnChange,
-	}
+  return {
+    add,
+    update,
+    remove,
+    get,
+    list,
+    listForSheet,
+    affectsChart,
+    snapshot,
+    restore,
+    setOnChange,
+  }
 }
 
 // ── Helpers shared with view layer ───────────────────────────────────────────
@@ -101,13 +122,19 @@ export const DEFAULT_CHART_SIZE = { width: 480, height: 320 }
 export const CHART_TYPES = ['line', 'bar', 'pie', 'area', 'scatter']
 
 export function isValidChartType(t) {
-	return CHART_TYPES.includes(t)
+  return CHART_TYPES.includes(t)
 }
 
 // Espresso-aligned categorical palette. ECharts default greys clash with
 // the rest of the UI; this set matches the cyan accent already used in the
 // brand mark and the cursor palette.
 export const ESPRESSO_PALETTE = [
-	'#0E7490', '#A5F0FA', '#0891B2', '#67E8F9',
-	'#155E75', '#22D3EE', '#0C4A6E', '#7DD3FC',
+  '#0E7490',
+  '#A5F0FA',
+  '#0891B2',
+  '#67E8F9',
+  '#155E75',
+  '#22D3EE',
+  '#0C4A6E',
+  '#7DD3FC',
 ]

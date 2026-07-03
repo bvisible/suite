@@ -118,7 +118,11 @@ const { mailboxes } = store
 
 const user = inject('$user')
 
-const apps = { get data() { return getAppSwitcherItems('mail') } }
+const apps = {
+  get data() {
+    return getAppSwitcherItems('mail')
+  },
+}
 
 const { showSettings } = useSettings()
 const showFolderModal = ref(false)
@@ -127,272 +131,266 @@ const showDeleteMailbox = ref(false)
 const showShortcuts = ref(false)
 
 const title = computed(() =>
-	branding.data?.brand_name && branding.data?.brand_name != 'Frappe'
-		? branding.data.brand_name
-		: 'Mail',
+  branding.data?.brand_name && branding.data?.brand_name != 'Frappe'
+    ? branding.data.brand_name
+    : 'Mail'
 )
 
 const subtitle = computed(() => {
-	const currentAccount = user.data.accounts.find((a) => a.id === store.accountId)
-	if (!currentAccount || currentAccount.is_personal) return toTitleCase(user.data.full_name)
-	return currentAccount._name
+  const currentAccount = user.data.accounts.find(a => a.id === store.accountId)
+  if (!currentAccount || currentAccount.is_personal) return toTitleCase(user.data.full_name)
+  return currentAccount._name
 })
 
 const menuItems = computed(() => [
-	{
-		group: '',
-		items: [
-			{
-				icon: LayoutGrid,
-				label: __('Apps'),
-				submenu: apps.data?.map?.((app) => ({
-					component: h(
-						'a',
-						{
-							class: 'flex items-center gap-2 p-1.5 rounded hover:bg-surface-gray-2',
-							href: app.route,
-						},
-						[
-							h('img', { src: app.logo, class: 'size-6' }),
-							h('span', { class: 'max-w-18 text-sm w-full truncate' }, app.title),
-						],
-					),
-				})),
-				condition: () => !isMobile.value,
-			},
-			{
-				icon: Mailbox,
-				label: __('Mailbox'),
-				onClick: () => {
-					const mailbox = mailboxes.data?.[0]?.id
-					if (mailbox)
-						router.push({
-							name: 'mail-mailbox',
-							params: { accountId: store.accountId, mailbox },
-						})
-					else
-						router.push({
-							name: 'mail-address-books',
-							params: { accountId: store.accountId },
-						})
-				},
-				condition: () =>
-					user.data.is_mail_admin &&
-					user.data.is_jmap_configured &&
-					route.meta.isDashboard,
-			},
-			{
-				icon: Crown,
-				label: __('Admin Dashboard'),
-				onClick: () => router.push('/mail/dashboard'),
-				condition: () =>
-					user.data.is_jmap_configured &&
-					user.data.is_mail_admin &&
-					!route.meta.isDashboard &&
-					!isMobile.value,
-			},
-		],
-	},
-	{
-		group: '',
-		items: [
-			{
-				icon: Settings,
-				label: __('Settings'),
-				onClick: () => (showSettings.value = true),
-			},
-			{
-				icon: Keyboard,
-				label: __('Shortcuts'),
-				onClick: () => (showShortcuts.value = true),
-				condition: () => !isMobile.value,
-			},
-		],
-	},
-	{
-		group: '',
-		items: [
-			{
-				icon: User,
-				label: __('Accounts'),
-				submenu: user.data.accounts.map?.((a) => ({
-					component: h(
-						'div',
-						{
-							class: 'flex items-center gap-2 p-1.5 rounded hover:bg-surface-gray-2 cursor-pointer w-48 shrink-0',
-							onClick: async () => {
-								router.push({
-									name: route.name,
-									params: { ...route.params, accountId: a.id },
-								})
-							},
-						},
-						[
-							h(Avatar, { label: a._name, size: 'md' }),
-							h('span', { class: 'text-sm w-full truncate' }, a._name),
-							a.id === store.accountId &&
-								h(Check, { label: a._name, class: 'shrink-0 icon' }),
-						],
-					),
-				})),
-				condition: () => user.data.accounts?.length > 1 && !route.meta.isDashboard,
-			},
-			{
-				icon: LogOut,
-				label: __('Log Out'),
-				onClick: logout.submit,
-			},
-		],
-	},
+  {
+    group: '',
+    items: [
+      {
+        icon: LayoutGrid,
+        label: __('Apps'),
+        submenu: apps.data?.map?.(app => ({
+          component: h(
+            'a',
+            {
+              class: 'flex items-center gap-2 p-1.5 rounded hover:bg-surface-gray-2',
+              href: app.route,
+            },
+            [
+              h('img', { src: app.logo, class: 'size-6' }),
+              h('span', { class: 'max-w-18 text-sm w-full truncate' }, app.title),
+            ]
+          ),
+        })),
+        condition: () => !isMobile.value,
+      },
+      {
+        icon: Mailbox,
+        label: __('Mailbox'),
+        onClick: () => {
+          const mailbox = mailboxes.data?.[0]?.id
+          if (mailbox)
+            router.push({
+              name: 'mail-mailbox',
+              params: { accountId: store.accountId, mailbox },
+            })
+          else
+            router.push({
+              name: 'mail-address-books',
+              params: { accountId: store.accountId },
+            })
+        },
+        condition: () =>
+          user.data.is_mail_admin && user.data.is_jmap_configured && route.meta.isDashboard,
+      },
+      {
+        icon: Crown,
+        label: __('Admin Dashboard'),
+        onClick: () => router.push('/mail/dashboard'),
+        condition: () =>
+          user.data.is_jmap_configured &&
+          user.data.is_mail_admin &&
+          !route.meta.isDashboard &&
+          !isMobile.value,
+      },
+    ],
+  },
+  {
+    group: '',
+    items: [
+      {
+        icon: Settings,
+        label: __('Settings'),
+        onClick: () => (showSettings.value = true),
+      },
+      {
+        icon: Keyboard,
+        label: __('Shortcuts'),
+        onClick: () => (showShortcuts.value = true),
+        condition: () => !isMobile.value,
+      },
+    ],
+  },
+  {
+    group: '',
+    items: [
+      {
+        icon: User,
+        label: __('Accounts'),
+        submenu: user.data.accounts.map?.(a => ({
+          component: h(
+            'div',
+            {
+              class:
+                'flex items-center gap-2 p-1.5 rounded hover:bg-surface-gray-2 cursor-pointer w-48 shrink-0',
+              onClick: async () => {
+                router.push({
+                  name: route.name,
+                  params: { ...route.params, accountId: a.id },
+                })
+              },
+            },
+            [
+              h(Avatar, { label: a._name, size: 'md' }),
+              h('span', { class: 'text-sm w-full truncate' }, a._name),
+              a.id === store.accountId && h(Check, { label: a._name, class: 'shrink-0 icon' }),
+            ]
+          ),
+        })),
+        condition: () => user.data.accounts?.length > 1 && !route.meta.isDashboard,
+      },
+      {
+        icon: LogOut,
+        label: __('Log Out'),
+        onClick: logout.submit,
+      },
+    ],
+  },
 ])
 
 const dashboardItems = [
-	{
-		items: [
-			{
-				label: __('Domains'),
-				icon: Globe,
-				to: { name: 'mail-domains' },
-				activeFor: ['mail-domains', 'mail-domain'],
-			},
-			{
-				label: __('Members'),
-				icon: Users,
-				to: { name: 'mail-members' },
-				activeFor: ['mail-members', 'mail-invites', 'mail-member'],
-			},
-		],
-	},
+  {
+    items: [
+      {
+        label: __('Domains'),
+        icon: Globe,
+        to: { name: 'mail-domains' },
+        activeFor: ['mail-domains', 'mail-domain'],
+      },
+      {
+        label: __('Members'),
+        icon: Users,
+        to: { name: 'mail-members' },
+        activeFor: ['mail-members', 'mail-invites', 'mail-member'],
+      },
+    ],
+  },
 ]
 
 const mailboxItems = computed(
-	() =>
-		mailboxes.data
-			?.filter((mailbox: MailboxData) => mailbox.subscribed)
-			?.map((mailbox: MailboxData) => {
-				// The Screening folder opens the dedicated Screener page, not the thread list.
-				const isScreener = mailbox.id === store.mailboxIds.screener
-				return {
-					mailboxId: mailbox.id,
-					label: getMailboxName(mailbox),
-					icon: h(Icon, {
-						name: getIcon(mailbox),
-						class: FOLDER_ICON_COLOR_MAP[mailbox.color],
-					}),
-					to: isScreener
-						? { name: 'mail-screener', params: { accountId: store.accountId } }
-						: {
-								name: 'mail-mailbox',
-								params: { accountId: store.accountId, mailbox: mailbox.id },
-							},
-					suffix: mailbox.unread_threads ? String(mailbox.unread_threads) : '',
-					activeFor: isScreener ? ['mail-screener'] : [mailbox.id],
-					menuOptions: isScreener
-						? undefined
-						: [
-								{
-									label: __('Configure'),
-									icon: Settings,
-									onClick: () => {
-										selectedMailbox.value = mailbox
-										showFolderModal.value = true
-									},
-								},
-								{
-									label: __('Delete'),
-									theme: 'red',
-									icon: Trash2,
-									onClick: () => {
-										selectedMailbox.value = mailbox
-										showDeleteMailbox.value = true
-									},
-								},
-							],
-				}
-			}) || [],
+  () =>
+    mailboxes.data
+      ?.filter((mailbox: MailboxData) => mailbox.subscribed)
+      ?.map((mailbox: MailboxData) => {
+        // The Screening folder opens the dedicated Screener page, not the thread list.
+        const isScreener = mailbox.id === store.mailboxIds.screener
+        return {
+          mailboxId: mailbox.id,
+          label: getMailboxName(mailbox),
+          icon: h(Icon, {
+            name: getIcon(mailbox),
+            class: FOLDER_ICON_COLOR_MAP[mailbox.color],
+          }),
+          to: isScreener
+            ? { name: 'mail-screener', params: { accountId: store.accountId } }
+            : {
+                name: 'mail-mailbox',
+                params: { accountId: store.accountId, mailbox: mailbox.id },
+              },
+          suffix: mailbox.unread_threads ? String(mailbox.unread_threads) : '',
+          activeFor: isScreener ? ['mail-screener'] : [mailbox.id],
+          menuOptions: isScreener
+            ? undefined
+            : [
+                {
+                  label: __('Configure'),
+                  icon: Settings,
+                  onClick: () => {
+                    selectedMailbox.value = mailbox
+                    showFolderModal.value = true
+                  },
+                },
+                {
+                  label: __('Delete'),
+                  theme: 'red',
+                  icon: Trash2,
+                  onClick: () => {
+                    selectedMailbox.value = mailbox
+                    showDeleteMailbox.value = true
+                  },
+                },
+              ],
+        }
+      }) || []
 )
 
 const screeningEnabled = computed(
-	() =>
-		!!store.userResource?.data?.accounts?.find((a) => a.id === store.accountId)
-			?.enable_screening,
+  () => !!store.userResource?.data?.accounts?.find(a => a.id === store.accountId)?.enable_screening
 )
 
 const sidebarItems = computed(() => {
-	if (route.meta.isDashboard) return dashboardItems
+  if (route.meta.isDashboard) return dashboardItems
 
-	// Screening is a roleless folder; it gets its own nameless group pinned to the top of the
-	// sidebar, separate from the default and custom mailboxes.
-	const isScreening = (item: { mailboxId?: string }) =>
-		!!store.mailboxIds.screener && item.mailboxId === store.mailboxIds.screener
+  // Screening is a roleless folder; it gets its own nameless group pinned to the top of the
+  // sidebar, separate from the default and custom mailboxes.
+  const isScreening = (item: { mailboxId?: string }) =>
+    !!store.mailboxIds.screener && item.mailboxId === store.mailboxIds.screener
 
-	const screenerItem = mailboxItems.value.find((item) => isScreening(item))
+  const screenerItem = mailboxItems.value.find(item => isScreening(item))
 
-	const defaultMailboxes = mailboxItems.value.filter(
-		(item) => mailboxes.data?.find((m) => m.id === item.mailboxId)?.role,
-	)
-	const starredItem = {
-		label: __('Starred'),
-		icon: Star,
-		to: { name: 'mail-mailbox', params: { accountId: store.accountId, mailbox: 'starred' } },
-		activeFor: ['starred'],
-	}
-	const defaultItems = [...defaultMailboxes, starredItem]
+  const defaultMailboxes = mailboxItems.value.filter(
+    item => mailboxes.data?.find(m => m.id === item.mailboxId)?.role
+  )
+  const starredItem = {
+    label: __('Starred'),
+    icon: Star,
+    to: { name: 'mail-mailbox', params: { accountId: store.accountId, mailbox: 'starred' } },
+    activeFor: ['starred'],
+  }
+  const defaultItems = [...defaultMailboxes, starredItem]
 
-	const customMailboxes = mailboxItems.value.filter(
-		(item) =>
-			!mailboxes.data?.find((m) => m.id === item.mailboxId)?.role && !isScreening(item),
-	)
-	const addMailboxItem = {
-		label: __('New Folder'),
-		icon: Plus,
-		onClick: () => {
-			selectedMailbox.value = undefined
-			showFolderModal.value = true
-		},
-	}
-	const customItems = [...customMailboxes, addMailboxItem]
+  const customMailboxes = mailboxItems.value.filter(
+    item => !mailboxes.data?.find(m => m.id === item.mailboxId)?.role && !isScreening(item)
+  )
+  const addMailboxItem = {
+    label: __('New Folder'),
+    icon: Plus,
+    onClick: () => {
+      selectedMailbox.value = undefined
+      showFolderModal.value = true
+    },
+  }
+  const customItems = [...customMailboxes, addMailboxItem]
 
-	const contactsItems = [
-		{
-			label: __('Address Books'),
-			icon: BookUser,
-			to: { name: 'mail-address-books', params: { accountId: store.accountId } },
-			activeFor: ['mail-address-books', 'mail-address-book'],
-		},
-		{
-			label: __('Contacts'),
-			icon: ContactRound,
-			to: { name: 'mail-contacts', params: { accountId: store.accountId } },
-			activeFor: ['mail-contacts', 'mail-contact'],
-		},
-	]
+  const contactsItems = [
+    {
+      label: __('Address Books'),
+      icon: BookUser,
+      to: { name: 'mail-address-books', params: { accountId: store.accountId } },
+      activeFor: ['mail-address-books', 'mail-address-book'],
+    },
+    {
+      label: __('Contacts'),
+      icon: ContactRound,
+      to: { name: 'mail-contacts', params: { accountId: store.accountId } },
+      activeFor: ['mail-contacts', 'mail-contact'],
+    },
+  ]
 
-	const groups = [
-		{ label: __('Default'), items: defaultItems },
-		{ label: __('Custom'), items: customItems },
-		{ label: __('People'), items: contactsItems },
-	]
-	// Screener is its own nameless group, pinned first — only when screening is enabled.
-	if (screenerItem && screeningEnabled.value)
-		groups.unshift({ label: '', items: [screenerItem] })
-	return groups
+  const groups = [
+    { label: __('Default'), items: defaultItems },
+    { label: __('Custom'), items: customItems },
+    { label: __('People'), items: contactsItems },
+  ]
+  // Screener is its own nameless group, pinned first — only when screening is enabled.
+  if (screenerItem && screeningEnabled.value) groups.unshift({ label: '', items: [screenerItem] })
+  return groups
 })
 
 // Shortcuts
 
 const handleKeyDown = (event: KeyboardEvent) => {
-	if (event.metaKey || event.ctrlKey) {
-		if (event.key === ';') {
-			event.preventDefault()
-			isSidebarCollapsed.value = !isSidebarCollapsed.value
-			return
-		}
-		if (event.key === ',') {
-			event.preventDefault()
-			showSettings.value = true
-		}
-	}
+  if (event.metaKey || event.ctrlKey) {
+    if (event.key === ';') {
+      event.preventDefault()
+      isSidebarCollapsed.value = !isSidebarCollapsed.value
+      return
+    }
+    if (event.key === ',') {
+      event.preventDefault()
+      showSettings.value = true
+    }
+  }
 }
 
 onMounted(() => window.addEventListener('keydown', handleKeyDown))

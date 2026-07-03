@@ -43,7 +43,7 @@ let currentFaviconScope: string | undefined
 
 // Placeholder record per app: matches the prefix + everything under it and
 // carries `meta.appId`. `beforeEach` swaps it for the real routes on first hit.
-const placeholderGroups: RouteRecordRaw[] = SUITE_APPS.map((app) => ({
+const placeholderGroups: RouteRecordRaw[] = SUITE_APPS.map(app => ({
   path: `${app.prefix}/:pathMatch(.*)*`,
   name: `${app.id}-placeholder`,
   component: () => import('@/shell/AppContainer.vue'),
@@ -88,7 +88,7 @@ async function ensureAppRoutesLoaded(appId: string): Promise<void> {
   if (registeredApps.has(appId)) return
 
   const loader = appRouteLoaders[appId]
-  const app = SUITE_APPS.find((a) => a.id === appId)
+  const app = SUITE_APPS.find(a => a.id === appId)
   if (!loader || !app) return
 
   const mod = await loader()
@@ -108,7 +108,7 @@ async function ensureAppRoutesLoaded(appId: string): Promise<void> {
   registeredApps.add(appId)
 }
 
-router.beforeEach(async (to) => {
+router.beforeEach(async to => {
   // 1. Lazy-load the target app's route module before resolving the route.
   const appId = to.meta.appId as string | undefined
   if (appId && !registeredApps.has(appId)) {
@@ -128,7 +128,7 @@ router.beforeEach(async (to) => {
   return true
 })
 
-router.afterEach((to) => {
+router.afterEach(to => {
   setDocumentTitle(to)
   setFavicon(to)
 })

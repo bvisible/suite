@@ -25,63 +25,63 @@ const showRSVP = computed(() => !isNew.value && selectedEvent.calendarEvent.role
 // --- Event initialization ---
 
 const getEventData = () => {
-	if (isNew.value) return getDefaultEventData()
+  if (isNew.value) return getDefaultEventData()
 
-	const { calendarEvent: ev } = selectedEvent
-	const start = dayjs(ev.start)
-	const end = start.add(dayjs.duration(ev.duration))
-	const displayEnd = ev.isAllDay ? end.subtract(1, 'day') : end
+  const { calendarEvent: ev } = selectedEvent
+  const start = dayjs(ev.start)
+  const end = start.add(dayjs.duration(ev.duration))
+  const displayEnd = ev.isAllDay ? end.subtract(1, 'day') : end
 
-	return {
-		title: ev.title || '',
-		organizer: ev.organizer,
-		isAllDay: ev.isAllDay,
-		repeat: !!ev.recurrence_rule?.frequency,
-		startDate: start.format('YYYY-MM-DD'),
-		startTime: start.format('HH:mm'),
-		endDate: displayEnd.format('YYYY-MM-DD'),
-		endTime: end.format('HH:mm'),
-		free_busy_status: ev.free_busy_status,
-		privacy: ev.privacy,
-		locations: ev.locations.length ? ev.locations.map((l) => l._name) : [''],
-		alerts: ev.alerts?.map(parseAlert) ?? [],
-		description: ev.description || '',
-		participants: [...ev.participants],
-		recurrence_rule: ev.recurrence_rule,
-	}
+  return {
+    title: ev.title || '',
+    organizer: ev.organizer,
+    isAllDay: ev.isAllDay,
+    repeat: !!ev.recurrence_rule?.frequency,
+    startDate: start.format('YYYY-MM-DD'),
+    startTime: start.format('HH:mm'),
+    endDate: displayEnd.format('YYYY-MM-DD'),
+    endTime: end.format('HH:mm'),
+    free_busy_status: ev.free_busy_status,
+    privacy: ev.privacy,
+    locations: ev.locations.length ? ev.locations.map(l => l._name) : [''],
+    alerts: ev.alerts?.map(parseAlert) ?? [],
+    description: ev.description || '',
+    participants: [...ev.participants],
+    recurrence_rule: ev.recurrence_rule,
+  }
 }
 
 const getDefaultEventData = () => {
-	const startTime = selectedEvent?.time
-		? dayjs(selectedEvent.time, 'h a').format('HH:mm')
-		: dayjs(selectedEvent.date).isToday()
-			? dayjs().add(1, 'hour').startOf('hour').format('HH:mm')
-			: '10:00'
+  const startTime = selectedEvent?.time
+    ? dayjs(selectedEvent.time, 'h a').format('HH:mm')
+    : dayjs(selectedEvent.date).isToday()
+      ? dayjs().add(1, 'hour').startOf('hour').format('HH:mm')
+      : '10:00'
 
-	return {
-		title: '',
-		organizer: user.data.name,
-		isAllDay: !selectedEvent?.time,
-		repeat: false,
-		startDate: dayjs(selectedEvent.date).format('YYYY-MM-DD'),
-		startTime,
-		endDate: dayjs(selectedEvent.date).format('YYYY-MM-DD'),
-		endTime: dayjs(startTime, 'HH:mm').add(1, 'hour').format('HH:mm'),
-		locations: [''],
-		alerts: [],
-		description: '',
-		free_busy_status: 'Busy',
-		privacy: '',
-		participants: [
-			{
-				email: user.data.name,
-				user_image: user.data.user_image,
-				_name: user.data.full_name,
-				participation_status: 'ACCEPTED',
-			},
-		],
-		recurrence_rule: {},
-	}
+  return {
+    title: '',
+    organizer: user.data.name,
+    isAllDay: !selectedEvent?.time,
+    repeat: false,
+    startDate: dayjs(selectedEvent.date).format('YYYY-MM-DD'),
+    startTime,
+    endDate: dayjs(selectedEvent.date).format('YYYY-MM-DD'),
+    endTime: dayjs(startTime, 'HH:mm').add(1, 'hour').format('HH:mm'),
+    locations: [''],
+    alerts: [],
+    description: '',
+    free_busy_status: 'Busy',
+    privacy: '',
+    participants: [
+      {
+        email: user.data.name,
+        user_image: user.data.user_image,
+        _name: user.data.full_name,
+        participation_status: 'ACCEPTED',
+      },
+    ],
+    recurrence_rule: {},
+  }
 }
 
 const event = reactive({})
@@ -90,267 +90,265 @@ let originalParams = {}
 // --- Computed params ---
 
 const duration = computed(() => {
-	if (event.isAllDay) {
-		const days = dayjs(event.endDate).diff(dayjs(event.startDate), 'day') + 1
-		return dayjs.duration({ days }).toISOString()
-	}
+  if (event.isAllDay) {
+    const days = dayjs(event.endDate).diff(dayjs(event.startDate), 'day') + 1
+    return dayjs.duration({ days }).toISOString()
+  }
 
-	const start = dayjs(`${event.startDate}T${event.startTime}`)
-	const end = dayjs(`${event.endDate}T${event.endTime}`)
-	const diff = dayjs.duration(end.diff(start))
-	const hours = Math.floor(diff.asHours())
-	const minutes = diff.minutes()
-	return dayjs.duration({ hours, minutes }).toISOString()
+  const start = dayjs(`${event.startDate}T${event.startTime}`)
+  const end = dayjs(`${event.endDate}T${event.endTime}`)
+  const diff = dayjs.duration(end.diff(start))
+  const hours = Math.floor(diff.asHours())
+  const minutes = diff.minutes()
+  return dayjs.duration({ hours, minutes }).toISOString()
 })
 
 const participants = computed(() =>
-	getReorderedParticipants(
-		event.participants,
-		event.organizer,
-		selectedEvent.calendarEvent?.participants,
-	),
+  getReorderedParticipants(
+    event.participants,
+    event.organizer,
+    selectedEvent.calendarEvent?.participants
+  )
 )
 
 const userParticipant = computed(() =>
-	participants.value.find((p) => identities.data.some((id) => id.email === p.email)),
+  participants.value.find(p => identities.data.some(id => id.email === p.email))
 )
 
 const eventParams = computed(() => {
-	const params: Record<string, any> = {
-		user: user.data.name,
-		organizer: event.organizer,
-		start: dayjs(`${event.startDate}T${event.isAllDay ? '00:00' : event.startTime}`).format(
-			'YYYY-MM-DD[T]HH:mm:ss',
-		),
-		duration: duration.value,
-	}
+  const params: Record<string, any> = {
+    user: user.data.name,
+    organizer: event.organizer,
+    start: dayjs(`${event.startDate}T${event.isAllDay ? '00:00' : event.startTime}`).format(
+      'YYYY-MM-DD[T]HH:mm:ss'
+    ),
+    duration: duration.value,
+  }
 
-	if (selectedEvent.calendarEvent?.recurrence_id && !isUpdateInstance.value) {
-		params.start = selectedEvent.calendarEvent.master_start
-	}
+  if (selectedEvent.calendarEvent?.recurrence_id && !isUpdateInstance.value) {
+    params.start = selectedEvent.calendarEvent.master_start
+  }
 
-	if (event.title) params.title = event.title
-	if (dayjs?.tz) params.time_zone = dayjs.tz.guess()
-	if (event.recurrence_rule && Object.keys(event.recurrence_rule).length)
-		params.recurrence_rule = event.recurrence_rule
-	if (event.privacy) params.privacy = event.privacy
-	if (event.free_busy_status) params.free_busy_status = event.free_busy_status
-	if (event.description) params.description = event.description
-	if (event.locations?.some((l) => l?.trim()))
-		params.locations = event.locations.filter((l) => l?.trim()).map((name) => ({ name }))
-	if (event.participants?.length) params.participants = event.participants
-	if (event.alerts?.length) {
-		params.alerts = event.alerts.map((a) => {
-			const base = { action: a.action, type: a.type }
-			if (a.type === 'AbsoluteTrigger')
-				return {
-					...base,
-					when: dayjs(`${a.date}T${a.time}`).format('YYYY-MM-DD[T]HH:mm:ss'),
-				}
+  if (event.title) params.title = event.title
+  if (dayjs?.tz) params.time_zone = dayjs.tz.guess()
+  if (event.recurrence_rule && Object.keys(event.recurrence_rule).length)
+    params.recurrence_rule = event.recurrence_rule
+  if (event.privacy) params.privacy = event.privacy
+  if (event.free_busy_status) params.free_busy_status = event.free_busy_status
+  if (event.description) params.description = event.description
+  if (event.locations?.some(l => l?.trim()))
+    params.locations = event.locations.filter(l => l?.trim()).map(name => ({ name }))
+  if (event.participants?.length) params.participants = event.participants
+  if (event.alerts?.length) {
+    params.alerts = event.alerts.map(a => {
+      const base = { action: a.action, type: a.type }
+      if (a.type === 'AbsoluteTrigger')
+        return {
+          ...base,
+          when: dayjs(`${a.date}T${a.time}`).format('YYYY-MM-DD[T]HH:mm:ss'),
+        }
 
-			return {
-				...base,
-				offset: dayjs.duration({ [a.unit]: a.number * a.direction }).toISOString(),
-				relative_to: a.relative_to,
-			}
-		})
-	}
+      return {
+        ...base,
+        offset: dayjs.duration({ [a.unit]: a.number * a.direction }).toISOString(),
+        relative_to: a.relative_to,
+      }
+    })
+  }
 
-	return params
+  return params
 })
 
 const patch = computed(() =>
-	Object.fromEntries(
-		[...new Set([...Object.keys(eventParams.value), ...Object.keys(originalParams)])]
-			.filter(
-				(k) => JSON.stringify(eventParams.value[k]) !== JSON.stringify(originalParams[k]),
-			)
-			.map((k) => [k, eventParams.value[k]]),
-	),
+  Object.fromEntries(
+    [...new Set([...Object.keys(eventParams.value), ...Object.keys(originalParams)])]
+      .filter(k => JSON.stringify(eventParams.value[k]) !== JSON.stringify(originalParams[k]))
+      .map(k => [k, eventParams.value[k]])
+  )
 )
 
 // --- Helpers ---
 
 const parseAlert = (a: any) => {
-	if (a.type === 'AbsoluteTrigger')
-		return {
-			type: a.type,
-			action: a.action,
-			date: dayjs.utc(a.when).format('YYYY-MM-DD'),
-			time: dayjs.utc(a.when).format('HH:mm'),
-		}
+  if (a.type === 'AbsoluteTrigger')
+    return {
+      type: a.type,
+      action: a.action,
+      date: dayjs.utc(a.when).format('YYYY-MM-DD'),
+      time: dayjs.utc(a.when).format('HH:mm'),
+    }
 
-	const d = dayjs.duration(a.offset).$d
-	const units = ['weeks', 'days', 'hours', 'minutes']
-	const unit = units.find((u) => d[u]) ?? 'minutes'
-	const number = d[unit]
+  const d = dayjs.duration(a.offset).$d
+  const units = ['weeks', 'days', 'hours', 'minutes']
+  const unit = units.find(u => d[u]) ?? 'minutes'
+  const number = d[unit]
 
-	return {
-		type: a.type,
-		action: a.action,
-		number: Math.abs(number),
-		unit,
-		direction: a.offset.startsWith('-') ? -1 : 1,
-		relative_to: a.relative_to,
-	}
+  return {
+    type: a.type,
+    action: a.action,
+    number: Math.abs(number),
+    unit,
+    direction: a.offset.startsWith('-') ? -1 : 1,
+    relative_to: a.relative_to,
+  }
 }
 
 const hasParticipantsOtherThanUser = (participants: any[]) =>
-	participants?.some((p) => identities.data.every((i) => i.email !== p.email)) ?? false
+  participants?.some(p => identities.data.every(i => i.email !== p.email)) ?? false
 
 // --- Watchers ---
 
-watch(show, (val) => {
-	if (!val) return
-	Object.assign(event, getEventData())
-	originalParams = JSON.parse(JSON.stringify(eventParams.value))
+watch(show, val => {
+  if (!val) return
+  Object.assign(event, getEventData())
+  originalParams = JSON.parse(JSON.stringify(eventParams.value))
 })
 
 const showRepeatSettings = ref(false)
-watch(showRepeatSettings, (val) => {
-	if (!val && !event.recurrence_rule?.frequency) event.repeat = false
+watch(showRepeatSettings, val => {
+  if (!val && !event.recurrence_rule?.frequency) event.repeat = false
 })
 
 // --- Participants ---
 
 const addParticipant = (email: string) => {
-	if (!email?.trim()) return
-	if (!/^\S+@\S+\.\S+$/.test(email)) return raiseToast(__('Invalid email address'), 'error')
-	if (event.participants.some((p) => p.email.toLowerCase() === email.toLowerCase())) return
-	event.participants.push({ email, participation_status: 'NEEDS-ACTION', expect_reply: true })
+  if (!email?.trim()) return
+  if (!/^\S+@\S+\.\S+$/.test(email)) return raiseToast(__('Invalid email address'), 'error')
+  if (event.participants.some(p => p.email.toLowerCase() === email.toLowerCase())) return
+  event.participants.push({ email, participation_status: 'NEEDS-ACTION', expect_reply: true })
 }
 
 const handleParticipantEnter = (e: Event) => {
-	const value = (e.target as HTMLInputElement).value.trim()
-	if (!value) return
-	value
-		.split(',')
-		.map((s) => s.trim())
-		.filter(Boolean)
-		.forEach(addParticipant)
-	;(e.target as HTMLInputElement).value = ''
+  const value = (e.target as HTMLInputElement).value.trim()
+  if (!value) return
+  value
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+    .forEach(addParticipant)
+  ;(e.target as HTMLInputElement).value = ''
 }
 
 const removeParticipant = (email: string) =>
-	(event.participants = event.participants.filter((p) => p.email !== email))
+  (event.participants = event.participants.filter(p => p.email !== email))
 
 // --- Save logic ---
 
 const handleSuccess = () => {
-	show.value = false
-	emit('reloadEvents')
+  show.value = false
+  emit('reloadEvents')
 }
 
 const createEvent = createResource({
-	url: 'suite.mail.doctype.calendar_event.calendar_event.add_calendar_event',
-	makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
-		account: store.accountId,
-		...eventParams.value,
-		send_scheduling_messages: sendEmail,
-	}),
-	onSuccess: handleSuccess,
+  url: 'suite.mail.doctype.calendar_event.calendar_event.add_calendar_event',
+  makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
+    account: store.accountId,
+    ...eventParams.value,
+    send_scheduling_messages: sendEmail,
+  }),
+  onSuccess: handleSuccess,
 })
 
 const editEventInstance = createResource({
-	url: 'suite.mail.doctype.calendar_event.calendar_event.update_calendar_event_instance',
-	makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
-		account: store.accountId,
-		master_id: selectedEvent.calendarEvent.master_id,
-		recurrence_id: selectedEvent.calendarEvent.recurrence_id,
-		patch: patch.value,
-		send_scheduling_messages: sendEmail,
-	}),
-	onSuccess: handleSuccess,
+  url: 'suite.mail.doctype.calendar_event.calendar_event.update_calendar_event_instance',
+  makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
+    account: store.accountId,
+    master_id: selectedEvent.calendarEvent.master_id,
+    recurrence_id: selectedEvent.calendarEvent.recurrence_id,
+    patch: patch.value,
+    send_scheduling_messages: sendEmail,
+  }),
+  onSuccess: handleSuccess,
 })
 
 const editEvent = createResource({
-	url: 'suite.mail.doctype.calendar_event.calendar_event.update_calendar_event',
-	makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
-		account: store.accountId,
-		// master_id is only set on recurring events; fall back to the event's own id
-		id: selectedEvent.calendarEvent.master_id || selectedEvent.calendarEvent.id,
-		uid: selectedEvent.calendarEvent.uid,
-		...eventParams.value,
-		send_scheduling_messages: sendEmail,
-	}),
-	onSuccess: handleSuccess,
+  url: 'suite.mail.doctype.calendar_event.calendar_event.update_calendar_event',
+  makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
+    account: store.accountId,
+    // master_id is only set on recurring events; fall back to the event's own id
+    id: selectedEvent.calendarEvent.master_id || selectedEvent.calendarEvent.id,
+    uid: selectedEvent.calendarEvent.uid,
+    ...eventParams.value,
+    send_scheduling_messages: sendEmail,
+  }),
+  onSuccess: handleSuccess,
 })
 
 const isUpdateInstance = ref(false)
 
 const submitEvent = (sendEmail: boolean) => {
-	const isInstance = isUpdateInstance.value && selectedEvent.calendarEvent?.recurrence_id
-	const resource = isNew.value ? createEvent : isInstance ? editEventInstance : editEvent
-	const messages = isNew.value
-		? { loading: __('Creating event...'), success: __('Event created.') }
-		: { loading: __('Updating event...'), success: __('Event updated.') }
+  const isInstance = isUpdateInstance.value && selectedEvent.calendarEvent?.recurrence_id
+  const resource = isNew.value ? createEvent : isInstance ? editEventInstance : editEvent
+  const messages = isNew.value
+    ? { loading: __('Creating event...'), success: __('Event created.') }
+    : { loading: __('Updating event...'), success: __('Event updated.') }
 
-	toast.promise(resource.submit({ sendEmail }), {
-		...messages,
-		error: __('Action failed. Please try again in some time.'),
-	})
-	showNotifyParticipantsModal.value = false
+  toast.promise(resource.submit({ sendEmail }), {
+    ...messages,
+    error: __('Action failed. Please try again in some time.'),
+  })
+  showNotifyParticipantsModal.value = false
 }
 
 const showNotifyParticipantsModal = ref(false)
 const showRecurringEventModal = ref(false)
 
 const handleSave = () => {
-	const needsEmail =
-		hasParticipantsOtherThanUser(selectedEvent?.calendarEvent?.participants) ||
-		hasParticipantsOtherThanUser(event.participants)
-	if (needsEmail) showNotifyParticipantsModal.value = true
-	else submitEvent(false)
+  const needsEmail =
+    hasParticipantsOtherThanUser(selectedEvent?.calendarEvent?.participants) ||
+    hasParticipantsOtherThanUser(event.participants)
+  if (needsEmail) showNotifyParticipantsModal.value = true
+  else submitEvent(false)
 }
 
 const handleSaveRecurringEvent = (updateInstance: boolean) => {
-	isUpdateInstance.value = updateInstance
-	showRecurringEventModal.value = false
-	handleSave()
+  isUpdateInstance.value = updateInstance
+  showRecurringEventModal.value = false
+  handleSave()
 }
 
 const shouldShowRecurringEventModal = computed(
-	() =>
-		selectedEvent?.calendarEvent?.recurrence_id &&
-		!Object.keys(patch.value).includes('recurrence_rule'),
+  () =>
+    selectedEvent?.calendarEvent?.recurrence_id &&
+    !Object.keys(patch.value).includes('recurrence_rule')
 )
 
 // --- Alerts ---
 
 const addAlertOptions = computed(() => [
-	{
-		label: __('Relative to event'),
-		onClick: () =>
-			event.alerts.push({
-				type: 'OffsetTrigger',
-				action: 'Display',
-				number: 10,
-				unit: 'minutes',
-				direction: -1,
-				relative_to: 'Start',
-			}),
-	},
-	{
-		label: __('On specific date'),
-		onClick: () =>
-			event.alerts.push({
-				type: 'AbsoluteTrigger',
-				action: 'Display',
-				date: dayjs(event.startDate).subtract(1, 'day').format('YYYY-MM-DD'),
-				time: '09:00',
-			}),
-	},
+  {
+    label: __('Relative to event'),
+    onClick: () =>
+      event.alerts.push({
+        type: 'OffsetTrigger',
+        action: 'Display',
+        number: 10,
+        unit: 'minutes',
+        direction: -1,
+        relative_to: 'Start',
+      }),
+  },
+  {
+    label: __('On specific date'),
+    onClick: () =>
+      event.alerts.push({
+        type: 'AbsoluteTrigger',
+        action: 'Display',
+        date: dayjs(event.startDate).subtract(1, 'day').format('YYYY-MM-DD'),
+        time: '09:00',
+      }),
+  },
 ])
 
 // --- Contacts search ---
 
 const mailContacts = createResource({
-	url: 'suite.mail.api.contacts.get_contacts',
-	makeParams: (text: string) => ({
-		account: store.accountId,
-		filter: { operator: 'OR', conditions: [{ text }, { email: text }] },
-	}),
-	transform: (data) => data.map((o) => o.email),
+  url: 'suite.mail.api.contacts.get_contacts',
+  makeParams: (text: string) => ({
+    account: store.accountId,
+    filter: { operator: 'OR', conditions: [{ text }, { email: text }] },
+  }),
+  transform: data => data.map(o => o.email),
 })
 
 const debouncedSearch = useDebounceFn((text: string) => text && mailContacts.reload(text), 300)
@@ -358,50 +356,50 @@ const debouncedSearch = useDebounceFn((text: string) => text && mailContacts.rel
 // --- Dialog options ---
 
 const disableSave = computed(() => {
-	if (createEvent.loading || editEvent.loading || editEventInstance.loading) return true
-	if (!isNew.value && !Object.keys(patch.value).length) return true
-	return false
+  if (createEvent.loading || editEvent.loading || editEventInstance.loading) return true
+  if (!isNew.value && !Object.keys(patch.value).length) return true
+  return false
 })
 
 const handleSaveClick = () => {
-	if (shouldShowRecurringEventModal.value) showRecurringEventModal.value = true
-	else handleSave()
+  if (shouldShowRecurringEventModal.value) showRecurringEventModal.value = true
+  else handleSave()
 }
 
 const dialogOptions = computed(() => ({
-	title: isNew.value ? __('Add Event') : __('Edit Event'),
-	size: '5xl',
+  title: isNew.value ? __('Add Event') : __('Edit Event'),
+  size: '5xl',
 }))
 
 const RSVP_OPTIONS = [
-	{ label: __(' '), value: 'NEEDS-ACTION' },
-	{ label: __('Yes'), value: 'ACCEPTED' },
-	{ label: __('Maybe'), value: 'TENTATIVE' },
-	{ label: __('No'), value: 'DECLINED' },
+  { label: __(' '), value: 'NEEDS-ACTION' },
+  { label: __('Yes'), value: 'ACCEPTED' },
+  { label: __('Maybe'), value: 'TENTATIVE' },
+  { label: __('No'), value: 'DECLINED' },
 ]
 
 const AVAILABILITY_OPTIONS = [
-	{ label: __('Free'), value: 'Free' },
-	{ label: __('Busy'), value: 'Busy' },
+  { label: __('Free'), value: 'Free' },
+  { label: __('Busy'), value: 'Busy' },
 ]
 
 const VISIBILITY_OPTIONS = [
-	{ label: __('Public'), value: 'Public' },
-	{ label: __('Private'), value: 'Private' },
+  { label: __('Public'), value: 'Public' },
+  { label: __('Private'), value: 'Private' },
 ]
 
 const showNotifyParticipantsOptions = computed(() => ({
-	title: __('Notify Participants'),
-	icon: { name: 'bell' },
-	message: isNew.value
-		? __("Send an email to let attendees know they've been invited?")
-		: __('Send an email to let attendees know this event has been updated?'),
+  title: __('Notify Participants'),
+  icon: { name: 'bell' },
+  message: isNew.value
+    ? __("Send an email to let attendees know they've been invited?")
+    : __('Send an email to let attendees know this event has been updated?'),
 }))
 
 const SHOW_RECURRING_EVENT_MODAL_OPTIONS = {
-	title: __('Update Recurring Event'),
-	icon: { name: 'repeat' },
-	message: __('Do you want to update just this instance, or all events in the series?'),
+  title: __('Update Recurring Event'),
+  icon: { name: 'repeat' },
+  message: __('Do you want to update just this instance, or all events in the series?'),
 }
 </script>
 

@@ -77,21 +77,23 @@ import { computed, ref, reactive, watch } from 'vue'
 import { Button, Dialog, FormControl } from 'frappe-ui'
 
 const props = defineProps({
-  modelValue:    { type: Boolean, default: false },
-  namedRanges:   { type: Object,  required: true },   // engine instance
-  sheetNames:    { type: Array,   default: () => [] },
-  currentSheet:  { type: String,  default: '' },
+  modelValue: { type: Boolean, default: false },
+  namedRanges: { type: Object, required: true }, // engine instance
+  sheetNames: { type: Array, default: () => [] },
+  currentSheet: { type: String, default: '' },
 })
 const emit = defineEmits(['update:modelValue', 'changed'])
 
 const show = computed({
   get: () => props.modelValue,
-  set: v  => emit('update:modelValue', v),
+  set: v => emit('update:modelValue', v),
 })
 
 // Local reactive mirror so the dialog updates when the engine mutates.
 const _version = ref(0)
-props.namedRanges.setOnChange?.(() => { _version.value++ })
+props.namedRanges.setOnChange?.(() => {
+  _version.value++
+})
 
 const entries = computed(() => {
   void _version.value
@@ -107,32 +109,31 @@ const sheetOptions = computed(() => {
 
 // ── Form state ─────────────────────────────────────────────────────────────
 
-const editing  = ref(null)            // null = add mode; otherwise old entry name
-const form     = reactive({ name: '', sheet: '', range: '' })
+const editing = ref(null) // null = add mode; otherwise old entry name
+const form = reactive({ name: '', sheet: '', range: '' })
 const formError = ref('')
 
-watch(show, (open) => {
+watch(show, open => {
   if (open) {
     _resetForm()
   }
 })
 
-const _canSubmit = computed(() =>
-  form.name.trim().length > 0 && form.range.trim().length > 0)
+const _canSubmit = computed(() => form.name.trim().length > 0 && form.range.trim().length > 0)
 
 function _resetForm() {
-  editing.value  = null
-  form.name      = ''
-  form.sheet     = props.currentSheet || ''
-  form.range     = ''
+  editing.value = null
+  form.name = ''
+  form.sheet = props.currentSheet || ''
+  form.range = ''
   formError.value = ''
 }
 
 function _edit(e) {
   editing.value = e.name
-  form.name     = e.name
-  form.sheet    = e.sheet || ''
-  form.range    = e.range
+  form.name = e.name
+  form.sheet = e.sheet || ''
+  form.range = e.range
   formError.value = ''
 }
 

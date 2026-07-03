@@ -55,9 +55,7 @@ const props = defineProps({
 const dialog = defineModel(String)
 
 const entityOpen = computed(
-  () =>
-    props.resource?.data?.name &&
-    props.entities[0]?.name === props.resource.data.name,
+  () => props.resource?.data?.name && props.entities[0]?.name === props.resource.data.name
 )
 
 const resetDialog = () => (dialog.value = '')

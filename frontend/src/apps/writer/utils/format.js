@@ -41,7 +41,7 @@ export function getDateDiffInDays(date1, date2) {
   return Math.floor((date1UTC - date2UTC) / msPerDay)
 }
 
-export const formatPercent = (num) => {
+export const formatPercent = num => {
   return new Intl.NumberFormat('default', {
     style: 'percent',
     minimumFractionDigits: 1,

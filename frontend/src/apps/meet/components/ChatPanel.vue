@@ -109,358 +109,341 @@
 </template>
 
 <script setup lang="ts">
-import data from "@emoji-mart/data";
-import { init, SearchIndex } from "emoji-mart";
-import { Button, FormControl, Dropdown } from "frappe-ui";
-import {
-	computed,
-	inject,
-	markRaw,
-	nextTick,
-	onMounted,
-	type Ref,
-	ref,
-	toRefs,
-	watch,
-} from "vue";
-import { tokenizeChatMessage } from "../utils/chatMessageTokens";
-import EmojiPicker from "./EmojiPicker.vue";
-import { usePollStore } from "../composables/usePollStore";
-import type { PollPayloadFE } from "../types";
-import CreatePollModal from "./CreatePollModal.vue";
-import PollMessageCard from "./PollMessageCard.vue";
-import LucideChartColumn from "~icons/lucide/chart-column";
+import data from '@emoji-mart/data'
+import { init, SearchIndex } from 'emoji-mart'
+import { Button, FormControl, Dropdown } from 'frappe-ui'
+import { computed, inject, markRaw, nextTick, onMounted, type Ref, ref, toRefs, watch } from 'vue'
+import { tokenizeChatMessage } from '../utils/chatMessageTokens'
+import EmojiPicker from './EmojiPicker.vue'
+import { usePollStore } from '../composables/usePollStore'
+import type { PollPayloadFE } from '../types'
+import CreatePollModal from './CreatePollModal.vue'
+import PollMessageCard from './PollMessageCard.vue'
+import LucideChartColumn from '~icons/lucide/chart-column'
 
 interface ChatMessage {
-	id: string | number;
-	user_name: string;
-	message: string;
-	timestamp: string;
+  id: string | number
+  user_name: string
+  message: string
+  timestamp: string
 }
 
 interface EmojiItem {
-	emoji: string;
-	keywords: string[];
+  emoji: string
+  keywords: string[]
 }
 
 interface MessageGroup {
-	id: string | number;
-	user_name: string;
-	timestamp: string;
-	messages: ChatMessage[];
+  id: string | number
+  user_name: string
+  timestamp: string
+  messages: ChatMessage[]
 }
 
-type ChatItem = {
-	type: 'poll';
-	key: string;
-	poll: PollPayloadFE;
-	timestamp: string;
-} | {
-	type: 'message';
-	key: string;
-	group: MessageGroup;
-	timestamp: string;
-};
+type ChatItem =
+  | {
+      type: 'poll'
+      key: string
+      poll: PollPayloadFE
+      timestamp: string
+    }
+  | {
+      type: 'message'
+      key: string
+      group: MessageGroup
+      timestamp: string
+    }
 
 const props = defineProps<{
-	open?: boolean;
-	userId?: string;
-	userName?: string;
-	messages?: ChatMessage[] | { value: ChatMessage[] };
-	isHost?: boolean;
-	isCohost?: boolean;
-	isGuest?: boolean;
-	hostOnlyChat?: boolean;
-}>();
+  open?: boolean
+  userId?: string
+  userName?: string
+  messages?: ChatMessage[] | { value: ChatMessage[] }
+  isHost?: boolean
+  isCohost?: boolean
+  isGuest?: boolean
+  hostOnlyChat?: boolean
+}>()
 
-const pollStore = usePollStore();
-const pollService = inject("poll") as any;
-const showPollModal = ref(false);
+const pollStore = usePollStore()
+const pollService = inject('poll') as any
+const showPollModal = ref(false)
 
-const activePolls = computed(() => pollStore.activePolls);
+const activePolls = computed(() => pollStore.activePolls)
 const pollMenuOptions = [
-	{
-		label: "Create Poll",
-		icon: markRaw(LucideChartColumn),
-		onClick: () => {
-			showPollModal.value = true;
-		},
-	},
-];
+  {
+    label: 'Create Poll',
+    icon: markRaw(LucideChartColumn),
+    onClick: () => {
+      showPollModal.value = true
+    },
+  },
+]
 
-const handlePollSubmit = (payload: {
-	question: string;
-	options: { text: string }[];
-}) => {
-	if (pollService) {
-		pollService.createPoll(payload.question, payload.options);
-		showPollModal.value = false;
-	} else {
-        console.error("ERROR: pollService is undefined! The inject failed.");
-    }
-};
+const handlePollSubmit = (payload: { question: string; options: { text: string }[] }) => {
+  if (pollService) {
+    pollService.createPoll(payload.question, payload.options)
+    showPollModal.value = false
+  } else {
+    console.error('ERROR: pollService is undefined! The inject failed.')
+  }
+}
 
 const emit = defineEmits<{
-	close: [];
-	send: [text: string];
-}>();
-const listEl = ref<HTMLElement | null>(null);
+  close: []
+  send: [text: string]
+}>()
+const listEl = ref<HTMLElement | null>(null)
 const { messages } = toRefs(props) as {
-	messages: Ref<ChatMessage[] | { value: ChatMessage[] }>;
-};
-const draft = ref("");
-const selectedEmojiIndex = ref(0);
-const filteredEmojis = ref<EmojiItem[]>([]);
-const isEmojiDataReady = ref(false);
+  messages: Ref<ChatMessage[] | { value: ChatMessage[] }>
+}
+const draft = ref('')
+const selectedEmojiIndex = ref(0)
+const filteredEmojis = ref<EmojiItem[]>([])
+const isEmojiDataReady = ref(false)
 
 const canSendMessages = computed(() => {
-	if (!props.hostOnlyChat) return true;
-	return props.isHost || props.isCohost;
-});
+  if (!props.hostOnlyChat) return true
+  return props.isHost || props.isCohost
+})
 
 const defaultEmojis: EmojiItem[] = [
-	{ emoji: "😀", keywords: ["smile"] },
-	{ emoji: "😂", keywords: ["laugh"] },
-	{ emoji: "❤️", keywords: ["heart"] },
-	{ emoji: "👍", keywords: ["thumbs up"] },
-	{ emoji: "👏", keywords: ["clap"] },
-	{ emoji: "🔥", keywords: ["fire"] },
-	{ emoji: "💯", keywords: ["100"] },
-	{ emoji: "🙌", keywords: ["raised hands"] },
-	{ emoji: "😊", keywords: ["blush"] },
-	{ emoji: "🎉", keywords: ["party"] },
-];
+  { emoji: '😀', keywords: ['smile'] },
+  { emoji: '😂', keywords: ['laugh'] },
+  { emoji: '❤️', keywords: ['heart'] },
+  { emoji: '👍', keywords: ['thumbs up'] },
+  { emoji: '👏', keywords: ['clap'] },
+  { emoji: '🔥', keywords: ['fire'] },
+  { emoji: '💯', keywords: ['100'] },
+  { emoji: '🙌', keywords: ['raised hands'] },
+  { emoji: '😊', keywords: ['blush'] },
+  { emoji: '🎉', keywords: ['party'] },
+]
 
-const recentlyUsedEmojis = ref<EmojiItem[]>(defaultEmojis.slice());
+const recentlyUsedEmojis = ref<EmojiItem[]>(defaultEmojis.slice())
 
 onMounted(async () => {
-	await scrollToBottom();
-	try {
-		await init({ data });
-		isEmojiDataReady.value = true;
+  await scrollToBottom()
+  try {
+    await init({ data })
+    isEmojiDataReady.value = true
 
-		const stored = localStorage.getItem("recentEmojis");
-		if (stored) {
-			try {
-				recentlyUsedEmojis.value = JSON.parse(stored);
-			} catch {
-				recentlyUsedEmojis.value = defaultEmojis.slice();
-			}
-		} else {
-			recentlyUsedEmojis.value = defaultEmojis.slice();
-		}
-	} catch (error) {
-		console.error("Failed to initialize emoji data:", error);
-	}
-});
+    const stored = localStorage.getItem('recentEmojis')
+    if (stored) {
+      try {
+        recentlyUsedEmojis.value = JSON.parse(stored)
+      } catch {
+        recentlyUsedEmojis.value = defaultEmojis.slice()
+      }
+    } else {
+      recentlyUsedEmojis.value = defaultEmojis.slice()
+    }
+  } catch (error) {
+    console.error('Failed to initialize emoji data:', error)
+  }
+})
 
 const resolvedMessages = computed<ChatMessage[]>(() => {
-	const m = messages.value;
-	if (!m) return [];
-	if (Array.isArray(m)) return m;
-	return m.value || [];
-});
+  const m = messages.value
+  if (!m) return []
+  if (Array.isArray(m)) return m
+  return m.value || []
+})
 
 const groupedMessages = computed<MessageGroup[]>(() => {
-	if (resolvedMessages.value.length === 0) return [];
+  if (resolvedMessages.value.length === 0) return []
 
-	const groups: MessageGroup[] = [];
-	let currentGroup: MessageGroup | null = null;
+  const groups: MessageGroup[] = []
+  let currentGroup: MessageGroup | null = null
 
-	for (const message of resolvedMessages.value) {
-		const shouldStartNewGroup =
-			!currentGroup ||
-			currentGroup.user_name !== message.user_name ||
-			(currentGroup.messages.length > 0 &&
-				Math.abs(
-					new Date(message.timestamp).getTime() -
-						new Date(currentGroup.messages[0].timestamp).getTime(),
-				) > 300000);
+  for (const message of resolvedMessages.value) {
+    const shouldStartNewGroup =
+      !currentGroup ||
+      currentGroup.user_name !== message.user_name ||
+      (currentGroup.messages.length > 0 &&
+        Math.abs(
+          new Date(message.timestamp).getTime() -
+            new Date(currentGroup.messages[0].timestamp).getTime()
+        ) > 300000)
 
-		if (shouldStartNewGroup) {
-			currentGroup = {
-				id: message.id,
-				user_name: message.user_name,
-				timestamp: message.timestamp,
-				messages: [message],
-			};
-			groups.push(currentGroup);
-		} else {
-			currentGroup.messages.push(message);
-		}
-	}
+    if (shouldStartNewGroup) {
+      currentGroup = {
+        id: message.id,
+        user_name: message.user_name,
+        timestamp: message.timestamp,
+        messages: [message],
+      }
+      groups.push(currentGroup)
+    } else {
+      currentGroup.messages.push(message)
+    }
+  }
 
-	return groups;
-});
+  return groups
+})
 
 const chatItems = computed<ChatItem[]>(() => {
-	const items: ChatItem[] = [];
-	for (const poll of activePolls.value) {
-		items.push({
-			type: 'poll',
-			key: `poll-${poll.pollId}`,
-			poll,
-			timestamp: poll.createdAt || '1970-01-01T00:00:00.000Z',
-		});
-	}
-	for (const group of groupedMessages.value) {
-		items.push({
-			type: 'message',
-			key: `msg-${group.id}`,
-			group,
-			timestamp: group.timestamp,
-		});
-	}
-	items.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
-	return items;
-});
+  const items: ChatItem[] = []
+  for (const poll of activePolls.value) {
+    items.push({
+      type: 'poll',
+      key: `poll-${poll.pollId}`,
+      poll,
+      timestamp: poll.createdAt || '1970-01-01T00:00:00.000Z',
+    })
+  }
+  for (const group of groupedMessages.value) {
+    items.push({
+      type: 'message',
+      key: `msg-${group.id}`,
+      group,
+      timestamp: group.timestamp,
+    })
+  }
+  items.sort((a, b) => a.timestamp.localeCompare(b.timestamp))
+  return items
+})
 
 function time(ts) {
-	try {
-		return new Date(ts).toLocaleTimeString([], {
-			hour: "2-digit",
-			minute: "2-digit",
-			hour12: true,
-		});
-	} catch {
-		return "";
-	}
+  try {
+    return new Date(ts).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    })
+  } catch {
+    return ''
+  }
 }
 
 function pollCreatorName(poll: PollPayloadFE) {
-	if (poll.createdBy === props.userId) return props.userName || "You";
-	return poll.createdByName || poll.createdBy;
+  if (poll.createdBy === props.userId) return props.userName || 'You'
+  return poll.createdByName || poll.createdBy
 }
 
 const showEmojiPicker = computed(() => {
-	const colonIndex = draft.value.lastIndexOf(":");
-	if (colonIndex === -1) return false;
-	const afterColon = draft.value.slice(colonIndex + 1);
-	return !afterColon.includes(" ") && /^[a-zA-Z0-9]*$/.test(afterColon);
-});
+  const colonIndex = draft.value.lastIndexOf(':')
+  if (colonIndex === -1) return false
+  const afterColon = draft.value.slice(colonIndex + 1)
+  return !afterColon.includes(' ') && /^[a-zA-Z0-9]*$/.test(afterColon)
+})
 
 const emojiQuery = computed(() => {
-	const colonIndex = draft.value.lastIndexOf(":");
-	if (colonIndex === -1) return "";
-	const afterColon = draft.value.slice(colonIndex + 1);
-	if (afterColon.includes(" ")) return "";
-	// don't allow special characters in emoji query
-	// or while pasting url you'll have emoji picker popup
-	if (!/^[a-zA-Z0-9]*$/.test(afterColon)) return "";
-	return afterColon;
-});
+  const colonIndex = draft.value.lastIndexOf(':')
+  if (colonIndex === -1) return ''
+  const afterColon = draft.value.slice(colonIndex + 1)
+  if (afterColon.includes(' ')) return ''
+  // don't allow special characters in emoji query
+  // or while pasting url you'll have emoji picker popup
+  if (!/^[a-zA-Z0-9]*$/.test(afterColon)) return ''
+  return afterColon
+})
 
-watch(emojiQuery, async (query) => {
-	if (!query) {
-		filteredEmojis.value = recentlyUsedEmojis.value;
-		selectedEmojiIndex.value = 0;
-		return;
-	}
+watch(emojiQuery, async query => {
+  if (!query) {
+    filteredEmojis.value = recentlyUsedEmojis.value
+    selectedEmojiIndex.value = 0
+    return
+  }
 
-	if (!isEmojiDataReady.value) {
-		filteredEmojis.value = [];
-		return;
-	}
-	try {
-		const results = await SearchIndex.search(query, {
-			maxResults: 10,
-			caller: undefined as unknown as string,
-		});
-		filteredEmojis.value = results.map((emoji) => ({
-			emoji: emoji.skins[0].native,
-			keywords: emoji.keywords || [],
-		}));
-		if (selectedEmojiIndex.value >= filteredEmojis.value.length) {
-			selectedEmojiIndex.value = 0;
-		}
-	} catch (error) {
-		filteredEmojis.value = [];
-	}
-});
+  if (!isEmojiDataReady.value) {
+    filteredEmojis.value = []
+    return
+  }
+  try {
+    const results = await SearchIndex.search(query, {
+      maxResults: 10,
+      caller: undefined as unknown as string,
+    })
+    filteredEmojis.value = results.map(emoji => ({
+      emoji: emoji.skins[0].native,
+      keywords: emoji.keywords || [],
+    }))
+    if (selectedEmojiIndex.value >= filteredEmojis.value.length) {
+      selectedEmojiIndex.value = 0
+    }
+  } catch (error) {
+    filteredEmojis.value = []
+  }
+})
 
 // Watch for when emoji picker should be shown
-watch(showEmojiPicker, (isShown) => {
-	if (isShown && emojiQuery.value === "") {
-		// Show recently used emojis when picker first opens with just :
-		filteredEmojis.value = recentlyUsedEmojis.value;
-		selectedEmojiIndex.value = 0;
-	}
-});
+watch(showEmojiPicker, isShown => {
+  if (isShown && emojiQuery.value === '') {
+    // Show recently used emojis when picker first opens with just :
+    filteredEmojis.value = recentlyUsedEmojis.value
+    selectedEmojiIndex.value = 0
+  }
+})
 function handleKeydown(event) {
-	if (!showEmojiPicker.value) return;
-	const { key } = event;
-	if (key === "ArrowDown") {
-		event.preventDefault();
-		selectedEmojiIndex.value =
-			(selectedEmojiIndex.value + 1) % filteredEmojis.value.length;
-	} else if (key === "ArrowUp") {
-		event.preventDefault();
-		selectedEmojiIndex.value =
-			selectedEmojiIndex.value === 0
-				? filteredEmojis.value.length - 1
-				: selectedEmojiIndex.value - 1;
-	} else if (key === "Enter") {
-		event.preventDefault();
-		if (filteredEmojis.value.length > 0) {
-			addEmoji(filteredEmojis.value[selectedEmojiIndex.value]);
-		}
-	} else if (key === "Escape") {
-		event.preventDefault();
-		// Remove the last colon to hide picker
-		const colonIndex = draft.value.lastIndexOf(":");
-		if (colonIndex > -1) {
-			draft.value = draft.value.slice(0, colonIndex);
-		}
-	}
+  if (!showEmojiPicker.value) return
+  const { key } = event
+  if (key === 'ArrowDown') {
+    event.preventDefault()
+    selectedEmojiIndex.value = (selectedEmojiIndex.value + 1) % filteredEmojis.value.length
+  } else if (key === 'ArrowUp') {
+    event.preventDefault()
+    selectedEmojiIndex.value =
+      selectedEmojiIndex.value === 0
+        ? filteredEmojis.value.length - 1
+        : selectedEmojiIndex.value - 1
+  } else if (key === 'Enter') {
+    event.preventDefault()
+    if (filteredEmojis.value.length > 0) {
+      addEmoji(filteredEmojis.value[selectedEmojiIndex.value])
+    }
+  } else if (key === 'Escape') {
+    event.preventDefault()
+    // Remove the last colon to hide picker
+    const colonIndex = draft.value.lastIndexOf(':')
+    if (colonIndex > -1) {
+      draft.value = draft.value.slice(0, colonIndex)
+    }
+  }
 }
 
 function addEmoji(item) {
-	const emoji = item.emoji;
-	const colonIndex = draft.value.lastIndexOf(":");
-	const beforeColon = draft.value.slice(0, colonIndex);
-	const afterColon = draft.value.slice(colonIndex + 1);
+  const emoji = item.emoji
+  const colonIndex = draft.value.lastIndexOf(':')
+  const beforeColon = draft.value.slice(0, colonIndex)
+  const afterColon = draft.value.slice(colonIndex + 1)
 
-	if (afterColon) {
-		// Replace :<query> with emoji
-		draft.value = beforeColon + emoji;
-	} else {
-		// Replace : with emoji
-		draft.value = beforeColon + emoji;
-	}
+  if (afterColon) {
+    // Replace :<query> with emoji
+    draft.value = beforeColon + emoji
+  } else {
+    // Replace : with emoji
+    draft.value = beforeColon + emoji
+  }
 
-	const existingIndex = recentlyUsedEmojis.value.findIndex(
-		(e) => e.emoji === emoji,
-	);
-	if (existingIndex > -1) {
-		recentlyUsedEmojis.value.splice(existingIndex, 1);
-	}
-	recentlyUsedEmojis.value.unshift(item);
-	if (recentlyUsedEmojis.value.length > 10) {
-		recentlyUsedEmojis.value = recentlyUsedEmojis.value.slice(0, 10);
-	}
-	localStorage.setItem(
-		"recentEmojis",
-		JSON.stringify(recentlyUsedEmojis.value),
-	);
+  const existingIndex = recentlyUsedEmojis.value.findIndex(e => e.emoji === emoji)
+  if (existingIndex > -1) {
+    recentlyUsedEmojis.value.splice(existingIndex, 1)
+  }
+  recentlyUsedEmojis.value.unshift(item)
+  if (recentlyUsedEmojis.value.length > 10) {
+    recentlyUsedEmojis.value = recentlyUsedEmojis.value.slice(0, 10)
+  }
+  localStorage.setItem('recentEmojis', JSON.stringify(recentlyUsedEmojis.value))
 }
 
 function handleSend() {
-	if (showEmojiPicker.value && filteredEmojis.value.length > 0) {
-		addEmoji(filteredEmojis.value[selectedEmojiIndex.value]);
-		return;
-	}
-	const text = draft.value.trim();
-	if (!canSendMessages.value) return;
-	if (!text) return;
-	emit("send", text);
-	draft.value = "";
+  if (showEmojiPicker.value && filteredEmojis.value.length > 0) {
+    addEmoji(filteredEmojis.value[selectedEmojiIndex.value])
+    return
+  }
+  const text = draft.value.trim()
+  if (!canSendMessages.value) return
+  if (!text) return
+  emit('send', text)
+  draft.value = ''
 }
 
 async function scrollToBottom() {
-	await nextTick();
-	const el = listEl.value;
-	el.scrollTop = el.scrollHeight;
+  await nextTick()
+  const el = listEl.value
+  el.scrollTop = el.scrollHeight
 }
 
-watch([chatItems], scrollToBottom, { deep: true });
+watch([chatItems], scrollToBottom, { deep: true })
 </script>

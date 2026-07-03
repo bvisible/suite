@@ -12,7 +12,7 @@ export function entitiesDownload(entities, transfer = false) {
   }
 
   // A folder, or a multi-selection → let the server build and stream the zip.
-  const names = JSON.stringify(entities.map((entity) => entity.name))
+  const names = JSON.stringify(entities.map(entity => entity.name))
   window.location.href = `/api/method/suite.drive.api.files.download_folder?entities=${encodeURIComponent(
     names
   )}`

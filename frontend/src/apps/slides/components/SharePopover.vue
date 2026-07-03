@@ -46,33 +46,33 @@ import { copyToClipboard } from '@/apps/slides/stores/copyPaste'
 
 const publicPresentation = ref()
 
-const openSharePopover = async (togglePopover) => {
-	publicPresentation.value = isPublicPresentation.value
-	await resetFocus()
-	togglePopover()
+const openSharePopover = async togglePopover => {
+  publicPresentation.value = isPublicPresentation.value
+  await resetFocus()
+  togglePopover()
 }
 
-const updateAccessLevel = async (isPublic) => {
-	if (!presentationId.value) return
+const updateAccessLevel = async isPublic => {
+  if (!presentationId.value) return
 
-	publicPresentation.value = isPublic
+  publicPresentation.value = isPublic
 
-	call('frappe.client.set_value', {
-		doctype: 'Presentation',
-		name: presentationId.value,
-		fieldname: 'is_public',
-		value: isPublic,
-	}).then(() => {
-		isPublicPresentation.value = isPublic
-		toast.success('Access level updated')
-	})
+  call('frappe.client.set_value', {
+    doctype: 'Presentation',
+    name: presentationId.value,
+    fieldname: 'is_public',
+    value: isPublic,
+  }).then(() => {
+    isPublicPresentation.value = isPublic
+    toast.success('Access level updated')
+  })
 }
 
-const handleCopyLink = async (close) => {
-	if (!presentationId.value) return
+const handleCopyLink = async close => {
+  if (!presentationId.value) return
 
-	close()
-	const link = `${window.location.origin}/slides/presentation/${presentationId.value}`
-	copyToClipboard(link)
+  close()
+  const link = `${window.location.origin}/slides/presentation/${presentationId.value}`
+  copyToClipboard(link)
 }
 </script>

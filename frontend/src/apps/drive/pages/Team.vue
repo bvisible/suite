@@ -30,8 +30,8 @@ const props = defineProps({
 })
 watch(
   () => props.team,
-  (team) => setCurrentFolder({ name: '', team: team || '' }),
-  { immediate: true },
+  team => setCurrentFolder({ name: '', team: team || '' }),
+  { immediate: true }
 )
 
 const route = useRoute()
@@ -39,15 +39,13 @@ const teamData = computed(
   () => getTeams.data?.[route.params?.team] || getPublicTeams.data?.[route.params?.team]
 )
 const write = computed(
-  () =>
-    teamData.value?.users?.find((k) => k.user === useSessionStore().user)
-      ?.access_level > 0
+  () => teamData.value?.users?.find(k => k.user === useSessionStore().user)?.access_level > 0
 )
 watch(() => getPublicTeams.data, console.log)
 if (!getPublicTeams.data) getPublicTeams.fetch()
 watch(
   teamData,
-  (t) =>
+  t =>
     t &&
     setPageBreadcrumbs([
       {

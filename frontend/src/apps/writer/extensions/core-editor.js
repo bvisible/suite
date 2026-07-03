@@ -13,8 +13,8 @@ export const CoreEditorExtension = Extension.create({
     if (!getTemplates.data) return {}
     return Object.fromEntries(
       getTemplates.data
-        .filter((t) => t.keymap)
-        .map((t) => [t.keymap, () => insertTemplate(t, this.editor)]),
+        .filter(t => t.keymap)
+        .map(t => [t.keymap, () => insertTemplate(t, this.editor)])
     )
   },
 
@@ -27,16 +27,10 @@ export const CoreEditorExtension = Extension.create({
           tr.doc.nodesBetween(selection.from, selection.to, (node, pos) => {
             if (!node.isText) return true
             const isEmpty = !node.marks
-              .filter((mark) => mark.type.name === 'textStyle')
-              .some((mark) =>
-                Object.values(mark.attrs).some((value) => !!value),
-              )
+              .filter(mark => mark.type.name === 'textStyle')
+              .some(mark => Object.values(mark.attrs).some(value => !!value))
             if (isEmpty) {
-              tr.removeMark(
-                pos,
-                pos + node.nodeSize,
-                node.type.schema.marks.textStyle,
-              )
+              tr.removeMark(pos, pos + node.nodeSize, node.type.schema.marks.textStyle)
             }
           })
         },

@@ -24,29 +24,29 @@
 import { h, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
-	Ban,
-	CircleAlert,
-	CircleCheck,
-	Code,
-	Download,
-	Ellipsis,
-	ExternalLink,
-	Forward,
-	LockOpen,
-	MailOpen,
-	Reply,
-	ReplyAll,
-	SquarePen,
-	Star,
-	Trash2,
+  Ban,
+  CircleAlert,
+  CircleCheck,
+  Code,
+  Download,
+  Ellipsis,
+  ExternalLink,
+  Forward,
+  LockOpen,
+  MailOpen,
+  Reply,
+  ReplyAll,
+  SquarePen,
+  Star,
+  Trash2,
 } from 'lucide-vue-next'
 import { Button, Dropdown, createResource, toast } from 'frappe-ui'
 
 import {
-	downloadUrlAsFile,
-	matchesScreenedValue,
-	raisePromiseToast,
-	raiseToast,
+  downloadUrlAsFile,
+  matchesScreenedValue,
+  raisePromiseToast,
+  raiseToast,
 } from '@/apps/mail/utils'
 import { useBlockSender, useScreenSize, useUndo } from '@/apps/mail/utils/composables'
 import { userStore } from '@/apps/mail/stores/user'
@@ -54,29 +54,29 @@ import { userStore } from '@/apps/mail/stores/user'
 import type { ComposeMailData, Identity, Mail, ScreenedAddress } from '@/apps/mail/types'
 
 const {
-	mailbox,
-	mail,
-	draftMail,
-	isCollapsed,
-	showReplyAll,
-	popOutDraft,
-	reply,
-	replyAll,
-	forward,
-	reloadMails,
-	thread,
+  mailbox,
+  mail,
+  draftMail,
+  isCollapsed,
+  showReplyAll,
+  popOutDraft,
+  reply,
+  replyAll,
+  forward,
+  reloadMails,
+  thread,
 } = defineProps<{
-	mailbox: string
-	mail: Mail
-	draftMail?: ComposeMailData
-	isCollapsed: boolean
-	showReplyAll: boolean
-	popOutDraft: (mail: ComposeMailData) => void
-	reply: (mail: Mail) => void
-	replyAll: (mail: Mail) => void
-	forward: (mail: Mail) => void
-	reloadMails: (isUndo?: boolean) => void
-	thread: Mail[]
+  mailbox: string
+  mail: Mail
+  draftMail?: ComposeMailData
+  isCollapsed: boolean
+  showReplyAll: boolean
+  popOutDraft: (mail: ComposeMailData) => void
+  reply: (mail: Mail) => void
+  replyAll: (mail: Mail) => void
+  forward: (mail: Mail) => void
+  reloadMails: (isUndo?: boolean) => void
+  thread: Mail[]
 }>()
 
 const emit = defineEmits(['setFlagged', 'syncUnseen'])
@@ -95,339 +95,332 @@ const user = inject('$user')
 // A sender is "blocked" when screened with the Reject action (their mail is discarded) — either by their
 // exact address or by a '@domain' entry covering them.
 const isSenderBlocked = (email: string) =>
-	screenedAddresses.data?.some(
-		(a: ScreenedAddress) => a.action === 'Reject' && matchesScreenedValue(email, a.email),
-	)
+  screenedAddresses.data?.some(
+    (a: ScreenedAddress) => a.action === 'Reject' && matchesScreenedValue(email, a.email)
+  )
 
 const primaryActions = (mail: Mail): MailAction[] => [
-	{
-		label: __('Unstar'),
-		onClick: () => emit('setFlagged', mail.id, false),
-		icon: () => h(Star, { style: 'fill: var(--ink-amber-6); color: var(--ink-amber-6)' }),
-		condition: !!mail.flagged && mailbox !== mailboxIds.trash && !isMobile.value,
-	},
-	{
-		label: __('Star'),
-		onClick: () => emit('setFlagged', mail.id, true),
-		icon: Star,
-		condition: !mail.flagged && !mail.draft && mailbox !== mailboxIds.trash && !isMobile.value,
-	},
-	{
-		label: __('Edit Draft'),
-		onClick: () => popOutDraft(draftMail!),
-		icon: SquarePen,
-		condition: !!mail.draft && isMobile.value,
-	},
-	{
-		label: showReplyAll ? __('Reply All') : __('Reply'),
-		onClick: () => (showReplyAll ? replyAll(mail) : reply(mail)),
-		icon: showReplyAll ? ReplyAll : Reply,
-		condition: !mail.draft && !isMobile.value,
-	},
+  {
+    label: __('Unstar'),
+    onClick: () => emit('setFlagged', mail.id, false),
+    icon: () => h(Star, { style: 'fill: var(--ink-amber-6); color: var(--ink-amber-6)' }),
+    condition: !!mail.flagged && mailbox !== mailboxIds.trash && !isMobile.value,
+  },
+  {
+    label: __('Star'),
+    onClick: () => emit('setFlagged', mail.id, true),
+    icon: Star,
+    condition: !mail.flagged && !mail.draft && mailbox !== mailboxIds.trash && !isMobile.value,
+  },
+  {
+    label: __('Edit Draft'),
+    onClick: () => popOutDraft(draftMail!),
+    icon: SquarePen,
+    condition: !!mail.draft && isMobile.value,
+  },
+  {
+    label: showReplyAll ? __('Reply All') : __('Reply'),
+    onClick: () => (showReplyAll ? replyAll(mail) : reply(mail)),
+    icon: showReplyAll ? ReplyAll : Reply,
+    condition: !mail.draft && !isMobile.value,
+  },
 ]
 
 interface MailAction {
-	label: string
-	onClick: () => void
-	icon: typeof SquarePen
-	condition?: boolean | (() => boolean)
+  label: string
+  onClick: () => void
+  icon: typeof SquarePen
+  condition?: boolean | (() => boolean)
 }
 
 interface GroupedAction {
-	group: string
-	items: MailAction[]
+  group: string
+  items: MailAction[]
 }
 
 const moreActions = (mail: Mail): GroupedAction[] => [
-	{
-		group: '',
-		items: [
-			{
-				label: __('Reply'),
-				onClick: () => setTimeout(() => reply(mail), 300),
-				icon: Reply,
-				condition: () => !mail.draft,
-			},
-			{
-				label: __('Reply All'),
-				onClick: () => setTimeout(() => replyAll(mail), 300),
-				icon: ReplyAll,
-				condition: () => showReplyAll,
-			},
-			{
-				label: __('Forward'),
-				onClick: () => setTimeout(() => forward(mail), 300),
-				icon: Forward,
-				condition: () => !mail.draft,
-			},
-		],
-	},
-	{
-		group: '',
-		items: [
-			{
-				label: __('Unstar'),
-				onClick: () => emit('setFlagged', mail.id, false),
-				icon: () =>
-					h(Star, { style: 'fill: var(--ink-amber-6); color: var(--ink-amber-6)' }),
-				condition: () => !!mail.flagged && mailbox !== mailboxIds.trash,
-			},
-			{
-				label: __('Star'),
-				onClick: () => emit('setFlagged', mail.id, true),
-				icon: Star,
-				condition: () => !mail.flagged && !mail.draft && mailbox !== mailboxIds.trash,
-			},
-			{
-				label: __('Mark as Junk'),
-				onClick: () => handleMarkAsSpam(true),
-				icon: CircleAlert,
-				condition: () => mailbox !== mailboxIds.drafts && mail.junk === 0,
-			},
-			{
-				label: __('Mark as Not Junk'),
-				onClick: () => handleMarkAsSpam(false),
-				icon: CircleCheck,
-				condition: () => mail.junk === 1,
-			},
-			{
-				label: __('Move to Trash'),
-				onClick: () => handleMoveMail(mailboxIds.trash),
-				icon: Trash2,
-				condition: () => mailbox !== mailboxIds.trash,
-			},
-			{
-				label: __('Delete Message'),
-				onClick: () => handleDeleteMail(),
-				icon: Trash2,
-				condition: () => mailbox === mailboxIds.trash,
-			},
-			{
-				label: thread.length === 1 ? __('Mark as Unread') : __('Mark Unread from Here'),
-				onClick: () => handleMarkUnreadFromHere(),
-				icon: MailOpen,
-				condition: () => !mail.draft,
-			},
-			{
-				label: __('Accept Sender'),
-				onClick: () => handleScreenSender('Accepted'),
-				icon: CircleCheck,
-				condition: () => mailbox === mailboxIds.screener,
-			},
-			{
-				label: __('Reject Sender'),
-				onClick: () => handleScreenSender('Reject'),
-				icon: Ban,
-				condition: () => mailbox === mailboxIds.screener,
-			},
-			{
-				label: __('Block Sender'),
-				onClick: () => handleBlockAddress(true),
-				icon: Ban,
-				condition: () =>
-					mailbox !== mailboxIds.screener &&
-					!identities.data.some((i: Identity) => i.email === mail.from_email) &&
-					!isSenderBlocked(mail.from_email),
-			},
-			{
-				label: __('Unblock Sender'),
-				onClick: () => handleBlockAddress(false),
-				icon: LockOpen,
-				condition: () =>
-					mailbox !== mailboxIds.screener && isSenderBlocked(mail.from_email),
-			},
-		],
-	},
-	{
-		group: '',
-		items: [
-			{
-				label: __('Download Email'),
-				onClick: () => downloadEmail.submit(),
-				icon: Download,
-				condition: () => !mail.draft,
-			},
-			{
-				label: __('See MIME Message'),
-				onClick: () => window.open(`/mail/mime-message/${mail.name}`, '_blank')?.focus(),
-				icon: Code,
-				condition: () => !mail.draft,
-			},
-			{
-				label: __('View in Desk'),
-				onClick: () => window.open(`/app/mail-message/${mail.name}`, '_blank')?.focus(),
-				icon: ExternalLink,
-				condition: () => user.data.is_system_manager,
-			},
-		],
-	},
+  {
+    group: '',
+    items: [
+      {
+        label: __('Reply'),
+        onClick: () => setTimeout(() => reply(mail), 300),
+        icon: Reply,
+        condition: () => !mail.draft,
+      },
+      {
+        label: __('Reply All'),
+        onClick: () => setTimeout(() => replyAll(mail), 300),
+        icon: ReplyAll,
+        condition: () => showReplyAll,
+      },
+      {
+        label: __('Forward'),
+        onClick: () => setTimeout(() => forward(mail), 300),
+        icon: Forward,
+        condition: () => !mail.draft,
+      },
+    ],
+  },
+  {
+    group: '',
+    items: [
+      {
+        label: __('Unstar'),
+        onClick: () => emit('setFlagged', mail.id, false),
+        icon: () => h(Star, { style: 'fill: var(--ink-amber-6); color: var(--ink-amber-6)' }),
+        condition: () => !!mail.flagged && mailbox !== mailboxIds.trash,
+      },
+      {
+        label: __('Star'),
+        onClick: () => emit('setFlagged', mail.id, true),
+        icon: Star,
+        condition: () => !mail.flagged && !mail.draft && mailbox !== mailboxIds.trash,
+      },
+      {
+        label: __('Mark as Junk'),
+        onClick: () => handleMarkAsSpam(true),
+        icon: CircleAlert,
+        condition: () => mailbox !== mailboxIds.drafts && mail.junk === 0,
+      },
+      {
+        label: __('Mark as Not Junk'),
+        onClick: () => handleMarkAsSpam(false),
+        icon: CircleCheck,
+        condition: () => mail.junk === 1,
+      },
+      {
+        label: __('Move to Trash'),
+        onClick: () => handleMoveMail(mailboxIds.trash),
+        icon: Trash2,
+        condition: () => mailbox !== mailboxIds.trash,
+      },
+      {
+        label: __('Delete Message'),
+        onClick: () => handleDeleteMail(),
+        icon: Trash2,
+        condition: () => mailbox === mailboxIds.trash,
+      },
+      {
+        label: thread.length === 1 ? __('Mark as Unread') : __('Mark Unread from Here'),
+        onClick: () => handleMarkUnreadFromHere(),
+        icon: MailOpen,
+        condition: () => !mail.draft,
+      },
+      {
+        label: __('Accept Sender'),
+        onClick: () => handleScreenSender('Accepted'),
+        icon: CircleCheck,
+        condition: () => mailbox === mailboxIds.screener,
+      },
+      {
+        label: __('Reject Sender'),
+        onClick: () => handleScreenSender('Reject'),
+        icon: Ban,
+        condition: () => mailbox === mailboxIds.screener,
+      },
+      {
+        label: __('Block Sender'),
+        onClick: () => handleBlockAddress(true),
+        icon: Ban,
+        condition: () =>
+          mailbox !== mailboxIds.screener &&
+          !identities.data.some((i: Identity) => i.email === mail.from_email) &&
+          !isSenderBlocked(mail.from_email),
+      },
+      {
+        label: __('Unblock Sender'),
+        onClick: () => handleBlockAddress(false),
+        icon: LockOpen,
+        condition: () => mailbox !== mailboxIds.screener && isSenderBlocked(mail.from_email),
+      },
+    ],
+  },
+  {
+    group: '',
+    items: [
+      {
+        label: __('Download Email'),
+        onClick: () => downloadEmail.submit(),
+        icon: Download,
+        condition: () => !mail.draft,
+      },
+      {
+        label: __('See MIME Message'),
+        onClick: () => window.open(`/mail/mime-message/${mail.name}`, '_blank')?.focus(),
+        icon: Code,
+        condition: () => !mail.draft,
+      },
+      {
+        label: __('View in Desk'),
+        onClick: () => window.open(`/app/mail-message/${mail.name}`, '_blank')?.focus(),
+        icon: ExternalLink,
+        condition: () => user.data.is_system_manager,
+      },
+    ],
+  },
 ]
 
 const downloadEmail = createResource({
-	url: 'suite.mail.api.mail.fetch_mail_as_eml',
-	makeParams: () => ({ name: mail.name }),
-	onSuccess: (content: string) => {
-		const byteArray = new Uint8Array(content)
-		const blob = new Blob([byteArray], { type: 'message/rfc822' })
-		const url = URL.createObjectURL(blob)
-		downloadUrlAsFile(url, `${mail.subject || mail.name}.eml`)
-	},
-	onError: (error) => raiseToast(error.message, 'error'),
+  url: 'suite.mail.api.mail.fetch_mail_as_eml',
+  makeParams: () => ({ name: mail.name }),
+  onSuccess: (content: string) => {
+    const byteArray = new Uint8Array(content)
+    const blob = new Blob([byteArray], { type: 'message/rfc822' })
+    const url = URL.createObjectURL(blob)
+    downloadUrlAsFile(url, `${mail.subject || mail.name}.eml`)
+  },
+  onError: error => raiseToast(error.message, 'error'),
 })
 
 const markAsSpam = createResource({
-	url: 'suite.mail.api.mail.set_mails_spam_status',
-	makeParams: ({ spam }: { spam: boolean }) => ({ account: store.accountId, ids: [mail.id], spam }),
+  url: 'suite.mail.api.mail.set_mails_spam_status',
+  makeParams: ({ spam }: { spam: boolean }) => ({ account: store.accountId, ids: [mail.id], spam }),
 })
 
 const handleMarkAsSpam = (spam: boolean, isUndo = false) => {
-	const action = () =>
-		markAsSpam.submit({ spam }).then(() => {
-			reloadMails(isUndo)
-			// After marking as Junk, apply the account's "on mark as junk" behaviour (silently junk the
-			// sender's future mail, or prompt to block). Not on the undo of Mark as Not Junk.
-			if (spam && !isUndo)
-				promptBlockSenders([{ name: mail.from_name, email: mail.from_email }])
-		})
-	// When the account auto-junks the sender, surface that as the single toast for the whole action.
-	const autoJunk =
-		spam && !isUndo && willJunkSenders([{ name: mail.from_name, email: mail.from_email }])
-	const successMessage = autoJunk
-		? __('Mails from sender will go to Junk.')
-		: spam
-			? __('Mail marked as Junk.')
-			: __('Mail marked as Not Junk.')
+  const action = () =>
+    markAsSpam.submit({ spam }).then(() => {
+      reloadMails(isUndo)
+      // After marking as Junk, apply the account's "on mark as junk" behaviour (silently junk the
+      // sender's future mail, or prompt to block). Not on the undo of Mark as Not Junk.
+      if (spam && !isUndo) promptBlockSenders([{ name: mail.from_name, email: mail.from_email }])
+    })
+  // When the account auto-junks the sender, surface that as the single toast for the whole action.
+  const autoJunk =
+    spam && !isUndo && willJunkSenders([{ name: mail.from_name, email: mail.from_email }])
+  const successMessage = autoJunk
+    ? __('Mails from sender will go to Junk.')
+    : spam
+      ? __('Mail marked as Junk.')
+      : __('Mail marked as Not Junk.')
 
-	if (isUndo) return raisePromiseToast(action, __('Undoing...'), successMessage)
+  if (isUndo) return raisePromiseToast(action, __('Undoing...'), successMessage)
 
-	setUndoAction(() => handleMarkAsSpam(!spam, true))
-	raisePromiseToast(
-		action,
-		spam ? __('Marking as Junk...') : __('Marking as Not Junk...'),
-		successMessage,
-		undo,
-	)
+  setUndoAction(() => handleMarkAsSpam(!spam, true))
+  raisePromiseToast(
+    action,
+    spam ? __('Marking as Junk...') : __('Marking as Not Junk...'),
+    successMessage,
+    undo
+  )
 }
 
 const moveMail = createResource({
-	url: 'suite.mail.api.mail.move_mails',
-	makeParams: (mailbox: string) => ({
-		account: store.accountId,
-		ids: [mail.id],
-		mailbox,
-		clear_junk: mail.junk === 1 && mailbox !== mailboxIds.junk,
-	}),
+  url: 'suite.mail.api.mail.move_mails',
+  makeParams: (mailbox: string) => ({
+    account: store.accountId,
+    ids: [mail.id],
+    mailbox,
+    clear_junk: mail.junk === 1 && mailbox !== mailboxIds.junk,
+  }),
 })
 
 const handleMoveMail = (mailbox: string, isUndo = false) => {
-	const action = () => moveMail.submit(mailbox).then(() => reloadMails(isUndo))
-	const mailboxName = mailboxes.data?.find((m) => m.id === mailbox)._name
+  const action = () => moveMail.submit(mailbox).then(() => reloadMails(isUndo))
+  const mailboxName = mailboxes.data?.find(m => m.id === mailbox)._name
 
-	if (isUndo)
-		return raisePromiseToast(
-			action,
-			__('Undoing...'),
-			__('Mail moved back to {0}.', [mailboxName]),
-		)
+  if (isUndo)
+    return raisePromiseToast(action, __('Undoing...'), __('Mail moved back to {0}.', [mailboxName]))
 
-	setUndoAction(() => handleMoveMail(mail.mailboxes[0].mailbox_id, true))
-	raisePromiseToast(
-		action,
-		__('Moving to {0}...', [mailboxName]),
-		__('Mail moved to {0}.', [mailboxName]),
-		undo,
-	)
+  setUndoAction(() => handleMoveMail(mail.mailboxes[0].mailbox_id, true))
+  raisePromiseToast(
+    action,
+    __('Moving to {0}...', [mailboxName]),
+    __('Mail moved to {0}.', [mailboxName]),
+    undo
+  )
 }
 
 const deleteMail = createResource({
-	url: 'suite.mail.doctype.mail_message.mail_message.bulk_delete',
-	makeParams: () => ({ names: [mail.name] }),
-	onSuccess: () => reloadMails(),
+  url: 'suite.mail.doctype.mail_message.mail_message.bulk_delete',
+  makeParams: () => ({ names: [mail.name] }),
+  onSuccess: () => reloadMails(),
 })
 
 const handleDeleteMail = () =>
-	toast.promise(deleteMail.submit(), {
-		loading: __('Deleting...'),
-		success: __('Mail deleted.'),
-		error: __('Action failed. Please try again in some time.'),
-	})
+  toast.promise(deleteMail.submit(), {
+    loading: __('Deleting...'),
+    success: __('Mail deleted.'),
+    error: __('Action failed. Please try again in some time.'),
+  })
 
 const setMailsSeen = createResource({
-	url: 'suite.mail.api.mail.set_mails_seen',
-	makeParams: ({ ids }: { ids: string[] }) => ({ account: store.accountId, ids, seen: false }),
-	onSuccess: (ids: string[]) => {
-		raiseToast(__('{0} marked as unread.', [ids.length === 1 ? __('Mail') : __('Mails')]))
-		router.push({
-			name: 'mail-mailbox',
-			params: { accountId: route.params.accountId, mailbox },
-			query: route.query,
-		})
-		emit('syncUnseen', ids)
-	},
+  url: 'suite.mail.api.mail.set_mails_seen',
+  makeParams: ({ ids }: { ids: string[] }) => ({ account: store.accountId, ids, seen: false }),
+  onSuccess: (ids: string[]) => {
+    raiseToast(__('{0} marked as unread.', [ids.length === 1 ? __('Mail') : __('Mails')]))
+    router.push({
+      name: 'mail-mailbox',
+      params: { accountId: route.params.accountId, mailbox },
+      query: route.query,
+    })
+    emit('syncUnseen', ids)
+  },
 })
 
 const handleMarkUnreadFromHere = () => {
-	const idx = thread.indexOf(mail)
-	if (idx === -1) return
-	const ids = thread
-		.slice(idx)
-		.filter((m: Mail) => !m.draft)
-		.map((m: Mail) => m.id)
-	if (ids.length) setMailsSeen.submit({ ids })
+  const idx = thread.indexOf(mail)
+  if (idx === -1) return
+  const ids = thread
+    .slice(idx)
+    .filter((m: Mail) => !m.draft)
+    .map((m: Mail) => m.id)
+  if (ids.length) setMailsSeen.submit({ ids })
 }
 
 // Screening-folder decisions: accept the sender (let future mail in, move this one to Inbox) or
 // reject them (discard future mail, move this one to Trash). The sieve regenerates from the list.
 const screenSender = createResource({
-	url: 'suite.mail.api.mail.screen_email_address',
-	makeParams: ({ action }: { action: string }) => ({
-		account: store.accountId,
-		email: mail.from_email,
-		action,
-	}),
+  url: 'suite.mail.api.mail.screen_email_address',
+  makeParams: ({ action }: { action: string }) => ({
+    account: store.accountId,
+    email: mail.from_email,
+    action,
+  }),
 })
 
 const handleScreenSender = (action: 'Accepted' | 'Reject') => {
-	const accepted = action === 'Accepted'
-	const target = accepted ? mailboxIds.inbox : mailboxIds.trash
-	const run = async () => {
-		await screenSender.submit({ action })
-		screenedAddresses.reload()
-		await moveMail.submit(target)
-		reloadMails()
-	}
-	raisePromiseToast(
-		run,
-		accepted ? __('Accepting sender...') : __('Rejecting sender...'),
-		accepted ? __('Sender accepted.') : __('Sender rejected.'),
-	)
+  const accepted = action === 'Accepted'
+  const target = accepted ? mailboxIds.inbox : mailboxIds.trash
+  const run = async () => {
+    await screenSender.submit({ action })
+    screenedAddresses.reload()
+    await moveMail.submit(target)
+    reloadMails()
+  }
+  raisePromiseToast(
+    run,
+    accepted ? __('Accepting sender...') : __('Rejecting sender...'),
+    accepted ? __('Sender accepted.') : __('Sender rejected.')
+  )
 }
 
 const blockEmailAddress = createResource({
-	url: 'suite.mail.api.mail.screen_email_address',
-	makeParams: () => ({ account: store.accountId, email: mail.from_email, action: 'Reject' }),
+  url: 'suite.mail.api.mail.screen_email_address',
+  makeParams: () => ({ account: store.accountId, email: mail.from_email, action: 'Reject' }),
 })
 
 const unblockEmailAddress = createResource({
-	url: 'suite.mail.api.mail.unscreen_email_addresses',
-	makeParams: () => ({ account: store.accountId, emails: [mail.from_email] }),
+  url: 'suite.mail.api.mail.unscreen_email_addresses',
+  makeParams: () => ({ account: store.accountId, emails: [mail.from_email] }),
 })
 
 const handleBlockAddress = (block: boolean, isUndo = false) => {
-	const action = () =>
-		(block ? blockEmailAddress : unblockEmailAddress)
-			.submit()
-			.then(() => screenedAddresses.reload())
-	const successMessage = block ? __('Sender blocked.') : __('Sender unblocked.')
+  const action = () =>
+    (block ? blockEmailAddress : unblockEmailAddress)
+      .submit()
+      .then(() => screenedAddresses.reload())
+  const successMessage = block ? __('Sender blocked.') : __('Sender unblocked.')
 
-	if (isUndo) return raisePromiseToast(action, __('Undoing...'), successMessage)
+  if (isUndo) return raisePromiseToast(action, __('Undoing...'), successMessage)
 
-	setUndoAction(() => handleBlockAddress(!block, true))
-	raisePromiseToast(
-		action,
-		block ? __('Blocking sender...') : __('Unblocking sender...'),
-		successMessage,
-		undo,
-	)
+  setUndoAction(() => handleBlockAddress(!block, true))
+  raisePromiseToast(
+    action,
+    block ? __('Blocking sender...') : __('Unblocking sender...'),
+    successMessage,
+    undo
+  )
 }
 </script>

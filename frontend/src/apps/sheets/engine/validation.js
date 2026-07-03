@@ -9,15 +9,24 @@ import { deepClone } from '../utils/deep-clone.js'
 
 function _checkNumOp(n, op, min, max) {
   switch (op || 'between') {
-    case 'between':     return (min == null || n >= min) && (max == null || n <= max)
-    case 'not_between': return !(n >= min && n <= max)
-    case 'gt':          return n >  min
-    case 'gte':         return n >= min
-    case 'lt':          return n <  min
-    case 'lte':         return n <= min
-    case 'eq':          return n === min
-    case 'neq':         return n !== min
-    default:            return true
+    case 'between':
+      return (min == null || n >= min) && (max == null || n <= max)
+    case 'not_between':
+      return !(n >= min && n <= max)
+    case 'gt':
+      return n > min
+    case 'gte':
+      return n >= min
+    case 'lt':
+      return n < min
+    case 'lte':
+      return n <= min
+    case 'eq':
+      return n === min
+    case 'neq':
+      return n !== min
+    default:
+      return true
   }
 }
 
@@ -31,20 +40,23 @@ export function checkRule(rule, value) {
   if (rule.type === 'list') {
     const opts = rule.options || []
     const ok = opts.includes(String(value))
-    return { valid: ok, message: ok ? null : (rule.message || `Value must be one of: ${opts.join(', ')}`) }
+    return {
+      valid: ok,
+      message: ok ? null : rule.message || `Value must be one of: ${opts.join(', ')}`,
+    }
   }
 
   if (rule.type === 'number') {
     const n = parseFloat(value)
     if (isNaN(n)) return { valid: false, message: rule.message || 'Value must be a number' }
     const ok = _checkNumOp(n, rule.operator, rule.min, rule.max)
-    return { valid: ok, message: ok ? null : (rule.message || 'Value out of allowed range') }
+    return { valid: ok, message: ok ? null : rule.message || 'Value out of allowed range' }
   }
 
   if (rule.type === 'text_length') {
     const len = String(value == null ? '' : value).length
     const ok = _checkNumOp(len, rule.operator, rule.min, rule.max)
-    return { valid: ok, message: ok ? null : (rule.message || 'Text length out of allowed range') }
+    return { valid: ok, message: ok ? null : rule.message || 'Text length out of allowed range' }
   }
 
   return { valid: true }
@@ -86,7 +98,7 @@ export function createValidationEngine() {
     const entries = Object.entries(st)
       .map(([id, rule]) => ({ id, p: parseCellId(id), rule }))
       .filter(({ p }) => p && pred(p))
-    entries.sort((a, b) => descending ? b.p.row - a.p.row : a.p.row - b.p.row)
+    entries.sort((a, b) => (descending ? b.p.row - a.p.row : a.p.row - b.p.row))
     for (const { id, p, rule } of entries) {
       delete st[id]
       const nid = newIdFn(p)
@@ -95,7 +107,12 @@ export function createValidationEngine() {
   }
 
   function insertRow(atRow, sheet = 'Sheet1') {
-    _shift(sheet, p => p.row >= atRow, p => colLabel(p.col) + (p.row + 2), true)
+    _shift(
+      sheet,
+      p => p.row >= atRow,
+      p => colLabel(p.col) + (p.row + 2),
+      true
+    )
   }
 
   function deleteRow(atRow, sheet = 'Sheet1') {
@@ -104,7 +121,12 @@ export function createValidationEngine() {
       const p = parseCellId(id)
       if (p && p.row === atRow) delete store[sheet][id]
     }
-    _shift(sheet, p => p.row > atRow, p => colLabel(p.col) + p.row, false)
+    _shift(
+      sheet,
+      p => p.row > atRow,
+      p => colLabel(p.col) + p.row,
+      false
+    )
   }
 
   function insertCol(atCol, sheet = 'Sheet1') {
@@ -148,9 +170,13 @@ export function createValidationEngine() {
     store[newName] = deepClone(store[srcName] || {})
   }
 
-  function deleteSheet(name) { delete store[name] }
+  function deleteSheet(name) {
+    delete store[name]
+  }
 
-  function snapshot() { return deepClone(store) }
+  function snapshot() {
+    return deepClone(store)
+  }
 
   function restore(snap) {
     for (const k of Object.keys(store)) delete store[k]
@@ -158,9 +184,19 @@ export function createValidationEngine() {
   }
 
   return {
-    get, set, clear, getAll, validate,
-    insertRow, deleteRow, insertCol, deleteCol,
-    renameSheet, duplicateSheet, deleteSheet,
-    snapshot, restore,
+    get,
+    set,
+    clear,
+    getAll,
+    validate,
+    insertRow,
+    deleteRow,
+    insertCol,
+    deleteCol,
+    renameSheet,
+    duplicateSheet,
+    deleteSheet,
+    snapshot,
+    restore,
   }
 }

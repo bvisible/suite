@@ -99,82 +99,82 @@ const user = inject('$user')
 const socket = inject('$socket')
 
 const mailExport = reactive({
-	format: 'jmap',
-	archive_type: '.zip',
-	sort: 'Received At (ASC)',
-	limit: undefined,
+  format: 'jmap',
+  archive_type: '.zip',
+  sort: 'Received At (ASC)',
+  limit: undefined,
 })
 
 const customSelection = ref(false)
 
 const filter = reactive({
-	inMailbox: '',
-	after: '',
-	before: '',
-	hasAttachment: ' ',
-	isRead: ' ',
+  inMailbox: '',
+  after: '',
+  before: '',
+  hasAttachment: ' ',
+  isRead: ' ',
 })
 
 const mailboxOptions = computed(() =>
-	[{ label: __(''), value: ' ' }].concat(
-		mailboxes.data.map((m: { id: string; _name: string }) => ({
-			label: m._name,
-			value: m.id,
-		})),
-	),
+  [{ label: __(''), value: ' ' }].concat(
+    mailboxes.data.map((m: { id: string; _name: string }) => ({
+      label: m._name,
+      value: m.id,
+    }))
+  )
 )
 
 const sortOptions = computed(() => [
-	{ label: __('Oldest Emails'), value: 'Received At (ASC)' },
-	{ label: __('Newest Emails'), value: 'Received At (DESC)' },
+  { label: __('Oldest Emails'), value: 'Received At (ASC)' },
+  { label: __('Newest Emails'), value: 'Received At (DESC)' },
 ])
 
 const createMailExport = createResource({
-	url: 'suite.mail.api.account.create_mail_export',
-	makeParams: () => {
-		const cleanedFilter = Object.fromEntries(
-			Object.entries(filter)
-				.map(([k, v]) => [k, typeof v === 'string' ? v.trim() : v])
-				.filter(([, v]) => Boolean(v)),
-		)
-		return { account: accountId, ...mailExport, filter: cleanedFilter }
-	},
-	onSuccess: () => ongoingExport.reload(),
+  url: 'suite.mail.api.account.create_mail_export',
+  makeParams: () => {
+    const cleanedFilter = Object.fromEntries(
+      Object.entries(filter)
+        .map(([k, v]) => [k, typeof v === 'string' ? v.trim() : v])
+        .filter(([, v]) => Boolean(v))
+    )
+    return { account: accountId, ...mailExport, filter: cleanedFilter }
+  },
+  onSuccess: () => ongoingExport.reload(),
 })
 
 const ongoingExport = createResource({
-	url: 'frappe.client.get_value',
-	auto: true,
-	makeParams: () => ({
-		doctype: 'Mail Exchange',
-		fieldname: 'name',
-		filters: {
-			user: user.data.name,
-			operation: 'Export',
-			status: ['in', ['Queued', 'In Progress']],
-		},
-	}),
+  url: 'frappe.client.get_value',
+  auto: true,
+  makeParams: () => ({
+    doctype: 'Mail Exchange',
+    fieldname: 'name',
+    filters: {
+      user: user.data.name,
+      operation: 'Export',
+      status: ['in', ['Queued', 'In Progress']],
+    },
+  }),
 })
 
 onMounted(() =>
-	socket.on('mail_exchange_completed', (payload: { action: 'Import' | 'Export' }) => {
-		if (payload.action === 'Export') ongoingExport.reload()
-	}),
+  socket.on('mail_exchange_completed', (payload: { action: 'Import' | 'Export' }) => {
+    if (payload.action === 'Export') ongoingExport.reload()
+  })
 )
 
 const exportSubtitle = computed(() => {
-	if (ongoingExport.data?.name) return __("Export in progress. We'll email you when it's ready.")
-	return __('No exports in progress.')
+  if (ongoingExport.data?.name) return __("Export in progress. We'll email you when it's ready.")
+  return __('No exports in progress.')
 })
 
 const exportHref = computed(() => {
-	if (ongoingExport.data?.name) return `/mail/mail-exchanges/${ongoingExport.data.name}`
-	return '/mail/mail-exchanges?operation=Export'
+  if (ongoingExport.data?.name) return `/mail/mail-exchanges/${ongoingExport.data.name}`
+  return '/mail/mail-exchanges?operation=Export'
 })
 
 const exportLinkText = computed(() => {
-	if (ongoingExport.data?.name) return __('Track status')
-	return __('View history')
+  if (ongoingExport.data?.name) return __('Track status')
+  return __('View history')
 })
 
 const FORMAT_OPTIONS = ['jmap', 'mbox', 'maildir', 'maildir-nested']

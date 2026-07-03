@@ -51,11 +51,11 @@ import PresentationPreview from '@/apps/slides/components/PresentationPreview.vu
 import PresentationActionDialog from '@/apps/slides/components/PresentationActionDialog.vue'
 
 import {
-	createPresentationResource,
-	duplicatePresentation,
-	unsyncedPresentationRecord,
-	templateList,
-	templateListResource,
+  createPresentationResource,
+  duplicatePresentation,
+  unsyncedPresentationRecord,
+  templateList,
+  templateListResource,
 } from '@/apps/slides/stores/presentation'
 
 const router = useRouter()
@@ -69,113 +69,113 @@ const dialogAction = ref('')
 const presentationList = ref([])
 
 const presentationListResource = createResource({
-	url: 'suite.slides.doctype.presentation.presentation.get_presentations',
-	method: 'GET',
-	auto: true,
-	cache: 'presentations',
+  url: 'suite.slides.doctype.presentation.presentation.get_presentations',
+  method: 'GET',
+  auto: true,
+  cache: 'presentations',
 })
 
 watch(
-	() => presentationListResource.data,
-	(data) => {
-		if (data) presentationList.value = data
-	},
-	{ immediate: true },
+  () => presentationListResource.data,
+  data => {
+    if (data) presentationList.value = data
+  },
+  { immediate: true }
 )
 
 const navigateToPresentation = (name, present) => {
-	name = name || previewPresentation.value?.name
-	previewPresentation.value = null
-	if (present) {
-		router.replace({
-			name: 'slides-slideshow',
-			params: { presentationId: name },
-			query: { slide: 1 },
-		})
-	} else {
-		router.push({
-			name: 'slides-editor',
-			params: { presentationId: name },
-			query: { slide: 1 },
-		})
-	}
+  name = name || previewPresentation.value?.name
+  previewPresentation.value = null
+  if (present) {
+    router.replace({
+      name: 'slides-slideshow',
+      params: { presentationId: name },
+      query: { slide: 1 },
+    })
+  } else {
+    router.push({
+      name: 'slides-editor',
+      params: { presentationId: name },
+      query: { slide: 1 },
+    })
+  }
 }
 
 const openDialog = (action, presentation) => {
-	dialogAction.value = action
-	showDialog.value = true
-	selectedPresentation.value = presentation || previewPresentation.value
+  dialogAction.value = action
+  showDialog.value = true
+  selectedPresentation.value = presentation || previewPresentation.value
 }
 
 const closeDialog = () => {
-	showDialog.value = false
+  showDialog.value = false
 }
 
 const updatePresentationList = (action, newTitle) => {
-	if (action == 'Delete') {
-		previewPresentation.value = null
-		presentationList.value = presentationList.value.filter(
-			(p) => p.name !== selectedPresentation.value.name,
-		)
-	} else if (action == 'Rename' && newTitle) {
-		selectedPresentation.value.title = newTitle
-	}
+  if (action == 'Delete') {
+    previewPresentation.value = null
+    presentationList.value = presentationList.value.filter(
+      p => p.name !== selectedPresentation.value.name
+    )
+  } else if (action == 'Rename' && newTitle) {
+    selectedPresentation.value.title = newTitle
+  }
 }
 
-const setPreview = (presentation) => {
-	previewPresentation.value = presentation
+const setPreview = presentation => {
+  previewPresentation.value = presentation
 }
 
 const openThemeDialog = () => {
-	showThemeDialog.value = true
+  showThemeDialog.value = true
 }
 
 const syncPresentationRecord = () => {
-	const newValues = unsyncedPresentationRecord.value
-	if (!Object.keys(newValues).length) return
+  const newValues = unsyncedPresentationRecord.value
+  if (!Object.keys(newValues).length) return
 
-	if (newValues.deleted) {
-		presentationList.value = presentationList.value.filter((p) => p.name !== newValues.name)
-		unsyncedPresentationRecord.value = {}
-		return
-	}
+  if (newValues.deleted) {
+    presentationList.value = presentationList.value.filter(p => p.name !== newValues.name)
+    unsyncedPresentationRecord.value = {}
+    return
+  }
 
-	const presentationRecord = presentationList.value.find(
-		(p) => p.name == (newValues.name || previousRoute.params.presentationId),
-	)
-	if (!presentationRecord) return
+  const presentationRecord = presentationList.value.find(
+    p => p.name == (newValues.name || previousRoute.params.presentationId)
+  )
+  if (!presentationRecord) return
 
-	Object.entries(newValues).forEach(([key, val]) => {
-		if (![null, undefined, ''].includes(val)) {
-			presentationRecord[key] = val
-		}
-	})
+  Object.entries(newValues).forEach(([key, val]) => {
+    if (![null, undefined, ''].includes(val)) {
+      presentationRecord[key] = val
+    }
+  })
 
-	unsyncedPresentationRecord.value = {}
+  unsyncedPresentationRecord.value = {}
 }
 
 onActivated(() => {
-	if (previousRoute?.name == 'slides-editor') {
-		syncPresentationRecord()
-	}
+  if (previousRoute?.name == 'slides-editor') {
+    syncPresentationRecord()
+  }
 })
 
 watch(unsyncedPresentationRecord, () => {
-	syncPresentationRecord()
+  syncPresentationRecord()
 })
 
 onMounted(() => {
-	if (!templateList.value.length) {
-		templateListResource.fetch()
-	}
+  if (!templateList.value.length) {
+    templateListResource.fetch()
+  }
 })
 
 const navigateToEditor = () => {
-	router.push({ name: 'slides-editor-new' })
+  router.push({ name: 'slides-editor-new' })
 }
 
-const duplicateAndNavigate = async (presentation) => {
-	const newPresentation = await duplicatePresentation(presentation)
-	navigateToPresentation(newPresentation)
+const duplicateAndNavigate = async presentation => {
+  const newPresentation = await duplicatePresentation(presentation)
+  navigateToPresentation(newPresentation)
 }
 </script>

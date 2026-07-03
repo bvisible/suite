@@ -19,18 +19,16 @@ const rerenderCombobox = ref(0)
 
 const optionsWithIcons = computed(() => {
   if (!props.renderIcon) return options.value
-  return options.value.map((k) =>
-    getIcon(k) ? k : { ...k, icon: props.renderIcon(k) },
-  )
+  return options.value.map(k => (getIcon(k) ? k : { ...k, icon: props.renderIcon(k) }))
 })
 const selectedTags = computed(() => {
-  return modelValue.value.map((k) => {
-    return optionsWithIcons.value.find((j) => getValue(j) === k)
+  return modelValue.value.map(k => {
+    return optionsWithIcons.value.find(j => getValue(j) === k)
   })
 })
 
 const filteredOptions = computed(() => {
-  let remainingOptions = optionsWithIcons.value.filter((opt) => {
+  let remainingOptions = optionsWithIcons.value.filter(opt => {
     const val = getValue(opt)
     if (!val) return false
     return !modelValue.value.includes(val)
@@ -46,9 +44,7 @@ const filteredOptions = computed(() => {
       condition: ({ searchTerm }: any) => {
         if (!searchTerm) return false
         const lower = searchTerm.toLowerCase()
-        const matches = options.value.filter((opt) =>
-          getLabel(opt).toLowerCase().includes(lower),
-        )
+        const matches = options.value.filter(opt => getLabel(opt).toLowerCase().includes(lower))
         return matches.length === 0
       },
       onClick: ({ searchTerm }: any) => {
@@ -70,7 +66,7 @@ function addTag(tag: string) {
 }
 
 function removeTag(tag: string) {
-  modelValue.value = modelValue.value.filter((t) => t !== tag)
+  modelValue.value = modelValue.value.filter(t => t !== tag)
 }
 </script>
 

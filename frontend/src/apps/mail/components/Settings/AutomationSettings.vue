@@ -84,13 +84,13 @@ const store = userStore()
 const { sieveScripts } = store
 
 const rebuildAutomation = createResource({
-	url: 'suite.mail.api.sieve.rebuild_automation_script_for_account',
-	makeParams: () => ({ account: store.accountId }),
-	onSuccess: () => {
-		raiseToast(__('Folder automation rebuilt from your saved rules.'))
-		sieveScripts.reload()
-	},
-	onError: (error) => raiseToast(error.messages?.[0] || error.message, 'error'),
+  url: 'suite.mail.api.sieve.rebuild_automation_script_for_account',
+  makeParams: () => ({ account: store.accountId }),
+  onSuccess: () => {
+    raiseToast(__('Folder automation rebuilt from your saved rules.'))
+    sieveScripts.reload()
+  },
+  onError: error => raiseToast(error.messages?.[0] || error.message, 'error'),
 })
 
 const showSieveScript = ref(false)
@@ -99,44 +99,42 @@ const showSetScriptAsActive = ref(false)
 const showDeleteScript = ref(false)
 
 const filteredScripts = computed(
-	() =>
-		sieveScripts.data?.filter((s) => !s.read_only && s._name !== 'frappe_mail_automation') ||
-		[],
+  () => sieveScripts.data?.filter(s => !s.read_only && s._name !== 'frappe_mail_automation') || []
 )
 
 const addScript = () => {
-	selectedScript.value = undefined
-	showSieveScript.value = true
+  selectedScript.value = undefined
+  showSieveScript.value = true
 }
 
 const editScript = (script: SieveScript) => {
-	selectedScript.value = script
-	showSieveScript.value = true
+  selectedScript.value = script
+  showSieveScript.value = true
 }
 
 const scriptOptions = (script: SieveScript) => [
-	{
-		label: script.active ? __('Deactivate') : __('Activate'),
-		icon: script.active ? 'eye-off' : 'eye',
-		onClick: () => {
-			selectedScript.value = script
-			showSetScriptAsActive.value = true
-		},
-	},
-	{
-		label: __('Edit'),
-		icon: 'edit-2',
-		onClick: () => editScript(script),
-	},
-	{
-		label: __('Delete'),
-		icon: 'trash-2',
-		theme: 'red',
-		onClick: () => {
-			selectedScript.value = script
-			showDeleteScript.value = true
-		},
-		condition: () => !script.active,
-	},
+  {
+    label: script.active ? __('Deactivate') : __('Activate'),
+    icon: script.active ? 'eye-off' : 'eye',
+    onClick: () => {
+      selectedScript.value = script
+      showSetScriptAsActive.value = true
+    },
+  },
+  {
+    label: __('Edit'),
+    icon: 'edit-2',
+    onClick: () => editScript(script),
+  },
+  {
+    label: __('Delete'),
+    icon: 'trash-2',
+    theme: 'red',
+    onClick: () => {
+      selectedScript.value = script
+      showDeleteScript.value = true
+    },
+    condition: () => !script.active,
+  },
 ]
 </script>

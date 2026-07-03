@@ -2,12 +2,12 @@ import { parseCellId, colLabel, cellId } from '../utils/cells.js'
 import { deepClone } from '../utils/deep-clone.js'
 
 export const AGG_OPTIONS = [
-  { value: 'sum',    label: 'SUM'     },
-  { value: 'count',  label: 'COUNT'   },
-  { value: 'avg',    label: 'AVERAGE' },
-  { value: 'min',    label: 'MIN'     },
-  { value: 'max',    label: 'MAX'     },
-  { value: 'counta', label: 'COUNTA'  },
+  { value: 'sum', label: 'SUM' },
+  { value: 'count', label: 'COUNT' },
+  { value: 'avg', label: 'AVERAGE' },
+  { value: 'min', label: 'MIN' },
+  { value: 'max', label: 'MAX' },
+  { value: 'counta', label: 'COUNTA' },
 ]
 
 // ── Pure helpers ────────────────────────────────────────────────────────────
@@ -16,13 +16,20 @@ function _agg(vals, fn) {
   if (!vals.length) return ''
   const nums = vals.filter(v => typeof v === 'number' && !isNaN(v))
   switch (fn) {
-    case 'sum':    return nums.reduce((a, b) => a + b, 0)
-    case 'count':  return vals.length   // count all non-empty values (text + numbers)
-    case 'counta': return vals.length
-    case 'avg':    return nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : ''
-    case 'min':    return nums.length ? Math.min(...nums) : ''
-    case 'max':    return nums.length ? Math.max(...nums) : ''
-    default:       return nums.reduce((a, b) => a + b, 0)
+    case 'sum':
+      return nums.reduce((a, b) => a + b, 0)
+    case 'count':
+      return vals.length // count all non-empty values (text + numbers)
+    case 'counta':
+      return vals.length
+    case 'avg':
+      return nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : ''
+    case 'min':
+      return nums.length ? Math.min(...nums) : ''
+    case 'max':
+      return nums.length ? Math.max(...nums) : ''
+    default:
+      return nums.reduce((a, b) => a + b, 0)
   }
 }
 
@@ -32,7 +39,9 @@ function _makeKey(row, idxs) {
 }
 
 // Split a composite key back into its parts.
-function _keyParts(key) { return key.split('\x00') }
+function _keyParts(key) {
+  return key.split('\x00')
+}
 
 // ── Pivot computation (pure) ─────────────────────────────────────────────────
 
@@ -48,7 +57,9 @@ export function computePivot(config, getRangeValues) {
 export function computePivotModel(config, getRangeValues) {
   const { sourceSheet, sourceRange } = config
   if (!sourceRange) return null
-  const [start, end] = sourceRange.includes(':') ? sourceRange.split(':') : [sourceRange, sourceRange]
+  const [start, end] = sourceRange.includes(':')
+    ? sourceRange.split(':')
+    : [sourceRange, sourceRange]
   const data = getRangeValues(start, end, sourceSheet)
   if (!data || data.length < 2) return null
 
@@ -70,14 +81,23 @@ export function computePivotModel(config, getRangeValues) {
 // pivot over a 100k-row sheet doesn't freeze the UI. Same getRangeValues
 // contract as the sync version. `onYield` is awaited between blocks and may
 // return false to cancel (e.g. a newer recompute superseded this one).
-export async function computePivotModelAsync(config, getRangeValues, { blockRows = 5000, onYield } = {}) {
+export async function computePivotModelAsync(
+  config,
+  getRangeValues,
+  { blockRows = 5000, onYield } = {}
+) {
   const { sourceSheet, sourceRange } = config
   if (!sourceRange) return null
-  const [start, end] = sourceRange.includes(':') ? sourceRange.split(':') : [sourceRange, sourceRange]
-  const s = parseCellId(start), e = parseCellId(end)
+  const [start, end] = sourceRange.includes(':')
+    ? sourceRange.split(':')
+    : [sourceRange, sourceRange]
+  const s = parseCellId(start),
+    e = parseCellId(end)
   if (!s || !e) return null
-  const r0 = Math.min(s.row, e.row), rEnd = Math.max(s.row, e.row)
-  const c0 = Math.min(s.col, e.col), c1 = Math.max(s.col, e.col)
+  const r0 = Math.min(s.row, e.row),
+    rEnd = Math.max(s.row, e.row)
+  const c0 = Math.min(s.col, e.col),
+    c1 = Math.max(s.col, e.col)
 
   const headerRow = (getRangeValues(cellId(r0, c0), cellId(r0, c1), sourceSheet) || [])[0]
   const plan = _planPivot(config, headerRow)
@@ -93,7 +113,10 @@ export async function computePivotModelAsync(config, getRangeValues, { blockRows
       _accumulate(acc, row, plan)
       dataRows.push(row)
     }
-    if (onYield) { const ok = await onYield(); if (ok === false) return null }
+    if (onYield) {
+      const ok = await onYield()
+      if (ok === false) return null
+    }
   }
   if (!dataRows.length) return null
   return _finishModel(acc, dataRows, plan)
@@ -116,9 +139,11 @@ function _planPivot(config, headerRowRaw) {
 
 function _newAccumulator() {
   return {
-    buckets: new Map(),                                   // rk\x01ck\x01vi → [values]
-    rowKeyList: [], colKeyList: [],
-    rowKeySet: new Set(), colKeySet: new Set(),
+    buckets: new Map(), // rk\x01ck\x01vi → [values]
+    rowKeyList: [],
+    colKeyList: [],
+    rowKeySet: new Set(),
+    colKeySet: new Set(),
   }
 }
 
@@ -126,12 +151,21 @@ function _accumulate(acc, row, plan) {
   const { rowIdxs, colIdxs, valCols, hasColFields } = plan
   const rk = _makeKey(row, rowIdxs)
   const ck = hasColFields ? _makeKey(row, colIdxs) : ''
-  if (!acc.rowKeySet.has(rk)) { acc.rowKeySet.add(rk); acc.rowKeyList.push(rk) }
-  if (hasColFields && !acc.colKeySet.has(ck)) { acc.colKeySet.add(ck); acc.colKeyList.push(ck) }
+  if (!acc.rowKeySet.has(rk)) {
+    acc.rowKeySet.add(rk)
+    acc.rowKeyList.push(rk)
+  }
+  if (hasColFields && !acc.colKeySet.has(ck)) {
+    acc.colKeySet.add(ck)
+    acc.colKeyList.push(ck)
+  }
   for (let vi = 0; vi < valCols.length; vi++) {
     const key = `${rk}\x01${ck}\x01${vi}`
     let arr = acc.buckets.get(key)
-    if (!arr) { arr = []; acc.buckets.set(key, arr) }
+    if (!arr) {
+      arr = []
+      acc.buckets.set(key, arr)
+    }
     const raw = row[valCols[vi].idx]
     if (raw !== null && raw !== undefined && raw !== '') {
       const n = Number(raw)
@@ -144,11 +178,13 @@ function _finishModel(acc, dataRows, plan) {
   const { headers, rows, rowIdxs, colIdxs, valCols, hasColFields } = plan
   const { buckets, rowKeyList, colKeyList } = acc
 
-  const _sortKeys = list => list.sort((a, b) => {
-    const an = Number(a), bn = Number(b)
-    if (!isNaN(an) && !isNaN(bn)) return an - bn
-    return a.localeCompare(b)
-  })
+  const _sortKeys = list =>
+    list.sort((a, b) => {
+      const an = Number(a),
+        bn = Number(b)
+      if (!isNaN(an) && !isNaN(bn)) return an - bn
+      return a.localeCompare(b)
+    })
   _sortKeys(rowKeyList)
   if (hasColFields) _sortKeys(colKeyList)
 
@@ -197,7 +233,7 @@ function _finishModel(acc, dataRows, plan) {
   }
 
   // ── Grand total row ────────────────────────────────────────────────────────
-  const totalRow = rows.slice(0, rowIdxs.length).map((_, i) => i === 0 ? 'Grand Total' : '')
+  const totalRow = rows.slice(0, rowIdxs.length).map((_, i) => (i === 0 ? 'Grand Total' : ''))
   if (hasColFields) {
     for (const ck of colKeyList) {
       for (let vi = 0; vi < valCols.length; vi++) {
@@ -218,7 +254,17 @@ function _finishModel(acc, dataRows, plan) {
   }
   table.push(totalRow)
 
-  return { table, headers, dataRows, rowIdxs, colIdxs, valCols, rowKeyList, colKeyList, hasColFields }
+  return {
+    table,
+    headers,
+    dataRows,
+    rowIdxs,
+    colIdxs,
+    valCols,
+    rowKeyList,
+    colKeyList,
+    hasColFields,
+  }
 }
 
 // Map a clicked pivot output cell (r, c) back to the source rows that feed it.
@@ -228,7 +274,8 @@ function _finishModel(acc, dataRows, plan) {
 // aggregated — so we match on those two and ignore the value index.
 export function pivotDrillDown(model, r, c) {
   if (!model) return null
-  const { headers, dataRows, rowIdxs, colIdxs, valCols, rowKeyList, colKeyList, hasColFields } = model
+  const { headers, dataRows, rowIdxs, colIdxs, valCols, rowKeyList, colKeyList, hasColFields } =
+    model
   const nRowFields = rowIdxs.length
   const nData = rowKeyList.length
 
@@ -237,25 +284,29 @@ export function pivotDrillDown(model, r, c) {
   if (r < 1 || r > nData + 1) return null
   const rk = r === nData + 1 ? null : rowKeyList[r - 1]
 
-  let ck = null            // null → every column group
+  let ck = null // null → every column group
   let drillable = false
   if (c < nRowFields) {
-    drillable = true                                 // row-label cell → whole row group
+    drillable = true // row-label cell → whole row group
   } else if (hasColFields) {
     const cp = c - nRowFields
     const groupCount = colKeyList.length * valCols.length
-    if (cp < groupCount) { ck = colKeyList[Math.floor(cp / valCols.length)]; drillable = true }
-    else if (cp < groupCount + valCols.length) drillable = true   // totals block → all columns
+    if (cp < groupCount) {
+      ck = colKeyList[Math.floor(cp / valCols.length)]
+      drillable = true
+    } else if (cp < groupCount + valCols.length) drillable = true // totals block → all columns
   } else {
     const cp = c - nRowFields
-    const width = valCols.length + (valCols.length > 1 ? 1 : 0)   // +1 for the multi-value grand total
+    const width = valCols.length + (valCols.length > 1 ? 1 : 0) // +1 for the multi-value grand total
     if (cp >= 0 && cp < width) drillable = true
   }
   if (!drillable) return null
 
-  const rows = dataRows.filter(row =>
-    (rk === null || _makeKey(row, rowIdxs) === rk) &&
-    (ck === null || _makeKey(row, colIdxs) === ck))
+  const rows = dataRows.filter(
+    row =>
+      (rk === null || _makeKey(row, rowIdxs) === rk) &&
+      (ck === null || _makeKey(row, colIdxs) === ck)
+  )
   return { headers, rows }
 }
 
@@ -266,14 +317,25 @@ export function pivotDrillDown(model, r, c) {
 // the pivot's *previous* output rectangle (`prevExtent`, or nothing on the
 // first render) instead of the whole sheet, so a rebuild never erases a
 // neighbouring pivot or user data.
-export function writePivotToSheet(table, outputSheet, setCell, clearRect, anchor = { row: 0, col: 0 }, prevExtent = null) {
+export function writePivotToSheet(
+  table,
+  outputSheet,
+  setCell,
+  clearRect,
+  anchor = { row: 0, col: 0 },
+  prevExtent = null
+) {
   clearRect(outputSheet, prevExtent)
   for (let r = 0; r < table.length; r++) {
     for (let c = 0; c < table[r].length; c++) {
       const v = table[r][c]
       if (v === null || v === undefined || v === '') continue
       // Preserve numeric type so values sort/formula-reference correctly.
-      setCell(cellId(anchor.row + r, anchor.col + c), typeof v === 'number' ? v : String(v), outputSheet)
+      setCell(
+        cellId(anchor.row + r, anchor.col + c),
+        typeof v === 'number' ? v : String(v),
+        outputSheet
+      )
     }
   }
 }
@@ -281,18 +343,24 @@ export function writePivotToSheet(table, outputSheet, setCell, clearRect, anchor
 // ── Engine (stateful) ─────────────────────────────────────────────────────────
 
 export function createPivotEngine() {
-  let _pivots = {}   // id → PivotConfig
-  let _nextId  = 1
+  let _pivots = {} // id → PivotConfig
+  let _nextId = 1
   let _onChange = null
 
-  function _newId() { return `pivot_${_nextId++}` }
-  function _notify() { _onChange?.() }
+  function _newId() {
+    return `pivot_${_nextId++}`
+  }
+  function _notify() {
+    _onChange?.()
+  }
 
   // Register a callback fired after every mutation (add/update/remove/restore).
   // Consumers wire this to a Vue ref so list-driven computeds re-evaluate —
   // crucial for `restore`, which used to silently rehydrate state without
   // triggering reactivity, hiding the pivot edit FAB on page reload.
-  function setOnChange(cb) { _onChange = cb }
+  function setOnChange(cb) {
+    _onChange = cb
+  }
 
   function add(config) {
     const id = config.id || _newId()
@@ -319,12 +387,19 @@ export function createPivotEngine() {
   }
 
   function remove(id) {
-    if (id in _pivots) { delete _pivots[id]; _notify() }
+    if (id in _pivots) {
+      delete _pivots[id]
+      _notify()
+    }
   }
 
-  function list() { return Object.values(_pivots) }
+  function list() {
+    return Object.values(_pivots)
+  }
 
-  function get(id) { return _pivots[id] }
+  function get(id) {
+    return _pivots[id]
+  }
 
   // Returns true if the given sheet+cellId falls within any pivot's source range.
   function affectsPivot(sheetName) {
@@ -352,7 +427,7 @@ export function createPivotEngine() {
       if (p.anchorRow == null) p.anchorRow = 0
       if (p.anchorCol == null) p.anchorCol = 0
     }
-    _nextId  = data.nextId  || 1
+    _nextId = data.nextId || 1
     _notify()
   }
 

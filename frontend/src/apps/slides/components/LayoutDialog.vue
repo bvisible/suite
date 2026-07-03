@@ -38,28 +38,28 @@ const LAYOUT_PREVIEW_SCALE = 270 / 960
 const emit = defineEmits(['insert'])
 
 const layouts = computed(() => {
-	const template = templateList.value?.find((t) => t.name === presentationTheme.value)
-	return template?.layouts || []
+  const template = templateList.value?.find(t => t.name === presentationTheme.value)
+  return template?.layouts || []
 })
 
 const showLayoutDialog = defineModel({
-	name: 'showLayoutDialog',
-	required: true,
+  name: 'showLayoutDialog',
+  required: true,
 })
 
-const insertSlideWithLayout = (layout) => {
-	showLayoutDialog.value = false
-	emit('insert', layout)
+const insertSlideWithLayout = layout => {
+  showLayoutDialog.value = false
+  emit('insert', layout)
 }
 
 watch(
-	() => showLayoutDialog.value,
-	(visibility) => {
-		if (!visibility) return
-		nextTick(() => {
-			// TODO: fix dialog to not focus on close button
-			document.activeElement?.blur()
-		})
-	},
+  () => showLayoutDialog.value,
+  visibility => {
+    if (!visibility) return
+    nextTick(() => {
+      // TODO: fix dialog to not focus on close button
+      document.activeElement?.blur()
+    })
+  }
 )
 </script>

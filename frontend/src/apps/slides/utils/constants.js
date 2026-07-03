@@ -3,12 +3,12 @@ const sectionTitleClasses = 'text-base font-medium text-gray-800'
 const fieldLabelClasses = 'text-sm text-gray-600'
 
 const allowedImageFileTypes = [
-	'image/jpeg',
-	'image/jpg',
-	'image/png',
-	'image/gif',
-	'image/webp',
-	'image/svg+xml',
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'image/svg+xml',
 ]
 
 export { sectionClasses, sectionTitleClasses, fieldLabelClasses, allowedImageFileTypes }

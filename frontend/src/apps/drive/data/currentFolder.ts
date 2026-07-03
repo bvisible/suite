@@ -12,9 +12,7 @@ export const currentFolder = ref<CurrentFolder>({
   entities: [],
 })
 
-export function setCurrentFolder(
-  payload: Partial<CurrentFolder> | null,
-) {
+export function setCurrentFolder(payload: Partial<CurrentFolder> | null) {
   if (payload === null) {
     currentFolder.value = { name: '', team: '', entities: [] }
     return

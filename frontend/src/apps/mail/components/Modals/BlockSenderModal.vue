@@ -62,52 +62,52 @@ const isMultiple = computed(() => sendersToBlock.value.length > 1)
 
 // Which senders are checked (multi-select only). Reset to all-selected each time the prompt opens.
 const selected = reactive<Record<string, boolean>>({})
-watch(showBlockSender, (open) => {
-	if (!open) return
-	Object.keys(selected).forEach((key) => delete selected[key])
-	sendersToBlock.value.forEach((sender) => (selected[sender.email] = true))
+watch(showBlockSender, open => {
+  if (!open) return
+  Object.keys(selected).forEach(key => delete selected[key])
+  sendersToBlock.value.forEach(sender => (selected[sender.email] = true))
 })
 
 const selectedCount = computed(
-	() => sendersToBlock.value.filter((sender) => selected[sender.email]).length,
+  () => sendersToBlock.value.filter(sender => selected[sender.email]).length
 )
 const allSelected = computed(
-	() => sendersToBlock.value.length > 0 && selectedCount.value === sendersToBlock.value.length,
+  () => sendersToBlock.value.length > 0 && selectedCount.value === sendersToBlock.value.length
 )
 const toggle = (email: string) => (selected[email] = !selected[email])
 const toggleAll = () => {
-	const next = !allSelected.value
-	sendersToBlock.value.forEach((sender) => (selected[sender.email] = next))
+  const next = !allSelected.value
+  sendersToBlock.value.forEach(sender => (selected[sender.email] = next))
 }
 
 const handleBlock = () => {
-	const toBlock = isMultiple.value
-		? sendersToBlock.value.filter((sender) => selected[sender.email])
-		: sendersToBlock.value
-	showBlockSender.value = false
-	blockSenders(toBlock)
+  const toBlock = isMultiple.value
+    ? sendersToBlock.value.filter(sender => selected[sender.email])
+    : sendersToBlock.value
+  showBlockSender.value = false
+  blockSenders(toBlock)
 }
 
 const options = computed(() => {
-	const count = isMultiple.value ? selectedCount.value : 1
-	return {
-		title: __('Block {0}?', [count === 1 ? __('sender') : __('senders')]),
-		message: isMultiple.value
-			? __("You won't receive future messages from the selected senders.")
-			: __("You won't receive future messages from {0}.", [sendersToBlock.value[0]?.email]),
-		actions: [
-			{
-				label: __('Cancel'),
-				onClick: () => (showBlockSender.value = false),
-			},
-			{
-				label: __('Block'),
-				variant: 'solid',
-				autofocus: true,
-				disabled: isMultiple.value && count === 0,
-				onClick: handleBlock,
-			},
-		],
-	}
+  const count = isMultiple.value ? selectedCount.value : 1
+  return {
+    title: __('Block {0}?', [count === 1 ? __('sender') : __('senders')]),
+    message: isMultiple.value
+      ? __("You won't receive future messages from the selected senders.")
+      : __("You won't receive future messages from {0}.", [sendersToBlock.value[0]?.email]),
+    actions: [
+      {
+        label: __('Cancel'),
+        onClick: () => (showBlockSender.value = false),
+      },
+      {
+        label: __('Block'),
+        variant: 'solid',
+        autofocus: true,
+        disabled: isMultiple.value && count === 0,
+        onClick: handleBlock,
+      },
+    ],
+  }
 })
 </script>

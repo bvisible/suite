@@ -1,7 +1,7 @@
 import { createResource } from 'frappe-ui'
 import { toast } from '@/apps/writer/utils'
 
-export const exportMedia = async (editor) => {
+export const exportMedia = async editor => {
   toast('Preparing...')
   const urls = editor.commands.getEmbedUrls()
   const getExtension = createResource({
@@ -23,10 +23,10 @@ export const exportBlog = async () => {
       entity_name: props.id,
       html: editorValue.value.getHTML(),
     },
-    onSuccess: (d) => {
+    onSuccess: d => {
       window.open('/app/blog-post/' + d)
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: error.messages[0] || 'Could not export your document.',
         type: 'error',

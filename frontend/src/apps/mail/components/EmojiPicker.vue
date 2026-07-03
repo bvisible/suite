@@ -72,38 +72,36 @@ const reaction = defineModel('reaction')
 const reactionEmojis = ref(['👍', '❤️', '😂', '😮', '😢', '🙏'])
 
 const emojiGroups = computed(() => {
-	const groups = {}
-	for (const _emoji of gemoji) {
-		if (search.value) {
-			const keywords = [_emoji.description, ..._emoji.names, ..._emoji.tags]
-				.join(' ')
-				.toLowerCase()
-			if (!keywords.includes(search.value.toLowerCase())) {
-				continue
-			}
-		}
+  const groups = {}
+  for (const _emoji of gemoji) {
+    if (search.value) {
+      const keywords = [_emoji.description, ..._emoji.names, ..._emoji.tags].join(' ').toLowerCase()
+      if (!keywords.includes(search.value.toLowerCase())) {
+        continue
+      }
+    }
 
-		let group = groups[_emoji.category]
-		if (!group) {
-			groups[_emoji.category] = []
-			group = groups[_emoji.category]
-		}
-		group.push(_emoji)
-	}
-	if (!Object.keys(groups).length) {
-		groups['No results'] = []
-	}
-	return groups
+    let group = groups[_emoji.category]
+    if (!group) {
+      groups[_emoji.category] = []
+      group = groups[_emoji.category]
+    }
+    group.push(_emoji)
+  }
+  if (!Object.keys(groups).length) {
+    groups['No results'] = []
+  }
+  return groups
 })
 
 function setRandom() {
-	const total = gemoji.length
-	const index = randomInt(0, total - 1)
-	emoji.value = gemoji[index].emoji
+  const total = gemoji.length
+  const index = randomInt(0, total - 1)
+  emoji.value = gemoji[index].emoji
 }
 
 function randomInt(min, max) {
-	return Math.floor(Math.random() * (max - min + 1) + min)
+  return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
 defineExpose({ setRandom })

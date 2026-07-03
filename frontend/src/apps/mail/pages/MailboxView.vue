@@ -364,38 +364,44 @@ import { computed, inject, onMounted, onUnmounted, ref, useTemplateRef, watch } 
 import { useRoute, useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
 import {
-	Archive,
-	ChevronDown,
-	ChevronLeft,
-	ChevronRight,
-	CircleAlert,
-	CircleCheck,
-	Ellipsis,
-	FolderInput,
-	FolderMinus,
-	FolderPlus,
-	LoaderCircle,
-	Mail as MailIcon,
-	MailOpen,
-	Mails,
-	Paperclip,
-	RefreshCw,
-	Star,
-	StarOff,
-	Trash2,
+  Archive,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  CircleAlert,
+  CircleCheck,
+  Ellipsis,
+  FolderInput,
+  FolderMinus,
+  FolderPlus,
+  LoaderCircle,
+  Mail as MailIcon,
+  MailOpen,
+  Mails,
+  Paperclip,
+  RefreshCw,
+  Star,
+  StarOff,
+  Trash2,
 } from 'lucide-vue-next'
 import {
-	Breadcrumbs,
-	Button,
-	Checkbox,
-	Dialog,
-	Dropdown,
-	Tooltip,
-	createResource,
-	usePageMeta,
+  Breadcrumbs,
+  Button,
+  Checkbox,
+  Dialog,
+  Dropdown,
+  Tooltip,
+  createResource,
+  usePageMeta,
 } from 'frappe-ui'
 
-import { getFormattedDate, isMac, raiseToast, shouldIgnoreKeypress, startResizing } from '@/apps/mail/utils'
+import {
+  getFormattedDate,
+  isMac,
+  raiseToast,
+  shouldIgnoreKeypress,
+  startResizing,
+} from '@/apps/mail/utils'
 import { useScreenSize, useSidebar, useUndo } from '@/apps/mail/utils/composables'
 import { useThreadActions } from '@/apps/mail/utils/useThreadActions'
 import { type MailboxRole, userStore } from '@/apps/mail/stores/user'
@@ -409,9 +415,9 @@ import ShortcutsModal from '@/apps/mail/components/Modals/ShortcutsModal.vue'
 import type { MailboxData, Thread, UserResource } from '@/apps/mail/types'
 
 const { accountId, mailbox, threadID } = defineProps<{
-	accountId: string
-	mailbox: string
-	threadID?: string
+  accountId: string
+  mailbox: string
+  threadID?: string
 }>()
 
 const route = useRoute()
@@ -435,14 +441,14 @@ const groupMessagesBy = computed(() => user.data.group_messages_by)
 // Thread Groups
 
 const groupedThreads = computed<Record<string, Thread[]>>(() =>
-	threadsResource.value?.data?.reduce((groups: Record<string, Thread[]>, thread: Thread) => {
-		const date = dayjs(thread.received_at).format(
-			groupMessagesBy.value === 'Day' ? 'YYYY-MM-DD' : 'YYYY-MM',
-		)
-		if (!groups[date]) groups[date] = []
-		groups[date].push(thread)
-		return groups
-	}, {}),
+  threadsResource.value?.data?.reduce((groups: Record<string, Thread[]>, thread: Thread) => {
+    const date = dayjs(thread.received_at).format(
+      groupMessagesBy.value === 'Day' ? 'YYYY-MM-DD' : 'YYYY-MM'
+    )
+    if (!groups[date]) groups[date] = []
+    groups[date].push(thread)
+    return groups
+  }, {})
 )
 
 const isLastGroup = (key: string) => Object.keys(groupedThreads.value).at(-1) === key
@@ -450,34 +456,34 @@ const isLastGroup = (key: string) => Object.keys(groupedThreads.value).at(-1) ==
 const collapsedGroups = ref<string[]>([])
 
 const toggleGroupCollapse = (key: string) => {
-	if (isLastGroup(key)) return
+  if (isLastGroup(key)) return
 
-	if (collapsedGroups.value.includes(key))
-		return (collapsedGroups.value = collapsedGroups.value.filter((d) => d !== key))
+  if (collapsedGroups.value.includes(key))
+    return (collapsedGroups.value = collapsedGroups.value.filter(d => d !== key))
 
-	collapsedGroups.value.push(key)
-	if (groupedThreads.value[key]?.some((thread) => thread.thread_id === threadID)) goToMailbox()
-	toggleSelect(getGroupThreads(key), false)
+  collapsedGroups.value.push(key)
+  if (groupedThreads.value[key]?.some(thread => thread.thread_id === threadID)) goToMailbox()
+  toggleSelect(getGroupThreads(key), false)
 }
 
-const getGroupThreads = (group: string) => groupedThreads.value[group]?.map((t) => t.thread_id)
+const getGroupThreads = (group: string) => groupedThreads.value[group]?.map(t => t.thread_id)
 
 watch(groupMessagesBy, () => (collapsedGroups.value = []))
 
 const threadInFocus = ref<string>()
 
 watch(
-	() => threadID,
-	(val) => {
-		if (!val) return
+  () => threadID,
+  val => {
+    if (!val) return
 
-		setTimeout(() => focusOnThread(val))
-		for (const group of collapsedGroups.value) {
-			if (getGroupThreads(group).includes(val))
-				return (collapsedGroups.value = collapsedGroups.value.filter((d) => d !== group))
-		}
-	},
-	{ immediate: true },
+    setTimeout(() => focusOnThread(val))
+    for (const group of collapsedGroups.value) {
+      if (getGroupThreads(group).includes(val))
+        return (collapsedGroups.value = collapsedGroups.value.filter(d => d !== group))
+    }
+  },
+  { immediate: true }
 )
 
 // Selection
@@ -490,58 +496,58 @@ const selections = ref<string[]>([])
 const lastSelected = ref<string[]>()
 
 const isAllSelected = computed(
-	() => threadIDs.value.length && selections.value.length === threadIDs.value.length,
+  () => threadIDs.value.length && selections.value.length === threadIDs.value.length
 )
 
-watch(selections, (val) => {
-	collapsedGroups.value = collapsedGroups.value.filter(
-		(group) => !getGroupThreads(group).some((thread) => val.includes(thread)),
-	)
+watch(selections, val => {
+  collapsedGroups.value = collapsedGroups.value.filter(
+    group => !getGroupThreads(group).some(thread => val.includes(thread))
+  )
 })
 
 const toggleSelect = (
-	threadIDs: string[],
-	selected: boolean,
-	isKeyboardSelect: boolean = false,
+  threadIDs: string[],
+  selected: boolean,
+  isKeyboardSelect: boolean = false
 ) => {
-	const allIDs = new Set([
-		...threadIDs,
-		...(isKeyboardSelect ? [] : getShiftSelectedIDs(threadIDs[0])),
-	])
-	if (selected) selections.value = [...new Set([...selections.value, ...allIDs])]
-	else selections.value = selections.value.filter((id) => !allIDs.has(id))
-	lastSelected.value = threadIDs
+  const allIDs = new Set([
+    ...threadIDs,
+    ...(isKeyboardSelect ? [] : getShiftSelectedIDs(threadIDs[0])),
+  ])
+  if (selected) selections.value = [...new Set([...selections.value, ...allIDs])]
+  else selections.value = selections.value.filter(id => !allIDs.has(id))
+  lastSelected.value = threadIDs
 }
 
 const getShiftSelectedIDs = (thread: string) => {
-	if (!(isShiftPressed.value && lastSelected.value?.length)) return []
+  if (!(isShiftPressed.value && lastSelected.value?.length)) return []
 
-	const currentIndex = threadIDs.value.indexOf(thread)
-	const firstIndex = threadIDs.value.indexOf(lastSelected.value[0])
-	const lastIndex = threadIDs.value.indexOf(lastSelected.value.at(-1))
+  const currentIndex = threadIDs.value.indexOf(thread)
+  const firstIndex = threadIDs.value.indexOf(lastSelected.value[0])
+  const lastIndex = threadIDs.value.indexOf(lastSelected.value.at(-1))
 
-	const farthestIndex =
-		Math.abs(currentIndex - firstIndex) > Math.abs(currentIndex - lastIndex)
-			? firstIndex
-			: lastIndex
+  const farthestIndex =
+    Math.abs(currentIndex - firstIndex) > Math.abs(currentIndex - lastIndex)
+      ? firstIndex
+      : lastIndex
 
-	const [lower, higher] = [farthestIndex, currentIndex].sort((a, b) => a - b)
-	return threadIDs.value.slice(lower, higher + 1)
+  const [lower, higher] = [farthestIndex, currentIndex].sort((a, b) => a - b)
+  return threadIDs.value.slice(lower, higher + 1)
 }
 
 const toggleSelectAll = (selected: boolean) => {
-	if (selected) selections.value = [...threadIDs.value]
-	else selections.value = []
-	lastSelected.value = undefined
+  if (selected) selections.value = [...threadIDs.value]
+  else selections.value = []
+  lastSelected.value = undefined
 }
 
 const resetSelections = () => {
-	selections.value = []
-	lastSelected.value = undefined
+  selections.value = []
+  lastSelected.value = undefined
 }
 
 const isGroupSelected = (key: string) =>
-	getGroupThreads(key).every((id) => selections.value.includes(id))
+  getGroupThreads(key).every(id => selections.value.includes(id))
 
 // Shortcuts
 
@@ -555,258 +561,251 @@ const gPressTimeout = ref<ReturnType<typeof setTimeout>>()
 const reloadInterval = ref<ReturnType<typeof setInterval>>()
 
 const handleKeyDown = (e: KeyboardEvent) => {
-	isShiftPressed.value = e.shiftKey
-	const key = e.key.toLowerCase()
+  isShiftPressed.value = e.shiftKey
+  const key = e.key.toLowerCase()
 
-	// Handle Ctrl/Cmd+A (Select All)
-	if ((e.metaKey || e.ctrlKey) && key === 'a' && !shouldIgnoreKeypress(e, true)) {
-		e.preventDefault()
-		isGPressed.value = false
-		return toggleSelectAll(true)
-	}
+  // Handle Ctrl/Cmd+A (Select All)
+  if ((e.metaKey || e.ctrlKey) && key === 'a' && !shouldIgnoreKeypress(e, true)) {
+    e.preventDefault()
+    isGPressed.value = false
+    return toggleSelectAll(true)
+  }
 
-	// Handle Ctrl/Cmd+Z (Undo)
-	if ((e.metaKey || e.ctrlKey) && key === 'z' && !shouldIgnoreKeypress(e, true)) {
-		e.preventDefault()
-		isGPressed.value = false
-		return undo()
-	}
+  // Handle Ctrl/Cmd+Z (Undo)
+  if ((e.metaKey || e.ctrlKey) && key === 'z' && !shouldIgnoreKeypress(e, true)) {
+    e.preventDefault()
+    isGPressed.value = false
+    return undo()
+  }
 
-	if (shouldIgnoreKeypress(e)) return
+  if (shouldIgnoreKeypress(e)) return
 
-	if (key === 'g') return handleGKeyPress(e)
-	if (isGPressed.value) return handleGMenuNavigation(e, key)
-	if (key === 'enter') return handleEnter(e)
-	if (key === 'escape') return handleEscape(e)
-	if (key === '?') return handleShowShortcuts(e)
+  if (key === 'g') return handleGKeyPress(e)
+  if (isGPressed.value) return handleGMenuNavigation(e, key)
+  if (key === 'enter') return handleEnter(e)
+  if (key === 'escape') return handleEscape(e)
+  if (key === '?') return handleShowShortcuts(e)
 
-	const hasSelection = selections.value.length > 0 || threadID
-	if (hasSelection) handleThreadActions(e, key)
-	handleArrowNavigation(e, key)
+  const hasSelection = selections.value.length > 0 || threadID
+  if (hasSelection) handleThreadActions(e, key)
+  handleArrowNavigation(e, key)
 }
 
 const handleGKeyPress = (e: KeyboardEvent) => {
-	clearTimeout(gPressTimeout.value)
+  clearTimeout(gPressTimeout.value)
 
-	if (e.shiftKey) {
-		const lastThread = threadIDs.value.at(-1)
-		if (threadID) return goToThread(lastThread)
-		return focusOnThread(lastThread)
-	}
+  if (e.shiftKey) {
+    const lastThread = threadIDs.value.at(-1)
+    if (threadID) return goToThread(lastThread)
+    return focusOnThread(lastThread)
+  }
 
-	if (isGPressed.value) {
-		isGPressed.value = false
-		const firstThread = threadIDs.value[0]
-		if (threadID) return goToThread(firstThread)
-		return focusOnThread(firstThread)
-	}
+  if (isGPressed.value) {
+    isGPressed.value = false
+    const firstThread = threadIDs.value[0]
+    if (threadID) return goToThread(firstThread)
+    return focusOnThread(firstThread)
+  }
 
-	isGPressed.value = true
-	gPressTimeout.value = setTimeout(() => (isGPressed.value = false), 750)
+  isGPressed.value = true
+  gPressTimeout.value = setTimeout(() => (isGPressed.value = false), 750)
 }
 
 const handleGMenuNavigation = (e: KeyboardEvent, key: string) => {
-	isGPressed.value = false
+  isGPressed.value = false
 
-	const navigationMap: Record<string, string> = {
-		i: mailboxIds.inbox,
-		f: 'starred',
-		s: mailboxIds.sent,
-		d: mailboxIds.drafts,
-		j: mailboxIds.junk,
-		t: mailboxIds.trash,
-	}
+  const navigationMap: Record<string, string> = {
+    i: mailboxIds.inbox,
+    f: 'starred',
+    s: mailboxIds.sent,
+    d: mailboxIds.drafts,
+    j: mailboxIds.junk,
+    t: mailboxIds.trash,
+  }
 
-	const mailboxId = navigationMap[key]
-	if (mailboxId) {
-		e.preventDefault()
-		router.push({ name: 'mail-mailbox', params: { accountId, mailbox: mailboxId } })
-	}
+  const mailboxId = navigationMap[key]
+  if (mailboxId) {
+    e.preventDefault()
+    router.push({ name: 'mail-mailbox', params: { accountId, mailbox: mailboxId } })
+  }
 }
 
 const handleShowShortcuts = (e: KeyboardEvent) => {
-	e.preventDefault()
-	showShortcuts.value = true
+  e.preventDefault()
+  showShortcuts.value = true
 }
 
 const handleEnter = (e: KeyboardEvent) => {
-	e.preventDefault()
-	if (threadInFocus.value) goToThread(threadInFocus.value)
-	else focusOnThread(threadIDs.value[0])
+  e.preventDefault()
+  if (threadInFocus.value) goToThread(threadInFocus.value)
+  else focusOnThread(threadIDs.value[0])
 }
 
 const handleEscape = (e: KeyboardEvent) => {
-	e.preventDefault()
-	if (threadID) goToMailbox()
-	else if (selections.value.length) resetSelections()
-	else threadInFocus.value = undefined
+  e.preventDefault()
+  if (threadID) goToMailbox()
+  else if (selections.value.length) resetSelections()
+  else threadInFocus.value = undefined
 }
 
 const handleThreadActions = (e: KeyboardEvent, key: string) => {
-	const thread_ids = selections.value.length ? selections.value : [threadID!]
+  const thread_ids = selections.value.length ? selections.value : [threadID!]
 
-	// Delete/Trash (Backspace on Mac, Delete on Windows)
-	if (key === (isMac ? 'backspace' : 'delete')) {
-		e.preventDefault()
-		if (e.shiftKey || mailbox === mailboxIds.trash)
-			return junkOrDeleteThreads(thread_ids, false)
-		return handleMoveThreads({ [mailboxIds.trash]: thread_ids })
-	}
+  // Delete/Trash (Backspace on Mac, Delete on Windows)
+  if (key === (isMac ? 'backspace' : 'delete')) {
+    e.preventDefault()
+    if (e.shiftKey || mailbox === mailboxIds.trash) return junkOrDeleteThreads(thread_ids, false)
+    return handleMoveThreads({ [mailboxIds.trash]: thread_ids })
+  }
 
-	// Mark as read/unread (u)
-	if (key === 'u') {
-		e.preventDefault()
-		return handleSetSeen({ [Number(e.shiftKey)]: thread_ids })
-	}
+  // Mark as read/unread (u)
+  if (key === 'u') {
+    e.preventDefault()
+    return handleSetSeen({ [Number(e.shiftKey)]: thread_ids })
+  }
 
-	// Archive (e)
-	if (key === 'e') {
-		e.preventDefault()
-		return mailbox === mailboxIds.sent
-			? handleAddThreadsToMailbox(mailboxIds.archive, thread_ids)
-			: handleMoveThreads({ [mailboxIds.archive]: thread_ids })
-	}
+  // Archive (e)
+  if (key === 'e') {
+    e.preventDefault()
+    return mailbox === mailboxIds.sent
+      ? handleAddThreadsToMailbox(mailboxIds.archive, thread_ids)
+      : handleMoveThreads({ [mailboxIds.archive]: thread_ids })
+  }
 
-	// Mark as junk (!)
-	if (key === '!') {
-		e.preventDefault()
-		return junkOrDeleteThreads(thread_ids, true)
-	}
+  // Mark as junk (!)
+  if (key === '!') {
+    e.preventDefault()
+    return junkOrDeleteThreads(thread_ids, true)
+  }
 }
 
 const handleArrowNavigation = (e: KeyboardEvent, key: string) => {
-	const navigationKeys = ['arrowup', 'arrowdown', 'j', 'k']
-	if (!navigationKeys.includes(key)) return
+  const navigationKeys = ['arrowup', 'arrowdown', 'j', 'k']
+  if (!navigationKeys.includes(key)) return
 
-	e.preventDefault()
+  e.preventDefault()
 
-	const prevThread = threadInFocus.value
-	const offset = ['arrowup', 'k'].includes(key) ? -1 : 1
+  const prevThread = threadInFocus.value
+  const offset = ['arrowup', 'k'].includes(key) ? -1 : 1
 
-	let newThread = undefined
+  let newThread = undefined
 
-	// Step across the page boundary at the first/last thread, like the ThreadHeader arrows.
-	// newThread stays the in-page target (undefined at an edge), so shift-select skips a
-	// cross-page move — the new page resolves asynchronously and goToPage resets selections.
-	if (threadID) {
-		newThread = getThreadByOffset(offset)
-		goToThreadByOffset(offset)
-	} else if (!threadIDs.value.includes(threadInFocus.value)) {
-		focusOnThread(threadIDs.value[0])
-		newThread = threadIDs.value[0]
-	} else {
-		newThread = getThreadByOffset(offset, threadInFocus.value)
-		focusOnThreadByOffset(offset)
-	}
+  // Step across the page boundary at the first/last thread, like the ThreadHeader arrows.
+  // newThread stays the in-page target (undefined at an edge), so shift-select skips a
+  // cross-page move — the new page resolves asynchronously and goToPage resets selections.
+  if (threadID) {
+    newThread = getThreadByOffset(offset)
+    goToThreadByOffset(offset)
+  } else if (!threadIDs.value.includes(threadInFocus.value)) {
+    focusOnThread(threadIDs.value[0])
+    newThread = threadIDs.value[0]
+  } else {
+    newThread = getThreadByOffset(offset, threadInFocus.value)
+    focusOnThreadByOffset(offset)
+  }
 
-	// Handle shift+arrow selection
-	if (!(isShiftPressed.value && newThread)) return
+  // Handle shift+arrow selection
+  if (!(isShiftPressed.value && newThread)) return
 
-	const threadsToToggle = prevThread ? [prevThread, newThread] : [newThread]
-	const shouldSelect = !selections.value.includes(newThread)
-	toggleSelect(threadsToToggle, shouldSelect, true)
+  const threadsToToggle = prevThread ? [prevThread, newThread] : [newThread]
+  const shouldSelect = !selections.value.includes(newThread)
+  toggleSelect(threadsToToggle, shouldSelect, true)
 }
 
 const handleKeyUp = (e: KeyboardEvent) => {
-	if (e.key === 'Shift') isShiftPressed.value = false
+  if (e.key === 'Shift') isShiftPressed.value = false
 }
 
 interface SelectAction {
-	label: string
-	onClick: () => void
-	icon: typeof RefreshCw
-	condition: () => boolean
+  label: string
+  onClick: () => void
+  icon: typeof RefreshCw
+  condition: () => boolean
 }
 
 const selectActions = computed((): SelectAction[] => [
-	{
-		label: __('Star Mails'),
-		onClick: () => setFlaggedByThreadIDs(selections.value, true),
-		icon: Star,
-		condition: () =>
-			selections.value.some(
-				(threadID) =>
-					threadsResource.value?.data?.find((t: Thread) => t.thread_id === threadID)
-						?.flagged === 0,
-			),
-	},
-	{
-		label: __('Unstar Mails'),
-		onClick: () => setFlaggedByThreadIDs(selections.value, false),
-		icon: StarOff,
-		condition: () =>
-			selections.value.some(
-				(threadID) =>
-					threadsResource.value?.data?.find((t: Thread) => t.thread_id === threadID)
-						?.flagged === 1,
-			),
-	},
-	{
-		label: __('Archive Threads (E)'),
-		onClick: () =>
-			mailbox === mailboxIds.sent
-				? handleAddThreadsToMailbox(mailboxIds.archive, selections.value)
-				: handleMoveThreads({ [mailboxIds.archive]: selections.value }),
-		icon: Archive,
-		condition: () => mailbox !== mailboxIds.archive,
-	},
-	{
-		label: __('Mark as Junk (!)'),
-		onClick: () => junkOrDeleteThreads(selections.value, true),
-		icon: CircleAlert,
-		condition: () =>
-			mailbox !== mailboxIds.drafts &&
-			selections.value.some(
-				(threadID) =>
-					threadsResource.value?.data?.find((t: Thread) => t.thread_id === threadID)
-						?.junk === 0,
-			),
-	},
-	{
-		label: __('Mark as Not Junk'),
-		onClick: () => handleSetSpamStatus({ 0: selections.value }),
-		icon: CircleCheck,
-		condition: () =>
-			selections.value.some(
-				(threadID) =>
-					threadsResource.value?.data?.find((t: Thread) => t.thread_id === threadID)
-						?.junk === 1,
-			),
-	},
-	{
-		label: __('Move to Trash (Delete)'),
-		onClick: () => handleMoveThreads({ [mailboxIds.trash]: selections.value }),
-		icon: Trash2,
-		condition: () => mailbox !== mailboxIds.trash,
-	},
-	{
-		label: __('Delete Threads (Shift+Delete)'),
-		onClick: () => junkOrDeleteThreads(selections.value, false),
-		icon: Trash2,
-		condition: () => mailbox === mailboxIds.trash,
-	},
-	{
-		label: __('Mark as Read (Shift+U)'),
-		onClick: () => handleSetSeen({ 1: selections.value }),
-		icon: MailOpen,
-		condition: () =>
-			selections.value.some(
-				(threadID) =>
-					threadsResource.value?.data?.find((t: Thread) => t.thread_id === threadID)
-						?.seen === 0,
-			),
-	},
-	{
-		label: __('Mark as Unread (U)'),
-		onClick: () => handleSetSeen({ 0: selections.value }),
-		icon: MailIcon,
-		condition: () =>
-			selections.value.some(
-				(threadID) =>
-					threadsResource.value?.data?.find((t: Thread) => t.thread_id === threadID)
-						?.seen === 1,
-			),
-	},
+  {
+    label: __('Star Mails'),
+    onClick: () => setFlaggedByThreadIDs(selections.value, true),
+    icon: Star,
+    condition: () =>
+      selections.value.some(
+        threadID =>
+          threadsResource.value?.data?.find((t: Thread) => t.thread_id === threadID)?.flagged === 0
+      ),
+  },
+  {
+    label: __('Unstar Mails'),
+    onClick: () => setFlaggedByThreadIDs(selections.value, false),
+    icon: StarOff,
+    condition: () =>
+      selections.value.some(
+        threadID =>
+          threadsResource.value?.data?.find((t: Thread) => t.thread_id === threadID)?.flagged === 1
+      ),
+  },
+  {
+    label: __('Archive Threads (E)'),
+    onClick: () =>
+      mailbox === mailboxIds.sent
+        ? handleAddThreadsToMailbox(mailboxIds.archive, selections.value)
+        : handleMoveThreads({ [mailboxIds.archive]: selections.value }),
+    icon: Archive,
+    condition: () => mailbox !== mailboxIds.archive,
+  },
+  {
+    label: __('Mark as Junk (!)'),
+    onClick: () => junkOrDeleteThreads(selections.value, true),
+    icon: CircleAlert,
+    condition: () =>
+      mailbox !== mailboxIds.drafts &&
+      selections.value.some(
+        threadID =>
+          threadsResource.value?.data?.find((t: Thread) => t.thread_id === threadID)?.junk === 0
+      ),
+  },
+  {
+    label: __('Mark as Not Junk'),
+    onClick: () => handleSetSpamStatus({ 0: selections.value }),
+    icon: CircleCheck,
+    condition: () =>
+      selections.value.some(
+        threadID =>
+          threadsResource.value?.data?.find((t: Thread) => t.thread_id === threadID)?.junk === 1
+      ),
+  },
+  {
+    label: __('Move to Trash (Delete)'),
+    onClick: () => handleMoveThreads({ [mailboxIds.trash]: selections.value }),
+    icon: Trash2,
+    condition: () => mailbox !== mailboxIds.trash,
+  },
+  {
+    label: __('Delete Threads (Shift+Delete)'),
+    onClick: () => junkOrDeleteThreads(selections.value, false),
+    icon: Trash2,
+    condition: () => mailbox === mailboxIds.trash,
+  },
+  {
+    label: __('Mark as Read (Shift+U)'),
+    onClick: () => handleSetSeen({ 1: selections.value }),
+    icon: MailOpen,
+    condition: () =>
+      selections.value.some(
+        threadID =>
+          threadsResource.value?.data?.find((t: Thread) => t.thread_id === threadID)?.seen === 0
+      ),
+  },
+  {
+    label: __('Mark as Unread (U)'),
+    onClick: () => handleSetSeen({ 0: selections.value }),
+    icon: MailIcon,
+    condition: () =>
+      selections.value.some(
+        threadID =>
+          threadsResource.value?.data?.find((t: Thread) => t.thread_id === threadID)?.seen === 1
+      ),
+  },
 ])
 
 // Search
@@ -819,101 +818,99 @@ const total = ref(0) // exact total matching the current view (search only)
 const hasMore = ref(false) // lookahead: an extra row was returned, so a next page exists
 // Current mailbox's record (carries total_threads/unread_threads); used by the periodic poll to
 // detect count changes and by the tab title's unread badge.
-const mailboxObj = computed(() => mailboxes.data?.find((m) => m.id === mailbox))
+const mailboxObj = computed(() => mailboxes.data?.find(m => m.id === mailbox))
 
 // ── Screener banner ─────────────────────────────────────────────────────────────────────────────
 // An info bar mirroring the trash/junk one, shown on the inbox while Hey-style screening is on and
 // unscreened threads are waiting. The count is the Screening folder's unread count, kept fresh by the
 // periodic mailbox poll below.
-const activeAccount = computed(() => user.data?.accounts?.find((a) => a.id === accountId))
+const activeAccount = computed(() => user.data?.accounts?.find(a => a.id === accountId))
 const screeningEnabled = computed(() => !!activeAccount.value?.enable_screening)
 const screenerCount = computed(
-	() =>
-		mailboxes.data?.find((m: MailboxData) => m.id === mailboxIds.screener)?.unread_threads ??
-		0,
+  () => mailboxes.data?.find((m: MailboxData) => m.id === mailboxIds.screener)?.unread_threads ?? 0
 )
 const showScreenerBanner = computed(
-	() =>
-		mailbox === mailboxIds.inbox &&
-		screeningEnabled.value &&
-		screenerCount.value > 0 &&
-		(showReadingPane.value || !threadID),
+  () =>
+    mailbox === mailboxIds.inbox &&
+    screeningEnabled.value &&
+    screenerCount.value > 0 &&
+    (showReadingPane.value || !threadID)
 )
 const screenerBannerLabel = computed(() =>
-	screenerCount.value === 1
-		? __('1 new thread is waiting to be screened.')
-		: __('{0} new threads are waiting to be screened.', [String(screenerCount.value)]),
+  screenerCount.value === 1
+    ? __('1 new thread is waiting to be screened.')
+    : __('{0} new threads are waiting to be screened.', [String(screenerCount.value)])
 )
 const goToScreener = () => router.push({ name: 'mail-screener', params: { accountId } })
 
 // Called once a page's data has loaded: reveal it (range + list update together) and scroll to top.
 // No-op for same-page reloads (e.g. the periodic refresh) so those don't yank the scroll position.
 const syncDisplayedPage = () => {
-	if (displayedPage.value === page.value) return
-	displayedPage.value = page.value
-	mailListRef.value?.scrollTo({ top: 0 })
+  if (displayedPage.value === page.value) return
+  displayedPage.value = page.value
+  mailListRef.value?.scrollTo({ top: 0 })
 }
 
 const searchResults = createResource({
-	url: 'suite.mail.api.mail.search_mails',
-	makeParams: () => ({
-		account: store.accountId,
-		filter: route.query,
-		limit: PAGE_LENGTH,
-		start: page.value * PAGE_LENGTH,
-	}),
-	transform: (data: [Thread[], number]) => {
-		total.value = data[1]
-		return data[0]
-	},
-	onSuccess: (data: [Thread[], number]) => {
-		correctPageOverflow(data[0])
-		openPendingEdgeThread()
-		syncDisplayedPage()
-		if (mailbox === 'search') isMailboxLoaded.value = true
-	},
+  url: 'suite.mail.api.mail.search_mails',
+  makeParams: () => ({
+    account: store.accountId,
+    filter: route.query,
+    limit: PAGE_LENGTH,
+    start: page.value * PAGE_LENGTH,
+  }),
+  transform: (data: [Thread[], number]) => {
+    total.value = data[1]
+    return data[0]
+  },
+  onSuccess: (data: [Thread[], number]) => {
+    correctPageOverflow(data[0])
+    openPendingEdgeThread()
+    syncDisplayedPage()
+    if (mailbox === 'search') isMailboxLoaded.value = true
+  },
 })
 
 watch(
-	() => JSON.stringify(route.query),
-	() => {
-		if (mailbox === 'search') {
-			page.value = 0
-			searchResults.reload()
-		}
-	},
+  () => JSON.stringify(route.query),
+  () => {
+    if (mailbox === 'search') {
+      page.value = 0
+      searchResults.reload()
+    }
+  }
 )
 
 // Main data
 
 const filter = ref<string | null>(
-	localStorage.getItem(`user:${user.data.name}:filter:${mailbox}`) || null,
+  localStorage.getItem(`user:${user.data.name}:filter:${mailbox}`) || null
 )
 const isMailboxLoaded = ref(false)
 
 const threads = createResource({
-	url: 'suite.mail.api.mail.get_threads',
-	makeParams: () => ({
-		account: store.accountId,
-		mailbox,
-		limit: PAGE_LENGTH + 1,
-		start: page.value * PAGE_LENGTH,
-		filter_by: filter.value,
-	}),
-	transform: (data: [Thread[], string]) => {
-		const rows = data[0]
-		// This resource always fetches one extra row (PAGE_LENGTH + 1) to detect a next page without
-		// relying on the (flaky) stored count: clip the extra row from the display and record whether it
-		// was there. Drives `hasMore` for both plain and filtered mailboxes.
-		hasMore.value = rows.length > PAGE_LENGTH
-		return rows.slice(0, PAGE_LENGTH)
-	},
-	onSuccess: (data: [Thread[], string]) => {
-		correctPageOverflow(data[0])
-		openPendingEdgeThread()
-		syncDisplayedPage()
-		if (mailbox === data[1]) isMailboxLoaded.value = true
-	},
+  url: 'suite.mail.api.mail.get_threads',
+  makeParams: () => ({
+    account: store.accountId,
+    mailbox,
+    limit: PAGE_LENGTH + 1,
+    start: page.value * PAGE_LENGTH,
+    filter_by: filter.value,
+  }),
+  transform: (data: [Thread[], string]) => {
+    const rows = data[0]
+    // This resource always fetches one extra row (PAGE_LENGTH + 1) to detect a next page without
+    // relying on the (flaky) stored count: clip the extra row from the display and record whether it
+    // was there. Drives `hasMore` for both plain and filtered mailboxes.
+    hasMore.value = rows.length > PAGE_LENGTH
+    return rows.slice(0, PAGE_LENGTH)
+  },
+  onSuccess: (data: [Thread[], string]) => {
+    correctPageOverflow(data[0])
+    openPendingEdgeThread()
+    syncDisplayedPage()
+    if (mailbox === data[1]) isMailboxLoaded.value = true
+  },
 })
 
 const threadsResource = computed(() => (mailbox === 'search' ? searchResults : threads))
@@ -921,9 +918,9 @@ const threadsResource = computed(() => (mailbox === 'search' ? searchResults : t
 // If a page ends up empty because threads were removed (e.g. deleted/moved), step back a page.
 // Decrementing one at a time is bounded by 0, so it can't loop even if `total` is stale.
 const correctPageOverflow = (pageData: Thread[]) => {
-	if (pageData.length || page.value === 0) return
-	page.value -= 1
-	threadsResource.value.reload()
+  if (pageData.length || page.value === 0) return
+  page.value -= 1
+  threadsResource.value.reload()
 }
 
 const threadsOnPage = computed(() => threadsResource.value.data?.length ?? 0)
@@ -936,9 +933,9 @@ const threadsOnPage = computed(() => threadsResource.value.data?.length ?? 0)
 // - 'lookahead' (a filtered mailbox or the cross-mailbox "starred" view): no cheap total exists, so
 //   we show the running count with a "+" suffix and only enable Next while a next page is detected.
 const countMode = computed<'exact' | 'mailbox' | 'lookahead'>(() => {
-	if (mailbox === 'search') return 'exact'
-	if (mailbox === 'starred' || filter.value) return 'lookahead'
-	return 'mailbox'
+  if (mailbox === 'search') return 'exact'
+  if (mailbox === 'starred' || filter.value) return 'lookahead'
+  return 'mailbox'
 })
 
 // The stored thread count, shown as the "of N" total for a plain mailbox. Used for display only.
@@ -947,39 +944,37 @@ const mailboxTotal = computed(() => mailboxObj.value?.total_threads ?? 0)
 // A *reliable* fixed total used to clamp the displayed range (so it never overshoots during a page
 // change, when the previous page's rows linger). Only search has one — the mailbox's `totalThreads`
 // is too flaky to clamp against, so plain/lookahead views derive the range from the loaded rows.
-const knownTotal = computed<number | null>(() =>
-	countMode.value === 'exact' ? total.value : null,
-)
+const knownTotal = computed<number | null>(() => (countMode.value === 'exact' ? total.value : null))
 
 const rangeEnd = computed(() => {
-	// Based on the displayed (loaded) page, not the navigation target, so the range only moves once the
-	// new page's data arrives. For a known total, derive the end from the page bounds (clamped to the
-	// total) rather than the row count; the fetch is clamped to the same bound, so it matches the loaded
-	// page while staying stable during a page change, when the previous page's rows still linger.
-	if (knownTotal.value && knownTotal.value > 0) {
-		return Math.min((displayedPage.value + 1) * PAGE_LENGTH, knownTotal.value)
-	}
-	return displayedPage.value * PAGE_LENGTH + threadsOnPage.value
+  // Based on the displayed (loaded) page, not the navigation target, so the range only moves once the
+  // new page's data arrives. For a known total, derive the end from the page bounds (clamped to the
+  // total) rather than the row count; the fetch is clamped to the same bound, so it matches the loaded
+  // page while staying stable during a page change, when the previous page's rows still linger.
+  if (knownTotal.value && knownTotal.value > 0) {
+    return Math.min((displayedPage.value + 1) * PAGE_LENGTH, knownTotal.value)
+  }
+  return displayedPage.value * PAGE_LENGTH + threadsOnPage.value
 })
 const rangeStart = computed(() =>
-	rangeEnd.value === 0 ? 0 : displayedPage.value * PAGE_LENGTH + 1,
+  rangeEnd.value === 0 ? 0 : displayedPage.value * PAGE_LENGTH + 1
 )
 // Collapse to a single number when the page holds one thread (e.g. "1" instead of "1–1").
 const range = computed(() =>
-	rangeStart.value === rangeEnd.value
-		? `${rangeStart.value}`
-		: `${rangeStart.value}–${rangeEnd.value}`,
+  rangeStart.value === rangeEnd.value
+    ? `${rangeStart.value}`
+    : `${rangeStart.value}–${rangeEnd.value}`
 )
 const displayTotal = computed(() => {
-	if (countMode.value === 'lookahead') return rangeEnd.value
-	if (countMode.value === 'mailbox') return mailboxTotal.value
-	return knownTotal.value ?? 0 // exact
+  if (countMode.value === 'lookahead') return rangeEnd.value
+  if (countMode.value === 'mailbox') return mailboxTotal.value
+  return knownTotal.value ?? 0 // exact
 })
 // In lookahead mode the count is a lower bound — show "n+" while a next page exists, else "n".
 const totalLabel = computed(() =>
-	countMode.value === 'lookahead'
-		? `${rangeEnd.value}${hasMore.value ? '+' : ''}`
-		: `${displayTotal.value}`,
+  countMode.value === 'lookahead'
+    ? `${rangeEnd.value}${hasMore.value ? '+' : ''}`
+    : `${displayTotal.value}`
 )
 
 // Whether a next page exists. When we have a total (search, or a plain mailbox), we compare the next
@@ -993,10 +988,9 @@ const rangeHasNext = (total: number) => (page.value + 1) * PAGE_LENGTH < total
 // Fallback when the total is unreliable/absent: the extra-row probe, bounded to the loaded page.
 const probeHasNext = computed(() => hasMore.value && page.value === displayedPage.value)
 const canGoNext = computed(() => {
-	if (countMode.value === 'exact') return rangeHasNext(knownTotal.value ?? 0)
-	if (countMode.value === 'mailbox')
-		return rangeHasNext(mailboxTotal.value) || probeHasNext.value
-	return probeHasNext.value // lookahead
+  if (countMode.value === 'exact') return rangeHasNext(knownTotal.value ?? 0)
+  if (countMode.value === 'mailbox') return rangeHasNext(mailboxTotal.value) || probeHasNext.value
+  return probeHasNext.value // lookahead
 })
 
 // Coalesce rapid Prev/Next presses: only the final target page is fetched, and the displayed page
@@ -1004,91 +998,91 @@ const canGoNext = computed(() => {
 const navigate = useDebounceFn(() => threadsResource.value.reload(), 250)
 
 const goToPage = (next: boolean) => {
-	if (next ? !canGoNext.value : !canGoPrev.value) return
-	page.value += next ? 1 : -1
-	resetSelections()
-	navigate()
+  if (next ? !canGoNext.value : !canGoPrev.value) return
+  page.value += next ? 1 : -1
+  resetSelections()
+  navigate()
 }
 
 const isLoading = computed(() => {
-	if (!isMailboxLoaded.value) return true
-	if (emptyMailbox.loading) return true
-	return !threadsResource.value.data.length && threadsResource.value?.loading
+  if (!isMailboxLoaded.value) return true
+  if (emptyMailbox.loading) return true
+  return !threadsResource.value.data.length && threadsResource.value?.loading
 })
 
 const threadIDs = computed(
-	() => threadsResource.value.data?.map((thread: Thread) => thread.thread_id) || [],
+  () => threadsResource.value.data?.map((thread: Thread) => thread.thread_id) || []
 )
 
 const reloadThreads: (reloadMailboxes?: boolean, mailboxRoles?: MailboxRole[]) => void = (
-	reloadMailboxes = true,
-	mailboxRoles = [],
+  reloadMailboxes = true,
+  mailboxRoles = []
 ) => {
-	if (mailboxRoles.length && !mailboxRoles.map((m) => mailboxIds[m]).includes(mailbox)) return
+  if (mailboxRoles.length && !mailboxRoles.map(m => mailboxIds[m]).includes(mailbox)) return
 
-	resetSelections()
-	threadsResource.value.reload()
-	if (reloadMailboxes) mailboxes.reload()
+  resetSelections()
+  threadsResource.value.reload()
+  if (reloadMailboxes) mailboxes.reload()
 }
 
 watch(
-	() => [mailbox, accountId],
-	() => {
-		isMailboxLoaded.value = false
-		threadsResource.value.data = []
-		filter.value = localStorage.getItem(`user:${user.data.name}:filter:${mailbox}`) || null
-		page.value = 0
-		threadInFocus.value = undefined
-		collapsedGroups.value = []
-		reloadThreads(false)
-	},
-	{ immediate: true },
+  () => [mailbox, accountId],
+  () => {
+    isMailboxLoaded.value = false
+    threadsResource.value.data = []
+    filter.value = localStorage.getItem(`user:${user.data.name}:filter:${mailbox}`) || null
+    page.value = 0
+    threadInFocus.value = undefined
+    collapsedGroups.value = []
+    reloadThreads(false)
+  },
+  { immediate: true }
 )
 
 // Periodically refresh the mailbox list (keeps sidebar counts current), then reload the open
 // mailbox's threads only when its thread count actually changed — so a quiet mailbox isn't reloaded
 // (and scroll-reset) every 30s.
 const pollForChanges = async () => {
-	const prevTotal = mailboxObj.value?.total_threads
-	await mailboxes.reload()
-	if (mailboxObj.value?.total_threads !== prevTotal) threadsResource.value.reload()
+  const prevTotal = mailboxObj.value?.total_threads
+  await mailboxes.reload()
+  if (mailboxObj.value?.total_threads !== prevTotal) threadsResource.value.reload()
 }
 
 onMounted(() => {
-	window.addEventListener('keydown', handleKeyDown)
-	window.addEventListener('keyup', handleKeyUp)
-	reloadInterval.value = setInterval(pollForChanges, 30000)
+  window.addEventListener('keydown', handleKeyDown)
+  window.addEventListener('keyup', handleKeyUp)
+  reloadInterval.value = setInterval(pollForChanges, 30000)
 
-	socket.on('new_mail_created', (updatedMailboxes: string[]) => {
-		if (updatedMailboxes.includes(mailbox)) threadsResource.value.reload()
-	})
+  socket.on('new_mail_created', (updatedMailboxes: string[]) => {
+    if (updatedMailboxes.includes(mailbox)) threadsResource.value.reload()
+  })
 
-	socket.on('mail_exchange_completed', (payload: { success: boolean; message: string }) =>
-		raiseToast(payload.message, payload.success ? 'success' : 'error'),
-	)
+  socket.on('mail_exchange_completed', (payload: { success: boolean; message: string }) =>
+    raiseToast(payload.message, payload.success ? 'success' : 'error')
+  )
 
-	socket.on('calendar_exchange_completed', (payload: { success: boolean; message: string }) =>
-		raiseToast(payload.message, payload.success ? 'success' : 'error'),
-	)
+  socket.on('calendar_exchange_completed', (payload: { success: boolean; message: string }) =>
+    raiseToast(payload.message, payload.success ? 'success' : 'error')
+  )
 })
 
 onUnmounted(() => {
-	window.removeEventListener('keydown', handleKeyDown)
-	window.removeEventListener('keyup', handleKeyUp)
-	if (reloadInterval.value) clearInterval(reloadInterval.value)
-	// Leaving the mailbox drops any pending undo so a lingering toast can't undo into another view.
-	setUndoAction(undefined)
+  window.removeEventListener('keydown', handleKeyDown)
+  window.removeEventListener('keyup', handleKeyUp)
+  if (reloadInterval.value) clearInterval(reloadInterval.value)
+  // Leaving the mailbox drops any pending undo so a lingering toast can't undo into another view.
+  setUndoAction(undefined)
 })
 
 const goToMailbox = () =>
-	router.push({ name: 'mail-mailbox', params: { accountId, mailbox }, query: route.query })
+  router.push({ name: 'mail-mailbox', params: { accountId, mailbox }, query: route.query })
 
 const getThreadByOffset = (offset: number, currentThread: string = threadID!) =>
-	threadIDs.value[threadIDs.value.indexOf(currentThread) + offset]
+  threadIDs.value[threadIDs.value.indexOf(currentThread) + offset]
 
 const goToThread = (threadID: string) => {
-	if (threadID)
-		router.push({ name: 'mail-mail', params: { accountId, mailbox, threadID }, query: route.query })
+  if (threadID)
+    router.push({ name: 'mail-mail', params: { accountId, mailbox, threadID }, query: route.query })
 }
 
 // When stepping past the first/last thread of a page, move to the adjacent page (if any) and open
@@ -1097,194 +1091,194 @@ const goToThread = (threadID: string) => {
 let pendingEdgeThread: { edge: 'first' | 'last'; action: 'open' | 'focus' } | null = null
 
 const crossPageByOffset = (offset: number, action: 'open' | 'focus') => {
-	// While a page transition is in flight (flag set until the new page loads), ignore further
-	// crossings — otherwise key auto-repeat at an edge keeps incrementing page.value and blows
-	// through many pages before the debounced reload fires.
-	if (pendingEdgeThread) return
-	if (offset > 0 && canGoNext.value) {
-		pendingEdgeThread = { edge: 'first', action }
-		goToPage(true)
-	} else if (offset < 0 && canGoPrev.value) {
-		pendingEdgeThread = { edge: 'last', action }
-		goToPage(false)
-	}
+  // While a page transition is in flight (flag set until the new page loads), ignore further
+  // crossings — otherwise key auto-repeat at an edge keeps incrementing page.value and blows
+  // through many pages before the debounced reload fires.
+  if (pendingEdgeThread) return
+  if (offset > 0 && canGoNext.value) {
+    pendingEdgeThread = { edge: 'first', action }
+    goToPage(true)
+  } else if (offset < 0 && canGoPrev.value) {
+    pendingEdgeThread = { edge: 'last', action }
+    goToPage(false)
+  }
 }
 
 const goToThreadByOffset = (offset: number) => {
-	const next = getThreadByOffset(offset)
-	if (next) return goToThread(next)
-	crossPageByOffset(offset, 'open')
+  const next = getThreadByOffset(offset)
+  if (next) return goToThread(next)
+  crossPageByOffset(offset, 'open')
 }
 
 const openPendingEdgeThread = () => {
-	if (!pendingEdgeThread) return
-	const id = pendingEdgeThread.edge === 'first' ? threadIDs.value[0] : threadIDs.value.at(-1)
-	if (!id) return // keep the flag if the page is still empty (e.g. after overflow correction)
-	const { action } = pendingEdgeThread
-	pendingEdgeThread = null
-	if (action === 'open') goToThread(id)
-	else focusOnThread(id)
+  if (!pendingEdgeThread) return
+  const id = pendingEdgeThread.edge === 'first' ? threadIDs.value[0] : threadIDs.value.at(-1)
+  if (!id) return // keep the flag if the page is still empty (e.g. after overflow correction)
+  const { action } = pendingEdgeThread
+  pendingEdgeThread = null
+  if (action === 'open') goToThread(id)
+  else focusOnThread(id)
 }
 
 const goToNextThreadOrMailbox = (excludedThreads: string[] = []) => {
-	const idx = threadIDs.value.indexOf(threadID)
-	const next = threadIDs.value.slice(idx + 1).find((id) => !excludedThreads.includes(id))
-	if (next) goToThread(next)
-	else goToMailbox()
+  const idx = threadIDs.value.indexOf(threadID)
+  const next = threadIDs.value.slice(idx + 1).find(id => !excludedThreads.includes(id))
+  if (next) goToThread(next)
+  else goToMailbox()
 }
 
 const focusOnThread = (threadID: string) => {
-	if (!threadID) return
+  if (!threadID) return
 
-	threadInFocus.value = threadID
-	scrollIntoView(threadID)
+  threadInFocus.value = threadID
+  scrollIntoView(threadID)
 }
 
 const focusOnThreadByOffset = (offset: number) => {
-	const next = getThreadByOffset(offset, threadInFocus.value)
-	if (next) return focusOnThread(next)
-	crossPageByOffset(offset, 'focus')
+  const next = getThreadByOffset(offset, threadInFocus.value)
+  if (next) return focusOnThread(next)
+  crossPageByOffset(offset, 'focus')
 }
 
 const scrollIntoView = (threadID: string) => {
-	const el = mailItemsRef.value?.find((el) => el?.id === threadID)?.$el
-	if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  const el = mailItemsRef.value?.find(el => el?.id === threadID)?.$el
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
 }
 
 // Actions
 
 const {
-	handleSetSeen,
-	handleSyncUnseen,
-	setFlaggedByThreadIDs,
-	handleMoveThreads,
-	handleSetSpamStatus,
-	handleAddThreadsToMailbox,
-	handleRemoveThreadsFromMailbox,
-	junkOrDeleteThreads,
-	setFlagged,
-	moveToOptions,
-	addToOptions,
-	removeFromOptions,
-	showAddTo,
-	showRemoveFrom,
-	showJunkOrDeleteThreads,
-	junkOrDeleteThreadsOptions,
+  handleSetSeen,
+  handleSyncUnseen,
+  setFlaggedByThreadIDs,
+  handleMoveThreads,
+  handleSetSpamStatus,
+  handleAddThreadsToMailbox,
+  handleRemoveThreadsFromMailbox,
+  junkOrDeleteThreads,
+  setFlagged,
+  moveToOptions,
+  addToOptions,
+  removeFromOptions,
+  showAddTo,
+  showRemoveFrom,
+  showJunkOrDeleteThreads,
+  junkOrDeleteThreadsOptions,
 } = useThreadActions({
-	threadsResource,
-	mailbox: computed(() => mailbox),
-	threadID: computed(() => threadID),
-	selections,
-	mailThreadRef,
-	reloadThreads,
-	goToMailbox,
-	goToNextThreadOrMailbox,
+  threadsResource,
+  mailbox: computed(() => mailbox),
+  threadID: computed(() => threadID),
+  selections,
+  mailThreadRef,
+  reloadThreads,
+  goToMailbox,
+  goToNextThreadOrMailbox,
 })
 
 const showEmptyMailbox = ref(false)
 
 const emptyMailbox = createResource({
-	url: 'suite.mail.api.mail.empty_user_mailbox',
-	makeParams: () => ({ account: store.accountId, mailbox }),
-	onSuccess: () => {
-		threadsResource.value.data = []
-		raiseToast(__('{0} emptied.', [mailboxName.value]))
-		reloadThreads()
-	},
-	onError: (error) => raiseToast(error.message, 'error'),
+  url: 'suite.mail.api.mail.empty_user_mailbox',
+  makeParams: () => ({ account: store.accountId, mailbox }),
+  onSuccess: () => {
+    threadsResource.value.data = []
+    raiseToast(__('{0} emptied.', [mailboxName.value]))
+    reloadThreads()
+  },
+  onError: error => raiseToast(error.message, 'error'),
 })
 
 const emptyMailboxOptions = computed(() => ({
-	title: __('Empty {0}', [mailboxName.value]),
-	message: __(`Are you sure you want to empty the contents of this mailbox?`),
-	icon: { name: 'alert-triangle', appearance: 'warning' },
-	actions: [
-		{
-			label: __('Confirm'),
-			variant: 'solid',
-			onClick: () => {
-				emptyMailbox.submit()
-				showEmptyMailbox.value = false
-			},
-		},
-	],
+  title: __('Empty {0}', [mailboxName.value]),
+  message: __(`Are you sure you want to empty the contents of this mailbox?`),
+  icon: { name: 'alert-triangle', appearance: 'warning' },
+  actions: [
+    {
+      label: __('Confirm'),
+      variant: 'solid',
+      onClick: () => {
+        emptyMailbox.submit()
+        showEmptyMailbox.value = false
+      },
+    },
+  ],
 }))
 
 // Filter
 
 const FILTER_OPTIONS = [
-	{
-		label: __('All'),
-		icon: Mails,
-		onClick: () => setFilter(null),
-	},
-	{
-		label: __('Unread'),
-		icon: MailIcon,
-		onClick: () => setFilter('unread'),
-	},
-	{
-		label: __('Starred'),
-		icon: Star,
-		onClick: () => setFilter('starred'),
-		condition: () => ![mailboxIds.trash, 'starred'].includes(mailbox),
-	},
-	{
-		label: __('Has attachments'),
-		icon: Paperclip,
-		onClick: () => setFilter('has_attachments'),
-	},
+  {
+    label: __('All'),
+    icon: Mails,
+    onClick: () => setFilter(null),
+  },
+  {
+    label: __('Unread'),
+    icon: MailIcon,
+    onClick: () => setFilter('unread'),
+  },
+  {
+    label: __('Starred'),
+    icon: Star,
+    onClick: () => setFilter('starred'),
+    condition: () => ![mailboxIds.trash, 'starred'].includes(mailbox),
+  },
+  {
+    label: __('Has attachments'),
+    icon: Paperclip,
+    onClick: () => setFilter('has_attachments'),
+  },
 ]
 
 const setFilter = (value: string | null) => {
-	filter.value = value
-	localStorage.setItem(`user:${user.data.name}:filter:${mailbox}`, value ?? '')
-	page.value = 0
-	threads.reload()
-	resetSelections()
+  filter.value = value
+  localStorage.setItem(`user:${user.data.name}:filter:${mailbox}`, value ?? '')
+  page.value = 0
+  threads.reload()
+  resetSelections()
 }
 
 // UI formatting
 
 const mailboxName = computed(() => {
-	switch (mailbox) {
-		case 'starred':
-			return __('Starred')
-		case 'search':
-			return __('Search')
-		default:
-			return mailboxObj.value?._name
-	}
+  switch (mailbox) {
+    case 'starred':
+      return __('Starred')
+    case 'search':
+      return __('Search')
+    default:
+      return mailboxObj.value?._name
+  }
 })
 const unreadThreadsPrefix = computed(() =>
-	mailboxObj.value?.unread_threads ? `(${mailboxObj.value.unread_threads})` : '',
+  mailboxObj.value?.unread_threads ? `(${mailboxObj.value.unread_threads})` : ''
 )
 
 const currentThread = computed(() =>
-	threadsResource.value?.data?.find((t: Thread) => t.thread_id === threadID),
+  threadsResource.value?.data?.find((t: Thread) => t.thread_id === threadID)
 )
 
 usePageMeta(() => {
-	if (threadID) return { title: currentThread.value?.subject || __('[No Subject]') }
-	return { title: `${unreadThreadsPrefix.value} ${mailboxName.value}` }
+  if (threadID) return { title: currentThread.value?.subject || __('[No Subject]') }
+  return { title: `${unreadThreadsPrefix.value} ${mailboxName.value}` }
 })
 
 const title = computed(() => {
-	if (selections.value.length)
-		return selections.value.length === 1
-			? __('1 item selected')
-			: __('{0} items selected', [String(selections.value.length)])
+  if (selections.value.length)
+    return selections.value.length === 1
+      ? __('1 item selected')
+      : __('{0} items selected', [String(selections.value.length)])
 
-	switch (filter.value) {
-		case 'unread':
-			return __('Unread Mails')
-		case 'starred':
-			return __('Starred Mails')
-		case 'has_attachments':
-			return __('With Attachments')
-		default:
-			return __('All Mails')
-	}
+  switch (filter.value) {
+    case 'unread':
+      return __('Unread Mails')
+    case 'starred':
+      return __('Starred Mails')
+    case 'has_attachments':
+      return __('With Attachments')
+    default:
+      return __('All Mails')
+  }
 })
 </script>
 

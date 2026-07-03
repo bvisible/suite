@@ -163,10 +163,8 @@ import { useUsers } from '@/apps/writer/composables/useUsers'
 const currentUserId = computed(() => useSessionStore().user)
 const { getUser: $user } = useUsers()
 
-const thumbnail = ref(
-  JSON.parse(localStorage.getItem('writer-view') || '"list"'),
-)
-watch(thumbnail, (v) => localStorage.setItem('writer-view', JSON.stringify(v)))
+const thumbnail = ref(JSON.parse(localStorage.getItem('writer-view') || '"list"'))
+watch(thumbnail, v => localStorage.setItem('writer-view', JSON.stringify(v)))
 const props = defineProps({
   groups: Object,
   resource: Object,
@@ -186,6 +184,6 @@ useInfiniteScroll(
     canLoadMore: () => {
       return props.resource.hasNextPage
     },
-  },
+  }
 )
 </script>

@@ -84,9 +84,7 @@ const props = defineProps({
 const dialog = defineModel(String)
 const route = useRoute()
 
-const folderParent = computed(
-  () => props.parent ?? route.params.entityName ?? '',
-)
+const folderParent = computed(() => props.parent ?? route.params.entityName ?? '')
 
 const resetDialog = () => (dialog.value = '')
 
@@ -111,9 +109,7 @@ function addToList(data, file_type) {
 function removeFromList(entities) {
   resetDialog()
   if (!props.list) return
-  const names = entities.map((o) => o.name)
-  props.list.setData(
-    props.list.data.filter(({ name }) => !names.includes(name)),
-  )
+  const names = entities.map(o => o.name)
+  props.list.setData(props.list.data.filter(({ name }) => !names.includes(name)))
 }
 </script>

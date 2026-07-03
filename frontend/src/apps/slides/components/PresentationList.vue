@@ -57,11 +57,11 @@ import { Eye, Trash, PenLine, Copy, TvMinimalPlay } from 'lucide-vue-next'
 import { getThumbnailCardStyles } from '@/apps/slides/utils/helpers'
 
 const props = defineProps({
-	presentations: Object,
-	loading: {
-		type: Boolean,
-		default: false,
-	},
+  presentations: Object,
+  loading: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const emit = defineEmits(['navigate', 'setPreview', 'openDialog', 'duplicatePresentation'])
@@ -69,43 +69,43 @@ const emit = defineEmits(['navigate', 'setPreview', 'openDialog', 'duplicatePres
 const backgroundClasses = 'size-full bg-gray-100 flex flex-col pt-8 overflow-y-auto'
 const contextMenuIconClasses = 'stroke-[1.5] !size-3.5'
 
-const getContextMenuOptions = (presentation) => {
-	return [
-		{
-			group: 'Actions',
-			options: [
-				{
-					label: 'Rename',
-					icon: h(PenLine, { class: contextMenuIconClasses }),
-					onClick: () => emit('openDialog', 'Rename', presentation),
-				},
-				{
-					label: 'Duplicate',
-					icon: h(Copy, { class: contextMenuIconClasses }),
-					onClick: () => emit('duplicatePresentation', presentation.name),
-				},
-				{
-					label: 'Delete',
-					icon: h(Trash, { class: contextMenuIconClasses }),
-					onClick: () => emit('openDialog', 'Delete', presentation),
-				},
-			],
-		},
-		{
-			group: 'Explore',
-			options: [
-				{
-					label: 'Preview',
-					icon: h(Eye, { class: contextMenuIconClasses }),
-					onClick: () => emit('setPreview', presentation),
-				},
-				{
-					label: 'Slideshow',
-					icon: h(TvMinimalPlay, { class: contextMenuIconClasses }),
-					onClick: () => emit('navigate', presentation.name, true),
-				},
-			],
-		},
-	]
+const getContextMenuOptions = presentation => {
+  return [
+    {
+      group: 'Actions',
+      options: [
+        {
+          label: 'Rename',
+          icon: h(PenLine, { class: contextMenuIconClasses }),
+          onClick: () => emit('openDialog', 'Rename', presentation),
+        },
+        {
+          label: 'Duplicate',
+          icon: h(Copy, { class: contextMenuIconClasses }),
+          onClick: () => emit('duplicatePresentation', presentation.name),
+        },
+        {
+          label: 'Delete',
+          icon: h(Trash, { class: contextMenuIconClasses }),
+          onClick: () => emit('openDialog', 'Delete', presentation),
+        },
+      ],
+    },
+    {
+      group: 'Explore',
+      options: [
+        {
+          label: 'Preview',
+          icon: h(Eye, { class: contextMenuIconClasses }),
+          onClick: () => emit('setPreview', presentation),
+        },
+        {
+          label: 'Slideshow',
+          icon: h(TvMinimalPlay, { class: contextMenuIconClasses }),
+          onClick: () => emit('navigate', presentation.name, true),
+        },
+      ],
+    },
+  ]
 }
 </script>

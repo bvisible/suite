@@ -1,16 +1,16 @@
-import type { RouteRecordRaw } from "vue-router";
+import type { RouteRecordRaw } from 'vue-router'
 
 // Install the meet-local navigation guard (requiresAdmin role check) on the
 // shared suite router. Imported for side effects only.
-import "@/apps/meet/router";
+import '@/apps/meet/router'
 
 // Boot side-effects that ran in the standalone app's main.ts. The suite's
 // shared main.ts does not run them, so trigger them on meet module load.
-import { loadMediaPreferences } from "@/apps/meet/data/mediaPreferences";
-import { installConsoleBuffer } from "@/apps/meet/utils/diagnostics/consoleBuffer";
+import { loadMediaPreferences } from '@/apps/meet/data/mediaPreferences'
+import { installConsoleBuffer } from '@/apps/meet/utils/diagnostics/consoleBuffer'
 
-loadMediaPreferences();
-installConsoleBuffer();
+loadMediaPreferences()
+installConsoleBuffer()
 
 /**
  * Meet route module — mounted by the suite router under the '/meet' prefix.
@@ -32,29 +32,29 @@ installConsoleBuffer();
  * (./router.ts) enforces `requiresAdmin` for audio-test.
  */
 export const routes: RouteRecordRaw[] = [
-	{
-		path: "",
-		component: () => import("@/apps/meet/pages/MeetLayout.vue"),
-		children: [
-			{
-				path: "",
-				name: "meet-home",
-				component: () => import("@/apps/meet/pages/Home.vue"),
-			},
-			{
-				path: "audio-test",
-				name: "meet-audio-test",
-				component: () => import("@/apps/meet/pages/AudioTest.vue"),
-				meta: { requiresAdmin: true },
-			},
-			{
-				path: ":meetingId",
-				name: "meet-meeting",
-				component: () => import("@/apps/meet/pages/Meeting.vue"),
-				meta: { isPublic: true },
-			},
-		],
-	},
-];
+  {
+    path: '',
+    component: () => import('@/apps/meet/pages/MeetLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'meet-home',
+        component: () => import('@/apps/meet/pages/Home.vue'),
+      },
+      {
+        path: 'audio-test',
+        name: 'meet-audio-test',
+        component: () => import('@/apps/meet/pages/AudioTest.vue'),
+        meta: { requiresAdmin: true },
+      },
+      {
+        path: ':meetingId',
+        name: 'meet-meeting',
+        component: () => import('@/apps/meet/pages/Meeting.vue'),
+        meta: { isPublic: true },
+      },
+    ],
+  },
+]
 
-export default routes;
+export default routes

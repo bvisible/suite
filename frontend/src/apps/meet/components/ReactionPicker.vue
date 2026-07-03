@@ -43,52 +43,47 @@
 </template>
 
 <script setup lang="ts">
-import {
-	PopoverContent,
-	PopoverPortal,
-	PopoverRoot,
-	PopoverTrigger,
-} from "reka-ui";
+import { PopoverContent, PopoverPortal, PopoverRoot, PopoverTrigger } from 'reka-ui'
 
 const props = defineProps<{
-	isOpen?: boolean;
-	isHandRaised?: boolean;
-}>();
+  isOpen?: boolean
+  isHandRaised?: boolean
+}>()
 
 const emit = defineEmits<{
-	select: [emoji: string];
-	"update:open": [value: boolean];
-	"toggle-raise-hand": [];
-}>();
+  select: [emoji: string]
+  'update:open': [value: boolean]
+  'toggle-raise-hand': []
+}>()
 
 const reactionEmojis = [
-	"👍",
-	"👎",
-	"💖",
-	"🎉",
-	"😂",
-	"👏",
-	"🤔",
-	"😮",
-	"😢",
-	"😡",
-	"🤝",
-	"✨",
-	"🔥",
-	"💯",
-	"🙏",
-];
+  '👍',
+  '👎',
+  '💖',
+  '🎉',
+  '😂',
+  '👏',
+  '🤔',
+  '😮',
+  '😢',
+  '😡',
+  '🤝',
+  '✨',
+  '🔥',
+  '💯',
+  '🙏',
+]
 
-const handleReactionSelect = (emoji) => {
-	emit("select", emoji);
-};
+const handleReactionSelect = emoji => {
+  emit('select', emoji)
+}
 
 const handleRaiseHand = () => {
-	emit("toggle-raise-hand");
-	updateOpen(false);
-};
+  emit('toggle-raise-hand')
+  updateOpen(false)
+}
 
-const updateOpen = (value) => {
-	emit("update:open", value);
-};
+const updateOpen = value => {
+  emit('update:open', value)
+}
 </script>

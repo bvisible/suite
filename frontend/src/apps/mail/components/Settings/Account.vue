@@ -86,13 +86,13 @@
 <script setup lang="ts">
 import { computed, inject, ref } from 'vue'
 import {
-	Button,
-	Dialog,
-	ErrorMessage,
-	FormControl,
-	Switch,
-	createDocumentResource,
-	createResource,
+  Button,
+  Dialog,
+  ErrorMessage,
+  FormControl,
+  Switch,
+  createDocumentResource,
+  createResource,
 } from 'frappe-ui'
 
 import { raiseToast } from '@/apps/mail/utils'
@@ -108,56 +108,56 @@ const { identities, mailboxes, mailboxIds } = store
 
 // Outgoing settings now live on the active account's JMAP Account; backup_email
 // (Recovery) is still per-user on User Settings.
-const activeAccount = user.data?.accounts?.find((a) => a.id === store.accountId)
+const activeAccount = user.data?.accounts?.find(a => a.id === store.accountId)
 
 const jmapAccount = createDocumentResource({
-	doctype: 'JMAP Account',
-	name: activeAccount?.jmap_account,
+  doctype: 'JMAP Account',
+  name: activeAccount?.jmap_account,
 })
 
 const userSettings = createDocumentResource({
-	doctype: 'User Settings',
-	name: user.data?.user_settings,
+  doctype: 'User Settings',
+  name: user.data?.user_settings,
 })
 
 const createContactsAfterEmailSubmit = computed({
-	get: () => !!jmapAccount.doc.create_contacts_after_email_submit,
-	set: (val: boolean) => (jmapAccount.doc.create_contacts_after_email_submit = val ? 1 : 0),
+  get: () => !!jmapAccount.doc.create_contacts_after_email_submit,
+  set: (val: boolean) => (jmapAccount.doc.create_contacts_after_email_submit = val ? 1 : 0),
 })
 
 const destroyEmailAfterSubmit = computed({
-	get: () => !!jmapAccount.doc.destroy_email_after_submit,
-	set: (val: boolean) => (jmapAccount.doc.destroy_email_after_submit = val ? 1 : 0),
+  get: () => !!jmapAccount.doc.destroy_email_after_submit,
+  set: (val: boolean) => (jmapAccount.doc.destroy_email_after_submit = val ? 1 : 0),
 })
 
 const destroyNewsletterAfterSubmit = computed({
-	get: () => !!jmapAccount.doc.destroy_newsletter_after_submit,
-	set: (val: boolean) => (jmapAccount.doc.destroy_newsletter_after_submit = val ? 1 : 0),
+  get: () => !!jmapAccount.doc.destroy_newsletter_after_submit,
+  set: (val: boolean) => (jmapAccount.doc.destroy_newsletter_after_submit = val ? 1 : 0),
 })
 
 const enableScreening = computed({
-	get: () => !!jmapAccount.doc.enable_screening,
-	set: (val: boolean) => (jmapAccount.doc.enable_screening = val ? 1 : 0),
+  get: () => !!jmapAccount.doc.enable_screening,
+  set: (val: boolean) => (jmapAccount.doc.enable_screening = val ? 1 : 0),
 })
 
 const blockRemoteImages = computed({
-	get: () => !!jmapAccount.doc.block_remote_images,
-	set: (val: boolean) => (jmapAccount.doc.block_remote_images = val ? 1 : 0),
+  get: () => !!jmapAccount.doc.block_remote_images,
+  set: (val: boolean) => (jmapAccount.doc.block_remote_images = val ? 1 : 0),
 })
 
 const ON_MARK_AS_JUNK_OPTIONS = [
-	{
-		label: __("Move the sender's future emails to Junk automatically"),
-		value: "Junk Sender's Mail",
-	},
-	{ label: __('Ask whether to block the sender'), value: 'Ask to Block Sender' },
+  {
+    label: __("Move the sender's future emails to Junk automatically"),
+    value: "Junk Sender's Mail",
+  },
+  { label: __('Ask whether to block the sender'), value: 'Ask to Block Sender' },
 ]
 
 const accountDirty = computed(
-	() => JSON.stringify(jmapAccount.doc) !== JSON.stringify(jmapAccount.originalDoc),
+  () => JSON.stringify(jmapAccount.doc) !== JSON.stringify(jmapAccount.originalDoc)
 )
 const userDirty = computed(
-	() => JSON.stringify(userSettings.doc) !== JSON.stringify(userSettings.originalDoc),
+  () => JSON.stringify(userSettings.doc) !== JSON.stringify(userSettings.originalDoc)
 )
 const isDirty = computed(() => accountDirty.value || userDirty.value)
 const loading = computed(() => jmapAccount.get.loading || userSettings.get.loading)
@@ -166,55 +166,54 @@ const saving = computed(() => jmapAccount.save.loading || userSettings.save.load
 const showMoveToInbox = ref(false)
 
 const moveScreeningToInbox = createResource({
-	url: 'suite.mail.api.mail.move_screening_mails_to_inbox',
-	makeParams: () => ({ account: store.accountId }),
-	onSuccess: () => {
-		raiseToast(__('Unscreened messages moved to Inbox.'))
-		showMoveToInbox.value = false
-		mailboxes.reload()
-	},
+  url: 'suite.mail.api.mail.move_screening_mails_to_inbox',
+  makeParams: () => ({ account: store.accountId }),
+  onSuccess: () => {
+    raiseToast(__('Unscreened messages moved to Inbox.'))
+    showMoveToInbox.value = false
+    mailboxes.reload()
+  },
 })
 
 const moveToInboxOptions = computed(() => ({
-	title: __('Move unscreened messages?'),
-	message: __('Screening is off. Move the messages currently in the Screener to your Inbox?'),
-	actions: [
-		{
-			label: __('Move to Inbox'),
-			variant: 'solid',
-			onClick: () => moveScreeningToInbox.submit(),
-			loading: moveScreeningToInbox.loading,
-		},
-	],
+  title: __('Move unscreened messages?'),
+  message: __('Screening is off. Move the messages currently in the Screener to your Inbox?'),
+  actions: [
+    {
+      label: __('Move to Inbox'),
+      variant: 'solid',
+      onClick: () => moveScreeningToInbox.submit(),
+      loading: moveScreeningToInbox.loading,
+    },
+  ],
 }))
 
 const save = async () => {
-	let askMoveToInbox = false
-	if (accountDirty.value) {
-		const screeningChanged =
-			!!jmapAccount.doc.enable_screening !==
-			!!jmapAccount.originalDoc?.enable_screening
-		// Turning screening off leaves the already-screened mail in the Screening folder — offer to move
-		// it to the inbox (only worth asking when there's something there).
-		askMoveToInbox =
-			screeningChanged &&
-			!jmapAccount.doc.enable_screening &&
-			(mailboxes.data?.find((m: MailboxData) => m.id === mailboxIds.screener)
-				?.total_threads ?? 0) > 0
-		await jmapAccount.save.submit()
-		// Sync the shared user data so compose picks up the new default and the junk flow picks up
-		// the "on mark as junk" choice without a page reload (both read from user.data.accounts).
-		if (activeAccount) {
-			activeAccount.default_outgoing_email = jmapAccount.doc.default_outgoing_email
-			activeAccount.on_mark_as_junk = jmapAccount.doc.on_mark_as_junk
-			activeAccount.enable_screening = !!jmapAccount.doc.enable_screening
-			activeAccount.block_remote_images = !!jmapAccount.doc.block_remote_images
-		}
-		// Enabling screening creates the Screening folder server-side; reload so it shows up.
-		if (screeningChanged) mailboxes.reload()
-	}
-	if (userDirty.value) await userSettings.save.submit()
-	raiseToast(__('Account updated.'))
-	if (askMoveToInbox) showMoveToInbox.value = true
+  let askMoveToInbox = false
+  if (accountDirty.value) {
+    const screeningChanged =
+      !!jmapAccount.doc.enable_screening !== !!jmapAccount.originalDoc?.enable_screening
+    // Turning screening off leaves the already-screened mail in the Screening folder — offer to move
+    // it to the inbox (only worth asking when there's something there).
+    askMoveToInbox =
+      screeningChanged &&
+      !jmapAccount.doc.enable_screening &&
+      (mailboxes.data?.find((m: MailboxData) => m.id === mailboxIds.screener)?.total_threads ?? 0) >
+        0
+    await jmapAccount.save.submit()
+    // Sync the shared user data so compose picks up the new default and the junk flow picks up
+    // the "on mark as junk" choice without a page reload (both read from user.data.accounts).
+    if (activeAccount) {
+      activeAccount.default_outgoing_email = jmapAccount.doc.default_outgoing_email
+      activeAccount.on_mark_as_junk = jmapAccount.doc.on_mark_as_junk
+      activeAccount.enable_screening = !!jmapAccount.doc.enable_screening
+      activeAccount.block_remote_images = !!jmapAccount.doc.block_remote_images
+    }
+    // Enabling screening creates the Screening folder server-side; reload so it shows up.
+    if (screeningChanged) mailboxes.reload()
+  }
+  if (userDirty.value) await userSettings.save.submit()
+  raiseToast(__('Account updated.'))
+  if (askMoveToInbox) showMoveToInbox.value = true
 }
 </script>

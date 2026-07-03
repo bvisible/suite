@@ -28,34 +28,34 @@ const { mail } = defineProps<{ mail: Mail }>()
 const recipients = computed(() => getGroupedRecipients(mail.recipients, true, true))
 
 const FIELDS = [
-	{
-		condition: mail.reply_to.length > 0,
-		label: __('Reply To: '),
-		value: () => mail.reply_to.map((rt) => rt.email).join(', '),
-	},
-	{
-		label: __('To: '),
-		value: () => recipients.value.to,
-		condition: () => !!recipients.value.to,
-	},
-	{
-		condition: !!recipients.value.cc,
-		label: __('Cc: '),
-		value: () => recipients.value.cc,
-	},
-	{
-		condition: !!recipients.value.bcc,
-		label: __('Bcc: '),
-		value: () => recipients.value.bcc,
-	},
-	{
-		label: __('Date: '),
-		value: () => dayjs(mail.received_at).format('MMM D, YYYY, h:mm A'),
-	},
-	{
-		condition: !!mail.subject,
-		label: __('Subject: '),
-		value: () => mail.subject,
-	},
-].filter((field) => field.condition !== false)
+  {
+    condition: mail.reply_to.length > 0,
+    label: __('Reply To: '),
+    value: () => mail.reply_to.map(rt => rt.email).join(', '),
+  },
+  {
+    label: __('To: '),
+    value: () => recipients.value.to,
+    condition: () => !!recipients.value.to,
+  },
+  {
+    condition: !!recipients.value.cc,
+    label: __('Cc: '),
+    value: () => recipients.value.cc,
+  },
+  {
+    condition: !!recipients.value.bcc,
+    label: __('Bcc: '),
+    value: () => recipients.value.bcc,
+  },
+  {
+    label: __('Date: '),
+    value: () => dayjs(mail.received_at).format('MMM D, YYYY, h:mm A'),
+  },
+  {
+    condition: !!mail.subject,
+    label: __('Subject: '),
+    value: () => mail.subject,
+  },
+].filter(field => field.condition !== false)
 </script>

@@ -32,12 +32,12 @@ const showSecret = ref(false)
 const apiSecret = ref('')
 
 const generateKeys = createResource({
-	url: 'suite.mail.utils.user.generate_user_keys',
-	makeParams: () => ({ user: user.data?.name }),
-	onSuccess: (data) => {
-		if (!user.data?.api_key) user.reload()
-		apiSecret.value = data.api_secret
-		showSecret.value = true
-	},
+  url: 'suite.mail.utils.user.generate_user_keys',
+  makeParams: () => ({ user: user.data?.name }),
+  onSuccess: data => {
+    if (!user.data?.api_key) user.reload()
+    apiSecret.value = data.api_secret
+    showSecret.value = true
+  },
 })
 </script>

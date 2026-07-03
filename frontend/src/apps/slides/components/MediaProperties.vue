@@ -75,38 +75,38 @@ const setPropertyDeferred = inject('setPropertyDeferred')
 
 const borderStyles = ['none', 'solid', 'dashed', 'dotted']
 
-const addBorder = (style) => {
-	activeElement.value.borderStyle = style
-	if (style != 'none') {
-		activeElement.value.borderWidth = 0.5
-		activeElement.value.borderColor = '#d2d2d2ff'
-		activeElement.value.borderRadius = 10
-	} else {
-		activeElement.value.borderWidth = 0
-		activeElement.value.borderColor = ''
-		activeElement.value.borderRadius = 0
-	}
+const addBorder = style => {
+  activeElement.value.borderStyle = style
+  if (style != 'none') {
+    activeElement.value.borderWidth = 0.5
+    activeElement.value.borderColor = '#d2d2d2ff'
+    activeElement.value.borderRadius = 10
+  } else {
+    activeElement.value.borderWidth = 0
+    activeElement.value.borderColor = ''
+    activeElement.value.borderRadius = 0
+  }
 }
 
-const getTabClasses = (style) => {
-	const baseClasses = 'flex h-full w-1/6 cursor-pointer items-center justify-center rounded'
-	if (activeElement.value.borderStyle == style) {
-		return `${baseClasses} bg-white shadow`
-	}
-	return baseClasses
+const getTabClasses = style => {
+  const baseClasses = 'flex h-full w-1/6 cursor-pointer items-center justify-center rounded'
+  if (activeElement.value.borderStyle == style) {
+    return `${baseClasses} bg-white shadow`
+  }
+  return baseClasses
 }
 
-const getTabIconClasses = (style) => {
-	const isActive = activeElement.value.borderStyle == style
-	if (style == 'none') {
-		return `size-4 ${isActive ? 'text-gray-800' : 'text-gray-500'}`
-	} else {
-		return `h-4 w-5 rounded-sm border ${isActive ? 'border-gray-800' : 'border-gray-500'}`
-	}
+const getTabIconClasses = style => {
+  const isActive = activeElement.value.borderStyle == style
+  if (style == 'none') {
+    return `size-4 ${isActive ? 'text-gray-800' : 'text-gray-500'}`
+  } else {
+    return `h-4 w-5 rounded-sm border ${isActive ? 'border-gray-800' : 'border-gray-500'}`
+  }
 }
 
 const { onStart: onBorderColorUpdateStart, onEnd: onBorderColorUpdateEnd } = setPropertyDeferred(
-	'element',
-	'borderColor',
+  'element',
+  'borderColor'
 )
 </script>

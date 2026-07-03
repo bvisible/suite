@@ -186,11 +186,11 @@ const handleSelectorMove = (ev: MouseEvent) => {
   document.addEventListener('mousemove', mouseMove)
   document.addEventListener(
     'mouseup',
-    (mouseUpEvent) => {
+    mouseUpEvent => {
       document.removeEventListener('mousemove', mouseMove)
       mouseUpEvent.preventDefault()
     },
-    { once: true },
+    { once: true }
   )
 }
 
@@ -203,11 +203,11 @@ const handleHueSelectorMove = (ev: MouseEvent) => {
   document.addEventListener('mousemove', mouseMove)
   document.addEventListener(
     'mouseup',
-    (mouseUpEvent) => {
+    mouseUpEvent => {
       document.removeEventListener('mousemove', mouseMove)
       mouseUpEvent.preventDefault()
     },
-    { once: true },
+    { once: true }
   )
 }
 
@@ -267,10 +267,10 @@ watch(sRGBHex, () => {
 
 watch(
   () => props.modelValue,
-  (color) => {
+  color => {
     if (color === currentColor) return
     setSelectorPosition(getRGB(color))
   },
-  { immediate: true },
+  { immediate: true }
 )
 </script>

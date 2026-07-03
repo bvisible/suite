@@ -14,13 +14,13 @@ import MailImportSettings from '@/apps/mail/components/Settings/MailImportSettin
 const activeType = ref('mail')
 
 const typeButtons = [
-	{ label: __('Mail'), value: 'mail' },
-	{ label: __('Calendar'), value: 'calendar' },
+  { label: __('Mail'), value: 'mail' },
+  { label: __('Calendar'), value: 'calendar' },
 ]
 
 const components: Record<string, Component> = {
-	mail: markRaw(MailImportSettings),
-	calendar: markRaw(CalendarImportSettings),
+  mail: markRaw(MailImportSettings),
+  calendar: markRaw(CalendarImportSettings),
 }
 
 const activeComponent = computed(() => components[activeType.value])

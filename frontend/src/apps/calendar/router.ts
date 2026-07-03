@@ -23,40 +23,40 @@ export const router = suiteRouter
 type Params = Record<string, string | string[]>
 
 const resolveShortcut = (
-	name: string | symbol | null | undefined,
-	params: Params,
-	accountId: string,
+  name: string | symbol | null | undefined,
+  params: Params,
+  accountId: string
 ) => {
-	const defaultRoute = { name: 'calendar-month', params: { accountId } }
+  const defaultRoute = { name: 'calendar-month', params: { accountId } }
 
-	switch (name) {
-		case 'calendar-month-shortcut':
-			return { name: 'calendar-month', params: { accountId, ...params } }
-		case 'calendar-week-shortcut':
-			return { name: 'calendar-week', params: { accountId, ...params } }
-		case 'calendar-day-shortcut':
-			return { name: 'calendar-day', params: { accountId, ...params } }
-		default:
-			return defaultRoute
-	}
+  switch (name) {
+    case 'calendar-month-shortcut':
+      return { name: 'calendar-month', params: { accountId, ...params } }
+    case 'calendar-week-shortcut':
+      return { name: 'calendar-week', params: { accountId, ...params } }
+    case 'calendar-day-shortcut':
+      return { name: 'calendar-day', params: { accountId, ...params } }
+    default:
+      return defaultRoute
+  }
 }
 
 function installCalendarGuard(r: Router) {
-	r.beforeEach(async (to: RouteLocationNormalized) => {
-		// Only act on calendar routes; let the suite handle everything else.
-		if (typeof to.name !== 'string' || !to.name.startsWith('calendar-')) return
+  r.beforeEach(async (to: RouteLocationNormalized) => {
+    // Only act on calendar routes; let the suite handle everything else.
+    if (typeof to.name !== 'string' || !to.name.startsWith('calendar-')) return
 
-		// Wait for user data, then resolve the active account.
-		const store = userStore()
-		await store.userResource.promise
-		const user = store.userResource.data
+    // Wait for user data, then resolve the active account.
+    const store = userStore()
+    await store.userResource.promise
+    const user = store.userResource.data
 
-		store.resolveAccount(user?.accounts, to.params.accountId as string | undefined)
-		const accountId = store.accountId
+    store.resolveAccount(user?.accounts, to.params.accountId as string | undefined)
+    const accountId = store.accountId
 
-		// Expand shortcut routes to their full account-scoped equivalents.
-		if (to.meta.shortcut) return resolveShortcut(to.name, to.params, accountId)
-	})
+    // Expand shortcut routes to their full account-scoped equivalents.
+    if (to.meta.shortcut) return resolveShortcut(to.name, to.params, accountId)
+  })
 }
 
 installCalendarGuard(router)

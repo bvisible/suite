@@ -66,22 +66,27 @@ export function createCondFormatEngine() {
   // ── Condition evaluation (legacy rules) ────────────────────────────────────
 
   function _testCondition(cond, rawVal, getCellValue) {
-    if (cond.type === 'empty')    return rawVal === '' || rawVal == null
+    if (cond.type === 'empty') return rawVal === '' || rawVal == null
     if (cond.type === 'notempty') return rawVal !== '' && rawVal != null
     if (cond.type === 'formula') {
-      try { return !!getCellValue?.(cond.value) } catch { return false }
+      try {
+        return !!getCellValue?.(cond.value)
+      } catch {
+        return false
+      }
     }
     const s = String(rawVal ?? '')
-    if (cond.type === 'contains')    return s.toLowerCase().includes(String(cond.value).toLowerCase())
-    if (cond.type === 'notcontains') return !s.toLowerCase().includes(String(cond.value).toLowerCase())
+    if (cond.type === 'contains') return s.toLowerCase().includes(String(cond.value).toLowerCase())
+    if (cond.type === 'notcontains')
+      return !s.toLowerCase().includes(String(cond.value).toLowerCase())
     const n = parseFloat(rawVal)
     const v = parseFloat(cond.value)
     if (isNaN(n) || isNaN(v)) return false
-    if (cond.type === 'gt')  return n > v
-    if (cond.type === 'lt')  return n < v
+    if (cond.type === 'gt') return n > v
+    if (cond.type === 'lt') return n < v
     if (cond.type === 'gte') return n >= v
     if (cond.type === 'lte') return n <= v
-    if (cond.type === 'eq')  return n === v
+    if (cond.type === 'eq') return n === v
     if (cond.type === 'neq') return n !== v
     if (cond.type === 'between') return n >= v && n <= parseFloat(cond.value2)
     return false
@@ -94,15 +99,19 @@ export function createCondFormatEngine() {
   // per visible cell, so without memoisation a 1000-cell range would scan
   // itself a thousand times per render. Cache is cleared by `_invalidate`.
 
-  const _statsCache = new Map()  // key = `${sheet}|${ruleId}` → { min, max, sum }
+  const _statsCache = new Map() // key = `${sheet}|${ruleId}` → { min, max, sum }
 
-  function _invalidateStats() { _statsCache.clear() }
+  function _invalidateStats() {
+    _statsCache.clear()
+  }
 
   function _rangeStats(rule, sheet, getCellValue) {
     const key = `${sheet}|${rule.id}`
     if (_statsCache.has(key)) return _statsCache.get(key)
     const { r0, c0, r1, c1 } = rule.range
-    let min = Infinity, max = -Infinity, count = 0
+    let min = Infinity,
+      max = -Infinity,
+      count = 0
     for (let r = r0; r <= r1; r++) {
       for (let c = c0; c <= c1; c++) {
         const v = getCellValue?.(cellId(r, c))
@@ -113,9 +122,7 @@ export function createCondFormatEngine() {
         count++
       }
     }
-    const out = count
-      ? { min, max, count }
-      : { min: 0, max: 0, count: 0 }
+    const out = count ? { min, max, count } : { min: 0, max: 0, count: 0 }
     _statsCache.set(key, out)
     return out
   }
@@ -128,16 +135,17 @@ export function createCondFormatEngine() {
       // No gradient possible — leave the cell unstyled.
       return null
     }
-    const t = (n - stats.min) / (stats.max - stats.min)   // [0..1]
+    const t = (n - stats.min) / (stats.max - stats.min) // [0..1]
     const s = rule.scale || {}
     if (s.variant === '3color') {
       const mid = s.midPercent ?? 0.5
-      const lo  = s.minColor || '#ffffff'
-      const md  = s.midColor || '#ffeb3b'
-      const hi  = s.maxColor || '#4caf50'
-      const c = t <= mid
-        ? _interp(lo, md, mid === 0 ? 0 : t / mid)
-        : _interp(md, hi, mid === 1 ? 1 : (t - mid) / (1 - mid))
+      const lo = s.minColor || '#ffffff'
+      const md = s.midColor || '#ffeb3b'
+      const hi = s.maxColor || '#4caf50'
+      const c =
+        t <= mid
+          ? _interp(lo, md, mid === 0 ? 0 : t / mid)
+          : _interp(md, hi, mid === 1 ? 1 : (t - mid) / (1 - mid))
       return { backgroundColor: c }
     }
     // 2-color
@@ -156,10 +164,10 @@ export function createCondFormatEngine() {
     const t = Math.max(0, Math.min(1, (n - stats.min) / span))
     return {
       dataBar: {
-        value:         t,
-        color:         rule.bar?.color || '#0E7490',
+        value: t,
+        color: rule.bar?.color || '#0E7490',
         negativeColor: rule.bar?.negativeColor || '#dc2626',
-        negative:      n < 0,
+        negative: n < 0,
       },
     }
   }
@@ -180,19 +188,19 @@ export function createCondFormatEngine() {
     // Set-specific palettes + shape codes. The painter knows how to draw each
     // `shape` value — see canvas/painters/cell-painter.js.
     if (set === 'arrows3') {
-      if (bucket === 'low')  return { shape: 'arrow-down',  color: '#dc2626' }
-      if (bucket === 'mid')  return { shape: 'arrow-right', color: '#737373' }
-      return                       { shape: 'arrow-up',    color: '#16a34a' }
+      if (bucket === 'low') return { shape: 'arrow-down', color: '#dc2626' }
+      if (bucket === 'mid') return { shape: 'arrow-right', color: '#737373' }
+      return { shape: 'arrow-up', color: '#16a34a' }
     }
     if (set === 'traffic3') {
-      if (bucket === 'low')  return { shape: 'circle', color: '#dc2626' }
-      if (bucket === 'mid')  return { shape: 'circle', color: '#f59e0b' }
-      return                       { shape: 'circle', color: '#16a34a' }
+      if (bucket === 'low') return { shape: 'circle', color: '#dc2626' }
+      if (bucket === 'mid') return { shape: 'circle', color: '#f59e0b' }
+      return { shape: 'circle', color: '#16a34a' }
     }
     // circles3 — filled / half / empty visual hierarchy in one neutral colour
-    if (bucket === 'low')  return { shape: 'circle-empty', color: '#737373' }
-    if (bucket === 'mid')  return { shape: 'circle-half',  color: '#737373' }
-    return                       { shape: 'circle-full',  color: '#737373' }
+    if (bucket === 'low') return { shape: 'circle-empty', color: '#737373' }
+    if (bucket === 'mid') return { shape: 'circle-half', color: '#737373' }
+    return { shape: 'circle-full', color: '#737373' }
   }
 
   // ── Public format-override entry point ─────────────────────────────────────
@@ -235,8 +243,10 @@ export function createCondFormatEngine() {
   // Duplicate any rules that overlap srcRect into destRect (used by copy-paste).
   function addRulesForRange(srcRect, destRect, sheet = 'Sheet1') {
     const rules = store[sheet] || []
-    const overlapping = rules.filter(({ range: { r0, c0, r1, c1 } }) =>
-      r0 <= srcRect.r1 && r1 >= srcRect.r0 && c0 <= srcRect.c1 && c1 >= srcRect.c0)
+    const overlapping = rules.filter(
+      ({ range: { r0, c0, r1, c1 } }) =>
+        r0 <= srcRect.r1 && r1 >= srcRect.r0 && c0 <= srcRect.c1 && c1 >= srcRect.c0
+    )
     for (const rule of overlapping) {
       const clone = deepClone(rule)
       clone.range = { ...destRect }
@@ -253,8 +263,10 @@ export function createCondFormatEngine() {
       const { r0, c0, r1, c1 } = rule.range
       if (r0 > srcRect.r1 || r1 < srcRect.r0 || c0 > srcRect.c1 || c1 < srcRect.c0) continue
       rule.range = {
-        r0: Math.min(r0, newTotal.r0), c0: Math.min(c0, newTotal.c0),
-        r1: Math.max(r1, newTotal.r1), c1: Math.max(c1, newTotal.c1),
+        r0: Math.min(r0, newTotal.r0),
+        c0: Math.min(c0, newTotal.c0),
+        r1: Math.max(r1, newTotal.r1),
+        c1: Math.max(c1, newTotal.c1),
       }
     }
     _invalidateStats()
@@ -267,21 +279,23 @@ export function createCondFormatEngine() {
       const { r0, c0, r1, c1 } = rule.range
       if (!pred(r0, c0, r1, c1)) continue
       rule.range = {
-        r0: r0 + rowDelta, c0: c0 + colDelta,
-        r1: r1 + rowDelta, c1: c1 + colDelta,
+        r0: r0 + rowDelta,
+        c0: c0 + colDelta,
+        r1: r1 + rowDelta,
+        c1: c1 + colDelta,
       }
     }
     _invalidateStats()
   }
 
   function insertRow(atRow, sheet = 'Sheet1') {
-    _shiftRules(sheet, 1, 0, (r0) => r0 >= atRow)
+    _shiftRules(sheet, 1, 0, r0 => r0 >= atRow)
   }
 
   function deleteRow(atRow, sheet = 'Sheet1') {
     if (!store[sheet]) return
     store[sheet] = store[sheet].filter(r => !(r.range.r0 === atRow && r.range.r1 === atRow))
-    _shiftRules(sheet, -1, 0, (r0) => r0 > atRow)
+    _shiftRules(sheet, -1, 0, r0 => r0 > atRow)
   }
 
   function insertCol(atCol, sheet = 'Sheet1') {
@@ -306,9 +320,14 @@ export function createCondFormatEngine() {
     store[newName] = deepClone(store[srcName] || [])
   }
 
-  function deleteSheet(name) { delete store[name]; _invalidateStats() }
+  function deleteSheet(name) {
+    delete store[name]
+    _invalidateStats()
+  }
 
-  function snapshot() { return deepClone(store) }
+  function snapshot() {
+    return deepClone(store)
+  }
 
   function restore(snap) {
     for (const k of Object.keys(store)) delete store[k]
@@ -318,14 +337,28 @@ export function createCondFormatEngine() {
 
   // Public hook so the SheetEditor can invalidate stats when cell data
   // changes outside of a rule mutation (e.g. paste, fill, formula recalc).
-  function invalidate() { _invalidateStats() }
+  function invalidate() {
+    _invalidateStats()
+  }
 
   return {
-    getRules, addRule, updateRule, removeRule, getFormatOverride,
-    addRulesForRange, extendRulesToRange,
-    insertRow, deleteRow, insertCol, deleteCol,
-    renameSheet, duplicateSheet, deleteSheet,
-    snapshot, restore, invalidate,
+    getRules,
+    addRule,
+    updateRule,
+    removeRule,
+    getFormatOverride,
+    addRulesForRange,
+    extendRulesToRange,
+    insertRow,
+    deleteRow,
+    insertCol,
+    deleteCol,
+    renameSheet,
+    duplicateSheet,
+    deleteSheet,
+    snapshot,
+    restore,
+    invalidate,
   }
 }
 
@@ -358,6 +391,9 @@ function _hexToRgb(hex) {
 }
 
 function _rgbToHex({ r, g, b }) {
-  const c = (v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')
+  const c = v =>
+    Math.max(0, Math.min(255, Math.round(v)))
+      .toString(16)
+      .padStart(2, '0')
   return `#${c(r)}${c(g)}${c(b)}`
 }

@@ -81,12 +81,12 @@ const local = reactive({
     current.value.marginBottom,
     props.settings.paragraph_spacing_above,
     current.value.marginTop,
-    props.settings.paragraph_spacing_above || 0,
+    props.settings.paragraph_spacing_above || 0
   ),
   spacingBefore: parsePx(current.value.marginTop, props.settings.paragraph_spacing_below || 0),
 })
 
-watch(current, (cur) => {
+watch(current, cur => {
   local.lineHeight = cur.lineHeight ? +cur.lineHeight : props.settings.line_height
   local.spacingAfter = parsePx(cur.spacingAfter, props.settings.paragraph_spacing_after || 0)
   local.spacingBefore = parsePx(cur.spacingBefore, props.settings.paragraph_spacing_before || 0)

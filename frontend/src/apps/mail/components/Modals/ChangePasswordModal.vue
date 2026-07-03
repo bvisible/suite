@@ -42,37 +42,37 @@ const newPassword = ref('')
 const confirmPassword = ref('')
 
 const errorMessage = computed(() =>
-	confirmPassword.value && confirmPassword.value !== newPassword.value
-		? __('Passwords do not match')
-		: updatePassword.error,
+  confirmPassword.value && confirmPassword.value !== newPassword.value
+    ? __('Passwords do not match')
+    : updatePassword.error
 )
 
 const dialogOptions = computed(() => ({
-	title: __('Change Password'),
-	actions: [
-		{
-			label: __('Confirm'),
-			variant: 'solid',
-			onClick: () => updatePassword.submit(),
-			disabled:
-				!(currentPassword.value.length && newPassword.value.length) ||
-				confirmPassword.value !== newPassword.value,
-		},
-	],
+  title: __('Change Password'),
+  actions: [
+    {
+      label: __('Confirm'),
+      variant: 'solid',
+      onClick: () => updatePassword.submit(),
+      disabled:
+        !(currentPassword.value.length && newPassword.value.length) ||
+        confirmPassword.value !== newPassword.value,
+    },
+  ],
 }))
 
 const updatePassword = createResource({
-	url: 'frappe.core.doctype.user.user.update_password',
-	makeParams: () => ({ old_password: currentPassword.value, new_password: newPassword.value }),
-	onSuccess: () => {
-		show.value = false
-		raiseToast(__('Password updated.'))
-	},
+  url: 'frappe.core.doctype.user.user.update_password',
+  makeParams: () => ({ old_password: currentPassword.value, new_password: newPassword.value }),
+  onSuccess: () => {
+    show.value = false
+    raiseToast(__('Password updated.'))
+  },
 })
 
 watch(show, () => {
-	currentPassword.value = ''
-	newPassword.value = ''
-	confirmPassword.value = ''
+  currentPassword.value = ''
+  newPassword.value = ''
+  confirmPassword.value = ''
 })
 </script>

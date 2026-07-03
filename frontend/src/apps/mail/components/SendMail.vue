@@ -41,17 +41,13 @@ const { isMobile } = useScreenSize()
 const editor = useTemplateRef('composeMailEditor')
 
 const handleKeydown = (e: KeyboardEvent) => {
-	if (show.value && e.key === 'c' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) {
-		const target = e.target as HTMLElement
-		if (
-			target.tagName !== 'INPUT' &&
-			target.tagName !== 'TEXTAREA' &&
-			!target.isContentEditable
-		) {
-			e.preventDefault()
-			e.stopPropagation()
-		}
-	}
+  if (show.value && e.key === 'c' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) {
+    const target = e.target as HTMLElement
+    if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA' && !target.isContentEditable) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+  }
 }
 
 onMounted(() => window.addEventListener('keydown', handleKeydown, true))

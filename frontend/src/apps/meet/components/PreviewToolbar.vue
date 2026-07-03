@@ -75,39 +75,39 @@
 </template>
 
 <script setup lang="ts">
-import { Button } from "frappe-ui";
-import { usePlatform } from "../composables/usePlatform";
-import SettingsDialog from "./settings/SettingsDialog.vue";
+import { Button } from 'frappe-ui'
+import { usePlatform } from '../composables/usePlatform'
+import SettingsDialog from './settings/SettingsDialog.vue'
 
-const $platform = usePlatform();
+const $platform = usePlatform()
 
 defineProps({
-	isMicOn: {
-		type: Boolean,
-		required: true,
-	},
-	isCameraOn: {
-		type: Boolean,
-		required: true,
-	},
-	meetingId: {
-		type: String,
-		default: "",
-	},
-	cameraPermissionGranted: {
-		type: Boolean,
-		default: false,
-	},
-	microphonePermissionGranted: {
-		type: Boolean,
-		default: false,
-	},
-});
+  isMicOn: {
+    type: Boolean,
+    required: true,
+  },
+  isCameraOn: {
+    type: Boolean,
+    required: true,
+  },
+  meetingId: {
+    type: String,
+    default: '',
+  },
+  cameraPermissionGranted: {
+    type: Boolean,
+    default: false,
+  },
+  microphonePermissionGranted: {
+    type: Boolean,
+    default: false,
+  },
+})
 
-defineEmits(["toggle-microphone", "toggle-camera", "device-changed"]);
+defineEmits(['toggle-microphone', 'toggle-camera', 'device-changed'])
 
 const showSettingsDialog = defineModel({
-	type: Boolean,
-	default: false,
-});
+  type: Boolean,
+  default: false,
+})
 </script>

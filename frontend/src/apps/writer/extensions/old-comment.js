@@ -14,8 +14,8 @@ const CommentExtension = Mark.create({
     return {
       commentId: {
         default: null,
-        parseHTML: (el) => el.getAttribute('data-comment-id'),
-        renderHTML: (attrs) => ({ 'data-comment-id': attrs.commentId }),
+        parseHTML: el => el.getAttribute('data-comment-id'),
+        renderHTML: attrs => ({ 'data-comment-id': attrs.commentId }),
       },
     }
   },
@@ -24,7 +24,7 @@ const CommentExtension = Mark.create({
     return [
       {
         tag: 'span[data-comment-id]',
-        getAttrs: (el) => !!el.getAttribute('data-comment-id')?.trim() && null,
+        getAttrs: el => !!el.getAttribute('data-comment-id')?.trim() && null,
       },
     ]
   },
@@ -46,7 +46,7 @@ const CommentExtension = Mark.create({
 
     const commentMark = this.editor.schema.marks.comment
 
-    const activeCommentMark = marks.find((mark) => mark.type === commentMark)
+    const activeCommentMark = marks.find(mark => mark.type === commentMark)
 
     this.storage.activeCommentId = activeCommentMark?.attrs.commentId || null
 
@@ -62,14 +62,14 @@ const CommentExtension = Mark.create({
   addCommands() {
     return {
       setComment:
-        (commentId) =>
+        commentId =>
         ({ commands }) => {
           if (!commentId) return false
 
           commands.setMark('comment', { commentId })
         },
       unsetComment:
-        (commentId) =>
+        commentId =>
         ({ tr, dispatch }) => {
           if (!commentId) return false
 
@@ -77,7 +77,7 @@ const CommentExtension = Mark.create({
 
           tr.doc.descendants((node, pos) => {
             const commentMark = node.marks.find(
-              (mark) => mark.type.name === 'comment' && mark.attrs.commentId === commentId,
+              mark => mark.type.name === 'comment' && mark.attrs.commentId === commentId
             )
 
             if (!commentMark) return
@@ -107,8 +107,8 @@ export default CommentExtension.extend({
       ...this.parent?.(),
       resolved: {
         default: false,
-        parseHTML: (el) => el.hasAttribute('data-resolved'),
-        renderHTML: (attrs) => (attrs.resolved ? { 'data-resolved': 'true' } : {}),
+        parseHTML: el => el.hasAttribute('data-resolved'),
+        renderHTML: attrs => (attrs.resolved ? { 'data-resolved': 'true' } : {}),
       },
     }
   },
@@ -124,7 +124,7 @@ export default CommentExtension.extend({
 
           doc.descendants((node, pos) => {
             if (!node.isText) return true
-            node.marks.forEach((mark) => {
+            node.marks.forEach(mark => {
               if (mark.type === markType && mark.attrs.commentId === commentId) {
                 const updatedMark = markType.create({
                   ...mark.attrs,

@@ -28,36 +28,42 @@ import { computed } from 'vue'
 import { Dialog } from 'frappe-ui'
 
 const props = defineProps({
-	modelValue: { type: Boolean, default: false },
-	cellRef:    { type: String,  default: '' },
-	entries:    { type: Array,   default: () => [] },
-	loading:    { type: Boolean, default: false },
-	error:      { type: String,  default: '' },
+  modelValue: { type: Boolean, default: false },
+  cellRef: { type: String, default: '' },
+  entries: { type: Array, default: () => [] },
+  loading: { type: Boolean, default: false },
+  error: { type: String, default: '' },
 })
 const emit = defineEmits(['update:modelValue'])
 
 const model = computed({
-	get() { return props.modelValue },
-	set(v) { emit('update:modelValue', v) },
+  get() {
+    return props.modelValue
+  },
+  set(v) {
+    emit('update:modelValue', v)
+  },
 })
 
 function formatTimestamp(ts) {
-	if (!ts) return ''
-	const d = new Date(String(ts).replace(' ', 'T'))
-	return d.toLocaleString(undefined, {
-		month: 'short', day: 'numeric',
-		hour: 'numeric', minute: '2-digit',
-	})
+  if (!ts) return ''
+  const d = new Date(String(ts).replace(' ', 'T'))
+  return d.toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
 }
 
 function shortUser(u) {
-	if (!u) return ''
-	return u.includes('@') ? u.split('@')[0] : u
+  if (!u) return ''
+  return u.includes('@') ? u.split('@')[0] : u
 }
 
 function displayValue(v) {
-	if (v === null || v === undefined || v === '') return '(empty)'
-	return String(v)
+  if (v === null || v === undefined || v === '') return '(empty)'
+  return String(v)
 }
 </script>
 

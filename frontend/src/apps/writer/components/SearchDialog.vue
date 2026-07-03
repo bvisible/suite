@@ -85,9 +85,9 @@ const query = ref('')
 const searchResults = computed(() => {
   return search.data?.results ? search.data.results : []
 })
-watch(query, (v) => (v ? search.fetch({ query: v }) : (search.data.results = [])))
+watch(query, v => (v ? search.fetch({ query: v }) : (search.data.results = [])))
 const setDebouncedQuery = debounce(() => (query.value = searching.value), 500)
-watch(searching, (v) => (v ? setDebouncedQuery() : (query.value = '')))
+watch(searching, v => (v ? setDebouncedQuery() : (query.value = '')))
 </script>
 <style>
 mark {

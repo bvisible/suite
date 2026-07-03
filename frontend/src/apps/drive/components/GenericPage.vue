@@ -100,7 +100,7 @@ import LucideStar from '~icons/lucide/star'
 import LucideTrash from '~icons/lucide/trash'
 
 const props = defineProps({
-  grouper: { type: Function, default: (d) => d },
+  grouper: { type: Function, default: d => d },
   showSort: { type: Boolean, default: true },
   verify: { type: Object, default: null },
   icon: [Function, Object],
@@ -120,40 +120,38 @@ const team = ref(
 )
 watch(
   () => route.params.team,
-  (v) => {
+  v => {
     team.value = v || ''
   },
   { immediate: true }
 )
 
-const sortId = computed(
-  () => route.params.entityName || route.params.team || route.name
-)
+const sortId = computed(() => route.params.entityName || route.params.team || route.name)
 const inIframe = inject('inIframe')
 const DEFAULT_SORT = inIframe.value
   ? {
-    label: 'Name',
-    field: 'name',
-    ascending: true,
-  }
+      label: 'Name',
+      field: 'name',
+      ascending: true,
+    }
   : {
-    label: 'Modified',
-    field: 'modified',
-    ascending: false,
-  }
+      label: 'Modified',
+      field: 'modified',
+      ascending: false,
+    }
 const sortOrder = ref(getSortOrder(sortId.value) || DEFAULT_SORT)
 const search = ref('')
 const filters = ref([])
 
 const rows = ref(props.getEntities.data)
-watch(sortId, (id) => {
+watch(sortId, id => {
   const saved = getSortOrder(id)
   if (saved) sortOrder.value = saved
 })
 
 watch(
   sortOrder,
-  (order) => {
+  order => {
     rows.value = sortEntities([...rows.value], order)
     props.getEntities.setData(rows.value)
     if (sortId.value) {
@@ -163,23 +161,22 @@ watch(
   { deep: true }
 )
 
-watch(search, (val) => {
+watch(search, val => {
   const search = new RegExp(val, 'i')
-  rows.value = props.getEntities.data.filter((k) => search.test(k.file_name))
+  rows.value = props.getEntities.data.filter(k => search.test(k.file_name))
 })
 
 watch(
   () => filters.value,
-  (val) => {
+  val => {
     if (!val.length) {
       rows.value = props.getEntities.data
       return
     }
-    const file_types = val.map((k) => k.name)
-    const isFolder = file_types.find((k) => k === 'Folder')
+    const file_types = val.map(k => k.name)
+    const isFolder = file_types.find(k => k === 'Folder')
     rows.value = props.getEntities.data.filter(
-      ({ file_type, is_folder }) =>
-        file_types.includes(file_type) || (isFolder && is_folder)
+      ({ file_type, is_folder }) => file_types.includes(file_type) || (isFolder && is_folder)
     )
   },
   { deep: true }
@@ -187,11 +184,11 @@ watch(
 
 watch(
   () => props.getEntities.data,
-  (val) => {
+  val => {
     if (!val) return
     rows.value = sortEntities([...val], sortOrder.value)
     setCurrentFolder({
-      entities: rows.value.filter?.((k) => k.file_name?.[0] !== '.'),
+      entities: rows.value.filter?.(k => k.file_name?.[0] !== '.'),
     })
   },
   { immediate: true, deep: true }
@@ -199,10 +196,7 @@ watch(
 
 const selections = ref(new Set())
 const selectedEntitities = computed(
-  () =>
-    props.getEntities.data?.filter?.(({ name }) =>
-      selections.value.has(name)
-    ) || []
+  () => props.getEntities.data?.filter?.(({ name }) => selections.value.has(name)) || []
 )
 
 const verifyAccess = computed(() => props.verify?.data || !props.verify)
@@ -228,7 +222,7 @@ watch(
   { immediate: true, deep: false }
 )
 emitter.on('refresh', refreshData)
-emitter.on('remove-file', (item) => {
+emitter.on('remove-file', item => {
   selections.value.clear()
   selections.value.add(item)
   listDialog.value = 'remove'
@@ -238,15 +232,14 @@ if (!settings.fetched && useSessionStore().isLoggedIn) settings.fetch()
 
 // Drag and drop
 const removeFile = (file, target) => {
-  const removedIndex = props.getEntities.data.findIndex((k) => k.name === file)
+  const removedIndex = props.getEntities.data.findIndex(k => k.name === file)
   props.getEntities.data.splice(removedIndex, 1)
-  const targetRow = props.getEntities.data.find((k) => k.name === target)
+  const targetRow = props.getEntities.data.find(k => k.name === target)
   if (targetRow) targetRow.children += 1
   props.getEntities.setData(props.getEntities.data)
 }
 const onDrop = (targetFile, draggedItem) => {
-  if (!targetFile.is_folder || draggedItem === targetFile.name || !draggedItem)
-    return
+  if (!targetFile.is_folder || draggedItem === targetFile.name || !draggedItem) return
   move.submit({
     entity_names: [draggedItem],
     new_parent: targetFile.name,
@@ -274,26 +267,26 @@ const actionItems = computed(() => {
         multi: true,
         danger: true,
       },
-    ].filter((a) => !a.isEnabled || a.isEnabled())
+    ].filter(a => !a.isEnabled || a.isEnabled())
   } else {
     return [
       {
         label: __('Preview'),
         icon: LucideEye,
         action: ([entity]) => openEntity(entity),
-        isEnabled: (e) => e.file_type !== 'Link' && !isVirtual(e),
+        isEnabled: e => e.file_type !== 'Link' && !isVirtual(e),
       },
       {
         label: __('Open'),
         icon: LucideExternalLink,
         action: ([entity]) => openEntity(entity),
-        isEnabled: (e) => e.file_type === 'Link',
+        isEnabled: e => e.file_type === 'Link',
       },
       {
         label: __('Show Info'),
         icon: LucideInfo,
         action: () => (listDialog.value = 'i'),
-        isEnabled: (e) => !isVirtual(e),
+        isEnabled: e => !isVirtual(e),
       },
       {
         label: __('Copy Link'),
@@ -307,69 +300,65 @@ const actionItems = computed(() => {
         // Downloading is read-only, so it is safe for every real file regardless
         // of kind (parity with the file-preview navbar). Only virtual grouping
         // nodes and non-downloadable types are excluded.
-        isEnabled: (e) =>
-          !isVirtual(e) &&
-          !['Link', 'Presentation', 'Document'].includes(e.file_type),
-        action: (entities) => entitiesDownload(entities),
+        isEnabled: e =>
+          !isVirtual(e) && !['Link', 'Presentation', 'Document'].includes(e.file_type),
+        action: entities => entitiesDownload(entities),
         multi: true,
         important: true,
       },
       {
         divider: true,
-        isEnabled: (e) =>
-          isAttachmentRef(e) || (isSiteFile(e) && systemUser.value),
+        isEnabled: e => isAttachmentRef(e) || (isSiteFile(e) && systemUser.value),
       },
       {
         label: __('Go to original'),
         icon: LucideCornerLeftUp,
         action: ([entity]) => {
           window.open(
-            '/api/method/suite.drive.api.files.redirect_to_original?file_id=' +
-              entity.name,
+            '/api/method/suite.drive.api.files.redirect_to_original?file_id=' + entity.name,
             '_blank'
           )
         },
-        isEnabled: (e) => isAttachmentRef(e),
+        isEnabled: e => isAttachmentRef(e),
       },
       {
         label: __('Open in Desk'),
         icon: LucideMonitorCog,
-        action: ([entity]) =>
-          window.open('/desk/file/' + entity.name, '_blank'),
-        isEnabled: (e) => isSiteFile(e) && systemUser.value,
+        action: ([entity]) => window.open('/desk/file/' + entity.name, '_blank'),
+        isEnabled: e => isSiteFile(e) && systemUser.value,
       },
-      { divider: true, isEnabled: (e) => !e.external && !isVirtual(e) },
+      { divider: true, isEnabled: e => !e.external && !isVirtual(e) },
       {
         label: __('Share'),
         icon: LucideShare2,
         action: () => (listDialog.value = 's'),
-        isEnabled: (e) => e.share && isManaged(e),
+        isEnabled: e => e.share && isManaged(e),
         important: true,
       },
       {
         label: __('Rename'),
         icon: LucideSquarePen,
         action: () => (listDialog.value = 'rn'),
-        isEnabled: (e) => isManaged(e) && e.write,
+        isEnabled: e => isManaged(e) && e.write,
       },
       {
         label: __('Move'),
         icon: LucideArrowLeftRight,
         action: () => (listDialog.value = 'm'),
-        isEnabled: (e) => isManaged(e) && e.write,
+        isEnabled: e => isManaged(e) && e.write,
         multi: true,
         important: true,
       },
       {
         label: __('Favourite'),
         icon: LucideStar,
-        action: (entities) => {
-          entities.forEach((e) => (e.is_favourite = true))
+        action: entities => {
+          entities.forEach(e => (e.is_favourite = true))
           // Hack to cache
           props.getEntities.setData(props.getEntities.data)
           toggleFav.submit({ entities })
         },
-        isEnabled: (e) => !e.is_favourite && !e.external && !isVirtual(e),
+        isEnabled: e => !e.is_favourite && !e.external && !isVirtual(e),
         important: true,
         multi: true,
       },
@@ -377,19 +366,19 @@ const actionItems = computed(() => {
         label: __('Unfavourite'),
         icon: LucideStar,
         class: 'text-ink-amber-6 stroke-current fill-current',
-        action: (entities) => {
-          entities.forEach((e) => (e.is_favourite = false))
+        action: entities => {
+          entities.forEach(e => (e.is_favourite = false))
           props.getEntities.setData(props.getEntities.data)
           toggleFav.submit({ entities })
         },
-        isEnabled: (e) => e.is_favourite && !e.external && !isVirtual(e),
+        isEnabled: e => e.is_favourite && !e.external && !isVirtual(e),
         important: true,
         multi: true,
       },
       {
         label: __('Remove from Recents'),
         icon: LucideClock,
-        action: (entities) => {
+        action: entities => {
           clearRecent.submit({
             entities,
           })
@@ -398,12 +387,12 @@ const actionItems = computed(() => {
         important: true,
         multi: true,
       },
-      { divider: true, isEnabled: (e) => e.write },
+      { divider: true, isEnabled: e => e.write },
       {
         label: __('Delete'),
         icon: LucideTrash,
         action: () => (listDialog.value = 'remove'),
-        isEnabled: (e) => e.write,
+        isEnabled: e => e.write,
         important: true,
         multi: true,
         theme: 'red',
@@ -432,7 +421,7 @@ async function newLink() {
           },
         ],
       })
-  } catch { }
+  } catch {}
 }
 
 // JS doesn't allow direct reading of clipboard
@@ -446,7 +435,7 @@ const socket = inject('socket')
 socket.on('list-add', ({ file }) => {
   if (
     file.folder === props.getEntities.params.entity_name &&
-    !props.getEntities.data.find((k) => k.name === file.name)
+    !props.getEntities.data.find(k => k.name === file.name)
   ) {
     props.getEntities.data.push(...prettyData([file]))
     props.getEntities.setData(props.getEntities.data)
@@ -454,19 +443,18 @@ socket.on('list-add', ({ file }) => {
 })
 socket.on('list-update', ({ file }) => {
   if (file.folder !== props.getEntities.params.entity_name) return
-  const index = props.getEntities.data.findIndex((k) => k.name == file.name)
-  if (index !== -1)
-    props.getEntities.data.splice(index, 1, ...prettyData([file]))
+  const index = props.getEntities.data.findIndex(k => k.name == file.name)
+  if (index !== -1) props.getEntities.data.splice(index, 1, ...prettyData([file]))
   props.getEntities.setData(props.getEntities.data)
 })
 socket.on('list-remove', ({ parent, entity_name }) => {
   if (parent !== props.getEntities.params.entity_name) return
-  const index = props.getEntities.data.findIndex((k) => k.name == entity_name)
+  const index = props.getEntities.data.findIndex(k => k.name == entity_name)
   if (index !== -1) props.getEntities.data.splice(index, 1)
   props.getEntities.setData(props.getEntities.data)
 })
 socket.on('client-rename', ({ entity_name, title }) => {
-  const file = props.getEntities.data.find((k) => k.name === entity_name)
+  const file = props.getEntities.data.find(k => k.name === entity_name)
   file.file_name = title
 })
 </script>

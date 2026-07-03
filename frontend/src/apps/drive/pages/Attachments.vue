@@ -54,7 +54,7 @@ watch(
           name: docname,
           route: { name: route.name, params: { doctype, docname } },
         },
-      ].filter((k) => k.label),
+      ].filter(k => k.label)
     )
   },
   { immediate: true }

@@ -39,7 +39,7 @@ const route = useRoute()
 createTeam.submit(
   { personal: 1 },
   {
-    onSuccess: (data) => {
+    onSuccess: data => {
       if (data) window.location.replace(route.query['redirect-to'] || '/drive')
     },
   }

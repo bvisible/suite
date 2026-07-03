@@ -60,31 +60,33 @@ const ChartView = defineAsyncComponent(() => import('./ChartView.vue'))
 const props = defineProps({
   // List of all chart configs across all sheets — the overlay filters down
   // to the active sub-sheet itself.
-  charts:       { type: Array,  default: () => [] },
+  charts: { type: Array, default: () => [] },
   currentSheet: { type: String, required: true },
   // (sourceSheet, sourceRange) → 2D matrix. Caller-owned so it can pull from
   // the sheet engine and re-derive on cell edits.
-  getMatrix:    { type: Function, required: true },
+  getMatrix: { type: Function, required: true },
   // Bumps when the source data should be re-pulled — on refresh and on any
   // sheet cell edit, but NOT on drag/resize/scroll. Part of the matrix cache
   // key so position-only re-renders (drag/resize) reuse the cached matrix
   // instead of re-materialising it every frame, while edits refresh the chart.
-  dataVersion:  { type: Number, default: 0 },
-  selectedId:   { type: String, default: '' },
+  dataVersion: { type: Number, default: 0 },
+  selectedId: { type: String, default: '' },
   // When true the whole overlay is hidden (e.g. while the chart dialog is
   // open) — prevents the chart's z-indexed action toolbar from floating
   // over the dialog body.
-  suppressed:   { type: Boolean, default: false },
+  suppressed: { type: Boolean, default: false },
 })
 const emit = defineEmits(['select', 'edit', 'delete', 'refresh', 'move', 'resize'])
 
-const chartsForSheet = computed(() => props.charts.filter(c => c.position?.sheet === props.currentSheet))
+const chartsForSheet = computed(() =>
+  props.charts.filter(c => c.position?.sheet === props.currentSheet)
+)
 
 function _hostStyle(chart) {
   const p = chart.position || {}
   return {
     transform: `translate(${p.x || 0}px, ${p.y || 0}px)`,
-    width:  (p.width  || 480) + 'px',
+    width: (p.width || 480) + 'px',
     height: (p.height || 320) + 'px',
   }
 }
@@ -111,14 +113,14 @@ let _drag = null
 function _startDrag(chart, e) {
   emit('select', chart.id)
   _drag = {
-    id:     chart.id,
+    id: chart.id,
     startX: e.clientX,
     startY: e.clientY,
-    origX:  chart.position?.x || 0,
-    origY:  chart.position?.y || 0,
+    origX: chart.position?.x || 0,
+    origY: chart.position?.y || 0,
   }
   document.addEventListener('mousemove', _onDragMove)
-  document.addEventListener('mouseup',   _onDragEnd)
+  document.addEventListener('mouseup', _onDragEnd)
 }
 
 function _onDragMove(e) {
@@ -130,7 +132,7 @@ function _onDragMove(e) {
 
 function _onDragEnd() {
   document.removeEventListener('mousemove', _onDragMove)
-  document.removeEventListener('mouseup',   _onDragEnd)
+  document.removeEventListener('mouseup', _onDragEnd)
   _drag = null
 }
 
@@ -141,14 +143,14 @@ let _resize = null
 function _startResize(chart, e) {
   emit('select', chart.id)
   _resize = {
-    id:     chart.id,
+    id: chart.id,
     startX: e.clientX,
     startY: e.clientY,
-    origW:  chart.position?.width  || 480,
-    origH:  chart.position?.height || 320,
+    origW: chart.position?.width || 480,
+    origH: chart.position?.height || 320,
   }
   document.addEventListener('mousemove', _onResizeMove)
-  document.addEventListener('mouseup',   _onResizeEnd)
+  document.addEventListener('mouseup', _onResizeEnd)
 }
 
 function _onResizeMove(e) {
@@ -160,7 +162,7 @@ function _onResizeMove(e) {
 
 function _onResizeEnd() {
   document.removeEventListener('mousemove', _onResizeMove)
-  document.removeEventListener('mouseup',   _onResizeEnd)
+  document.removeEventListener('mouseup', _onResizeEnd)
   _resize = null
 }
 

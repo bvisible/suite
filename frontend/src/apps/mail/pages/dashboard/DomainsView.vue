@@ -58,17 +58,17 @@
 import { ref, watch } from 'vue'
 import { watchDebounced } from '@vueuse/core'
 import {
-	Badge,
-	FeatherIcon,
-	FormControl,
-	ListEmptyState,
-	ListHeader,
-	ListRow,
-	ListRowItem,
-	ListRows,
-	ListView,
-	createResource,
-	usePageMeta,
+  Badge,
+  FeatherIcon,
+  FormControl,
+  ListEmptyState,
+  ListHeader,
+  ListRow,
+  ListRowItem,
+  ListRows,
+  ListView,
+  createResource,
+  usePageMeta,
 } from 'frappe-ui'
 
 import dayjs from '@/apps/mail/utils/dayjs'
@@ -82,45 +82,45 @@ const search = ref('')
 const status = ref<'All' | 'Enabled' | 'Disabled'>('All')
 
 const domains = createResource({
-	url: 'suite.mail.api.admin.get_domains',
-	auto: true,
-	makeParams: () => ({
-		txt: search.value,
-		...(status.value !== 'All' ? { is_enabled: status.value === 'Enabled' } : {}),
-	}),
-	cache: ['mailDomains', search.value, status.value],
+  url: 'suite.mail.api.admin.get_domains',
+  auto: true,
+  makeParams: () => ({
+    txt: search.value,
+    ...(status.value !== 'All' ? { is_enabled: status.value === 'Enabled' } : {}),
+  }),
+  cache: ['mailDomains', search.value, status.value],
 })
 
 watchDebounced(() => search.value, domains.reload, { debounce: 300 })
 watch(() => status.value, domains.reload)
 
 type DomainRow = {
-	id: string
-	name: string
-	description?: string
-	is_enabled: boolean
-	created_at?: string
+  id: string
+  name: string
+  description?: string
+  is_enabled: boolean
+  created_at?: string
 }
 
 const LIST_COLUMNS = [
-	{ label: __('Domain'), key: 'name' },
-	{ label: __('Description'), key: 'description' },
-	{ label: __('Status'), key: 'is_enabled' },
-	{ label: __('Created At'), key: 'created_at' },
+  { label: __('Domain'), key: 'name' },
+  { label: __('Description'), key: 'description' },
+  { label: __('Status'), key: 'is_enabled' },
+  { label: __('Created At'), key: 'created_at' },
 ]
 
 const LIST_OPTIONS = {
-	selectable: false,
-	showTooltip: false,
-	emptyState: { description: __('No domains found.') },
-	getRowRoute: (row: DomainRow) => ({ name: 'mail-domain', params: { domainId: row.id } }),
+  selectable: false,
+  showTooltip: false,
+  emptyState: { description: __('No domains found.') },
+  getRowRoute: (row: DomainRow) => ({ name: 'mail-domain', params: { domainId: row.id } }),
 }
 
 const formatCreatedAt = (createdAt?: string) => (createdAt ? dayjs(createdAt).fromNow() : '-')
 
 const STATUS_OPTIONS = [
-	{ label: __('All'), value: 'All' },
-	{ label: __('Enabled'), value: 'Enabled' },
-	{ label: __('Disabled'), value: 'Disabled' },
+  { label: __('All'), value: 'All' },
+  { label: __('Enabled'), value: 'Enabled' },
+  { label: __('Disabled'), value: 'Disabled' },
 ]
 </script>

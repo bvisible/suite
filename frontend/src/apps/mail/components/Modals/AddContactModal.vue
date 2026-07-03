@@ -60,34 +60,34 @@ const show = defineModel<boolean>()
 const store = userStore()
 const router = useRouter()
 
-const defaultAddressBook = store.addressBooks.data.find((ab) => ab.default)?.id
+const defaultAddressBook = store.addressBooks.data.find(ab => ab.default)?.id
 
 const defaultContact = {
-	account: store.accountId,
-	address_book_ids: defaultAddressBook ? [defaultAddressBook] : [],
-	full_name: '',
-	kind: 'Individual',
+  account: store.accountId,
+  address_book_ids: defaultAddressBook ? [defaultAddressBook] : [],
+  full_name: '',
+  kind: 'Individual',
 }
 
 const contact = reactive({ ...defaultContact })
 
 const createContact = createResource({
-	url: 'suite.mail.doctype.contact_card.contact_card.add_contact_card',
-	makeParams: () => contact,
-	onSuccess: (data: string) => {
-		raiseToast(__('Contact created.'))
-		show.value = false
-		router.push({ name: 'mail-contact', params: { contactName: data } })
-	},
-	onError: (error) => raiseToast(error.message, 'error'),
+  url: 'suite.mail.doctype.contact_card.contact_card.add_contact_card',
+  makeParams: () => contact,
+  onSuccess: (data: string) => {
+    raiseToast(__('Contact created.'))
+    show.value = false
+    router.push({ name: 'mail-contact', params: { contactName: data } })
+  },
+  onError: error => raiseToast(error.message, 'error'),
 })
 
-watch(show, (val) => {
-	if (val) Object.assign(contact, defaultContact)
+watch(show, val => {
+  if (val) Object.assign(contact, defaultContact)
 })
 
 const KIND_OPTIONS = [
-	{ label: __('Individual'), value: 'Individual' },
-	{ label: __('Group'), value: 'Group' },
+  { label: __('Individual'), value: 'Individual' },
+  { label: __('Group'), value: 'Group' },
 ]
 </script>

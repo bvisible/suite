@@ -141,14 +141,7 @@
 
 <script setup lang="ts">
 import { inject, ref, watch } from 'vue'
-import {
-	Button,
-	Dialog,
-	FormControl,
-	TextEditor,
-	createDocumentResource,
-	useList,
-} from 'frappe-ui'
+import { Button, Dialog, FormControl, TextEditor, createDocumentResource, useList } from 'frappe-ui'
 
 import { convertHtmlToText, raiseToast } from '@/apps/mail/utils'
 import { useTextEditorButtons } from '@/apps/mail/utils/composables'
@@ -164,31 +157,31 @@ const { identities } = userStore()
 const { buttons } = useTextEditorButtons()
 
 const signatures = useList({
-	doctype: 'Mail Signature',
-	immediate: true,
-	fields: ['name', 'signature_name', 'html_body'],
-	filters: { user: user.data.name },
-	cacheKey: ['mailSignatures', user.data.name],
+  doctype: 'Mail Signature',
+  immediate: true,
+  fields: ['name', 'signature_name', 'html_body'],
+  filters: { user: user.data.name },
+  cacheKey: ['mailSignatures', user.data.name],
 })
 
 const identityName = ref(identities.data?.[0]?.name || '')
 
 const getIdentity = () =>
-	createDocumentResource({
-		doctype: 'Identity',
-		name: identityName.value,
-		setValue: {
-			onSuccess: () => {
-				raiseToast(__('Identity updated.'))
-				identities.reload()
-			},
-			onError: (error) => raiseToast(error.messages[0], 'error'),
-		},
-	})
+  createDocumentResource({
+    doctype: 'Identity',
+    name: identityName.value,
+    setValue: {
+      onSuccess: () => {
+        raiseToast(__('Identity updated.'))
+        identities.reload()
+      },
+      onError: error => raiseToast(error.messages[0], 'error'),
+    },
+  })
 
 const save = () => {
-	identity.value.doc.text_signature = convertHtmlToText(identity.value.doc.html_signature)
-	identity.value.save.submit()
+  identity.value.doc.text_signature = convertHtmlToText(identity.value.doc.html_signature)
+  identity.value.save.submit()
 }
 
 const identity = ref(getIdentity())
@@ -200,20 +193,20 @@ const email = ref('')
 const displayName = ref('')
 
 const showAddEmailAddress = (isReplyTo: boolean) => {
-	email.value = ''
-	displayName.value = ''
-	isAddReplyTo.value = isReplyTo
-	showDialog.value = true
+  email.value = ''
+  displayName.value = ''
+  isAddReplyTo.value = isReplyTo
+  showDialog.value = true
 }
 
 const addEmailAddress = () => {
-	if (isAddReplyTo.value)
-		identity.value.doc.reply_to.push({ email: email.value, display_name: displayName.value })
-	else identity.value.doc.bcc.push({ email: email.value, display_name: displayName.value })
-	showDialog.value = false
+  if (isAddReplyTo.value)
+    identity.value.doc.reply_to.push({ email: email.value, display_name: displayName.value })
+  else identity.value.doc.bcc.push({ email: email.value, display_name: displayName.value })
+  showDialog.value = false
 }
 
-watch(identityName, (val) => {
-	if (val) identity.value = getIdentity()
+watch(identityName, val => {
+  if (val) identity.value = getIdentity()
 })
 </script>

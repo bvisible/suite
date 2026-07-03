@@ -71,14 +71,12 @@ const currentEntity = ref(props.entityName)
 const folderEntities = computed(() => currentFolder.value.entities || [])
 const filteredEntities = computed(() =>
   folderEntities.value.filter(
-    (item) => !item.is_folder && !hasHostedContent(item) && item.file_type !== 'Link',
-  ),
+    item => !item.is_folder && !hasHostedContent(item) && item.file_type !== 'Link'
+  )
 )
 
 const index = computed(() => {
-  return filteredEntities.value.findIndex(
-    (item) => item.name === props.entityName
-  )
+  return filteredEntities.value.findIndex(item => item.name === props.entityName)
 })
 const prevEntity = computed(() => filteredEntities.value[index.value - 1])
 const nextEntity = computed(() => filteredEntities.value[index.value + 1])
@@ -92,18 +90,18 @@ function fetchFile(currentEntity) {
   })
 }
 
-onKeyStroke('ArrowLeft', (e) => {
+onKeyStroke('ArrowLeft', e => {
   if (!e.shiftKey) return
   e.preventDefault()
   scrollEntity(true)
 })
-onKeyStroke('ArrowRight', (e) => {
+onKeyStroke('ArrowRight', e => {
   if (!e.shiftKey) return
   e.preventDefault()
   scrollEntity()
 })
 
-const onSuccess = async (entity) => {
+const onSuccess = async entity => {
   // temporary hack: #475
   if (isWriterDocument(entity)) {
     window.location.href = '/writer/w/' + entity.name

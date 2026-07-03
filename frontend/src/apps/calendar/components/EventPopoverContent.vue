@@ -19,7 +19,7 @@ const store = userStore()
 const { identities } = store
 
 const userParticipant = computed(() =>
-	calendarEvent.participants.find((p) => identities.data.some((id) => id.email === p.email)),
+  calendarEvent.participants.find(p => identities.data.some(id => id.email === p.email))
 )
 const userResponse = computed(() => userParticipant.value?.participation_status)
 
@@ -28,192 +28,189 @@ const descriptionRef = useTemplateRef('descriptionRef')
 const isDescriptionClamped = ref(false)
 
 onMounted(() => {
-	const el = descriptionRef.value
-	if (el) isDescriptionClamped.value = el.scrollHeight > el.clientHeight
+  const el = descriptionRef.value
+  if (el) isDescriptionClamped.value = el.scrollHeight > el.clientHeight
 
-	setTimeout(() => {
-		if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
-	}, 0)
+  setTimeout(() => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
+  }, 0)
 })
 
 const date = computed(() => {
-	const start = dayjs(calendarEvent.start)
-	const duration = dayjs.duration(calendarEvent.duration)
-	const end = start.add(duration)
-	const isFullDay = duration.asHours() % 24 === 0 && start.isSame(start.startOf('day'))
-	const isSameDay =
-		start.isSame(end, 'day') || (isFullDay && start.isSame(end.subtract(1, 'ms'), 'day'))
+  const start = dayjs(calendarEvent.start)
+  const duration = dayjs.duration(calendarEvent.duration)
+  const end = start.add(duration)
+  const isFullDay = duration.asHours() % 24 === 0 && start.isSame(start.startOf('day'))
+  const isSameDay =
+    start.isSame(end, 'day') || (isFullDay && start.isSame(end.subtract(1, 'ms'), 'day'))
 
-	const currentYear = dayjs().year()
-	const showYear = start.year() !== currentYear || end.year() !== currentYear
+  const currentYear = dayjs().year()
+  const showYear = start.year() !== currentYear || end.year() !== currentYear
 
-	if (isFullDay) {
-		if (isSameDay) return start.format(showYear ? 'ddd, MMM D, YYYY' : 'ddd, MMM D')
-		else
-			return `${start.format(showYear ? 'MMM D, YYYY' : 'MMM D')} - ${end.subtract(1, 'day').format(showYear ? 'MMM D, YYYY' : 'MMM D')}`
-	} else {
-		if (isSameDay)
-			return `${start.format(showYear ? 'ddd, MMM D, YYYY' : 'ddd, MMM D')} · ${start.format('HH:mm')} - ${end.format('HH:mm')}`
-		else
-			return `${start.format(showYear ? 'MMM D, YYYY' : 'MMM D')}, ${start.format('HH:mm')} - ${end.format(showYear ? 'MMM D, YYYY' : 'MMM D')}, ${end.format('HH:mm')}`
-	}
+  if (isFullDay) {
+    if (isSameDay) return start.format(showYear ? 'ddd, MMM D, YYYY' : 'ddd, MMM D')
+    else
+      return `${start.format(showYear ? 'MMM D, YYYY' : 'MMM D')} - ${end.subtract(1, 'day').format(showYear ? 'MMM D, YYYY' : 'MMM D')}`
+  } else {
+    if (isSameDay)
+      return `${start.format(showYear ? 'ddd, MMM D, YYYY' : 'ddd, MMM D')} · ${start.format('HH:mm')} - ${end.format('HH:mm')}`
+    else
+      return `${start.format(showYear ? 'MMM D, YYYY' : 'MMM D')}, ${start.format('HH:mm')} - ${end.format(showYear ? 'MMM D, YYYY' : 'MMM D')}, ${end.format('HH:mm')}`
+  }
 })
 
 const participants = computed(() => {
-	const total = new Set(calendarEvent.participants.map((p) => p.email)).size
-	const accepted = calendarEvent.participants.filter(
-		(p) => p.participation_status === 'ACCEPTED',
-	)
-	const declined = calendarEvent.participants.filter(
-		(p) => p.participation_status === 'DECLINED',
-	)
-	const tentative = calendarEvent.participants.filter(
-		(p) => p.participation_status === 'TENTATIVE',
-	)
-	const needsAction = calendarEvent.participants.filter(
-		(p) => p.participation_status === 'NEEDS-ACTION',
-	)
+  const total = new Set(calendarEvent.participants.map(p => p.email)).size
+  const accepted = calendarEvent.participants.filter(p => p.participation_status === 'ACCEPTED')
+  const declined = calendarEvent.participants.filter(p => p.participation_status === 'DECLINED')
+  const tentative = calendarEvent.participants.filter(p => p.participation_status === 'TENTATIVE')
+  const needsAction = calendarEvent.participants.filter(
+    p => p.participation_status === 'NEEDS-ACTION'
+  )
 
-	const parts = [
-		accepted.length && __('{0} yes', [accepted.length]),
-		declined.length && __('{0} no', [declined.length]),
-		tentative.length && __('{0} maybe', [tentative.length]),
-		needsAction.length && __('{0} pending', [needsAction.length]),
-	].filter(Boolean)
+  const parts = [
+    accepted.length && __('{0} yes', [accepted.length]),
+    declined.length && __('{0} no', [declined.length]),
+    tentative.length && __('{0} maybe', [tentative.length]),
+    needsAction.length && __('{0} pending', [needsAction.length]),
+  ].filter(Boolean)
 
-	return __('{0} {1} {2}', [
-		total,
-		total === 1 ? __('participant') : __('participants'),
-		parts.length ? `(${parts.join(', ')})` : '',
-	])
+  return __('{0} {1} {2}', [
+    total,
+    total === 1 ? __('participant') : __('participants'),
+    parts.length ? `(${parts.join(', ')})` : '',
+  ])
 })
 
 const options = computed(() => {
-	const opts = [{ label: __('Edit'), icon: Edit2, onClick: () => openEditModal() }]
+  const opts = [{ label: __('Edit'), icon: Edit2, onClick: () => openEditModal() }]
 
-	if (calendarEvent.recurrence_id)
-		opts.push({
-			label: __('Delete'),
-			icon: Trash2,
-			submenu: [
-				{ label: __('This instance'), onClick: () => handleDeleteEventInstance() },
-				{
-					label: __('This and following instances'),
-					onClick: () => handleDeleteFollowingEventInstances(),
-				},
-				{ label: __('Entire series'), onClick: () => handleDeleteEvent() },
-			],
-		})
-	else opts.push({ label: __('Delete'), icon: Trash2, onClick: () => handleDeleteEvent() })
+  if (calendarEvent.recurrence_id)
+    opts.push({
+      label: __('Delete'),
+      icon: Trash2,
+      submenu: [
+        { label: __('This instance'), onClick: () => handleDeleteEventInstance() },
+        {
+          label: __('This and following instances'),
+          onClick: () => handleDeleteFollowingEventInstances(),
+        },
+        { label: __('Entire series'), onClick: () => handleDeleteEvent() },
+      ],
+    })
+  else opts.push({ label: __('Delete'), icon: Trash2, onClick: () => handleDeleteEvent() })
 
-	return opts
+  return opts
 })
 
 const openEditModal = () => {
-	emit('edit')
-	close()
+  emit('edit')
+  close()
 }
 
 const responseOptions = (status: string) => [
-	{ label: __('Entire series'), onClick: () => handleSetResponse(status, true) },
+  { label: __('Entire series'), onClick: () => handleSetResponse(status, true) },
 ]
 
 const handleSetResponse = (response: string, updateAllInstances: boolean) => {
-	if (response === userResponse.value) return
-	const participants = calendarEvent.participants.map((p) =>
-		p.email === userParticipant.value?.email ? { ...p, participation_status: response } : p,
-	)
-	const patch = { participants }
-	toast.promise(
-		updateAllInstances ? editEvent.submit({ patch }) : editEventInstance.submit({ patch }),
-		{
-			loading: __('Sending response...'),
-			success: __('Response sent.'),
-			error: __('Action failed. Please try again in some time.'),
-		},
-	)
+  if (response === userResponse.value) return
+  const participants = calendarEvent.participants.map(p =>
+    p.email === userParticipant.value?.email ? { ...p, participation_status: response } : p
+  )
+  const patch = { participants }
+  toast.promise(
+    updateAllInstances ? editEvent.submit({ patch }) : editEventInstance.submit({ patch }),
+    {
+      loading: __('Sending response...'),
+      success: __('Response sent.'),
+      error: __('Action failed. Please try again in some time.'),
+    }
+  )
 }
 
 const editEventInstance = createResource({
-	url: 'suite.mail.doctype.calendar_event.calendar_event.update_calendar_event_instance',
-	makeParams: ({ patch }) => ({
-		account: store.accountId,
-		master_id: calendarEvent.master_id,
-		recurrence_id: calendarEvent.recurrence_id,
-		patch,
-		send_scheduling_messages: true,
-	}),
-	onSuccess: () => {
-		emit('reloadEvents')
-		close()
-	},
+  url: 'suite.mail.doctype.calendar_event.calendar_event.update_calendar_event_instance',
+  makeParams: ({ patch }) => ({
+    account: store.accountId,
+    master_id: calendarEvent.master_id,
+    recurrence_id: calendarEvent.recurrence_id,
+    patch,
+    send_scheduling_messages: true,
+  }),
+  onSuccess: () => {
+    emit('reloadEvents')
+    close()
+  },
 })
 
 const editEvent = createResource({
-	url: 'suite.calendar.api.edit_calendar_event',
-	makeParams: ({ patch }) => ({
-		account: store.accountId,
-		// master_id is only set on recurring events; fall back to the event's own id
-		id: calendarEvent.master_id || calendarEvent.id,
-		...patch,
-		send_scheduling_messages: true,
-	}),
-	onSuccess: () => {
-		emit('reloadEvents')
-		close()
-	},
+  url: 'suite.calendar.api.edit_calendar_event',
+  makeParams: ({ patch }) => ({
+    account: store.accountId,
+    // master_id is only set on recurring events; fall back to the event's own id
+    id: calendarEvent.master_id || calendarEvent.id,
+    ...patch,
+    send_scheduling_messages: true,
+  }),
+  onSuccess: () => {
+    emit('reloadEvents')
+    close()
+  },
 })
 
 const handleDeleteEventInstance = () =>
-	toast.promise(deleteEventInstance.submit(), {
-		loading: __('Deleting event...'),
-		success: __('Event deleted.'),
-		error: __('Action failed. Please try again in some time.'),
-	})
+  toast.promise(deleteEventInstance.submit(), {
+    loading: __('Deleting event...'),
+    success: __('Event deleted.'),
+    error: __('Action failed. Please try again in some time.'),
+  })
 
 const handleDeleteFollowingEventInstances = () => {
-	const recurrenceRule = calendarEvent.recurrence_rule
-	recurrenceRule.until = `${calendarEvent.date}T00:00:00Z`
-	const patch = { recurrence_rule: JSON.stringify(recurrenceRule) }
+  const recurrenceRule = calendarEvent.recurrence_rule
+  recurrenceRule.until = `${calendarEvent.date}T00:00:00Z`
+  const patch = { recurrence_rule: JSON.stringify(recurrenceRule) }
 
-	toast.promise(editEvent.submit({ patch }), {
-		loading: __('Deleting events...'),
-		success: __('Events deleted.'),
-		error: __('Action failed. Please try again in some time.'),
-	})
+  toast.promise(editEvent.submit({ patch }), {
+    loading: __('Deleting events...'),
+    success: __('Events deleted.'),
+    error: __('Action failed. Please try again in some time.'),
+  })
 }
 
 const handleDeleteEvent = () =>
-	toast.promise(deleteEvent.submit(), {
-		loading: calendarEvent.recurrence_id ? __('Deleting events...') : __('Deleting event...'),
-		success: calendarEvent.recurrence_id ? __('Events deleted.') : __('Event deleted.'),
-		error: __('Action failed. Please try again in some time.'),
-	})
+  toast.promise(deleteEvent.submit(), {
+    loading: calendarEvent.recurrence_id ? __('Deleting events...') : __('Deleting event...'),
+    success: calendarEvent.recurrence_id ? __('Events deleted.') : __('Event deleted.'),
+    error: __('Action failed. Please try again in some time.'),
+  })
 
 const deleteEventInstance = createResource({
-	url: 'suite.mail.doctype.calendar_event.calendar_event.delete_calendar_event_instance',
-	makeParams: () => ({
-		account: store.accountId,
-		master_id: calendarEvent.master_id,
-		recurrence_id: calendarEvent.recurrence_id,
-	}),
-	onSuccess: () => {
-		emit('reloadEvents')
-		close()
-	},
+  url: 'suite.mail.doctype.calendar_event.calendar_event.delete_calendar_event_instance',
+  makeParams: () => ({
+    account: store.accountId,
+    master_id: calendarEvent.master_id,
+    recurrence_id: calendarEvent.recurrence_id,
+  }),
+  onSuccess: () => {
+    emit('reloadEvents')
+    close()
+  },
 })
 
 const deleteEvent = createResource({
-	url: 'suite.mail.doctype.calendar_event.calendar_event.delete_calendar_events',
-	makeParams: () => ({ account: store.accountId, ids: [calendarEvent.master_id || calendarEvent.id] }),
-	onSuccess: () => {
-		emit('reloadEvents')
-		close()
-	},
+  url: 'suite.mail.doctype.calendar_event.calendar_event.delete_calendar_events',
+  makeParams: () => ({
+    account: store.accountId,
+    ids: [calendarEvent.master_id || calendarEvent.id],
+  }),
+  onSuccess: () => {
+    emit('reloadEvents')
+    close()
+  },
 })
 
 const openUrl = (location: string) => {
-	if (isUrl(location)) window.open(location, '_blank')
+  if (isUrl(location)) window.open(location, '_blank')
 }
 
 const RESPONSE_STATUS_MAPPING = { ACCEPTED: __('Yes'), TENTATIVE: __('Maybe'), DECLINED: __('No') }

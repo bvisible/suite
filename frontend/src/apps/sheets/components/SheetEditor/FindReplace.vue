@@ -34,25 +34,30 @@ import { Button, FormControl } from 'frappe-ui'
 
 const props = defineProps({
   sheet: { type: Object, required: true },
-  grid:  { type: Object, required: true },
+  grid: { type: Object, required: true },
 })
 const emit = defineEmits(['close', 'navigateTo'])
 
-const findQuery    = ref('')
+const findQuery = ref('')
 const replaceQuery = ref('')
-const matches      = ref([])
-const matchIndex   = ref(-1)
-const status       = ref('')
+const matches = ref([])
+const matchIndex = ref(-1)
+const status = ref('')
 
 function _buildMatches() {
   const q = findQuery.value.toLowerCase()
-  if (!q) { matches.value = []; matchIndex.value = -1; status.value = ''; return }
+  if (!q) {
+    matches.value = []
+    matchIndex.value = -1
+    status.value = ''
+    return
+  }
   const data = props.sheet.getRawData()
   const found = []
   for (const [id, val] of Object.entries(data)) {
     if (String(val).toLowerCase().includes(q)) found.push(id)
   }
-  matches.value  = found
+  matches.value = found
   matchIndex.value = found.length ? 0 : -1
   status.value = found.length ? `1 of ${found.length}` : 'No matches'
 }
@@ -63,7 +68,10 @@ watch(findQuery, () => {
 })
 
 function findNext() {
-  if (!matches.value.length) { _buildMatches(); if (!matches.value.length) return }
+  if (!matches.value.length) {
+    _buildMatches()
+    if (!matches.value.length) return
+  }
   matchIndex.value = (matchIndex.value + 1) % matches.value.length
   status.value = `${matchIndex.value + 1} of ${matches.value.length}`
   emit('navigateTo', matches.value[matchIndex.value])
@@ -71,10 +79,13 @@ function findNext() {
 
 function replaceCurrent() {
   if (matchIndex.value < 0 || !matches.value.length) return
-  const id  = matches.value[matchIndex.value]
+  const id = matches.value[matchIndex.value]
   const cur = String(props.sheet.getCell(id))
-  const q   = findQuery.value
-  props.sheet.setCell(id, cur.replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), replaceQuery.value))
+  const q = findQuery.value
+  props.sheet.setCell(
+    id,
+    cur.replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), replaceQuery.value)
+  )
   _buildMatches()
 }
 
@@ -85,7 +96,10 @@ function replaceAll() {
   let count = 0
   for (const id of matches.value) {
     const cur = String(props.sheet.getCell(id))
-    props.sheet.setCell(id, cur.replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), replaceQuery.value))
+    props.sheet.setCell(
+      id,
+      cur.replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), replaceQuery.value)
+    )
     count++
   }
   status.value = `Replaced ${count} cell(s)`

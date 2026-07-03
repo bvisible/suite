@@ -62,7 +62,7 @@ const { mailboxes } = userStore()
 // The Screener is a system folder driven by the screening flow, not a user-configurable folder — keep
 // it out of the management list so it can't be renamed, deleted, or given a folder icon/color here.
 const managedMailboxes = computed(
-	() => mailboxes?.data?.filter((m: MailboxData) => m._name !== SCREENER_MAILBOX_NAME) ?? [],
+  () => mailboxes?.data?.filter((m: MailboxData) => m._name !== SCREENER_MAILBOX_NAME) ?? []
 )
 
 const showFolderModal = ref(false)
@@ -70,45 +70,44 @@ const selectedMailbox = ref<MailboxData>()
 const showDeleteFolderModal = ref(false)
 
 const editMailbox = (mailbox?: MailboxData) => {
-	selectedMailbox.value = mailbox
-	showFolderModal.value = true
+  selectedMailbox.value = mailbox
+  showFolderModal.value = true
 }
 
 const mailboxOptions = (mailbox: MailboxData) => [
-	{
-		label: mailbox.subscribed ? __('Hide') : __('Show'),
-		icon: mailbox.subscribed ? EyeOff : Eye,
-		onClick: () =>
-			updateFolder.submit({ name: mailbox.name, value: mailbox.subscribed ? 0 : 1 }),
-	},
-	{
-		label: __('Configure'),
-		icon: Settings,
-		onClick: () => editMailbox(mailbox),
-	},
-	{
-		label: __('Delete'),
-		icon: Trash2,
-		theme: 'red',
-		onClick: () => {
-			selectedMailbox.value = mailbox
-			showDeleteFolderModal.value = true
-		},
-	},
+  {
+    label: mailbox.subscribed ? __('Hide') : __('Show'),
+    icon: mailbox.subscribed ? EyeOff : Eye,
+    onClick: () => updateFolder.submit({ name: mailbox.name, value: mailbox.subscribed ? 0 : 1 }),
+  },
+  {
+    label: __('Configure'),
+    icon: Settings,
+    onClick: () => editMailbox(mailbox),
+  },
+  {
+    label: __('Delete'),
+    icon: Trash2,
+    theme: 'red',
+    onClick: () => {
+      selectedMailbox.value = mailbox
+      showDeleteFolderModal.value = true
+    },
+  },
 ]
 
 const updateFolder = createResource({
-	url: 'frappe.client.set_value',
-	makeParams: ({ name, value }: { name: string; value: 0 | 1 }) => ({
-		doctype: 'Mailbox',
-		name,
-		fieldname: 'subscribed',
-		value,
-	}),
-	onSuccess: () => {
-		raiseToast(__('Folder updated.'))
-		mailboxes.reload()
-	},
-	onError: (error) => raiseToast(error.message, 'error'),
+  url: 'frappe.client.set_value',
+  makeParams: ({ name, value }: { name: string; value: 0 | 1 }) => ({
+    doctype: 'Mailbox',
+    name,
+    fieldname: 'subscribed',
+    value,
+  }),
+  onSuccess: () => {
+    raiseToast(__('Folder updated.'))
+    mailboxes.reload()
+  },
+  onError: error => raiseToast(error.message, 'error'),
 })
 </script>

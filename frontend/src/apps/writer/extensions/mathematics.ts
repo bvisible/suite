@@ -93,14 +93,14 @@ export const MathematicsExtension = Mathematics.extend({
             if (node && (node.type.name === 'inlineMath' || node.type.name === 'blockMath')) {
               event.preventDefault()
               this.editor.commands.openMathEditor(
-                node.type.name === 'inlineMath' ? 'inline' : 'block',
+                node.type.name === 'inlineMath' ? 'inline' : 'block'
               )
               return true
             }
             return false
           },
         },
-      }),
+      })
     )
 
     return plugins
@@ -116,7 +116,7 @@ function openMathEditor(
   latex: string,
   type: 'inline' | 'block',
   pos: number | undefined,
-  editor: Editor,
+  editor: Editor
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const container = document.createElement('div')

@@ -19,30 +19,30 @@ const emit = defineEmits(['hideOverlay'])
 
 const overlayRef = useTemplateRef('overlay')
 
-const handleDragLeave = (e) => {
-	e.preventDefault()
-	emit('hideOverlay')
+const handleDragLeave = e => {
+  e.preventDefault()
+  emit('hideOverlay')
 }
 
-const getTargetElement = (e) => {
-	const target = document.elementFromPoint(e.clientX, e.clientY).closest('[data-index]')
+const getTargetElement = e => {
+  const target = document.elementFromPoint(e.clientX, e.clientY).closest('[data-index]')
 
-	if (!target) return null
+  if (!target) return null
 
-	const elementId = target.getAttribute('data-index')
-	const element = currentSlide.value.elements.find((el) => el.id == elementId)
+  const elementId = target.getAttribute('data-index')
+  const element = currentSlide.value.elements.find(el => el.id == elementId)
 
-	if (element && ['image', 'video'].includes(element.type)) {
-		return element
-	}
+  if (element && ['image', 'video'].includes(element.type)) {
+    return element
+  }
 }
 
-const handleMediaDrop = async (e) => {
-	e.preventDefault()
-	emit('hideOverlay')
-	nextTick(() => {
-		const targetElement = getTargetElement(e)
-		handleUploadedMedia(e.dataTransfer.files, targetElement)
-	})
+const handleMediaDrop = async e => {
+  e.preventDefault()
+  emit('hideOverlay')
+  nextTick(() => {
+    const targetElement = getTargetElement(e)
+    handleUploadedMedia(e.dataTransfer.files, targetElement)
+  })
 }
 </script>

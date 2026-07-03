@@ -33,38 +33,38 @@ const { isMobile } = useScreenSize()
 const { mailboxIds } = userStore()
 
 const actions = computed(() =>
-	[
-		{
-			label: __('Mark as Unread'),
-			onClick: () => emit('setSeen', false),
-			icon: Mail,
-			condition: mail.seen,
-		},
-		{
-			label: __('Mark as Read'),
-			onClick: () => emit('setSeen', true),
-			icon: MailOpen,
-			condition: !mail.seen,
-		},
-		{
-			label: __('Archive Thread'),
-			onClick: () => emit('archiveThread'),
-			icon: Archive,
-			condition: !mail.mailboxes.some((m) => m.mailbox_id === mailboxIds.archive),
-		},
-		{
-			label: __('Move to Trash'),
-			onClick: () => emit('trashThread'),
-			icon: Trash2,
-			condition: !mail.mailboxes.some((m) => m.mailbox_id === mailboxIds.trash),
-		},
-		{
-			label: __('Delete Thread'),
-			onClick: () => emit('deleteThread'),
-			icon: Trash2,
-			condition: mail.mailboxes.some((m) => m.mailbox_id === mailboxIds.trash),
-		},
-	].filter((action) => action.condition),
+  [
+    {
+      label: __('Mark as Unread'),
+      onClick: () => emit('setSeen', false),
+      icon: Mail,
+      condition: mail.seen,
+    },
+    {
+      label: __('Mark as Read'),
+      onClick: () => emit('setSeen', true),
+      icon: MailOpen,
+      condition: !mail.seen,
+    },
+    {
+      label: __('Archive Thread'),
+      onClick: () => emit('archiveThread'),
+      icon: Archive,
+      condition: !mail.mailboxes.some(m => m.mailbox_id === mailboxIds.archive),
+    },
+    {
+      label: __('Move to Trash'),
+      onClick: () => emit('trashThread'),
+      icon: Trash2,
+      condition: !mail.mailboxes.some(m => m.mailbox_id === mailboxIds.trash),
+    },
+    {
+      label: __('Delete Thread'),
+      onClick: () => emit('deleteThread'),
+      icon: Trash2,
+      condition: mail.mailboxes.some(m => m.mailbox_id === mailboxIds.trash),
+    },
+  ].filter(action => action.condition)
 )
 </script>
 

@@ -1,13 +1,32 @@
 import { ref } from 'vue'
-import { call }                  from '../../utils/api.js'
-import { encodeForUpload, isDecompressionSupported, decodeFromDownload } from '../../utils/compress.js'
+import { call } from '../../utils/api.js'
+import {
+  encodeForUpload,
+  isDecompressionSupported,
+  decodeFromDownload,
+} from '../../utils/compress.js'
 import { packSheet, packSheetChunked, unpackSheet, boundsOf } from '../../utils/sheet-codec.js'
 
 // `merge` and the view-state getters/setters are optional — they were missing
 // from earlier versions and their absence caused merged cells / column widths /
 // freeze panes / hidden cols/rows to silently disappear after every save.
-export function usePersistence({ sheet, formats, merge, comments, validation, condFormat, sortFilter, pivot, charts, namedRanges, getViewState, applyViewState, currentTitle, emit }) {
-  const isSaving  = ref(false)
+export function usePersistence({
+  sheet,
+  formats,
+  merge,
+  comments,
+  validation,
+  condFormat,
+  sortFilter,
+  pivot,
+  charts,
+  namedRanges,
+  getViewState,
+  applyViewState,
+  currentTitle,
+  emit,
+}) {
+  const isSaving = ref(false)
   const saveError = ref('')
   // Surfaces "couldn't open this sheet" cases (404 / 403 / network) to the
   // editor so it can render a proper error screen instead of mounting a
@@ -17,32 +36,30 @@ export function usePersistence({ sheet, formats, merge, comments, validation, co
   async function loadSheet(name) {
     loadError.value = null
     try {
-      const canGz  = isDecompressionSupported()
-      const doc    = await call('suite.sheets.api.get_sheet', { name, compressed: canGz ? 1 : 0 })
-      const plain  = canGz ? await decodeFromDownload(doc.sheets_data) : doc.sheets_data
-      const saved  = JSON.parse(plain || '{}')
-      if (saved.formats)    formats.restore(saved.formats)
+      const canGz = isDecompressionSupported()
+      const doc = await call('suite.sheets.api.get_sheet', { name, compressed: canGz ? 1 : 0 })
+      const plain = canGz ? await decodeFromDownload(doc.sheets_data) : doc.sheets_data
+      const saved = JSON.parse(plain || '{}')
+      if (saved.formats) formats.restore(saved.formats)
       sheet.restore(
         unpackSheet(saved.sheet) ?? { sheets: { Sheet1: {} }, current: 'Sheet1' },
-        boundsOf(saved.sheet),
+        boundsOf(saved.sheet)
       )
-      if (saved.merge      && merge?.restore)      merge.restore(saved.merge)
-      if (saved.comments   && comments?.restore)   comments.restore(saved.comments)
+      if (saved.merge && merge?.restore) merge.restore(saved.merge)
+      if (saved.comments && comments?.restore) comments.restore(saved.comments)
       if (saved.validation && validation?.restore) validation.restore(saved.validation)
       if (saved.condFormat && condFormat?.restore) condFormat.restore(saved.condFormat)
       if (saved.sortFilter && sortFilter?.restore) sortFilter.restore(saved.sortFilter)
-      if (saved.view       && applyViewState)      applyViewState(saved.view)
-      if (saved.pivot      && pivot?.restore)      pivot.restore(saved.pivot)
-      if (saved.charts     && charts?.restore)     charts.restore(saved.charts)
+      if (saved.view && applyViewState) applyViewState(saved.view)
+      if (saved.pivot && pivot?.restore) pivot.restore(saved.pivot)
+      if (saved.charts && charts?.restore) charts.restore(saved.charts)
       if (saved.namedRanges && namedRanges?.restore) namedRanges.restore(saved.namedRanges)
       currentTitle.value = doc.title
     } catch (err) {
       console.error('Load failed:', err)
       const t = err?.excType || ''
       const kind =
-        t === 'PermissionError'    ? 'denied'  :
-        t === 'DoesNotExistError'  ? 'missing' :
-                                     'other'
+        t === 'PermissionError' ? 'denied' : t === 'DoesNotExistError' ? 'missing' : 'other'
       loadError.value = { kind, message: err?.message || 'Could not open this sheet' }
     }
   }
@@ -102,20 +119,20 @@ export function usePersistence({ sheet, formats, merge, comments, validation, co
       // deepClone. The chunked packer yields to the event loop so a 2M-cell
       // pack doesn't block input for seconds; the keepalive/unmount save can't
       // afford to yield (the page may die first), so it packs synchronously.
-      const live   = { sheets: sheet.getAllRaw(), current: sheet.getCurrentSheet() }
+      const live = { sheets: sheet.getAllRaw(), current: sheet.getCurrentSheet() }
       const packed = keepalive ? packSheet(live) : await packSheetChunked(live)
       const sheetsData = JSON.stringify({
-        sheet:      packed,
-        formats:    formats.snapshot(),
-        merge:      merge?.snapshot?.()      ?? null,
-        comments:   comments?.snapshot?.()   ?? null,
+        sheet: packed,
+        formats: formats.snapshot(),
+        merge: merge?.snapshot?.() ?? null,
+        comments: comments?.snapshot?.() ?? null,
         validation: validation?.snapshot?.() ?? null,
         condFormat: condFormat?.snapshot?.() ?? null,
         sortFilter: sortFilter?.snapshot?.() ?? null,
-        pivot:      pivot?.snapshot?.()      ?? null,
-        charts:     charts?.snapshot?.()     ?? null,
+        pivot: pivot?.snapshot?.() ?? null,
+        charts: charts?.snapshot?.() ?? null,
         namedRanges: namedRanges?.snapshot?.() ?? null,
-        view:       getViewState?.()         ?? null,
+        view: getViewState?.() ?? null,
       })
       const payload = await encodeForUpload(sheetsData)
       args = {
@@ -144,7 +161,7 @@ export function usePersistence({ sheet, formats, merge, comments, validation, co
           currentTitle.value = title
           // First success clears any sticky error from a previous failure.
           saveError.value = ''
-          _lastSaveArgs   = null
+          _lastSaveArgs = null
           return typeof result === 'string' ? result : result?.name
         } catch (err) {
           lastErr = err

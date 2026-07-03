@@ -58,11 +58,15 @@ import { Laugh, Paperclip, SendHorizontal, Trash2 } from 'lucide-vue-next'
 import { Button, TextEditorFixedMenu } from 'frappe-ui'
 
 import { isMac } from '@/apps/mail/utils'
-import { useScreenSize, useTextEditorButtons, useVisualViewport } from '@/apps/mail/utils/composables'
+import {
+  useScreenSize,
+  useTextEditorButtons,
+  useVisualViewport,
+} from '@/apps/mail/utils/composables'
 import EmojiPicker from '@/apps/mail/components/EmojiPicker.vue'
 
 const { isRecipientsEmpty } = defineProps<{
-	isRecipientsEmpty: boolean
+  isRecipientsEmpty: boolean
 }>()
 
 const emit = defineEmits(['appendEmoji', 'selectFiles', 'discardMail', 'sendMail'])
@@ -75,18 +79,18 @@ const { isMobile } = useScreenSize()
 const { buttons } = useTextEditorButtons()
 
 const toolbarBottom = useVisualViewport(
-	(viewport) => `${window.innerHeight - viewport.height - viewport.offsetTop}px`,
+  viewport => `${window.innerHeight - viewport.height - viewport.offsetTop}px`
 )
 
 const fileInput = useTemplateRef('fileInput')
 
 const onFilesSelected = async (e: Event) => {
-	const input = e.target as HTMLInputElement
-	const files = Array.from(input.files ?? [])
-	if (!files.length) return
+  const input = e.target as HTMLInputElement
+  const files = Array.from(input.files ?? [])
+  if (!files.length) return
 
-	emit('selectFiles', files)
-	input.value = ''
+  emit('selectFiles', files)
+  input.value = ''
 }
 </script>
 

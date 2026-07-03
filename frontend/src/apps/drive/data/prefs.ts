@@ -23,7 +23,7 @@ function setJson(key: string, value: unknown) {
 
 /** List vs grid layout — persisted per browser. */
 export const view = ref<ViewMode>(getJson('view', 'list'))
-watch(view, (v) => setJson('view', v))
+watch(view, v => setJson('view', v))
 
 /** Sort order keyed by folder / route scope id. */
 export const sortOrders = ref<Record<string, SortOrder>>(getJson('sortOrder', {}))
@@ -39,7 +39,7 @@ export function setSortOrder(scopeId: string, order: SortOrder) {
 
 /** Sidebar collapsed on desktop. */
 export const sidebarCollapsed = ref(getJson('sidebarCollapsed', false))
-watch(sidebarCollapsed, (v) => setJson('sidebarCollapsed', v))
+watch(sidebarCollapsed, v => setJson('sidebarCollapsed', v))
 
 /** Shared page: site files vs shared-with-you (in-memory only). */
 export const shareView = ref(false)

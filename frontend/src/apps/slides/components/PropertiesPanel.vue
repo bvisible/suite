@@ -34,61 +34,61 @@ import { handleScrollBarWheelEvent } from '@/apps/slides/utils/helpers'
 import { editElementCommand, editSlideCommand } from '@/apps/slides/stores/commands'
 
 const activeProperties = computed(() => {
-	const element = activeElement.value
-	const isEditingShapeText = element?.type === 'shape' && focusElementId.value === element.id
+  const element = activeElement.value
+  const isEditingShapeText = element?.type === 'shape' && focusElementId.value === element.id
 
-	if (isEditingShapeText) return TextProperties
+  if (isEditingShapeText) return TextProperties
 
-	switch (element?.type) {
-		case 'text':
-			return TextProperties
-		case 'image':
-			return ImageProperties
-		case 'video':
-			return VideoProperties
-		case 'shape':
-			return ShapeProperties
-	}
+  switch (element?.type) {
+    case 'text':
+      return TextProperties
+    case 'image':
+      return ImageProperties
+    case 'video':
+      return VideoProperties
+    case 'shape':
+      return ShapeProperties
+  }
 })
 
 const setProperty = (property, value) => {
-	const oldValue = activeElement.value[property]
-	commandHistory.execute(
-		editElementCommand({
-			slideId: currentSlide.value.clientId,
-			elementIds: activeElementIds.value,
-			property,
-			oldValue,
-			newValue: value,
-		}),
-	)
+  const oldValue = activeElement.value[property]
+  commandHistory.execute(
+    editElementCommand({
+      slideId: currentSlide.value.clientId,
+      elementIds: activeElementIds.value,
+      property,
+      oldValue,
+      newValue: value,
+    })
+  )
 }
 
 const setPropertyDeferred = (level, property) => {
-	if (level === 'element') {
-		return useDeferredCommit(
-			() => activeElement.value?.[property],
-			(oldValue, newValue) =>
-				editElementCommand({
-					slideId: currentSlide.value?.clientId,
-					elementIds: activeElementIds.value,
-					property,
-					oldValue,
-					newValue,
-				}),
-		)
-	} else if (level === 'slide') {
-		return useDeferredCommit(
-			() => currentSlide.value?.[property],
-			(oldValue, newValue) =>
-				editSlideCommand({
-					slideId: currentSlide.value?.clientId,
-					property,
-					oldValue,
-					newValue,
-				}),
-		)
-	}
+  if (level === 'element') {
+    return useDeferredCommit(
+      () => activeElement.value?.[property],
+      (oldValue, newValue) =>
+        editElementCommand({
+          slideId: currentSlide.value?.clientId,
+          elementIds: activeElementIds.value,
+          property,
+          oldValue,
+          newValue,
+        })
+    )
+  } else if (level === 'slide') {
+    return useDeferredCommit(
+      () => currentSlide.value?.[property],
+      (oldValue, newValue) =>
+        editSlideCommand({
+          slideId: currentSlide.value?.clientId,
+          property,
+          oldValue,
+          newValue,
+        })
+    )
+  }
 }
 
 provide('setProperty', setProperty)

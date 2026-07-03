@@ -126,7 +126,7 @@ function confirmSync() {
 }
 
 getDiskSettings.fetch(null, {
-  onSuccess: (data) => {
+  onSuccess: data => {
     delete data.aws_secret
     for (const [key, value] of Object.entries(data)) {
       if (key in generalSettings) generalSettings[key] = value

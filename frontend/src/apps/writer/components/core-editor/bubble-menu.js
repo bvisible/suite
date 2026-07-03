@@ -5,7 +5,7 @@ export function bubbleMenuOptions({ editor, comments }) {
     shouldShow: ({ from, to }) => {
       if (from === to) return false
       let hide = false
-      comments.forEach((k) => (k.new || k.edit) && (hide = true))
+      comments.forEach(k => (k.new || k.edit) && (hide = true))
       return !hide
     },
     getReferencedVirtualElement: () => {

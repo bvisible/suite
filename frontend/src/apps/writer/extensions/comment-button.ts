@@ -21,11 +21,11 @@ class FloatingQuoteButtonView {
       'focus-visible:ring focus-visible:ring-outline-gray-3',
       'h-7 text-base px-2 rounded inline-flex items-center justify-center gap-2 transition-colors focus:outline-none',
     ]
-      .map((c) => c.split(' '))
+      .map(c => c.split(' '))
       .flat()
     this.button.classList.add(...classes)
 
-    this.button.addEventListener('mousedown', (event) => {
+    this.button.addEventListener('mousedown', event => {
       event.preventDefault()
 
       const { from, to } = this.editorView.state.selection
@@ -38,7 +38,7 @@ class FloatingQuoteButtonView {
       const selectedHTML = tempDiv.innerHTML
 
       const extensionOptions = this.editor.options.extensions.find(
-        (e) => e.name === 'floatingQuoteButton',
+        e => e.name === 'floatingQuoteButton'
       )?.options
       if (extensionOptions && typeof extensionOptions.onClick === 'function') {
         extensionOptions.onClick(selectedHTML)
@@ -124,7 +124,7 @@ export const FloatingQuoteButton = Extension.create({
     return [
       new Plugin({
         key: new PluginKey('floatingQuoteButton'),
-        view: (editorView) => new FloatingQuoteButtonView(editorView, this.editor),
+        view: editorView => new FloatingQuoteButtonView(editorView, this.editor),
       }),
     ]
   },
@@ -157,7 +157,7 @@ function getRectForSelection(view: EditorView): DOMRect | null {
         startCoords.top,
         // Ensure width/height is not negative
         Math.max(0, endCoords.right - startCoords.left),
-        Math.max(0, endCoords.bottom - startCoords.top),
+        Math.max(0, endCoords.bottom - startCoords.top)
       )
     }
     return rect
@@ -170,7 +170,7 @@ function getRectForSelection(view: EditorView): DOMRect | null {
       startCoords.left,
       startCoords.top,
       endCoords.right - startCoords.left,
-      endCoords.bottom - startCoords.top,
+      endCoords.bottom - startCoords.top
     )
   }
 }

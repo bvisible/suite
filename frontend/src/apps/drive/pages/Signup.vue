@@ -163,30 +163,28 @@
 </template>
 
 <script setup>
-import { createResource, ErrorMessage, FormControl, Button } from "frappe-ui"
-import { ref, onMounted, computed } from "vue"
-import FrappeDriveLogo from "@/apps/drive/components/FrappeDriveLogo.vue"
-import { toast } from "@/apps/drive/utils/toasts"
-import { settings } from "@/apps/drive/resources/permissions"
+import { createResource, ErrorMessage, FormControl, Button } from 'frappe-ui'
+import { ref, onMounted, computed } from 'vue'
+import FrappeDriveLogo from '@/apps/drive/components/FrappeDriveLogo.vue'
+import { toast } from '@/apps/drive/utils/toasts'
+import { settings } from '@/apps/drive/resources/permissions'
 
 const params = new URLSearchParams(new URL(window.location.href).search)
-const email = ref(params.get("e") || "")
-const first_name = ref("")
-const last_name = ref("")
-const password = ref("")
-const confirm_password = ref("")
+const email = ref(params.get('e') || '')
+const first_name = ref('')
+const last_name = ref('')
+const password = ref('')
+const confirm_password = ref('')
 const terms_accepted = ref(false)
 
-const otp = ref("")
+const otp = ref('')
 const otpResendCountdown = ref(0)
-const account_request = ref(params.get("r") || "")
-const otpRequested = ref(account_request.value !== "")
-const otpValidated = ref(account_request.value !== "")
+const account_request = ref(params.get('r') || '')
+const otpRequested = ref(account_request.value !== '')
+const otpValidated = ref(account_request.value !== '')
 
 const loginUrl = computed(
-  () =>
-    "/login?redirect-to=" +
-    encodeURIComponent(params.get("redirect-to") || "/drive")
+  () => '/login?redirect-to=' + encodeURIComponent(params.get('redirect-to') || '/drive')
 )
 
 onMounted(() => {
@@ -198,11 +196,11 @@ onMounted(() => {
 const getReferrerIfAny = () => {
   const params = location.search
   const searchParams = new URLSearchParams(params)
-  return searchParams.get("referrer")
+  return searchParams.get('referrer')
 }
 
 const signup = createResource({
-  url: "suite.drive.api.product.signup",
+  url: 'suite.drive.api.product.signup',
   makeParams: () => ({
     account_request: account_request.value,
     first_name: first_name.value,
@@ -212,31 +210,29 @@ const signup = createResource({
   }),
   validate() {
     if (password.value !== confirm_password.value) {
-      return "Passwords do not match"
+      return 'Passwords do not match'
     }
     if (!terms_accepted.value) {
-      return "Please accept the terms of service"
+      return 'Please accept the terms of service'
     }
   },
   onSuccess() {
-    window.location.replace(
-      "/drive/setup?redirect-to=" + (params.get("redirect-to") || "/drive")
-    )
+    window.location.replace('/drive/setup?redirect-to=' + (params.get('redirect-to') || '/drive'))
   },
 })
 
 const sendOTP = createResource({
-  url: "suite.drive.api.product.send_otp",
+  url: 'suite.drive.api.product.send_otp',
   onSuccess(data) {
     otpRequested.value = true
     otpResendCountdown.value = 30
     account_request.value = data.message || data
-    toast("Verification code sent to your email")
+    toast('Verification code sent to your email')
   },
 })
 
 const verifyOTP = createResource({
-  url: "suite.drive.api.product.verify_otp",
+  url: 'suite.drive.api.product.verify_otp',
   onSuccess: () => {
     otpValidated.value = true
     settings.fetch()

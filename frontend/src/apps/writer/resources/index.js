@@ -8,7 +8,7 @@ export const getDocuments = useList({
   limit: 50,
   immediate: false,
   cacheKey: 'writer-document-list',
-  transform: (data) => {
+  transform: data => {
     return prettyData(data)
   },
 })
@@ -16,7 +16,7 @@ export const getDocuments = useList({
 export const createDocument = createResource({
   method: 'POST',
   url: 'suite.writer.api.docs.create_document',
-  makeParams: (params) => params,
+  makeParams: params => params,
 })
 
 export const getTemplates = useList({
@@ -29,15 +29,14 @@ export const getTemplates = useList({
 export const search = createResource({
   url: '/api/method/suite.writer.api.general.search',
   method: 'GET',
-  makeParams: (params) => params,
+  makeParams: params => params,
 })
 
 export const updateComments = createResource({
   url: 'suite.writer.api.docs.save_comments',
   method: 'POST',
-  makeParams: (params) => params,
+  makeParams: params => params,
 })
-
 
 export const apps = {
   get data() {

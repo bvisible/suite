@@ -32,7 +32,7 @@ function groupByTime(entities) {
     'Earlier this year': [],
     Earlier: [],
   }
-  entities.forEach((k) => {
+  entities.forEach(k => {
     // remove complex logic; replace with something smarter?
     const modified = new Date(k.modified)
     const accessed = new Date(k.accessed)
@@ -41,7 +41,7 @@ function groupByTime(entities) {
   })
   entities
     .sort((a, b) => b.recentDate - a.recentDate)
-    .forEach((file) => {
+    .forEach(file => {
       const yearDiff = today.getFullYear() - file.recentDate.getFullYear()
       const monthDiff = today.getMonth() - file.recentDate.getMonth() + yearDiff * 12 // Adjust for year difference
       const dayDiff = Math.floor((today - file.recentDate) / (1000 * 60 * 60 * 24))

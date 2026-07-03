@@ -27,22 +27,22 @@ const emit = defineEmits(['save'])
 const contact = reactive({ fullName, kind })
 
 const options = computed(() => ({
-	title: __('Edit General Information'),
-	actions: [
-		{
-			label: __('Save'),
-			variant: 'solid',
-			disabled: contact.fullName === fullName && contact.kind === kind,
-			onClick: () => {
-				emit('save', contact)
-				show.value = false
-			},
-		},
-	],
+  title: __('Edit General Information'),
+  actions: [
+    {
+      label: __('Save'),
+      variant: 'solid',
+      disabled: contact.fullName === fullName && contact.kind === kind,
+      onClick: () => {
+        emit('save', contact)
+        show.value = false
+      },
+    },
+  ],
 }))
 
 const KIND_OPTIONS = [
-	{ label: __('Individual'), value: 'Individual' },
-	{ label: __('Group'), value: 'Group' },
+  { label: __('Individual'), value: 'Individual' },
+  { label: __('Group'), value: 'Group' },
 ]
 </script>

@@ -37,7 +37,7 @@ const setPropertyDeferred = inject('setPropertyDeferred')
 const { editorStyles, updateProperty } = useTextEditor()
 
 const { onStart: onOpacityUpdateStart, onEnd: onOpacityUpdateEnd } = setPropertyDeferred(
-	'element',
-	'opacity',
+  'element',
+  'opacity'
 )
 </script>

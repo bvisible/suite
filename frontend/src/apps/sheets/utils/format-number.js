@@ -40,8 +40,8 @@ export function buildNumberFmt(type, variant, decimals) {
   const hasV = !!variant
   const hasD = decimals != null
   if (hasV && hasD) return `${type}:${variant}:${decimals}`
-  if (hasV)        return `${type}:${variant}`
-  if (hasD)        return `${type}:${decimals}`
+  if (hasV) return `${type}:${variant}`
+  if (hasD) return `${type}:${decimals}`
   return type
 }
 
@@ -50,22 +50,22 @@ export function buildNumberFmt(type, variant, decimals) {
 // rest are 2 by default. Keep this list short on purpose; "More currencies"
 // can be a follow-up.
 export const CURRENCIES = {
-  USD: { symbol: '$',  locale: 'en-US', defaultDecimals: 2 },
-  EUR: { symbol: '€',  locale: 'de-DE', defaultDecimals: 2 },
-  GBP: { symbol: '£',  locale: 'en-GB', defaultDecimals: 2 },
-  INR: { symbol: '₹',  locale: 'en-IN', defaultDecimals: 2 },
-  JPY: { symbol: '¥',  locale: 'ja-JP', defaultDecimals: 0 },
+  USD: { symbol: '$', locale: 'en-US', defaultDecimals: 2 },
+  EUR: { symbol: '€', locale: 'de-DE', defaultDecimals: 2 },
+  GBP: { symbol: '£', locale: 'en-GB', defaultDecimals: 2 },
+  INR: { symbol: '₹', locale: 'en-IN', defaultDecimals: 2 },
+  JPY: { symbol: '¥', locale: 'ja-JP', defaultDecimals: 0 },
   CAD: { symbol: 'C$', locale: 'en-CA', defaultDecimals: 2 },
   AUD: { symbol: 'A$', locale: 'en-AU', defaultDecimals: 2 },
-  CNY: { symbol: '¥',  locale: 'zh-CN', defaultDecimals: 2 },
+  CNY: { symbol: '¥', locale: 'zh-CN', defaultDecimals: 2 },
 }
 
 // Number variant → locale used by Intl.NumberFormat. 'in' gives the Indian
 // lakhs/crores grouping (12,34,56,789). '' means user-default locale.
 const NUMBER_LOCALES = {
-  '':   undefined,
-  'us': 'en-US',
-  'in': 'en-IN',
+  '': undefined,
+  us: 'en-US',
+  in: 'en-IN',
 }
 
 // Date variants. Each maps to a (locale, Intl.DateTimeFormat options) pair.
@@ -73,19 +73,19 @@ const NUMBER_LOCALES = {
 // Locales are pinned so the *shape* is stable across machines; users who want
 // browser-locale output can stay on the default.
 const DATE_FORMATTERS = {
-  dmy:  ['en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }],   // 15/01/2025
-  mdy:  ['en-US', { day: '2-digit', month: '2-digit', year: 'numeric' }],   // 01/15/2025
-  ymd:  ['en-CA', { day: '2-digit', month: '2-digit', year: 'numeric' }],   // 2025-01-15
-  long: ['en-GB', { day: 'numeric', month: 'short', year: 'numeric' }],     // 15 Jan 2025
+  dmy: ['en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }], // 15/01/2025
+  mdy: ['en-US', { day: '2-digit', month: '2-digit', year: 'numeric' }], // 01/15/2025
+  ymd: ['en-CA', { day: '2-digit', month: '2-digit', year: 'numeric' }], // 2025-01-15
+  long: ['en-GB', { day: 'numeric', month: 'short', year: 'numeric' }], // 15 Jan 2025
   full: ['en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }], // Mon, 15 Jan 2025
 }
 
 // Time variants. `12` suffix flips to 12-hour clock with AM/PM.
 const TIME_FORMATTERS = {
-  hm:    ['en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }], // 15:30
-  hms:   ['en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }], // 15:30:45
-  hm12:  ['en-US', { hour: 'numeric', minute: '2-digit', hour12: true }],  // 3:30 PM
-  hms12: ['en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }],  // 3:30:45 PM
+  hm: ['en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }], // 15:30
+  hms: ['en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }], // 15:30:45
+  hm12: ['en-US', { hour: 'numeric', minute: '2-digit', hour12: true }], // 3:30 PM
+  hms12: ['en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }], // 3:30:45 PM
 }
 
 // Intl formatters are *expensive* to construct (~1 ms each on V8) and a
@@ -98,7 +98,10 @@ function _numFmt(locale, decimals) {
   const key = `n|${locale ?? '_'}|${decimals ?? '_'}`
   let f = _intlCache.get(key)
   if (!f) {
-    const opts = decimals == null ? undefined : { minimumFractionDigits: decimals, maximumFractionDigits: decimals }
+    const opts =
+      decimals == null
+        ? undefined
+        : { minimumFractionDigits: decimals, maximumFractionDigits: decimals }
     f = new Intl.NumberFormat(locale, opts)
     _intlCache.set(key, f)
   }
@@ -109,7 +112,12 @@ function _curFmt(locale, currency, decimals) {
   const key = `c|${locale}|${currency}|${decimals}`
   let f = _intlCache.get(key)
   if (!f) {
-    f = new Intl.NumberFormat(locale, { style: 'currency', currency, minimumFractionDigits: decimals, maximumFractionDigits: decimals })
+    f = new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    })
     _intlCache.set(key, f)
   }
   return f
@@ -172,8 +180,8 @@ export function applyNumberFmt(value, format) {
   }
   if (type === 'currency') {
     const code = CURRENCIES[variant] ? variant : 'USD'
-    const cfg  = CURRENCIES[code]
-    const d    = decimals ?? cfg.defaultDecimals
+    const cfg = CURRENCIES[code]
+    const d = decimals ?? cfg.defaultDecimals
     return _curFmt(cfg.locale, code, d).format(n)
   }
   if (type === 'percentage') return (n * 100).toFixed(decimals ?? 2) + '%'

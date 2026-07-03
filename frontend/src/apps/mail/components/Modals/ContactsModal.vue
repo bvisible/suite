@@ -34,13 +34,13 @@
 import { computed, ref, useTemplateRef } from 'vue'
 import { useDebounceFn, watchDebounced } from '@vueuse/core'
 import {
-	Dialog,
-	FormControl,
-	ListEmptyState,
-	ListHeader,
-	ListRows,
-	ListView,
-	createResource,
+  Dialog,
+  FormControl,
+  ListEmptyState,
+  ListHeader,
+  ListRows,
+  ListView,
+  createResource,
 } from 'frappe-ui'
 
 import { extractNameFromEmail } from '@/apps/mail/utils'
@@ -58,76 +58,73 @@ const { addressBooks } = store
 const listView = useTemplateRef('listView')
 
 const options = computed(() => ({
-	title: __('Select Contacts'),
-	actions: [
-		{
-			label: __('Insert'),
-			variant: 'solid',
-			disabled: listView.value?.selections.size === 0,
-			onClick: () => {
-				emit('insert', Array.from(listView.value?.selections))
-				show.value = false
-			},
-		},
-	],
+  title: __('Select Contacts'),
+  actions: [
+    {
+      label: __('Insert'),
+      variant: 'solid',
+      disabled: listView.value?.selections.size === 0,
+      onClick: () => {
+        emit('insert', Array.from(listView.value?.selections))
+        show.value = false
+      },
+    },
+  ],
 }))
 
 const selectFrom = ref('all')
 const selectFromOptions = computed(() => [
-	{ label: __('All Contacts'), value: 'all' },
-	...addressBooks.data.map((ab) => ({
-		label: ab._name,
-		value: ab.id,
-	})),
+  { label: __('All Contacts'), value: 'all' },
+  ...addressBooks.data.map(ab => ({
+    label: ab._name,
+    value: ab.id,
+  })),
 ])
 
 const search = ref('')
 const limit = ref(50)
 
 const contacts = createResource({
-	url: 'suite.mail.api.contacts.get_contacts',
-	auto: true,
-	makeParams: () => {
-		const filters = []
+  url: 'suite.mail.api.contacts.get_contacts',
+  auto: true,
+  makeParams: () => {
+    const filters = []
 
-		if (search.value)
-			filters.push({
-				operator: 'OR',
-				conditions: [{ text: search.value }, { email: search.value }],
-			})
+    if (search.value)
+      filters.push({
+        operator: 'OR',
+        conditions: [{ text: search.value }, { email: search.value }],
+      })
 
-		if (selectFrom.value !== 'all') filters.push({ inAddressBook: selectFrom.value })
+    if (selectFrom.value !== 'all') filters.push({ inAddressBook: selectFrom.value })
 
-		const filter =
-			filters.length === 0
-				? null
-				: filters.length === 1
-					? filters[0]
-					: { operator: 'AND', conditions: filters }
+    const filter =
+      filters.length === 0
+        ? null
+        : filters.length === 1
+          ? filters[0]
+          : { operator: 'AND', conditions: filters }
 
-		return { account: store.accountId, filter, limit: limit.value }
-	},
-	transform: (data) =>
-		data.map((c) => ({ ...c, full_name: c.full_name || extractNameFromEmail(c.email) })),
+    return { account: store.accountId, filter, limit: limit.value }
+  },
+  transform: data =>
+    data.map(c => ({ ...c, full_name: c.full_name || extractNameFromEmail(c.email) })),
 })
 
 watchDebounced(() => search.value, contacts.reload, { debounce: 300 })
 
-const loadMoreContacts = useDebounceFn((e) => {
-	const { scrollTop, scrollHeight, clientHeight } = e.target
-	if (scrollTop + clientHeight >= scrollHeight - 10 && contacts.data?.length === limit.value) {
-		limit.value += 50
-		contacts.reload()
-		setTimeout(
-			() => e.target.scrollTo({ top: e.target.scrollHeight, behavior: 'smooth' }),
-			100,
-		)
-	}
+const loadMoreContacts = useDebounceFn(e => {
+  const { scrollTop, scrollHeight, clientHeight } = e.target
+  if (scrollTop + clientHeight >= scrollHeight - 10 && contacts.data?.length === limit.value) {
+    limit.value += 50
+    contacts.reload()
+    setTimeout(() => e.target.scrollTo({ top: e.target.scrollHeight, behavior: 'smooth' }), 100)
+  }
 }, 500)
 
 const LIST_COLUMNS = [
-	{ label: __('Name'), key: 'full_name' },
-	{ label: __('Email'), key: 'email' },
+  { label: __('Name'), key: 'full_name' },
+  { label: __('Email'), key: 'email' },
 ]
 
 const LIST_OPTIONS = { showTooltip: false, emptyState: { description: __('No contacts.') } }

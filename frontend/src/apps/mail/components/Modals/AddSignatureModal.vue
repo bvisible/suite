@@ -41,40 +41,40 @@ const emit = defineEmits(['reloadSignatures'])
 const { buttons } = useTextEditorButtons()
 
 const defaultSignature = reactive({
-	user: user.data.name,
-	signature_name: '',
-	html_body: '',
+  user: user.data.name,
+  signature_name: '',
+  html_body: '',
 })
 
 const signature = useNewDoc(
-	'Mail Signature',
-	{ ...defaultSignature },
-	{
-		onSuccess: () => {
-			show.value = false
-			raiseToast(__('Signature created.'))
-			emit('reloadSignatures')
-		},
-		onError: (error) => raiseToast(error.message, 'error'),
-	},
+  'Mail Signature',
+  { ...defaultSignature },
+  {
+    onSuccess: () => {
+      show.value = false
+      raiseToast(__('Signature created.'))
+      emit('reloadSignatures')
+    },
+    onError: error => raiseToast(error.message, 'error'),
+  }
 )
 
 const addSignatureOptions = computed(() => ({
-	title: __('New Signature'),
-	actions: [
-		{
-			label: __('Save'),
-			variant: 'solid',
-			disabled: !signature.doc.signature_name || !signature.doc.html_body,
-			onClick: () => {
-				signature.submit()
-				show.value = false
-			},
-		},
-	],
+  title: __('New Signature'),
+  actions: [
+    {
+      label: __('Save'),
+      variant: 'solid',
+      disabled: !signature.doc.signature_name || !signature.doc.html_body,
+      onClick: () => {
+        signature.submit()
+        show.value = false
+      },
+    },
+  ],
 }))
 
-watch(show, (val) => {
-	if (val) Object.assign(signature.doc, defaultSignature)
+watch(show, val => {
+  if (val) Object.assign(signature.doc, defaultSignature)
 })
 </script>

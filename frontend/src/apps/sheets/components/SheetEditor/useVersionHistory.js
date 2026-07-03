@@ -1,6 +1,6 @@
-import { ref }          from 'vue'
-import { parseCellId }  from '../../utils/cells.js'
-import { unpackSheet }  from '../../utils/sheet-codec.js'
+import { ref } from 'vue'
+import { parseCellId } from '../../utils/cells.js'
+import { unpackSheet } from '../../utils/sheet-codec.js'
 import * as _defaultApi from '../../services/versions.js'
 
 // ── helpers ────────────────────────────────────────────────────────────────────
@@ -12,59 +12,83 @@ function flattenDiff(diff, parse) {
     for (const id of Object.keys(cells)) out.push({ sheet: sheetName, id })
   }
   out.sort((a, b) => {
-    const pa = parse(a.id), pb = parse(b.id)
+    const pa = parse(a.id),
+      pb = parse(b.id)
     if (!pa || !pb) return 0
     return pa.row - pb.row || pa.col - pb.col
   })
   return out
 }
 
-function captureLiveState({ getCurrentTitle, getSheet, getFormats, getMerge,
-                            getComments, getValidation, getCondFormat,
-                            getSortFilter, getGrid }) {
-  const sheet      = getSheet()
-  const formats    = getFormats()
-  const merge      = getMerge()
-  const comments   = getComments()
+function captureLiveState({
+  getCurrentTitle,
+  getSheet,
+  getFormats,
+  getMerge,
+  getComments,
+  getValidation,
+  getCondFormat,
+  getSortFilter,
+  getGrid,
+}) {
+  const sheet = getSheet()
+  const formats = getFormats()
+  const merge = getMerge()
+  const comments = getComments()
   const validation = getValidation()
   const condFormat = getCondFormat()
   const sortFilter = getSortFilter()
-  const grid       = getGrid()
+  const grid = getGrid()
   return {
-    title:      getCurrentTitle(),
+    title: getCurrentTitle(),
     sheetsData: {
-      sheet:      sheet?.snapshot(),
-      formats:    formats?.snapshot(),
-      merge:      merge?.snapshot(),
-      comments:   comments?.snapshot(),
+      sheet: sheet?.snapshot(),
+      formats: formats?.snapshot(),
+      merge: merge?.snapshot(),
+      comments: comments?.snapshot(),
       validation: validation?.snapshot(),
       condFormat: condFormat?.snapshot(),
       sortFilter: sortFilter?.snapshot(),
-      view:       grid?.viewSnapshot?.() ?? null,
+      view: grid?.viewSnapshot?.() ?? null,
     },
   }
 }
 
-function applyEngineState(saved, title,
-    { getSheet, getFormats, getMerge, getComments, getValidation,
-      getCondFormat, getSortFilter, getGrid, getCurrentTitle,
-      repopulateGrid, syncViewMirrors, syncNames, currentTitle }) {
-  const sheet      = getSheet()
-  const formats    = getFormats()
-  const merge      = getMerge()
-  const comments   = getComments()
+function applyEngineState(
+  saved,
+  title,
+  {
+    getSheet,
+    getFormats,
+    getMerge,
+    getComments,
+    getValidation,
+    getCondFormat,
+    getSortFilter,
+    getGrid,
+    getCurrentTitle,
+    repopulateGrid,
+    syncViewMirrors,
+    syncNames,
+    currentTitle,
+  }
+) {
+  const sheet = getSheet()
+  const formats = getFormats()
+  const merge = getMerge()
+  const comments = getComments()
   const validation = getValidation()
   const condFormat = getCondFormat()
   const sortFilter = getSortFilter()
-  const grid       = getGrid()
-  if (saved.formats)    formats?.restore(saved.formats)
-  if (saved.sheet)      sheet?.restore(unpackSheet(saved.sheet))
-  if (saved.merge      && merge?.restore)      merge.restore(saved.merge)
-  if (saved.comments   && comments?.restore)   comments.restore(saved.comments)
+  const grid = getGrid()
+  if (saved.formats) formats?.restore(saved.formats)
+  if (saved.sheet) sheet?.restore(unpackSheet(saved.sheet))
+  if (saved.merge && merge?.restore) merge.restore(saved.merge)
+  if (saved.comments && comments?.restore) comments.restore(saved.comments)
   if (saved.validation && validation?.restore) validation.restore(saved.validation)
   if (saved.condFormat && condFormat?.restore) condFormat.restore(saved.condFormat)
   if (saved.sortFilter && sortFilter?.restore) sortFilter.restore(saved.sortFilter)
-  if (saved.view       && grid?.viewRestore)   grid.viewRestore(saved.view)
+  if (saved.view && grid?.viewRestore) grid.viewRestore(saved.view)
   if (title) currentTitle.value = title
   repopulateGrid()
   syncViewMirrors()
@@ -93,24 +117,33 @@ export function useVersionHistory({
   activeCell,
   _versionsApi = _defaultApi,
 }) {
-  const vhOpen      = ref(false)
-  const vhVersions  = ref([])
-  const vhLoading   = ref(false)
-  const vhError     = ref('')
-  const vhActive    = ref('')
+  const vhOpen = ref(false)
+  const vhVersions = ref([])
+  const vhLoading = ref(false)
+  const vhError = ref('')
+  const vhActive = ref('')
   const vhRestoring = ref(false)
-  const vhDiff      = ref(null)
-  const vhStepIdx   = ref(null)
+  const vhDiff = ref(null)
+  const vhStepIdx = ref(null)
 
-  let _vhStash    = null
+  let _vhStash = null
   let _vhDiffFlat = []
 
   // Shared engine context forwarded to pure helpers.
   const ctx = {
-    getSheet, getFormats, getMerge, getComments, getValidation,
-    getCondFormat, getSortFilter, getGrid,
+    getSheet,
+    getFormats,
+    getMerge,
+    getComments,
+    getValidation,
+    getCondFormat,
+    getSortFilter,
+    getGrid,
     getCurrentTitle: () => currentTitle.value,
-    currentTitle, repopulateGrid, syncViewMirrors, syncNames,
+    currentTitle,
+    repopulateGrid,
+    syncViewMirrors,
+    syncNames,
   }
 
   function _applyState(saved, title) {
@@ -119,7 +152,7 @@ export function useVersionHistory({
 
   async function _refreshVersions() {
     vhLoading.value = true
-    vhError.value   = ''
+    vhError.value = ''
     try {
       vhVersions.value = await _versionsApi.list(sheetId.value)
     } catch (err) {
@@ -143,10 +176,10 @@ export function useVersionHistory({
   async function previewVersion(versionId) {
     if (vhActive.value === versionId) return
     if (!vhActive.value) _vhStash = captureLiveState(ctx)
-    vhActive.value  = versionId
-    vhDiff.value    = null
+    vhActive.value = versionId
+    vhDiff.value = null
     vhStepIdx.value = null
-    _vhDiffFlat     = []
+    _vhDiffFlat = []
     const grid = getGrid()
     grid?.setDiffOverlay?.(null)
     try {
@@ -155,10 +188,12 @@ export function useVersionHistory({
       try {
         const diff = await _versionsApi.cellDiff(sheetId.value, versionId)
         vhDiff.value = diff
-        _vhDiffFlat  = flattenDiff(diff, parseCellId)
+        _vhDiffFlat = flattenDiff(diff, parseCellId)
         grid?.setDiffOverlay?.(diff?.sheets || null)
         grid?.setActiveDiffSheet?.(getSheet()?.getCurrentSheet())
-      } catch (_) { /* highlighting optional */ }
+      } catch (_) {
+        /* highlighting optional */
+      }
     } catch (err) {
       vhError.value = err.message || 'Failed to load version'
       exitPreview()
@@ -166,22 +201,28 @@ export function useVersionHistory({
   }
 
   function exitPreview() {
-    vhDiff.value    = null
+    vhDiff.value = null
     vhStepIdx.value = null
-    _vhDiffFlat     = []
+    _vhDiffFlat = []
     getGrid()?.setDiffOverlay?.(null)
-    if (!_vhStash) { vhActive.value = ''; return }
+    if (!_vhStash) {
+      vhActive.value = ''
+      return
+    }
     _applyState(_vhStash.sheetsData, _vhStash.title)
-    _vhStash       = null
+    _vhStash = null
     vhActive.value = ''
   }
 
   function stepPreviewDiff(delta) {
     if (!_vhDiffFlat.length) return
-    const cur  = vhStepIdx.value
-    const next = cur === null
-      ? (delta > 0 ? 0 : _vhDiffFlat.length - 1)
-      : (cur + delta + _vhDiffFlat.length) % _vhDiffFlat.length
+    const cur = vhStepIdx.value
+    const next =
+      cur === null
+        ? delta > 0
+          ? 0
+          : _vhDiffFlat.length - 1
+        : (cur + delta + _vhDiffFlat.length) % _vhDiffFlat.length
     vhStepIdx.value = next
     const target = _vhDiffFlat[next]
     if (!target) return
@@ -196,11 +237,16 @@ export function useVersionHistory({
   async function restorePreview() {
     if (!vhActive.value) return
     // eslint-disable-next-line no-alert
-    if (!window.confirm('Restore this version? A new version will be created representing the restored state.')) return
+    if (
+      !window.confirm(
+        'Restore this version? A new version will be created representing the restored state.'
+      )
+    )
+      return
     vhRestoring.value = true
     try {
       await _versionsApi.restore(sheetId.value, vhActive.value)
-      _vhStash       = null
+      _vhStash = null
       vhActive.value = ''
       await loadSheet(sheetId.value)
       repopulateGrid()
@@ -221,15 +267,15 @@ export function useVersionHistory({
   }
 
   async function nameVersionInline(versionId) {
-    const cur     = vhVersions.value.find(v => v.name === versionId)
+    const cur = vhVersions.value.find(v => v.name === versionId)
     const initial = cur?.version_name || ''
     // eslint-disable-next-line no-alert
-    const next    = window.prompt('Name this version', initial)
+    const next = window.prompt('Name this version', initial)
     if (next === null) return
     const trimmed = next.trim()
     try {
       if (trimmed) await _versionsApi.name(sheetId.value, versionId, trimmed)
-      else         await _versionsApi.clearName(sheetId.value, versionId)
+      else await _versionsApi.clearName(sheetId.value, versionId)
       await _refreshVersions()
     } catch (err) {
       vhError.value = err.message || 'Naming failed'
@@ -254,12 +300,17 @@ export function useVersionHistory({
 
   async function restoreVersionInline(versionId) {
     // eslint-disable-next-line no-alert
-    if (!window.confirm('Restore this version? A new version will be created representing the restored state.')) return
-    vhRestoring.value  = true
-    vhActive.value     = versionId
+    if (
+      !window.confirm(
+        'Restore this version? A new version will be created representing the restored state.'
+      )
+    )
+      return
+    vhRestoring.value = true
+    vhActive.value = versionId
     try {
       await _versionsApi.restore(sheetId.value, versionId)
-      _vhStash       = null
+      _vhStash = null
       vhActive.value = ''
       await loadSheet(sheetId.value)
       repopulateGrid()
@@ -275,10 +326,23 @@ export function useVersionHistory({
   }
 
   return {
-    vhOpen, vhVersions, vhLoading, vhError, vhActive, vhRestoring, vhDiff, vhStepIdx,
-    openVersionHistory, closeVersionHistory,
-    previewVersion, exitPreview, stepPreviewDiff,
-    restorePreview, nameCurrentPreview, nameVersionInline,
-    makeACopyInline, restoreVersionInline,
+    vhOpen,
+    vhVersions,
+    vhLoading,
+    vhError,
+    vhActive,
+    vhRestoring,
+    vhDiff,
+    vhStepIdx,
+    openVersionHistory,
+    closeVersionHistory,
+    previewVersion,
+    exitPreview,
+    stepPreviewDiff,
+    restorePreview,
+    nameCurrentPreview,
+    nameVersionInline,
+    makeACopyInline,
+    restoreVersionInline,
   }
 }

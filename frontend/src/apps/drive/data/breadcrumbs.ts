@@ -8,9 +8,7 @@ export type DriveBreadcrumb = Record<string, unknown>
 /** Current page breadcrumb trail — in-memory only; derived from route + entity API. */
 export const pageBreadcrumbs = ref<DriveBreadcrumb[]>([])
 
-export type BreadcrumbUpdate =
-  | DriveBreadcrumb[]
-  | { loading: true; name: string }
+export type BreadcrumbUpdate = DriveBreadcrumb[] | { loading: true; name: string }
 
 export function setPageBreadcrumbs(items: BreadcrumbUpdate) {
   if (!Array.isArray(items)) {
@@ -111,19 +109,15 @@ export function buildBreadCrumbs(entity: Record<string, unknown>) {
 
   if (!breadcrumbs[0].folder) breadcrumbs.splice(0, 1)
   const popBreadcrumbs = (item: DriveBreadcrumb) => () =>
-    res.splice(res.findIndex((k) => k.name === item.name) + 1)
+    res.splice(res.findIndex(k => k.name === item.name) + 1)
 
   breadcrumbs.forEach((folder, idx) => {
     const final = idx === breadcrumbs.length - 1
     res.push({
       label: folder.file_name,
       name: folder.name,
-      onClick: final
-        ? () => entity.write && emitter.emit('rename')
-        : popBreadcrumbs(folder),
-      route: final
-        ? null
-        : { name: 'drive-Folder', params: { entityName: folder.name } },
+      onClick: final ? () => entity.write && emitter.emit('rename') : popBreadcrumbs(folder),
+      route: final ? null : { name: 'drive-Folder', params: { entityName: folder.name } },
     })
   })
   return res

@@ -72,66 +72,64 @@
 </template>
 
 <script setup lang="ts">
-import { Button } from "frappe-ui";
-import { computed, ref, watch } from "vue";
-import { getInitials } from "../utils/text";
+import { Button } from 'frappe-ui'
+import { computed, ref, watch } from 'vue'
+import { getInitials } from '../utils/text'
 
 interface WaitingUser {
-	user_id: string;
-	user_name?: string;
-	user_image?: string;
+  user_id: string
+  user_name?: string
+  user_image?: string
 }
 
 const props = defineProps<{
-	waitingUsers?: WaitingUser[] | { value: WaitingUser[] };
-	maxVisible?: number;
-}>();
+  waitingUsers?: WaitingUser[] | { value: WaitingUser[] }
+  maxVisible?: number
+}>()
 
 const emit = defineEmits<{
-	"approve-user": [userId: string];
-	"reject-user": [userId: string];
-	"view-all-requests": [];
-}>();
+  'approve-user': [userId: string]
+  'reject-user': [userId: string]
+  'view-all-requests': []
+}>()
 
-const dismissedRequests = ref([]);
+const dismissedRequests = ref([])
 
 const resolvedWaitingUsers = computed<WaitingUser[]>(() => {
-	const users = props.waitingUsers;
-	if (!users) return [];
-	if (Array.isArray(users)) return users;
-	return users.value || [];
-});
+  const users = props.waitingUsers
+  if (!users) return []
+  if (Array.isArray(users)) return users
+  return users.value || []
+})
 
 const joinRequests = computed(() => {
-	return resolvedWaitingUsers.value
-		.filter((user) => !dismissedRequests.value.includes(user.user_id))
-		.slice(-props.maxVisible)
-		.reverse();
-});
+  return resolvedWaitingUsers.value
+    .filter(user => !dismissedRequests.value.includes(user.user_id))
+    .slice(-props.maxVisible)
+    .reverse()
+})
 
-const forceHide = (userId) => {
-	if (!dismissedRequests.value.includes(userId)) {
-		dismissedRequests.value.push(userId);
-	}
-};
+const forceHide = userId => {
+  if (!dismissedRequests.value.includes(userId)) {
+    dismissedRequests.value.push(userId)
+  }
+}
 
-defineExpose({ forceHide });
+defineExpose({ forceHide })
 
-const previousWaitingUsers = ref([]);
+const previousWaitingUsers = ref([])
 watch(
-	() => resolvedWaitingUsers.value,
-	(newUsersArray, oldUsersArray) => {
-		if (oldUsersArray && newUsersArray.length < oldUsersArray.length) {
-			// Some users were removed, clear dismissed list
-			const currentUserIds = new Set(newUsersArray.map((u) => u.user_id));
-			dismissedRequests.value = dismissedRequests.value.filter((id) =>
-				currentUserIds.has(id),
-			);
-		}
-		previousWaitingUsers.value = [...newUsersArray];
-	},
-	{ immediate: true },
-);
+  () => resolvedWaitingUsers.value,
+  (newUsersArray, oldUsersArray) => {
+    if (oldUsersArray && newUsersArray.length < oldUsersArray.length) {
+      // Some users were removed, clear dismissed list
+      const currentUserIds = new Set(newUsersArray.map(u => u.user_id))
+      dismissedRequests.value = dismissedRequests.value.filter(id => currentUserIds.has(id))
+    }
+    previousWaitingUsers.value = [...newUsersArray]
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>

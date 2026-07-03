@@ -50,27 +50,27 @@ const store = userStore()
 const router = useRouter()
 
 const defaultAddressBook = {
-	account: store.accountId,
-	name: '',
-	description: '',
-	default: false,
+  account: store.accountId,
+  name: '',
+  description: '',
+  default: false,
 }
 
 const addressBook = reactive({ ...defaultAddressBook })
 
 const createAddressBook = createResource({
-	url: 'suite.mail.doctype.address_book.address_book.add_address_book',
-	makeParams: () => addressBook,
-	onSuccess: (data: string) => {
-		raiseToast(__('Address book created.'))
-		show.value = false
-		store.addressBooks.reload()
-		router.push({ name: 'mail-address-book', params: { addressBookName: data } })
-	},
-	onError: (error) => raiseToast(error.message, 'error'),
+  url: 'suite.mail.doctype.address_book.address_book.add_address_book',
+  makeParams: () => addressBook,
+  onSuccess: (data: string) => {
+    raiseToast(__('Address book created.'))
+    show.value = false
+    store.addressBooks.reload()
+    router.push({ name: 'mail-address-book', params: { addressBookName: data } })
+  },
+  onError: error => raiseToast(error.message, 'error'),
 })
 
-watch(show, (val) => {
-	if (val) Object.assign(addressBook, defaultAddressBook)
+watch(show, val => {
+  if (val) Object.assign(addressBook, defaultAddressBook)
 })
 </script>

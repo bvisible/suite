@@ -106,15 +106,7 @@
 </template>
 <script setup>
 import { Button, Dropdown, TextInput, TabButtons, Switch } from 'frappe-ui'
-import {
-  ref,
-  computed,
-  watch,
-  useTemplateRef,
-  h,
-  defineComponent,
-  onWatcherCleanup,
-} from 'vue'
+import { ref, computed, watch, useTemplateRef, h, defineComponent, onWatcherCleanup } from 'vue'
 import { getIconUrl } from '@/apps/drive/utils/files'
 import { view, shareView } from '@/apps/drive/data/prefs'
 import { onKeyDown } from '@vueuse/core'
@@ -141,7 +133,7 @@ const delayedLoading = ref(false)
 
 watch(
   () => props.getEntities.loading,
-  (newVal) => {
+  newVal => {
     if (newVal) {
       const timer = setTimeout(() => {
         delayedLoading.value = true
@@ -156,11 +148,11 @@ watch(
 
 const availableFilterTypes = computed(() => {
   if (!props.getEntities.data) return []
-  const types = new Set(props.getEntities.data.map((r) => r.file_type))
-  if (props.getEntities.data.find((k) => k.is_folder)) types.add('Folder')
+  const types = new Set(props.getEntities.data.map(r => r.file_type))
+  if (props.getEntities.data.find(k => k.is_folder)) types.add('Folder')
   return Array.from(types)
     .sort((a, b) => (a > b ? 1 : -1))
-    .map((t) => ({ name: t, icon: getIconUrl(t) }))
+    .map(t => ({ name: t, icon: getIconUrl(t) }))
 })
 
 onKeyDown('Escape', () => {
@@ -202,14 +194,14 @@ const columnHeaders = computed(() => [
         disabled: sortOrder.value.field !== 'title',
         switch: true,
         switchValue: sortOrder.value.smart,
-        onClick: (val) => (sortOrder.value.smart = val),
+        onClick: val => (sortOrder.value.smart = val),
       },
     ],
   },
 ])
 
 const orderByItems = computed(() => {
-  return columnHeaders.value.map((header) => ({
+  return columnHeaders.value.map(header => ({
     ...header,
     onClick: () => {
       sortOrder.value.field = header.field

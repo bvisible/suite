@@ -71,7 +71,7 @@ export async function call(method, args = {}, { keepalive = false } = {}) {
     throw decorateError(
       err instanceof Error ? err : new Error(String(err?.message || err)),
       err?.exc_type || '',
-      err?.statusCode ?? err?.status,
+      err?.statusCode ?? err?.status
     )
   }
 }

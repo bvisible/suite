@@ -4,7 +4,8 @@ import { colLabel, parseCellId } from '../../utils/cells.js'
 
 function _sheetToAoa(sheetName, sheet) {
   const data = sheet.getRawData(sheetName)
-  let maxR = 0, maxC = 0
+  let maxR = 0,
+    maxC = 0
   for (const id of Object.keys(data)) {
     const p = parseCellId(id)
     if (!p) continue
@@ -22,9 +23,11 @@ function _sheetToAoa(sheetName, sheet) {
 }
 
 function _esc(v) {
-  return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  return String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
 }
-
 
 export function _parseCSV(text) {
   const rows = []
@@ -39,9 +42,13 @@ export function _parseCSV(text) {
         i++
         let cell = ''
         while (i < s.length) {
-          if (s[i] === '"' && s[i + 1] === '"') { cell += '"'; i += 2 }
-          else if (s[i] === '"') { i++; break }
-          else cell += s[i++]
+          if (s[i] === '"' && s[i + 1] === '"') {
+            cell += '"'
+            i += 2
+          } else if (s[i] === '"') {
+            i++
+            break
+          } else cell += s[i++]
         }
         row.push(cell)
       } else {
@@ -50,7 +57,10 @@ export function _parseCSV(text) {
         while (i < s.length && s[i] !== ',' && s[i] !== '\n') i++
         row.push(s.slice(start, i))
       }
-      if (i >= s.length || s[i] === '\n') { i++; break }
+      if (i >= s.length || s[i] === '\n') {
+        i++
+        break
+      }
       i++ // skip ','
     }
     rows.push(row)
@@ -81,20 +91,26 @@ export function useExportImport({
 }) {
   function _diffRefs(before, after) {
     const ids = new Set([...Object.keys(before || {}), ...Object.keys(after || {})])
-    return [...ids].filter(id => (before?.[id]) !== (after?.[id]))
+    return [...ids].filter(id => before?.[id] !== after?.[id])
   }
 
   // ── exports ──────────────────────────────────────────────────────────────────
 
   function exportCSV() {
     const sheet = getSheet()
-    const rows  = _sheetToAoa(sheet.getCurrentSheet(), sheet)
-    const csv   = rows.map(row => row.map(v => {
-      const s = String(v ?? '')
-      return s.includes(',') || s.includes('"') || s.includes('\n')
-        ? `"${s.replace(/"/g, '""')}"`
-        : s
-    }).join(',')).join('\n')
+    const rows = _sheetToAoa(sheet.getCurrentSheet(), sheet)
+    const csv = rows
+      .map(row =>
+        row
+          .map(v => {
+            const s = String(v ?? '')
+            return s.includes(',') || s.includes('"') || s.includes('\n')
+              ? `"${s.replace(/"/g, '""')}"`
+              : s
+          })
+          .join(',')
+      )
+      .join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
     const a = Object.assign(document.createElement('a'), {
       href: URL.createObjectURL(blob),
@@ -116,12 +132,14 @@ export function useExportImport({
 
   function exportPDF() {
     const sheet = getSheet()
-    const sn    = sheet.getCurrentSheet()
-    const rows  = _sheetToAoa(sn, sheet)
+    const sn = sheet.getCurrentSheet()
+    const rows = _sheetToAoa(sn, sheet)
     if (!rows.length) return
     const thead = `<tr>${rows[0].map(c => `<th>${_esc(c)}</th>`).join('')}</tr>`
-    const tbody = rows.slice(1)
-      .map(r => `<tr>${r.map(c => `<td>${_esc(c)}</td>`).join('')}</tr>`).join('')
+    const tbody = rows
+      .slice(1)
+      .map(r => `<tr>${r.map(c => `<td>${_esc(c)}</td>`).join('')}</tr>`)
+      .join('')
     const title = getCurrentTitle()
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
     <title>${_esc(title)}</title>
@@ -159,7 +177,9 @@ export function useExportImport({
   //      separate iteration pass; dropping it is a clean win.
   const CHUNK_ROWS = 2000
 
-  function _yield() { return new Promise(r => setTimeout(r, 0)) }
+  function _yield() {
+    return new Promise(r => setTimeout(r, 0))
+  }
 
   // Build {cellId: value} from a rectangular row array, yielding to the
   // event loop every CHUNK_ROWS rows so the UI stays responsive on big files.
@@ -181,9 +201,9 @@ export function useExportImport({
     const file = e.target.files?.[0]
     if (!file) return
     const { read, utils } = await import('xlsx')
-    const buf  = await file.arrayBuffer()
-    const wb   = read(buf, { type: 'array' })
-    const ws   = wb.Sheets[wb.SheetNames[0]]
+    const buf = await file.arrayBuffer()
+    const wb = read(buf, { type: 'array' })
+    const ws = wb.Sheets[wb.SheetNames[0]]
     const rows = utils.sheet_to_json(ws, { header: 1, defval: '' })
     await _ingestRows(rows, file.name)
     e.target.value = ''
@@ -205,10 +225,10 @@ export function useExportImport({
   // Shared post-parse pipeline: chunked map build → bulk engine write →
   // dirty flag. No undo entry (imports replace the sheet, by design).
   async function _ingestRows(rows, fileName) {
-    const sheet     = getSheet()
-    const grid      = getGrid()
+    const sheet = getSheet()
+    const grid = getGrid()
     const currentSh = sheet.getCurrentSheet()
-    const map       = await _rowsToCellMap(rows)
+    const map = await _rowsToCellMap(rows)
     if (grid) grid.clearAll()
     sheet.batchSetCells(map, currentSh)
     // No history entry: imports aren't undoable (Sheets parity). The old

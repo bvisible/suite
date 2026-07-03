@@ -88,7 +88,7 @@
 </template>
 <script setup>
 import { getTeams } from '@/apps/drive/resources/files'
-import { Badge, Tooltip, Button} from 'frappe-ui'
+import { Badge, Tooltip, Button } from 'frappe-ui'
 import { getInvites, rejectInvite, acceptInvite } from '@/apps/drive/resources/permissions'
 import { formatDate } from '@/apps/drive/utils/format'
 import { watch } from 'vue'

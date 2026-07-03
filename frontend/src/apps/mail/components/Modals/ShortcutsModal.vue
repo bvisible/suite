@@ -44,67 +44,67 @@ import { type MailboxRole, userStore } from '@/apps/mail/stores/user'
 
 const { mailboxes } = userStore()
 
-const mailboxName = (role: MailboxRole) => mailboxes.data?.find((m) => m.role === role)?._name
+const mailboxName = (role: MailboxRole) => mailboxes.data?.find(m => m.role === role)?._name
 
 const modifier = computed(() => (isMac ? '⌘' : 'Ctrl'))
 
 const shortcutGroups = computed(() => [
-	[
-		{
-			title: __('Compose'),
-			shortcuts: [
-				[['C'], __('Compose New Mail')],
-				[[modifier.value, 'Enter'], __('Send Mail')],
-				[[modifier.value, 'D'], __('Discard Draft')],
-				[['R'], __('Reply to Mail')],
-				[['Shift', 'R'], __('Reply All to Mail')],
-				[['F'], __('Forward Mail')],
-			],
-		},
+  [
+    {
+      title: __('Compose'),
+      shortcuts: [
+        [['C'], __('Compose New Mail')],
+        [[modifier.value, 'Enter'], __('Send Mail')],
+        [[modifier.value, 'D'], __('Discard Draft')],
+        [['R'], __('Reply to Mail')],
+        [['Shift', 'R'], __('Reply All to Mail')],
+        [['F'], __('Forward Mail')],
+      ],
+    },
 
-		{
-			title: __('Actions'),
-			shortcuts: [
-				[[modifier.value, 'A'], __('Select All Mails')],
-				[['Esc'], __('Clear All Mails')],
-				[['Shift', '↓', __('or'), 'Shift', 'J'], __('Toggle Select Downwards')],
-				[['Shift', '↑', __('or'), 'Shift', 'K'], __('Toggle Select Upwards')],
-				[['!'], __('Mark as Junk')],
-				[['U'], __('Mark as Unread')],
-				[['Shift', 'U'], __('Mark as Read')],
-				[['Delete'], __('Move to Trash')],
-				[['Shift', 'Delete'], __('Permanently Delete')],
-				[[modifier.value, 'Z'], __('Undo Last Action')],
-			],
-		},
-	],
-	[
-		{
-			title: __('Navigation'),
-			shortcuts: [
-				[['↓', __('or'), 'J'], __('Go to Next Mail')],
-				[['↑', __('or'), 'K'], __('Go to Previous Mail')],
-				[['G', __('then'), 'G'], __('Go to First Mail')],
-				[['Shift', 'G'], __('Go to Last Mail')],
-				[['Enter'], __('Open Mail')],
-				[[modifier.value, 'K'], __('Search Mail')],
-				[['G', __('then'), 'I'], __('Go to {0}', [mailboxName('inbox')])],
-				[['G', __('then'), 'F'], __('Go to Starred')],
-				[['G', __('then'), 'S'], __('Go to {0}', [mailboxName('sent')])],
-				[['G', __('then'), 'D'], __('Go to {0}', [mailboxName('drafts')])],
-				[['G', __('then'), 'J'], __('Go to {0}', [mailboxName('junk')])],
-				[['G', __('then'), 'T'], __('Go to {0}', [mailboxName('trash')])],
-			],
-		},
-		{
-			title: __('Other'),
-			shortcuts: [
-				[[modifier.value, ','], __('Open Settings')],
-				[[modifier.value, ';'], __('Toggle Sidebar')],
-				[[modifier.value, 'Shift', 'L'], __('Cycle Theme')],
-				[['?'], __('View Shortcuts')],
-			],
-		},
-	],
+    {
+      title: __('Actions'),
+      shortcuts: [
+        [[modifier.value, 'A'], __('Select All Mails')],
+        [['Esc'], __('Clear All Mails')],
+        [['Shift', '↓', __('or'), 'Shift', 'J'], __('Toggle Select Downwards')],
+        [['Shift', '↑', __('or'), 'Shift', 'K'], __('Toggle Select Upwards')],
+        [['!'], __('Mark as Junk')],
+        [['U'], __('Mark as Unread')],
+        [['Shift', 'U'], __('Mark as Read')],
+        [['Delete'], __('Move to Trash')],
+        [['Shift', 'Delete'], __('Permanently Delete')],
+        [[modifier.value, 'Z'], __('Undo Last Action')],
+      ],
+    },
+  ],
+  [
+    {
+      title: __('Navigation'),
+      shortcuts: [
+        [['↓', __('or'), 'J'], __('Go to Next Mail')],
+        [['↑', __('or'), 'K'], __('Go to Previous Mail')],
+        [['G', __('then'), 'G'], __('Go to First Mail')],
+        [['Shift', 'G'], __('Go to Last Mail')],
+        [['Enter'], __('Open Mail')],
+        [[modifier.value, 'K'], __('Search Mail')],
+        [['G', __('then'), 'I'], __('Go to {0}', [mailboxName('inbox')])],
+        [['G', __('then'), 'F'], __('Go to Starred')],
+        [['G', __('then'), 'S'], __('Go to {0}', [mailboxName('sent')])],
+        [['G', __('then'), 'D'], __('Go to {0}', [mailboxName('drafts')])],
+        [['G', __('then'), 'J'], __('Go to {0}', [mailboxName('junk')])],
+        [['G', __('then'), 'T'], __('Go to {0}', [mailboxName('trash')])],
+      ],
+    },
+    {
+      title: __('Other'),
+      shortcuts: [
+        [[modifier.value, ','], __('Open Settings')],
+        [[modifier.value, ';'], __('Toggle Sidebar')],
+        [[modifier.value, 'Shift', 'L'], __('Cycle Theme')],
+        [['?'], __('View Shortcuts')],
+      ],
+    },
+  ],
 ])
 </script>

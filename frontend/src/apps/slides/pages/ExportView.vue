@@ -21,19 +21,19 @@
 import SlideElement from '@/apps/slides/components/SlideElement.vue'
 
 const props = defineProps({
-	slides: { type: Array, required: true },
+  slides: { type: Array, required: true },
 })
 
-const getSlidePageStyles = (slide) => {
-	return {
-		inset: 0,
-		background: slide.background || 'white',
-		// fallback to outline to ensure correct slide color
-		// when browser print background setting is disabled
-		// since we cannot really impose readonly for that setting
-		outline: `9999px solid ${slide.background || 'white'}`,
-		outlineOffset: '-9999px',
-	}
+const getSlidePageStyles = slide => {
+  return {
+    inset: 0,
+    background: slide.background || 'white',
+    // fallback to outline to ensure correct slide color
+    // when browser print background setting is disabled
+    // since we cannot really impose readonly for that setting
+    outline: `9999px solid ${slide.background || 'white'}`,
+    outlineOffset: '-9999px',
+  }
 }
 </script>
 

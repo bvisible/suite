@@ -131,7 +131,7 @@ const filteredTemplates = computed(() => {
     limit: 10,
   })
 
-  return results.map((result) => result.obj)
+  return results.map(result => result.obj)
 })
 
 function onSelection(template: Template) {
@@ -188,7 +188,7 @@ function resetState() {
   activeIndex.value = 0
 }
 
-watch(show, (value) => {
+watch(show, value => {
   if (value) {
     resetState()
     nextTick(() => {

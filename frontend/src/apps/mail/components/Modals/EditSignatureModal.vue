@@ -43,42 +43,42 @@ const { buttons } = useTextEditorButtons()
 const signature = ref()
 
 const getSignature = () =>
-	createDocumentResource({
-		doctype: 'Mail Signature',
-		name: signatureID,
-		setValue: {
-			onSuccess: () => {
-				show.value = false
-				raiseToast(__('Signature updated.'))
-				emit('reloadSignatures')
-			},
-			onError: (error) => {
-				raiseToast(error.messages[0], 'error')
-				signature.value.reload()
-			},
-		},
-	})
+  createDocumentResource({
+    doctype: 'Mail Signature',
+    name: signatureID,
+    setValue: {
+      onSuccess: () => {
+        show.value = false
+        raiseToast(__('Signature updated.'))
+        emit('reloadSignatures')
+      },
+      onError: error => {
+        raiseToast(error.messages[0], 'error')
+        signature.value.reload()
+      },
+    },
+  })
 
 const addSignatureOptions = computed(() => ({
-	title: __('Edit Signature'),
-	actions: [
-		{
-			label: __('Save'),
-			variant: 'solid',
-			disabled: !signature.value.doc.signature_name || !signature.value.doc.html_body,
-			onClick: () => {
-				signature.value.save.submit()
-				show.value = false
-			},
-		},
-	],
+  title: __('Edit Signature'),
+  actions: [
+    {
+      label: __('Save'),
+      variant: 'solid',
+      disabled: !signature.value.doc.signature_name || !signature.value.doc.html_body,
+      onClick: () => {
+        signature.value.save.submit()
+        show.value = false
+      },
+    },
+  ],
 }))
 
 watch(
-	show,
-	(val) => {
-		if (val) signature.value = getSignature()
-	},
-	{ immediate: true },
+  show,
+  val => {
+    if (val) signature.value = getSignature()
+  },
+  { immediate: true }
 )
 </script>

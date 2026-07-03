@@ -154,29 +154,29 @@ import { AGG_OPTIONS, computePivot } from '../../engine/pivot.js'
 import PivotFieldPicker from './PivotFieldPicker.vue'
 
 const props = defineProps({
-  modelValue:     { type: Boolean, default: false },
-  sheet:          { type: Object,  required: true },
-  currentSheet:   { type: String,  default: '' },
-  initialRange:   { type: String,  default: '' },
-  pivotId:        { type: String,  default: '' },
-  existingConfig: { type: Object,  default: null },
+  modelValue: { type: Boolean, default: false },
+  sheet: { type: Object, required: true },
+  currentSheet: { type: String, default: '' },
+  initialRange: { type: String, default: '' },
+  pivotId: { type: String, default: '' },
+  existingConfig: { type: Object, default: null },
 })
 
 const emit = defineEmits(['update:modelValue', 'confirm'])
 
 const show = computed({
   get: () => props.modelValue,
-  set: v  => emit('update:modelValue', v),
+  set: v => emit('update:modelValue', v),
 })
 
 // ── State ────────────────────────────────────────────────────────────────────
 
-const rangeInput      = ref('')
-const rangeError      = ref('')
+const rangeInput = ref('')
+const rangeError = ref('')
 const availableFields = ref([])
-const rowFields       = ref([])
-const colFields       = ref([])
-const valueFields     = ref([])   // { field, agg }[]
+const rowFields = ref([])
+const colFields = ref([])
+const valueFields = ref([]) // { field, agg }[]
 
 // Tracks how many field-pickers are currently open. While > 0 we tell the
 // frappe-ui Dialog NOT to close on outside-click, otherwise clicking a
@@ -204,9 +204,9 @@ watch(show, open => {
   if (!open) return
   if (props.existingConfig) {
     const c = props.existingConfig
-    rangeInput.value  = c.sourceRange || ''
-    rowFields.value   = [...(c.rows   || [])]
-    colFields.value   = [...(c.cols   || [])]
+    rangeInput.value = c.sourceRange || ''
+    rowFields.value = [...(c.rows || [])]
+    colFields.value = [...(c.cols || [])]
     valueFields.value = (c.values || []).map(v => ({ ...v }))
     // Seed source-sheet picker. If the stored sourceSheet equals the
     // pivot's own outputSheet (legacy corruption), fall back to the first
@@ -215,10 +215,10 @@ watch(show, open => {
     sourceSheetInput.value = _pickSourceSheet(c)
     _parseFields()
   } else {
-    rangeInput.value       = props.initialRange || ''
+    rangeInput.value = props.initialRange || ''
     sourceSheetInput.value = props.currentSheet || sheetOptions.value[0]?.value || ''
-    rowFields.value   = []
-    colFields.value   = []
+    rowFields.value = []
+    colFields.value = []
     valueFields.value = []
     availableFields.value = []
     if (rangeInput.value) detectFields()
@@ -239,10 +239,16 @@ function _pickSourceSheet(cfg) {
 
 function _parseFields() {
   const range = rangeInput.value.trim()
-  if (!range) { rangeError.value = 'Enter a range first.'; return false }
+  if (!range) {
+    rangeError.value = 'Enter a range first.'
+    return false
+  }
   const [start, end] = range.includes(':') ? range.split(':') : [range, range]
   const data = props.sheet.getRangeValues(start, end, sourceSheetInput.value)
-  if (!data || !data[0]) { rangeError.value = 'Could not read range.'; return false }
+  if (!data || !data[0]) {
+    rangeError.value = 'Could not read range.'
+    return false
+  }
   rangeError.value = ''
   // Filter out blank/null/zero cells — those are empty header columns
   availableFields.value = data[0]
@@ -251,33 +257,41 @@ function _parseFields() {
   return true
 }
 
-function detectFields() { _parseFields() }
+function detectFields() {
+  _parseFields()
+}
 
 // ── Field assignment ──────────────────────────────────────────────────────────
 
 function pickableFields(bucket) {
-  const taken = bucket === 'rows'   ? new Set(rowFields.value)
-              : bucket === 'cols'   ? new Set(colFields.value)
-              :                       new Set(valueFields.value.map(v => v.field))
+  const taken =
+    bucket === 'rows'
+      ? new Set(rowFields.value)
+      : bucket === 'cols'
+        ? new Set(colFields.value)
+        : new Set(valueFields.value.map(v => v.field))
   return availableFields.value.filter(f => !taken.has(f))
 }
 
 function addTo(bucket, f) {
-  if (bucket === 'rows'   && !rowFields.value.includes(f))              rowFields.value.push(f)
-  if (bucket === 'cols'   && !colFields.value.includes(f))              colFields.value.push(f)
-  if (bucket === 'values' && !valueFields.value.some(v => v.field === f)) valueFields.value.push({ field: f, agg: 'sum' })
+  if (bucket === 'rows' && !rowFields.value.includes(f)) rowFields.value.push(f)
+  if (bucket === 'cols' && !colFields.value.includes(f)) colFields.value.push(f)
+  if (bucket === 'values' && !valueFields.value.some(v => v.field === f))
+    valueFields.value.push({ field: f, agg: 'sum' })
 }
 
 function removeFrom(bucket, f) {
-  if (bucket === 'rows')   rowFields.value   = rowFields.value.filter(x => x !== f)
-  if (bucket === 'cols')   colFields.value   = colFields.value.filter(x => x !== f)
+  if (bucket === 'rows') rowFields.value = rowFields.value.filter(x => x !== f)
+  if (bucket === 'cols') colFields.value = colFields.value.filter(x => x !== f)
   if (bucket === 'values') valueFields.value = valueFields.value.filter(v => v.field !== f)
 }
 
 function aggOpts(v) {
   return AGG_OPTIONS.map(o => ({
-    label:   o.label,
-    onClick: () => { v.agg = o.value },
+    label: o.label,
+    onClick: () => {
+      v.agg = o.value
+    },
   }))
 }
 
@@ -296,32 +310,33 @@ const previewTable = computed(() => {
   const config = {
     sourceSheet: sourceSheetInput.value,
     sourceRange: rangeInput.value.trim(),
-    rows:   rowFields.value,
-    cols:   colFields.value,
+    rows: rowFields.value,
+    cols: colFields.value,
     values: valueFields.value,
   }
   const table = computePivot(config, (s, e, sh) => props.sheet.getRangeValues(s, e, sh))
-  return table.slice(0, 7)   // header + 5 data rows + total
+  return table.slice(0, 7) // header + 5 data rows + total
 })
 
 // ── Confirm ───────────────────────────────────────────────────────────────────
 
-const canCreate = computed(() =>
-  availableFields.value.length > 0
-  && rowFields.value.length > 0
-  && valueFields.value.length > 0
-  && !rangeError.value
+const canCreate = computed(
+  () =>
+    availableFields.value.length > 0 &&
+    rowFields.value.length > 0 &&
+    valueFields.value.length > 0 &&
+    !rangeError.value
 )
 
 function onConfirm() {
   if (!canCreate.value) return
   emit('confirm', {
-    id:          props.pivotId || undefined,
+    id: props.pivotId || undefined,
     sourceSheet: sourceSheetInput.value,
     sourceRange: rangeInput.value.trim(),
-    rows:        [...rowFields.value],
-    cols:        [...colFields.value],
-    values:      valueFields.value.map(v => ({ ...v })),
+    rows: [...rowFields.value],
+    cols: [...colFields.value],
+    values: valueFields.value.map(v => ({ ...v })),
   })
   show.value = false
 }

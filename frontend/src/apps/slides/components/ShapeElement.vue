@@ -124,32 +124,32 @@ import { useSVGShadow } from '@/apps/slides/composables/useSVGShadow'
 import { focusElementId, activeElementIds, dragOccurred } from '@/apps/slides/stores/element'
 
 const props = defineProps({
-	transitionStyles: {
-		type: Object,
-		default: () => ({}),
-	},
-	elementOffset: {
-		type: Object,
-		default: () => ({ left: 0, top: 0 }),
-	},
-	mode: {
-		type: String,
-		default: 'editor',
-	},
+  transitionStyles: {
+    type: Object,
+    default: () => ({}),
+  },
+  elementOffset: {
+    type: Object,
+    default: () => ({ left: 0, top: 0 }),
+  },
+  mode: {
+    type: String,
+    default: 'editor',
+  },
 })
 
 const element = defineModel('element', {
-	type: Object,
-	default: null,
+  type: Object,
+  default: null,
 })
 
 const inReadonlyMode = inject('inReadonlyMode', ref(false))
 const inSlideShowMode = inject('inSlideShowMode', ref(false))
 
 const wrapperStyles = {
-	position: 'relative',
-	width: '100%',
-	height: '100%',
+  position: 'relative',
+  width: '100%',
+  height: '100%',
 }
 
 const isLine = computed(() => element.value?.shapeType === 'line')
@@ -158,32 +158,30 @@ const POLYGON_SIDES = { diamond: 4, triangle: 3, pentagon: 5 }
 const isPolygon = computed(() => element.value?.shapeType in POLYGON_SIDES)
 
 const polygonPoints = computed(() => {
-	const sides = POLYGON_SIDES[element.value?.shapeType]
-	if (!sides) return ''
+  const sides = POLYGON_SIDES[element.value?.shapeType]
+  if (!sides) return ''
 
-	const offsetWidth = isActive.value ? (props.elementOffset.width ?? 0) : 0
-	const offsetHeight = isActive.value ? (props.elementOffset.height ?? 0) : 0
-	const width = (element.value?.width ?? 0) + offsetWidth
-	const height = (element.value?.height ?? 0) + offsetHeight
-	const strokeInset = (element.value?.strokeWidth ?? 0) / 2
+  const offsetWidth = isActive.value ? (props.elementOffset.width ?? 0) : 0
+  const offsetHeight = isActive.value ? (props.elementOffset.height ?? 0) : 0
+  const width = (element.value?.width ?? 0) + offsetWidth
+  const height = (element.value?.height ?? 0) + offsetHeight
+  const strokeInset = (element.value?.strokeWidth ?? 0) / 2
 
-	// Unit-circle vertices evenly spaced, starting from the top (-π/2)
-	const unitVertices = Array.from({ length: sides }, (_, k) => {
-		const angle = -Math.PI / 2 + (k * 2 * Math.PI) / sides
-		return { x: Math.cos(angle), y: Math.sin(angle) }
-	})
+  // Unit-circle vertices evenly spaced, starting from the top (-π/2)
+  const unitVertices = Array.from({ length: sides }, (_, k) => {
+    const angle = -Math.PI / 2 + (k * 2 * Math.PI) / sides
+    return { x: Math.cos(angle), y: Math.sin(angle) }
+  })
 
-	const xMin = Math.min(...unitVertices.map((v) => v.x))
-	const xMax = Math.max(...unitVertices.map((v) => v.x))
-	const yMin = Math.min(...unitVertices.map((v) => v.y))
-	const yMax = Math.max(...unitVertices.map((v) => v.y))
+  const xMin = Math.min(...unitVertices.map(v => v.x))
+  const xMax = Math.max(...unitVertices.map(v => v.x))
+  const yMin = Math.min(...unitVertices.map(v => v.y))
+  const yMax = Math.max(...unitVertices.map(v => v.y))
 
-	const scaleX = (x) => strokeInset + ((x - xMin) / (xMax - xMin)) * (width - 2 * strokeInset)
-	const scaleY = (y) => strokeInset + ((y - yMin) / (yMax - yMin)) * (height - 2 * strokeInset)
+  const scaleX = x => strokeInset + ((x - xMin) / (xMax - xMin)) * (width - 2 * strokeInset)
+  const scaleY = y => strokeInset + ((y - yMin) / (yMax - yMin)) * (height - 2 * strokeInset)
 
-	return unitVertices
-		.map((v) => `${scaleX(v.x)},${scaleY(v.y)}`)
-		.join(' ')
+  return unitVertices.map(v => `${scaleX(v.x)},${scaleY(v.y)}`).join(' ')
 })
 
 const canHaveText = computed(() => !isLine.value)
@@ -192,33 +190,33 @@ const isActive = computed(() => activeElementIds.value.includes(element.value?.i
 const isEditable = computed(() => focusElementId.value === element.value?.id)
 
 const TEXT_OVERLAY_BASE = {
-	position: 'absolute',
-	inset: '0',
-	display: 'flex',
-	flexDirection: 'column',
-	justifyContent: 'center',
-	overflow: 'hidden',
-	padding: '8px',
-	boxSizing: 'border-box',
+  position: 'absolute',
+  inset: '0',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  overflow: 'hidden',
+  padding: '8px',
+  boxSizing: 'border-box',
 }
 
 const textOverlayStyles = computed(() => ({
-	...TEXT_OVERLAY_BASE,
-	pointerEvents: isEditable.value ? 'all' : 'none',
+  ...TEXT_OVERLAY_BASE,
+  pointerEvents: isEditable.value ? 'all' : 'none',
 }))
 
-const handleDoubleClick = (e) => {
-	e.stopPropagation()
-	// don't enter edit mode when the gesture was a drag
-	if (dragOccurred.value) return
-	if (inSlideShowMode.value || inReadonlyMode.value || !canHaveText.value || isEditable.value)
-		return
-	activeElementIds.value = [element.value.id]
-	focusElementId.value = element.value.id
+const handleDoubleClick = e => {
+  e.stopPropagation()
+  // don't enter edit mode when the gesture was a drag
+  if (dragOccurred.value) return
+  if (inSlideShowMode.value || inReadonlyMode.value || !canHaveText.value || isEditable.value)
+    return
+  activeElementIds.value = [element.value.id]
+  focusElementId.value = element.value.id
 }
 
 const hasMarkers = computed(
-	() => isLine.value && !!(element.value?.markerStart || element.value?.markerEnd),
+  () => isLine.value && !!(element.value?.markerStart || element.value?.markerEnd)
 )
 
 const markerStartId = computed(() => `line-marker-start-${element.value?.id || ''}`)
@@ -228,15 +226,15 @@ const shadowFilterId = computed(() => `shape-shadow-${element.value?.id || ''}`)
 const shadow = useSVGShadow(element)
 
 const shapeStyles = computed(() => {
-	const styles = {
-		width: '100%',
-		height: '100%',
-		opacity: (element.value?.opacity || 100) / 100,
-		overflow: hasMarkers.value || shadow.value.hasShadow || isLine.value ? 'visible' : '',
-	}
-	return {
-		...styles,
-		...props.transitionStyles,
-	}
+  const styles = {
+    width: '100%',
+    height: '100%',
+    opacity: (element.value?.opacity || 100) / 100,
+    overflow: hasMarkers.value || shadow.value.hasShadow || isLine.value ? 'visible' : '',
+  }
+  return {
+    ...styles,
+    ...props.transitionStyles,
+  }
 })
 </script>

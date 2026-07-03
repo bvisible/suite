@@ -45,8 +45,8 @@ import { deletePresentation, updatePresentationTitle } from '@/apps/slides/store
 import { Trash, PenLine } from 'lucide-vue-next'
 
 const props = defineProps({
-	presentation: Object,
-	dialogAction: String,
+  presentation: Object,
+  dialogAction: String,
 })
 
 const emit = defineEmits(['closeDialog', 'updatePresentationList'])
@@ -56,65 +56,65 @@ const inputRef = useTemplateRef('inputRef')
 const newPresentationTitle = ref('')
 
 const actions = {
-	Rename: {
-		label: 'Update Title',
-		icon: PenLine,
-	},
-	Delete: {
-		label: 'Delete Presentation',
-		icon: Trash,
-	},
+  Rename: {
+    label: 'Update Title',
+    icon: PenLine,
+  },
+  Delete: {
+    label: 'Delete Presentation',
+    icon: Trash,
+  },
 }
 
 const performAction = async () => {
-	const action = props.dialogAction
+  const action = props.dialogAction
 
-	if (!props.dialogAction || !props.presentation) return
+  if (!props.dialogAction || !props.presentation) return
 
-	handleDialogClose()
+  handleDialogClose()
 
-	if (action == 'Rename') await renamePresentation()
-	else await deletePresentation(props.presentation.name)
+  if (action == 'Rename') await renamePresentation()
+  else await deletePresentation(props.presentation.name)
 
-	emit('updatePresentationList', action, newPresentationTitle.value)
+  emit('updatePresentationList', action, newPresentationTitle.value)
 }
 
 const renamePresentation = async () => {
-	await updatePresentationTitle(props.presentation.name, newPresentationTitle.value)
+  await updatePresentationTitle(props.presentation.name, newPresentationTitle.value)
 }
 
 watch(
-	() => [props.dialogAction, props.presentation],
-	(val) => {
-		if (!val) return
+  () => [props.dialogAction, props.presentation],
+  val => {
+    if (!val) return
 
-		let newTitle = ''
-		if (props.dialogAction == 'Rename') {
-			newTitle = props.presentation.title
-		}
+    let newTitle = ''
+    if (props.dialogAction == 'Rename') {
+      newTitle = props.presentation.title
+    }
 
-		newPresentationTitle.value = newTitle
-		handleDialogOpen()
-	},
+    newPresentationTitle.value = newTitle
+    handleDialogOpen()
+  }
 )
 
-const handleEnterKey = (e) => {
-	if (e.key === 'Enter') {
-		e.preventDefault()
-		performAction()
-	}
+const handleEnterKey = e => {
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    performAction()
+  }
 }
 
 const handleDialogOpen = () => {
-	document.addEventListener('keydown', handleEnterKey)
+  document.addEventListener('keydown', handleEnterKey)
 
-	nextTick(() => {
-		document.querySelector('input')?.focus()
-	})
+  nextTick(() => {
+    document.querySelector('input')?.focus()
+  })
 }
 
 const handleDialogClose = () => {
-	document.removeEventListener('keydown', handleEnterKey)
-	emit('closeDialog')
+  document.removeEventListener('keydown', handleEnterKey)
+  emit('closeDialog')
 }
 </script>

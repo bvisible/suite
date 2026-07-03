@@ -112,9 +112,7 @@ const entityText = computed(() => {
 function generateMessage(activity) {
   const user = activity.full_name ? activity.full_name : activity.owner
   const creationText =
-    entity.value.is_folder || hasHostedContent(entity.value)
-      ? 'created this'
-      : 'uploaded this'
+    entity.value.is_folder || hasHostedContent(entity.value) ? 'created this' : 'uploaded this'
 
   switch (activity.action_type) {
     case 'create':
@@ -166,13 +164,12 @@ function groupAndTransform(activities) {
         index--
       }
     }
-    activity.full_name =
-      activity.owner === useSessionStore().user ? 'You' : activity.full_name
+    activity.full_name = activity.owner === useSessionStore().user ? 'You' : activity.full_name
     activity.message = generateMessage(activity)
     activity.creation = formatDate(activity.creation)
   }
   // calc and group by creation loop
-  activities.forEach((activity) => {
+  activities.forEach(activity => {
     const creationDate = new Date(activity.creation)
     const dayDiff = Math.floor((today - creationDate) / (1000 * 60 * 60 * 24))
     const yearDiff = today.getFullYear() - creationDate.getFullYear()
@@ -188,8 +185,7 @@ function groupAndTransform(activities) {
         groupedActivityLog.value['This week'].push(activity)
         break
       case dayDiff <= 14 &&
-        creationDate >=
-          new Date(startOfWeek.getTime() - 7 * 24 * 60 * 60 * 1000):
+        creationDate >= new Date(startOfWeek.getTime() - 7 * 24 * 60 * 60 * 1000):
         groupedActivityLog.value['Last week'].push(activity)
         break
       case monthDiff === 0:

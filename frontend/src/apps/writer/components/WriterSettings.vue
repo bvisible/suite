@@ -236,7 +236,7 @@ const fontOptions = computed(() =>
       cond: tabIndex.value === 1,
     },
     ...FONT_FAMILIES,
-  ]),
+  ])
 )
 
 const resource = computed(() => (tabIndex.value === 1 ? props.docSettings : props.globalSettings))

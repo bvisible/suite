@@ -29,9 +29,9 @@ function parseStyle(style: string): Map<string, string> {
 
   style
     .split(';')
-    .map((s) => s.trim())
+    .map(s => s.trim())
     .filter(Boolean)
-    .forEach((entry) => {
+    .forEach(entry => {
       const [key, ...rest] = entry.split(':')
       if (!key || rest.length === 0) return
       map.set(key.trim(), rest.join(':').trim())
@@ -65,9 +65,7 @@ const CleanStyles = Extension.create<CleanStylesOptions>({
           const { doc, schema } = state
           const textStyleType = schema.marks.textStyle
           doc.descendants((node, pos) => {
-            const styleMark = node.marks.filter(
-              (mark) => mark.type.name === textStyleType.name,
-            )?.[0]
+            const styleMark = node.marks.filter(mark => mark.type.name === textStyleType.name)?.[0]
 
             for (let [key, validator] of Object.entries(this.options.validators)) {
               const value = node.attrs[key]

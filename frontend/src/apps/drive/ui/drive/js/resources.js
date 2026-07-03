@@ -28,19 +28,19 @@ export const move = createResource({
 // Share dialog resources
 export const usersWithAccess = createResource({
   url: 'suite.drive.api.permissions.get_shared_with_list',
-  makeParams: (params) => params,
+  makeParams: params => params,
 })
 
 export const updateAccess = createResource({
   url: 'suite.drive.api.files.update_access',
-  makeParams: (params) => ({ ...params, method: params.method || 'share' }),
-  onError: (error) => toast.error(error.messages[0]),
+  makeParams: params => ({ ...params, method: params.method || 'share' }),
+  onError: error => toast.error(error.messages[0]),
 })
 
 export const allUsers = createResource({
   url: 'suite.drive.api.product.get_team_users',
-  transform: (data) => {
-    data.map((item) => {
+  transform: data => {
+    data.map(item => {
       item.value = item.email
       item.label = item.full_name.trimEnd()
     })
@@ -51,7 +51,7 @@ export const allUsers = createResource({
 export const rename = createResource({
   url: 'suite.drive.api.files.rename',
   method: 'POST',
-  makeParams: (data) => {
+  makeParams: data => {
     return {
       ...data,
     }

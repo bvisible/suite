@@ -155,66 +155,85 @@ const ChartView = defineAsyncComponent(() => import('./ChartView.vue'))
 import { CHART_TYPES } from '../../engine/charts.js'
 
 const CHART_ICONS = {
-  line:    'trending-up',
-  bar:     'bar-chart-2',
-  area:    'activity',
-  pie:     'pie-chart',
+  line: 'trending-up',
+  bar: 'bar-chart-2',
+  area: 'activity',
+  pie: 'pie-chart',
   scatter: 'git-commit',
 }
 
 const props = defineProps({
-  modelValue:   { type: Boolean, default: false },
-  sheet:        { type: Object,  required: true },
-  currentSheet: { type: String,  default: '' },
-  initialRange: { type: String,  default: '' },
-  chartId:      { type: String,  default: '' },
+  modelValue: { type: Boolean, default: false },
+  sheet: { type: Object, required: true },
+  currentSheet: { type: String, default: '' },
+  initialRange: { type: String, default: '' },
+  chartId: { type: String, default: '' },
   existingConfig: { type: Object, default: null },
 })
 const emit = defineEmits(['update:modelValue', 'confirm'])
 
 const show = computed({
   get: () => props.modelValue,
-  set: v  => emit('update:modelValue', v),
+  set: v => emit('update:modelValue', v),
 })
 
 // ── State ───────────────────────────────────────────────────────────────────
 
-const rangeInput  = ref('')
-const rangeError  = ref('')
-const chartType   = ref('bar')
-const title       = ref('')
-const hasHeader   = ref(true)
-const xCol        = ref(0)
-const yCols       = ref([])             // selected column indices
-const opts        = reactive({ showLegend: true, smooth: false, stacked: false, dataLabels: true, gridLines: true })
+const rangeInput = ref('')
+const rangeError = ref('')
+const chartType = ref('bar')
+const title = ref('')
+const hasHeader = ref(true)
+const xCol = ref(0)
+const yCols = ref([]) // selected column indices
+const opts = reactive({
+  showLegend: true,
+  smooth: false,
+  stacked: false,
+  dataLabels: true,
+  gridLines: true,
+})
 
 // Resolved each `detect()` — the actual values backing the preview.
-const matrix      = ref([])
-const columns     = ref([])             // [{ idx, label, isNumeric }]
+const matrix = ref([])
+const columns = ref([]) // [{ idx, label, isNumeric }]
 const seriesFilter = ref('')
 
 // ── Reset state when dialog opens ───────────────────────────────────────────
 
-watch(show, (open) => {
+watch(show, open => {
   if (!open) return
   if (props.existingConfig) {
     const c = props.existingConfig
     rangeInput.value = c.sourceRange || ''
-    chartType.value  = c.chartType   || 'bar'
-    title.value      = c.title       || ''
-    hasHeader.value  = c.hasHeader !== false
-    xCol.value       = c.encoding?.x ?? 0
-    yCols.value      = c.encoding?.y ? [...c.encoding.y] : []
-    Object.assign(opts, { showLegend: true, smooth: false, stacked: false, dataLabels: false, gridLines: true, ...c.options })
+    chartType.value = c.chartType || 'bar'
+    title.value = c.title || ''
+    hasHeader.value = c.hasHeader !== false
+    xCol.value = c.encoding?.x ?? 0
+    yCols.value = c.encoding?.y ? [...c.encoding.y] : []
+    Object.assign(opts, {
+      showLegend: true,
+      smooth: false,
+      stacked: false,
+      dataLabels: false,
+      gridLines: true,
+      ...c.options,
+    })
     detect()
   } else {
     rangeInput.value = props.initialRange || ''
-    chartType.value  = 'bar'
-    title.value      = ''
-    hasHeader.value  = true
-    xCol.value       = 0
-    yCols.value      = []
-    Object.assign(opts, { showLegend: true, smooth: false, stacked: false, dataLabels: true, gridLines: true })
+    chartType.value = 'bar'
+    title.value = ''
+    hasHeader.value = true
+    xCol.value = 0
+    yCols.value = []
+    Object.assign(opts, {
+      showLegend: true,
+      smooth: false,
+      stacked: false,
+      dataLabels: true,
+      gridLines: true,
+    })
     if (rangeInput.value) detect()
   }
 })
@@ -230,14 +249,20 @@ function detect() {
     range = _autoDetectRange()
     if (!range) {
       rangeError.value = 'No data found on this sheet. Type a range like A1:D20.'
-      matrix.value = []; columns.value = []
+      matrix.value = []
+      columns.value = []
       return
     }
     rangeInput.value = range
   }
   const [start, end] = range.includes(':') ? range.split(':') : [range, range]
   const data = props.sheet.getRangeValues(start, end, props.currentSheet)
-  if (!data || !data.length) { rangeError.value = 'Could not read range.'; matrix.value = []; columns.value = []; return }
+  if (!data || !data.length) {
+    rangeError.value = 'Could not read range.'
+    matrix.value = []
+    columns.value = []
+    return
+  }
   rangeError.value = ''
   matrix.value = data
   const ncols = data[0]?.length || 0
@@ -249,7 +274,8 @@ function detect() {
   const sampleEnd = Math.min(data.length, bodyStart + 20)
   columns.value = []
   for (let i = 0; i < ncols; i++) {
-    let numHits = 0, total = 0
+    let numHits = 0,
+      total = 0
     for (let r = bodyStart; r < sampleEnd; r++) {
       const v = data[r]?.[i]
       if (v === '' || v == null) continue
@@ -257,15 +283,15 @@ function detect() {
       if (!isNaN(Number(v))) numHits++
     }
     columns.value.push({
-      idx:       i,
-      label:     header?.[i] ? String(header[i]) : `Column ${_colLetter(i)}`,
+      idx: i,
+      label: header?.[i] ? String(header[i]) : `Column ${_colLetter(i)}`,
       isNumeric: total > 0 && numHits / total >= 0.6,
     })
   }
   // Default encoding: first column on X, all numeric columns on Y. Cap at
   // 8 so the preview doesn't choke on a 50-series wall of colour.
   if (!props.existingConfig || yCols.value.length === 0) {
-    xCol.value  = 0
+    xCol.value = 0
     yCols.value = columns.value
       .filter(c => c.idx !== 0 && c.isNumeric)
       .slice(0, 8)
@@ -274,11 +300,15 @@ function detect() {
   }
 }
 
-const columnOptions = computed(() => columns.value.map(c => ({ label: c.label, value: String(c.idx) })))
+const columnOptions = computed(() =>
+  columns.value.map(c => ({ label: c.label, value: String(c.idx) }))
+)
 
 // Autocomplete works in option-object terms — pre-pick the option whose
 // value matches our current xCol so the picker shows the right label.
-const xAxisOption = computed(() => columnOptions.value.find(o => o.value === String(xCol.value)) || null)
+const xAxisOption = computed(
+  () => columnOptions.value.find(o => o.value === String(xCol.value)) || null
+)
 function onXAxisChange(opt) {
   if (!opt) return
   xCol.value = parseInt(opt.value, 10)
@@ -299,13 +329,11 @@ const filteredColumns = computed(() => {
 
 function _toggleY(idx) {
   if (yCols.value.includes(idx)) yCols.value = yCols.value.filter(v => v !== idx)
-  else                            yCols.value = [...yCols.value, idx].sort((a, b) => a - b)
+  else yCols.value = [...yCols.value, idx].sort((a, b) => a - b)
 }
 
 function selectNumericSeries() {
-  yCols.value = columns.value
-    .filter(c => c.idx !== xCol.value && c.isNumeric)
-    .map(c => c.idx)
+  yCols.value = columns.value.filter(c => c.idx !== xCol.value && c.isNumeric).map(c => c.idx)
 }
 
 // ── Master "select all visible" checkbox ──────────────────────────────────-
@@ -314,9 +342,7 @@ function selectNumericSeries() {
 // Tri-state label communicates "some selected" so users know clicking will
 // extend vs. clear, even though the checkbox itself is binary.
 
-const _selectableVisible = computed(() =>
-  filteredColumns.value.filter(c => c.idx !== xCol.value),
-)
+const _selectableVisible = computed(() => filteredColumns.value.filter(c => c.idx !== xCol.value))
 const masterCheckState = computed(() => {
   const sel = _selectableVisible.value
   if (!sel.length) return 'none'
@@ -326,7 +352,8 @@ const masterCheckState = computed(() => {
   return 'some'
 })
 const masterCheckLabel = computed(() => {
-  if (masterCheckState.value === 'all')  return seriesFilter.value ? 'Deselect visible' : 'Deselect all'
+  if (masterCheckState.value === 'all')
+    return seriesFilter.value ? 'Deselect visible' : 'Deselect all'
   if (masterCheckState.value === 'some') return 'Deselect visible'
   return seriesFilter.value ? 'Select visible' : 'Select all'
 })
@@ -349,33 +376,31 @@ const previewConfig = computed(() => {
   if (!matrix.value.length || !yCols.value.length) return null
   return {
     chartType: chartType.value,
-    title:     title.value,
+    title: title.value,
     hasHeader: hasHeader.value,
-    encoding:  { x: xCol.value, y: yCols.value },
-    options:   { ...opts },
+    encoding: { x: xCol.value, y: yCols.value },
+    options: { ...opts },
   }
 })
 const previewMatrix = computed(() => matrix.value)
 
 // ── Confirm ────────────────────────────────────────────────────────────────-
 
-const canCommit = computed(() =>
-  !!previewConfig.value
-  && !rangeError.value
-  && rangeInput.value.trim().length > 0
+const canCommit = computed(
+  () => !!previewConfig.value && !rangeError.value && rangeInput.value.trim().length > 0
 )
 
 function onConfirm() {
   if (!canCommit.value) return
   emit('confirm', {
-    id:          props.chartId || undefined,
+    id: props.chartId || undefined,
     sourceSheet: props.currentSheet,
     sourceRange: rangeInput.value.trim(),
-    chartType:   chartType.value,
-    title:       title.value,
-    hasHeader:   hasHeader.value,
-    encoding:    { x: xCol.value, y: [...yCols.value] },
-    options:     { ...opts },
+    chartType: chartType.value,
+    title: title.value,
+    hasHeader: hasHeader.value,
+    encoding: { x: xCol.value, y: [...yCols.value] },
+    options: { ...opts },
   })
   show.value = false
 }
@@ -384,8 +409,13 @@ function _label(t) {
   return t.charAt(0).toUpperCase() + t.slice(1)
 }
 function _colLetter(idx) {
-  let n = idx + 1, s = ''
-  while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26) }
+  let n = idx + 1,
+    s = ''
+  while (n > 0) {
+    const r = (n - 1) % 26
+    s = String.fromCharCode(65 + r) + s
+    n = Math.floor((n - 1) / 26)
+  }
   return s
 }
 
@@ -396,8 +426,10 @@ function _colLetter(idx) {
 function _autoDetectRange() {
   if (!props.sheet?.getCell) return ''
   const sheetName = props.currentSheet
-  const ROWS = 500, COLS = 52
-  let maxRow = -1, maxCol = -1
+  const ROWS = 500,
+    COLS = 52
+  let maxRow = -1,
+    maxCol = -1
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       const v = props.sheet.getCell(_colLetter(c) + (r + 1), sheetName)

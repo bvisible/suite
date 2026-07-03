@@ -47,15 +47,15 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import {
-	Badge,
-	FeatherIcon,
-	FormControl,
-	ListEmptyState,
-	ListHeader,
-	ListRow,
-	ListRows,
-	ListView,
-	usePageMeta,
+  Badge,
+  FeatherIcon,
+  FormControl,
+  ListEmptyState,
+  ListHeader,
+  ListRow,
+  ListRows,
+  ListView,
+  usePageMeta,
 } from 'frappe-ui'
 
 import { userStore } from '@/apps/mail/stores/user'
@@ -72,21 +72,21 @@ const showAddAddressBook = ref(false)
 const search = ref('')
 
 const searchedAddressBooks = computed(() =>
-	addressBooks.data?.filter((ab) => ab._name.toLowerCase().includes(search.value.toLowerCase())),
+  addressBooks.data?.filter(ab => ab._name.toLowerCase().includes(search.value.toLowerCase()))
 )
 
 const LIST_COLUMNS = [
-	{ label: __('Name'), key: '_name' },
-	{ label: '', key: 'default' },
+  { label: __('Name'), key: '_name' },
+  { label: '', key: 'default' },
 ]
 
 const LIST_OPTIONS = {
-	selectable: false,
-	showTooltip: false,
-	emptyState: { description: __('No address books found.') },
-	getRowRoute: (row) => ({
-		name: 'mail-address-book',
-		params: { accountId, addressBookName: row.id },
-	}),
+  selectable: false,
+  showTooltip: false,
+  emptyState: { description: __('No address books found.') },
+  getRowRoute: row => ({
+    name: 'mail-address-book',
+    params: { accountId, addressBookName: row.id },
+  }),
 }
 </script>

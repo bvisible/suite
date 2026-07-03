@@ -141,7 +141,7 @@ function generateHTMLDiff(newHTML, oldHTML = '') {
   const newDoc = parser.parseFromString(newHTML, 'text/html').body
 
   const result = diffNode(oldDoc, newDoc)
-  return result.map((node) => (typeof node === 'string' ? node : node.outerHTML)).join('')
+  return result.map(node => (typeof node === 'string' ? node : node.outerHTML)).join('')
 }
 
 function diffNode(oldNode, newNode) {
@@ -188,7 +188,7 @@ function diffNode(oldNode, newNode) {
 
   for (let i = 0; i < len; i++) {
     const childDiff = diffNode(oldChildren[i], newChildren[i])
-    childDiff.forEach((fragment) => {
+    childDiff.forEach(fragment => {
       if (typeof fragment === 'string') {
         const span = document.createElement('span')
         span.innerHTML = fragment
@@ -234,8 +234,8 @@ const versions = createResource({
   auto: true,
 })
 
-const manualVersions = computed(() => versions.data.filter((v) => v.manual))
-const autoVersions = computed(() => versions.data.filter((v) => !v.manual))
+const manualVersions = computed(() => versions.data.filter(v => v.manual))
+const autoVersions = computed(() => versions.data.filter(v => !v.manual))
 
 function formatDateDDMMYY(dateStr) {
   const date = new Date(dateStr)
@@ -273,19 +273,19 @@ const groupedVersions = computed(() => {
   }
 })
 
-const tab = ref(versions.data.filter((v) => v.manual).length ? 1 : 0)
+const tab = ref(versions.data.filter(v => v.manual).length ? 1 : 0)
 watch(tab, () => (versionPreview.value = null))
 
-const getPrevious = (version) => {
+const getPrevious = version => {
   // Important: Use the original arrays, not the reversed ones
   const relevantVersions = version.manual
-    ? versions.data.filter((v) => v.manual)
-    : versions.data.filter((v) => !v.manual)
-  const currentIndex = relevantVersions.findIndex((v) => v.name === version.name)
+    ? versions.data.filter(v => v.manual)
+    : versions.data.filter(v => !v.manual)
+  const currentIndex = relevantVersions.findIndex(v => v.name === version.name)
   return relevantVersions[currentIndex - 1]
 }
 
-const restore = (version) => {
+const restore = version => {
   createDialog({
     title: 'Are you sure?',
     size: 'sm',
@@ -299,7 +299,7 @@ const restore = (version) => {
         onClick: () => {
           props.editor.commands.setContent(version.snapshot)
           toast.success(
-            `Restored a previous version - ${version.manual ? version.title : formatDateDDMMYY(version.title)}`,
+            `Restored a previous version - ${version.manual ? version.title : formatDateDDMMYY(version.title)}`
           )
           showVersions.value = false
           clearDialogs()

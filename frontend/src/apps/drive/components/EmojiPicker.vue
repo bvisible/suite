@@ -65,7 +65,7 @@ const search = ref('')
 const emojiValue = defineModel()
 
 const props = defineProps({ emojis: Array })
-const emoji = computed(() => props.emojis.find((k) => k.value === (emojiValue.value || 'building')))
+const emoji = computed(() => props.emojis.find(k => k.value === (emojiValue.value || 'building')))
 
 const emojiGroups = computed(() => {
   const groups = {}

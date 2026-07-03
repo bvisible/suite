@@ -51,48 +51,47 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref } from "vue";
-import { PollPayloadFE } from "../types";
-import { usePollStore } from "../composables/usePollStore";
+import { computed, inject, ref } from 'vue'
+import { PollPayloadFE } from '../types'
+import { usePollStore } from '../composables/usePollStore'
 
 const props = defineProps<{
-	poll: PollPayloadFE;
-	isGuest?: boolean;
-}>();
+  poll: PollPayloadFE
+  isGuest?: boolean
+}>()
 
-const pollService = inject("poll") as any;
+const pollService = inject('poll') as any
 const pollStore = usePollStore()
 
-const localVotedOption = ref<string | null>(null);
+const localVotedOption = ref<string | null>(null)
 
 const livePoll = computed(() => {
-	const storePolls = Object.values(pollStore.polls) as PollPayloadFE[];
-	const foundInStore = storePolls?.find(p => p.pollId === props.poll.pollId);
-	return foundInStore || props.poll;
-});
+  const storePolls = Object.values(pollStore.polls) as PollPayloadFE[]
+  const foundInStore = storePolls?.find(p => p.pollId === props.poll.pollId)
+  return foundInStore || props.poll
+})
 
-const hasVoted = computed(() => !!livePoll.value.hasVoted);
-const isSelectionDisabled = computed(() => hasVoted.value || props.isGuest);
+const hasVoted = computed(() => !!livePoll.value.hasVoted)
+const isSelectionDisabled = computed(() => hasVoted.value || props.isGuest)
 
 const handleVote = async (optionId: string) => {
-	if (isSelectionDisabled.value) return;
-	localVotedOption.value = optionId;
-	if (pollService) {
-		try {
-			await pollService.submitVote(livePoll.value.pollId, optionId);
-		} catch (error) {
-			localVotedOption.value = null;
-		}
-	}
-};
+  if (isSelectionDisabled.value) return
+  localVotedOption.value = optionId
+  if (pollService) {
+    try {
+      await pollService.submitVote(livePoll.value.pollId, optionId)
+    } catch (error) {
+      localVotedOption.value = null
+    }
+  }
+}
 
 const totalVotes = computed(() => {
-	return livePoll.value.options.reduce((sum, opt) => sum + opt.votes, 0);
-});
+  return livePoll.value.options.reduce((sum, opt) => sum + opt.votes, 0)
+})
 
 const getPercentage = (votes: number) => {
-	if (totalVotes.value === 0) return 0;
-	return Math.round((votes / totalVotes.value) * 100);
-};
-
+  if (totalVotes.value === 0) return 0
+  return Math.round((votes / totalVotes.value) * 100)
+}
 </script>

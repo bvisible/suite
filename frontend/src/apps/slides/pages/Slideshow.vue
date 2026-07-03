@@ -70,14 +70,18 @@ import SlideshowEndScreen from '@/apps/slides/components/SlideshowEndScreen.vue'
 import FadeElementTransition from '@/apps/slides/components/FadeElementTransition.vue'
 
 import {
-	inSlideShowMode,
-	showSlideshowEndScreen,
-	endSlideShow,
-	prefetchNextSlide,
-	changeSlideInSlideshow,
+  inSlideShowMode,
+  showSlideshowEndScreen,
+  endSlideShow,
+  prefetchNextSlide,
+  changeSlideInSlideshow,
 } from '@/apps/slides/stores/slideshow'
 
-import { applyReverseTransition, initPresentationDoc, inReadonlyMode } from '@/apps/slides/stores/presentation'
+import {
+  applyReverseTransition,
+  initPresentationDoc,
+  inReadonlyMode,
+} from '@/apps/slides/stores/presentation'
 import { currentSlide, setSlideIndex, slideIndex, slides } from '@/apps/slides/stores/slide'
 import { resetFocus } from '@/apps/slides/stores/element'
 
@@ -86,14 +90,14 @@ const slideContainerRef = useTemplateRef('slideContainer')
 const router = useRouter()
 
 const props = defineProps({
-	presentationId: {
-		type: String,
-		required: true,
-	},
-	activeSlideId: {
-		type: Number,
-		required: true,
-	},
+  presentationId: {
+    type: String,
+    required: true,
+  },
+  activeSlideId: {
+    type: Number,
+    required: true,
+  },
 })
 
 const transition = ref('none')
@@ -103,244 +107,243 @@ const windowWidth = ref(window.innerWidth)
 const windowHeight = ref(window.innerHeight)
 
 const clipPath = computed(() => {
-	if (!inSlideShowMode.value) return 'none'
-	const slideHeight = 540 * (windowWidth.value / 960)
-	const inset = Math.max(0, (windowHeight.value - slideHeight) / 2)
-	return `inset(${inset}px 0px ${inset}px 0px)`
+  if (!inSlideShowMode.value) return 'none'
+  const slideHeight = 540 * (windowWidth.value / 960)
+  const inset = Math.max(0, (windowHeight.value - slideHeight) / 2)
+  return `inset(${inset}px 0px ${inset}px 0px)`
 })
 
-const getElementKey = (element) => {
-	return element.refId || element.id
+const getElementKey = element => {
+  return element.refId || element.id
 }
 
 const slideCursor = ref('none')
 
 const prevSlide = computed(() => {
-	if (slideIndex.value == 0) return null
-	return slides.value[slideIndex.value - 1]
+  if (slideIndex.value == 0) return null
+  return slides.value[slideIndex.value - 1]
 })
 
 const isMagicMoveApplied = computed(() => {
-	if (applyReverseTransition.value) return false
+  if (applyReverseTransition.value) return false
 
-	return (
-		currentSlide.value?.transition == 'Magic Move' ||
-		prevSlide.value?.transition == 'Magic Move'
-	)
+  return (
+    currentSlide.value?.transition == 'Magic Move' || prevSlide.value?.transition == 'Magic Move'
+  )
 })
 
 const slideStyles = computed(() => {
-	// scale slide to fit screen width while maintaining 16:9 aspect ratio
-	const widthScale = windowWidth.value / 960
+  // scale slide to fit screen width while maintaining 16:9 aspect ratio
+  const widthScale = windowWidth.value / 960
 
-	const baseStyles = {
-		width: '960px',
-		height: '540px',
-		backgroundColor: currentSlide.value?.background || '#ffffff',
-		cursor: slideCursor.value,
-	}
+  const baseStyles = {
+    width: '960px',
+    height: '540px',
+    backgroundColor: currentSlide.value?.background || '#ffffff',
+    cursor: slideCursor.value,
+  }
 
-	if (prevSlide.value?.transition == 'Magic Move') {
-		return {
-			...baseStyles,
-			transform: `scale(${widthScale})`,
-			opacity: 1,
-			...transitionStyles.value,
-		}
-	}
+  if (prevSlide.value?.transition == 'Magic Move') {
+    return {
+      ...baseStyles,
+      transform: `scale(${widthScale})`,
+      opacity: 1,
+      ...transitionStyles.value,
+    }
+  }
 
-	return {
-		...baseStyles,
-		transform: `${transform.value} scale(${widthScale})`,
-		opacity: opacity.value,
-		transition: transition.value,
-	}
+  return {
+    ...baseStyles,
+    transform: `${transform.value} scale(${widthScale})`,
+    opacity: opacity.value,
+    transition: transition.value,
+  }
 })
 
-const getElementTransitionStyles = (element) => {
-	const styles = transitionStyles.value
+const getElementTransitionStyles = element => {
+  const styles = transitionStyles.value
 
-	// limit transition property in element container to dimensions and position only
-	const transitionProperty = styles.transitionProperty == 'all' ? 'left, top, width, height' : ''
+  // limit transition property in element container to dimensions and position only
+  const transitionProperty = styles.transitionProperty == 'all' ? 'left, top, width, height' : ''
 
-	return {
-		...styles,
-		transitionProperty: transitionProperty,
-		'--transition-duration': styles.transitionDuration,
-	}
+  return {
+    ...styles,
+    transitionProperty: transitionProperty,
+    '--transition-duration': styles.transitionDuration,
+  }
 }
 
 const transitionStyles = computed(() => {
-	if (applyReverseTransition.value) return {}
+  if (applyReverseTransition.value) return {}
 
-	const transitionProperty = prevSlide.value?.transition == 'Magic Move' ? 'all' : ''
-	const transitionDuration = prevSlide.value?.transitionDuration
+  const transitionProperty = prevSlide.value?.transition == 'Magic Move' ? 'all' : ''
+  const transitionDuration = prevSlide.value?.transitionDuration
 
-	return {
-		transitionProperty: transitionProperty,
-		transitionDuration: transitionDuration ? `${transitionDuration}s` : '0s',
-		transitionTimingFunction: 'ease-in-out',
-	}
+  return {
+    transitionProperty: transitionProperty,
+    transitionDuration: transitionDuration ? `${transitionDuration}s` : '0s',
+    transitionTimingFunction: 'ease-in-out',
+  }
 })
 
 const transitionMap = computed(() => {
-	if (!currentSlide.value) return {}
-	return {
-		'Slide In': {
-			beforeEnter: {
-				transform: ['translateX(100%)', 'translateX(-100%)'],
-				transition: 'none',
-			},
-			enter: {
-				transform: 'translateX(0)',
-				transition: `transform ${currentSlide.value.transitionDuration}s ease-out`,
-			},
-			beforeLeave: {
-				transition: 'none',
-			},
-			leave: {
-				transform: ['translateX(100%)', 'translateX(-100%)'],
-				transition: `transform ${currentSlide.value.transitionDuration}s ease-out`,
-			},
-		},
-		Fade: {
-			beforeEnter: {
-				opacity: 0,
-			},
-			enter: {
-				transition: `opacity ${currentSlide.value.transitionDuration}s`,
-			},
-			beforeLeave: {},
-			leave: {
-				transition: `opacity ${currentSlide.value.transitionDuration}s`,
-				opacity: 0,
-			},
-		},
-	}
+  if (!currentSlide.value) return {}
+  return {
+    'Slide In': {
+      beforeEnter: {
+        transform: ['translateX(100%)', 'translateX(-100%)'],
+        transition: 'none',
+      },
+      enter: {
+        transform: 'translateX(0)',
+        transition: `transform ${currentSlide.value.transitionDuration}s ease-out`,
+      },
+      beforeLeave: {
+        transition: 'none',
+      },
+      leave: {
+        transform: ['translateX(100%)', 'translateX(-100%)'],
+        transition: `transform ${currentSlide.value.transitionDuration}s ease-out`,
+      },
+    },
+    Fade: {
+      beforeEnter: {
+        opacity: 0,
+      },
+      enter: {
+        transition: `opacity ${currentSlide.value.transitionDuration}s`,
+      },
+      beforeLeave: {},
+      leave: {
+        transition: `opacity ${currentSlide.value.transitionDuration}s`,
+        opacity: 0,
+      },
+    },
+  }
 })
 
-const applyTransitionStyles = (hook) => {
-	const styles = transitionMap.value?.[currentSlide.value.transition]?.[hook]
-	if (!styles) return
+const applyTransitionStyles = hook => {
+  const styles = transitionMap.value?.[currentSlide.value.transition]?.[hook]
+  if (!styles) return
 
-	let transformVal = styles.transform
-	if (transformVal && Array.isArray(transformVal)) {
-		transformVal = applyReverseTransition.value ? transformVal[1] : transformVal[0]
-	}
+  let transformVal = styles.transform
+  if (transformVal && Array.isArray(transformVal)) {
+    transformVal = applyReverseTransition.value ? transformVal[1] : transformVal[0]
+  }
 
-	transform.value = transformVal || transform.value
-	transition.value = styles.transition || transition.value
-	opacity.value = styles.opacity
+  transform.value = transformVal || transform.value
+  transition.value = styles.transition || transition.value
+  opacity.value = styles.opacity
 }
 
-const beforeSlideEnter = (el) => {
-	if (!currentSlide.value.transition) return
-	applyTransitionStyles('beforeEnter')
+const beforeSlideEnter = el => {
+  if (!currentSlide.value.transition) return
+  applyTransitionStyles('beforeEnter')
 }
 
 const slideEnter = (el, done) => {
-	if (!currentSlide.value.transition) return done()
-	el.offsetWidth
-	applyTransitionStyles('enter')
-	done()
+  if (!currentSlide.value.transition) return done()
+  el.offsetWidth
+  applyTransitionStyles('enter')
+  done()
 }
 
-const beforeSlideLeave = (el) => {
-	if (!currentSlide.value.transition) return
-	applyTransitionStyles('beforeLeave')
+const beforeSlideLeave = el => {
+  if (!currentSlide.value.transition) return
+  applyTransitionStyles('beforeLeave')
 }
 
 const slideLeave = (el, done) => {
-	if (!currentSlide.value.transition) return done()
-	applyTransitionStyles('leave')
-	done()
+  if (!currentSlide.value.transition) return done()
+  applyTransitionStyles('leave')
+  done()
 }
 
 let cursorTimer = null
 
 const resetCursorVisibility = () => {
-	slideCursor.value = 'auto'
-	clearTimeout(cursorTimer)
-	cursorTimer = setTimeout(() => {
-		slideCursor.value = 'none'
-	}, 4000)
+  slideCursor.value = 'auto'
+  clearTimeout(cursorTimer)
+  cursorTimer = setTimeout(() => {
+    slideCursor.value = 'none'
+  }, 4000)
 }
 
 const handleFullScreenChange = () => {
-	if (document.fullscreenElement) {
-		slideContainerRef.value?.addEventListener('mousemove', resetCursorVisibility)
-		inSlideShowMode.value = true
-	} else {
-		slideContainerRef.value?.removeEventListener('mousemove', resetCursorVisibility)
-		endSlideShow()
-	}
+  if (document.fullscreenElement) {
+    slideContainerRef.value?.addEventListener('mousemove', resetCursorVisibility)
+    inSlideShowMode.value = true
+  } else {
+    slideContainerRef.value?.removeEventListener('mousemove', resetCursorVisibility)
+    endSlideShow()
+  }
 }
 
 const slideContainerStyles = computed(() => {
-	return {
-		clipPath: clipPath.value,
-		backgroundColor: currentSlide.value?.background || '#ffffff',
-	}
+  return {
+    clipPath: clipPath.value,
+    backgroundColor: currentSlide.value?.background || '#ffffff',
+  }
 })
 
 const initFullscreenMode = async () => {
-	const container = slideContainerRef.value
-	if (!container) return
+  const container = slideContainerRef.value
+  if (!container) return
 
-	const fullscreenMethods = [
-		container.requestFullscreen,
-		container.webkitRequestFullscreen, // Safari
-		container.msRequestFullscreen, // IE
-		container.mozRequestFullScreen, // Firefox
-	]
+  const fullscreenMethods = [
+    container.requestFullscreen,
+    container.webkitRequestFullscreen, // Safari
+    container.msRequestFullscreen, // IE
+    container.mozRequestFullScreen, // Firefox
+  ]
 
-	const fullscreenMethod = fullscreenMethods.find((method) => method)
+  const fullscreenMethod = fullscreenMethods.find(method => method)
 
-	if (fullscreenMethod) {
-		fullscreenMethod.call(container).catch((e) => {
-			router.replace({ name: 'slides-editor' })
-		})
-	}
+  if (fullscreenMethod) {
+    fullscreenMethod.call(container).catch(e => {
+      router.replace({ name: 'slides-editor' })
+    })
+  }
 }
 
 const loadPresentation = async () => {
-	if (slides.value.length) return
-	initPresentationDoc(props.presentationId)
+  if (slides.value.length) return
+  initPresentationDoc(props.presentationId)
 }
 
 const updateWindowSize = () => {
-	windowWidth.value = window.innerWidth
-	windowHeight.value = window.innerHeight
+  windowWidth.value = window.innerWidth
+  windowHeight.value = window.innerHeight
 }
 
 onActivated(() => {
-	resetFocus()
-	loadPresentation()
-	initFullscreenMode()
-	document.addEventListener('fullscreenchange', handleFullScreenChange)
-	window.addEventListener('resize', updateWindowSize)
+  resetFocus()
+  loadPresentation()
+  initFullscreenMode()
+  document.addEventListener('fullscreenchange', handleFullScreenChange)
+  window.addEventListener('resize', updateWindowSize)
 
-	// Initial prefetch of next slide
-	setTimeout(() => {
-		prefetchNextSlide()
-	}, 500)
+  // Initial prefetch of next slide
+  setTimeout(() => {
+    prefetchNextSlide()
+  }, 500)
 })
 
 onDeactivated(() => {
-	document.removeEventListener('fullscreenchange', handleFullScreenChange)
-	window.removeEventListener('resize', updateWindowSize)
+  document.removeEventListener('fullscreenchange', handleFullScreenChange)
+  window.removeEventListener('resize', updateWindowSize)
 })
 
 watch(
-	() => props.activeSlideId,
-	(index) => {
-		setSlideIndex(index)
-		// Prefetch next slide when current slide changes
-		setTimeout(() => {
-			prefetchNextSlide()
-		}, 200)
-	},
-	{ immediate: true },
+  () => props.activeSlideId,
+  index => {
+    setSlideIndex(index)
+    // Prefetch next slide when current slide changes
+    setTimeout(() => {
+      prefetchNextSlide()
+    }, 200)
+  },
+  { immediate: true }
 )
 
 provide('inReadonlyMode', inReadonlyMode)

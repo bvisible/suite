@@ -94,7 +94,7 @@ import { userStore } from '@/apps/mail/stores/user'
 const show = defineModel<boolean>()
 
 type DayjsFn = () => {
-	add: (value: number, unit: string) => { format: (fmt: string) => string }
+  add: (value: number, unit: string) => { format: (fmt: string) => string }
 }
 
 const dayjs = inject<DayjsFn>('$dayjs')
@@ -102,20 +102,20 @@ const dayjs = inject<DayjsFn>('$dayjs')
 const { domains } = userStore()
 
 const ROLE_OPTIONS = [
-	{ label: __('User'), value: 'user' },
-	{ label: __('Admin'), value: 'admin' },
+  { label: __('User'), value: 'user' },
+  { label: __('Admin'), value: 'admin' },
 ]
 
 const defaultAccountRequest = {
-	username: '',
-	domain: '',
-	role: 'user',
-	send_invite: true,
-	expires_at: dayjs?.().add(1, 'day').format('YYYY-MM-DDTHH:mm') || '',
-	backup_email: '',
-	first_name: '',
-	last_name: '',
-	password: '',
+  username: '',
+  domain: '',
+  role: 'user',
+  send_invite: true,
+  expires_at: dayjs?.().add(1, 'day').format('YYYY-MM-DDTHH:mm') || '',
+  backup_email: '',
+  first_name: '',
+  last_name: '',
+  password: '',
 }
 
 const accountRequest = reactive({ ...defaultAccountRequest })
@@ -123,26 +123,26 @@ const accountRequest = reactive({ ...defaultAccountRequest })
 const emit = defineEmits(['reload'])
 
 watch(
-	() => accountRequest.send_invite,
-	() => addMember.reset(),
+  () => accountRequest.send_invite,
+  () => addMember.reset()
 )
 watch(show, () => {
-	if (show.value) {
-		Object.assign(accountRequest, defaultAccountRequest)
-		addMember.reset()
-	}
+  if (show.value) {
+    Object.assign(accountRequest, defaultAccountRequest)
+    addMember.reset()
+  }
 })
 
 const addMember = createResource({
-	url: 'suite.mail.api.admin.add_member',
-	makeParams: () => ({
-		...accountRequest,
-		is_admin: accountRequest.role === 'admin',
-	}),
-	onSuccess: () => {
-		raiseToast(accountRequest.send_invite ? __('Member invited.') : __('Member added.'))
-		emit('reload')
-		show.value = false
-	},
+  url: 'suite.mail.api.admin.add_member',
+  makeParams: () => ({
+    ...accountRequest,
+    is_admin: accountRequest.role === 'admin',
+  }),
+  onSuccess: () => {
+    raiseToast(accountRequest.send_invite ? __('Member invited.') : __('Member added.'))
+    emit('reload')
+    show.value = false
+  },
 })
 </script>

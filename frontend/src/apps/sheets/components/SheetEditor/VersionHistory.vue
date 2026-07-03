@@ -86,122 +86,137 @@ import { computed, ref, watch } from 'vue'
 import { Avatar, Button, Select } from 'frappe-ui'
 
 const FILTER_OPTIONS = [
-	{ label: 'All versions',          value: 'all' },
-	{ label: 'Named versions only',   value: 'named' },
+  { label: 'All versions', value: 'all' },
+  { label: 'Named versions only', value: 'named' },
 ]
 
 const props = defineProps({
-	open:           { type: Boolean, default: false },
-	versions:       { type: Array,   default: () => [] },
-	loading:        { type: Boolean, default: false },
-	error:          { type: String,  default: '' },
-	activeVersion:  { type: String,  default: '' },
+  open: { type: Boolean, default: false },
+  versions: { type: Array, default: () => [] },
+  loading: { type: Boolean, default: false },
+  error: { type: String, default: '' },
+  activeVersion: { type: String, default: '' },
 })
 const emit = defineEmits(['close', 'select', 'name', 'copy', 'restore'])
 
-const filter    = ref('all')
-const menuFor   = ref(null)
+const filter = ref('all')
+const menuFor = ref(null)
 const menuStyle = ref({})
 
-watch(() => props.open, (open) => {
-	if (!open) { filter.value = 'all'; menuFor.value = null }
-})
+watch(
+  () => props.open,
+  open => {
+    if (!open) {
+      filter.value = 'all'
+      menuFor.value = null
+    }
+  }
+)
 
 const filteredVersions = computed(() => {
-	if (filter.value === 'named') return props.versions.filter(v => v.version_name)
-	return props.versions
+  if (filter.value === 'named') return props.versions.filter(v => v.version_name)
+  return props.versions
 })
 
 // Coalesce consecutive same-user same-minute entries into one displayed row.
 // Avoids the "18 rows from one editing burst" problem.  Keeps the newest
 // version's metadata so restore/preview lands on the final state of the burst.
 const collapsed = computed(() => {
-	const out = []
-	for (const v of filteredVersions.value) {
-		const last = out[out.length - 1]
-		if (last && _sameBurst(last, v)) {
-			last.collapsed_count = (last.collapsed_count || 1) + 1
-			continue
-		}
-		out.push({ ...v, collapsed_count: 1 })
-	}
-	return out
+  const out = []
+  for (const v of filteredVersions.value) {
+    const last = out[out.length - 1]
+    if (last && _sameBurst(last, v)) {
+      last.collapsed_count = (last.collapsed_count || 1) + 1
+      continue
+    }
+    out.push({ ...v, collapsed_count: 1 })
+  }
+  return out
 })
 
 function _sameBurst(a, b) {
-	if (a.user !== b.user) return false
-	if (a.version_name || b.version_name) return false
-	if (a.primary_op !== b.primary_op) return false
-	return _minuteKey(a.timestamp) === _minuteKey(b.timestamp)
+  if (a.user !== b.user) return false
+  if (a.version_name || b.version_name) return false
+  if (a.primary_op !== b.primary_op) return false
+  return _minuteKey(a.timestamp) === _minuteKey(b.timestamp)
 }
-function _minuteKey(ts) { return String(ts).slice(0, 16) }
+function _minuteKey(ts) {
+  return String(ts).slice(0, 16)
+}
 
 const visibleGroups = computed(() => {
-	const byDay = new Map()
-	for (const v of collapsed.value) {
-		const d = _dayKey(v.timestamp)
-		if (!byDay.has(d)) byDay.set(d, [])
-		byDay.get(d).push(v)
-	}
-	return [...byDay.entries()].map(([date, items]) => ({
-		date, items, label: dayLabel(date),
-	}))
+  const byDay = new Map()
+  for (const v of collapsed.value) {
+    const d = _dayKey(v.timestamp)
+    if (!byDay.has(d)) byDay.set(d, [])
+    byDay.get(d).push(v)
+  }
+  return [...byDay.entries()].map(([date, items]) => ({
+    date,
+    items,
+    label: dayLabel(date),
+  }))
 })
 
 const menuRow = computed(() =>
-	menuFor.value ? props.versions.find(v => v.name === menuFor.value) : null,
+  menuFor.value ? props.versions.find(v => v.name === menuFor.value) : null
 )
 
 function rowSubtitle(v) {
-	if (v.version_name)   return v.version_name
-	if (v.op_labels?.[0]) return v.op_labels[0]
-	return ''
+  if (v.version_name) return v.version_name
+  if (v.op_labels?.[0]) return v.op_labels[0]
+  return ''
 }
 
 function toggleMenu(versionName, evt) {
-	if (menuFor.value === versionName) { menuFor.value = null; return }
-	const rect = evt.currentTarget.getBoundingClientRect()
-	const panelRect = evt.currentTarget.closest('.sn-vh-panel').getBoundingClientRect()
-	menuStyle.value = {
-		top:   `${rect.bottom - panelRect.top + 4}px`,
-		right: `${panelRect.right - rect.right}px`,
-	}
-	menuFor.value = versionName
+  if (menuFor.value === versionName) {
+    menuFor.value = null
+    return
+  }
+  const rect = evt.currentTarget.getBoundingClientRect()
+  const panelRect = evt.currentTarget.closest('.sn-vh-panel').getBoundingClientRect()
+  menuStyle.value = {
+    top: `${rect.bottom - panelRect.top + 4}px`,
+    right: `${panelRect.right - rect.right}px`,
+  }
+  menuFor.value = versionName
 }
 
 function actionFromMenu(kind) {
-	const target = menuFor.value
-	menuFor.value = null
-	if (!target) return
-	emit(kind, target)
+  const target = menuFor.value
+  menuFor.value = null
+  if (!target) return
+  emit(kind, target)
 }
 
-function _dayKey(ts) { return String(ts).slice(0, 10) }
+function _dayKey(ts) {
+  return String(ts).slice(0, 10)
+}
 
 function dayLabel(dateStr) {
-	const today = _dayKey(new Date().toISOString())
-	const yest  = _dayKey(new Date(Date.now() - 86_400_000).toISOString())
-	if (dateStr === today) return 'Today'
-	if (dateStr === yest)  return 'Yesterday'
-	const d = new Date(dateStr)
-	return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+  const today = _dayKey(new Date().toISOString())
+  const yest = _dayKey(new Date(Date.now() - 86_400_000).toISOString())
+  if (dateStr === today) return 'Today'
+  if (dateStr === yest) return 'Yesterday'
+  const d = new Date(dateStr)
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 function formatTime(ts) {
-	if (!ts) return ''
-	const d = new Date(String(ts).replace(' ', 'T'))
-	const dayKey   = _dayKey(d.toISOString())
-	const todayKey = _dayKey(new Date().toISOString())
-	const yestKey  = _dayKey(new Date(Date.now() - 86_400_000).toISOString())
-	const time = d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
-	if (dayKey === todayKey || dayKey === yestKey) return time
-	const date = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-	return `${date}, ${time}`
+  if (!ts) return ''
+  const d = new Date(String(ts).replace(' ', 'T'))
+  const dayKey = _dayKey(d.toISOString())
+  const todayKey = _dayKey(new Date().toISOString())
+  const yestKey = _dayKey(new Date(Date.now() - 86_400_000).toISOString())
+  const time = d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+  if (dayKey === todayKey || dayKey === yestKey) return time
+  const date = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+  return `${date}, ${time}`
 }
 
 function shortUser(u) {
-	if (!u) return ''
-	return u.includes('@') ? u.split('@')[0] : u
+  if (!u) return ''
+  return u.includes('@') ? u.split('@')[0] : u
 }
 </script>
 

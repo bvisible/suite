@@ -27,38 +27,38 @@ const show = defineModel<boolean>()
 const emit = defineEmits(['add'])
 
 const DEFAULT_ADDRESS = {
-	type: 'Personal',
-	street: '',
-	locality: '',
-	region: '',
-	postcode: '',
-	country: '',
+  type: 'Personal',
+  street: '',
+  locality: '',
+  region: '',
+  postcode: '',
+  country: '',
 }
 
 const address = reactive({ ...DEFAULT_ADDRESS })
 
 const options = computed(() => ({
-	title: __('Add Address'),
-	actions: [
-		{
-			label: __('Save'),
-			variant: 'solid',
-			disabled: !(address.type && address.street),
-			onClick: () => {
-				emit('add', address)
-				show.value = false
-			},
-		},
-	],
+  title: __('Add Address'),
+  actions: [
+    {
+      label: __('Save'),
+      variant: 'solid',
+      disabled: !(address.type && address.street),
+      onClick: () => {
+        emit('add', address)
+        show.value = false
+      },
+    },
+  ],
 }))
 
-watch(show, (val) => {
-	if (val) Object.assign(address, DEFAULT_ADDRESS)
+watch(show, val => {
+  if (val) Object.assign(address, DEFAULT_ADDRESS)
 })
 
 const TYPE_OPTIONS = [
-	{ label: __('Personal'), value: 'Personal' },
-	{ label: __('Work'), value: 'Work' },
-	{ label: __('Other'), value: 'Other' },
+  { label: __('Personal'), value: 'Personal' },
+  { label: __('Work'), value: 'Work' },
+  { label: __('Other'), value: 'Other' },
 ]
 </script>

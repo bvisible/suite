@@ -30,22 +30,15 @@
 </template>
 
 <script setup lang="ts">
-import {
-	Button,
-	ListEmptyState,
-	ListHeader,
-	ListRows,
-	ListSelectBanner,
-	ListView,
-} from 'frappe-ui'
+import { Button, ListEmptyState, ListHeader, ListRows, ListSelectBanner, ListView } from 'frappe-ui'
 
 import DashboardCard from '@/apps/mail/components/DashboardCard.vue'
 
 const { row = 'value' } = defineProps<{
-	rows: Record<string, string>[]
-	title: string
-	columnLabel: string
-	row?: string
+  rows: Record<string, string>[]
+  title: string
+  columnLabel: string
+  row?: string
 }>()
 
 const emit = defineEmits(['add', 'remove'])

@@ -48,27 +48,27 @@ const { signature } = defineProps<{ signature: string }>()
 const identity = ref(identities?.data[0]?.name || '')
 
 const addSignatureOptions = computed(() => ({
-	title: __('Set Default Signature'),
-	actions: [
-		{
-			label: __('Save'),
-			variant: 'solid',
-			disabled: !identity.value,
-			onClick: () => {
-				setSignature.submit()
-				show.value = false
-			},
-		},
-	],
+  title: __('Set Default Signature'),
+  actions: [
+    {
+      label: __('Save'),
+      variant: 'solid',
+      disabled: !identity.value,
+      onClick: () => {
+        setSignature.submit()
+        show.value = false
+      },
+    },
+  ],
 }))
 
 const setSignature = createResource({
-	url: 'suite.mail.api.account.set_signature',
-	makeParams: () => ({ identity: identity.value, signature }),
-	onSuccess: () => {
-		raiseToast(__('Identity updated.'))
-		identities.reload()
-	},
-	onError: (error) => raiseToast(error.message, 'error'),
+  url: 'suite.mail.api.account.set_signature',
+  makeParams: () => ({ identity: identity.value, signature }),
+  onSuccess: () => {
+    raiseToast(__('Identity updated.'))
+    identities.reload()
+  },
+  onError: error => raiseToast(error.message, 'error'),
 })
 </script>

@@ -152,194 +152,185 @@
 </template>
 
 <script setup lang="ts">
-import { type ComputedRef, computed, inject, type Ref, ref, watch } from "vue";
-import { useAudioStream } from "../composables/useAudioLevels";
-import { useMeetingContext } from "../composables/useMeetingContext";
-import { useNetworkQuality } from "../composables/useNetworkQuality";
-import WifiAlertIcon from "../icons/WifiAlertIcon.vue";
-import type { Participant } from "../utils/media/ParticipantManager";
-import AudioIndicator from "./AudioIndicator.vue";
-import KickParticipantDialog from "./KickParticipantDialog.vue";
-import MeetingAvatar from "./MeetingAvatar.vue";
-import NamePill from "./NamePill.vue";
+import { type ComputedRef, computed, inject, type Ref, ref, watch } from 'vue'
+import { useAudioStream } from '../composables/useAudioLevels'
+import { useMeetingContext } from '../composables/useMeetingContext'
+import { useNetworkQuality } from '../composables/useNetworkQuality'
+import WifiAlertIcon from '../icons/WifiAlertIcon.vue'
+import type { Participant } from '../utils/media/ParticipantManager'
+import AudioIndicator from './AudioIndicator.vue'
+import KickParticipantDialog from './KickParticipantDialog.vue'
+import MeetingAvatar from './MeetingAvatar.vue'
+import NamePill from './NamePill.vue'
 
-type TileSize = "xs" | "sm" | "md";
-type TilePosition = "bottom-left" | "top-left" | "top-right" | "bottom-right";
+type TileSize = 'xs' | 'sm' | 'md'
+type TilePosition = 'bottom-left' | 'top-left' | 'top-right' | 'bottom-right'
 
 interface Props {
-	participant: Participant;
-	isLocal?: boolean;
-	isVideoEnabled?: boolean;
-	isAudioEnabled?: boolean;
-	isActiveSpeaker?: boolean;
-	videoRef: (el: unknown) => void;
-	tileCount?: number;
-	labelSize?: TileSize;
-	labelPosition?: TilePosition;
-	pinType?: "screenshare" | "participant";
-	pinId?: string | null;
-	showPinButton?: boolean;
-	showAvatar?: boolean;
-	showReaction?: boolean;
-	showRaisedHand?: boolean;
-	showAudioState?: boolean;
-	showNetworkState?: boolean;
-	tileBackgroundClass?: string;
-	avatarBackgroundClass?: string;
-	videoObjectFitClass?: string;
-	videoBackgroundClass?: string;
-	displayName?: string;
+  participant: Participant
+  isLocal?: boolean
+  isVideoEnabled?: boolean
+  isAudioEnabled?: boolean
+  isActiveSpeaker?: boolean
+  videoRef: (el: unknown) => void
+  tileCount?: number
+  labelSize?: TileSize
+  labelPosition?: TilePosition
+  pinType?: 'screenshare' | 'participant'
+  pinId?: string | null
+  showPinButton?: boolean
+  showAvatar?: boolean
+  showReaction?: boolean
+  showRaisedHand?: boolean
+  showAudioState?: boolean
+  showNetworkState?: boolean
+  tileBackgroundClass?: string
+  avatarBackgroundClass?: string
+  videoObjectFitClass?: string
+  videoBackgroundClass?: string
+  displayName?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
-	isLocal: false,
-	isVideoEnabled: true,
-	isAudioEnabled: true,
-	isActiveSpeaker: false,
-	tileCount: 1,
-	labelSize: "md",
-	labelPosition: "bottom-left",
-	pinType: "participant",
-	pinId: null,
-	showPinButton: true,
-	showAvatar: true,
-	showReaction: true,
-	showRaisedHand: true,
-	showAudioState: true,
-	showNetworkState: true,
-	tileBackgroundClass: "bg-gray-800",
-	avatarBackgroundClass: "bg-gray-700",
-	videoObjectFitClass: "object-cover",
-	videoBackgroundClass: "",
-	displayName: "",
-});
+  isLocal: false,
+  isVideoEnabled: true,
+  isAudioEnabled: true,
+  isActiveSpeaker: false,
+  tileCount: 1,
+  labelSize: 'md',
+  labelPosition: 'bottom-left',
+  pinType: 'participant',
+  pinId: null,
+  showPinButton: true,
+  showAvatar: true,
+  showReaction: true,
+  showRaisedHand: true,
+  showAudioState: true,
+  showNetworkState: true,
+  tileBackgroundClass: 'bg-gray-800',
+  avatarBackgroundClass: 'bg-gray-700',
+  videoObjectFitClass: 'object-cover',
+  videoBackgroundClass: '',
+  displayName: '',
+})
 
-const meetingCtx = useMeetingContext();
+const meetingCtx = useMeetingContext()
 const isCurrentUserHost = inject<Ref<boolean> | ComputedRef<boolean>>(
-	"isCurrentUserHost",
-	ref(false),
-);
+  'isCurrentUserHost',
+  ref(false)
+)
 const hostControls = inject<{
-	muteParticipant: (participantId: string) => void;
-	kickParticipant: (participantId: string, ban: boolean) => void;
-}>("hostControls", null);
+  muteParticipant: (participantId: string) => void
+  kickParticipant: (participantId: string, ban: boolean) => void
+}>('hostControls', null)
 
-const tileId = computed(() => props.pinId || props.participant.user_id);
+const tileId = computed(() => props.pinId || props.participant.user_id)
 
-const showBlur = ref(props.participant.isLocalScreenShare);
+const showBlur = ref(props.participant.isLocalScreenShare)
 
 const showScreenShareCopy = computed(() => {
-	return !meetingCtx?.gridLayout.pinnedTiles.value.length || isPinned.value;
-});
+  return !meetingCtx?.gridLayout.pinnedTiles.value.length || isPinned.value
+})
 
 const { stream } = useAudioStream(props.participant.user_id, {
-	mediaState: meetingCtx?.mediaState,
-	currentUser: meetingCtx?.currentUser,
-});
+  mediaState: meetingCtx?.mediaState,
+  currentUser: meetingCtx?.currentUser,
+})
 
-const { networkQuality } = useNetworkQuality();
+const { networkQuality } = useNetworkQuality()
 
 const resolvedDisplayName = computed(() => {
-	return (
-		props.displayName ||
-		props.participant.user_name ||
-		(props.participant.is_guest ? "Guest" : "")
-	);
-});
+  return (
+    props.displayName || props.participant.user_name || (props.participant.is_guest ? 'Guest' : '')
+  )
+})
 
 const computedNetworkQuality = computed(() => {
-	if (props.isLocal) {
-		return networkQuality.value;
-	}
-	return props.participant.networkQuality || "good";
-});
+  if (props.isLocal) {
+    return networkQuality.value
+  }
+  return props.participant.networkQuality || 'good'
+})
 
 const showNetworkIndicator = computed(() => {
-	return computedNetworkQuality.value !== "good";
-});
+  return computedNetworkQuality.value !== 'good'
+})
 
 const networkQualityMessage = computed(() => {
-	const quality = computedNetworkQuality.value;
-	const isLocal = props.isLocal;
-	const name = resolvedDisplayName.value || "This participant";
+  const quality = computedNetworkQuality.value
+  const isLocal = props.isLocal
+  const name = resolvedDisplayName.value || 'This participant'
 
-	if (quality === "critical") {
-		return isLocal
-			? "Your internet connection is unstable. Video and audio might lag or drop."
-			: `${name}'s internet connection is unstable.`;
-	}
-	if (quality === "poor") {
-		return isLocal
-			? "Your internet connection is weak. You might notice some lag."
-			: `${name}'s internet connection is weak.`;
-	}
-	return "";
-});
+  if (quality === 'critical') {
+    return isLocal
+      ? 'Your internet connection is unstable. Video and audio might lag or drop.'
+      : `${name}'s internet connection is unstable.`
+  }
+  if (quality === 'poor') {
+    return isLocal
+      ? 'Your internet connection is weak. You might notice some lag.'
+      : `${name}'s internet connection is weak.`
+  }
+  return ''
+})
 
 const currentReaction = computed(() => {
-	if (!meetingCtx?.reactionStore.reactions) return null;
-	return meetingCtx.reactionStore.reactions[props.participant.user_id] || null;
-});
+  if (!meetingCtx?.reactionStore.reactions) return null
+  return meetingCtx.reactionStore.reactions[props.participant.user_id] || null
+})
 
 const isHandRaised = computed(() => {
-	if (!meetingCtx?.raiseHandStore.raisedHands) return false;
-	return !!meetingCtx.raiseHandStore.raisedHands[props.participant.user_id];
-});
+  if (!meetingCtx?.raiseHandStore.raisedHands) return false
+  return !!meetingCtx.raiseHandStore.raisedHands[props.participant.user_id]
+})
 
-const isAnimating = ref(false);
+const isAnimating = ref(false)
 
 watch(isHandRaised, (newValue, oldValue) => {
-	if (newValue && !oldValue) {
-		isAnimating.value = true;
-		setTimeout(() => {
-			isAnimating.value = false;
-		}, 1500);
-	}
-});
+  if (newValue && !oldValue) {
+    isAnimating.value = true
+    setTimeout(() => {
+      isAnimating.value = false
+    }, 1500)
+  }
+})
 
 const isPinned = computed(() => {
-	const pinnedList = meetingCtx?.gridLayout.pinnedTiles.value || [];
-	return pinnedList.some(
-		(p) => p.type === props.pinType && p.id === tileId.value,
-	);
-});
+  const pinnedList = meetingCtx?.gridLayout.pinnedTiles.value || []
+  return pinnedList.some(p => p.type === props.pinType && p.id === tileId.value)
+})
 
 const canShowPinButton = computed(() => {
-	return (
-		!props.isLocal &&
-		props.showPinButton &&
-		!!meetingCtx?.gridLayout.pinTile &&
-		!!tileId.value
-	);
-});
+  return !props.isLocal && props.showPinButton && !!meetingCtx?.gridLayout.pinTile && !!tileId.value
+})
 
 const togglePin = () => {
-	if (!tileId.value || !meetingCtx) return;
-	if (isPinned.value) {
-		meetingCtx.gridLayout.unpinTile(props.pinType, tileId.value);
-	} else {
-		meetingCtx.gridLayout.pinTile(props.pinType, tileId.value);
-	}
-};
+  if (!tileId.value || !meetingCtx) return
+  if (isPinned.value) {
+    meetingCtx.gridLayout.unpinTile(props.pinType, tileId.value)
+  } else {
+    meetingCtx.gridLayout.pinTile(props.pinType, tileId.value)
+  }
+}
 
 const canShowHostControls = computed(() => {
-	return !props.isLocal && isCurrentUserHost.value && !!hostControls;
-});
+  return !props.isLocal && isCurrentUserHost.value && !!hostControls
+})
 
 const showActionToolbar = computed(() => {
-	return canShowPinButton.value || canShowHostControls.value;
-});
+  return canShowPinButton.value || canShowHostControls.value
+})
 
-const showKickDialog = ref(false);
+const showKickDialog = ref(false)
 
 const handleMute = () => {
-	hostControls?.muteParticipant(props.participant.user_id);
-};
+  hostControls?.muteParticipant(props.participant.user_id)
+}
 
-const handleKick = (ban) => {
-	hostControls?.kickParticipant(props.participant.user_id, ban);
-	showKickDialog.value = false;
-};
+const handleKick = ban => {
+  hostControls?.kickParticipant(props.participant.user_id, ban)
+  showKickDialog.value = false
+}
 </script>
 
 <style scoped>

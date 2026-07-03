@@ -120,7 +120,7 @@ const SHADE_RECT_HEIGHT = 130
 
 const sliderClasses = 'h-1/5 rounded cursor-pointer'
 const sliderCursorClasses =
-	'relative size-[0.8rem] rounded shadow border border-gray-200 bg-white hover:scale-[1.1] transition-transform duration-200 ease-in-out'
+  'relative size-[0.8rem] rounded shadow border border-gray-200 bg-white hover:scale-[1.1] transition-transform duration-200 ease-in-out'
 
 const currentColor = defineModel()
 
@@ -134,198 +134,198 @@ const colorSaturation = ref()
 const colorValue = ref()
 
 const shadeStyles = computed(() => {
-	return {
-		background: `linear-gradient(transparent, black), linear-gradient(to right, white, ${currentHue.value})`,
-		width: `${SHADE_RECT_WIDTH}px`,
-		height: `${SHADE_RECT_HEIGHT}px`,
-	}
+  return {
+    background: `linear-gradient(transparent, black), linear-gradient(to right, white, ${currentHue.value})`,
+    width: `${SHADE_RECT_WIDTH}px`,
+    height: `${SHADE_RECT_HEIGHT}px`,
+  }
 })
 
 const colorSliderStyles = computed(() => {
-	return {
-		width: `${SLIDER_WIDTH}px`,
-		background: `linear-gradient(to right, rgb(255, 0, 0), rgb(255, 0, 255), rgb(0, 0, 255), rgb(0, 255, 255), rgb(0, 255, 0), rgb(255, 255, 0), rgb(255, 0, 0))`,
-	}
+  return {
+    width: `${SLIDER_WIDTH}px`,
+    background: `linear-gradient(to right, rgb(255, 0, 0), rgb(255, 0, 255), rgb(0, 0, 255), rgb(0, 255, 255), rgb(0, 255, 0), rgb(255, 255, 0), rgb(255, 0, 0))`,
+  }
 })
 
 const opacitySliderStyles = computed(() => ({
-	backgroundImage: `linear-gradient(to right, rgb(0, 0, 0, 0), ${currentHue.value}), url('${opacityCheckered}')`,
-	backgroundSize: 'cover',
-	backgroundPosition: 'center',
-	backgroundRepeat: 'no-repeat',
+  backgroundImage: `linear-gradient(to right, rgb(0, 0, 0, 0), ${currentHue.value}), url('${opacityCheckered}')`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  backgroundRepeat: 'no-repeat',
 }))
 
 const shadeRectStyles = computed(() => {
-	return {
-		backgroundColor: currentColor.value,
-		left: shadeCursorLeft.value,
-		top: shadeCursorTop.value,
-	}
+  return {
+    backgroundColor: currentColor.value,
+    left: shadeCursorLeft.value,
+    top: shadeCursorTop.value,
+  }
 })
 
-const handleUpdateHue = (e) => {
-	updateHue(e)
-	window.addEventListener('mousemove', updateHue)
-	window.addEventListener('mouseup', endUpdateHue)
+const handleUpdateHue = e => {
+  updateHue(e)
+  window.addEventListener('mousemove', updateHue)
+  window.addEventListener('mouseup', endUpdateHue)
 }
 
 const hueCursorLeft = computed(() => {
-	return `${SLIDER_WIDTH - (colorHue.value / 360) * SLIDER_WIDTH - 6}px`
+  return `${SLIDER_WIDTH - (colorHue.value / 360) * SLIDER_WIDTH - 6}px`
 })
 
 const opacityCursorLeft = computed(() => {
-	return `${currentOpacity.value * SLIDER_WIDTH - 6}px`
+  return `${currentOpacity.value * SLIDER_WIDTH - 6}px`
 })
 
 const shadeCursorLeft = computed(() => {
-	return `${colorSaturation.value * SHADE_RECT_WIDTH - 6}px`
+  return `${colorSaturation.value * SHADE_RECT_WIDTH - 6}px`
 })
 
 const shadeCursorTop = computed(() => {
-	return `${(1 - colorValue.value) * SHADE_RECT_HEIGHT - 6}px`
+  return `${(1 - colorValue.value) * SHADE_RECT_HEIGHT - 6}px`
 })
 
-const updateHue = (e) => {
-	e.preventDefault()
-	const clientX = e.clientX - unref(colorRect.left)
+const updateHue = e => {
+  e.preventDefault()
+  const clientX = e.clientX - unref(colorRect.left)
 
-	const x = Math.min(Math.max(clientX, 0), SLIDER_WIDTH)
-	colorHue.value = 360 - (360 * x) / SLIDER_WIDTH
+  const x = Math.min(Math.max(clientX, 0), SLIDER_WIDTH)
+  colorHue.value = 360 - (360 * x) / SLIDER_WIDTH
 
-	// set currentHue with full saturation and 50% lightness
-	currentHue.value = tinycolor({ h: colorHue.value, s: 1, l: 0.5 })
+  // set currentHue with full saturation and 50% lightness
+  currentHue.value = tinycolor({ h: colorHue.value, s: 1, l: 0.5 })
 
-	// update currentColor based on exact hue, saturation, and value
-	currentColor.value = tinycolor
-		.fromRatio({
-			h: colorHue.value,
-			s: colorSaturation.value * 100,
-			v: colorValue.value * 100,
-			a: currentOpacity.value,
-		})
-		.toHex8String()
+  // update currentColor based on exact hue, saturation, and value
+  currentColor.value = tinycolor
+    .fromRatio({
+      h: colorHue.value,
+      s: colorSaturation.value * 100,
+      v: colorValue.value * 100,
+      a: currentOpacity.value,
+    })
+    .toHex8String()
 }
 
-const endUpdateHue = (e) => {
-	emit('colorup')
-	window.removeEventListener('mousemove', updateHue)
+const endUpdateHue = e => {
+  emit('colorup')
+  window.removeEventListener('mousemove', updateHue)
 }
 
-const handleUpdateShade = (e) => {
-	emit('colordown')
-	updateShade(e)
-	window.addEventListener('mousemove', updateShade)
-	window.addEventListener('mouseup', endUpdateShade)
+const handleUpdateShade = e => {
+  emit('colordown')
+  updateShade(e)
+  window.addEventListener('mousemove', updateShade)
+  window.addEventListener('mouseup', endUpdateShade)
 }
 
-const updateShade = (e) => {
-	e.preventDefault()
+const updateShade = e => {
+  e.preventDefault()
 
-	const clientX = e.clientX - unref(shadeRect.left)
-	const clientY = e.clientY - unref(shadeRect.top)
+  const clientX = e.clientX - unref(shadeRect.left)
+  const clientY = e.clientY - unref(shadeRect.top)
 
-	const x = Math.min(Math.max(clientX, 0), SHADE_RECT_WIDTH)
-	const y = Math.min(Math.max(clientY, 0), SHADE_RECT_HEIGHT)
+  const x = Math.min(Math.max(clientX, 0), SHADE_RECT_WIDTH)
+  const y = Math.min(Math.max(clientY, 0), SHADE_RECT_HEIGHT)
 
-	colorSaturation.value = x / SHADE_RECT_WIDTH
-	colorValue.value = 1 - y / SHADE_RECT_HEIGHT
+  colorSaturation.value = x / SHADE_RECT_WIDTH
+  colorValue.value = 1 - y / SHADE_RECT_HEIGHT
 
-	currentColor.value = tinycolor({
-		h: colorHue.value,
-		s: colorSaturation.value * 100,
-		v: colorValue.value * 100,
-		a: currentOpacity.value,
-	}).toHex8String()
+  currentColor.value = tinycolor({
+    h: colorHue.value,
+    s: colorSaturation.value * 100,
+    v: colorValue.value * 100,
+    a: currentOpacity.value,
+  }).toHex8String()
 }
 
-const endUpdateShade = (e) => {
-	emit('colorup')
-	window.removeEventListener('mousemove', updateShade)
+const endUpdateShade = e => {
+  emit('colorup')
+  window.removeEventListener('mousemove', updateShade)
 }
 
-const handleUpdateOpacity = (e) => {
-	emit('colordown')
-	updateOpacity(e)
-	window.addEventListener('mousemove', updateOpacity)
-	window.addEventListener('mouseup', endUpdateOpacity)
+const handleUpdateOpacity = e => {
+  emit('colordown')
+  updateOpacity(e)
+  window.addEventListener('mousemove', updateOpacity)
+  window.addEventListener('mouseup', endUpdateOpacity)
 }
 
-const updateOpacity = (e) => {
-	e.preventDefault()
-	emit('colordown')
+const updateOpacity = e => {
+  e.preventDefault()
+  emit('colordown')
 
-	const clientX = e.clientX - unref(colorRect.left)
+  const clientX = e.clientX - unref(colorRect.left)
 
-	const x = Math.min(Math.max(clientX, 0), SLIDER_WIDTH)
+  const x = Math.min(Math.max(clientX, 0), SLIDER_WIDTH)
 
-	currentOpacity.value = x / SLIDER_WIDTH
-	currentColor.value = tinycolor(currentColor.value).setAlpha(currentOpacity.value).toHex8String()
+  currentOpacity.value = x / SLIDER_WIDTH
+  currentColor.value = tinycolor(currentColor.value).setAlpha(currentOpacity.value).toHex8String()
 }
 
-const endUpdateOpacity = (e) => {
-	emit('colorup')
-	window.removeEventListener('mousemove', updateOpacity)
+const endUpdateOpacity = e => {
+  emit('colorup')
+  window.removeEventListener('mousemove', updateOpacity)
 }
 
 const syncCurrentColor = () => {
-	const initialHsv = tinycolor(currentColor.value).toHsv()
+  const initialHsv = tinycolor(currentColor.value).toHsv()
 
-	colorHue.value = initialHsv.h
-	colorSaturation.value = initialHsv.s
-	colorValue.value = initialHsv.v
-	currentOpacity.value = initialHsv.a
+  colorHue.value = initialHsv.h
+  colorSaturation.value = initialHsv.s
+  colorValue.value = initialHsv.v
+  currentOpacity.value = initialHsv.a
 
-	currentHue.value = tinycolor({ h: colorHue.value, s: 1, l: 0.5 })
+  currentHue.value = tinycolor({ h: colorHue.value, s: 1, l: 0.5 })
 }
 
 const openEyeDropper = async () => {
-	try {
-		await open()
-	} catch (error) {
-		console.error('Error opening eyedropper:', error)
-	}
+  try {
+    await open()
+  } catch (error) {
+    console.error('Error opening eyedropper:', error)
+  }
 }
 
 // Watch for eyedropper color changes
-watch(sRGBHex, (newColor) => {
-	if (newColor) {
-		setColor(newColor)
-	}
+watch(sRGBHex, newColor => {
+  if (newColor) {
+    setColor(newColor)
+  }
 })
 
-const setColor = (newColor) => {
-	currentColor.value = newColor
-	const initialHsv = tinycolor(newColor).toHsv()
-	colorHue.value = initialHsv.h
-	colorSaturation.value = initialHsv.s
-	colorValue.value = initialHsv.v
-	currentOpacity.value = initialHsv.a
-	currentHue.value = tinycolor({ h: colorHue.value, s: 1, l: 0.5 })
+const setColor = newColor => {
+  currentColor.value = newColor
+  const initialHsv = tinycolor(newColor).toHsv()
+  colorHue.value = initialHsv.h
+  colorSaturation.value = initialHsv.s
+  colorValue.value = initialHsv.v
+  currentOpacity.value = initialHsv.a
+  currentHue.value = tinycolor({ h: colorHue.value, s: 1, l: 0.5 })
 }
 
 const getDisplayColor = () => {
-	if (!currentColor.value) return ''
-	return tinycolor(currentColor.value).toHex8String()
+  if (!currentColor.value) return ''
+  return tinycolor(currentColor.value).toHex8String()
 }
 
 const handleClipboardCopy = () => {
-	const color = getDisplayColor().toUpperCase()
-	copyToClipboard(color)
+  const color = getDisplayColor().toUpperCase()
+  copyToClipboard(color)
 }
 
-const handleColorInputClick = (e) => {
-	e.target.select()
+const handleColorInputClick = e => {
+  e.target.select()
 }
 
 const handleColorPickerClick = (togglePopover, isOpen) => {
-	if (!isOpen) syncCurrentColor()
-	togglePopover()
+  if (!isOpen) syncCurrentColor()
+  togglePopover()
 }
 
 watch(
-	() => currentColor.value,
-	(newColor) => {
-		syncCurrentColor()
-	},
+  () => currentColor.value,
+  newColor => {
+    syncCurrentColor()
+  }
 )
 </script>

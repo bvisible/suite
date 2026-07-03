@@ -89,87 +89,87 @@ const user = inject('$user')
 const socket = inject('$socket')
 
 const calendarExport = reactive({
-	format: 'jmap',
-	archive_type: '.zip',
-	sort: 'Start (ASC)',
-	limit: undefined,
+  format: 'jmap',
+  archive_type: '.zip',
+  sort: 'Start (ASC)',
+  limit: undefined,
 })
 
 const customSelection = ref(false)
 
 const filter = reactive({
-	inCalendar: '',
-	title: '',
-	after: '',
-	before: '',
+  inCalendar: '',
+  title: '',
+  after: '',
+  before: '',
 })
 
 const calendars = createResource({
-	url: 'suite.mail.doctype.calendar.calendar.fetch_calendars',
-	auto: true,
-	makeParams: () => ({ account: accountId, limit: 100 }),
+  url: 'suite.mail.doctype.calendar.calendar.fetch_calendars',
+  auto: true,
+  makeParams: () => ({ account: accountId, limit: 100 }),
 })
 
 const calendarOptions = computed(() =>
-	[{ label: __(''), value: ' ' }].concat(
-		(calendars.data || []).map((c: { id: string; _name: string }) => ({
-			label: c._name,
-			value: c.id,
-		})),
-	),
+  [{ label: __(''), value: ' ' }].concat(
+    (calendars.data || []).map((c: { id: string; _name: string }) => ({
+      label: c._name,
+      value: c.id,
+    }))
+  )
 )
 
 const sortOptions = computed(() => [
-	{ label: __('Oldest Events'), value: 'Start (ASC)' },
-	{ label: __('Newest Events'), value: 'Start (DESC)' },
+  { label: __('Oldest Events'), value: 'Start (ASC)' },
+  { label: __('Newest Events'), value: 'Start (DESC)' },
 ])
 
 const createCalendarExport = createResource({
-	url: 'suite.mail.api.account.create_calendar_export',
-	makeParams: () => {
-		const cleanedFilter = Object.fromEntries(
-			Object.entries(filter)
-				.map(([k, v]) => [k, typeof v === 'string' ? v.trim() : v])
-				.filter(([, v]) => Boolean(v)),
-		)
-		return { account: accountId, ...calendarExport, filter: cleanedFilter }
-	},
-	onSuccess: () => ongoingExport.reload(),
+  url: 'suite.mail.api.account.create_calendar_export',
+  makeParams: () => {
+    const cleanedFilter = Object.fromEntries(
+      Object.entries(filter)
+        .map(([k, v]) => [k, typeof v === 'string' ? v.trim() : v])
+        .filter(([, v]) => Boolean(v))
+    )
+    return { account: accountId, ...calendarExport, filter: cleanedFilter }
+  },
+  onSuccess: () => ongoingExport.reload(),
 })
 
 const ongoingExport = createResource({
-	url: 'frappe.client.get_value',
-	auto: true,
-	makeParams: () => ({
-		doctype: 'Calendar Exchange',
-		fieldname: 'name',
-		filters: {
-			user: user.data.name,
-			operation: 'Export',
-			status: ['in', ['Queued', 'In Progress']],
-		},
-	}),
+  url: 'frappe.client.get_value',
+  auto: true,
+  makeParams: () => ({
+    doctype: 'Calendar Exchange',
+    fieldname: 'name',
+    filters: {
+      user: user.data.name,
+      operation: 'Export',
+      status: ['in', ['Queued', 'In Progress']],
+    },
+  }),
 })
 
 onMounted(() =>
-	socket.on('calendar_exchange_completed', (payload: { action: 'Import' | 'Export' }) => {
-		if (payload.action === 'Export') ongoingExport.reload()
-	}),
+  socket.on('calendar_exchange_completed', (payload: { action: 'Import' | 'Export' }) => {
+    if (payload.action === 'Export') ongoingExport.reload()
+  })
 )
 
 const exportSubtitle = computed(() => {
-	if (ongoingExport.data?.name) return __("Export in progress. We'll email you when it's ready.")
-	return __('No exports in progress.')
+  if (ongoingExport.data?.name) return __("Export in progress. We'll email you when it's ready.")
+  return __('No exports in progress.')
 })
 
 const exportHref = computed(() => {
-	if (ongoingExport.data?.name) return `/mail/calendar-exchanges/${ongoingExport.data.name}`
-	return '/mail/calendar-exchanges?operation=Export'
+  if (ongoingExport.data?.name) return `/mail/calendar-exchanges/${ongoingExport.data.name}`
+  return '/mail/calendar-exchanges?operation=Export'
 })
 
 const exportLinkText = computed(() => {
-	if (ongoingExport.data?.name) return __('Track status')
-	return __('View history')
+  if (ongoingExport.data?.name) return __('Track status')
+  return __('View history')
 })
 
 const FORMAT_OPTIONS = ['jmap', 'ics']

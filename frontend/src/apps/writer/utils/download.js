@@ -7,7 +7,9 @@ import editorStyle from '@/apps/writer/styles/editor.css?inline'
 import globalStyle from '@/apps/writer/styles/index.css?inline'
 
 async function getPdfFromDoc(entity_name, settings = {}) {
-  const res = await fetch(`/api/method/suite.drive.api.files.get_file_content?entity_name=${entity_name}`)
+  const res = await fetch(
+    `/api/method/suite.drive.api.files.get_file_content?entity_name=${entity_name}`
+  )
   const raw_html = (await res.json()).message
   const applyWatermark = settings?.apply_watermark || false
   const watermark = {
@@ -58,8 +60,8 @@ export function entitiesDownload(team, entities, settings = {}, transfer = false
         return emitter.emit('print-file')
       }
       return fetch(
-        `/api/method/suite.drive.api.files.get_file_content?entity_name=${entities[0].name}`,
-      ).then(async (data) => {
+        `/api/method/suite.drive.api.files.get_file_content?entity_name=${entities[0].name}`
+      ).then(async data => {
         const raw_html = (await data.json()).message
         printDoc(raw_html, settings)
       })
@@ -77,8 +79,8 @@ export function entitiesDownload(team, entities, settings = {}, transfer = false
   const processEntity = async (entity, parentFolder) => {
     if (entity.is_folder) {
       const folder = parentFolder.folder(entity.file_name)
-      return get_children(team, entity.name).then((children) => {
-        const promises = children.map((childEntity) => processEntity(childEntity, folder))
+      return get_children(team, entity.name).then(children => {
+        const promises = children.map(childEntity => processEntity(childEntity, folder))
         return Promise.all(promises)
       })
     } else if (entity.content_docname) {
@@ -91,7 +93,7 @@ export function entitiesDownload(team, entities, settings = {}, transfer = false
     }
   }
 
-  const promises = entities.map((entity) => processEntity(entity, zip))
+  const promises = entities.map(entity => processEntity(entity, zip))
 
   Promise.all(promises)
     .then(() => {
@@ -119,7 +121,7 @@ export function folderDownload(team, root_entity) {
     .then(() => {
       return zip.generateAsync({ type: 'blob', streamFiles: true })
     })
-    .then((content) => {
+    .then(content => {
       const downloadLink = document.createElement('a')
       downloadLink.href = URL.createObjectURL(content)
       downloadLink.download = folderName + '.zip'
@@ -128,7 +130,7 @@ export function folderDownload(team, root_entity) {
       downloadLink.click()
       document.body.removeChild(downloadLink)
     })
-    .catch((error) => {
+    .catch(error => {
       console.error(error)
     })
 }
@@ -136,18 +138,18 @@ export function folderDownload(team, root_entity) {
 function temp(team, entity_name, parentZip) {
   return new Promise((resolve, reject) => {
     get_children(team, entity_name)
-      .then((result) => {
-        const promises = result.map((entity) => {
+      .then(result => {
+        const promises = result.map(entity => {
           if (entity.is_folder) {
             const folder = parentZip.folder(entity.file_name)
             return temp(team, entity.name, folder)
           }
           if (entity.content_docname) {
-            getPdfFromDoc(entity.name).then((content) =>
-              parentZip.file(entity.file_name + '.pdf', content),
+            getPdfFromDoc(entity.name).then(content =>
+              parentZip.file(entity.file_name + '.pdf', content)
             )
           } else {
-            return get_file_content(entity).then((fileContent) => {
+            return get_file_content(entity).then(fileContent => {
               parentZip.file(entity.file_name, fileContent)
             })
           }
@@ -157,11 +159,11 @@ function temp(team, entity_name, parentZip) {
           .then(() => {
             resolve()
           })
-          .catch((error) => {
+          .catch(error => {
             reject(error)
           })
       })
-      .catch((error) => {
+      .catch(error => {
         reject(error)
       })
   })
@@ -172,7 +174,7 @@ function get_file_content(entity) {
     entity.src ||
     '/api/method/' + `/api/method/suite.drive.api.files.get_file_content?entity_name=${entity.name}`
 
-  return fetch(fileUrl).then((response) => {
+  return fetch(fileUrl).then(response => {
     if (response.ok) {
       return response.blob()
     } else if (response.status === 204) {
@@ -185,7 +187,8 @@ function get_file_content(entity) {
 
 function get_children(team, entity_name) {
   const url =
-    '/api/method/' + `/api/method/suite.drive.api.list.files?team=${team}&entity_name=${entity_name}`
+    '/api/method/' +
+    `/api/method/suite.drive.api.list.files?team=${team}&entity_name=${entity_name}`
   return fetch(url, {
     method: 'GET',
     headers: {
@@ -194,11 +197,11 @@ function get_children(team, entity_name) {
       Accept: 'application/json',
     },
   })
-    .then((response) => {
+    .then(response => {
       if (!response.ok) {
         throw new Error(`Request failed with status ${response.status}`)
       }
       return response.json()
     })
-    .then((json) => json.message)
+    .then(json => json.message)
 }

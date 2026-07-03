@@ -2,10 +2,7 @@ import type { RouteRecordRaw } from 'vue-router'
 import { createResource } from 'frappe-ui'
 
 import { useSessionStore } from '@/boot/session'
-import {
-  pageBreadcrumbs,
-  setPageBreadcrumbs,
-} from '@/apps/drive/data/breadcrumbs'
+import { pageBreadcrumbs, setPageBreadcrumbs } from '@/apps/drive/data/breadcrumbs'
 import { translate } from '@/apps/drive/resources/files'
 import { setupTheme } from '@/apps/drive/utils/setupTheme'
 
@@ -29,10 +26,7 @@ import { setupTheme } from '@/apps/drive/utils/setupTheme'
  */
 
 const manageBreadcrumbs = (to: any) => {
-  if (
-    pageBreadcrumbs.value[pageBreadcrumbs.value.length - 1]?.name !==
-    to.params.entityName
-  ) {
+  if (pageBreadcrumbs.value[pageBreadcrumbs.value.length - 1]?.name !== to.params.entityName) {
     setPageBreadcrumbs({ loading: true, name: to.params.entityName })
   }
 }
@@ -135,7 +129,7 @@ export const routes: RouteRecordRaw[] = [
         path: 'g/:entityName/',
         component: () => import('@/apps/drive/pages/Dummy.vue'),
         meta: { isPublic: true },
-        beforeEnter: async (to) => {
+        beforeEnter: async to => {
           const entity = createResource({
             url: '/api/method/suite.drive.api.files.get_entity_type',
             method: 'GET',
@@ -184,7 +178,7 @@ export const routes: RouteRecordRaw[] = [
         name: 'drive-Document',
         meta: { isPublic: true },
         component: () => import('@/apps/drive/pages/Dummy.vue'),
-        beforeEnter: (props) => {
+        beforeEnter: props => {
           window.location.href = '/writer/w/' + props.params.entityName
         },
       },
@@ -193,7 +187,7 @@ export const routes: RouteRecordRaw[] = [
         path: 'folder/:entityName',
         meta: { isPublic: true },
         component: () => import('@/apps/drive/pages/Dummy.vue'),
-        beforeEnter: async (to) => {
+        beforeEnter: async to => {
           await translate.fetch({ old_name: to.params.entityName })
           return {
             name: 'drive-Folder',
@@ -207,7 +201,7 @@ export const routes: RouteRecordRaw[] = [
         path: 'document/:entityName',
         component: () => import('@/apps/drive/pages/Dummy.vue'),
         meta: { isPublic: true },
-        beforeEnter: async (to) => {
+        beforeEnter: async to => {
           await translate.fetch({ old_name: to.params.entityName })
           return {
             name: 'drive-Document',
@@ -221,7 +215,7 @@ export const routes: RouteRecordRaw[] = [
         path: 'file/:entityName',
         component: () => import('@/apps/drive/pages/Dummy.vue'),
         meta: { isPublic: true },
-        beforeEnter: async (to) => {
+        beforeEnter: async to => {
           await translate.fetch({ old_name: to.params.entityName })
           return {
             name: 'drive-File',
@@ -235,7 +229,7 @@ export const routes: RouteRecordRaw[] = [
         path: 't/:team/:letter/:entityName/:slug?',
         component: () => import('@/apps/drive/pages/Dummy.vue'),
         meta: { isPublic: true },
-        beforeEnter: async (to) => {
+        beforeEnter: async to => {
           return {
             path: `/drive/g/${to.params.entityName}`,
           }

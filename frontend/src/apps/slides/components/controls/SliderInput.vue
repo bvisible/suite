@@ -43,17 +43,17 @@ import { ref, useTemplateRef, computed } from 'vue'
 import { fieldLabelClasses } from '@/apps/slides/utils/constants'
 
 const props = defineProps({
-	label: String,
-	rangeStart: Number,
-	rangeEnd: Number,
-	rangeStep: {
-		type: Number,
-		default: 1,
-	},
-	showInput: {
-		type: Boolean,
-		default: true,
-	},
+  label: String,
+  rangeStart: Number,
+  rangeEnd: Number,
+  rangeStep: {
+    type: Number,
+    default: 1,
+  },
+  showInput: {
+    type: Boolean,
+    default: true,
+  },
 })
 
 const sliderValue = defineModel()
@@ -64,53 +64,53 @@ const sliderBar = useTemplateRef('slider')
 
 const isDragging = ref(false)
 
-const changeValue = (e) => {
-	const value = parseFloat(e.target.value)
-	emit('update:modelValue', Math.max(props.rangeStart, Math.min(props.rangeEnd, value)))
+const changeValue = e => {
+  const value = parseFloat(e.target.value)
+  emit('update:modelValue', Math.max(props.rangeStart, Math.min(props.rangeEnd, value)))
 }
 
 const highlightStyles = computed(() => {
-	const { rangeStart, rangeEnd } = props
+  const { rangeStart, rangeEnd } = props
 
-	const val = parseFloat(sliderValue.value)
+  const val = parseFloat(sliderValue.value)
 
-	let left = 0
-	let width = 0
+  let left = 0
+  let width = 0
 
-	if (rangeStart < 0) {
-		left = Math.abs(rangeStart)
-		if (val <= 0) left -= Math.abs(val)
-		width = Math.abs(val)
-	} else {
-		left = 0
-		width = val - rangeStart
-	}
+  if (rangeStart < 0) {
+    left = Math.abs(rangeStart)
+    if (val <= 0) left -= Math.abs(val)
+    width = Math.abs(val)
+  } else {
+    left = 0
+    width = val - rangeStart
+  }
 
-	return {
-		left: `${(left / (rangeEnd - rangeStart)) * 100}%`,
-		width: `${(width / (rangeEnd - rangeStart)) * 100}%`,
-		top: `calc(50% - 1px)`,
-	}
+  return {
+    left: `${(left / (rangeEnd - rangeStart)) * 100}%`,
+    width: `${(width / (rangeEnd - rangeStart)) * 100}%`,
+    top: `calc(50% - 1px)`,
+  }
 })
 
 const sliderStyles = computed(() => {
-	return {
-		left: '0',
-		width: '100%',
-		top: `calc(50% - 1px)`,
-	}
+  return {
+    left: '0',
+    width: '100%',
+    top: `calc(50% - 1px)`,
+  }
 })
 
 const handleSliderMouseDown = () => {
-	isDragging.value = true
-	emit('sliderdown')
+  isDragging.value = true
+  emit('sliderdown')
 }
 
 const handleSliderMouseUp = () => {
-	if (isDragging.value) {
-		isDragging.value = false
-		emit('sliderup')
-	}
+  if (isDragging.value) {
+    isDragging.value = false
+    emit('sliderup')
+  }
 }
 </script>
 <style scoped>

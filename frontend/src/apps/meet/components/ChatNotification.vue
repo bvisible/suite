@@ -38,63 +38,63 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from "vue";
+import { onMounted, onUnmounted, ref } from 'vue'
 
 interface Notification {
-	message: string;
-	fromUser: string;
-	fromName?: string;
-	timestamp?: string;
-	type?: "chat" | "poll";
+  message: string
+  fromUser: string
+  fromName?: string
+  timestamp?: string
+  type?: 'chat' | 'poll'
 }
 
 const props = defineProps<{
-	notification: Notification;
-	autoDismissDelay?: number;
-}>();
+  notification: Notification
+  autoDismissDelay?: number
+}>()
 
 const emit = defineEmits<{
-	close: [];
-	click: [notification: Notification];
-}>();
+  close: []
+  click: [notification: Notification]
+}>()
 
-const visible = ref(true);
-let dismissTimer = null;
+const visible = ref(true)
+let dismissTimer = null
 
 const handleClick = () => {
-	emit("click", props.notification);
-	emit("close");
-};
+  emit('click', props.notification)
+  emit('close')
+}
 
 const startAutoDismiss = () => {
-	if (props.autoDismissDelay <= 0) return;
+  if (props.autoDismissDelay <= 0) return
 
-	dismissTimer = setTimeout(() => {
-		emit("close");
-	}, props.autoDismissDelay);
-};
+  dismissTimer = setTimeout(() => {
+    emit('close')
+  }, props.autoDismissDelay)
+}
 
 const clearTimers = () => {
-	if (dismissTimer) {
-		clearTimeout(dismissTimer);
-		dismissTimer = null;
-	}
-};
+  if (dismissTimer) {
+    clearTimeout(dismissTimer)
+    dismissTimer = null
+  }
+}
 
 onMounted(() => {
-	startAutoDismiss();
-});
+  startAutoDismiss()
+})
 
 onUnmounted(() => {
-	clearTimers();
-});
+  clearTimers()
+})
 
 defineExpose({
-	close: () => {
-		clearTimers();
-		emit("close");
-	},
-});
+  close: () => {
+    clearTimers()
+    emit('close')
+  },
+})
 </script>
 
 <style scoped>

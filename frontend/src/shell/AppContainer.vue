@@ -17,7 +17,7 @@ const root = useRootStore()
 
 watch(
   () => route.meta.appId as string | undefined,
-  (appId) => root.setActiveApp(appId ?? null),
-  { immediate: true },
+  appId => root.setActiveApp(appId ?? null),
+  { immediate: true }
 )
 </script>

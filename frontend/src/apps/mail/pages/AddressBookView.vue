@@ -95,19 +95,19 @@ import { useRouter } from 'vue-router'
 import { useDebounceFn, watchDebounced } from '@vueuse/core'
 import { Pin, Trash2 } from 'lucide-vue-next'
 import {
-	Button,
-	Dialog,
-	Dropdown,
-	FeatherIcon,
-	FormControl,
-	ListEmptyState,
-	ListHeader,
-	ListRows,
-	ListSelectBanner,
-	ListView,
-	createDocumentResource,
-	createResource,
-	usePageMeta,
+  Button,
+  Dialog,
+  Dropdown,
+  FeatherIcon,
+  FormControl,
+  ListEmptyState,
+  ListHeader,
+  ListRows,
+  ListSelectBanner,
+  ListView,
+  createDocumentResource,
+  createResource,
+  usePageMeta,
 } from 'frappe-ui'
 
 import { extractNameFromEmail, raiseToast } from '@/apps/mail/utils'
@@ -119,8 +119,8 @@ import AddAddressBookContactsModal from '@/apps/mail/components/Modals/AddAddres
 import EditAddressBookModal from '@/apps/mail/components/Modals/EditAddressBookModal.vue'
 
 const { accountId, addressBookName } = defineProps<{
-	accountId: string
-	addressBookName: string
+  accountId: string
+  addressBookName: string
 }>()
 
 const router = useRouter()
@@ -132,65 +132,62 @@ const showAddContacts = ref(false)
 const showRemoveContacts = ref(false)
 
 const addressBook = createDocumentResource({
-	doctype: 'Address Book',
-	name: `${store.accountId}|${addressBookName}`,
-	onError: () => router.replace({ name: 'mail-address-books', params: { accountId } }),
-	setValue: {
-		onSuccess: () => {
-			raiseToast(__('Address book updated.'))
-			store.addressBooks.reload()
-		},
-		onError: (error) => {
-			raiseToast(error.messages[0], 'error')
-			addressBook.reload()
-		},
-	},
+  doctype: 'Address Book',
+  name: `${store.accountId}|${addressBookName}`,
+  onError: () => router.replace({ name: 'mail-address-books', params: { accountId } }),
+  setValue: {
+    onSuccess: () => {
+      raiseToast(__('Address book updated.'))
+      store.addressBooks.reload()
+    },
+    onError: error => {
+      raiseToast(error.messages[0], 'error')
+      addressBook.reload()
+    },
+  },
 })
 
 const search = ref('')
 const limit = ref(50)
 
 const contacts = createResource({
-	url: 'suite.mail.api.contacts.get_contact_cards',
-	auto: true,
-	makeParams: () => ({
-		account: store.accountId,
-		filter: { inAddressBook: addressBookName, text: search.value },
-		limit: limit.value,
-	}),
-	transform: (data) =>
-		data.map((c) => {
-			const full_name = c.full_name || extractNameFromEmail(c.emails[0]?.address || '')
+  url: 'suite.mail.api.contacts.get_contact_cards',
+  auto: true,
+  makeParams: () => ({
+    account: store.accountId,
+    filter: { inAddressBook: addressBookName, text: search.value },
+    limit: limit.value,
+  }),
+  transform: data =>
+    data.map(c => {
+      const full_name = c.full_name || extractNameFromEmail(c.emails[0]?.address || '')
 
-			let email = ''
-			if (c.emails.length === 1) email = c.emails[0].address
-			else if (c.emails.length > 1)
-				email = __('{0} + {1} more', [c.emails[0].address, c.emails.length - 1])
+      let email = ''
+      if (c.emails.length === 1) email = c.emails[0].address
+      else if (c.emails.length > 1)
+        email = __('{0} + {1} more', [c.emails[0].address, c.emails.length - 1])
 
-			return { ...c, full_name, email }
-		}),
-	cache: ['addressBookContacts', addressBookName, search.value, limit.value],
+      return { ...c, full_name, email }
+    }),
+  cache: ['addressBookContacts', addressBookName, search.value, limit.value],
 })
 
 const totalContacts = createResource({
-	url: 'suite.mail.api.contacts.get_address_book_contact_count',
-	auto: true,
-	makeParams: () => ({ account: store.accountId, address_book: addressBookName }),
-	cache: ['addressBookContactCount', addressBookName],
+  url: 'suite.mail.api.contacts.get_address_book_contact_count',
+  auto: true,
+  makeParams: () => ({ account: store.accountId, address_book: addressBookName }),
+  cache: ['addressBookContactCount', addressBookName],
 })
 
 watchDebounced(() => search.value, contacts.reload, { debounce: 300 })
 
-const loadMoreContacts = useDebounceFn((e) => {
-	const { scrollTop, scrollHeight, clientHeight } = e.target
-	if (scrollTop + clientHeight >= scrollHeight - 10 && contacts.data?.length === limit.value) {
-		limit.value += 50
-		contacts.reload()
-		setTimeout(
-			() => e.target.scrollTo({ top: e.target.scrollHeight, behavior: 'smooth' }),
-			100,
-		)
-	}
+const loadMoreContacts = useDebounceFn(e => {
+  const { scrollTop, scrollHeight, clientHeight } = e.target
+  if (scrollTop + clientHeight >= scrollHeight - 10 && contacts.data?.length === limit.value) {
+    limit.value += 50
+    contacts.reload()
+    setTimeout(() => e.target.scrollTo({ top: e.target.scrollHeight, behavior: 'smooth' }), 100)
+  }
 }, 500)
 
 const addressBookDisplay = computed(() => addressBook.doc?._name || addressBookName)
@@ -198,98 +195,98 @@ const addressBookDisplay = computed(() => addressBook.doc?._name || addressBookN
 usePageMeta(() => ({ title: addressBookDisplay.value }))
 
 const breadcrumbs = computed(() => [
-	{ label: __('Address Books'), route: '/mail/address-books' },
-	{ label: addressBookDisplay.value },
+  { label: __('Address Books'), route: '/mail/address-books' },
+  { label: addressBookDisplay.value },
 ])
 
 const deleteAddressBook = createResource({
-	url: 'suite.mail.doctype.address_book.address_book.delete_address_books',
-	makeParams: () => ({ account: store.accountId, ids: [addressBookName] }),
-	onSuccess: () => {
-		showDeleteAddressBook.value = false
-		raiseToast(__('Address book deleted.'))
-		store.addressBooks.reload()
-		router.push({ name: 'mail-address-books', params: { accountId } })
-	},
-	onError: (error) => {
-		showDeleteAddressBook.value = false
-		raiseToast(error.messages[0], 'error')
-	},
+  url: 'suite.mail.doctype.address_book.address_book.delete_address_books',
+  makeParams: () => ({ account: store.accountId, ids: [addressBookName] }),
+  onSuccess: () => {
+    showDeleteAddressBook.value = false
+    raiseToast(__('Address book deleted.'))
+    store.addressBooks.reload()
+    router.push({ name: 'mail-address-books', params: { accountId } })
+  },
+  onError: error => {
+    showDeleteAddressBook.value = false
+    raiseToast(error.messages[0], 'error')
+  },
 })
 
 const listView = useTemplateRef('listView')
 
 const addContacts = createResource({
-	url: 'suite.mail.doctype.contact_card.contact_card.contact_card_add_to_address_book',
-	makeParams: (ids) => ({ account: store.accountId, ids, address_book_id: addressBookName }),
-	onSuccess: () => {
-		raiseToast(__('Contacts added.'))
-		contacts.reload()
-		totalContacts.reload()
-	},
-	onError: (error) => raiseToast(error.messages[0], 'error'),
+  url: 'suite.mail.doctype.contact_card.contact_card.contact_card_add_to_address_book',
+  makeParams: ids => ({ account: store.accountId, ids, address_book_id: addressBookName }),
+  onSuccess: () => {
+    raiseToast(__('Contacts added.'))
+    contacts.reload()
+    totalContacts.reload()
+  },
+  onError: error => raiseToast(error.messages[0], 'error'),
 })
 
 const removeContacts = createResource({
-	url: 'suite.mail.doctype.contact_card.contact_card.contact_card_remove_from_address_book',
-	makeParams: () => ({
-		account: store.accountId,
-		ids: Array.from(listView.value?.selections),
-		address_book_id: addressBookName,
-	}),
-	onSuccess: () => {
-		contacts.reload()
-		totalContacts.reload()
-		showRemoveContacts.value = false
-		raiseToast(__('Contacts removed.'))
-		listView.value?.toggleAllRows()
-	},
-	onError: (error) => {
-		showRemoveContacts.value = false
-		raiseToast(error.messages[0], 'error')
-	},
+  url: 'suite.mail.doctype.contact_card.contact_card.contact_card_remove_from_address_book',
+  makeParams: () => ({
+    account: store.accountId,
+    ids: Array.from(listView.value?.selections),
+    address_book_id: addressBookName,
+  }),
+  onSuccess: () => {
+    contacts.reload()
+    totalContacts.reload()
+    showRemoveContacts.value = false
+    raiseToast(__('Contacts removed.'))
+    listView.value?.toggleAllRows()
+  },
+  onError: error => {
+    showRemoveContacts.value = false
+    raiseToast(error.messages[0], 'error')
+  },
 })
 
 const deleteAddressBookOptions = computed(() => ({
-	title: __('Delete Address Book'),
-	message: __('Are you sure you want to delete {0}?', [addressBook.doc?._name]),
-	icon: { name: 'alert-triangle', appearance: 'warning' },
-	actions: [{ label: __('Confirm'), variant: 'solid', onClick: deleteAddressBook.submit }],
+  title: __('Delete Address Book'),
+  message: __('Are you sure you want to delete {0}?', [addressBook.doc?._name]),
+  icon: { name: 'alert-triangle', appearance: 'warning' },
+  actions: [{ label: __('Confirm'), variant: 'solid', onClick: deleteAddressBook.submit }],
 }))
 
 const removeContactsOptions = computed(() => ({
-	title: __('Remove Contacts'),
-	message: __('Are you sure you want to remove the selected contacts?'),
-	icon: { name: 'alert-triangle', appearance: 'warning' },
-	actions: [{ label: __('Confirm'), variant: 'solid', onClick: removeContacts.submit }],
+  title: __('Remove Contacts'),
+  message: __('Are you sure you want to remove the selected contacts?'),
+  icon: { name: 'alert-triangle', appearance: 'warning' },
+  actions: [{ label: __('Confirm'), variant: 'solid', onClick: removeContacts.submit }],
 }))
 
 const dropdownOptions = computed(() => [
-	{
-		label: __('Set as Default'),
-		icon: Pin,
-		onClick: () => {
-			addressBook.doc.default = 1
-			addressBook.save.submit()
-		},
-		condition: () => !addressBook.doc?.default,
-	},
-	{
-		label: __('Delete'),
-		icon: Trash2,
-		onClick: () => (showDeleteAddressBook.value = true),
-	},
+  {
+    label: __('Set as Default'),
+    icon: Pin,
+    onClick: () => {
+      addressBook.doc.default = 1
+      addressBook.save.submit()
+    },
+    condition: () => !addressBook.doc?.default,
+  },
+  {
+    label: __('Delete'),
+    icon: Trash2,
+    onClick: () => (showDeleteAddressBook.value = true),
+  },
 ])
 
 const LIST_COLUMNS = [
-	{ label: __('Name'), key: 'full_name' },
-	{ label: __('Kind'), key: 'kind' },
-	{ label: __('Email'), key: 'email' },
+  { label: __('Name'), key: 'full_name' },
+  { label: __('Kind'), key: 'kind' },
+  { label: __('Email'), key: 'email' },
 ]
 
 const LIST_OPTIONS = {
-	showTooltip: false,
-	emptyState: { description: __('No contacts found.') },
-	getRowRoute: (row) => ({ name: 'mail-contact', params: { accountId, contactName: row.id } }),
+  showTooltip: false,
+  emptyState: { description: __('No contacts found.') },
+  getRowRoute: row => ({ name: 'mail-contact', params: { accountId, contactName: row.id } }),
 }
 </script>

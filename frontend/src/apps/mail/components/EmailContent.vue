@@ -50,9 +50,9 @@ import { analyzeRemoteAssets, blockRemoteAssets } from '@/apps/mail/utils'
 import { useTheme } from '@/apps/mail/utils/composables'
 
 const {
-	content,
-	blockImages = false,
-	canTrust = true,
+  content,
+  blockImages = false,
+  canTrust = true,
 } = defineProps<{ content: string; blockImages?: boolean; canTrust?: boolean }>()
 const emit = defineEmits<{ trust: [] }>()
 
@@ -71,36 +71,36 @@ const remoteAssets = computed(() => analyzeRemoteAssets(content))
 // The banner is dismissed once the reader loads the images (or trusts the sender) — there's nothing
 // left to act on after that.
 const showImagesBanner = computed(
-	() => blockImages && !imagesLoaded.value && !trusted.value && remoteAssets.value.hasRemote,
+  () => blockImages && !imagesLoaded.value && !trusted.value && remoteAssets.value.hasRemote
 )
 const blockedLabel = computed(() => {
-	const n = remoteAssets.value.images
-	if (n === 0) return __('Remote content hidden to protect your privacy.')
-	return n === 1
-		? __('1 remote image hidden to protect your privacy.')
-		: __('{0} remote images hidden to protect your privacy.', [String(n)])
+  const n = remoteAssets.value.images
+  if (n === 0) return __('Remote content hidden to protect your privacy.')
+  return n === 1
+    ? __('1 remote image hidden to protect your privacy.')
+    : __('{0} remote images hidden to protect your privacy.', [String(n)])
 })
 
 // Trusting reveals images and dismisses the banner now; the parent accepts the sender for future mail.
 const handleTrust = () => {
-	trusted.value = true
-	emit('trust')
+  trusted.value = true
+  emit('trust')
 }
 
 // Listen for keyboard events from iframe
 const handleMessage = (event: MessageEvent) => {
-	if (event.data?.type !== 'keyboard') return
+  if (event.data?.type !== 'keyboard') return
 
-	// Create a synthetic keyboard event in the parent
-	const keyboardEvent = new KeyboardEvent(event.data.eventType, {
-		key: event.data.key,
-		ctrlKey: event.data.ctrlKey,
-		shiftKey: event.data.shiftKey,
-		altKey: event.data.altKey,
-		metaKey: event.data.metaKey,
-		bubbles: true,
-	})
-	document.dispatchEvent(keyboardEvent)
+  // Create a synthetic keyboard event in the parent
+  const keyboardEvent = new KeyboardEvent(event.data.eventType, {
+    key: event.data.key,
+    ctrlKey: event.data.ctrlKey,
+    shiftKey: event.data.shiftKey,
+    altKey: event.data.altKey,
+    metaKey: event.data.metaKey,
+    bubbles: true,
+  })
+  document.dispatchEvent(keyboardEvent)
 }
 
 onMounted(() => window.addEventListener('message', handleMessage))
@@ -110,35 +110,35 @@ onUnmounted(() => window.removeEventListener('message', handleMessage))
 // the DOM, not regex: a quote with nested divs is wrapped as one unit, instead of the old regex stopping
 // at the first </div> and collapsing the wrong region.
 const collapseQuotes = (html: string) => {
-	const doc = new DOMParser().parseFromString(html, 'text/html')
-	doc.querySelectorAll('.gmail_quote, .frappe_mail_quote').forEach((quote) => {
-		// Only the outermost quote gets a toggle — hiding it hides any quotes nested inside.
-		if (quote.parentElement?.closest('.gmail_quote, .frappe_mail_quote')) return
-		quote.classList.add('quote-hidden')
-		const button = doc.createElement('button')
-		button.textContent = '···'
-		button.setAttribute(
-			'style',
-			`background:${colors.value.button};color:${colors.value.text};padding:0.5px 6px;border-radius:8px;cursor:pointer;transition:background .2s;margin:12px 0;`,
-		)
-		button.setAttribute('onmouseover', `this.style.background='${colors.value.buttonHover}'`)
-		button.setAttribute('onmouseout', `this.style.background='${colors.value.button}'`)
-		button.setAttribute('onclick', "this.nextElementSibling.classList.toggle('quote-hidden');")
-		quote.parentNode?.insertBefore(button, quote)
-	})
-	return doc.documentElement.outerHTML
+  const doc = new DOMParser().parseFromString(html, 'text/html')
+  doc.querySelectorAll('.gmail_quote, .frappe_mail_quote').forEach(quote => {
+    // Only the outermost quote gets a toggle — hiding it hides any quotes nested inside.
+    if (quote.parentElement?.closest('.gmail_quote, .frappe_mail_quote')) return
+    quote.classList.add('quote-hidden')
+    const button = doc.createElement('button')
+    button.textContent = '···'
+    button.setAttribute(
+      'style',
+      `background:${colors.value.button};color:${colors.value.text};padding:0.5px 6px;border-radius:8px;cursor:pointer;transition:background .2s;margin:12px 0;`
+    )
+    button.setAttribute('onmouseover', `this.style.background='${colors.value.buttonHover}'`)
+    button.setAttribute('onmouseout', `this.style.background='${colors.value.button}'`)
+    button.setAttribute('onclick', "this.nextElementSibling.classList.toggle('quote-hidden');")
+    quote.parentNode?.insertBefore(button, quote)
+  })
+  return doc.documentElement.outerHTML
 }
 
 const srcdoc = computed(() => {
-	let sanitized = DOMPurify.sanitize(content, DOMPURIFY_CONFIG)
-	if (effectiveBlock.value) sanitized = blockRemoteAssets(sanitized)
-	const transformedContent = collapseQuotes(sanitized).replace(
-		/<([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})>/g,
-		'<b>&lt;$1&gt;</b>',
-	)
+  let sanitized = DOMPurify.sanitize(content, DOMPURIFY_CONFIG)
+  if (effectiveBlock.value) sanitized = blockRemoteAssets(sanitized)
+  const transformedContent = collapseQuotes(sanitized).replace(
+    /<([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})>/g,
+    '<b>&lt;$1&gt;</b>'
+  )
 
-	/* eslint-disable no-useless-escape */
-	return `
+  /* eslint-disable no-useless-escape */
+  return `
 		<!DOCTYPE html>
 		<html>
 		<head>
@@ -240,97 +240,97 @@ const srcdoc = computed(() => {
 const colors = computed(() => THEME_CONFIG[dataTheme.value])
 
 const DOMPURIFY_CONFIG = {
-	ALLOWED_TAGS: [
-		'html',
-		'head',
-		'body',
-		'title',
-		'meta',
-		'style',
-		'table',
-		'tbody',
-		'thead',
-		'tfoot',
-		'tr',
-		'td',
-		'th',
-		'div',
-		'span',
-		'p',
-		'br',
-		'strong',
-		'b',
-		'em',
-		'i',
-		'u',
-		'h1',
-		'h2',
-		'h3',
-		'h4',
-		'h5',
-		'h6',
-		'a',
-		'img',
-		'blockquote',
-		'ul',
-		'ol',
-		'li',
-		'pre',
-		'code',
-	],
-	ALLOWED_ATTR: [
-		'style',
-		'class',
-		'id',
-		'width',
-		'height',
-		'align',
-		'valign',
-		'cellpadding',
-		'cellspacing',
-		'border',
-		'bgcolor',
-		'color',
-		'href',
-		'src',
-		'alt',
-		'title',
-		'target',
-		'data-type',
-		'data-id',
-		'data-label',
-		'data-list',
-		'data-email-footer',
-		'xmlns',
-		'content',
-		'name',
-		'http-equiv',
-		'charset',
-	],
-	KEEP_CONTENT: true,
-	ALLOW_UNKNOWN_PROTOCOLS: false,
-	WHOLE_DOCUMENT: true,
-	ADD_TAGS: ['meta', 'style', 'pre', 'code'],
-	ADD_ATTR: ['cellpadding', 'cellspacing', 'border', 'bgcolor', 'xmlns', 'charset'],
-	REMOVE_EMPTY: false,
+  ALLOWED_TAGS: [
+    'html',
+    'head',
+    'body',
+    'title',
+    'meta',
+    'style',
+    'table',
+    'tbody',
+    'thead',
+    'tfoot',
+    'tr',
+    'td',
+    'th',
+    'div',
+    'span',
+    'p',
+    'br',
+    'strong',
+    'b',
+    'em',
+    'i',
+    'u',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'a',
+    'img',
+    'blockquote',
+    'ul',
+    'ol',
+    'li',
+    'pre',
+    'code',
+  ],
+  ALLOWED_ATTR: [
+    'style',
+    'class',
+    'id',
+    'width',
+    'height',
+    'align',
+    'valign',
+    'cellpadding',
+    'cellspacing',
+    'border',
+    'bgcolor',
+    'color',
+    'href',
+    'src',
+    'alt',
+    'title',
+    'target',
+    'data-type',
+    'data-id',
+    'data-label',
+    'data-list',
+    'data-email-footer',
+    'xmlns',
+    'content',
+    'name',
+    'http-equiv',
+    'charset',
+  ],
+  KEEP_CONTENT: true,
+  ALLOW_UNKNOWN_PROTOCOLS: false,
+  WHOLE_DOCUMENT: true,
+  ADD_TAGS: ['meta', 'style', 'pre', 'code'],
+  ADD_ATTR: ['cellpadding', 'cellspacing', 'border', 'bgcolor', 'xmlns', 'charset'],
+  REMOVE_EMPTY: false,
 }
 
 const THEME_CONFIG = {
-	light: {
-		background: '#FFFFFF',
-		text: '#383838',
-		button: '#F3F3F3',
-		buttonHover: '#EDEDED',
-		script: '',
-	},
-	dark: {
-		// Match frappe-ui v2's dark `surface-base` (#171717) so the email body doesn't seam against
-		// the reading-pane background. Iframes don't inherit the parent's CSS vars, so it's concrete.
-		background: '#171717',
-		text: '#D4D4D4',
-		button: '#2B2B2B',
-		buttonHover: '#343434',
-		script: `
+  light: {
+    background: '#FFFFFF',
+    text: '#383838',
+    button: '#F3F3F3',
+    buttonHover: '#EDEDED',
+    script: '',
+  },
+  dark: {
+    // Match frappe-ui v2's dark `surface-base` (#171717) so the email body doesn't seam against
+    // the reading-pane background. Iframes don't inherit the parent's CSS vars, so it's concrete.
+    background: '#171717',
+    text: '#D4D4D4',
+    button: '#2B2B2B',
+    buttonHover: '#343434',
+    script: `
 			function hasBackground(el) {
 				while (el && el !== document.body) {
 					const bg = getComputedStyle(el).backgroundColor;
@@ -363,6 +363,6 @@ const THEME_CONFIG = {
 
 			walkAndWrapTextNodes(document.body);
 		`,
-	},
+  },
 }
 </script>

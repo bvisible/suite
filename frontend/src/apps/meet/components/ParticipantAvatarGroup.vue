@@ -53,39 +53,34 @@
 </template>
 
 <script setup lang="ts">
-import { Avatar } from "frappe-ui";
-import { computed } from "vue";
-import type { ParticipantPreview } from "../types";
-import { getInitials } from "../utils/text";
+import { Avatar } from 'frappe-ui'
+import { computed } from 'vue'
+import type { ParticipantPreview } from '../types'
+import { getInitials } from '../utils/text'
 
 interface Props {
-	participants: ParticipantPreview[];
-	error: string | null;
-	maxDisplayed: number;
+  participants: ParticipantPreview[]
+  error: string | null
+  maxDisplayed: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
-	participants: () => [],
-	error: "",
-	maxDisplayed: 3,
-});
+  participants: () => [],
+  error: '',
+  maxDisplayed: 3,
+})
 
-const displayedParticipants = computed(() =>
-	props.participants.slice(0, props.maxDisplayed),
-);
+const displayedParticipants = computed(() => props.participants.slice(0, props.maxDisplayed))
 
-const extraCount = computed(() =>
-	Math.max(0, props.participants.length - props.maxDisplayed),
-);
+const extraCount = computed(() => Math.max(0, props.participants.length - props.maxDisplayed))
 
 const formattedNames = computed((): string => {
-	const names = displayedParticipants.value.map((p) => p.full_name);
-	const participantLength = props.participants.length;
-	if (participantLength === 0) return "";
-	if (participantLength === 1) return names[0];
-	if (participantLength === 2) return `${names[0]} and ${names[1]}`;
-	if (participantLength === 3)
-		return `${names[0]}, ${names[1]} and ${names[2]}`;
-	return names.join(", ");
-});
+  const names = displayedParticipants.value.map(p => p.full_name)
+  const participantLength = props.participants.length
+  if (participantLength === 0) return ''
+  if (participantLength === 1) return names[0]
+  if (participantLength === 2) return `${names[0]} and ${names[1]}`
+  if (participantLength === 3) return `${names[0]}, ${names[1]} and ${names[2]}`
+  return names.join(', ')
+})
 </script>

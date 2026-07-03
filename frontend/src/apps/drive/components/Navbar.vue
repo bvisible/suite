@@ -99,7 +99,7 @@ import LucideGalleryVerticalEnd from '~icons/lucide/gallery-vertical-end'
 import LucideFolderPlus from '~icons/lucide/folder-plus'
 
 const route = useRoute()
-const open = (url) => {
+const open = url => {
   window.open(url, '_blank')
 }
 
@@ -117,16 +117,14 @@ const props = defineProps({
   },
 })
 
-const breadcrumbItems = computed(
-  () => props.breadcrumbs ?? pageBreadcrumbs.value,
-)
+const breadcrumbItems = computed(() => props.breadcrumbs ?? pageBreadcrumbs.value)
 
 const isLoggedIn = computed(() => useSessionStore().isLoggedIn)
 const listDialog = inject('listDialog', null)
 const entityDialog = ref('')
 const rootEntity = computed(() => props.rootResource?.data?.file_name && props.rootResource?.data)
 const dialogEntities = computed(() =>
-  props.entities.length ? props.entities : rootEntity.value ? [rootEntity.value] : [],
+  props.entities.length ? props.entities : rootEntity.value ? [rootEntity.value] : []
 )
 
 function openListDialog(type) {
@@ -172,7 +170,8 @@ const defaultActions = computed(() => {
           icon: LucideCornerLeftUp,
           onClick: () => {
             window.open(
-              '/api/method/suite.drive.api.files.redirect_to_original?file_id=' + rootEntity.value.name,
+              '/api/method/suite.drive.api.files.redirect_to_original?file_id=' +
+                rootEntity.value.name,
               '_blank'
             )
           },
@@ -259,8 +258,8 @@ const defaultActions = computed(() => {
       ],
     },
     ...actions,
-  ].map((k) => {
-    return { ...k, items: k.items.filter((l) => !l.isEnabled || l.isEnabled()) }
+  ].map(k => {
+    return { ...k, items: k.items.filter(l => !l.isEnabled || l.isEnabled()) }
   })
 })
 const isPrivate = computed(() => (isHomeContext() ? 1 : 0))
@@ -289,7 +288,7 @@ const possibleButtons = [
     theme: 'red',
   },
 ]
-const button = computed(() => possibleButtons.find((k) => k.route == route.name))
+const button = computed(() => possibleButtons.find(k => k.route == route.name))
 
 const newEntityOptions = computed(() => [
   {
@@ -304,7 +303,7 @@ const newEntityOptions = computed(() => [
         label: 'Presentation',
         icon: LucideGalleryVerticalEnd,
         onClick: () => newExternal('Presentation'),
-        cond: isPrivate.value && apps.data?.find?.((k) => k.name === 'slides'),
+        cond: isPrivate.value && apps.data?.find?.(k => k.name === 'slides'),
       },
       {
         label: 'Folder',
@@ -337,7 +336,6 @@ const newEntityOptions = computed(() => [
 
 const inIframe = inject('inIframe')
 const redirectLogin = () => {
-  window.location.href =
-    '/login?redirect-to=' + encodeURIComponent('/drive' + route.path)
+  window.location.href = '/login?redirect-to=' + encodeURIComponent('/drive' + route.path)
 }
 </script>

@@ -5,13 +5,13 @@ import { useSessionStore } from '@/boot/session'
 
 export const usersWithAccess = createResource({
   url: 'suite.drive.api.permissions.get_shared_with_list',
-  makeParams: (params) => params,
+  makeParams: params => params,
 })
 
 export const updateAccess = createResource({
   url: 'suite.drive.api.files.share',
-  makeParams: (params) => ({ ...params, method: params.method || 'share' }),
-  onError: (error) => toast({ type: 'error', title: error.messages[0] }),
+  makeParams: params => ({ ...params, method: params.method || 'share' }),
+  onError: error => toast({ type: 'error', title: error.messages[0] }),
 })
 
 export const notifCount = createResource({
@@ -45,8 +45,8 @@ export const userList = createResource({
 export const teamUsers = createResource({
   url: 'suite.drive.api.product.get_team_users',
   method: 'GET',
-  transform: (data) => {
-    data.map((item) => {
+  transform: data => {
+    data.map(item => {
       item.value = item.email
       item.label = item.full_name.trimEnd()
     })
@@ -84,7 +84,7 @@ export const diskSettings = createResource({
 
 export const createTeam = createResource({
   url: 'suite.drive.api.product.create_team',
-  makeParams: (params) => ({
+  makeParams: params => ({
     ...params,
     user: useSessionStore().user,
   }),

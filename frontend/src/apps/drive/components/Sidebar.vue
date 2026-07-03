@@ -74,7 +74,7 @@ getTeams.fetch()
 const teamExists = createResource({
   url: 'suite.drive.utils.get_default_team',
   auto: true,
-  onSuccess: (d) => !d && router.replace({ name: 'drive-Setup' }),
+  onSuccess: d => !d && router.replace({ name: 'drive-Setup' }),
 })
 
 const showSettings = ref(false)
@@ -106,23 +106,18 @@ const settingsItems = computed(() => [
       {
         icon: AppsIcon,
         label: __('Apps'),
-        submenu: apps.data?.map?.((app) => ({
+        submenu: apps.data?.map?.(app => ({
           label: app.title,
           icon: app.logo,
           component: h(
             'a',
             {
-              class:
-                'flex items-center gap-2 p-1.5 rounded hover:bg-surface-gray-2',
+              class: 'flex items-center gap-2 p-1.5 rounded hover:bg-surface-gray-2',
               href: app.route,
             },
             [
               h('img', { src: app.logo, class: 'size-6' }),
-              h(
-                'span',
-                { class: 'max-w-18 text-sm w-full truncate text-ink-gray-9' },
-                app.title
-              ),
+              h('span', { class: 'max-w-18 text-sm w-full truncate text-ink-gray-9' }, app.title),
             ]
           ),
         })),
@@ -184,8 +179,7 @@ function logout() {
 
 const sidebarItems = computed(() => {
   const first = getRootSection()
-  const active = (routeName) =>
-    route.name === routeName || first.name === routeName
+  const active = routeName => route.name === routeName || first.name === routeName
   return dynamicList([
     {
       items: [
@@ -242,7 +236,7 @@ const sidebarItems = computed(() => {
       collapsible: true,
       items:
         getTeams.data &&
-        Object.values(getTeams.data).map((team) => ({
+        Object.values(getTeams.data).map(team => ({
           label: team.title,
           to: { name: 'drive-Team', params: { team: team.name } },
           icon: h(icons[team.icon || 'building']),
@@ -282,7 +276,7 @@ const sidebarItems = computed(() => {
           to: { name: 'drive-Presentations' },
           icon: LucideGalleryVerticalEnd,
           isActive: active('drive-Presentations'),
-          cond: apps.data?.find?.((k) => k.name === 'slides'),
+          cond: apps.data?.find?.(k => k.name === 'slides'),
         },
       ]),
     },

@@ -28,14 +28,14 @@ const { mailbox } = defineProps<{ mailbox?: MailboxData }>()
 const store = userStore()
 
 const deleteFolder = createResource({
-	url: 'suite.mail.api.mail.delete_mailbox',
-	makeParams: () => ({ account: store.accountId, id: mailbox.id, name: mailbox._name }),
-	onSuccess: () => {
-		raiseToast(__('Folder deleted.'))
-		show.value = false
-		store.mailboxes.reload()
-		store.sieveScripts.reload()
-	},
-	onError: (error) => raiseToast(error.message, 'error'),
+  url: 'suite.mail.api.mail.delete_mailbox',
+  makeParams: () => ({ account: store.accountId, id: mailbox.id, name: mailbox._name }),
+  onSuccess: () => {
+    raiseToast(__('Folder deleted.'))
+    show.value = false
+    store.mailboxes.reload()
+    store.sieveScripts.reload()
+  },
+  onError: error => raiseToast(error.message, 'error'),
 })
 </script>

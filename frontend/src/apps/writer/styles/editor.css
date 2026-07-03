@@ -1,10 +1,10 @@
-@import url('./fonts.css');
-@import url('./comment.css');
-@import url('./print.css');
-@import 'frappe-ui/editor-style.css';
+@import url("./fonts.css");
+@import url("./comment.css");
+@import url("./print.css");
+@import "frappe-ui/editor-style.css";
 
 .prose-sm {
-  caret-color: theme('colors.blue.600');
+  caret-color: theme("colors.blue.600");
 }
 
 .prose.ProseMirror {
@@ -48,7 +48,7 @@ b {
   padding: 0.2em 0;
 }
 
-div[data-page-break='true'] {
+div[data-page-break="true"] {
   page-break-after: always;
   break-after: always;
   border: 2px dashed lightgray;

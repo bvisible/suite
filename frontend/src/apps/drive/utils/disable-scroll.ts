@@ -98,7 +98,7 @@ class DisableScroll {
     if (
       ['INPUT', 'TEXTAREA'].includes((e.target as HTMLInputElement | HTMLTextAreaElement).tagName)
     ) {
-      keys = keys.filter((key) => !this.options.authorizedInInputs.includes(key))
+      keys = keys.filter(key => !this.options.authorizedInInputs.includes(key))
     }
 
     /* istanbul ignore else */

@@ -66,82 +66,82 @@ import dayjs from '@/apps/slides/utils/dayjs'
 import { getThumbnailCardStyles } from '@/apps/slides/utils/helpers'
 
 const props = defineProps({
-	presentation: Object,
-	required: true,
+  presentation: Object,
+  required: true,
 })
 
 const emit = defineEmits(['setPreview', 'openDialog', 'navigate', 'duplicatePresentation'])
 
 const previewOverlayClasses = computed(() => {
-	const baseClasses =
-		'absolute left-0 size-full transition-all duration-300 ease-in-out flex items-center backdrop-blur-[1px] bg-gray-900/25'
-	if (props.presentation) {
-		return `${baseClasses} top-0`
-	}
-	return `${baseClasses} top-[100%]`
+  const baseClasses =
+    'absolute left-0 size-full transition-all duration-300 ease-in-out flex items-center backdrop-blur-[1px] bg-gray-900/25'
+  if (props.presentation) {
+    return `${baseClasses} top-0`
+  }
+  return `${baseClasses} top-[100%]`
 })
 
-const getActionButtonClasses = (action) => {
-	const baseClasses = 'size-8 flex items-center justify-center rounded cursor-pointer'
-	if (action === 'Present') {
-		return `${baseClasses} bg-gray-900`
-	}
-	return `${baseClasses} bg-gray-200`
+const getActionButtonClasses = action => {
+  const baseClasses = 'size-8 flex items-center justify-center rounded cursor-pointer'
+  if (action === 'Present') {
+    return `${baseClasses} bg-gray-900`
+  }
+  return `${baseClasses} bg-gray-200`
 }
 
-const getActionIconClasses = (action) => {
-	const baseClasses = 'stroke-[1.5]'
-	if (action === 'Present') {
-		return `${baseClasses} text-white`
-	}
-	return baseClasses
+const getActionIconClasses = action => {
+  const baseClasses = 'stroke-[1.5]'
+  if (action === 'Present') {
+    return `${baseClasses} text-white`
+  }
+  return baseClasses
 }
 
 const previewStyles = computed(() => {
-	return getThumbnailCardStyles(props.presentation.thumbnail)
+  return getThumbnailCardStyles(props.presentation.thumbnail)
 })
 
 const previewDetails = computed(() => {
-	if (!props.presentation) return {}
+  if (!props.presentation) return {}
 
-	const { title, creation, modified, modified_by, owner } = props.presentation
+  const { title, creation, modified, modified_by, owner } = props.presentation
 
-	return [
-		{
-			Title: title,
-			[`Modified by ${modified_by}`]: dayjs(modified).fromNow(),
-		},
-		{
-			'Total Slides': props.presentation.slide_count,
-			[`Created by ${owner}`]: dayjs(creation).fromNow(),
-		},
-	]
+  return [
+    {
+      Title: title,
+      [`Modified by ${modified_by}`]: dayjs(modified).fromNow(),
+    },
+    {
+      'Total Slides': props.presentation.slide_count,
+      [`Created by ${owner}`]: dayjs(creation).fromNow(),
+    },
+  ]
 })
 
 const presentationActions = [
-	{
-		icon: Presentation,
-		label: 'Present',
-		onClick: (e) => emit('navigate', props.presentation.name, true),
-	},
-	{
-		icon: PenLine,
-		label: 'Rename',
-		onClick: (e) => emit('openDialog', 'Rename'),
-	},
-	{
-		icon: Copy,
-		label: 'Duplicate',
-		onClick: (e) => emit('duplicatePresentation', props.presentation.name),
-	},
-	{
-		icon: Trash,
-		label: 'Delete',
-		onClick: (e) => emit('openDialog', 'Delete'),
-	},
+  {
+    icon: Presentation,
+    label: 'Present',
+    onClick: e => emit('navigate', props.presentation.name, true),
+  },
+  {
+    icon: PenLine,
+    label: 'Rename',
+    onClick: e => emit('openDialog', 'Rename'),
+  },
+  {
+    icon: Copy,
+    label: 'Duplicate',
+    onClick: e => emit('duplicatePresentation', props.presentation.name),
+  },
+  {
+    icon: Trash,
+    label: 'Delete',
+    onClick: e => emit('openDialog', 'Delete'),
+  },
 ]
 
 const hidePreview = () => {
-	emit('setPreview', null)
+  emit('setPreview', null)
 }
 </script>

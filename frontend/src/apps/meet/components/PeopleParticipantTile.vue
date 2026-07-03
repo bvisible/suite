@@ -85,85 +85,85 @@
 </template>
 
 <script setup lang="ts">
-import { Badge, Button, Dropdown } from "frappe-ui";
-import { computed, ref } from "vue";
-import { useAudioStream } from "../composables/useAudioLevels";
-import { useMeetingContext } from "../composables/useMeetingContext";
-import type { Participant } from "../utils/media/ParticipantManager";
-import AudioIndicator from "./AudioIndicator.vue";
-import KickParticipantDialog from "./KickParticipantDialog.vue";
+import { Badge, Button, Dropdown } from 'frappe-ui'
+import { computed, ref } from 'vue'
+import { useAudioStream } from '../composables/useAudioLevels'
+import { useMeetingContext } from '../composables/useMeetingContext'
+import type { Participant } from '../utils/media/ParticipantManager'
+import AudioIndicator from './AudioIndicator.vue'
+import KickParticipantDialog from './KickParticipantDialog.vue'
 
 interface Props {
-	participant: Participant;
-	isCurrentUser?: boolean;
-	isHost?: boolean;
-	canControlParticipant?: boolean;
-	canPromoteToCohost?: boolean;
+  participant: Participant
+  isCurrentUser?: boolean
+  isHost?: boolean
+  canControlParticipant?: boolean
+  canPromoteToCohost?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-	isCurrentUser: false,
-	isHost: false,
-	canControlParticipant: false,
-	canPromoteToCohost: false,
-});
+  isCurrentUser: false,
+  isHost: false,
+  canControlParticipant: false,
+  canPromoteToCohost: false,
+})
 
 const emit = defineEmits<{
-	muteParticipant: [participantId: string];
-	kickParticipant: [participantId: string, ban: boolean];
-	lowerHand: [participantId: string];
-	promoteToCohost: [participantId: string];
-}>();
+  muteParticipant: [participantId: string]
+  kickParticipant: [participantId: string, ban: boolean]
+  lowerHand: [participantId: string]
+  promoteToCohost: [participantId: string]
+}>()
 
-const meetingCtx = useMeetingContext();
+const meetingCtx = useMeetingContext()
 const { stream } = useAudioStream(props.participant.user_id, {
-	mediaState: meetingCtx?.mediaState,
-	currentUser: meetingCtx?.currentUser,
-});
+  mediaState: meetingCtx?.mediaState,
+  currentUser: meetingCtx?.currentUser,
+})
 
-const showKickDialog = ref(false);
+const showKickDialog = ref(false)
 
 const showHostControls = computed(() => {
-	return props.canControlParticipant;
-});
+  return props.canControlParticipant
+})
 
 const isHandRaised = computed(() => {
-	if (!meetingCtx?.raiseHandStore?.raisedHands) return false;
-	return !!meetingCtx.raiseHandStore.raisedHands[props.participant.user_id];
-});
+  if (!meetingCtx?.raiseHandStore?.raisedHands) return false
+  return !!meetingCtx.raiseHandStore.raisedHands[props.participant.user_id]
+})
 
 const handleKickConfirm = (ban: boolean) => {
-	emit("kickParticipant", props.participant.user_id, ban);
-	showKickDialog.value = false;
-};
+  emit('kickParticipant', props.participant.user_id, ban)
+  showKickDialog.value = false
+}
 
 const hostOptions = computed(() => {
-	return [
-		{
-			icon: "mic-off",
-			label: "Mute",
-			condition: () => !!props.participant.audio_enabled,
-			onClick: () => emit("muteParticipant", props.participant.user_id),
-		},
-		{
-			icon: "slash", // TODO: switch to `hand` if we integrate Lucide instead of FeatherIcon
-			label: "Lower Hand",
-			condition: () => isHandRaised.value,
-			onClick: () => emit("lowerHand", props.participant.user_id),
-		},
-		{
-			icon: "user-plus",
-			label: "Promote to Co-host",
-			condition: () => props.canPromoteToCohost,
-			onClick: () => emit("promoteToCohost", props.participant.user_id),
-		},
-		{
-			icon: "user-x",
-			label: "Remove",
-			onClick: () => {
-				showKickDialog.value = true;
-			},
-		},
-	];
-});
+  return [
+    {
+      icon: 'mic-off',
+      label: 'Mute',
+      condition: () => !!props.participant.audio_enabled,
+      onClick: () => emit('muteParticipant', props.participant.user_id),
+    },
+    {
+      icon: 'slash', // TODO: switch to `hand` if we integrate Lucide instead of FeatherIcon
+      label: 'Lower Hand',
+      condition: () => isHandRaised.value,
+      onClick: () => emit('lowerHand', props.participant.user_id),
+    },
+    {
+      icon: 'user-plus',
+      label: 'Promote to Co-host',
+      condition: () => props.canPromoteToCohost,
+      onClick: () => emit('promoteToCohost', props.participant.user_id),
+    },
+    {
+      icon: 'user-x',
+      label: 'Remove',
+      onClick: () => {
+        showKickDialog.value = true
+      },
+    },
+  ]
+})
 </script>

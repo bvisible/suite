@@ -11,7 +11,7 @@ dayjs.extend(timezone)
 dayjs.extend(localizedFormat)
 
 export function dynamicList(k) {
-  return k.filter((a) => typeof a !== 'object' || !('cond' in a) || a.cond)
+  return k.filter(a => typeof a !== 'object' || !('cond' in a) || a.cond)
 }
 
 export function getFileLink(entity, copy = true) {
@@ -38,8 +38,7 @@ function getLinkStem(entity) {
     {
       true: 'f',
       [new Boolean(entity.is_folder)]: 'd',
-      [new Boolean(entity.file_type === 'Document' || entity.file_type === 'Markdown')]:
-        'w',
+      [new Boolean(entity.file_type === 'Document' || entity.file_type === 'Markdown')]: 'w',
     }[true]
   }/${entity.name}/${slugger(entity.file_name)}`
 }
@@ -52,7 +51,7 @@ function slugger(file_name) {
   })
 }
 
-export const copyToClipboard = (str) => {
+export const copyToClipboard = str => {
   if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
     return navigator.clipboard.writeText(str)
   } else {
@@ -78,19 +77,19 @@ export function formatSize(size, nDigits = 1) {
   return Math.max(size, 0.1).toFixed(nDigits) + ' ' + byteUnits[i]
 }
 
-const prettyFile = (entity) => {
+const prettyFile = entity => {
   entity.file_size_pretty = formatSize(entity.file_size)
   entity.relativeModified = useTimeAgo(entity.modified)
   if (entity.accessed) entity.relativeAccessed = useTimeAgo(entity.accessed)
   return entity
 }
 
-export const prettyData = (entities) => {
+export const prettyData = entities => {
   if (!entities.map) return prettyFile(entities)
   return entities.map(prettyFile)
 }
 
-export const formatDate = (date) => {
+export const formatDate = date => {
   if (!date) return ''
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
   const locale = navigator.language || 'en-US'
@@ -109,7 +108,6 @@ export const formatDate = (date) => {
   return `${formattedDate}, ${formattedTime}`
 }
 
-
 export const openEntity = (entity, new_tab = false) => {
   if (new_tab) {
     return window.open(getFileLink(entity, false), '_blank')
@@ -122,18 +120,11 @@ export const openEntity = (entity, new_tab = false) => {
     window.location.href = '/drive/d/' + entity.name
   } else if (entity.file_type === 'Link') {
     const origin = new URL(entity.file_url).origin
-    if (
-      confirm(
-        `This will open an external link to ${origin} - are you sure you want to open?`,
-      )
-    )
+    if (confirm(`This will open an external link to ${origin} - are you sure you want to open?`))
       window.open(entity.file_url, '_blank')
   } else if (entity.file_type === 'Presentation') {
     window.location.href = '/slides/presentation/' + entity.name
-  } else if (
-    entity.file_type === 'Document' ||
-    entity.file_type === 'Markdown'
-  ) {
+  } else if (entity.file_type === 'Document' || entity.file_type === 'Markdown') {
     window.location.href = '/writer/w/' + entity.name
   } else {
     window.location.href = '/drive/f/' + entity.name

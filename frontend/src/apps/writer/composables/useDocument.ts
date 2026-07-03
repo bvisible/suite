@@ -14,10 +14,8 @@ export default function useDocument(docId: MaybeRefOrGetter<string>) {
   const file = useDoc({
     doctype: 'File',
     name,
-    url:
-      '/api/method/suite.drive.api.permissions.get_entity_with_permissions?entity_name=' +
-      name,
-    transform: (doc) => {
+    url: '/api/method/suite.drive.api.permissions.get_entity_with_permissions?entity_name=' + name,
+    transform: doc => {
       return prettyData(doc)
     },
     methods: {
@@ -26,7 +24,7 @@ export default function useDocument(docId: MaybeRefOrGetter<string>) {
   })
   // Construct a fake useDoc until we fetch data
   const document = ref({ doc: null })
-  file.onSuccess((doc) => {
+  file.onSuccess(doc => {
     document.value = useDoc({
       doctype: 'Writer Document',
       name: doc.content_docname,

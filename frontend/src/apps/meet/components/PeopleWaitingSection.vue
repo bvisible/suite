@@ -64,28 +64,28 @@
 </template>
 
 <script setup lang="ts">
-import { Badge, Button } from "frappe-ui";
-import { getInitials } from "../utils/text";
+import { Badge, Button } from 'frappe-ui'
+import { getInitials } from '../utils/text'
 
 interface LobbyUser {
-	userId: string;
-	name?: string;
-	avatar?: string;
-	isGuest?: boolean;
-	joinedAt?: number;
+  userId: string
+  name?: string
+  avatar?: string
+  isGuest?: boolean
+  joinedAt?: number
 }
 
 interface Props {
-	lobbyUsers: LobbyUser[];
+  lobbyUsers: LobbyUser[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
-	lobbyUsers: () => [],
-});
+  lobbyUsers: () => [],
+})
 
 defineEmits<{
-	approve: [participantId: string];
-	reject: [participantId: string];
-	"approve-all": [];
-}>();
+  approve: [participantId: string]
+  reject: [participantId: string]
+  'approve-all': []
+}>()
 </script>

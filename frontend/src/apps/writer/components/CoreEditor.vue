@@ -49,14 +49,7 @@
 </template>
 
 <script setup>
-import {
-  computed,
-  nextTick,
-  onBeforeUnmount,
-  provide,
-  ref,
-  watch,
-} from 'vue'
+import { computed, nextTick, onBeforeUnmount, provide, ref, watch } from 'vue'
 import { EditorContent } from '@tiptap/vue-3'
 import { TextSelection } from '@tiptap/pm/state'
 import { CharacterCount, Selection } from '@tiptap/extensions'
@@ -91,15 +84,9 @@ import { TabsExtension } from '@/apps/writer/extensions/tabs'
 import TabTrailingNode from '@/apps/writer/extensions/tab-trailing-node'
 import { CommentExtension, rebuild } from '@/apps/writer/extensions/comments'
 
-
 import { useSessionStore } from '@/boot/session'
 import emitter from '@/apps/writer/emitter'
-import {
-  COMMON_EXTENSIONS,
-  isModKey,
-  printDoc,
-  updateURLSlug,
-} from '@/apps/writer/utils'
+import { COMMON_EXTENSIONS, isModKey, printDoc, updateURLSlug } from '@/apps/writer/utils'
 
 import LucideMessageSquareQuote from '~icons/lucide/message-square-quote'
 import LucideMessageSquarePlus from '~icons/lucide/message-square-plus'
@@ -131,36 +118,27 @@ defineExpose({ editor })
 const anchors = ref([])
 const activeComment = ref(null)
 const commentsPainted = ref(false)
-const showComments = ref(
-  JSON.parse(localStorage.getItem('show-comments') || 'false'),
-)
+const showComments = ref(JSON.parse(localStorage.getItem('show-comments') || 'false'))
 const showResolved = ref(false)
 const showUnanchored = ref(false)
 
 watch(activeComment, () => rebuild(editor.value))
-watch(showComments, (val) => localStorage.setItem('show-comments', val))
+watch(showComments, val => localStorage.setItem('show-comments', val))
 
-const scrollParent = computed(() =>
-  document.querySelector('#editor-scroll-container'),
-)
+const scrollParent = computed(() => document.querySelector('#editor-scroll-container'))
 
-const isPainting = computed(
-  () => !!editor.value?.storage.styleClipboard.styleClipboard,
-)
+const isPainting = computed(() => !!editor.value?.storage.styleClipboard.styleClipboard)
 
 const showUnanchoredButton = computed(() => {
   if (!commentsPainted.value) return false
   return Array.from(props.comments._map).some(
-    ([, value]) =>
-      !document.querySelector(
-        `[data-comment-name='${value.content?.arr?.[0].id}']`,
-      ),
+    ([, value]) => !document.querySelector(`[data-comment-name='${value.content?.arr?.[0].id}']`)
   )
 })
 
 const commentFilterOptions = computed(() => {
   const hasResolved = Array.from(props.comments._map).some(
-    ([, value]) => value.content?.arr?.[0].resolved,
+    ([, value]) => value.content?.arr?.[0].resolved
   )
   return [
     {
@@ -186,7 +164,7 @@ const commentFilterOptions = computed(() => {
   ].filter(Boolean)
 })
 
-const onCommentActivated = (id) => {
+const onCommentActivated = id => {
   if (!id) return
   activeComment.value = id
   showComments.value = true
@@ -211,15 +189,15 @@ const editorExtensions = [
   CleanStyles.configure({
     allowProperty: (_prop, value) => value !== '',
     validators: {
-      lineHeight: (value) => !value.endsWith('%'),
-      fontFamily: (value) => value.trim() !== '""',
+      lineHeight: value => !value.endsWith('%'),
+      fontFamily: value => value.trim() !== '""',
     },
   }),
   TabsExtension,
   TabTrailingNode,
   OldCommentExtension.configure({ onCommentActivated }),
   TableOfContents.configure({
-    onUpdate: (val) => (anchors.value = val),
+    onUpdate: val => (anchors.value = val),
     getIndex: getHierarchicalIndexes,
     scrollParent: () => scrollParent.value,
   }),
@@ -249,7 +227,7 @@ const menuButtons = computed(() =>
     settings: props.settings,
     isPainting,
     openSettings: () => (showSettings.value = true),
-  }),
+  })
 )
 
 const bubbleMenuButtons = [
@@ -260,20 +238,17 @@ const bubbleMenuButtons = [
   },
 ]
 
-const bubbleMenuOpts = computed(() =>
-  bubbleMenuOptions({ editor, comments: props.comments }),
-)
+const bubbleMenuOpts = computed(() => bubbleMenuOptions({ editor, comments: props.comments }))
 
 const editorStyle = computed(() => ({
-  fontFamily:
-    props.settings?.font_family && `var(--font-${props.settings.font_family})`,
+  fontFamily: props.settings?.font_family && `var(--font-${props.settings.font_family})`,
   '--editor-font-size': `${props.settings?.font_size || 15}px`,
   '--editor-line-height': props.settings?.line_height || 1.5,
   '--paragraph-spacing-before': `${props.settings?.paragraph_spacing_before || 0}px`,
   '--paragraph-spacing-after': `${props.settings?.paragraph_spacing_after || 0}px`,
 }))
 
-const uploadFunction = (file) => {
+const uploadFunction = file => {
   const fileUpload = useFileUpload()
   return fileUpload.upload(file, {
     params: { file_id: props.file.doc.name },
@@ -281,13 +256,13 @@ const uploadFunction = (file) => {
   })
 }
 
-const onBackgroundClick = (e) => {
+const onBackgroundClick = e => {
   if (e.target.tagName === 'DIV') {
     textEditor.value?.editor?.chain?.().focus?.().run?.()
   }
 }
 
-const onEditorKeydown = async (e) => {
+const onEditorKeydown = async e => {
   if (!props.editable || e.metaKey || e.ctrlKey || edited.value) return
   edited.value = true
   await nextTick()
@@ -311,8 +286,7 @@ const autorename = () => {
   const inFirstBlock = $anchor.index(0) === 1 && $anchor.depth === 1
   if (!inFirstBlock) {
     const inLastLine =
-      $anchor.depth === 1 &&
-      editor.value.state.doc.childCount - 1 === $anchor.index(0)
+      $anchor.depth === 1 && editor.value.state.doc.childCount - 1 === $anchor.index(0)
     if (inLastLine) {
       scrollParent.value.scroll(0, scrollParent.value.scrollHeight)
     }
@@ -339,7 +313,7 @@ const autorename = () => {
         crumbs[crumbs.length - 1].file_name = rename.params.new_title
         updateURLSlug(rename.params.new_title)
       },
-    },
+    }
   )
 }
 
@@ -355,27 +329,21 @@ const addComment = () => {
   if (from === to) return
 
   const id = uuidv4()
-  props.newComment(
-    id,
-    from,
-    to,
-    useSessionStore().user,
-    state.doc.textBetween(from, to, ' '),
-  )
+  props.newComment(id, from, to, useSessionStore().user, state.doc.textBetween(from, to, ' '))
   activeComment.value = id
   const tr = state.tr.setSelection(TextSelection.create(state.doc, from))
   editor.value.view.dispatch(tr)
 }
 
-const manualSave = (func) => emit('save', true, null, func)
+const manualSave = func => emit('save', true, null, func)
 
-onKeyDown('p', (e) => {
+onKeyDown('p', e => {
   if (!isModKey(e)) return
   e.preventDefault()
   emitter.emit('print-file')
 })
 
-onKeyDown('s', (e) => {
+onKeyDown('s', e => {
   if (!props.editable || !isModKey(e) || e.shiftKey) return
   e.preventDefault()
   manualSave(() => toast.success('Saved document'))

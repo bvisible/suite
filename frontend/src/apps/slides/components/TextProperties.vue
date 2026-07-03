@@ -109,17 +109,17 @@
 import { computed } from 'vue'
 import { FormControl, Select } from 'frappe-ui'
 import {
-	Bold,
-	Italic,
-	Underline,
-	Strikethrough,
-	CaseUpper,
-	List,
-	ListOrdered,
-	AlignLeft,
-	AlignCenter,
-	AlignRight,
-	AlignJustify,
+  Bold,
+  Italic,
+  Underline,
+  Strikethrough,
+  CaseUpper,
+  List,
+  ListOrdered,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
 } from 'lucide-vue-next'
 
 import SliderInput from '@/apps/slides/components/controls/SliderInput.vue'
@@ -135,143 +135,143 @@ import { useTextEditor } from '@/apps/slides/composables/useTextEditor'
 const { activeEditor, editorStyles, toggleMark, updateProperty } = useTextEditor()
 
 const textFonts = [
-	'Arial',
-	'Arial Black',
-	'Comic Sans MS',
-	'Courier New',
-	'Georgia',
-	'Helvetica',
-	'Impact',
-	'Lucida Console',
-	'Lucida Sans Unicode',
-	'Palatino Linotype',
-	'Tahoma',
-	'Times New Roman',
-	'Trebuchet MS',
-	'Verdana',
-	'Inter',
+  'Arial',
+  'Arial Black',
+  'Comic Sans MS',
+  'Courier New',
+  'Georgia',
+  'Helvetica',
+  'Impact',
+  'Lucida Console',
+  'Lucida Sans Unicode',
+  'Palatino Linotype',
+  'Tahoma',
+  'Times New Roman',
+  'Trebuchet MS',
+  'Verdana',
+  'Inter',
 ]
 
 const styleProperties = [
-	{
-		property: 'bold',
-		icon: Bold,
-	},
-	{
-		property: 'italic',
-		icon: Italic,
-	},
-	{
-		property: 'underline',
-		icon: Underline,
-	},
-	{
-		property: 'strike',
-		icon: Strikethrough,
-	},
-	{
-		property: 'uppercase',
-		icon: CaseUpper,
-	},
+  {
+    property: 'bold',
+    icon: Bold,
+  },
+  {
+    property: 'italic',
+    icon: Italic,
+  },
+  {
+    property: 'underline',
+    icon: Underline,
+  },
+  {
+    property: 'strike',
+    icon: Strikethrough,
+  },
+  {
+    property: 'uppercase',
+    icon: CaseUpper,
+  },
 ]
 
 const textAlignProperties = [
-	{
-		alignValue: 'left',
-		icon: AlignLeft,
-	},
-	{
-		alignValue: 'center',
-		icon: AlignCenter,
-	},
-	{
-		alignValue: 'right',
-		icon: AlignRight,
-	},
-	{
-		alignValue: 'justify',
-		icon: AlignJustify,
-	},
+  {
+    alignValue: 'left',
+    icon: AlignLeft,
+  },
+  {
+    alignValue: 'center',
+    icon: AlignCenter,
+  },
+  {
+    alignValue: 'right',
+    icon: AlignRight,
+  },
+  {
+    alignValue: 'justify',
+    icon: AlignJustify,
+  },
 ]
 
 const presetTextStyles = [
-	{
-		label: 'Title',
-		value: 'title',
-		bold: true,
-		fontSize: 60,
-		lineHeight: 1.5,
-		textAlign: 'center',
-	},
-	{
-		label: 'Subtitle',
-		value: 'subtitle',
-		bold: true,
-		fontSize: 40,
-		lineHeight: 1.5,
-		textAlign: 'center',
-	},
-	{
-		label: 'Body',
-		value: 'body',
-		bold: false,
-		fontSize: 20,
-		lineHeight: 1.5,
-		textAlign: 'justify',
-	},
+  {
+    label: 'Title',
+    value: 'title',
+    bold: true,
+    fontSize: 60,
+    lineHeight: 1.5,
+    textAlign: 'center',
+  },
+  {
+    label: 'Subtitle',
+    value: 'subtitle',
+    bold: true,
+    fontSize: 40,
+    lineHeight: 1.5,
+    textAlign: 'center',
+  },
+  {
+    label: 'Body',
+    value: 'body',
+    bold: false,
+    fontSize: 20,
+    lineHeight: 1.5,
+    textAlign: 'justify',
+  },
 ]
 
-const applyPresetTextStyles = (textStyle) => {
-	const presetStyles = presetTextStyles.find((style) => style.value == textStyle)
+const applyPresetTextStyles = textStyle => {
+  const presetStyles = presetTextStyles.find(style => style.value == textStyle)
 
-	activeEditor.value
-		.chain()
-		.focus()
-		.selectAll()
-		.setMark('textStyle', {
-			fontFamily: 'Inter',
-			fontSize: presetStyles.fontSize,
-			lineHeight: presetStyles.lineHeight,
-			letterSpacing: 0,
-			opacity: 100,
-		})
-		.run()
+  activeEditor.value
+    .chain()
+    .focus()
+    .selectAll()
+    .setMark('textStyle', {
+      fontFamily: 'Inter',
+      fontSize: presetStyles.fontSize,
+      lineHeight: presetStyles.lineHeight,
+      letterSpacing: 0,
+      opacity: 100,
+    })
+    .run()
 
-	activeEditor.value.chain().focus().setTextAlign(presetStyles.textAlign).run()
-	activeEditor.value.chain().focus().setBold(presetStyles.bold).run()
+  activeEditor.value.chain().focus().setTextAlign(presetStyles.textAlign).run()
+  activeEditor.value.chain().focus().setBold(presetStyles.bold).run()
 
-	activeElement.value.defaultStyle = textStyle
+  activeElement.value.defaultStyle = textStyle
 }
 
 const listButtonClasses = computed(() => {
-	const baseClasses =
-		'ms-2.5 flex h-full w-1/6 cursor-pointer items-center justify-center rounded py-2'
-	const isActive = editorStyles.bulletList || editorStyles.orderedList
-	return `${baseClasses} ${isActive ? 'bg-gray-100 text-gray-800' : 'text-gray-600'}`
+  const baseClasses =
+    'ms-2.5 flex h-full w-1/6 cursor-pointer items-center justify-center rounded py-2'
+  const isActive = editorStyles.bulletList || editorStyles.orderedList
+  return `${baseClasses} ${isActive ? 'bg-gray-100 text-gray-800' : 'text-gray-600'}`
 })
 
-const getFontStyleButtonClasses = (property) => {
-	const baseClasses = 'cursor-pointer rounded flex items-center justify-center py-1.5'
-	if (editorStyles[property]) {
-		return `${baseClasses} bg-gray-100`
-	}
-	return baseClasses
+const getFontStyleButtonClasses = property => {
+  const baseClasses = 'cursor-pointer rounded flex items-center justify-center py-1.5'
+  if (editorStyles[property]) {
+    return `${baseClasses} bg-gray-100`
+  }
+  return baseClasses
 }
 
-const getFontStyleIconClasses = (property) => {
-	return editorStyles[property] ? 'text-gray-900' : 'text-gray-700'
+const getFontStyleIconClasses = property => {
+  return editorStyles[property] ? 'text-gray-900' : 'text-gray-700'
 }
 
-const getTabClasses = (alignValue) => {
-	const baseClasses = 'rounded h-full flex items-center justify-center w-1/5 cursor-pointer'
-	if (editorStyles.textAlign == alignValue) {
-		return `${baseClasses} bg-white shadow text-gray-800`
-	}
-	return `${baseClasses} text-gray-600`
+const getTabClasses = alignValue => {
+  const baseClasses = 'rounded h-full flex items-center justify-center w-1/5 cursor-pointer'
+  if (editorStyles.textAlign == alignValue) {
+    return `${baseClasses} bg-white shadow text-gray-800`
+  }
+  return `${baseClasses} text-gray-600`
 }
 
 const displayFont = computed(() => {
-	return editorStyles.fontFamily?.replace(/['"]/g, '')
+  return editorStyles.fontFamily?.replace(/['"]/g, '')
 })
 </script>
 

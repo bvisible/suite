@@ -136,7 +136,7 @@ import LucideChevronLeft from '~icons/lucide/chevron-left'
 import WriterLogo from './WriterLogo.vue'
 import { useRoute } from 'vue-router'
 
-const open = (url) => {
+const open = url => {
   window.open(url, '_blank')
 }
 
@@ -170,7 +170,7 @@ const formattedCrumbs = computed(() => {
   if (!props.breadcrumbs.length) return [ORIG]
   return [
     ORIG,
-    ...props.breadcrumbs.slice(1, -1).map((k) => ({
+    ...props.breadcrumbs.slice(1, -1).map(k => ({
       ...k,
       href: '/drive/d/' + k.name,
     })),
@@ -265,7 +265,7 @@ const fileActions = computed(() =>
                   switch: true,
                   switchValue: props.document.doc.settings.lock,
                   icon: LucideLock,
-                  onClick: (val) => {
+                  onClick: val => {
                     props.document.doc.settings.lock = val
                     props.document.updateSettings.submit({
                       data: JSON.stringify(props.document.doc.settings),
@@ -277,7 +277,7 @@ const fileActions = computed(() =>
                   icon: LucideRulerDimensionLine,
                   switch: true,
                   switchValue: props.document.doc.settings.wide,
-                  onClick: (val) => {
+                  onClick: val => {
                     props.document.doc.settings.wide = val
                     props.document.updateSettings.submit({
                       data: JSON.stringify(props.document.doc.settings),
@@ -304,7 +304,7 @@ const fileActions = computed(() =>
                     downloadDocxFromHtml(
                       editor.getHTML(),
                       `${file.doc.file_name}.docx`,
-                      props.document?.doc?.settings,
+                      props.document?.doc?.settings
                     )
                   },
                 },
@@ -315,7 +315,7 @@ const fileActions = computed(() =>
                     downloadZippedHTML(
                       editor,
                       props.file.doc.file_name,
-                      props.document?.doc?.settings,
+                      props.document?.doc?.settings
                     )
                   },
                 },
@@ -328,7 +328,7 @@ const fileActions = computed(() =>
                   onClick: exportBlog,
                   label: 'Blog',
                   icon: LucideFileUser,
-                  cond: apps.data && apps.data.find((k) => k.name === 'blog'),
+                  cond: apps.data && apps.data.find(k => k.name === 'blog'),
                 },
               ],
             },
@@ -364,13 +364,13 @@ const fileActions = computed(() =>
             },
           ],
         },
-      ].map((k) => {
+      ].map(k => {
         return {
           ...k,
-          items: k.items.filter((l) => !l.isEnabled || l.isEnabled()),
+          items: k.items.filter(l => !l.isEnabled || l.isEnabled()),
         }
       })
-    : [],
+    : []
 )
 
 // Utility functions for doc
@@ -379,5 +379,5 @@ const clearCache = () => {
   window.indexedDB.deleteDatabase('wdoc-comments-' + props.file.doc.name)
 }
 
-const navigate = (href) => (window.location.href = href)
+const navigate = href => (window.location.href = href)
 </script>

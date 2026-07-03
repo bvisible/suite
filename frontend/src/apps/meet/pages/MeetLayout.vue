@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { FrappeUIProvider, Dialogs } from "frappe-ui";
-import { provide } from "vue";
+import { FrappeUIProvider, Dialogs } from 'frappe-ui'
+import { provide } from 'vue'
 
-import { initSocket } from "@/apps/meet/socket";
-import { getPlatform } from "@/apps/meet/utils/device";
+import { initSocket } from '@/apps/meet/socket'
+import { getPlatform } from '@/apps/meet/utils/device'
 
 /**
  * Meet route-group layout.
@@ -18,9 +18,9 @@ import { getPlatform } from "@/apps/meet/utils/device";
  *     in main.ts) for any inject consumers,
  *   - wraps children in FrappeUIProvider + Dialogs and renders <router-view>.
  */
-initSocket();
+initSocket()
 
-provide("$platform", getPlatform());
+provide('$platform', getPlatform())
 </script>
 
 <template>

@@ -16,7 +16,6 @@ import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCaret from '@tiptap/extension-collaboration-caret'
 import CoreEditor from './CoreEditor.vue'
 
-
 import { useCurrentUser } from '@/boot/session'
 const { user: _sessionUser, fullName: _fullName, imageURL: _imageURL } = useCurrentUser()
 
@@ -46,15 +45,12 @@ const editor = computed(() => {
 provide('editor', editor)
 defineExpose({ editor })
 
-const {
-  doc,
-  save,
-  cleanup,
-  provider,
-  permanentUserData,
-  loaded,
-  ...commentsDetail
-} = useYjs(props.file.doc.name, props.document, editor, edited)
+const { doc, save, cleanup, provider, permanentUserData, loaded, ...commentsDetail } = useYjs(
+  props.file.doc.name,
+  props.document,
+  editor,
+  edited
+)
 watch(loaded, () => rebuild(editor.value))
 
 const extensions = [
@@ -67,7 +63,7 @@ const extensions = [
   }),
   CollaborationCaret.configure({
     provider,
-    selectionRender: () => { },
+    selectionRender: () => {},
     user: {
       name: _fullName.value,
       id: _sessionUser.value,

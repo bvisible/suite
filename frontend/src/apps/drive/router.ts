@@ -30,7 +30,7 @@ suiteRouter.beforeEach((to, _from, next) => {
   next()
 })
 
-suiteRouter.afterEach((to) => {
+suiteRouter.afterEach(to => {
   if (!isDriveRoute(to)) return
   sessionStorage.setItem('currentRoute', to.href)
 })

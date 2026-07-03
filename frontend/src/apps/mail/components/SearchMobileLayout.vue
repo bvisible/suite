@@ -10,11 +10,11 @@ import { onMounted, onUnmounted, watch } from 'vue'
 const show = defineModel<boolean>()
 
 const close = () => {
-	if (show.value) show.value = false
+  if (show.value) show.value = false
 }
 
-watch(show, (val) => {
-	if (val) history.pushState(null, '')
+watch(show, val => {
+  if (val) history.pushState(null, '')
 })
 
 onMounted(() => window.addEventListener('popstate', close))

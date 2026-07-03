@@ -46,28 +46,30 @@ import { computed } from 'vue'
 import { Button } from 'frappe-ui'
 
 const props = defineProps({
-	open:       { type: Boolean, default: false },
-	version:    { type: Object,  default: null },
-	restoring:  { type: Boolean, default: false },
-	diff:       { type: Object,  default: null },
-	stepIndex:  { type: Number,  default: null },
+  open: { type: Boolean, default: false },
+  version: { type: Object, default: null },
+  restoring: { type: Boolean, default: false },
+  diff: { type: Object, default: null },
+  stepIndex: { type: Number, default: null },
 })
 defineEmits(['restore', 'exit', 'name', 'step'])
 
 const canStep = computed(() => !!(props.diff && props.diff.total_changed_cells > 1))
 
 function formatTimestamp(ts) {
-	if (!ts) return ''
-	const d = new Date(String(ts).replace(' ', 'T'))
-	return d.toLocaleString(undefined, {
-		month: 'short', day: 'numeric',
-		hour: 'numeric', minute: '2-digit',
-	})
+  if (!ts) return ''
+  const d = new Date(String(ts).replace(' ', 'T'))
+  return d.toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
 }
 
 function shortUser(u) {
-	if (!u) return ''
-	return u.includes('@') ? u.split('@')[0] : u
+  if (!u) return ''
+  return u.includes('@') ? u.split('@')[0] : u
 }
 </script>
 

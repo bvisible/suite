@@ -49,8 +49,8 @@ provide('$dayjs', dayjs)
 provide('$socket', initSocket())
 
 const Layout = computed(() => {
-	if (route.meta.noLayout) return 'div'
-	return DefaultLayout
+  if (route.meta.noLayout) return 'div'
+  return DefaultLayout
 })
 
 watchEffect(() => document.documentElement.setAttribute('data-theme', dataTheme.value))
@@ -67,15 +67,15 @@ onUnmounted(() => document.body.classList.remove('mail-app'))
 // App.vue, but in the suite that App.vue is unused — this MailLayout is the mounted mail root, so the
 // listener has to live here for the shortcut to fire on any mail page.
 const handleThemeShortcut = (e: KeyboardEvent) => {
-	if (
-		(e.metaKey || e.ctrlKey) &&
-		e.shiftKey &&
-		e.key.toLowerCase() === 'l' &&
-		!shouldIgnoreKeypress(e, true)
-	) {
-		e.preventDefault()
-		cycleTheme()
-	}
+  if (
+    (e.metaKey || e.ctrlKey) &&
+    e.shiftKey &&
+    e.key.toLowerCase() === 'l' &&
+    !shouldIgnoreKeypress(e, true)
+  ) {
+    e.preventDefault()
+    cycleTheme()
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -89,44 +89,42 @@ const handleThemeShortcut = (e: KeyboardEvent) => {
 /* dynamically imported so it stays code-split out of the shared shell chunk.  */
 /* -------------------------------------------------------------------------- */
 const registerServiceWorker = async () => {
-	try {
-		if (!('serviceWorker' in navigator)) return
+  try {
+    if (!('serviceWorker' in navigator)) return
 
-		const { default: FrappePushNotification } = await import(
-			'@/apps/mail/utils/frappe-push-notification'
-		)
-		window.frappePushNotification = new FrappePushNotification('mail')
+    const { default: FrappePushNotification } = await import(
+      '@/apps/mail/utils/frappe-push-notification'
+    )
+    window.frappePushNotification = new FrappePushNotification('mail')
 
-		let serviceWorkerURL = '/assets/suite/frontend/sw.js'
-		let config: unknown = ''
+    let serviceWorkerURL = '/assets/suite/frontend/sw.js'
+    let config: unknown = ''
 
-		try {
-			config = await window.frappePushNotification.fetchWebConfig()
-			serviceWorkerURL = `${serviceWorkerURL}?config=${encodeURIComponent(
-				JSON.stringify(config),
-			)}`
-		} catch (err) {
-			console.error('Failed to fetch FCM config', err)
-		}
+    try {
+      config = await window.frappePushNotification.fetchWebConfig()
+      serviceWorkerURL = `${serviceWorkerURL}?config=${encodeURIComponent(JSON.stringify(config))}`
+    } catch (err) {
+      console.error('Failed to fetch FCM config', err)
+    }
 
-		const registration = await navigator.serviceWorker.register(serviceWorkerURL, {
-			type: 'module',
-		})
-		if (config)
-			window.frappePushNotification
-				.initialize(registration)
-				.then(() => console.log('Frappe Push Notification initialized'))
-	} catch (err) {
-		console.error('Failed to register service worker', err)
-	}
+    const registration = await navigator.serviceWorker.register(serviceWorkerURL, {
+      type: 'module',
+    })
+    if (config)
+      window.frappePushNotification
+        .initialize(registration)
+        .then(() => console.log('Frappe Push Notification initialized'))
+  } catch (err) {
+    console.error('Failed to register service worker', err)
+  }
 }
 
 onMounted(() => {
-	registerServiceWorker()
-	window.frappePushNotification?.onMessage((payload: NotificationPayload) =>
-		showNotification(payload),
-	)
-	window.addEventListener('keydown', handleThemeShortcut)
+  registerServiceWorker()
+  window.frappePushNotification?.onMessage((payload: NotificationPayload) =>
+    showNotification(payload)
+  )
+  window.addEventListener('keydown', handleThemeShortcut)
 })
 
 onUnmounted(() => window.removeEventListener('keydown', handleThemeShortcut))

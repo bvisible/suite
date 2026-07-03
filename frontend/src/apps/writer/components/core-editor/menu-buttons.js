@@ -9,8 +9,8 @@ import LucideForm from '~icons/lucide/sticky-note'
 import LucideAlignVerticalSpacingAround from '~icons/lucide/align-vertical-space-around'
 
 const EXTRA_BUTTON_PREDICATES = [
-  (e) => e.can().sinkListItem('listItem'),
-  (e) => e.can().liftListItem('listItem'),
+  e => e.can().sinkListItem('listItem'),
+  e => e.can().liftListItem('listItem'),
 ]
 
 const TABLE_BUTTONS = [
@@ -43,7 +43,7 @@ export function buildMenuButtons({ editor, settings, isPainting, openSettings })
       label: 'Paint Styles',
       icon: LucidePaintRoller,
       isActive: () => isPainting.value,
-      action: (e) => {
+      action: e => {
         e.commands.focus()
         e.commands.storeStyles()
       },
@@ -52,7 +52,7 @@ export function buildMenuButtons({ editor, settings, isPainting, openSettings })
       label: 'Clear formatting',
       icon: LucideBrushCleaning,
       isActive: () => false,
-      action: (e) => {
+      action: e => {
         e.commands.focus()
         e.commands.clearStyles()
         e.commands.cleanStyles()
@@ -82,14 +82,14 @@ export function buildMenuButtons({ editor, settings, isPainting, openSettings })
     {
       label: 'Page Break',
       icon: LucideForm,
-      action: (e) => e.commands.setPageBreak(),
+      action: e => e.commands.setPageBreak(),
     },
     {
       label: 'Custom Spacing',
       icon: LucideAlignVerticalSpacingAround,
       component: h(
         defineAsyncComponent(() => import('@/apps/writer/components/SpacingDialog.vue')),
-        { settings, editor },
+        { settings, editor }
       ),
     },
     {
@@ -99,7 +99,7 @@ export function buildMenuButtons({ editor, settings, isPainting, openSettings })
     },
     {
       type: 'separator',
-      condition: (e) => EXTRA_BUTTON_PREDICATES.some((fn) => fn(e)),
+      condition: e => EXTRA_BUTTON_PREDICATES.some(fn => fn(e)),
     },
     'DedentList',
     'IndentList',

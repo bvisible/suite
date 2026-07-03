@@ -23,149 +23,145 @@ const calendarRef = useTemplateRef('calendar')
 // namespaced names 'calendar-month' | 'calendar-week' | 'calendar-day'.
 const VIEW_TO_ROUTE = { Month: 'calendar-month', Week: 'calendar-week', Day: 'calendar-day' }
 const ROUTE_TO_VIEW = { 'calendar-month': 'Month', 'calendar-week': 'Week', 'calendar-day': 'Day' }
-const routeNameForView = (view) => VIEW_TO_ROUTE[view as keyof typeof VIEW_TO_ROUTE]
-const viewForRouteName = (name) => ROUTE_TO_VIEW[name as keyof typeof ROUTE_TO_VIEW]
+const routeNameForView = view => VIEW_TO_ROUTE[view as keyof typeof VIEW_TO_ROUTE]
+const viewForRouteName = name => ROUTE_TO_VIEW[name as keyof typeof ROUTE_TO_VIEW]
 
 usePageMeta(() => ({ title: calendarRef.value?.currentMonthYear || __('Frappe Calendar') }))
 
 watch(
-	() => [
-		calendarRef.value?.currentYear,
-		calendarRef.value?.currentMonth,
-		calendarRef.value?.currentDay,
-	],
-	([year, month], [oldYear, oldMonth]) => {
-		if (year !== oldYear || month !== oldMonth) events.reload()
-		setRoute()
-	},
+  () => [
+    calendarRef.value?.currentYear,
+    calendarRef.value?.currentMonth,
+    calendarRef.value?.currentDay,
+  ],
+  ([year, month], [oldYear, oldMonth]) => {
+    if (year !== oldYear || month !== oldMonth) events.reload()
+    setRoute()
+  }
 )
 
 watch(
-	() => calendarRef.value?.activeView,
-	(view) => {
-		if (view && routeNameForView(view) !== route.name) setRoute()
-	},
+  () => calendarRef.value?.activeView,
+  view => {
+    if (view && routeNameForView(view) !== route.name) setRoute()
+  }
 )
 
 watch(
-	() => store.accountId,
-	() => {
-		calendars.reload()
-		events.reload()
-	},
+  () => store.accountId,
+  () => {
+    calendars.reload()
+    events.reload()
+  }
 )
 
 const setRoute = () => {
-	const year = calendarRef.value?.currentYear
-	const month = calendarRef.value?.currentMonth
-	const day = calendarRef.value?.currentDay
+  const year = calendarRef.value?.currentYear
+  const month = calendarRef.value?.currentMonth
+  const day = calendarRef.value?.currentDay
 
-	const target = dayjs().year(year).month(month).date(day)
-	const view = calendarRef.value?.activeView as 'Month' | 'Week' | 'Day'
-	const name = routeNameForView(view)
-	const accountId = route.params.accountId
+  const target = dayjs().year(year).month(month).date(day)
+  const view = calendarRef.value?.activeView as 'Month' | 'Week' | 'Day'
+  const name = routeNameForView(view)
+  const accountId = route.params.accountId
 
-	if (dayjs().isSame(target, view)) router.replace({ name, params: { accountId } })
-	else router.push({ name, params: { accountId, year, month: month + 1, day } })
+  if (dayjs().isSame(target, view)) router.replace({ name, params: { accountId } })
+  else router.push({ name, params: { accountId, year, month: month + 1, day } })
 }
 
 onMounted(() => {
-	const view = viewForRouteName(route.name)
-	if (view && calendarRef.value) calendarRef.value.activeView = view
+  const view = viewForRouteName(route.name)
+  if (view && calendarRef.value) calendarRef.value.activeView = view
 
-	const { year, month, day } = route.params
-	if (year && month && day) {
-		const date = dayjs(`${year}-${month}-${day}`, 'YYYY-M-D')
-		if (date.isValid()) calendarRef.value.setCalendarDate(date)
-	}
+  const { year, month, day } = route.params
+  if (year && month && day) {
+    const date = dayjs(`${year}-${month}-${day}`, 'YYYY-M-D')
+    if (date.isValid()) calendarRef.value.setCalendarDate(date)
+  }
 })
 
-const transformEvent = (event) => {
-	const start = dayjs(event.start)
-	const dur = dayjs.duration(event.duration || 'PT0S')
-	const end = start.add(dur)
-	const isAllDay =
-		start.hour() === 0 &&
-		start.minute() === 0 &&
-		start.second() === 0 &&
-		dur.days() > 0 &&
-		dur.hours() === 0 &&
-		dur.minutes() === 0 &&
-		dur.seconds() === 0
+const transformEvent = event => {
+  const start = dayjs(event.start)
+  const dur = dayjs.duration(event.duration || 'PT0S')
+  const end = start.add(dur)
+  const isAllDay =
+    start.hour() === 0 &&
+    start.minute() === 0 &&
+    start.second() === 0 &&
+    dur.days() > 0 &&
+    dur.hours() === 0 &&
+    dur.minutes() === 0 &&
+    dur.seconds() === 0
 
-	return {
-		...event,
-		fromDate: start.format('YYYY-MM-DD'),
-		toDate: end.format('YYYY-MM-DD'),
-		fromTime: start.format('HH:mm'),
-		toTime: end.format('HH:mm'),
-		role: getEventRole(event),
-		isAllDay,
-	}
+  return {
+    ...event,
+    fromDate: start.format('YYYY-MM-DD'),
+    toDate: end.format('YYYY-MM-DD'),
+    fromTime: start.format('HH:mm'),
+    toTime: end.format('HH:mm'),
+    role: getEventRole(event),
+    isAllDay,
+  }
 }
 
-const getEventRole = (event) => {
-	if (identities.data?.some((id) => id.email === event.organizer.replace('mailto:', '')))
-		return 'Organizer'
-	if (
-		identities.data?.some((id) =>
-			event.participants?.some((p) => p.email.replace('mailto:', '') === id.email),
-		)
-	)
-		return 'Attendee'
-	return 'Viewer'
+const getEventRole = event => {
+  if (identities.data?.some(id => id.email === event.organizer.replace('mailto:', '')))
+    return 'Organizer'
+  if (
+    identities.data?.some(id =>
+      event.participants?.some(p => p.email.replace('mailto:', '') === id.email)
+    )
+  )
+    return 'Attendee'
+  return 'Viewer'
 }
 
 const calendars = createResource({
-	url: 'suite.calendar.api.get_calendars',
-	makeParams: () => ({ account: store.accountId }),
-	auto: true,
-	onSuccess: (data) => (visibleCalendars.value = data.map((cal) => cal.name)),
-	onError: (error) => raiseToast(error.message, 'error'),
+  url: 'suite.calendar.api.get_calendars',
+  makeParams: () => ({ account: store.accountId }),
+  auto: true,
+  onSuccess: data => (visibleCalendars.value = data.map(cal => cal.name)),
+  onError: error => raiseToast(error.message, 'error'),
 })
 
 const visibleCalendars = ref<string[]>([])
 
 const events = createResource({
-	url: 'suite.calendar.api.get_calendar_events',
-	makeParams: () => {
-		const date = dayjs()
-			.year(calendarRef.value?.currentYear)
-			.month(calendarRef.value?.currentMonth)
-		return {
-			account: store.accountId,
-			from_date: date.startOf('month').subtract(37, 'day').toDate(),
-			to_date: date.endOf('month').add(37, 'day').toDate(),
-			time_zone: dayjs.tz.guess(),
-		}
-	},
-	transform: (data) => data.map(transformEvent),
-	onError: (error) => raiseToast(error.message, 'error'),
+  url: 'suite.calendar.api.get_calendar_events',
+  makeParams: () => {
+    const date = dayjs().year(calendarRef.value?.currentYear).month(calendarRef.value?.currentMonth)
+    return {
+      account: store.accountId,
+      from_date: date.startOf('month').subtract(37, 'day').toDate(),
+      to_date: date.endOf('month').add(37, 'day').toDate(),
+      time_zone: dayjs.tz.guess(),
+    }
+  },
+  transform: data => data.map(transformEvent),
+  onError: error => raiseToast(error.message, 'error'),
 })
 
 const visibleEvents = computed(
-	() =>
-		events.data?.filter((event) =>
-			event.calendars
-				.map((c) => c.calendar)
-				.some((cal) => visibleCalendars.value.includes(cal)),
-		) || [],
+  () =>
+    events.data?.filter(event =>
+      event.calendars.map(c => c.calendar).some(cal => visibleCalendars.value.includes(cal))
+    ) || []
 )
 
 const showEditEvent = ref(false)
 
 const event = reactive({})
 
-const handleOpenEvent = (e) => {
-	Object.assign(event, e)
-	showEditEvent.value = true
+const handleOpenEvent = e => {
+  Object.assign(event, e)
+  showEditEvent.value = true
 }
 
 watch(
-	() => showEditEvent.value,
-	(val) => {
-		if (!val) Object.keys(event).forEach((key) => delete event[key])
-	},
+  () => showEditEvent.value,
+  val => {
+    if (!val) Object.keys(event).forEach(key => delete event[key])
+  }
 )
 
 const eventToBeUpdated = reactive({})
@@ -173,71 +169,70 @@ const showRecurringEventModal = ref(false)
 const isUpdateInstance = ref(false)
 const showNotifyModal = ref(false)
 
-const handleUpdate = (e) => {
-	Object.assign(eventToBeUpdated, e)
-	if (e.recurrence_id) showRecurringEventModal.value = true
-	else handleUpdateEvent()
+const handleUpdate = e => {
+  Object.assign(eventToBeUpdated, e)
+  if (e.recurrence_id) showRecurringEventModal.value = true
+  else handleUpdateEvent()
 }
 
 const handleUpdateRecurringEvent = (updateInstance: boolean) => {
-	isUpdateInstance.value = updateInstance
-	showRecurringEventModal.value = false
-	handleUpdateEvent()
+  isUpdateInstance.value = updateInstance
+  showRecurringEventModal.value = false
+  handleUpdateEvent()
 }
 
 const handleUpdateEvent = () => {
-	if (hasParticipantsOtherThanUser.value) showNotifyModal.value = true
-	else submitEvent(false)
+  if (hasParticipantsOtherThanUser.value) showNotifyModal.value = true
+  else submitEvent(false)
 }
 
 const hasParticipantsOtherThanUser = computed(
-	() =>
-		eventToBeUpdated.participants?.some((p) =>
-			identities.data.every((i) => i.email !== p.email),
-		) ?? false,
+  () =>
+    eventToBeUpdated.participants?.some(p => identities.data.every(i => i.email !== p.email)) ??
+    false
 )
 
 const submitEvent = (sendEmail: boolean) => {
-	if (isUpdateInstance.value) {
-		return
-	}
+  if (isUpdateInstance.value) {
+    return
+  }
 
-	eventToBeUpdated.start = dayjs(eventToBeUpdated.fromDateTime).format('YYYY-MM-DDTHH:mm:ss')
-	if (!eventToBeUpdated.isAllDay) {
-		const start = dayjs(eventToBeUpdated.fromDateTime)
-		const end = dayjs(eventToBeUpdated.toDateTime)
-		const diff = dayjs.duration(end.diff(start))
-		const hours = Math.floor(diff.asHours())
-		const minutes = diff.minutes()
-		eventToBeUpdated.duration = dayjs.duration({ hours, minutes }).toISOString()
-	}
-	editEvent.submit({ sendEmail })
+  eventToBeUpdated.start = dayjs(eventToBeUpdated.fromDateTime).format('YYYY-MM-DDTHH:mm:ss')
+  if (!eventToBeUpdated.isAllDay) {
+    const start = dayjs(eventToBeUpdated.fromDateTime)
+    const end = dayjs(eventToBeUpdated.toDateTime)
+    const diff = dayjs.duration(end.diff(start))
+    const hours = Math.floor(diff.asHours())
+    const minutes = diff.minutes()
+    eventToBeUpdated.duration = dayjs.duration({ hours, minutes }).toISOString()
+  }
+  editEvent.submit({ sendEmail })
 }
 
 const editEvent = createResource({
-	url: 'suite.mail.doctype.calendar_event.calendar_event.update_calendar_event',
-	makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
-		...eventToBeUpdated,
-		// master_id is only set on recurring events; fall back to the event's own id
-		id: eventToBeUpdated.master_id || eventToBeUpdated.id,
-		send_scheduling_messages: sendEmail,
-	}),
-	onSuccess: () => {
-		raiseToast(__('Event updated.'), 'success')
-		events.reload()
-	},
+  url: 'suite.mail.doctype.calendar_event.calendar_event.update_calendar_event',
+  makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
+    ...eventToBeUpdated,
+    // master_id is only set on recurring events; fall back to the event's own id
+    id: eventToBeUpdated.master_id || eventToBeUpdated.id,
+    send_scheduling_messages: sendEmail,
+  }),
+  onSuccess: () => {
+    raiseToast(__('Event updated.'), 'success')
+    events.reload()
+  },
 })
 
 const RECURRING_EVENT_MODAL_OPTIONS = {
-	title: __('Update Recurring Event'),
-	icon: { name: 'repeat' },
-	message: __('Do you want to update just this instance, or all events in the series?'),
+  title: __('Update Recurring Event'),
+  icon: { name: 'repeat' },
+  message: __('Do you want to update just this instance, or all events in the series?'),
 }
 
 const NOTIFY_MODAL_OPTIONS = {
-	title: __('Notify Participants'),
-	icon: { name: 'bell' },
-	message: __('Send an email to let attendees know this event has been updated?'),
+  title: __('Notify Participants'),
+  icon: { name: 'bell' },
+  message: __('Send an email to let attendees know this event has been updated?'),
 }
 </script>
 
