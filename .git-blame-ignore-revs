@@ -7,3 +7,6 @@
 
 # chore: apply biome formatting to all frontend src files
 970f79d6f749488a1dc1de24a4227ce1f571c4c8
+
+# chore: merge develop and reapply biome formatting
+c31eb52569cb453697faf9d0bfb311980279a527
