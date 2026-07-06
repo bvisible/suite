@@ -89,6 +89,18 @@ async function loadBoot() {
   window.frappe.boot = { ...(window.frappe.boot || {}), ...boot }
 }
 
+// //// Neoffice: the NORA orb (button.nc-nora) is enhanced by nora's
+// nora_cockpit_orb.js, which the desk loads via app_include_js but the SPAs do
+// not. Load it here so the orb shows on the Suite surfaces too (it paints an
+// instant CSS orb, then upgrades to WebGL). No-op if already present. ////
+function loadNoraOrb() {
+  if (document.querySelector("script[data-nora-cockpit-orb]")) return
+  const s = document.createElement("script")
+  s.src = "/assets/nora/js/nora_cockpit_orb.js?v=6"
+  s.dataset.noraCockpitOrb = "1"
+  document.head.appendChild(s)
+}
+
 function render() {
   if (!host.value || !window.NeoCockpit?.mount) return
   // frame the whole app row: warm page bg + 8px gutter, siblings become
@@ -120,6 +132,7 @@ onMounted(async () => {
     if (window.frappe?.boot?.neoffice_cockpit_disable) return
     await loadBundle()
     render()
+    loadNoraOrb()
   } catch (e) {
     // never break the host app over chrome — the native sidebar fallback
     // is handled by the parent (v-if on bridgeFailed)
