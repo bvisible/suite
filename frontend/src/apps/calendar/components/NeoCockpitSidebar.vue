@@ -17,6 +17,7 @@
 			@failed="failed = true"
 		/>
 		<NewCalendarModal v-model="showNew" :account="account" @created="emit('reload')" />
+		<ShareCalendarModal v-model="showShare" :account="account" :calendars="calendars" />
 	</template>
 </template>
 
@@ -28,6 +29,7 @@ import calendarLogo from '@/assets/app-logos/calendar.svg'
 import NeoCockpitBridge from '@/shell/NeoCockpitBridge.vue'
 import AppSidebar from '@/apps/calendar/components/AppSidebar.vue'
 import NewCalendarModal from '@/apps/calendar/components/Modals/NewCalendarModal.vue'
+import ShareCalendarModal from '@/apps/calendar/components/Modals/ShareCalendarModal.vue'
 import { userStore } from '@/apps/calendar/stores/user'
 
 const { calendars, visibleCalendars } = defineProps<{
@@ -40,6 +42,7 @@ const router = useRouter()
 const store = userStore()
 const failed = ref(false)
 const showNew = ref(false)
+const showShare = ref(false)
 
 const account = computed(() => store.accountId)
 const surfaceApp = { name: 'calendar', title: 'Calendar', logo: calendarLogo }
@@ -54,6 +57,7 @@ const contextNav = computed(() => [
 				onClick: () => emit('update:visibleCalendars', c.name),
 			})),
 			{ label: __('New calendar'), icon: 'lucide-plus', onClick: () => (showNew.value = true) },
+			{ label: __('Share a calendar'), icon: 'lucide-user-plus', onClick: () => (showShare.value = true) },
 		],
 	},
 ])
