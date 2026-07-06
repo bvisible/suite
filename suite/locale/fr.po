@@ -16640,3 +16640,15 @@ msgstr ""
 msgid ""
 "Paste the private iCal (.ics) URL of the calendar you want to aggregate."
 msgstr "Collez l'URL iCal (.ics) privée du calendrier à agréger."
+
+msgid "Search everywhere…"
+msgstr "Rechercher partout…"
+
+msgid "Searching…"
+msgstr "Recherche en cours…"
+
+msgid "No results for “{0}”."
+msgstr "Aucun résultat pour « {0} »."
+
+msgid "Search across all your documents."
+msgstr "Recherchez dans tous vos documents."
