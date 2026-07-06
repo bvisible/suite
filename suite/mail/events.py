@@ -117,6 +117,35 @@ def _provision_mail_account_now(user: str) -> None:
 
 
 @frappe.whitelist()
+def ensure_personal_mail_account() -> bool:
+	"""//// Neoffice: guarantee a desk user ALWAYS has a calendar/mailbox.
+	Provision the current user's mailbox synchronously on demand if they are an
+	eligible System User without one — this closes the brief async window right
+	after signup and covers any user the backfill missed. Returns True if the
+	user has an account afterwards (so the Calendar can proceed instead of
+	showing "no account"). Website (client) users return False and keep the
+	informational page. ////"""
+
+	user = frappe.session.user
+	if user in ("Guest", "Administrator"):
+		return False
+	if frappe.db.get_value("User Settings", {"user": user}, "username"):
+		return True
+
+	doc = frappe.get_doc("User", user)
+	if not _should_provision_mail(doc):
+		return False
+
+	try:
+		_provision_mail_account_now(user)
+	except Exception:
+		frappe.log_error("On-demand mail provision failed", f"user={user}")
+		return False
+
+	return bool(frappe.db.get_value("User Settings", {"user": user}, "username"))
+
+
+@frappe.whitelist()
 def provision_existing_mail_accounts() -> dict:
 	"""Backfill: provision a mailbox for every eligible desk user that has none.
 	Idempotent — used by the migration patch and callable manually on deploy."""

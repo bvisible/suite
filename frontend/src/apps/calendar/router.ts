@@ -1,5 +1,7 @@
 import type { RouteLocationNormalized, Router } from 'vue-router'
 
+import { frappeRequest } from 'frappe-ui'
+
 import suiteRouter from '@/router'
 
 import { userStore } from '@/apps/calendar/stores/user'
@@ -54,11 +56,36 @@ function installCalendarGuard(r: Router) {
 		store.resolveAccount(user?.accounts, to.params.accountId as string | undefined)
 		const accountId = store.accountId
 
-		// //// Neoffice: no JMAP account (no mailbox) -> show a clear message
-		// instead of expanding to a CalendarView that would load with an
-		// undefined accountId and hang on a blank screen. ////
+		// //// Neoffice: a desk user must ALWAYS have a calendar. If they arrive
+		// without a JMAP account, provision their mailbox on demand (covers the
+		// brief async window after signup / a missed backfill) BEFORE falling
+		// back to the informational page. Website (client) users get no mailbox
+		// and land on calendar-no-account. Guard against a re-entry loop by only
+		// trying when we're not already on the no-account page. ////
 		if (!accountId) {
-			return to.name === 'calendar-no-account' ? undefined : { name: 'calendar-no-account' }
+			if (to.name !== 'calendar-no-account') {
+				try {
+					const ok = await frappeRequest({
+						url: 'suite.mail.events.ensure_personal_mail_account',
+					})
+					if (ok) {
+						await store.userResource.reload()
+						store.resolveAccount(
+							store.userResource.data?.accounts,
+							to.params.accountId as string | undefined,
+						)
+						if (store.accountId) {
+							return to.meta.shortcut
+								? resolveShortcut(to.name, to.params, store.accountId)
+								: undefined
+						}
+					}
+				} catch (e) {
+					// fall through to the informational page
+				}
+				return { name: 'calendar-no-account' }
+			}
+			return undefined // already on no-account, stay
 		}
 
 		// Expand shortcut routes to their full account-scoped equivalents.
