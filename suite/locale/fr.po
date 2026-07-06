@@ -16540,3 +16540,40 @@ msgstr "Partagé avec 1 personne"
 
 msgid "Shared with {0} people"
 msgstr "Partagé avec {0} personnes"
+
+msgid "Calendar settings"
+msgstr "Paramètres du calendrier"
+
+msgid "Sharing"
+msgstr "Partage"
+
+msgid "CalDAV address"
+msgstr "Adresse CalDAV"
+
+msgid "Add this address in Apple Calendar / Thunderbird to subscribe."
+msgstr ""
+"Ajoutez cette adresse dans Apple Calendrier / Thunderbird pour vous abonner."
+
+msgid "Delete calendar"
+msgstr "Supprimer le calendrier"
+
+msgid "Loading…"
+msgstr "Chargement…"
+
+msgid "Copy"
+msgstr "Copier"
+
+msgid "Copied"
+msgstr "Copié"
+
+msgid "Calendar deleted."
+msgstr "Calendrier supprimé."
+
+msgid "Could not delete the calendar."
+msgstr "Impossible de supprimer le calendrier."
+
+msgid "Calendar updated."
+msgstr "Calendrier mis à jour."
+
+msgid "Could not save the calendar."
+msgstr "Impossible d'enregistrer le calendrier."
