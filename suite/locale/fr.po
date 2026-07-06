@@ -2062,102 +2062,102 @@ msgstr "Erreur(s) de suppression de l'événement du calendrier :<br>{0}"
 #: suite/mail/doctype/calendar_event/calendar_event.json
 #: suite/mail/doctype/event_notification/event_notification.json
 msgid "Calendar Event ID"
-msgstr ""
+msgstr "ID de l'événement du calendrier"
 
 #: suite/mail/doctype/calendar_event/calendar_event.py:560
 msgid "Calendar Event Instance Deletion Error"
-msgstr ""
+msgstr "Erreur de suppression de l'occurrence de l'événement du calendrier"
 
 #: suite/mail/doctype/calendar_event/calendar_event.py:528
 msgid "Calendar Event Instance Update Error"
-msgstr ""
+msgstr "Erreur de mise à jour de l'occurrence de l'événement du calendrier"
 
 #: suite/mail/doctype/calendar_event/calendar_event.py:180
 msgid "Calendar Event Not Found"
-msgstr ""
+msgstr "Événement du calendrier introuvable"
 
 #: suite/mail/doctype/calendar_event/calendar_event.py:505
 msgid "Calendar Event Update Error"
-msgstr ""
+msgstr "Erreur de mise à jour de l'événement du calendrier"
 
 #: suite/mail/doctype/calendar_event/calendar_event.py:177
 msgid "Calendar Event with ID {0} not found in account {1}."
-msgstr ""
+msgstr "Événement du calendrier avec l'ID {0} introuvable dans le compte {1}."
 
 #: suite/mail/doctype/calendar_event/calendar_event.py:331
 msgid "Calendar Events deleted successfully."
-msgstr ""
+msgstr "Événements du calendrier supprimés avec succès."
 
 #. Name of a DocType
 #. Linked DocType in JMAP Account's connections
 #: suite/mail/doctype/calendar_exchange/calendar_exchange.json
 #: suite/mail/doctype/jmap_account/jmap_account.json
 msgid "Calendar Exchange"
-msgstr ""
+msgstr "Échange de calendrier"
 
 #: frontend/src/apps/mail/pages/CalendarExchangeView.vue:120
 #: frontend/src/apps/mail/pages/CalendarExchangesView.vue:4
 #: suite/public/frontend/assets/CalendarExchangeView-DvJlbAaK.js:1
 #: suite/public/frontend/assets/CalendarExchangesView-Ci2-GxtB.js:1
 msgid "Calendar Exchanges"
-msgstr ""
+msgstr "Échanges de calendrier"
 
 #. Label of a Data field in DocType 'Calendar'
 #. Label of a Data field in DocType 'Event Calendar'
 #: suite/mail/doctype/calendar/calendar.json
 #: suite/mail/doctype/event_calendar/event_calendar.json
 msgid "Calendar ID"
-msgstr ""
+msgstr "ID du calendrier"
 
 #. Label of a Data field in DocType 'Event Calendar'
 #: suite/mail/doctype/event_calendar/event_calendar.json
 msgid "Calendar Name"
-msgstr ""
+msgstr "Nom du calendrier"
 
 #: suite/mail/doctype/calendar/calendar.py:216
 msgid "Calendar Not Found"
-msgstr ""
+msgstr "Calendrier introuvable"
 
 #. Name of a DocType
 #: suite/mail/doctype/calendar_rights/calendar_rights.json
 msgid "Calendar Rights"
-msgstr ""
+msgstr "Droits du calendrier"
 
 #: suite/mail/doctype/calendar/calendar.py:292
 msgid "Calendar Sharing Error"
-msgstr ""
+msgstr "Erreur de partage du calendrier"
 
 #: suite/mail/doctype/calendar/calendar.py:252
 msgid "Calendar Update Error"
-msgstr ""
+msgstr "Erreur de mise à jour du calendrier"
 
 #: suite/mail/doctype/calendar/calendar.py:144
 msgid "Calendar name must be in the format 'account|id'."
-msgstr ""
+msgstr "Le nom du calendrier doit être au format « compte|id »."
 
 #: suite/mail/doctype/calendar/calendar.py:215
 msgid "Calendar with ID {0} not found for account {1}"
-msgstr ""
+msgstr "Calendrier avec l'ID {0} introuvable pour le compte {1}"
 
 #: frontend/src/apps/mail/pages/CalendarExchangeView.vue:14
 #: suite/public/frontend/assets/CalendarExchangeView-DvJlbAaK.js:1
 msgid "Calendar {0}"
-msgstr ""
+msgstr "Calendrier {0}"
 
 #: frontend/src/apps/calendar/components/Modals/NewCalendarModal.vue:88
 msgid "Calendar “{0}” created."
-msgstr ""
+msgstr "Calendrier « {0} » créé."
 
 #. Label of a Table field in DocType 'Calendar Event'
 #: frontend/src/apps/calendar/components/AppSidebar.vue:117
 #: frontend/src/apps/calendar/components/NeoCockpitSidebar.vue:52
 #: suite/mail/doctype/calendar_event/calendar_event.json
 msgid "Calendars"
-msgstr ""
+msgstr "Calendriers"
 
 #: suite/mail/doctype/calendar/calendar.py:162
 msgid "Calendars deleted successfully."
-msgstr ""
+msgstr "Calendriers supprimés avec succès."
 
 #. Description of the 'Meta Value' (Data) field in DocType 'Drive Entity
 #. Activity Log'
@@ -2166,6 +2166,8 @@ msgid ""
 "Can contain whatever meta value needed for the access log. Ex: Used to store"
 " access level 1,2,3 etc on a DriveDocShare"
 msgstr ""
+"Peut contenir toute métadonnée nécessaire au journal d'accès. Ex. : utilisé "
+"pour stocker le niveau d'accès 1, 2, 3, etc. sur un DriveDocShare"
 
 #: frontend/src/apps/calendar/components/Modals/EventModal.vue:581
 #: frontend/src/apps/calendar/components/Modals/NewCalendarModal.vue:37
@@ -2177,7 +2179,7 @@ msgstr ""
 #: suite/public/frontend/assets/MailboxView-B5E2WKYm.js:1
 #: suite/public/frontend/assets/MailboxView-OJYYFRSM.js:1
 msgid "Cancel"
-msgstr ""
+msgstr "Annuler"
 
 #. Option for the 'Status' (Select) field in DocType 'Calendar Event'
 #. Option for the 'Status' (Select) field in DocType 'Calendar Exchange'
@@ -2190,40 +2192,42 @@ msgstr ""
 #: suite/public/frontend/assets/CalendarExchangesView-Ci2-GxtB.js:1
 #: suite/public/frontend/assets/MailExchangesView-DadfGqQo.js:1
 msgid "Cancelled"
-msgstr ""
+msgstr "Annulé"
 
 #: suite/mail/doctype/sieve_script/sieve_script.py:72
 msgid "Cannot delete an active sieve script. Please deactivate it first."
 msgstr ""
+"Impossible de supprimer un script Sieve actif. Veuillez d'abord le "
+"désactiver."
 
 #: suite/drive/wopi/discovery.py:158
 msgid "Cannot determine file type"
-msgstr ""
+msgstr "Impossible de déterminer le type de fichier"
 
 #: suite/mail/api/inbound.py:139
 msgid "Cannot fetch more than {0} emails at a time."
-msgstr ""
+msgstr "Impossible de récupérer plus de {0} e-mails à la fois."
 
 #: suite/mail/doctype/calendar_event/calendar_event.py:281
 msgid "Cannot mark an existing event as draft."
-msgstr ""
+msgstr "Impossible de marquer un événement existant comme brouillon."
 
 #: suite/drive/wopi/endpoints.py:50
 msgid "Cannot open a folder in the editor"
-msgstr ""
+msgstr "Impossible d'ouvrir un dossier dans l'éditeur"
 
 #: suite/drive/wopi/discovery.py:212
 msgid "Cannot reach Collabora server at {0}"
-msgstr ""
+msgstr "Impossible d'atteindre le serveur Collabora à l'adresse {0}"
 
 #: suite/mail/doctype/mail_queue/mail_queue.py:625
 msgid "Cannot retry a mail with status {0}"
-msgstr ""
+msgstr "Impossible de relancer un e-mail avec le statut {0}"
 
 #. Label of a Select field in DocType 'DNS Record'
 #: suite/mail/doctype/dns_record/dns_record.json
 msgid "Category"
-msgstr ""
+msgstr "Catégorie"
 
 #. Label of a Data field in DocType 'Mail Message'
 #. Option for the 'Type' (Select) field in DocType 'Mail Message Recipient'
@@ -2232,31 +2236,31 @@ msgstr ""
 #: suite/mail/doctype/mail_message/mail_message.json
 #: suite/mail/doctype/mail_message_recipient/mail_message_recipient.json
 msgid "Cc"
-msgstr ""
+msgstr "Cc"
 
 #: suite/public/frontend/assets/utils-TDoJvaKR.js:8
 msgid "Cc:"
-msgstr ""
+msgstr "Cc :"
 
 #: frontend/src/apps/mail/components/MailDetails.vue:43
 msgid "Cc: "
-msgstr ""
+msgstr "Cc : "
 
 #. Label of a Data field in DocType 'Sheet Cell'
 #: suite/sheets/doctype/sheet_cell/sheet_cell.json
 msgid "Cell ID"
-msgstr ""
+msgstr "ID de la cellule"
 
 #. Label of a Long Text field in DocType 'Sheet Op Log'
 #: suite/sheets/doctype/sheet_op_log/sheet_op_log.json
 msgid "Cell refs (JSON array)"
-msgstr ""
+msgstr "Références de cellules (tableau JSON)"
 
 #: frontend/src/apps/mail/components/Settings/ScreenedEmailAddressSettings.vue:50
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Change Action"
-msgstr ""
+msgstr "Modifier l'action"
 
 #: frontend/src/apps/calendar/components/Modals/ChangePasswordModal.vue:51
 #: frontend/src/apps/calendar/components/Settings/ProfileSettings.vue:30
@@ -2265,39 +2269,42 @@ msgstr ""
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Change Password"
-msgstr ""
+msgstr "Changer le mot de passe"
 
 #. Label of a Int field in DocType 'Server Ansible Play'
 #: suite/mail/doctype/server_ansible_play/server_ansible_play.json
 msgid "Changed"
-msgstr ""
+msgstr "Modifié"
 
 #. Label of a Section Break field in DocType 'Event Notification'
 #: suite/mail/doctype/event_notification/event_notification.json
 msgid "Changed By"
-msgstr ""
+msgstr "Modifié par"
 
 #: frontend/src/apps/drive/ui/drive/components/InfoDialog.vue:45
 #: suite/public/frontend/assets/file-user-BFxWHqGb.js:1
 msgid "Characters"
-msgstr ""
+msgstr "Caractères"
 
 #. Label of a Data field in DocType 'Mail Message Part'
 #: suite/mail/doctype/mail_message_part/mail_message_part.json
 msgid "Charset"
-msgstr ""
+msgstr "Jeu de caractères"
 
 #: frontend/src/apps/mail/components/Modals/FolderModal.vue:50
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Check to disable push notifications for this folder."
 msgstr ""
+"Cochez cette case pour désactiver les notifications push pour ce dossier."
 
 #. Description of the 'Disable Push Notification' (Check) field in DocType
 #. 'Mailbox Settings'
 #: suite/mail/doctype/mailbox_settings/mailbox_settings.json
 msgid "Check to disable push notifications for this mailbox."
 msgstr ""
+"Cochez cette case pour désactiver les notifications push pour cette boîte "
+"mail."
 
 #. Description of the 'Subscribed' (Check) field in DocType 'Address Book'
 #: suite/mail/doctype/address_book/address_book.json
@@ -2305,6 +2312,8 @@ msgid ""
 "Checked if the user has indicated they wish to see this Address Book in "
 "their client."
 msgstr ""
+"Coché si l'utilisateur a indiqué vouloir afficher ce carnet d'adresses dans "
+"son client."
 
 #. Description of the 'Subscribed' (Check) field in DocType 'Calendar'
 #: suite/mail/doctype/calendar/calendar.json
@@ -2312,19 +2321,21 @@ msgid ""
 "Checked if the user has indicated they wish to see this Calendar in their "
 "client."
 msgstr ""
+"Coché si l'utilisateur a indiqué vouloir afficher ce calendrier dans son "
+"client."
 
 #: suite/drive/public/js/FileUploader.vue:72
 msgid "Choose a file to attach"
-msgstr ""
+msgstr "Choisissez un fichier à joindre"
 
 #: suite/drive/public/js/FileUploader.vue:70
 msgid "Choose a file, or open a folder"
-msgstr ""
+msgstr "Choisissez un fichier ou ouvrez un dossier"
 
 #. Description of the 'Color Scheme' (Select) field in DocType 'User Settings'
 #: suite/mail/doctype/user_settings/user_settings.json
 msgid "Choose your preferred interface theme."
-msgstr ""
+msgstr "Choisissez le thème d'interface de votre choix."
 
 #: frontend/src/apps/drive/components/Navbar.vue:274
 #: frontend/src/apps/drive/components/Navbar.vue:280
@@ -2337,139 +2348,139 @@ msgstr "Nettoyer"
 #: suite/public/frontend/assets/ScreenerView-Bbn1uUU_.js:1
 #: suite/public/frontend/assets/ScreenerView-Lge1OoSx.js:1
 msgid "Clear All"
-msgstr ""
+msgstr "Tout effacer"
 
 #: frontend/src/apps/mail/pages/MailboxView.vue:70
 #: suite/public/frontend/assets/MailboxView-B5E2WKYm.js:1
 #: suite/public/frontend/assets/MailboxView-OJYYFRSM.js:1
 msgid "Clear All (Esc)"
-msgstr ""
+msgstr "Tout effacer (Échap)"
 
 #: frontend/src/apps/mail/components/Modals/ShortcutsModal.vue:69
 #: suite/public/frontend/assets/ShortcutsModal-Bz1LX5rN.js:1
 #: suite/public/frontend/assets/ShortcutsModal-lrP_-Pnq.js:1
 msgid "Clear All Mails"
-msgstr ""
+msgstr "Effacer tous les e-mails"
 
 #: suite/mail/doctype/jmap_account/jmap_account.js:51
 msgid "Clear Cache"
-msgstr ""
+msgstr "Vider le cache"
 
 #: frontend/src/apps/mail/components/Modals/SearchModal.vue:93
 msgid "Clear Filters"
-msgstr ""
+msgstr "Effacer les filtres"
 
 #: suite/mail/doctype/user_settings/user_settings.js:13
 msgid "Clear JMAP Session"
-msgstr ""
+msgstr "Effacer la session JMAP"
 
 #: frontend/src/apps/mail/pages/ScreenerView.vue:469
 #: suite/public/frontend/assets/ScreenerView-Bbn1uUU_.js:1
 #: suite/public/frontend/assets/ScreenerView-Lge1OoSx.js:1
 msgid "Clear the Screener?"
-msgstr ""
+msgstr "Effacer le Screener ?"
 
 #: suite/mail/doctype/jmap_account/jmap_account.js:29
 msgid "Clearing Cached Blobs..."
-msgstr ""
+msgstr "Suppression des blobs en cache..."
 
 #: suite/mail/doctype/jmap_account/jmap_account.js:41
 msgid "Clearing Cached Contact Cards..."
-msgstr ""
+msgstr "Suppression des fiches de contact en cache..."
 
 #: suite/mail/doctype/jmap_account/jmap_account.js:17
 msgid "Clearing Cached JMAP Identities..."
-msgstr ""
+msgstr "Suppression des identités JMAP en cache..."
 
 #: suite/mail/doctype/jmap_account/jmap_account.js:23
 msgid "Clearing Cached JMAP Mailboxes..."
-msgstr ""
+msgstr "Suppression des boîtes mail JMAP en cache..."
 
 #: suite/mail/doctype/jmap_account/jmap_account.js:35
 msgid "Clearing Cached Mail Messages..."
-msgstr ""
+msgstr "Suppression des messages e-mail en cache..."
 
 #: suite/mail/doctype/user_settings/user_settings.js:30
 msgid "Clearing JMAP Session..."
-msgstr ""
+msgstr "Suppression de la session JMAP..."
 
 #: frontend/src/apps/mail/components/DNSRecords.vue:22
 #: suite/public/frontend/assets/DomainView-02Ubyipe.js:1
 #: suite/public/frontend/assets/DomainView-BDV_jShz.js:1
 msgid "Click to copy"
-msgstr ""
+msgstr "Cliquer pour copier"
 
 #. Label of a Data field in DocType 'Slide'
 #: suite/slides/doctype/slide/slide.json
 msgid "Client ID"
-msgstr ""
+msgstr "ID client"
 
 #. Label of a Data field in DocType 'Mail Settings'
 #: suite/mail/doctype/mail_settings/mail_settings.json
 msgid "Client IP"
-msgstr ""
+msgstr "IP du client"
 
 #. Option for the 'DNS Provider' (Select) field in DocType 'Mail Settings'
 #: suite/mail/doctype/mail_settings/mail_settings.json
 msgid "Cloudflare"
-msgstr ""
+msgstr "Cloudflare"
 
 #. Label of a Link field in DocType 'Mail Server'
 #: suite/mail/doctype/mail_server/mail_server.json
 msgid "Cluster"
-msgstr ""
+msgstr "Cluster"
 
 #. Label of a Data field in DocType 'Mail Cluster Store'
 #: suite/mail/doctype/mail_cluster_store/mail_cluster_store.json
 msgid "Cluster File"
-msgstr ""
+msgstr "Fichier du cluster"
 
 #. Label of a Table field in DocType 'Sae Meeting'
 #: suite/meet/doctype/sae_meeting/sae_meeting.json
 msgid "Co-hosts"
-msgstr ""
+msgstr "Co-animateurs"
 
 #: frontend/src/apps/mail/components/CopyCode.vue:25
 #: suite/public/frontend/assets/CopyCode-CuuGi3Il.js:1
 msgid "Code copied to clipboard"
-msgstr ""
+msgstr "Code copié dans le presse-papiers"
 
 #. Label of a Select field in DocType 'Sae Settings'
 #: suite/meet/doctype/sae_settings/sae_settings.json
 msgid "Codec Strategy"
-msgstr ""
+msgstr "Stratégie de codec"
 
 #. Label of a Check field in DocType 'Writer Document'
 #: suite/writer/doctype/writer_document/writer_document.json
 msgid "Collab"
-msgstr ""
+msgstr "Collab"
 
 #. Label of a Section Break field in DocType 'WOPI Settings'
 #: suite/drive/doctype/wopi_settings/wopi_settings.json
 msgid "Collabora Server Configuration"
-msgstr ""
+msgstr "Configuration du serveur Collabora"
 
 #. Label of a Data field in DocType 'WOPI Settings'
 #: suite/drive/doctype/wopi_settings/wopi_settings.json
 msgid "Collabora Server URL"
-msgstr ""
+msgstr "URL du serveur Collabora"
 
 #: suite/drive/doctype/wopi_settings/wopi_settings.py:24
 msgid "Collabora Server URL is required"
-msgstr ""
+msgstr "L'URL du serveur Collabora est requise"
 
 #: suite/drive/wopi/discovery.py:226
 msgid "Collabora server is reachable"
-msgstr ""
+msgstr "Le serveur Collabora est accessible"
 
 #: suite/drive/wopi/editor.py:39
 msgid "Collabora server not available"
-msgstr ""
+msgstr "Serveur Collabora indisponible"
 
 #: suite/public/frontend/assets/MailboxView-B5E2WKYm.js:1
 #: suite/public/frontend/assets/MailboxView-OJYYFRSM.js:1
 msgid "Collapse"
-msgstr ""
+msgstr "Réduire"
 
 #. Label of a Color field in DocType 'Calendar'
 #. Label of a Select field in DocType 'Mailbox Settings'
@@ -2488,24 +2499,26 @@ msgstr "Couleur"
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Color Scheme"
-msgstr ""
+msgstr "Palette de couleurs"
 
 #. Description of the 'Color' (Select) field in DocType 'Mailbox Settings'
 #: suite/mail/doctype/mailbox_settings/mailbox_settings.json
 msgid ""
 "Color assigned to the mailbox for easy identification and UI customization."
 msgstr ""
+"Couleur attribuée à la boîte mail pour faciliter son identification et "
+"personnaliser l'interface."
 
 #: frontend/src/apps/calendar/pages/CalendarLayout.vue:61
 #: suite/public/frontend/assets/CalendarLayout-C56fHm9Q.js:1
 #: suite/public/frontend/assets/composables-BUxCrTr_.js:1
 #: suite/public/frontend/assets/composables-m2fVaHAm.js:1
 msgid "Color scheme updated to {0}."
-msgstr ""
+msgstr "Palette de couleurs mise à jour : {0}."
 
 #: frontend/src/apps/calendar/components/Modals/NewCalendarModal.vue:16
 msgid "Colour"
-msgstr ""
+msgstr "Couleur"
 
 #. Description of the 'Subject Contains' (Small Text) field in DocType
 #. 'Mailbox
@@ -2515,6 +2528,8 @@ msgid ""
 "Comma-separated keywords. Emails with these keywords in the subject are "
 "moved to this mailbox."
 msgstr ""
+"Mots-clés séparés par des virgules. Les e-mails dont l'objet contient ces "
+"mots-clés sont déplacés vers cette boîte mail."
 
 #. Description of the 'Emails From' (Small Text) field in DocType 'Mailbox
 #. Settings'
@@ -2523,20 +2538,23 @@ msgid ""
 "Comma-separated sender addresses (wildcards allowed, e.g. *@example.io). "
 "Emails from these addresses are moved to this mailbox."
 msgstr ""
+"Adresses d'expéditeurs séparées par des virgules (caractères génériques "
+"autorisés, ex. : *@example.io). Les e-mails provenant de ces adresses sont "
+"déplacés vers cette boîte mail."
 
 #. Label of a Small Text field in DocType 'Server Job Command'
 #: suite/mail/doctype/server_job_command/server_job_command.json
 msgid "Command"
-msgstr ""
+msgstr "Commande"
 
 #: suite/mail/doctype/server_job/server_job.py:129
 msgid "Command '{0}' failed with exit code {1}"
-msgstr ""
+msgstr "La commande « {0} » a échoué avec le code de sortie {1}"
 
 #. Label of a Table field in DocType 'Server Job'
 #: suite/mail/doctype/server_job/server_job.json
 msgid "Commands"
-msgstr ""
+msgstr "Commandes"
 
 #. Option for the 'Type' (Select) field in DocType 'Drive Notification'
 #. Label of a Check field in DocType 'Drive Permission'
@@ -2554,6 +2572,7 @@ msgstr "Commentaire"
 #: suite/mail/doctype/event_notification/event_notification.json
 msgid "Comment sent along with the change by the user that made it."
 msgstr ""
+"Commentaire envoyé par l'utilisateur avec la modification qu'il a effectuée."
 
 #. Label of a Long Text field in DocType 'Writer Document'
 #: suite/writer/doctype/writer_document/writer_document.json
@@ -2569,7 +2588,7 @@ msgstr "Commentaires"
 #: suite/public/frontend/assets/CalendarExchangesView-Ci2-GxtB.js:1
 #: suite/public/frontend/assets/MailExchangesView-DadfGqQo.js:1
 msgid "Completed"
-msgstr ""
+msgstr "Terminé"
 
 #. Label of a Datetime field in DocType 'Calendar Exchange'
 #. Label of a Datetime field in DocType 'Mail Exchange'
@@ -2578,70 +2597,72 @@ msgstr ""
 #: suite/mail/doctype/mail_exchange/mail_exchange.json
 #: suite/mail/doctype/spam_check_log/spam_check_log.json
 msgid "Completed At"
-msgstr ""
+msgstr "Terminé le"
 
 #: frontend/src/apps/mail/components/HeaderActions.vue:11
 #: frontend/src/apps/mail/components/Modals/ShortcutsModal.vue:54
 #: suite/public/frontend/assets/ShortcutsModal-Bz1LX5rN.js:1
 #: suite/public/frontend/assets/ShortcutsModal-lrP_-Pnq.js:1
 msgid "Compose"
-msgstr ""
+msgstr "Nouveau message"
 
 #: frontend/src/apps/mail/components/HeaderActions.vue:12
 msgid "Compose (C)"
-msgstr ""
+msgstr "Nouveau message (C)"
 
 #: frontend/src/apps/mail/components/SendMail.vue:5
 #: frontend/src/apps/mail/components/SendMailMobileLayout.vue:9
 msgid "Compose Mail"
-msgstr ""
+msgstr "Rédiger un message"
 
 #: frontend/src/apps/mail/components/Modals/ShortcutsModal.vue:56
 #: suite/public/frontend/assets/ShortcutsModal-Bz1LX5rN.js:1
 #: suite/public/frontend/assets/ShortcutsModal-lrP_-Pnq.js:1
 msgid "Compose New Mail"
-msgstr ""
+msgstr "Rédiger un nouveau message"
 
 #. Label of a Tab Break field in DocType 'Mail Settings'
 #: suite/mail/doctype/mail_settings/mail_settings.json
 msgid "Config"
-msgstr ""
+msgstr "Configuration"
 
 #. Label of a Tab Break field in DocType 'Mail Cluster'
 #: suite/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Configs"
-msgstr ""
+msgstr "Configurations"
 
 #: frontend/src/apps/mail/components/AppSidebar.vue:294
 #: frontend/src/apps/mail/components/Settings/FolderSettings.vue:85
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Configure"
-msgstr ""
+msgstr "Configurer"
 
 #: suite/mail/doctype/spam_check_log/spam_check_log.py:53
 msgid "Configure SpamAssassin (spamd) host and port to enable spam detection."
 msgstr ""
+"Configurez l'hôte et le port SpamAssassin (spamd) pour activer la détection "
+"du spam."
 
 #. Description of the 'Blob Store' (Link) field in DocType 'Mail Cluster'
 #: suite/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Configures the blob store backend."
-msgstr ""
+msgstr "Configure le backend de stockage de blobs."
 
 #. Description of the 'In-Memory Store' (Link) field in DocType 'Mail Cluster'
 #: suite/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Configures the in-memory store backend."
-msgstr ""
+msgstr "Configure le backend de stockage en mémoire."
 
 #. Description of the 'Data Store' (Link) field in DocType 'Mail Cluster'
 #: suite/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Configures the primary data store backend."
-msgstr ""
+msgstr "Configure le backend de stockage de données principal."
 
 #. Description of the 'Search Store' (Link) field in DocType 'Mail Cluster'
 #: suite/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Configures the search store backend."
-msgstr ""
+msgstr "Configure le backend de stockage de recherche."
 
 #: frontend/src/apps/calendar/components/Modals/ChangePasswordModal.vue:54
 #: frontend/src/apps/drive/components/Settings/ProfileSettings.vue:17
@@ -2688,31 +2709,31 @@ msgstr "Confirmer"
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Confirm New Password"
-msgstr ""
+msgstr "Confirmer le nouveau mot de passe"
 
 #. Option for the 'Status' (Select) field in DocType 'Calendar Event'
 #: suite/mail/doctype/calendar_event/calendar_event.json
 msgid "Confirmed"
-msgstr ""
+msgstr "Confirmé"
 
 #. Label of a Section Break field in DocType 'WOPI Settings'
 #: suite/drive/doctype/wopi_settings/wopi_settings.json
 msgid "Connection Status"
-msgstr ""
+msgstr "État de la connexion"
 
 #: suite/drive/doctype/wopi_settings/wopi_settings.py:35
 msgid "Connection successful"
-msgstr ""
+msgstr "Connexion réussie"
 
 #: suite/drive/doctype/wopi_settings/wopi_settings.py:46
 msgid "Connection timeout"
-msgstr ""
+msgstr "Délai de connexion"
 
 #. Description of the 'Timeout (Seconds)' (Float) field in DocType 'Mail
 #. Cluster Store'
 #: suite/mail/doctype/mail_cluster_store/mail_cluster_store.json
 msgid "Connection timeout to the store."
-msgstr ""
+msgstr "Délai de connexion au stockage."
 
 #. Linked DocType in Address Book's connections
 #. Name of a DocType
@@ -2721,80 +2742,80 @@ msgstr ""
 #: suite/mail/doctype/contact_card/contact_card.json
 #: suite/mail/doctype/jmap_account/jmap_account.json
 msgid "Contact Card"
-msgstr ""
+msgstr "Fiche de contact"
 
 #. Name of a DocType
 #: suite/mail/doctype/contact_card_address/contact_card_address.json
 msgid "Contact Card Address"
-msgstr ""
+msgstr "Adresse de la fiche de contact"
 
 #. Name of a DocType
 #: suite/mail/doctype/contact_card_address_book/contact_card_address_book.json
 msgid "Contact Card Address Book"
-msgstr ""
+msgstr "Carnet d'adresses de la fiche de contact"
 
 #: suite/mail/doctype/contact_card/contact_card.py:284
 #: suite/mail/doctype/contact_card/contact_card.py:305
 msgid "Contact Card Creation Error"
-msgstr ""
+msgstr "Erreur de création de la fiche de contact"
 
 #. Name of a DocType
 #: suite/mail/doctype/contact_card_email/contact_card_email.json
 msgid "Contact Card Email"
-msgstr ""
+msgstr "E-mail de la fiche de contact"
 
 #. Label of a Data field in DocType 'Contact Card'
 #: suite/mail/doctype/contact_card/contact_card.json
 msgid "Contact Card ID"
-msgstr ""
+msgstr "ID de la fiche de contact"
 
 #: suite/mail/doctype/contact_card/contact_card.py:144
 msgid "Contact Card Not Found"
-msgstr ""
+msgstr "Fiche de contact introuvable"
 
 #. Name of a DocType
 #: suite/mail/doctype/contact_card_phone/contact_card_phone.json
 msgid "Contact Card Phone"
-msgstr ""
+msgstr "Téléphone de la fiche de contact"
 
 #: suite/mail/doctype/contact_card/contact_card.py:390
 #: suite/mail/doctype/contact_card/contact_card.py:422
 msgid "Contact Card Update Error"
-msgstr ""
+msgstr "Erreur de mise à jour de la fiche de contact"
 
 #: suite/mail/doctype/contact_card/contact_card.py:141
 msgid "Contact Card with ID {0} not found in account {1}."
-msgstr ""
+msgstr "Fiche de contact avec l'ID {0} introuvable dans le compte {1}."
 
 #: suite/mail/doctype/jmap_account/jmap_account.js:39
 msgid "Contact Cards"
-msgstr ""
+msgstr "Fiches de contact"
 
 #: suite/mail/doctype/contact_card/contact_card.py:255
 msgid "Contact Cards deleted successfully."
-msgstr ""
+msgstr "Fiches de contact supprimées avec succès."
 
 #: suite/mail/doctype/server_deployment/server_deployment.js:68
 msgid "Contact Email"
-msgstr ""
+msgstr "E-mail du contact"
 
 #: frontend/src/apps/mail/components/Modals/AddContactModal.vue:78
 #: suite/public/frontend/assets/ContactsView-3lgcm8pD.js:1
 #: suite/public/frontend/assets/ContactsView-B8wfHWAw.js:1
 msgid "Contact created."
-msgstr ""
+msgstr "Contact créé."
 
 #: frontend/src/apps/mail/pages/ContactView.vue:278
 #: suite/public/frontend/assets/ContactView-CMswTsIx.js:1
 #: suite/public/frontend/assets/ContactView-D4V5XXER.js:1
 msgid "Contact deleted."
-msgstr ""
+msgstr "Contact supprimé."
 
 #: frontend/src/apps/mail/pages/ContactView.vue:265
 #: suite/public/frontend/assets/ContactView-CMswTsIx.js:1
 #: suite/public/frontend/assets/ContactView-D4V5XXER.js:1
 msgid "Contact updated."
-msgstr ""
+msgstr "Contact mis à jour."
 
 #. Group in JMAP Account's connections
 #: frontend/src/apps/mail/components/AppSidebar.vue:364
@@ -2810,32 +2831,32 @@ msgstr ""
 #: suite/public/frontend/assets/ContactsView-3lgcm8pD.js:1
 #: suite/public/frontend/assets/ContactsView-B8wfHWAw.js:1
 msgid "Contacts"
-msgstr ""
+msgstr "Contacts"
 
 #: frontend/src/apps/mail/pages/AddressBookView.vue:226
 #: suite/public/frontend/assets/AddressBookView-D827B6FY.js:1
 #: suite/public/frontend/assets/AddressBookView-yMty4QTD.js:1
 msgid "Contacts added."
-msgstr ""
+msgstr "Contacts ajoutés."
 
 #: frontend/src/apps/mail/pages/ContactsView.vue:125
 #: suite/public/frontend/assets/ContactsView-3lgcm8pD.js:1
 #: suite/public/frontend/assets/ContactsView-B8wfHWAw.js:1
 msgid "Contacts deleted."
-msgstr ""
+msgstr "Contacts supprimés."
 
 #: frontend/src/apps/mail/pages/AddressBookView.vue:244
 #: suite/public/frontend/assets/AddressBookView-D827B6FY.js:1
 #: suite/public/frontend/assets/AddressBookView-yMty4QTD.js:1
 msgid "Contacts removed."
-msgstr ""
+msgstr "Contacts retirés."
 
 #. Label of a Data field in DocType 'Mail Cluster Store'
 #. Label of a Data field in DocType 'Server Deployment Service'
 #: suite/mail/doctype/mail_cluster_store/mail_cluster_store.json
 #: suite/mail/doctype/server_deployment_service/server_deployment_service.json
 msgid "Container"
-msgstr ""
+msgstr "Conteneur"
 
 #. Label of a Code field in DocType 'Sieve Script'
 #. Label of a Long Text field in DocType 'Writer Document'
@@ -2849,12 +2870,12 @@ msgstr "Contenu"
 #. Label of a Data field in DocType 'Mail Message Part'
 #: suite/mail/doctype/mail_message_part/mail_message_part.json
 msgid "Content ID"
-msgstr ""
+msgstr "ID du contenu"
 
 #. Label of a Data field in DocType 'Event Link'
 #: suite/mail/doctype/event_link/event_link.json
 msgid "Content Type"
-msgstr ""
+msgstr "Type de contenu"
 
 #. Label of a JSON field in DocType 'Contact Card Address'
 #. Label of a JSON field in DocType 'Contact Card Email'
@@ -2863,13 +2884,13 @@ msgstr ""
 #: suite/mail/doctype/contact_card_email/contact_card_email.json
 #: suite/mail/doctype/contact_card_phone/contact_card_phone.json
 msgid "Contexts"
-msgstr ""
+msgstr "Contextes"
 
 #. Description of the 'Restart' (Select) field in DocType 'Server Deployment
 #. Service'
 #: suite/mail/doctype/server_deployment_service/server_deployment_service.json
 msgid "Controls if the container restarts automatically."
-msgstr ""
+msgstr "Détermine si le conteneur redémarre automatiquement."
 
 #. Description of the 'Privacy' (Select) field in DocType 'Calendar Event'
 #: suite/mail/doctype/calendar_event/calendar_event.json
@@ -2877,15 +2898,17 @@ msgid ""
 "Controls the visibility of event details to users who have access to the "
 "calendar."
 msgstr ""
+"Détermine la visibilité des détails de l'événement pour les utilisateurs "
+"ayant accès au calendrier."
 
 #: suite/public/frontend/assets/utils-TDoJvaKR.js:8
 msgid "Copied to clipboard."
-msgstr ""
+msgstr "Copié dans le presse-papiers."
 
 #: frontend/src/apps/mail/components/CopyCode.vue:9
 #: suite/public/frontend/assets/CopyCode-CuuGi3Il.js:1
 msgid "Copy Code"
-msgstr ""
+msgstr "Copier le code"
 
 #: frontend/src/apps/drive/components/GenericPage.vue:280
 #: frontend/src/apps/drive/components/Navbar.vue:190
@@ -2900,7 +2923,7 @@ msgstr "Copier le lien"
 #: frontend/src/apps/mail/pages/MimeMessageView.vue:10
 #: suite/public/frontend/assets/MimeMessageView-eBA7IDud.js:1
 msgid "Copy to Clipboard"
-msgstr ""
+msgstr "Copier dans le presse-papiers"
 
 #. Label of a Section Break field in DocType 'Account Request'
 #: suite/drive/doctype/account_request/account_request.json
@@ -2912,42 +2935,46 @@ msgid ""
 "Could not connect to SpamAssassin (spamd). Please ensure it's running on "
 "{0}:{1}"
 msgstr ""
+"Impossible de se connecter à SpamAssassin (spamd). Veuillez vérifier qu'il "
+"est bien actif sur {0}:{1}"
 
 #: suite/mail/doctype/mail_server/mail_server.py:100
 msgid "Could not connect to {0}:{1}. Error: {2}"
-msgstr ""
+msgstr "Impossible de se connecter à {0}:{1}. Erreur : {2}"
 
 #: frontend/src/apps/calendar/components/Modals/NewCalendarModal.vue:92
 msgid "Could not create the calendar."
-msgstr ""
+msgstr "Impossible de créer le calendrier."
 
 #: suite/mail/stalwart/domain.py:313
 msgid "Could not extract the created domain ID from the response."
-msgstr ""
+msgstr "Impossible d'extraire l'ID du domaine créé depuis la réponse."
 
 #: suite/mail/stalwart/app_password.py:50
 msgid "Could not extract the generated app password secret from the response."
 msgstr ""
+"Impossible d'extraire le secret du mot de passe d'application généré depuis "
+"la réponse."
 
 #: suite/mail/doctype/calendar/calendar.py:296
 msgid "Could not update calendar sharing."
-msgstr ""
+msgstr "Impossible de mettre à jour le partage du calendrier."
 
 #: frontend/src/apps/calendar/components/Modals/ShareCalendarModal.vue:139
 msgid "Could not update sharing."
-msgstr ""
+msgstr "Impossible de mettre à jour le partage."
 
 #: suite/drive/public/js/FileUploader.vue:367
 msgid "Could not upload to Drive"
-msgstr ""
+msgstr "Impossible de téléverser vers Drive"
 
 #: suite/drive/public/js/FileUploader.vue:349
 msgid "Could not upload to Site files"
-msgstr ""
+msgstr "Impossible de téléverser vers les fichiers du site"
 
 #: suite/mail/doctype/dns_record/dns_record.py:117
 msgid "Could not verify {0}:{1} record."
-msgstr ""
+msgstr "Impossible de vérifier l'enregistrement {0}:{1}."
 
 #. Label of a Data field in DocType 'Contact Card Address'
 #: frontend/src/apps/mail/components/Modals/AddContactAddressModal.vue:16
@@ -2956,48 +2983,48 @@ msgstr ""
 #: suite/public/frontend/assets/ContactView-CMswTsIx.js:1
 #: suite/public/frontend/assets/ContactView-D4V5XXER.js:1
 msgid "Country"
-msgstr ""
+msgstr "Pays"
 
 #: frontend/src/apps/calendar/components/Modals/NewCalendarModal.vue:40
 msgid "Create"
-msgstr ""
+msgstr "Créer"
 
 #: frontend/src/apps/mail/pages/InviteSetupView.vue:38
 #: suite/public/frontend/assets/InviteSetupView-ByN-3s3o.js:1
 #: suite/public/frontend/assets/InviteSetupView-DfCzyPMk.js:1
 msgid "Create Account"
-msgstr ""
+msgstr "Créer un compte"
 
 #. Label of a Check field in DocType 'JMAP Account'
 #: suite/mail/doctype/jmap_account/jmap_account.json
 msgid "Create Contacts After Email Submit"
-msgstr ""
+msgstr "Créer les contacts après la soumission de l'e-mail"
 
 #: frontend/src/apps/mail/components/Settings/Account.vue:14
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Create Contacts After Sending Email"
-msgstr ""
+msgstr "Créer les contacts après l'envoi de l'e-mail"
 
 #: frontend/src/apps/mail/components/Settings/CalendarExportSettings.vue:62
 #: frontend/src/apps/mail/components/Settings/MailExportSettings.vue:75
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Create Export"
-msgstr ""
+msgstr "Créer un export"
 
 #: frontend/src/apps/mail/components/Settings/CalendarImportSettings.vue:34
 #: frontend/src/apps/mail/components/Settings/MailImportSettings.vue:43
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Create Import"
-msgstr ""
+msgstr "Créer un import"
 
 #: frontend/src/apps/writer/components/RoundedListView.vue:136
 #: suite/public/frontend/assets/Documents-CMmqcDco.js:1
 #: suite/public/frontend/assets/Documents-CcsGm1hS.js:1
 msgid "Create a document to get started."
-msgstr ""
+msgstr "Créez un document pour commencer."
 
 #. Option for the 'Type' (Select) field in DocType 'Event Notification'
 #: frontend/src/apps/mail/components/Settings/ScreenedEmailAddressSettings.vue:117
@@ -3005,14 +3032,14 @@ msgstr ""
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Created"
-msgstr ""
+msgstr "Créé"
 
 #. Label of a Data field in DocType 'Calendar Event'
 #. Label of a Data field in DocType 'Event Notification'
 #: suite/mail/doctype/calendar_event/calendar_event.json
 #: suite/mail/doctype/event_notification/event_notification.json
 msgid "Created (UTC)"
-msgstr ""
+msgstr "Créé (UTC)"
 
 #. Label of a Data field in DocType 'Contact Card'
 #. Label of a Datetime field in DocType 'E2EE Device Key'
@@ -3022,70 +3049,70 @@ msgstr ""
 #: suite/public/frontend/assets/DomainsView-B4Sr3Lf2.js:1
 #: suite/public/frontend/assets/DomainsView-DJfZSG9V.js:1
 msgid "Created At"
-msgstr ""
+msgstr "Créé le"
 
 #. Label of a Link field in DocType 'Drive Token'
 #: suite/drive/doctype/drive_token/drive_token.json
 msgid "Created By"
-msgstr ""
+msgstr "Créé par"
 
 #: frontend/src/apps/mail/pages/ContactView.vue:19
 #: suite/public/frontend/assets/ContactView-CMswTsIx.js:1
 #: suite/public/frontend/assets/ContactView-D4V5XXER.js:1
 msgid "Created On"
-msgstr ""
+msgstr "Créé le"
 
 #: suite/mail/api/mail.py:573
 msgid "Created at"
-msgstr ""
+msgstr "Créé le"
 
 #: suite/mail/doctype/mail_account_request/mail_account_request.js:82
 msgid "Creating Account..."
-msgstr ""
+msgstr "Création du compte..."
 
 #: suite/mail/doctype/dns_record/dns_record_list.js:16
 msgid "Creating Job..."
-msgstr ""
+msgstr "Création de la tâche..."
 
 #: frontend/src/apps/calendar/components/Modals/EventModal.vue:296
 msgid "Creating event..."
-msgstr ""
+msgstr "Création de l'événement..."
 
 #: frontend/src/shell/LauncherView.vue:28
 #: suite/public/frontend/assets/LauncherView-BpwJPMDj.js:1
 msgid "Creating…"
-msgstr ""
+msgstr "Création…"
 
 #. Description of the 'Received After (Seconds)' (Float) field in DocType
 #. 'Mail
 #. Queue'
 #: suite/mail/doctype/mail_queue/mail_queue.json
 msgid "Creation - Sent At"
-msgstr ""
+msgstr "Création - Envoyé le"
 
 #: frontend/src/apps/calendar/components/Modals/ChangePasswordModal.vue:8
 #: frontend/src/apps/mail/components/Modals/ChangePasswordModal.vue:8
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Current Password"
-msgstr ""
+msgstr "Mot de passe actuel"
 
 #: frontend/src/apps/mail/components/AppSidebar.vue:373
 msgid "Custom"
-msgstr ""
+msgstr "Personnalisé"
 
 #: frontend/src/apps/mail/components/Settings/CalendarExportSettings.vue:18
 #: frontend/src/apps/mail/components/Settings/MailExportSettings.vue:18
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Custom Selection"
-msgstr ""
+msgstr "Sélection personnalisée"
 
 #: frontend/src/apps/mail/components/Modals/ShortcutsModal.vue:104
 #: suite/public/frontend/assets/ShortcutsModal-Bz1LX5rN.js:1
 #: suite/public/frontend/assets/ShortcutsModal-lrP_-Pnq.js:1
 msgid "Cycle Theme"
-msgstr ""
+msgstr "Parcourir les thèmes"
 
 #. Option for the 'Push Log Level' (Select) field in DocType 'Mail Settings'
 #. Option for the 'Storage Log Level' (Select) field in DocType 'Mail
@@ -3098,73 +3125,75 @@ msgstr ""
 #. Settings'
 #: suite/mail/doctype/mail_settings/mail_settings.json
 msgid "DEBUG"
-msgstr ""
+msgstr "DEBUG"
 
 #. Option for the 'Status' (Select) field in DocType 'Event Participant'
 #: suite/mail/doctype/event_participant/event_participant.json
 msgid "DECLINED"
-msgstr ""
+msgstr "REFUSÉ"
 
 #. Label of a Check field in DocType 'Mail Message'
 #: suite/mail/api/mail.py:592
 #: suite/mail/doctype/mail_message/mail_message.json
 msgid "DKIM"
-msgstr ""
+msgstr "DKIM"
 
 #. Label of a Small Text field in DocType 'Mail Message'
 #: suite/mail/doctype/mail_message/mail_message.json
 msgid "DKIM Description"
-msgstr ""
+msgstr "Description DKIM"
 
 #. Label of a Check field in DocType 'Mail Message'
 #: suite/mail/api/mail.py:594
 #: suite/mail/doctype/mail_message/mail_message.json
 msgid "DMARC"
-msgstr ""
+msgstr "DMARC"
 
 #. Label of a Small Text field in DocType 'Mail Message'
 #: suite/mail/doctype/mail_message/mail_message.json
 msgid "DMARC Description"
-msgstr ""
+msgstr "Description DMARC"
 
 #. Label of a Tab Break field in DocType 'Mail Settings'
 #: suite/mail/doctype/mail_settings/mail_settings.json
 msgid "DNS"
-msgstr ""
+msgstr "DNS"
 
 #. Label of a Select field in DocType 'Mail Settings'
 #. Label of a Section Break field in DocType 'Mail Settings'
 #: suite/mail/doctype/mail_settings/mail_settings.json
 msgid "DNS Provider"
-msgstr ""
+msgstr "Fournisseur DNS"
 
 #. Name of a DocType
 #: suite/mail/doctype/dns_record/dns_record.json
 msgid "DNS Record"
-msgstr ""
+msgstr "Enregistrement DNS"
 
 #: suite/mail/doctype/dns_record/dns_record.py:60
 msgid "DNS Record with the same host and type already exists."
-msgstr ""
+msgstr "Un enregistrement DNS avec le même hôte et le même type existe déjà."
 
 #: frontend/src/apps/mail/pages/dashboard/DomainView.vue:19
 #: suite/mail/doctype/mail_settings/mail_settings.py:202
 #: suite/public/frontend/assets/DomainView-02Ubyipe.js:1
 #: suite/public/frontend/assets/DomainView-BDV_jShz.js:1
 msgid "DNS Records"
-msgstr ""
+msgstr "Enregistrements DNS"
 
 #: frontend/src/apps/mail/pages/dashboard/DomainView.vue:263
 #: suite/public/frontend/assets/DomainView-02Ubyipe.js:1
 #: suite/public/frontend/assets/DomainView-BDV_jShz.js:1
 msgid "DNS changes may take up to 48 hours to propagate globally."
 msgstr ""
+"Les modifications DNS peuvent prendre jusqu'à 48 heures pour se propager à "
+"l'échelle mondiale."
 
 #: frontend/src/apps/drive/components/Sidebar.vue:150
 #: suite/public/frontend/assets/DriveLayout-CH1ChDVD.js:1
 #: suite/public/frontend/assets/DriveLayout-D1kFCuOm.js:1
 msgid "Dark"
-msgstr ""
+msgstr "Sombre"
 
 #. Option for the 'Color Scheme' (Select) field in DocType 'User Settings'
 #: frontend/src/apps/calendar/components/Settings/AppearanceSettings.vue:48
@@ -3173,50 +3202,50 @@ msgstr ""
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Dark Mode"
-msgstr ""
+msgstr "Mode sombre"
 
 #. Label of a Long Text field in DocType 'Writer Document Update'
 #: suite/writer/doctype/writer_document_update/writer_document_update.json
 msgid "Data"
-msgstr ""
+msgstr "Données"
 
 #. Label of a JSON field in DocType 'Mail Cluster'
 #: suite/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Data Config"
-msgstr ""
+msgstr "Configuration des données"
 
 #. Label of a Link field in DocType 'Mail Cluster'
 #: suite/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Data Store"
-msgstr ""
+msgstr "Stockage de données"
 
 #: suite/mail/doctype/mail_settings/mail_settings.js:73
 msgid "Data Store destroyed successfully."
-msgstr ""
+msgstr "Stockage de données détruit avec succès."
 
 #: suite/mail/doctype/mail_cluster/mail_cluster.py:155
 msgid "Data Store is required."
-msgstr ""
+msgstr "Le stockage de données est requis."
 
 #. Description of the 'Datacenter ID' (Data) field in DocType 'Mail Cluster
 #. Store'
 #: suite/mail/doctype/mail_cluster_store/mail_cluster_store.json
 msgid "Data center ID."
-msgstr ""
+msgstr "ID du centre de données."
 
 #. Label of a Data field in DocType 'Mail Cluster Store'
 #: suite/mail/doctype/mail_cluster_store/mail_cluster_store.json
 msgid "Database"
-msgstr ""
+msgstr "Base de données"
 
 #. Label of a Data field in DocType 'Mail Cluster Store'
 #: suite/mail/doctype/mail_cluster_store/mail_cluster_store.json
 msgid "Datacenter ID"
-msgstr ""
+msgstr "ID du centre de données"
 
 #: frontend/src/apps/mail/components/MailDetails.vue:52
 msgid "Date: "
-msgstr ""
+msgstr "Date : "
 
 #. Option for the 'Group Messages By' (Select) field in DocType 'User
 #. Settings'
@@ -3226,37 +3255,37 @@ msgstr ""
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 #: suite/public/frontend/assets/ParticipantSelector-BzOPZydZ.js:1
 msgid "Day"
-msgstr ""
+msgstr "Jour"
 
 #: frontend/src/apps/calendar/components/EventAlertList.vue:27
 #: suite/public/frontend/assets/ParticipantSelector-BzOPZydZ.js:1
 msgid "Days"
-msgstr ""
+msgstr "Jours"
 
 #: frontend/src/apps/mail/components/Modals/SetSieveScriptStateModal.vue:47
 #: frontend/src/apps/mail/components/Settings/AutomationSettings.vue:119
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Deactivate"
-msgstr ""
+msgstr "Désactiver"
 
 #: suite/mail/doctype/push_subscription/push_subscription.py:429
 msgid "Decrypted payload exceeds maximum allowed size."
-msgstr ""
+msgstr "La charge utile déchiffrée dépasse la taille maximale autorisée."
 
 #: suite/mail/doctype/push_subscription/push_subscription.py:436
 msgid "Decrypted push payload is not valid JSON."
-msgstr ""
+msgstr "La charge utile push déchiffrée n'est pas un JSON valide."
 
 #. Label of a Check field in DocType 'Mail Exchange'
 #: suite/mail/doctype/mail_exchange/mail_exchange.json
 msgid "Deduplicate by Message-ID"
-msgstr ""
+msgstr "Dédupliquer par Message-ID"
 
 #. Label of a Check field in DocType 'Calendar Exchange'
 #: suite/mail/doctype/calendar_exchange/calendar_exchange.json
 msgid "Deduplicate by UID"
-msgstr ""
+msgstr "Dédupliquer par UID"
 
 #. Label of a Check field in DocType 'Address Book'
 #. Label of a Check field in DocType 'Calendar'
@@ -3274,75 +3303,80 @@ msgstr ""
 #: suite/public/frontend/assets/AddressBooksView-BjkLV4R8.js:1
 #: suite/public/frontend/assets/AddressBooksView-BkhKXxwD.js:1
 msgid "Default"
-msgstr ""
+msgstr "Par défaut"
 
 #. Label of a Int field in DocType 'Mail Settings'
 #: suite/mail/doctype/mail_settings/mail_settings.json
 msgid "Default DNS TTL"
-msgstr ""
+msgstr "TTL DNS par défaut"
 
 #. Label of a Int field in DocType 'Mail Settings'
 #: suite/mail/doctype/mail_settings/mail_settings.json
 msgid "Default Disk Quota (GB)"
-msgstr ""
+msgstr "Quota disque par défaut (Go)"
 
 #. Label of a Data field in DocType 'Mail Cluster'
 #: suite/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Default Domain"
-msgstr ""
+msgstr "Domaine par défaut"
 
 #. Label of a Data field in DocType 'JMAP Account'
 #: suite/mail/doctype/jmap_account/jmap_account.json
 msgid "Default Email"
-msgstr ""
+msgstr "E-mail par défaut"
 
 #. Label of a Select field in DocType 'Mail Settings'
 #: suite/mail/doctype/mail_settings/mail_settings.json
 msgid "Default Gravatar"
-msgstr ""
+msgstr "Gravatar par défaut"
 
 #: frontend/src/apps/mail/components/Settings/Account.vue:7
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Default Outgoing Email"
-msgstr ""
+msgstr "E-mail sortant par défaut"
 
 #: suite/mail/doctype/jmap_account/jmap_account.py:139
 msgid "Default Outgoing Email {0} is not one of the account's identities."
 msgstr ""
+"L'e-mail sortant par défaut {0} ne fait pas partie des identités du compte."
 
 #: frontend/src/apps/mail/components/Settings/IdentitySettings.vue:76
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Default Signature"
-msgstr ""
+msgstr "Signature par défaut"
 
 #. Description of the 'Default Email' (Data) field in DocType 'JMAP Account'
 #: suite/mail/doctype/jmap_account/jmap_account.json
 msgid "Default email address used as the sender when composing new messages."
 msgstr ""
+"Adresse e-mail par défaut utilisée comme expéditeur lors de la rédaction de "
+"nouveaux messages."
 
 #. Label of a Section Break field in DocType 'Mail Settings'
 #: suite/mail/doctype/mail_settings/mail_settings.json
 msgid "Defaults"
-msgstr ""
+msgstr "Valeurs par défaut"
 
 #. Description of the 'Signature Version' (Data) field in DocType 'Drive Disk
 #. Settings'
 #: suite/drive/doctype/drive_disk_settings/drive_disk_settings.json
 msgid "Defaults to \"s3v4\". Some providers only support \"s3\"."
 msgstr ""
+"Valeur par défaut : « s3v4 ». Certains fournisseurs ne prennent en charge "
+"que « s3 »."
 
 #. Description of the 'Type' (Select) field in DocType 'Event Alert'
 #: suite/mail/doctype/event_alert/event_alert.json
 msgid "Defines how the alert time is calculated."
-msgstr ""
+msgstr "Définit comment l'heure de l'alerte est calculée."
 
 #. Description of the 'Network Mode' (Select) field in DocType 'Server
 #. Deployment Service'
 #: suite/mail/doctype/server_deployment_service/server_deployment_service.json
 msgid "Defines how the container connects to the network."
-msgstr ""
+msgstr "Définit comment le conteneur se connecte au réseau."
 
 #. Description of the 'Recurrence Rule' (JSON) field in DocType 'Calendar
 #. Event'
@@ -3478,6 +3512,135 @@ msgid ""
 "}\n"
 "</pre>"
 msgstr ""
+"Définit comment l'événement se répète dans le temps.\n"
+"<br><br>\n"
+"Exemple : \n"
+"<pre>{\n"
+"  \"frequency\": \"yearly\", \n"
+"  /*\n"
+"    REQUIS.\n"
+"    Valeurs autorisées :\n"
+"      \"yearly\", \"monthly\", \"weekly\", \"daily\",\n"
+"      \"hourly\", \"minutely\", \"secondly\"\n"
+"  */\n"
+"\n"
+"  \"interval\": 1,\n"
+"  /*\n"
+"    OPTIONNEL.\n"
+"    Entier ≥ 1.\n"
+"    Se répète toutes les N unités de `frequency`.\n"
+"  */\n"
+"\n"
+"  \"count\": 10,\n"
+"  /*\n"
+"    OPTIONNEL.\n"
+"    Entier ≥ 1.\n"
+"    Nombre total d'occurrences.\n"
+"    MUTUELLEMENT EXCLUSIF avec `until`.\n"
+"  */\n"
+"\n"
+"  \"until\": \"2026-12-31T23:59:59Z\",\n"
+"  /*\n"
+"    OPTIONNEL.\n"
+"    Date-heure UTC uniquement (RFC 3339).\n"
+"    MUTUELLEMENT EXCLUSIF avec `count`.\n"
+"  */\n"
+"\n"
+"  \"firstDayOfWeek\": \"mo\",\n"
+"  /*\n"
+"    OPTIONNEL.\n"
+"    Valeurs autorisées :\n"
+"      \"mo\", \"tu\", \"we\", \"th\", \"fr\", \"sa\", \"su\"\n"
+"  */\n"
+"\n"
+"  \"bySecond\": [0, 30],\n"
+"  /*\n"
+"    OPTIONNEL.\n"
+"    Chaque valeur : 0–60\n"
+"  */\n"
+"\n"
+"  \"byMinute\": [0, 15, 30, 45],\n"
+"  /*\n"
+"    OPTIONNEL.\n"
+"    Chaque valeur : 0–59\n"
+"  */\n"
+"\n"
+"  \"byHour\": [9, 12, 18],\n"
+"  /*\n"
+"    OPTIONNEL.\n"
+"    Chaque valeur : 0–23\n"
+"  */\n"
+"\n"
+"  \"byDay\": [\n"
+"    \"mo\",\n"
+"    \"we\",\n"
+"    \"fr\",\n"
+"    \"1mo\",\n"
+"    \"-1fr\"\n"
+"  ],\n"
+"  /*\n"
+"    OPTIONNEL.\n"
+"    Valeurs autorisées :\n"
+"      \"mo\"  – lundi\n"
+"      \"tu\"  – mardi\n"
+"      \"we\"  – mercredi\n"
+"      \"th\"  – jeudi\n"
+"      \"fr\"  – vendredi\n"
+"      \"sa\"  – samedi\n"
+"      \"su\"  – dimanche\n"
+"\n"
+"    Jours positionnels (mensuel/annuel uniquement) :\n"
+"      \"1mo\"   → premier lundi\n"
+"      \"2tu\"   → deuxième mardi\n"
+"      \"-1fr\"  → dernier vendredi\n"
+"  */\n"
+"\n"
+"  \"byMonthDay\": [1, 15, -1],\n"
+"  /*\n"
+"    OPTIONNEL.\n"
+"    Valeurs :\n"
+"      1–31   → jour du mois\n"
+"      -1     → dernier jour du mois\n"
+"      -2     → avant-dernier jour\n"
+"  */\n"
+"\n"
+"  \"byYearDay\": [1, 100, -1],\n"
+"  /*\n"
+"    OPTIONNEL.\n"
+"    Valeurs :\n"
+"      1–366  → jour de l'année\n"
+"      -1     → dernier jour de l'année\n"
+"  */\n"
+"\n"
+"  \"byWeekNo\": [1, 26, 52, -1],\n"
+"  /*\n"
+"    OPTIONNEL.\n"
+"    Numéros de semaine ISO.\n"
+"    Valeurs :\n"
+"      1–53\n"
+"      -1 → dernière semaine de l'année\n"
+"    VALIDE UNIQUEMENT si frequency = \"yearly\"\n"
+"  */\n"
+"\n"
+"  \"byMonth\": [1, 6, 12],\n"
+"  /*\n"
+"    OPTIONNEL.\n"
+"    Valeurs :\n"
+"      1  → janvier\n"
+"      6  → juin\n"
+"      12 → décembre\n"
+"  */\n"
+"\n"
+"  \"bySetPosition\": [1, -1]\n"
+"  /*\n"
+"    OPTIONNEL.\n"
+"    Sélectionne des occurrences spécifiques APRÈS application de toutes les autres règles.\n"
+"    Valeurs :\n"
+"      Positif → n-ième occurrence\n"
+"      Négatif → n-ième occurrence en partant de la fin\n"
+"  */\n"
+"}\n"
+"</pre>"
 
 #. Description of the 'Roles' (JSON) field in DocType 'Event Participant'
 #: suite/mail/doctype/event_participant/event_participant.json
@@ -3493,22 +3656,33 @@ msgid ""
 "  \"informational\": false\n"
 "}</code>"
 msgstr ""
+"Définit le ou les rôles du participant dans l'événement.\n"
+"<br>\n"
+"Exemple : <code>{\n"
+"  \"organizer\": false,\n"
+"  \"owner\": false,\n"
+"  \"chair\": true,\n"
+"  \"optional\": false,\n"
+"  \"required\": true,\n"
+"  \"informational\": false\n"
+"}</code>"
 
 #. Description of the 'Sort Order' (Int) field in DocType 'Address Book'
 #: suite/mail/doctype/address_book/address_book.json
 msgid ""
 "Defines the sort order of Address Books when presented in the client's UI."
 msgstr ""
+"Définit l'ordre de tri des carnets d'adresses dans l'interface du client."
 
 #. Description of the 'Sort Order' (Int) field in DocType 'Mailbox'
 #: suite/mail/doctype/mailbox/mailbox.json
 msgid "Defines the sort order of Mailboxes when presented in the client's UI."
-msgstr ""
+msgstr "Définit l'ordre de tri des boîtes mail dans l'interface du client."
 
 #. Description of the 'Sort Order' (Int) field in DocType 'Calendar'
 #: suite/mail/doctype/calendar/calendar.json
 msgid "Defines the sort order of calendars when presented in the client's UI."
-msgstr ""
+msgstr "Définit l'ordre de tri des calendriers dans l'interface du client."
 
 #: frontend/src/apps/calendar/components/EventPopoverContent.vue:121
 #: frontend/src/apps/calendar/components/EventPopoverContent.vue:132
@@ -3545,93 +3719,93 @@ msgstr "Supprimer"
 #: suite/public/frontend/assets/AddressBookView-D827B6FY.js:1
 #: suite/public/frontend/assets/AddressBookView-yMty4QTD.js:1
 msgid "Delete Address Book"
-msgstr ""
+msgstr "Supprimer le carnet d'adresses"
 
 #: frontend/src/apps/mail/pages/ContactView.vue:288
 #: suite/public/frontend/assets/ContactView-CMswTsIx.js:1
 #: suite/public/frontend/assets/ContactView-D4V5XXER.js:1
 msgid "Delete Contact"
-msgstr ""
+msgstr "Supprimer le contact"
 
 #: frontend/src/apps/mail/pages/ContactsView.vue:150
 #: suite/public/frontend/assets/ContactsView-3lgcm8pD.js:1
 #: suite/public/frontend/assets/ContactsView-B8wfHWAw.js:1
 msgid "Delete Contacts"
-msgstr ""
+msgstr "Supprimer les contacts"
 
 #: frontend/src/apps/mail/pages/dashboard/DomainView.vue:212
 #: frontend/src/apps/mail/pages/dashboard/DomainView.vue:249
 #: suite/public/frontend/assets/DomainView-02Ubyipe.js:1
 #: suite/public/frontend/assets/DomainView-BDV_jShz.js:1
 msgid "Delete Domain"
-msgstr ""
+msgstr "Supprimer le domaine"
 
 #: frontend/src/apps/mail/components/Settings/Account.vue:22
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Delete Email After Sending"
-msgstr ""
+msgstr "Supprimer l'e-mail après l'envoi"
 
 #: frontend/src/apps/mail/pages/dashboard/InvitesView.vue:159
 #: suite/public/frontend/assets/MembersView-CrsoRnyN.js:1
 #: suite/public/frontend/assets/MembersView-D1EICJPk.js:1
 msgid "Delete Invites"
-msgstr ""
+msgstr "Supprimer les invitations"
 
 #: frontend/src/apps/mail/pages/dashboard/UsersView.vue:187
 #: suite/public/frontend/assets/MembersView-CrsoRnyN.js:1
 #: suite/public/frontend/assets/MembersView-D1EICJPk.js:1
 msgid "Delete Members"
-msgstr ""
+msgstr "Supprimer les membres"
 
 #: frontend/src/apps/mail/components/MailActions.vue:200
 msgid "Delete Message"
-msgstr ""
+msgstr "Supprimer le message"
 
 #: frontend/src/apps/mail/components/Settings/Account.vue:30
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Delete Newsletter After Sending"
-msgstr ""
+msgstr "Supprimer la newsletter après l'envoi"
 
 #: frontend/src/apps/mail/pages/MailboxView.vue:37
 #: suite/public/frontend/assets/MailboxView-B5E2WKYm.js:1
 #: suite/public/frontend/assets/MailboxView-OJYYFRSM.js:1
 msgid "Delete Now"
-msgstr ""
+msgstr "Supprimer maintenant"
 
 #: frontend/src/apps/mail/components/Modals/DeleteSieveScriptModal.vue:5
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Delete Sieve Script"
-msgstr ""
+msgstr "Supprimer le script Sieve"
 
 #: frontend/src/apps/mail/components/MailListItemActions.vue:62
 #: suite/public/frontend/assets/MailboxView-B5E2WKYm.js:1
 #: suite/public/frontend/assets/MailboxView-OJYYFRSM.js:1
 msgid "Delete Thread"
-msgstr ""
+msgstr "Supprimer le fil de discussion"
 
 #: frontend/src/apps/mail/components/ThreadHeader.vue:221
 msgid "Delete Thread (Shift+Delete)"
-msgstr ""
+msgstr "Supprimer le fil de discussion (Maj+Suppr)"
 
 #: frontend/src/apps/mail/pages/MailboxView.vue:783
 #: suite/public/frontend/assets/MailboxView-B5E2WKYm.js:1
 #: suite/public/frontend/assets/MailboxView-OJYYFRSM.js:1
 msgid "Delete Threads (Shift+Delete)"
-msgstr ""
+msgstr "Supprimer les fils de discussion (Maj+Suppr)"
 
 #: frontend/src/apps/mail/components/Modals/DeleteFolderModal.vue:5
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Delete {0}"
-msgstr ""
+msgstr "Supprimer {0}"
 
 #: suite/public/frontend/assets/MailboxView-B5E2WKYm.js:1
 #: suite/public/frontend/assets/MailboxView-OJYYFRSM.js:1
 msgid "Delete {0} {1}"
-msgstr ""
+msgstr "Supprimer {0} {1}"
 
 #: suite/mail/doctype/address_book/address_book_list.js:40
 #: suite/mail/doctype/calendar/calendar_list.js:16
@@ -3645,56 +3819,56 @@ msgstr ""
 #: suite/mail/doctype/push_subscription/push_subscription_list.js:15
 #: suite/mail/doctype/sieve_script/sieve_script_list.js:40
 msgid "Delete {0} {1} permanently?"
-msgstr ""
+msgstr "Supprimer {0} {1} définitivement ?"
 
 #: frontend/src/apps/calendar/components/EventPopoverContent.vue:194
 #: frontend/src/apps/calendar/components/EventPopoverContent.vue:213
 msgid "Deleting event..."
-msgstr ""
+msgstr "Suppression de l'événement..."
 
 #: frontend/src/apps/calendar/components/EventPopoverContent.vue:205
 #: frontend/src/apps/calendar/components/EventPopoverContent.vue:213
 msgid "Deleting events..."
-msgstr ""
+msgstr "Suppression des événements..."
 
 #: frontend/src/apps/mail/components/MailActions.vue:350
 #: suite/public/frontend/assets/MailboxView-B5E2WKYm.js:1
 #: suite/public/frontend/assets/MailboxView-OJYYFRSM.js:1
 msgid "Deleting..."
-msgstr ""
+msgstr "Suppression..."
 
 #. Label of a Select field in DocType 'Mail Queue'
 #: suite/mail/doctype/mail_queue/mail_queue.json
 msgid "Delivery Mode"
-msgstr ""
+msgstr "Mode de livraison"
 
 #. Label of a JSON field in DocType 'Server Deployment Service'
 #: suite/mail/doctype/server_deployment_service/server_deployment_service.json
 msgid "Depends On"
-msgstr ""
+msgstr "Dépend de"
 
 #. Group in Mail Server's connections
 #. Label of a Link field in DocType 'Server Ansible Play'
 #: suite/mail/doctype/mail_server/mail_server.json
 #: suite/mail/doctype/server_ansible_play/server_ansible_play.json
 msgid "Deployment"
-msgstr ""
+msgstr "Déploiement"
 
 #. Label of a Int field in DocType 'Mail Cluster Store'
 #: suite/mail/doctype/mail_cluster_store/mail_cluster_store.json
 msgid "Depth"
-msgstr ""
+msgstr "Profondeur"
 
 #: frontend/src/apps/mail/components/Settings/ScreenedEmailAddressSettings.vue:30
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Descending"
-msgstr ""
+msgstr "Décroissant"
 
 #. Description of the 'Type' (Select) field in DocType 'Event Notification'
 #: suite/mail/doctype/event_notification/event_notification.json
 msgid "Describes the nature of the event change."
-msgstr ""
+msgstr "Décrit la nature de la modification de l'événement."
 
 #. Label of a Small Text field in DocType 'Address Book'
 #. Label of a Small Text field in DocType 'Calendar'
@@ -3723,75 +3897,75 @@ msgstr ""
 #: suite/public/frontend/assets/DomainsView-B4Sr3Lf2.js:1
 #: suite/public/frontend/assets/DomainsView-DJfZSG9V.js:1
 msgid "Description"
-msgstr ""
+msgstr "Description"
 
 #. Description of the 'Description' (Small Text) field in DocType 'Mail
 #. Cluster
 #. Store HTTP Auth'
 #: suite/mail/doctype/mail_cluster_store_http_auth/mail_cluster_store_http_auth.json
 msgid "Description for the HTTP auth."
-msgstr ""
+msgstr "Description de l'authentification HTTP."
 
 #. Description of the 'Description' (Small Text) field in DocType 'Mail
 #. Cluster
 #. Store'
 #: suite/mail/doctype/mail_cluster_store/mail_cluster_store.json
 msgid "Description for the backend store."
-msgstr ""
+msgstr "Description du backend de stockage."
 
 #. Description of the 'Description' (Small Text) field in DocType 'Quota'
 #: suite/mail/doctype/quota/quota.json
 msgid "Description of this quota."
-msgstr ""
+msgstr "Description de ce quota."
 
 #: frontend/src/apps/mail/components/Modals/ScreenedEmailAddressModal.vue:16
 #: suite/public/frontend/assets/MailboxView-B5E2WKYm.js:1
 #: suite/public/frontend/assets/MailboxView-OJYYFRSM.js:1
 msgid "Deselect all"
-msgstr ""
+msgstr "Tout désélectionner"
 
 #. Label of a Check field in DocType 'Mail Queue'
 #: suite/mail/doctype/mail_queue/mail_queue.json
 msgid "Destroy After Submit"
-msgstr ""
+msgstr "Détruire après soumission"
 
 #: suite/mail/doctype/mail_settings/mail_settings.js:36
 msgid "Destroy Blob Store"
-msgstr ""
+msgstr "Détruire le stockage de blobs"
 
 #: suite/mail/doctype/mail_settings/mail_settings.js:30
 msgid "Destroy Data Store"
-msgstr ""
+msgstr "Détruire le stockage de données"
 
 #. Label of a Check field in DocType 'JMAP Account'
 #: suite/mail/doctype/jmap_account/jmap_account.json
 msgid "Destroy Email After Submit"
-msgstr ""
+msgstr "Détruire l'e-mail après soumission"
 
 #. Label of a Check field in DocType 'JMAP Account'
 #: suite/mail/doctype/jmap_account/jmap_account.json
 msgid "Destroy Newsletter After Submit"
-msgstr ""
+msgstr "Détruire la newsletter après soumission"
 
 #. Option for the 'Type' (Select) field in DocType 'Event Notification'
 #: suite/mail/doctype/event_notification/event_notification.json
 msgid "Destroyed"
-msgstr ""
+msgstr "Détruit"
 
 #: suite/mail/doctype/mail_settings/mail_settings.js:89
 msgid "Destroying Blob Store…"
-msgstr ""
+msgstr "Destruction du stockage de blobs…"
 
 #: suite/mail/doctype/mail_settings/mail_settings.js:71
 msgid "Destroying Data Store…"
-msgstr ""
+msgstr "Destruction du stockage de données…"
 
 #. Label of a Tab Break field in DocType 'Mail Cluster'
 #. Label of a Tab Break field in DocType 'Mail Server'
 #: suite/mail/doctype/mail_cluster/mail_cluster.json
 #: suite/mail/doctype/mail_server/mail_server.json
 msgid "Details"
-msgstr ""
+msgstr "Détails"
 
 #. Description of the 'Codec Strategy' (Select) field in DocType 'Sae
 #. Settings'
@@ -3799,51 +3973,57 @@ msgstr ""
 msgid ""
 "Determines whether meetings try VP9 SVC first or stick to VP8 simulcast."
 msgstr ""
+"Détermine si les réunions privilégient VP9 SVC en premier ou utilisent le "
+"simulcast VP8."
 
 #: frontend/src/apps/drive/ui/drive/components/InfoDialog.vue:101
 #: suite/public/frontend/assets/file-user-BFxWHqGb.js:1
 msgid "Developer"
-msgstr ""
+msgstr "Développeur"
 
 #. Label of a Data field in DocType 'Push Subscription'
 #: suite/mail/doctype/push_subscription/push_subscription.json
 msgid "Device Client ID"
-msgstr ""
+msgstr "ID client de l'appareil"
 
 #. Label of a Data field in DocType 'E2EE Device Key'
 #: suite/meet/doctype/e2ee_device_key/e2ee_device_key.json
 msgid "Device ID"
-msgstr ""
+msgstr "ID de l'appareil"
 
 #. Option for the 'DNS Provider' (Select) field in DocType 'Mail Settings'
 #: suite/mail/doctype/mail_settings/mail_settings.json
 msgid "DigitalOcean"
-msgstr ""
+msgstr "DigitalOcean"
 
 #: frontend/src/apps/mail/components/Modals/SetSieveScriptStateModal.vue:47
 msgid "Disable"
-msgstr ""
+msgstr "Désactiver"
 
 #. Label of a Check field in DocType 'Mailbox Settings'
 #: suite/mail/doctype/mailbox_settings/mailbox_settings.json
 msgid "Disable Push Notification"
-msgstr ""
+msgstr "Désactiver la notification push"
 
 #: frontend/src/apps/mail/components/Modals/FolderModal.vue:47
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Disable Push Notifications"
-msgstr ""
+msgstr "Désactiver les notifications push"
 
 #. Description of the 'Enabled' (Check) field in DocType 'Mail Cluster'
 #: suite/mail/doctype/mail_cluster/mail_cluster.json
 msgid "Disable to stop sending and receiving emails form this cluster."
 msgstr ""
+"Désactivez cette option pour arrêter l'envoi et la réception d'e-mails "
+"depuis ce cluster."
 
 #. Description of the 'Enabled' (Check) field in DocType 'Mail Server'
 #: suite/mail/doctype/mail_server/mail_server.json
 msgid "Disable to stop this mail server from sending or receiving emails."
 msgstr ""
+"Désactivez cette option pour empêcher ce serveur mail d'envoyer ou de "
+"recevoir des e-mails."
 
 #: frontend/src/apps/mail/pages/dashboard/DomainView.vue:206
 #: frontend/src/apps/mail/pages/dashboard/DomainsView.vue:43
@@ -3853,38 +4033,38 @@ msgstr ""
 #: suite/public/frontend/assets/DomainsView-B4Sr3Lf2.js:1
 #: suite/public/frontend/assets/DomainsView-DJfZSG9V.js:1
 msgid "Disabled"
-msgstr ""
+msgstr "Désactivé"
 
 #: frontend/src/apps/mail/components/PWASettings.vue:29
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Disabling Push Notifications..."
-msgstr ""
+msgstr "Désactivation des notifications push..."
 
 #: frontend/src/apps/mail/components/ComposeMailToolbar.vue:38
 #: frontend/src/apps/mail/components/SendMailMobileLayout.vue:52
 msgid "Discard"
-msgstr ""
+msgstr "Abandonner"
 
 #: frontend/src/apps/mail/components/ComposeMailToolbar.vue:39
 msgid "Discard ({0}+D)"
-msgstr ""
+msgstr "Abandonner ({0}+D)"
 
 #: frontend/src/apps/mail/components/Modals/ShortcutsModal.vue:58
 #: suite/public/frontend/assets/ShortcutsModal-Bz1LX5rN.js:1
 #: suite/public/frontend/assets/ShortcutsModal-lrP_-Pnq.js:1
 msgid "Discard Draft"
-msgstr ""
+msgstr "Abandonner le brouillon"
 
 #. Label of a Section Break field in DocType 'Drive Disk Settings'
 #: suite/drive/doctype/drive_disk_settings/drive_disk_settings.json
 msgid "Disk"
-msgstr ""
+msgstr "Disque"
 
 #. Option for the 'Action' (Select) field in DocType 'Event Alert'
 #: suite/mail/doctype/event_alert/event_alert.json
 msgid "Display"
-msgstr ""
+msgstr "Affichage"
 
 #. Label of a Data field in DocType 'Email Address'
 #. Label of a Data field in DocType 'Mail Message Recipient'
@@ -3898,32 +4078,34 @@ msgstr ""
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Display Name"
-msgstr ""
+msgstr "Nom d'affichage"
 
 #. Description of the 'Name' (Data) field in DocType 'Sieve Script'
 #: suite/mail/doctype/sieve_script/sieve_script.json
 msgid "Display name of the Sieve script."
-msgstr ""
+msgstr "Nom d'affichage du script Sieve."
 
 #. Label of a Select field in DocType 'Mail Message Part'
 #: suite/mail/doctype/mail_message_part/mail_message_part.json
 msgid "Disposition"
-msgstr ""
+msgstr "Disposition"
 
 #. Label of a Check field in DocType 'Drive Disk Settings'
 #: suite/drive/doctype/drive_disk_settings/drive_disk_settings.json
 msgid "Do not mimic folder/file structure"
-msgstr ""
+msgstr "Ne pas reproduire la structure des dossiers/fichiers"
 
 #: frontend/src/apps/calendar/components/Modals/EventModal.vue:409
 #: frontend/src/apps/calendar/pages/CalendarView.vue:235
 msgid "Do you want to update just this instance, or all events in the series?"
 msgstr ""
+"Souhaitez-vous mettre à jour uniquement cette occurrence ou tous les "
+"événements de la série ?"
 
 #. Label of a Dynamic Link field in DocType 'Drive Notification'
 #: suite/drive/doctype/drive_notification/drive_notification.json
 msgid "DocType Name"
-msgstr ""
+msgstr "Nom du DocType"
 
 #. Description of the 'Image' (Data) field in DocType 'Server Deployment
 #. Service'
@@ -3931,6 +4113,8 @@ msgstr ""
 msgid ""
 "Docker image with tag (e.g. stalwartlabs/stalwart:latest, redis:7-alpine)."
 msgstr ""
+"Image Docker avec un tag (ex. : stalwartlabs/stalwart:latest, "
+"redis:7-alpine)."
 
 #. Label of a Link field in DocType 'Writer Version'
 #: suite/writer/doctype/writer_version/writer_version.json
@@ -3940,7 +4124,7 @@ msgstr "Document"
 #. Label of a Data field in DocType 'Drive Entity Activity Log'
 #: suite/drive/doctype/drive_entity_activity_log/drive_entity_activity_log.json
 msgid "Document Field"
-msgstr ""
+msgstr "Champ du document"
 
 #. Label of a Link field in DocType 'Drive Notification'
 #: suite/drive/doctype/drive_notification/drive_notification.json
@@ -3951,12 +4135,12 @@ msgstr "Type de document"
 #: suite/public/frontend/assets/DriveLayout-CH1ChDVD.js:1
 #: suite/public/frontend/assets/DriveLayout-D1kFCuOm.js:1
 msgid "Documentation"
-msgstr ""
+msgstr "Documentation"
 
 #: frontend/src/apps/drive/components/NeoCockpitSidebar.vue:107
 #: suite/public/frontend/assets/DriveLayout-CH1ChDVD.js:1
 msgid "Documents"
-msgstr ""
+msgstr "Documents"
 
 #. Label of a Data field in DocType 'Mail Account Request'
 #: frontend/src/apps/mail/components/Modals/AddMemberModal.vue:31
@@ -3967,7 +4151,7 @@ msgstr ""
 #: suite/public/frontend/assets/MembersView-CrsoRnyN.js:1
 #: suite/public/frontend/assets/MembersView-D1EICJPk.js:1
 msgid "Domain"
-msgstr ""
+msgstr "Domaine"
 
 #: frontend/src/apps/mail/components/Modals/AddDomainModal.vue:27
 #: frontend/src/apps/mail/pages/SignupView.vue:20
@@ -3976,37 +4160,37 @@ msgstr ""
 #: suite/public/frontend/assets/SignupView-CzgBWzJw.js:1
 #: suite/public/frontend/assets/SignupView-xmqW9ozt.js:1
 msgid "Domain Name"
-msgstr ""
+msgstr "Nom de domaine"
 
 #: frontend/src/apps/mail/components/Modals/AddDomainModal.vue:79
 #: suite/public/frontend/assets/DomainsView-B4Sr3Lf2.js:1
 #: suite/public/frontend/assets/DomainsView-DJfZSG9V.js:1
 msgid "Domain added."
-msgstr ""
+msgstr "Domaine ajouté."
 
 #: suite/mail/doctype/mail_account_request/mail_account_request.py:110
 msgid "Domain is mandatory."
-msgstr ""
+msgstr "Le domaine est obligatoire."
 
 #: suite/mail/api/admin.py:31 suite/mail/stalwart/domain.py:268
 msgid "Domain not found"
-msgstr ""
+msgstr "Domaine introuvable"
 
 #: suite/mail/stalwart/domain.py:268
 msgid "Domain with ID {0} not found."
-msgstr ""
+msgstr "Domaine avec l'ID {0} introuvable."
 
 #: suite/mail/api/admin.py:43
 msgid "Domain {0} already exists."
-msgstr ""
+msgstr "Le domaine {0} existe déjà."
 
 #: suite/mail/api/account.py:50
 msgid "Domain {0} is not allowed for signup."
-msgstr ""
+msgstr "Le domaine {0} n'est pas autorisé pour l'inscription."
 
 #: suite/mail/stalwart/__init__.py:65
 msgid "Domain {0} not found."
-msgstr ""
+msgstr "Domaine {0} introuvable."
 
 #: frontend/src/apps/mail/components/AppSidebar.vue:253
 #: frontend/src/apps/mail/pages/dashboard/DomainView.vue:197
@@ -4017,18 +4201,20 @@ msgstr ""
 #: suite/public/frontend/assets/DomainsView-B4Sr3Lf2.js:1
 #: suite/public/frontend/assets/DomainsView-DJfZSG9V.js:1
 msgid "Domains"
-msgstr ""
+msgstr "Domaines"
 
 #. Description of the 'Signup Domains' (Small Text) field in DocType 'Mail
 #. Settings'
 #: suite/mail/doctype/mail_settings/mail_settings.json
 msgid "Domains allowed for signup."
-msgstr ""
+msgstr "Domaines autorisés pour l'inscription."
 
 #: suite/public/frontend/assets/MailLayout-BqtceyVo.js:1
 #: suite/public/frontend/assets/MailLayout-CJv4pUVX.js:1
 msgid "Don't load remote images from untrusted sources by default."
 msgstr ""
+"Ne pas charger par défaut les images distantes provenant de sources non "
+"fiables."
 
 #: frontend/src/apps/drive/components/GenericPage.vue:286
 #: frontend/src/apps/drive/components/Navbar.vue:182
@@ -4043,7 +4229,7 @@ msgstr "Télécharger"
 
 #: frontend/src/apps/mail/components/MailActions.vue:245
 msgid "Download Email"
-msgstr ""
+msgstr "Télécharger l'e-mail"
 
 #: frontend/src/apps/mail/components/MailThread.vue:282
 #: frontend/src/apps/mail/components/MailThread.vue:283
