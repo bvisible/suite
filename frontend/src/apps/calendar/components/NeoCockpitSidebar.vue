@@ -61,9 +61,11 @@ const contextNav = computed(() => [
 					color: c.color || '#9BA3AF',
 					dim: !visibleCalendars.includes(c.name),
 					shared: sharedCount > 0,
-					sharedTitle: sharedCount
-						? __('Shared with {0} people', [sharedCount])
-						: undefined,
+					sharedTitle: !sharedCount
+						? undefined
+						: sharedCount === 1
+							? __('Shared with 1 person')
+							: __('Shared with {0} people', [sharedCount]),
 					onClick: () => emit('update:visibleCalendars', c.name),
 				}
 			}),

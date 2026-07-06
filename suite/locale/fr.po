@@ -16534,3 +16534,9 @@ msgstr "{0} : {1}"
 #: suite/public/frontend/assets/MailboxView-OJYYFRSM.js:1
 msgid "— No message body —"
 msgstr "— Aucun corps du message —"
+
+msgid "Shared with 1 person"
+msgstr "Partagé avec 1 personne"
+
+msgid "Shared with {0} people"
+msgstr "Partagé avec {0} personnes"
