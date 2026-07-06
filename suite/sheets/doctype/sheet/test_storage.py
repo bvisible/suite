@@ -1,6 +1,7 @@
 # Copyright (c) 2026, Asif and Contributors
 # See license.txt
 """Unit tests for the sheets_data gzip storage envelope."""
+from __future__ import annotations
 
 import json
 import unittest

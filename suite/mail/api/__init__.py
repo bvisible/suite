@@ -1,3 +1,4 @@
+from __future__ import annotations
 import frappe
 from frappe.apps import get_apps
 from frappe.translate import get_all_translations

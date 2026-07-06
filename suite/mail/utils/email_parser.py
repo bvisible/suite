@@ -1,3 +1,4 @@
+from __future__ import annotations
 import re
 from email import message_from_string, policy
 from email.header import decode_header, make_header

@@ -13,6 +13,7 @@ Documents written before this change remain plain JSON strings; the decoder
 falls back to returning the input unchanged in that case, so existing sheets
 keep working and migrate lazily on their next save.
 """
+from __future__ import annotations
 
 import base64
 import binascii

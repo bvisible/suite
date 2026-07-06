@@ -1,3 +1,4 @@
+from __future__ import annotations
 import frappe
 
 no_cache = 1

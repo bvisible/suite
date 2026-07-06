@@ -1,6 +1,7 @@
 # Copyright (c) 2026, Frappe and contributors
 # For license information, please see license.txt
 
+from __future__ import annotations
 import frappe
 import jwt
 from frappe.tests import IntegrationTestCase

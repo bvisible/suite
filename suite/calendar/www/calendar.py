@@ -1,3 +1,4 @@
+from __future__ import annotations
 no_cache = 1
 
 

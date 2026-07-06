@@ -1,3 +1,4 @@
+from __future__ import annotations
 import frappe
 
 CONFIG_KEY_FIELD_MAP = {

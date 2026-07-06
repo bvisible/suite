@@ -1,6 +1,7 @@
 # Copyright (c) 2024, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+from __future__ import annotations
 import re
 import socket
 from email import message_from_string

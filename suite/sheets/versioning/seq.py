@@ -9,6 +9,7 @@ Allocation is idempotent at the row-creation step: if two requests hit a
 brand-new sheet simultaneously, only one INSERT succeeds; the other reads the
 row and increments normally.
 """
+from __future__ import annotations
 
 import frappe
 

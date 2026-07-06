@@ -1,3 +1,4 @@
+from __future__ import annotations
 import frappe
 
 from suite.mail.doctype.address_book.address_book import fetch_address_books

@@ -1,3 +1,4 @@
+from __future__ import annotations
 import frappe
 
 from suite.drive.api.product import is_admin

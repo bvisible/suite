@@ -1,3 +1,4 @@
+from __future__ import annotations
 import frappe
 import json
 from pycrdt import Doc, Map

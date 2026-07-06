@@ -1,3 +1,4 @@
+from __future__ import annotations
 import unittest
 
 from suite.drive.utils.files import storage_key, get_s3_url, get_s3_key

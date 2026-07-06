@@ -9,6 +9,7 @@ Read and written exclusively by the internal collab endpoints in
 `suite.sheets.api` — Desk access is reserved for System Managers so an
 operator can inspect / wipe stuck rows during incidents.
 """
+from __future__ import annotations
 
 import frappe
 from frappe.model.document import Document

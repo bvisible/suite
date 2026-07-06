@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 
+from __future__ import annotations
 import json
 from typing import Literal
 from uuid import uuid7

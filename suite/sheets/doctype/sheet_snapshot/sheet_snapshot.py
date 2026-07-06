@@ -7,6 +7,7 @@ of reconstructing past state and to anchor user-facing restore points.
 Lifecycle is owned by the versioning module (`suite.sheets.versioning`),
 not by Desk forms — the controller is intentionally minimal.
 """
+from __future__ import annotations
 
 import frappe
 from frappe.model.document import Document

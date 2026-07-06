@@ -1,3 +1,4 @@
+from __future__ import annotations
 import frappe
 
 from suite.mail.doctype.jmap_account.jmap_account import sync_jmap_accounts

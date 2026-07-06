@@ -1,3 +1,4 @@
+from __future__ import annotations
 from frappe.search.sqlite_search import SQLiteSearch
 from frappe.utils import cstr
 import frappe

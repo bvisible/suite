@@ -15,6 +15,7 @@ template can't honour ("sum where status is paid", "top 5", "group by"), return
 None so the model handles it rather than silently doing the wrong thing. Only
 formula functions the engine actually implements are emitted.
 """
+from __future__ import annotations
 
 import re
 

@@ -1,3 +1,4 @@
+from __future__ import annotations
 from urllib.parse import quote
 
 from suite.mail.utils import get_config

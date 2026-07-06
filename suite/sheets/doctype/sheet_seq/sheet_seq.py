@@ -4,6 +4,7 @@ One row per sheet. Allocation goes through `versioning.seq.allocate()` which
 takes a row lock to serialise concurrent writers. Controller is a thin
 shell — all logic is in the versioning module.
 """
+from __future__ import annotations
 
 import frappe
 from frappe.model.document import Document

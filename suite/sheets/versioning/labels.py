@@ -3,6 +3,7 @@
 Deletion is allowed only for unpinned snapshots — pinned/named ones are
 user-curated and survive nightly rollup.
 """
+from __future__ import annotations
 
 import frappe
 

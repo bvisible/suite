@@ -6,6 +6,7 @@ Parity with the frontend packer (frontend/src/utils/sheet-codec.js) matters:
 AI Assist reads cell values out of a payload the browser wrote, so the column
 labelling and row offsets must agree exactly.
 """
+from __future__ import annotations
 
 import unittest
 

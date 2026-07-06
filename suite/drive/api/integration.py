@@ -1,3 +1,4 @@
+from __future__ import annotations
 import frappe
 
 from suite.drive.utils import PRESENTATION_CONTENT_DOCTYPE

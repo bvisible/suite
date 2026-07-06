@@ -7,6 +7,7 @@ happens in-app via the ``get_ai_settings`` / ``save_ai_settings`` endpoints
 reads the cleartext with ``self.get_password("api_key")`` only when calling
 the Anthropic API.
 """
+from __future__ import annotations
 
 import frappe
 from frappe.model.document import Document

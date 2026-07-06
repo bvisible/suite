@@ -1,3 +1,4 @@
+from __future__ import annotations
 from suite.mail.storage import destroy_data_store
 
 

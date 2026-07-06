@@ -1,3 +1,4 @@
+from __future__ import annotations
 from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import cached_property

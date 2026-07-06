@@ -1,3 +1,4 @@
+from __future__ import annotations
 import frappe
 from frappe.utils import getdate
 from frappe.model.document import Document

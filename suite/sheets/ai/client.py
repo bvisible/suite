@@ -7,6 +7,7 @@ the client). The Anthropic SDK is imported lazily so a server without the
 package fails with a clear message instead of breaking ``api`` import, and the
 API key is never logged.
 """
+from __future__ import annotations
 
 import json
 

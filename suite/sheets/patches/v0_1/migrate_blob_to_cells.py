@@ -6,6 +6,7 @@ empty), it's skipped. The legacy `sheets_data` blob is preserved on the
 parent doc as a rollback artifact; cut-over code in the v2 API reads from
 the new cells, not the blob.
 """
+from __future__ import annotations
 
 import json
 

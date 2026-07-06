@@ -11,6 +11,7 @@ block another's setup.
 Imports are performed lazily inside each dispatcher so that importing
 ``suite.hooks`` never eagerly pulls in every module's heavy dependencies.
 """
+from __future__ import annotations
 
 import frappe
 

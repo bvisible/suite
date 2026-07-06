@@ -1,3 +1,4 @@
+from __future__ import annotations
 import frappe
 
 OLD_PREFIX = "/api/method/drive.api.s3.fetch?path="

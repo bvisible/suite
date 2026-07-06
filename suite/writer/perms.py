@@ -1,3 +1,4 @@
+from __future__ import annotations
 import frappe
 from suite.drive.api.permissions import user_has_permission
 

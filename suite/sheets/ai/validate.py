@@ -7,6 +7,7 @@ frontend applies it to the grid. Phase 1 understands two action types:
   * ``setCell`` — write a formula/value into one cell (A1 notation)
   * ``answer``  — read-only text response, no mutation
 """
+from __future__ import annotations
 
 import re
 

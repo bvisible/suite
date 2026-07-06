@@ -1,6 +1,7 @@
 """
 Create framework `File` records from legacy `Drive File` rows.
 """
+from __future__ import annotations
 
 import json
 

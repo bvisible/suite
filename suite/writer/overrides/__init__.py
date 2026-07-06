@@ -1,3 +1,4 @@
+from __future__ import annotations
 from suite.drive.api.permissions import get_teams
 import frappe
 

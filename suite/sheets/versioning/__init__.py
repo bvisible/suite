@@ -18,3 +18,4 @@ Public surface:
 * `api.*`                        — whitelisted endpoints (v2)
 * `tasks.*`                      — scheduled rollup + truncation
 """
+from __future__ import annotations

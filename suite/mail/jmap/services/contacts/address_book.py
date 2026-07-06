@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import ClassVar
 
 from suite.mail.jmap.services.contacts.contacts import ContactsService

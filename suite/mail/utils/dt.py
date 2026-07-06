@@ -1,3 +1,4 @@
+from __future__ import annotations
 from datetime import UTC, date, datetime, timezone
 from email.utils import parsedate_to_datetime as parsedate
 from zoneinfo import ZoneInfo

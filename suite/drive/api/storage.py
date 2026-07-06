@@ -1,3 +1,4 @@
+from __future__ import annotations
 import frappe
 from frappe import _
 from pypika import functions as fn

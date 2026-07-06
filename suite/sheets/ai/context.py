@@ -11,6 +11,7 @@ The cell map handed in is the flat ``{cellId: rawValue}`` form stored under
 ``decoded["sheet"]["sheets"][sheetName]`` — values are raw primitives, and a
 formula is just a string beginning with ``=``.
 """
+from __future__ import annotations
 
 import re
 

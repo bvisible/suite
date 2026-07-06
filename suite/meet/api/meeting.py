@@ -1,6 +1,7 @@
 # Copyright (c) 2025, Frappe and contributors
 # For license information, please see license.txt
 
+from __future__ import annotations
 import base64
 import binascii
 import secrets

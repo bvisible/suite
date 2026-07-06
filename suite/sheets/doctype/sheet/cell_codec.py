@@ -6,6 +6,7 @@ becomes ``{rows: {"0": [v, v, ...]}}``. Server code that needs the actual cell
 values back — currently only AI Assist context-building — goes through here so
 it transparently understands both the compact (v2) and legacy shapes.
 """
+from __future__ import annotations
 
 PACK_VERSION = 2
 

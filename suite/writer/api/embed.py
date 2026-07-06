@@ -1,3 +1,4 @@
+from __future__ import annotations
 import frappe
 from suite.drive.api.files import upload_file, get_file_internal
 from suite.drive.api.permissions import user_has_permission

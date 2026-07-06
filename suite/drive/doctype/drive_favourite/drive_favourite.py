@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 # import frappe
+from __future__ import annotations
 from suite.drive.api.permissions import user_has_permission
 from frappe.model.document import Document
 import frappe
