@@ -62,8 +62,8 @@ def has_user_settings(user: str, raise_exception: bool = False) -> bool:
 def is_jmap_configured(user: str, raise_exception: bool = False) -> bool:
 	"""Returns True if the user has JMAP settings configured else False."""
 
-	# Neoffice (v15): ["!=", None] renders as `!= NULL` in SQL and never matches
-	# on Frappe v15 — use the "is set" idiom (works on v15 and v16).
+	# //// Neoffice (v15): ["!=", None] renders as `!= NULL` in SQL and never matches
+	# on Frappe v15 — use the "is set" idiom (works on v15 and v16). ////
 	if frappe.db.exists("User Settings", {"user": user, "username": ["is", "set"]}):
 		return True
 

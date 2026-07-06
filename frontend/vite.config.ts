@@ -49,7 +49,7 @@ export default defineConfig(({ mode }) => ({
         baseUrl: '/assets/suite/frontend/',
         indexHtmlPath: '../suite/www/suite.html',
         emptyOutDir: true,
-        sourcemap: false, // Neoffice: assets are committed — keep the repo lean
+        sourcemap: false, // //// Neoffice: assets are committed — keep the repo lean ////
       },
     }),
     vue(),
@@ -98,7 +98,7 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     // outDir/baseUrl/indexHtmlPath are owned by frappeui buildConfig above.
-    sourcemap: false, // Neoffice: assets are committed — keep the repo lean
+    sourcemap: false, // //// Neoffice: assets are committed — keep the repo lean ////
     target: 'esnext',
     commonjsOptions: {
       include: [/tailwind.config.js/, /node_modules/],

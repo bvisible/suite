@@ -724,6 +724,12 @@ def search(query: str):
 
 @frappe.whitelist(allow_guest=True)
 def translate_old_name(old_name: str):
+    # //// Neoffice: the old_name column only exists after the drive->suite data
+    # migration (team_restructure patch). On fresh installs it is absent and this
+    # endpoint must return None instead of raising OperationalError (which kills
+    # the SPA file view). ////
+    if not frappe.db.has_column("File", "old_name"):
+        return None
     return frappe.get_value("File", {"old_name": old_name}, "name")
 
 

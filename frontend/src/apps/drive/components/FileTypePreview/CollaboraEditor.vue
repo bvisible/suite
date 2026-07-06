@@ -1,3 +1,4 @@
+<!-- //// Neoffice: new file — Collabora editor iframe (WOPI port from drive_wopi) //// -->
 <template>
   <div class="relative w-full h-full flex flex-col">
     <!-- Hidden form: WOPI hands the access token to the iframe via POST -->

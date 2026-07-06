@@ -1,7 +1,7 @@
 from __future__ import annotations
 __version__ = "0.0.1"
 
-# ---- Neoffice: Python 3.12 compatibility -----------------------------------
+# //// Neoffice: Python 3.12 compatibility ////
 # uuid.uuid7() landed in Python 3.14 (RFC 9562) and suite imports it as
 # `from uuid import uuid7`. The Neoffice fleet runs Frappe v15 on Python 3.12,
 # so graft a spec-compliant fallback onto the stdlib module here: this package
@@ -25,4 +25,4 @@ if not hasattr(_uuid, "uuid7"):
 		return _uuid.UUID(int=value)
 
 	_uuid.uuid7 = _uuid7
-# -----------------------------------------------------------------------------
+# //// end Neoffice ////

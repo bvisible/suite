@@ -9,10 +9,10 @@ __pycache__/
 node_modules
 yarn-error.log
 
-# Neoffice (version-15): built SPA output (public/frontend, www/*.html,
+# //// Neoffice (version-15): built SPA output (public/frontend, www/*.html,
 # service-worker) IS committed — commit-the-build like the other fleet SPAs,
 # instances never rebuild the frontend. Bench bundles (public/dist) stay
-# ignored: rebuilt on-instance by `bench build --app suite`.
+# ignored: rebuilt on-instance by `bench build --app suite`. ////
 /suite/**/public/dist/
 
 # Migrated Node sidecar build output (sfu-server / collab-server also carry own .gitignore)

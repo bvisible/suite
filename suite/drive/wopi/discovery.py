@@ -1,3 +1,4 @@
+# //// Neoffice: new file — Collabora/WOPI port (from drive_wopi), maintained by Neoffice ////
 """Collabora discovery client.
 
 Fetches editor URLs from Collabora's discovery endpoint and builds the

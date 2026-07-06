@@ -1,8 +1,8 @@
 <template>
-  <!-- Neoffice: when the on-prem Collabora (WOPI) backend is available, Office
+  <!-- //// Neoffice: when the on-prem Collabora (WOPI) backend is available, Office
        files open straight in the collaborative editor (read-only iframe when
        the user lacks write access). The upstream Microsoft-viewer flow stays
-       as fallback when Collabora is off/unreachable. -->
+       as fallback when Collabora is off/unreachable. //// -->
   <CollaboraEditor v-if="collabora === true" :preview-entity="previewEntity" @error="collabora = false" />
   <div v-else-if="collabora === null" class="w-full h-full flex items-center justify-center">
     <LucideLoaderCircle class="size-7 animate-spin text-ink-gray-6" />
@@ -49,7 +49,7 @@ const props = defineProps({
   previewEntity: Object,
 })
 
-// null = probing, true = Collabora available, false = fallback to MS viewer
+// //// Neoffice: null = probing, true = Collabora available, false = MS viewer fallback ////
 const collabora = ref(null)
 const canEdit = createResource({
   url: 'suite.drive.wopi.editor.can_edit_file',

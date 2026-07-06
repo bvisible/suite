@@ -1,3 +1,4 @@
+# //// Neoffice: new file — Collabora/WOPI port (from drive_wopi), maintained by Neoffice ////
 """WOPI URL handler for Collabora Online.
 
 Routes (declared in suite/hooks.py website_route_rules):

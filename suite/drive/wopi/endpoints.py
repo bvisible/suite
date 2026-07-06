@@ -1,3 +1,4 @@
+# //// Neoffice: new file — Collabora/WOPI port (from drive_wopi), maintained by Neoffice ////
 """WOPI REST endpoints for Collabora Online, backed by the native File doctype.
 
 Ported from the Neoffice `drive_wopi` app (which targeted the standalone

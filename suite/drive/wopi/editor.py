@@ -1,3 +1,4 @@
+# //// Neoffice: new file — Collabora/WOPI port (from drive_wopi), maintained by Neoffice ////
 """API endpoints for the Collabora editor integration (native File backend)."""
 
 from __future__ import annotations

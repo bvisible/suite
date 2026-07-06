@@ -1,3 +1,4 @@
+# //// Neoffice: new file — Collabora/WOPI port (from drive_wopi), maintained by Neoffice ////
 """
 Collabora coolwsd lifecycle management — start on-demand, stop when idle.
 
