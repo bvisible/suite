@@ -298,21 +298,48 @@ def share_calendar(account: str, id: str, share_with: list | str) -> None:
 
 @frappe.whitelist()
 def get_caldav_url(account: str, id: str) -> dict:
-	"""//// Neoffice: CalDAV subscription URL for a calendar, so users can add it
-	to external clients (Apple Calendar, Thunderbird…). Stalwart serves DAV at
-	/dav/cal (confirmed via /.well-known/caldav → /dav/cal). ////"""
+	"""//// Neoffice: CalDAV subscription details for a calendar (URL + the
+	credentials to use in external clients: Apple Calendar, Thunderbird…).
+	Stalwart serves DAV at /dav/cal and authenticates with the app_password
+	(NOT the Frappe password). Only the account owner receives the password. ////"""
+
+	from urllib.parse import quote
 
 	from suite.mail.doctype.user_account.user_account import get_user_for_jmap_account
 
 	user = get_user_for_jmap_account(account)
-	username = frappe.db.get_value("User Settings", {"user": user}, "username") or ""
+	settings_name = frappe.db.get_value("User Settings", {"user": user}, "name") if user else None
+	username = (frappe.db.get_value("User Settings", settings_name, "username") if settings_name else "") or ""
 	host = frappe.utils.get_url().rstrip("/")
 
-	return {
-		"url": f"{host}/dav/cal/{username}/{id}/",
+	# Stalwart's per-calendar DAV path uses an internal name (e.g. "default",
+	# "SzqOfslcM2"), NOT the JMAP id — and it isn't exposed over JMAP. So we hand
+	# out the account's calendar HOME collection (URL-encoded username): every
+	# CalDAV client auto-discovers all the user's calendars from it.
+	user_path = quote(username, safe="")
+	home = f"{host}/dav/cal/{user_path}/"
+
+	result = {
+		"url": home,
 		"discovery": f"{host}/.well-known/caldav",
 		"username": username,
+		"password": "",
+		"link": "",
 	}
+
+	# Only the owner gets the credentials (the app_password is the JMAP secret).
+	if settings_name and user == frappe.session.user:
+		app_password = frappe.get_doc("User Settings", settings_name).get_password("app_password") or ""
+		result["password"] = app_password
+		# One-shot link with the token embedded (user + app_password) so the
+		# client connects from a single URL — no separate login to type.
+		if app_password:
+			scheme, _, hostpart = host.partition("://")
+			result["link"] = (
+				f"{scheme}://{user_path}:{quote(app_password, safe='')}@{hostpart}/dav/cal/{user_path}/"
+			)
+
+	return result
 
 
 @frappe.whitelist()

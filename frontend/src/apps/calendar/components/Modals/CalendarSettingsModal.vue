@@ -65,20 +65,44 @@
 
 				<!-- CalDAV -->
 				<div>
-					<label class="text-ink-gray-5 mb-2 block text-xs">{{ __('CalDAV address') }}</label>
+					<label class="text-ink-gray-5 mb-2 block text-xs">{{ __('CalDAV link') }}</label>
 					<div class="flex items-center gap-2">
 						<input
-							ref="caldavInput"
 							readonly
-							:value="caldav.data?.url"
+							:value="caldavLink"
 							class="form-input flex-1 truncate rounded border-outline-gray-2 text-xs"
 							@focus="(e) => e.target.select()"
 						/>
 						<Button :label="copied ? __('Copied') : __('Copy')" @click="copyCaldav" />
 					</div>
 					<p class="text-ink-gray-5 mt-1 text-xs">
-						{{ __('Add this address in Apple Calendar / Thunderbird to subscribe.') }}
+						{{ __('Paste this single link into Apple Calendar / Thunderbird — it already includes your access.') }}
 					</p>
+					<details class="mt-2">
+						<summary class="text-ink-gray-5 cursor-pointer text-xs">
+							{{ __('Or enter the address and sign in separately') }}
+						</summary>
+						<div class="text-ink-gray-6 mt-2 flex flex-col gap-1 text-xs">
+							<div>
+								<span class="text-ink-gray-5">{{ __('Address') }}:</span>
+								{{ caldav.data?.url }}
+							</div>
+							<div>
+								<span class="text-ink-gray-5">{{ __('User') }}:</span>
+								{{ caldav.data?.username }}
+							</div>
+							<div class="flex items-center gap-2">
+								<span class="text-ink-gray-5">{{ __('Password') }}:</span>
+								<span class="font-mono">{{ showPass ? caldav.data?.password : '••••••••••' }}</span>
+								<button type="button" class="text-ink-gray-7 underline" @click="showPass = !showPass">
+									{{ showPass ? __('Hide') : __('Show') }}
+								</button>
+							</div>
+							<p class="text-ink-gray-4">
+								{{ __('The password is your mail app password, not your login password.') }}
+							</p>
+						</div>
+					</details>
 				</div>
 			</div>
 		</template>
@@ -135,7 +159,7 @@ const name = ref('')
 const color = ref(SWATCHES[0])
 const levels = reactive<Record<string, string>>({})
 const copied = ref(false)
-const caldavInput = ref()
+const showPass = ref(false)
 
 const calId = computed(() => (calendar?.name || '').split('|').pop())
 
@@ -165,6 +189,9 @@ const caldav = createResource({
 	url: 'suite.mail.doctype.calendar.calendar.get_caldav_url',
 	makeParams: () => ({ account, id: calId.value }),
 })
+// The one-click link embeds the token; fall back to the plain URL if the
+// caller isn't the owner (no password returned).
+const caldavLink = computed(() => caldav.data?.link || caldav.data?.url || '')
 
 // //// Neoffice: immediate — the dialog is mounted (v-if) already open, so a
 // plain watch on `show` would miss the initial true and never load the data. ////
@@ -181,9 +208,8 @@ watch(
 )
 
 function copyCaldav() {
-	const url = caldav.data?.url
-	if (!url) return
-	navigator.clipboard?.writeText(url)
+	if (!caldavLink.value) return
+	navigator.clipboard?.writeText(caldavLink.value)
 	copied.value = true
 	setTimeout(() => (copied.value = false), 1500)
 }
