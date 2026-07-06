@@ -224,6 +224,9 @@ doc_events = {
 			"suite.drive.utils.users.assign_drive_role_and_create_settings",
 			"suite.meet.utils.user.assign_meet_role",
 			"suite.mail.events.create_user_settings",
+			# //// Neoffice: auto-provision the Stalwart mailbox (mail + calendar)
+			# for new desk users so both work out of the box on deploy. ////
+			"suite.mail.events.provision_mail_account",
 		],
 		"on_update": [
 			"suite.mail.events.update_account_password",
