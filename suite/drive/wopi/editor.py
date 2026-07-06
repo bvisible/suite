@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import shutil
-import tempfile
 
 import frappe
 from frappe import _
@@ -97,13 +96,18 @@ def create_office_file(file_type: str, title: str, parent: str | None = None) ->
         file_size,
     )
 
-    # upload_file MOVES the source into place (os.rename) — hand it a
-    # disposable copy created on the SAME filesystem as the site folder,
-    # otherwise the rename fails with EXDEV when /tmp is a separate mount.
-    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=extension, dir=manager.site_folder)
-    tmp.close()
-    shutil.copyfile(template_path, tmp.name)
-    manager.upload_file(tmp.name, drive_file, create_thumbnail=False)
+    # Write the blank template into place. Not manager.upload_file: that
+    # os.rename()s and assumes the destination directory already exists,
+    # which is not guaranteed for a team home nobody has uploaded into yet.
+    from suite.drive.utils.files import storage_key
+
+    key = storage_key(drive_file.file_url)
+    if manager.s3_enabled:
+        manager.conn.upload_file(template_path, manager.get_bucket(team), get_s3_key(drive_file.file_url))
+    else:
+        dest = manager.site_folder / key
+        os.makedirs(os.path.dirname(dest), exist_ok=True)
+        shutil.copyfile(template_path, dest)
 
     if manager.s3_enabled:
         drive_file.file_url = get_s3_url(get_s3_key(drive_file.file_url))
