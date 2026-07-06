@@ -1,0 +1,1 @@
+import{A as e,It as t,O as n,X as r}from"./vue.runtime.esm-bundler-DwZq-8QY.js";var i=n({__name:`InsertVideo`,props:{editor:{}},setup(n){let i=n;function a(){i.editor.chain().focus().selectAndUploadVideo().run()}return(n,i)=>r(n.$slots,`default`,t(e({onClick:a})))}});export{i as default};

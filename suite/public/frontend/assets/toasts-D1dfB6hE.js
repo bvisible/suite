@@ -1,0 +1,1 @@
+import{j as e}from"./vue.runtime.esm-bundler-DwZq-8QY.js";import{t}from"./toast-Vpz6Pzgu.js";var n=n=>{if(typeof n==`string`)return t.success(n);let{title:r,buttons:i,icon:a,duration:o,type:s}=n;t.create({message:r,action:i?.[0],icon:a&&e(a,{class:`text-ink-base`}),duration:o||5,type:s})};export{n as t};

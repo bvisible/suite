@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html
+  lang="en"
+  data-theme-mode="{{ desk_theme.lower() if desk_theme else 'light' }}"
+  data-theme="{{ desk_theme.lower() if desk_theme else 'light' }}"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Frappe Suite</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/suite/frontend/assets/suite-BK0H7omO.svg" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <script type="module" crossorigin src="/assets/suite/frontend/assets/index-UTv_myj3.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/rolldown-runtime-aKtaBQYM.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/vue.runtime.esm-bundler-DwZq-8QY.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/pinia-x1rPZ1th.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/config-DgUKouBw.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/_plugin-vue_export-helper-BDNMzG2s.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/pageMeta-ChWjEece.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/debounce-BBu4h0MQ.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/dist-DVAuVsb9.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/resources-Dz8QPgYK.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/frappeRequest-DuQ_My8u.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/session-Cqj865AW.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/vue-router-B05I9yXf.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/preload-helper-Bitfz_qk.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/registry-CYmAT0cQ.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/router-CTrnn3rj.js">
+    <link rel="stylesheet" crossorigin href="/assets/suite/frontend/assets/index-z3Hmul78.css">
+  </head>
+  <body>
+    <div id="app" class="h-screen"></div>
+    <div id="modals"></div>
+    <div id="popovers"></div>
+
+    <script>
+      window.csrf_token = '{{ csrf_token }}'
+    </script>
+  
+          <script>
+              {% for key in boot %}
+              window["{{ key }}"] = {{ boot[key] | tojson }};
+              {% endfor %}
+          </script>
+          </body>
+          
+</html>

@@ -1,0 +1,1 @@
+import{Ct as e,ot as t}from"./vue.runtime.esm-bundler-DwZq-8QY.js";function n(n,{windowMs:r=300}={}){let i=e(`animated`),a=0;function o(){a=Date.now()}return t(n,(e,t)=>{!e||t||(i.value=Date.now()-a<r?`animated`:`instant`)}),{motion:i,onPointerDown:o}}export{n as t};

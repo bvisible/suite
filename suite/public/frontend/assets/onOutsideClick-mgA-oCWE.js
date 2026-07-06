@@ -1,0 +1,1 @@
+var e=new Map;function t(e,t,n){let r=e.target;t!==r&&!t.contains(r)&&n?.(e)}var n={beforeMount(n,i,a){let o=i.value,s=function(e){t(e,n,o)};r(n),e.set(n,s),document.addEventListener(`click`,s)},unmounted(e){r(e)}};function r(t){let n=e.get(t);n&&(e.delete(t),document.removeEventListener(`click`,n))}export{n as t};

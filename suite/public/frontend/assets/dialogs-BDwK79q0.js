@@ -1,0 +1,1 @@
+import{Ct as e,xt as t}from"./vue.runtime.esm-bundler-DwZq-8QY.js";var n=e([]);function r(e){let r=t({key:`dialog-`+n.value.length,modelValue:!1,options:e});return r.remove=()=>{n.value=n.value.filter(e=>e.key!==r.key)},n.value.push(r),setTimeout(()=>{r.modelValue=!0},0),r}function i(){return n}function a(){n.value=[]}export{r as n,i as r,a as t};

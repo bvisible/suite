@@ -1,0 +1,1 @@
+throw Error(`Could not resolve "@noble/curves/ed25519.js" imported by "ts-mls". Is it installed?`);
