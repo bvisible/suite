@@ -9,14 +9,7 @@
  * Logos are the apps' own brand marks, vendored under src/assets/app-logos/ and
  * imported so Vite fingerprints them into the shared shell bundle.
  */
-import calendarLogo from '@/assets/app-logos/calendar.svg'
-import driveLogo from '@/assets/app-logos/drive.svg'
-import mailLogo from '@/assets/app-logos/mail.svg'
-import meetLogo from '@/assets/app-logos/meet.png'
-import sheetsLogo from '@/assets/app-logos/sheets.svg'
-import slidesLogo from '@/assets/app-logos/slides.svg'
 import suiteLogo from '@/assets/app-logos/suite.svg'
-import writerLogo from '@/assets/app-logos/writer.png'
 import { jmapUser, systemUser } from '@/boot/session'
 
 export interface SuiteApp {
@@ -44,21 +37,24 @@ export interface SuiteAppSwitcherItem {
 
 export const SUITE_LOGO = suiteLogo
 
+// //// Neoffice: launcher/module icons from the shared apps_v2 set (animated) ////
+const ICON = '/assets/neoffice_theme/icons/apps_v2'
+
 export const SUITE_APPS: SuiteApp[] = [
-  { id: 'drive', name: 'Drive', prefix: '/drive', logo: driveLogo },
+  { id: 'drive', name: 'Drive', prefix: '/drive', logo: `${ICON}/drive.svg` },
   // //// Neoffice: Slides/Writer/Sheets tiles create a Collabora-backed Office
   // file in the Drive (pptx/docx/xlsx) instead of opening the native editors.
   // The native SPAs stay reachable at their /slides /writer /sheets URLs. ////
-  { id: 'slides', name: 'Slides', prefix: '/slides', logo: slidesLogo, createsOffice: 'pptx' },
-  { id: 'writer', name: 'Writer', prefix: '/writer', logo: writerLogo, createsOffice: 'docx' },
-  { id: 'sheets', name: 'Sheets', prefix: '/sheets', logo: sheetsLogo, createsOffice: 'xlsx' },
-  { id: 'meet', name: 'Meet', prefix: '/meet', logo: meetLogo },
+  { id: 'slides', name: 'Slides', prefix: '/slides', logo: `${ICON}/slides.svg`, createsOffice: 'pptx' },
+  { id: 'writer', name: 'Writer', prefix: '/writer', logo: `${ICON}/writer.svg`, createsOffice: 'docx' },
+  { id: 'sheets', name: 'Sheets', prefix: '/sheets', logo: `${ICON}/sheets.svg`, createsOffice: 'xlsx' },
+  { id: 'meet', name: 'Meet', prefix: '/meet', logo: `${ICON}/meet.svg` },
   // //// Neoffice: the Mail tile opens our frappe_webmail — the DESK page
   // /app/webmail (the maintained path; the website route /webmail stays stuck
   // on "Chargement…" because the SPA bundle is only injected in the desk).
   // The JMAP mail client stays reachable at /mail. ////
-  { id: 'mail', name: 'Mail', prefix: '/mail', logo: mailLogo, external: '/app/webmail' },
-  { id: 'calendar', name: 'Calendar', prefix: '/calendar', logo: calendarLogo },
+  { id: 'mail', name: 'Mail', prefix: '/mail', logo: `${ICON}/frappe_webmail.svg`, external: '/app/webmail' },
+  { id: 'calendar', name: 'Calendar', prefix: '/calendar', logo: `${ICON}/calendar.svg` },
 ]
 
 export const SUITE_APP_SWITCHER_ITEMS: SuiteAppSwitcherItem[] = SUITE_APPS.map((app) => ({
