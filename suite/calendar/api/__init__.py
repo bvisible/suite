@@ -16,12 +16,33 @@ from suite.mail.doctype.calendar_event.calendar_event import (
 
 
 @frappe.whitelist()
-def get_calendars(account: str) -> list[dict[str, str]]:
-	"""Returns a list of the specified account's calendars."""
+def get_calendars(account: str) -> list[dict]:
+	"""Returns the account's calendars with the display + permission info the UI
+	needs to render swatches, toggles and the manage/share actions.
 
-	calendars = fetch_calendars(account)
+	//// Neoffice: upstream returned only {name, _name}, so the SPA sidebar had
+	no colour, no visibility flag and no way to know if the user may manage or
+	share a calendar. fetch_calendars already builds all of this via
+	format_calendar — just surface the useful subset (and raise the page limit
+	so every calendar is returned, not the first 10). ////
+	"""
 
-	return [{key: cal[key] for key in ["name", "_name"]} for cal in calendars]
+	fields = (
+		"name",
+		"_name",
+		"id",
+		"color",
+		"description",
+		"visible",
+		"default",
+		"subscribed",
+		"share_with",
+		"may_admin",
+		"may_write_all",
+		"may_delete",
+	)
+	calendars = fetch_calendars(account, limit=100)
+	return [{key: cal.get(key) for key in fields} for cal in calendars]
 
 
 @frappe.whitelist()

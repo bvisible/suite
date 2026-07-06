@@ -5,7 +5,8 @@ import { Button, Calendar, Dialog, createResource, usePageMeta } from 'frappe-ui
 
 import { raiseToast } from '@/apps/calendar/utils'
 import { userStore } from '@/apps/calendar/stores/user'
-import AppSidebar from '@/apps/calendar/components/AppSidebar.vue'
+// //// Neoffice: NeoCockpit chrome for the Calendar (falls back to AppSidebar) ////
+import NeoCockpitSidebar from '@/apps/calendar/components/NeoCockpitSidebar.vue'
 import EventPopoverContent from '@/apps/calendar/components/EventPopoverContent.vue'
 import EventModal from '@/apps/calendar/components/Modals/EventModal.vue'
 
@@ -244,7 +245,7 @@ const NOTIFY_MODAL_OPTIONS = {
 <template>
 	<div class="flex h-screen min-h-0 w-full min-w-0 flex-col">
 		<div class="flex min-h-0 min-w-0 flex-1">
-			<AppSidebar
+			<NeoCockpitSidebar
 				:calendars="calendars?.data || []"
 				:visible-calendars
 				@update:visible-calendars="
@@ -253,6 +254,7 @@ const NOTIFY_MODAL_OPTIONS = {
 							? visibleCalendars.splice(visibleCalendars.indexOf(name), 1)
 							: visibleCalendars.push(name)
 				"
+				@reload="calendars.reload()"
 			/>
 			<div class="min-h-0 min-w-0 flex-1 p-4">
 				<Calendar
