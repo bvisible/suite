@@ -1,6 +1,14 @@
 <template>
+  <!-- Neoffice: when the on-prem Collabora (WOPI) backend is available, Office
+       files open straight in the collaborative editor (read-only iframe when
+       the user lacks write access). The upstream Microsoft-viewer flow stays
+       as fallback when Collabora is off/unreachable. -->
+  <CollaboraEditor v-if="collabora === true" :preview-entity="previewEntity" @error="collabora = false" />
+  <div v-else-if="collabora === null" class="w-full h-full flex items-center justify-center">
+    <LucideLoaderCircle class="size-7 animate-spin text-ink-gray-6" />
+  </div>
   <iframe
-    v-if="warned && jwt_token"
+    v-else-if="warned && jwt_token"
     :src="'https://view.officeapps.live.com/op/embed.aspx?src=' + srcUrl"
     class="w-4/5 mx-auto h-full"
     frameborder="0"
@@ -33,11 +41,26 @@
   </div>
 </template>
 <script setup>
-import { Button } from 'frappe-ui'
-import { computed, ref, watch } from 'vue'
+import { Button, createResource } from 'frappe-ui'
+import { computed, onMounted, ref, watch } from 'vue'
+import CollaboraEditor from '@/apps/drive/components/FileTypePreview/CollaboraEditor.vue'
+import LucideLoaderCircle from '~icons/lucide/loader-circle'
 const props = defineProps({
   previewEntity: Object,
 })
+
+// null = probing, true = Collabora available, false = fallback to MS viewer
+const collabora = ref(null)
+const canEdit = createResource({
+  url: 'suite.drive.wopi.editor.can_edit_file',
+  onSuccess(data) {
+    collabora.value = !!data?.can_edit
+  },
+  onError() {
+    collabora.value = false
+  },
+})
+onMounted(() => canEdit.submit({ file_id: props.previewEntity.name }))
 
 const warned = ref(false)
 watch(warned, async () => {

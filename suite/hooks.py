@@ -61,6 +61,9 @@ website_route_rules = [
 	{"from_route": "/meet/<path:app_path>", "to_route": "suite"},
 	{"from_route": "/calendar", "to_route": "suite"},
 	{"from_route": "/calendar/<path:app_path>", "to_route": "suite"},
+	# Neoffice: WOPI callbacks for Collabora Online (drive editing)
+	{"from_route": "/wopi/files/<file_id>", "to_route": "wopi_handler"},
+	{"from_route": "/wopi/files/<file_id>/contents", "to_route": "wopi_handler"},
 ]
 
 # mail — website redirects
@@ -237,6 +240,10 @@ doc_events = {
 # Scheduled Tasks (per-frequency lists combined; cron keys de-duplicated)
 # ============================================================================
 scheduler_events = {
+	"all": [
+		# Neoffice: stop coolwsd (Collabora) after 15 min without editing sessions
+		"suite.drive.wopi.lifecycle.stop_if_idle",
+	],
 	"daily": [
 		# drive
 		"suite.drive.api.scripts.auto_delete_from_trash",

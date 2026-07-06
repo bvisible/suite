@@ -1,0 +1,96 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2025-12-22 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "enabled",
+  "section_collabora",
+  "collabora_server_url",
+  "column_break_1",
+  "jwt_secret",
+  "jwt_expiry_hours",
+  "section_status",
+  "connection_status",
+  "last_check"
+ ],
+ "fields": [
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "section_collabora",
+   "fieldtype": "Section Break",
+   "label": "Collabora Server Configuration"
+  },
+  {
+   "fieldname": "collabora_server_url",
+   "fieldtype": "Data",
+   "label": "Collabora Server URL",
+   "reqd": 0,
+   "description": "URL of your Collabora Online server. Leave empty to use the current site URL (assumes Collabora is proxied via nginx on the same domain)."
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "jwt_secret",
+   "fieldtype": "Password",
+   "label": "JWT Secret",
+   "description": "Secret key for JWT token signing (minimum 32 characters). Leave empty to auto-generate."
+  },
+  {
+   "default": "10",
+   "fieldname": "jwt_expiry_hours",
+   "fieldtype": "Int",
+   "label": "JWT Expiry (Hours)",
+   "description": "Token validity duration in hours"
+  },
+  {
+   "fieldname": "section_status",
+   "fieldtype": "Section Break",
+   "label": "Connection Status"
+  },
+  {
+   "fieldname": "connection_status",
+   "fieldtype": "Data",
+   "label": "Status",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_check",
+   "fieldtype": "Datetime",
+   "label": "Last Check",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-12-22 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Drive",
+ "name": "WOPI Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}
