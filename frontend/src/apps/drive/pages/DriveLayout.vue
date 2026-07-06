@@ -1,7 +1,9 @@
 <template>
   <FrappeUIProvider>
     <div v-if="isLoggedIn || $route.meta.isPublic" class="flex flex-col sm:flex-row h-full">
-      <Sidebar v-if="normalView" />
+      <!-- //// Neoffice: shared NeoCockpit chrome replaces the native Drive
+           sidebar (auto-fallback to Sidebar inside the component). //// -->
+      <NeoCockpitSidebar v-if="normalView" />
       <div id="dropzone" class="flex flex-col flex-1 overflow-hidden bg-surface-base relative">
         <router-view :key="$route.fullPath" v-slot="{ Component }">
           <component :is="Component" />
@@ -19,7 +21,8 @@
   </FrappeUIProvider>
 </template>
 <script setup>
-import Sidebar from '@/apps/drive/components/Sidebar.vue'
+// //// Neoffice: NeoCockpit chrome (falls back to the native Sidebar itself) ////
+import NeoCockpitSidebar from '@/apps/drive/components/NeoCockpitSidebar.vue'
 import SearchPopup from '@/apps/drive/components/SearchPopup.vue'
 import FDialogs from '@/apps/drive/components/FDialogs.vue'
 import BottomBar from '@/apps/drive/components/BottomBar.vue'
