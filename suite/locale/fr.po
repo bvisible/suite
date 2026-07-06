@@ -16577,3 +16577,10 @@ msgstr "Calendrier mis à jour."
 
 msgid "Could not save the calendar."
 msgstr "Impossible d'enregistrer le calendrier."
+
+msgid ""
+"Add this link in a calendar app (Apple Calendar, Thunderbird), not in a web "
+"browser — it already includes your access."
+msgstr ""
+"Ajoutez ce lien dans une application de calendrier (Apple Calendrier, "
+"Thunderbird), pas dans un navigateur web — il inclut déjà votre accès."

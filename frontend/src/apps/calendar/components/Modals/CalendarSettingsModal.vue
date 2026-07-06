@@ -76,7 +76,11 @@
 						<Button :label="copied ? __('Copied') : __('Copy')" @click="copyCaldav" />
 					</div>
 					<p class="text-ink-gray-5 mt-1 text-xs">
-						{{ __('Paste this single link into Apple Calendar / Thunderbird — it already includes your access.') }}
+						{{
+							__(
+								'Add this link in a calendar app (Apple Calendar, Thunderbird), not in a web browser — it already includes your access.',
+							)
+						}}
 					</p>
 					<details class="mt-2">
 						<summary class="text-ink-gray-5 cursor-pointer text-xs">
