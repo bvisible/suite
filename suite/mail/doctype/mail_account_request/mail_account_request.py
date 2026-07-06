@@ -284,6 +284,10 @@ def create_user(
 	user.email = email
 	user.owner = email
 	user.send_welcome_email = 0
+	# //// Neoffice: mail accounts created from the (public) signup / member
+	# flow must NEVER be desk users — the User field default is "System User",
+	# which silently made every frontend signup a system user. ////
+	user.user_type = "Website User"
 	if roles:
 		user.append_roles(*roles)
 	if password:
