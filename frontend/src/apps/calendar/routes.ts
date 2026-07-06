@@ -52,6 +52,12 @@ export const routes: RouteRecordRaw[] = [
 				name: 'calendar-day',
 				component: () => import('@/apps/calendar/pages/CalendarView.vue'),
 			},
+			// //// Neoffice: shown when the user has no JMAP account (no mailbox) ////
+			{
+				path: 'no-account',
+				name: 'calendar-no-account',
+				component: () => import('@/apps/calendar/pages/CalendarNoAccount.vue'),
+			},
 			// Shortcut routes: short paths that resolve to their full account-scoped
 			// equivalents once the active accountId is known (resolved in the guard).
 			{

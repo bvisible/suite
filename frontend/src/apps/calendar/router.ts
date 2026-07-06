@@ -54,6 +54,13 @@ function installCalendarGuard(r: Router) {
 		store.resolveAccount(user?.accounts, to.params.accountId as string | undefined)
 		const accountId = store.accountId
 
+		// //// Neoffice: no JMAP account (no mailbox) -> show a clear message
+		// instead of expanding to a CalendarView that would load with an
+		// undefined accountId and hang on a blank screen. ////
+		if (!accountId) {
+			return to.name === 'calendar-no-account' ? undefined : { name: 'calendar-no-account' }
+		}
+
 		// Expand shortcut routes to their full account-scoped equivalents.
 		if (to.meta.shortcut) return resolveShortcut(to.name, to.params, accountId)
 	})
