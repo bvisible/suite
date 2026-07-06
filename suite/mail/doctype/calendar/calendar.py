@@ -297,9 +297,11 @@ def share_calendar(account: str, id: str, share_with: list | str) -> None:
 
 
 @frappe.whitelist()
-def set_calendar_visibility(account: str, id: str, visible: int | bool) -> None:
+def set_calendar_visibility(account: str, id: str, visible: int = 1) -> None:
 	"""//// Neoffice: persist a calendar's show/hide state (isVisible) so the
-	sidebar toggle survives reloads. Upstream only toggled it in local state. ////"""
+	sidebar toggle survives reloads. Upstream only toggled it in local state.
+	`visible` is int (0/1) — a `int | bool` Union annotation made Frappe fail to
+	coerce the string the HTTP layer sends → ValidationError. ////"""
 
 	service = get_calendar_service(account)
 	response = service.set_visibility(id, cint(visible))
