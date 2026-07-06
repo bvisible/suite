@@ -234,3 +234,27 @@ def handle_lock(file_id: str):
             set_response_header("X-WOPI-Lock", result["current_lock"])
 
     return result
+
+
+# =============================================================================
+# Nginx-routable wrapper endpoints — the nginx wopi.conf snippet rewrites
+# /wopi/files/{id}[/contents] onto these two methods.
+# =============================================================================
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
+def handle_file_info(file_id: str):
+    """Handle /wopi/files/{file_id} — GET = CheckFileInfo, POST = lock ops."""
+    if frappe.request.method == "GET":
+        return check_file_info(file_id)
+    elif frappe.request.method == "POST":
+        return handle_lock(file_id)
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
+def handle_contents(file_id: str):
+    """Handle /wopi/files/{file_id}/contents — GET = GetFile, POST = PutFile."""
+    if frappe.request.method == "GET":
+        return get_file(file_id)
+    elif frappe.request.method == "POST":
+        return put_file(file_id)
