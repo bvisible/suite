@@ -78,27 +78,42 @@ def _provision_mail_account_now(user: str) -> None:
 	if not domains:
 		return  # no mail domain configured on Stalwart yet
 
-	local = user_doc.email.split("@")[0]
+	local_base = user_doc.email.split("@")[0]
 	domain = domains[0]
-	account = f"{local}@{domain}"
-
-	# Create the Stalwart account. If it already exists (e.g. name collision on
-	# the local part), the CLI raises — log and stop rather than overwrite.
 	password = frappe.generate_hash(length=20)
-	try:
-		create_account(
-			name=local,
-			domain=domain,
-			password=password,
-			description=user_doc.full_name or local,
-			aliases=[],
-			groups=[],
-			roles=["User"],
-			quota=cint(get_config("default_disk_quota_gb")) * 1024**3,
-			timezone=None,
-		)
-	except Exception as e:
-		frappe.log_error("Mail auto-provision skipped", f"account={account} user={user}: {e}")
+
+	# //// Neoffice: two Frappe users can share an email local-part
+	# (jeremy@bvisible.ch vs jeremy@neoservice.ai; info@displaycompany vs
+	# info@testcompany). The Stalwart mailbox is <local>@<domain>, so derive a
+	# UNIQUE local part — suffix on collision — instead of failing silently and
+	# leaving the user with no calendar. ////
+	account = None
+	for attempt in range(0, 30):
+		cand_local = local_base if attempt == 0 else f"{local_base}{attempt + 1}"
+		cand = f"{cand_local}@{domain}"
+		if frappe.db.exists("User Settings", {"username": cand}):
+			continue  # already taken by another user
+		try:
+			create_account(
+				name=cand_local,
+				domain=domain,
+				password=password,
+				description=user_doc.full_name or cand_local,
+				aliases=[],
+				groups=[],
+				roles=["User"],
+				quota=cint(get_config("default_disk_quota_gb")) * 1024**3,
+				timezone=None,
+			)
+			account = cand
+			break
+		except Exception as e:
+			# Stalwart-side collision not tracked in User Settings — try next suffix
+			frappe.log_error("Mail auto-provision retry", f"account={cand} user={user}: {e}")
+			continue
+
+	if not account:
+		frappe.log_error("Mail auto-provision failed", f"user={user}: no free username after retries")
 		return
 
 	app_password = create_app_password(account)
