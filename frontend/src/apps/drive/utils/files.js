@@ -70,6 +70,18 @@ export function isWriterDocument(entity) {
   return entity?.content_doctype === WRITER_CONTENT_DOCTYPE
 }
 
+// //// Neoffice: binary Office files (docx/xlsx/pptx/odt/...) are edited in
+// Collabora via the Drive preview. List rows may lack mime_type, so also
+// match on the file extension. ////
+const OFFICE_BINARY_MIME = /officedocument|msword|ms-excel|ms-powerpoint|opendocument/
+const OFFICE_BINARY_EXT = /\.(docx?|xlsx?|pptx?|od[tsp])$/i
+export function isOfficeBinary(entity) {
+  if (!entity || entity.is_folder) return false
+  if (entity.mime_type && OFFICE_BINARY_MIME.test(entity.mime_type)) return true
+  const name = entity.file_name || entity.title || ''
+  return OFFICE_BINARY_EXT.test(name)
+}
+
 export function isPresentation(entity) {
   return entity?.content_doctype === PRESENTATION_CONTENT_DOCTYPE
 }
@@ -159,8 +171,7 @@ export const openEntity = (entity, new_tab = false) => {
     // //// Neoffice: binary Office files (docx/xlsx/pptx/odt/...) open in the
     // Drive preview -> Collabora editor. The native Writer/Slides editors
     // cannot load these binaries; they keep handling their own formats. ////
-    entity.mime_type &&
-    /officedocument|msword|ms-excel|ms-powerpoint|opendocument/.test(entity.mime_type)
+    isOfficeBinary(entity)
   ) {
     router.push({
       name: 'drive-File',
@@ -486,8 +497,7 @@ export function getLink(entity, copy = true, withDomain = true) {
   else if (
     // //// Neoffice: binary Office files link to the Drive preview (Collabora),
     // never to the native Writer/Slides editors (same guard as openEntity). ////
-    entity.mime_type &&
-    /officedocument|msword|ms-excel|ms-powerpoint|opendocument/.test(entity.mime_type)
+    isOfficeBinary(entity)
   ) {
     link = `${withDomain ? window.location.origin + '/drive' : ''}/${getLinkStem(entity)}`
   } else if (entity.mime_type === 'frappe/slides') {
