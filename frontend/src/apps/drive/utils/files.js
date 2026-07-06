@@ -155,6 +155,17 @@ export const openEntity = (entity, new_tab = false) => {
       )
     )
       window.open(entity.file_url, '_blank')
+  } else if (
+    // //// Neoffice: binary Office files (docx/xlsx/pptx/odt/...) open in the
+    // Drive preview -> Collabora editor. The native Writer/Slides editors
+    // cannot load these binaries; they keep handling their own formats. ////
+    entity.mime_type &&
+    /officedocument|msword|ms-excel|ms-powerpoint|opendocument/.test(entity.mime_type)
+  ) {
+    router.push({
+      name: 'drive-File',
+      params: { entityName: entity.name },
+    })
   } else if (entity.file_type === 'Presentation') {
     window.location.href = '/slides/presentation/' + entity.file_url
   } else if (
