@@ -97,7 +97,13 @@ def assign_drive_role_and_create_settings(user, method: str) -> None:
 		return
 
 	if not frappe.db.exists("Role", role_name):
-		frappe.get_doc({"doctype": "Role", "role_name": role_name}).insert(ignore_permissions=True)
+		# //// Neoffice: force desk_access=0. The Role doctype defaults desk_access
+		# to 1, and assigning a desk-access role to a user re-promotes them to
+		# System User — that is exactly how frontend signups silently became
+		# system users. This role must never carry desk access. ////
+		frappe.get_doc(
+			{"doctype": "Role", "role_name": role_name, "desk_access": 0}
+		).insert(ignore_permissions=True)
 
 	user_doc = frappe.get_doc("User", user_name)
 	user_doc.append("roles", {"role": role_name})

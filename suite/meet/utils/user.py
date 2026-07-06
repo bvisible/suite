@@ -43,7 +43,11 @@ def assign_meet_role(user: User, method: str) -> None:
 		return
 
 	if not frappe.db.exists("Role", role_name):
-		frappe.get_doc({"doctype": "Role", "role_name": role_name}).insert(ignore_permissions=True)
+		# //// Neoffice: force desk_access=0 — the Role default is 1, and a
+		# desk-access role re-promotes frontend signups to System User. ////
+		frappe.get_doc(
+			{"doctype": "Role", "role_name": role_name, "desk_access": 0}
+		).insert(ignore_permissions=True)
 
 	user_doc = frappe.get_doc("User", user_name)
 	user_doc.append("roles", {"role": role_name})

@@ -13,7 +13,7 @@ import jwt
 from frappe import _
 from frappe.rate_limiter import rate_limit
 
-from suite.meet.utils.sfu_config import get_sfu_config
+from suite.meet.utils.sfu_config import get_sfu_config, get_tenant
 from suite.meet.utils.user import (
 	get_guest_session,
 	get_user_info,
@@ -43,6 +43,10 @@ def _generate_sfu_token(
 		"user_id": user_id,
 		"meeting_id": meeting_id,
 		"site": getattr(frappe.local, "site", None),
+		# //// Neoffice: tenant claim → the shared central SFU (neoservice)
+		# prefixes room names with it to isolate instances. Without it every
+		# Neoffice instance would share the same rooms. ////
+		"tenant": get_tenant(),
 		"scope": scope,
 		"exp": now + expires_in,
 		"iat": now,
