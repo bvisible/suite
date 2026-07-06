@@ -51,11 +51,22 @@ const contextNav = computed(() => [
 	{
 		label: __('Calendars'),
 		items: [
-			...calendars.map((c) => ({
-				label: c._name,
-				icon: visibleCalendars.includes(c.name) ? 'lucide-eye' : 'lucide-eye-off',
-				onClick: () => emit('update:visibleCalendars', c.name),
-			})),
+			// //// Neoffice: colour swatch (filled=visible, hollow=hidden) + a
+			// "shared" icon with tooltip when the calendar is shared with others.
+			// Click toggles visibility. ////
+			...calendars.map((c) => {
+				const sharedCount = (c.share_with || []).length
+				return {
+					label: c._name,
+					color: c.color || '#9BA3AF',
+					dim: !visibleCalendars.includes(c.name),
+					shared: sharedCount > 0,
+					sharedTitle: sharedCount
+						? __('Shared with {0} people', [sharedCount])
+						: undefined,
+					onClick: () => emit('update:visibleCalendars', c.name),
+				}
+			}),
 			{ label: __('New calendar'), icon: 'lucide-plus', onClick: () => (showNew.value = true) },
 			{ label: __('Share a calendar'), icon: 'lucide-user-plus', onClick: () => (showShare.value = true) },
 		],
