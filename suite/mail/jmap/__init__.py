@@ -55,7 +55,9 @@ def get_jmap_connection(
 	if not frappe.get_cached_value("User", user, "enabled"):
 		frappe.throw(_("User {0} does not exist or is disabled.").format(frappe.bold(user)))
 
-	settings = frappe.db.exists("User Settings", {"user": user, "username": ["!=", None]})
+	# Neoffice (v15): ["!=", None] renders as `!= NULL` in SQL and never matches
+	# on Frappe v15 — use the "is set" idiom (works on v15 and v16).
+	settings = frappe.db.exists("User Settings", {"user": user, "username": ["is", "set"]})
 	if not settings:
 		frappe.throw(_("User {0} does not have JMAP settings configured.").format(frappe.bold(user)))
 
