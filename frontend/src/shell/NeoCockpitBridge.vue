@@ -4,6 +4,8 @@
     ref="host"
     class="neocockpit-host w-full md:w-auto md:h-full md:flex-shrink-0"
   />
+  <!-- //// Neoffice: global-search fallback for apps without their own search //// -->
+  <GlobalSearchDialog v-model="showGlobalSearch" />
 </template>
 
 <script setup>
@@ -22,6 +24,7 @@
  * no www controller change in the host app.
  */
 import { ref, onMounted, onUnmounted, watch } from "vue"
+import GlobalSearchDialog from "./GlobalSearchDialog.vue"
 
 const props = defineProps({
   /** {name, title, logo} — how this app appears in the module switcher */
@@ -42,6 +45,14 @@ const props = defineProps({
 const host = ref(null)
 const BUNDLE = "/assets/frappe/js/lib/neocockpit.global.js"
 let mounted = false
+
+// //// Neoffice: when the app doesn't provide its own search overlay, the
+// cockpit search bar falls back to Frappe's global search (same endpoint as
+// the desk awesome bar). Drive still passes its own onSearch. ////
+const showGlobalSearch = ref(false)
+function openGlobalSearch() {
+  showGlobalSearch.value = true
+}
 
 function bundleUrl() {
   // cache-bust with the server build version (the asset has no hash of its own)
@@ -89,8 +100,8 @@ function render() {
     surfaceApp: props.surfaceApp,
     contextNav: props.contextNav,
     contextFooter: props.contextFooter,
-    onSearch: props.onSearch || undefined,
-    searchKbd: props.searchKbd || undefined,
+    onSearch: props.onSearch || openGlobalSearch,
+    searchKbd: props.searchKbd || (props.onSearch ? undefined : "⌘G"),
     onNavigate: (route) => {
       if (!route) return
       if (route.startsWith("/app") || route.startsWith("http")) {
