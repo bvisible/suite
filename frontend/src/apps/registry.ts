@@ -27,6 +27,9 @@ export interface SuiteApp {
   prefix: string
   /** Imported, build-fingerprinted brand-logo URL. */
   logo: string
+  // //// Neoffice: full-page URL served OUTSIDE this SPA (launcher renders a
+  // plain <a>). Used to point the Mail tile at our frappe_webmail app. ////
+  external?: string
 }
 
 export interface SuiteAppSwitcherItem {
@@ -44,7 +47,9 @@ export const SUITE_APPS: SuiteApp[] = [
   { id: 'writer', name: 'Writer', prefix: '/writer', logo: writerLogo },
   { id: 'sheets', name: 'Sheets', prefix: '/sheets', logo: sheetsLogo },
   { id: 'meet', name: 'Meet', prefix: '/meet', logo: meetLogo },
-  { id: 'mail', name: 'Mail', prefix: '/mail', logo: mailLogo },
+  // //// Neoffice: the Mail tile opens our frappe_webmail (external users'
+  // IMAP/SMTP accounts); the JMAP mail client stays reachable at /mail. ////
+  { id: 'mail', name: 'Mail', prefix: '/mail', logo: mailLogo, external: '/webmail' },
   { id: 'calendar', name: 'Calendar', prefix: '/calendar', logo: calendarLogo },
 ]
 

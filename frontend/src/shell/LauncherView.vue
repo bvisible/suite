@@ -4,10 +4,12 @@
     <div class="mx-auto flex min-h-full max-w-5xl flex-col px-6 pt-[10%] pb-16">
 
       <div class="mx-auto grid grid-cols-4 gap-x-20 gap-y-10">
-        <router-link
+        <!-- //// Neoffice: tiles with `external` leave the SPA (plain <a>) — e.g. Mail -> /webmail //// -->
+        <component
+          :is="app.external ? 'a' : RouterLink"
           v-for="app in apps"
           :key="app.id"
-          :to="app.prefix"
+          v-bind="app.external ? { href: app.external } : { to: app.prefix }"
           class="group flex flex-col items-center text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
         >
           <div class="flex size-[3.375rem] items-center justify-center">
@@ -19,7 +21,7 @@
             />
           </div>
           <div class="mt-3 text-sm-medium leading-none text-ink-gray-9">{{ app.name }}</div>
-        </router-link>
+        </component>
 
         <a
           href="/app/user-settings"
@@ -42,6 +44,8 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
+// //// Neoffice: RouterLink imported for the dynamic <component :is> above ////
+import { RouterLink } from 'vue-router'
 
 import { SUITE_APPS, SUITE_LOGO } from '@/apps/registry'
 import { useRootStore } from '@/stores/root'
