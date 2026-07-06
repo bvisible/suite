@@ -483,7 +483,14 @@ export async function updateURLSlug(file_name) {
 export function getLink(entity, copy = true, withDomain = true) {
   let link
   if (entity.file_type === 'Link') link = entity.file_url
-  else if (entity.mime_type === 'frappe/slides') {
+  else if (
+    // //// Neoffice: binary Office files link to the Drive preview (Collabora),
+    // never to the native Writer/Slides editors (same guard as openEntity). ////
+    entity.mime_type &&
+    /officedocument|msword|ms-excel|ms-powerpoint|opendocument/.test(entity.mime_type)
+  ) {
+    link = `${withDomain ? window.location.origin + '/drive' : ''}/${getLinkStem(entity)}`
+  } else if (entity.mime_type === 'frappe/slides') {
     link = window.location.origin + '/slides/presentation/' + entity.name
   } else if (
     entity.file_type === 'Document' ||
