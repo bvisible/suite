@@ -121,11 +121,32 @@ const calendars = createResource({
 	url: 'suite.calendar.api.get_calendars',
 	makeParams: () => ({ account: store.accountId }),
 	auto: true,
-	onSuccess: (data) => (visibleCalendars.value = data.map((cal) => cal.name)),
+	// //// Neoffice: respect each calendar's persisted isVisible state instead of
+	// showing them all — the hidden ones stay hidden across reloads. ////
+	onSuccess: (data) =>
+		(visibleCalendars.value = data.filter((cal) => cal.visible).map((cal) => cal.name)),
 	onError: (error) => raiseToast(error.message, 'error'),
 })
 
 const visibleCalendars = ref<string[]>([])
+
+// //// Neoffice: toggle a calendar's visibility AND persist it (isVisible on the
+// JMAP server) so the show/hide choice survives a reload. ////
+const setVisibility = createResource({
+	url: 'suite.mail.doctype.calendar.calendar.set_calendar_visibility',
+	onError: (error) => raiseToast(error.message, 'error'),
+})
+
+function toggleCalendarVisibility(name: string) {
+	const wasVisible = visibleCalendars.value.includes(name)
+	if (wasVisible) visibleCalendars.value.splice(visibleCalendars.value.indexOf(name), 1)
+	else visibleCalendars.value.push(name)
+	setVisibility.submit({
+		account: store.accountId,
+		id: name.split('|').pop(),
+		visible: wasVisible ? 0 : 1,
+	})
+}
 
 const events = createResource({
 	url: 'suite.calendar.api.get_calendar_events',
@@ -248,12 +269,7 @@ const NOTIFY_MODAL_OPTIONS = {
 			<NeoCockpitSidebar
 				:calendars="calendars?.data || []"
 				:visible-calendars
-				@update:visible-calendars="
-					(name) =>
-						visibleCalendars.includes(name)
-							? visibleCalendars.splice(visibleCalendars.indexOf(name), 1)
-							: visibleCalendars.push(name)
-				"
+				@update:visible-calendars="toggleCalendarVisibility"
 				@reload="calendars.reload()"
 			/>
 			<div class="min-h-0 min-w-0 flex-1 p-4">

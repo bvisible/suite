@@ -105,6 +105,20 @@ class CalendarService(CalendarsService):
 
 		return result
 
+	def set_visibility(self, id: str, visible: bool) -> dict:
+		"""//// Neoffice: partial update of ONLY isVisible, to persist the sidebar
+		show/hide toggle across reloads (upstream toggled it client-side only). ////"""
+
+		result = {"updated": [], "notUpdated": {}}
+		response = self._update({id: {"isVisible": bool(visible)}})
+
+		if method_responses := response.get("methodResponses"):
+			result["updated"].extend(method_responses[0][1].get("updated", {}).keys())
+			if not_updated := method_responses[0][1].get("notUpdated", {}):
+				result["notUpdated"].update(not_updated)
+
+		return result
+
 	def set_sharing(self, id: str, share_with: dict) -> dict:
 		"""//// Neoffice: partial update of ONLY the shareWith map. JMAP Calendar/set
 		merges (unspecified properties are left untouched), so we don't need to

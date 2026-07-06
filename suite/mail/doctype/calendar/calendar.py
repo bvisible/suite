@@ -297,6 +297,18 @@ def share_calendar(account: str, id: str, share_with: list | str) -> None:
 
 
 @frappe.whitelist()
+def set_calendar_visibility(account: str, id: str, visible: int | bool) -> None:
+	"""//// Neoffice: persist a calendar's show/hide state (isVisible) so the
+	sidebar toggle survives reloads. Upstream only toggled it in local state. ////"""
+
+	service = get_calendar_service(account)
+	response = service.set_visibility(id, cint(visible))
+
+	if not response.get("updated") and response.get("notUpdated"):
+		frappe.throw(_(response["notUpdated"][id]["description"]), title=_("Calendar Update Error"))
+
+
+@frappe.whitelist()
 def get_shareable_principals(account: str) -> list[dict]:
 	"""Lists the principals (colleagues) a calendar can be shared with."""
 
