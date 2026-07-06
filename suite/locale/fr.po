@@ -16584,3 +16584,59 @@ msgid ""
 msgstr ""
 "Ajoutez ce lien dans une application de calendrier (Apple Calendrier, "
 "Thunderbird), pas dans un navigateur web — il inclut déjà votre accès."
+
+msgid "Add a calendar"
+msgstr "Ajouter un calendrier"
+
+msgid "External calendar"
+msgstr "Calendrier externe"
+
+msgid "Provider"
+msgstr "Fournisseur"
+
+msgid "e.g. My Gmail"
+msgstr "ex. Mon Gmail"
+
+msgid "Secret iCal (ICS) address"
+msgstr "Adresse iCal (ICS) secrète"
+
+msgid ""
+"Read-only: events from this account will appear here, in CalDAV and on "
+"mobile."
+msgstr ""
+"Lecture seule : les événements de ce compte apparaîtront ici, dans CalDAV et"
+" sur mobile."
+
+msgid "External calendar added — {0}"
+msgstr "Calendrier externe ajouté — {0}"
+
+msgid "synced"
+msgstr "synchronisé"
+
+msgid "Could not add the external calendar."
+msgstr "Impossible d'ajouter le calendrier externe."
+
+msgid ""
+"Google Calendar → Settings → your calendar → \"Integrate calendar\" → copy "
+"the \"Secret address in iCal format\"."
+msgstr ""
+"Google Agenda → Paramètres → votre agenda → « Intégrer l'agenda » → copiez "
+"l'« Adresse secrète au format iCal »."
+
+msgid ""
+"iCloud calendar → Share → Public Calendar → copy the link (change webcal:// "
+"to https://)."
+msgstr ""
+"Calendrier iCloud → Partager → Calendrier public → copiez le lien (remplacez"
+" webcal:// par https://)."
+
+msgid ""
+"Outlook → Settings → Calendar → Shared calendars → Publish → copy the ICS "
+"link."
+msgstr ""
+"Outlook → Paramètres → Calendrier → Calendriers partagés → Publier → copiez "
+"le lien ICS."
+
+msgid ""
+"Paste the private iCal (.ics) URL of the calendar you want to aggregate."
+msgstr "Collez l'URL iCal (.ics) privée du calendrier à agréger."

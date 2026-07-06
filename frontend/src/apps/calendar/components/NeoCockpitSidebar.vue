@@ -83,7 +83,7 @@ const contextNav = computed(() => [
 					onClick: () => emit('update:visibleCalendars', c.name),
 				}
 			}),
-			{ label: __('New calendar'), icon: 'lucide-plus', onClick: () => (showNew.value = true) },
+			{ label: __('Add a calendar'), icon: 'lucide-plus', onClick: () => (showNew.value = true) },
 		],
 	},
 ])
