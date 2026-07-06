@@ -166,13 +166,19 @@ const caldav = createResource({
 	makeParams: () => ({ account, id: calId.value }),
 })
 
-watch(show, async (open) => {
-	if (!open) return
-	copied.value = false
-	await principals.fetch()
-	detail.fetch()
-	caldav.fetch()
-})
+// //// Neoffice: immediate — the dialog is mounted (v-if) already open, so a
+// plain watch on `show` would miss the initial true and never load the data. ////
+watch(
+	show,
+	async (open) => {
+		if (!open) return
+		copied.value = false
+		await principals.fetch()
+		detail.fetch()
+		caldav.fetch()
+	},
+	{ immediate: true },
+)
 
 function copyCaldav() {
 	const url = caldav.data?.url
