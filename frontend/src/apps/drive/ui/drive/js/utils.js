@@ -14,10 +14,17 @@ export function dynamicList(k) {
   return k.filter((a) => typeof a !== 'object' || !('cond' in a) || a.cond)
 }
 
+// //// Neoffice: binary Office mimetypes (docx/xlsx/pptx/odt/...) must open in
+// the Drive preview -> Collabora editor, never in the native Writer/Slides. ////
+const OFFICE_BINARY_MIME = /officedocument|msword|ms-excel|ms-powerpoint|opendocument/
+
 export function getFileLink(entity, copy = true) {
   let link
   if (entity.file_type === 'Link') link = entity.file_url
-  else if (entity.file_type === 'Presentation') {
+  else if (entity.mime_type && OFFICE_BINARY_MIME.test(entity.mime_type)) {
+    // //// Neoffice: Collabora-backed preview ////
+    link = `${window.location.origin}/drive/${getLinkStem(entity)}`
+  } else if (entity.file_type === 'Presentation') {
     link = `${window.location.origin}/slides/presentation/${entity.name}`
   } else if (entity.file_type === 'Document' || entity.file_type === 'Markdown') {
     link = `${window.location.origin}/writer/w/${entity.name}`
@@ -128,6 +135,9 @@ export const openEntity = (entity, new_tab = false) => {
       )
     )
       window.open(entity.file_url, '_blank')
+  } else if (entity.mime_type && OFFICE_BINARY_MIME.test(entity.mime_type)) {
+    // //// Neoffice: Collabora-backed preview ////
+    window.location.href = '/drive/' + getLinkStem(entity)
   } else if (entity.file_type === 'Presentation') {
     window.location.href = '/slides/presentation/' + entity.name
   } else if (
