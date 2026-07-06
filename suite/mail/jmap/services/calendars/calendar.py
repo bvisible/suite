@@ -86,6 +86,21 @@ class CalendarService(CalendarsService):
 
 		return result
 
+	def set_sharing(self, id: str, share_with: dict) -> dict:
+		"""//// Neoffice: partial update of ONLY the shareWith map. JMAP Calendar/set
+		merges (unspecified properties are left untouched), so we don't need to
+		resend name/color/etc. Upstream never wired a write path for sharing. ////"""
+
+		result = {"updated": [], "notUpdated": {}}
+		response = self._update({id: {"shareWith": share_with or {}}})
+
+		if method_responses := response.get("methodResponses"):
+			result["updated"].extend(method_responses[0][1].get("updated", {}).keys())
+			if not_updated := method_responses[0][1].get("notUpdated", {}):
+				result["notUpdated"].update(not_updated)
+
+		return result
+
 	def delete(self, ids: list[str], remove_events: bool = False) -> dict:
 		"""Public method to delete calendars, handling batching if the number of calendar ids exceeds the server's maximum allowed in a single 'set' call."""
 

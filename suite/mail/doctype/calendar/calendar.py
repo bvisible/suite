@@ -257,6 +257,68 @@ def update_calendar(
 			frappe.throw(_(response["description"]), title=title)
 
 
+# //// Neoffice: sharing write-path + colleague lookup. The doctype/JMAP already
+# READ shareWith (format_calendar), but there was no way to WRITE it and no way
+# to list who you could share with — so the SPA could never expose sharing. ////
+@frappe.whitelist()
+def share_calendar(account: str, id: str, share_with: list | str) -> None:
+	"""Sets who a calendar is shared with (and their rights).
+
+	share_with: list of {principal_id, may_read_free_busy, may_read_items,
+	may_write_all, may_write_own, may_update_private, may_rsvp}. Passing an
+	empty list unshares the calendar.
+	"""
+
+	if isinstance(share_with, str):
+		share_with = json.loads(share_with)
+
+	jmap_share = {}
+	for r in share_with or []:
+		pid = r.get("principal_id")
+		if not pid:
+			continue
+		jmap_share[pid] = {
+			"mayReadFreeBusy": bool(r.get("may_read_free_busy")),
+			"mayReadItems": bool(r.get("may_read_items")),
+			"mayWriteAll": bool(r.get("may_write_all")),
+			"mayWriteOwn": bool(r.get("may_write_own")),
+			"mayUpdatePrivate": bool(r.get("may_update_private")),
+			"mayRSVP": bool(r.get("may_rsvp")),
+		}
+
+	service = get_calendar_service(account)
+	response = service.set_sharing(id, jmap_share)
+
+	title = _("Calendar Sharing Error")
+	if not response.get("updated"):
+		if response.get("notUpdated"):
+			frappe.throw(_(response["notUpdated"][id]["description"]), title=title)
+		frappe.throw(_("Could not update calendar sharing."), title=title)
+
+
+@frappe.whitelist()
+def get_shareable_principals(account: str) -> list[dict]:
+	"""Lists the principals (colleagues) a calendar can be shared with."""
+
+	from suite.mail.jmap import get_principal_service
+
+	try:
+		service = get_principal_service(account)
+	except NotImplementedError:
+		return []
+
+	ids = service.query(limit=200).get("ids", [])
+	own = getattr(service, "primary_account_id", None)
+
+	people = []
+	for p in service.get(ids):
+		if own and p["id"] == own:
+			continue
+		email = p.get("email") or p.get("name")
+		people.append({"id": p["id"], "name": p.get("name") or email, "email": email})
+	return people
+
+
 @frappe.whitelist()
 def delete_calendars(account: str, ids: list[str], remove_events: bool = True) -> None:
 	"""Deletes calendars for the specified account and ID(s)."""
