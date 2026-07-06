@@ -1,7 +1,8 @@
 <!-- //// Neoffice: new file — Calendar flavor of the shared NeoCockpit chrome.
-     Replaces the native AppSidebar (which had no cockpit, no "new calendar",
-     no sharing) with the Neoffice menu + a Calendars section that toggles
-     visibility and exposes creation. Falls back to AppSidebar on failure. //// -->
+     Replaces the native AppSidebar with the Neoffice menu + a Calendars section:
+     colour swatch (filled=visible / hollow=hidden), a shared indicator, and a
+     per-calendar gear opening full settings (rename / colour / share / CalDAV /
+     delete). Falls back to AppSidebar on failure. //// -->
 <template>
 	<AppSidebar
 		v-if="failed"
@@ -17,7 +18,13 @@
 			@failed="failed = true"
 		/>
 		<NewCalendarModal v-model="showNew" :account="account" @created="emit('reload')" />
-		<ShareCalendarModal v-model="showShare" :account="account" :calendars="calendars" />
+		<CalendarSettingsModal
+			v-if="editing"
+			v-model="showSettings"
+			:account="account"
+			:calendar="editing"
+			@reload="emit('reload')"
+		/>
 	</template>
 </template>
 
@@ -29,7 +36,7 @@ import calendarLogo from '@/assets/app-logos/calendar.svg'
 import NeoCockpitBridge from '@/shell/NeoCockpitBridge.vue'
 import AppSidebar from '@/apps/calendar/components/AppSidebar.vue'
 import NewCalendarModal from '@/apps/calendar/components/Modals/NewCalendarModal.vue'
-import ShareCalendarModal from '@/apps/calendar/components/Modals/ShareCalendarModal.vue'
+import CalendarSettingsModal from '@/apps/calendar/components/Modals/CalendarSettingsModal.vue'
 import { userStore } from '@/apps/calendar/stores/user'
 
 const { calendars, visibleCalendars } = defineProps<{
@@ -42,18 +49,24 @@ const router = useRouter()
 const store = userStore()
 const failed = ref(false)
 const showNew = ref(false)
-const showShare = ref(false)
+const showSettings = ref(false)
+const editing = ref<any>(null)
 
 const account = computed(() => store.accountId)
 const surfaceApp = { name: 'calendar', title: 'Calendar', logo: calendarLogo }
+
+function openSettings(c: any) {
+	editing.value = c
+	showSettings.value = true
+}
 
 const contextNav = computed(() => [
 	{
 		label: __('Calendars'),
 		items: [
-			// //// Neoffice: colour swatch (filled=visible, hollow=hidden) + a
-			// "shared" icon with tooltip when the calendar is shared with others.
-			// Click toggles visibility. ////
+			// //// Neoffice: colour swatch (filled=visible, hollow=hidden), a
+			// "shared" icon+tooltip, and a gear opening the calendar settings.
+			// Click on the row toggles visibility. ////
 			...calendars.map((c) => {
 				const sharedCount = (c.share_with || []).length
 				return {
@@ -66,11 +79,11 @@ const contextNav = computed(() => [
 						: sharedCount === 1
 							? __('Shared with 1 person')
 							: __('Shared with {0} people', [sharedCount]),
+					onGear: () => openSettings(c),
 					onClick: () => emit('update:visibleCalendars', c.name),
 				}
 			}),
 			{ label: __('New calendar'), icon: 'lucide-plus', onClick: () => (showNew.value = true) },
-			{ label: __('Share a calendar'), icon: 'lucide-user-plus', onClick: () => (showShare.value = true) },
 		],
 	},
 ])

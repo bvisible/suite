@@ -297,6 +297,25 @@ def share_calendar(account: str, id: str, share_with: list | str) -> None:
 
 
 @frappe.whitelist()
+def get_caldav_url(account: str, id: str) -> dict:
+	"""//// Neoffice: CalDAV subscription URL for a calendar, so users can add it
+	to external clients (Apple Calendar, Thunderbird…). Stalwart serves DAV at
+	/dav/cal (confirmed via /.well-known/caldav → /dav/cal). ////"""
+
+	from suite.mail.doctype.user_account.user_account import get_user_for_jmap_account
+
+	user = get_user_for_jmap_account(account)
+	username = frappe.db.get_value("User Settings", {"user": user}, "username") or ""
+	host = frappe.utils.get_url().rstrip("/")
+
+	return {
+		"url": f"{host}/dav/cal/{username}/{id}/",
+		"discovery": f"{host}/.well-known/caldav",
+		"username": username,
+	}
+
+
+@frappe.whitelist()
 def set_calendar_visibility(account: str, id: str, visible: int = 1) -> None:
 	"""//// Neoffice: persist a calendar's show/hide state (isVisible) so the
 	sidebar toggle survives reloads. Upstream only toggled it in local state.
