@@ -140,6 +140,11 @@ FILE_FIELDS = [
     "attached_to_name",
 ]
 
+# //// Neoffice (v15): frappe.get_all on Frappe v15 rejects pypika expressions
+# inside `fields` (v16 accepts them) — string-only variant for get_all call
+# sites; callers must coalesce file_modified/modified in Python. ////
+FILE_FIELDS_SQL = [f for f in FILE_FIELDS if isinstance(f, str)] + ["file_modified", "modified"]
+
 
 def hide_storage_key(row):
     """Blank file_url unless the client needs it as a real URL.

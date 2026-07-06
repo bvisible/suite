@@ -9,6 +9,7 @@ from suite.drive.utils import (
     get_default_team,
     get_valid_breadcrumbs,
     FILE_FIELDS,
+    FILE_FIELDS_SQL,  # //// Neoffice (v15) ////
     get_home_folder,
     map_ff_to_drive_type,
     entity_kind,
@@ -155,11 +156,13 @@ def get_entity_with_permissions(entity_name: str):
     """
     Return file data with permissions
     """
+    # //// Neoffice (v15): FILE_FIELDS carries a pypika Coalesce that v15's
+    # get_all cannot parse — use the string-only variant and coalesce below. ////
     entity = frappe.get_all(
         "File",
         filters={"name": entity_name},
         or_filters={"status": STATUS_ACTIVE, "team": ["is", "not set"]},
-        fields=FILE_FIELDS,
+        fields=FILE_FIELDS_SQL,
         limit=1,
     )
     if not entity:
@@ -172,6 +175,8 @@ def get_entity_with_permissions(entity_name: str):
         ]
         frappe.throw("We couldn't find what you're looking for.", frappe.PageDoesNotExistError)
     entity = entity[0]
+    # //// Neoffice (v15): Python-side coalesce (was pypika Coalesce in FILE_FIELDS) ////
+    entity["modified"] = entity.get("file_modified") or entity.get("modified")
 
     entity["in_home"] = entity.team == get_default_team()
     user_access = get_user_access(entity)
