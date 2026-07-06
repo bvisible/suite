@@ -53,9 +53,11 @@ export const SUITE_APPS: SuiteApp[] = [
   { id: 'writer', name: 'Writer', prefix: '/writer', logo: writerLogo, createsOffice: 'docx' },
   { id: 'sheets', name: 'Sheets', prefix: '/sheets', logo: sheetsLogo, createsOffice: 'xlsx' },
   { id: 'meet', name: 'Meet', prefix: '/meet', logo: meetLogo },
-  // //// Neoffice: the Mail tile opens our frappe_webmail (external users'
-  // IMAP/SMTP accounts); the JMAP mail client stays reachable at /mail. ////
-  { id: 'mail', name: 'Mail', prefix: '/mail', logo: mailLogo, external: '/webmail' },
+  // //// Neoffice: the Mail tile opens our frappe_webmail — the DESK page
+  // /app/webmail (the maintained path; the website route /webmail stays stuck
+  // on "Chargement…" because the SPA bundle is only injected in the desk).
+  // The JMAP mail client stays reachable at /mail. ////
+  { id: 'mail', name: 'Mail', prefix: '/mail', logo: mailLogo, external: '/app/webmail' },
   { id: 'calendar', name: 'Calendar', prefix: '/calendar', logo: calendarLogo },
 ]
 

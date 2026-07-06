@@ -1,6 +1,7 @@
 <template>
 	<div class="flex h-screen bg-surface-base" data-testid="home-page">
-		<MeetSidebar />
+		<!-- //// Neoffice: shared NeoCockpit chrome (auto-fallback to MeetSidebar) //// -->
+		<NeoCockpitSidebar />
 
 		<div class="flex flex-1 flex-col overflow-auto">
 			<div class="flex flex-1 items-start justify-center pt-[100px]">
@@ -144,7 +145,8 @@ import { userStore as useCalendarUserStore } from "@/apps/calendar/stores/user";
 import dayjs from "@/apps/calendar/utils/dayjs";
 import ParticipantSelector from "@/apps/calendar/components/ParticipantSelector.vue";
 import { useConnectionState } from "../composables/useConnectionState";
-import MeetSidebar from "../components/MeetSidebar.vue";
+// //// Neoffice: NeoCockpit chrome (falls back to the native MeetSidebar itself) ////
+import NeoCockpitSidebar from "../components/NeoCockpitSidebar.vue";
 import UpcomingMeetings from "../components/UpcomingMeetings.vue";
 import LucideCalendarPlus from "~icons/lucide/calendar-plus";
 import LucideZap from "~icons/lucide/zap";

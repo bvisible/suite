@@ -3,11 +3,19 @@
     <div class="w-full h-full flex flex-col">
       <Navbar v-if="!file?.error" :root-resource="file" :breadcrumbs="pageBreadcrumbs" />
       <ErrorPage v-if="file.error" :error="file.error" />
+      <!-- //// Neoffice: Office files open in the Collabora editor which must be
+           full-bleed (no padding / no centering); everything else keeps the
+           padded, centered preview frame. //// -->
       <div
         v-else
         id="renderContainer"
         :draggable="false"
-        class="w-full px-10 py-5 flex-grow w-full flex justify-center align-center items-center relative"
+        class="flex-grow w-full relative"
+        :class="
+          isOfficeBinary(file.data)
+            ? 'flex'
+            : 'px-10 py-5 flex justify-center align-center items-center'
+        "
       >
         <LoadingIndicator
           v-if="file.loading"
@@ -45,6 +53,8 @@ import Navbar from '@/apps/drive/components/Navbar.vue'
 import { ref, computed, onMounted, defineProps } from 'vue'
 import { Button, LoadingIndicator } from 'frappe-ui'
 import FileRender from '@/apps/drive/components/FileRender.vue'
+// //// Neoffice: detect Office binaries to make the Collabora editor full-bleed ////
+import { isOfficeBinary } from '@/apps/drive/utils/files'
 import { createResource } from 'frappe-ui'
 import { useRouter } from 'vue-router'
 import LucideScan from '~icons/lucide/scan'
