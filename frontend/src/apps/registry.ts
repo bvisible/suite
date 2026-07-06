@@ -30,6 +30,9 @@ export interface SuiteApp {
   // //// Neoffice: full-page URL served OUTSIDE this SPA (launcher renders a
   // plain <a>). Used to point the Mail tile at our frappe_webmail app. ////
   external?: string
+  // //// Neoffice: launcher tile creates a blank Office file (docx/xlsx/pptx)
+  // in the Drive and opens it in Collabora, replacing the native editors. ////
+  createsOffice?: 'docx' | 'xlsx' | 'pptx'
 }
 
 export interface SuiteAppSwitcherItem {
@@ -43,9 +46,12 @@ export const SUITE_LOGO = suiteLogo
 
 export const SUITE_APPS: SuiteApp[] = [
   { id: 'drive', name: 'Drive', prefix: '/drive', logo: driveLogo },
-  { id: 'slides', name: 'Slides', prefix: '/slides', logo: slidesLogo },
-  { id: 'writer', name: 'Writer', prefix: '/writer', logo: writerLogo },
-  { id: 'sheets', name: 'Sheets', prefix: '/sheets', logo: sheetsLogo },
+  // //// Neoffice: Slides/Writer/Sheets tiles create a Collabora-backed Office
+  // file in the Drive (pptx/docx/xlsx) instead of opening the native editors.
+  // The native SPAs stay reachable at their /slides /writer /sheets URLs. ////
+  { id: 'slides', name: 'Slides', prefix: '/slides', logo: slidesLogo, createsOffice: 'pptx' },
+  { id: 'writer', name: 'Writer', prefix: '/writer', logo: writerLogo, createsOffice: 'docx' },
+  { id: 'sheets', name: 'Sheets', prefix: '/sheets', logo: sheetsLogo, createsOffice: 'xlsx' },
   { id: 'meet', name: 'Meet', prefix: '/meet', logo: meetLogo },
   // //// Neoffice: the Mail tile opens our frappe_webmail (external users'
   // IMAP/SMTP accounts); the JMAP mail client stays reachable at /mail. ////
