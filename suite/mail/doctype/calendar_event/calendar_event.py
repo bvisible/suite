@@ -426,6 +426,11 @@ def get_calendar_events(account: str, ids: list[str]) -> list[dict]:
 
 	events = {}
 	for event in service.get(ids):
+		# //// Neoffice: Stalwart occasionally returns degenerate objects with no
+		# uid/id/calendarIds (seen on wide expanded-recurrence windows). One
+		# malformed event must not break the whole fetch — skip it. ////
+		if not event.get("id") or not event.get("uid") or not event.get("calendarIds"):
+			continue
 		event = format_calendar_event(account, calendar_map, event)
 		events[event["id"]] = event
 
