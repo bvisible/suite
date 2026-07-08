@@ -411,6 +411,10 @@ def get_default_team(with_file: bool = False):
         from suite.drive.api.product import create_team
 
         default_team = create_team(user=user, personal=1)
+        # Most @default_team endpoints are GETs and Frappe rolls back GET
+        # transactions — without an explicit commit the team would be
+        # recreated (and discarded) on every request, never persisted.
+        frappe.db.commit()
     if with_file:
         file = get_home_folder(default_team)
         return {"team": default_team, "file": file.name}
