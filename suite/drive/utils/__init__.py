@@ -394,7 +394,23 @@ def create_drive_file(
 
 @frappe.whitelist()
 def get_default_team(with_file: bool = False):
-    default_team = frappe.get_value("Drive Team", {"owner": frappe.session.user, "personal": 1}, "name")
+    # //// Neoffice: lazy-provision the personal team. Users that existed
+    # before suite was installed never went through the Setup page: the
+    # NeoCockpit replaced upstream's Drive Sidebar, which carried the only
+    # "no personal team -> redirect to /drive/setup" guard. Those users hit
+    # every @default_team endpoint with team=None and get a 500 ("You must
+    # provide a folder to query"). Guarantee the team on first touch instead
+    # (same principle as ensure_personal_mail_account for Calendar).
+    # Concurrent first-touch requests can race just like upstream's Setup
+    # page; the deterministic order keeps the pick stable in that case. ////
+    user = frappe.session.user
+    default_team = frappe.get_value(
+        "Drive Team", {"owner": user, "personal": 1}, "name", order_by="creation asc"
+    )
+    if not default_team and user and user != "Guest":
+        from suite.drive.api.product import create_team
+
+        default_team = create_team(user=user, personal=1)
     if with_file:
         file = get_home_folder(default_team)
         return {"team": default_team, "file": file.name}
