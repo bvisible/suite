@@ -11,6 +11,28 @@
     :parent="folderParent"
     @success="(data) => addToList(data, 'Link')"
   />
+  <!-- //// Neoffice: blank Office files, opened in Collabora on success //// -->
+  <NewOfficeFileDialog
+    v-else-if="dialog === 'word'"
+    v-model="dialog"
+    :parent="folderParent"
+    file-type="docx"
+    @success="() => resetDialog()"
+  />
+  <NewOfficeFileDialog
+    v-else-if="dialog === 'excel'"
+    v-model="dialog"
+    :parent="folderParent"
+    file-type="xlsx"
+    @success="() => resetDialog()"
+  />
+  <NewOfficeFileDialog
+    v-else-if="dialog === 'powerpoint'"
+    v-model="dialog"
+    :parent="folderParent"
+    file-type="pptx"
+    @success="() => resetDialog()"
+  />
 
   <RenameDialog
     v-else-if="dialog === 'rn'"
@@ -66,6 +88,7 @@ import { useRoute } from 'vue-router'
 
 import NewFolderDialog from '@/apps/drive/components/NewFolderDialog.vue'
 import NewLinkDialog from '@/apps/drive/components/NewLinkDialog.vue'
+import NewOfficeFileDialog from '@/apps/drive/components/NewOfficeFileDialog.vue'
 import ConfirmDialog from '@/apps/drive/components/ConfirmDialog.vue'
 import { ShareDialog, MoveDialog, RenameDialog, InfoDialog } from '@/apps/drive/ui/drive'
 

@@ -95,6 +95,9 @@ import LucideInfo from '~icons/lucide/info'
 import LucideFileUp from '~icons/lucide/file-up'
 import LucideFolderUp from '~icons/lucide/folder-up'
 import LucideFilePlus2 from '~icons/lucide/file-plus-2'
+import LucideFileText from '~icons/lucide/file-text'
+import LucideFileSpreadsheet from '~icons/lucide/file-spreadsheet'
+import LucidePresentation from '~icons/lucide/presentation'
 import LucideGalleryVerticalEnd from '~icons/lucide/gallery-vertical-end'
 import LucideFolderPlus from '~icons/lucide/folder-plus'
 
@@ -293,41 +296,58 @@ const button = computed(() => possibleButtons.find((k) => k.route == route.name)
 
 const newEntityOptions = computed(() => [
   {
-    group: 'Create',
+    group: __('Create'),
     items: dynamicList([
       {
-        label: 'Document',
+        label: __('Document'),
         icon: LucideFilePlus2,
         onClick: () => newExternal('Document'),
       },
+      // //// Neoffice: blank Office files (Collabora-backed), port of the
+      // standalone drive's Word/Excel/PowerPoint entries. ////
       {
-        label: 'Presentation',
+        label: __('Word'),
+        icon: LucideFileText,
+        onClick: () => openListDialog('word'),
+      },
+      {
+        label: __('Excel'),
+        icon: LucideFileSpreadsheet,
+        onClick: () => openListDialog('excel'),
+      },
+      {
+        label: __('PowerPoint'),
+        icon: LucidePresentation,
+        onClick: () => openListDialog('powerpoint'),
+      },
+      {
+        label: __('Presentation'),
         icon: LucideGalleryVerticalEnd,
         onClick: () => newExternal('Presentation'),
         cond: isPrivate.value && apps.data?.find?.((k) => k.name === 'slides'),
       },
       {
-        label: 'Folder',
+        label: __('Folder'),
         icon: LucideFolderPlus,
         onClick: () => openListDialog('f'),
       },
       {
-        label: 'Link',
+        label: __('Link'),
         icon: LucideLink,
         onClick: () => openListDialog('l'),
       },
     ]),
   },
   {
-    group: 'Upload',
+    group: __('Upload'),
     items: [
       {
-        label: 'Upload File',
+        label: __('Upload File'),
         icon: LucideFileUp,
         onClick: () => emitter.emit('uploadFile'),
       },
       {
-        label: 'Upload Folder',
+        label: __('Upload Folder'),
         icon: LucideFolderUp,
         onClick: () => emitter.emit('uploadFolder'),
       },

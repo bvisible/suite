@@ -50,13 +50,18 @@ def get_supported_extensions() -> list:
 
 
 @frappe.whitelist()
-def create_office_file(file_type: str, title: str, parent: str | None = None) -> dict:
+def create_office_file(file_type: str, title: str, parent: str = None, team: str = None) -> dict:
     """Create a new blank Office file in the Drive.
 
     Args:
         file_type: 'docx', 'xlsx' or 'pptx'
         title: file name (extension optional)
-        parent: parent folder File id (defaults to the user's home folder)
+        parent: parent folder File id (defaults to the team/home root)
+        team: Drive Team id, used when creating from a team root without a
+            parent folder (falls back to the user's personal team)
+
+    Note: simple annotations on purpose — v15's whitelist arg coercion
+    breaks on union types (`str | None`) for HTTP-sent values.
     """
     file_type = (file_type or "").lower()
     mime_type = OFFICE_MIME_TYPES.get(file_type)
@@ -71,14 +76,16 @@ def create_office_file(file_type: str, title: str, parent: str | None = None) ->
     if not os.path.exists(template_path):
         frappe.throw(_("Template file not found"))
 
-    # Resolve team + parent folder (same defaults as the Drive upload flow)
+    # Resolve team + parent folder (same defaults as the Drive upload flow):
+    # explicit folder > current team root > personal team root.
     if parent:
         if not frappe.db.exists("File", parent):
             frappe.throw(_("Parent folder not found"))
         team = frappe.db.get_value("File", parent, "team")
         home_folder = get_home_folder(team)
     else:
-        team = get_default_team()
+        if not team:
+            team = get_default_team()
         if not team:
             frappe.throw(_("No team found. Please set up your Drive first."))
         home_folder = get_home_folder(team)

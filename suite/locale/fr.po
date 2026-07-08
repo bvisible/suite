@@ -16652,3 +16652,28 @@ msgstr "Aucun résultat pour « {0} »."
 
 msgid "Search across all your documents."
 msgstr "Recherchez dans tous vos documents."
+
+# //// Neoffice: Drive "Create" menu — blank Office files (Collabora) ////
+msgid "Upload Folder"
+msgstr "Téléverser un dossier"
+
+msgid "Name:"
+msgstr "Nom :"
+
+msgid "Word"
+msgstr "Word"
+
+msgid "Excel"
+msgstr "Excel"
+
+msgid "PowerPoint"
+msgstr "PowerPoint"
+
+msgid "Create a Word Document"
+msgstr "Créer un document Word"
+
+msgid "Create a Spreadsheet"
+msgstr "Créer une feuille de calcul"
+
+msgid "Create a Presentation"
+msgstr "Créer une présentation"
