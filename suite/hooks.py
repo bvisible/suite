@@ -68,7 +68,10 @@ website_route_rules = [
 
 # mail — website redirects
 website_redirects = [
-	{"source": "/", "target": "/suite"},
+	# //// Neoffice: NO "/" -> "/suite" redirect. Upstream frappe/mail is a
+	# desk-first product that owns its domain root; a Neoffice instance serves a
+	# public website there (webshop / builder pages). This rule hijacked the root
+	# of dmis.ch and the site vitrine disappeared behind the Suite SPA. ////
 	{
 		"source": "/auth/validate",
 		"target": "/api/method/suite.mail.api.auth.validate",
