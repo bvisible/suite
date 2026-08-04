@@ -15,6 +15,32 @@ from suite.drive.utils.files import get_s3_url, storage_key
 class DriveTeam(Document):
     def after_insert(self):
         """Creates the file on disk"""
+        self.ensure_root_folder()
+
+        self.append("users", {"user": frappe.session.user, "access_level": 2})
+        self.save()
+
+    def ensure_root_folder(self):
+        """Create this team's root folder if it does not have one yet.
+
+        A team without a root folder is a team Drive cannot open at all:
+        get_home_folder() finds nothing and throws "This team doesn't exist",
+        which is misleading — the team is right there, it just has no root.
+
+        Split out of after_insert so the same code can repair a team that
+        already exists. Teams restored from a database backup are the usual
+        case: the rows come back, after_insert never runs, and if the backup
+        predates the drive -> suite migration the roots are still sitting in
+        the legacy `tabDrive File` table that this site no longer has a DocType
+        for. Measured on the Lite tenants (2026-08-04): every tenant cloned
+        from the 2026-07-31 golden had all three of its teams unopenable.
+
+        Idempotent: does nothing when a root is already there.
+        """
+        existing = frappe.db.get_value("File", {"team": self.name, "folder": ["in", ["", None]]}, "name")
+        if existing:
+            return existing
+
         d = frappe.get_doc(
             {
                 "name": self.name,
@@ -26,9 +52,6 @@ class DriveTeam(Document):
             }
         )
         d.insert()
-
-        self.append("users", {"user": frappe.session.user, "access_level": 2})
-        self.save()
 
         settings = frappe.get_single("Drive Disk Settings")
         root_folder: str

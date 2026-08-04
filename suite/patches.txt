@@ -26,6 +26,11 @@ suite.drive.patches.add_modified_field
 suite.drive.patches.add_drive_user_role
 suite.drive.patches.add_search_index
 suite.drive.patches.migrate_s3_url_prefix
+# Runs LAST of the drive patches: integrate_with_framework (pre_model_sync) is
+# what normally brings the roots over from the legacy tables, so this only has
+# work to do when that migration could not run — a restored database whose
+# `drive` app was dropped before the data ever moved.
+suite.drive.patches.ensure_team_root_folders
 # --- slides ---
 suite.slides.doctype.presentation.patches.sanitize_attachment_urls
 suite.slides.doctype.presentation.patches.move_attachments_to_private_folder
