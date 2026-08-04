@@ -27,6 +27,8 @@ Idempotent and safe to re-run: teams that already have a root are untouched.
 
 import frappe
 
+from suite.drive.doctype.drive_team.drive_team import get_root_folder_name
+
 
 def execute():
     if not frappe.db.table_exists("Drive Team"):
@@ -44,7 +46,7 @@ def execute():
 
     repaired, failed = [], []
     for name in frappe.get_all("Drive Team", pluck="name"):
-        if frappe.db.get_value("File", {"team": name, "folder": ["in", ["", None]]}, "name"):
+        if get_root_folder_name(name):
             continue
         try:
             team = frappe.get_doc("Drive Team", name)

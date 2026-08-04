@@ -12,6 +12,24 @@ from suite.drive.utils import get_home_folder
 from suite.drive.utils.files import get_s3_url, storage_key
 
 
+def get_root_folder_name(team: str) -> str | None:
+    """Name of a team's root folder, or None.
+
+    Raw SQL on purpose. The root is identified by `folder` being unset, which
+    in practice means NULL *or* the empty string, and no ORM filter expresses
+    that pair correctly: ``{"folder": ["in", ["", None]]}`` compiles to
+    ``folder IN ('', NULL)``, and SQL never matches NULL through IN. That
+    silently reported "no root" for a team that had one — enough to make the
+    repair below non-idempotent and create a second root on every run
+    (caught on lite01, 2026-08-04, before this shipped anywhere).
+    """
+    rows = frappe.db.sql(
+        "select name from `tabFile` where team=%s and (folder is null or folder='') limit 1",
+        team,
+    )
+    return rows[0][0] if rows else None
+
+
 class DriveTeam(Document):
     def after_insert(self):
         """Creates the file on disk"""
@@ -37,7 +55,7 @@ class DriveTeam(Document):
 
         Idempotent: does nothing when a root is already there.
         """
-        existing = frappe.db.get_value("File", {"team": self.name, "folder": ["in", ["", None]]}, "name")
+        existing = get_root_folder_name(self.name)
         if existing:
             return existing
 
