@@ -125,3 +125,22 @@ def assign_drive_role_and_create_settings(user, method: str) -> None:
 		frappe.set_user(original_user)
 		frappe.session.sid = original_sid
 		frappe.session.data = original_data
+
+
+# //// Neoffice — added function (no upstream equivalent).
+# on_trash(User) → drop the Drive Settings this app's after_insert created.
+#
+# Upstream provisions Drive Settings for every new user but never removes it, and
+# the doctype autonames `field:user` — so the row's primary key IS the e-mail.
+# Deleting a User therefore leaves a row that makes re-creating an account with
+# the SAME address die on `DuplicateEntryError: Drive Settings`, from anywhere:
+# the desk, a signup, or the fiduciary portal re-inviting a colleague who was
+# removed. Mail already cleans up after itself in on_trash; Drive did not.
+#
+# Deliberately NOT deleting the personal Drive Team: it autonames by hash, so it
+# blocks nothing, and it holds the user's files — that is data, and reaping it
+# behind a user deletion is not this hook's call.
+def delete_drive_settings(doc, method: str | None = None) -> None:
+	"""Remove the deleted user's Drive Settings so the address can be reused."""
+	if frappe.db.exists("Drive Settings", doc.name):
+		frappe.delete_doc("Drive Settings", doc.name, force=1, ignore_permissions=True)

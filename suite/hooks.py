@@ -238,6 +238,10 @@ doc_events = {
 			"suite.mail.events.delete_account",
 			"suite.mail.events.delete_user_accounts",
 			"suite.mail.events.delete_user_settings",
+			# //// Neoffice: mirror of the drive after_insert above. Drive Settings
+			# autonames field:user, so the row left behind by a deleted user makes
+			# re-creating the same address fail on a duplicate primary key. ////
+			"suite.drive.utils.users.delete_drive_settings",
 		],
 	},
 }
