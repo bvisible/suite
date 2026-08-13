@@ -29,7 +29,23 @@ def create_mail_admin_role() -> None:
 
 
 def after_migrate() -> None:
-	StalwartCLI()._install()
+	#//// Neoffice — `_install()` is called unconditionally here, so every `bench migrate`
+	# re-downloads the CLI binary from GitHub even when it is already on disk. The call
+	# has no timeout and no retry, and `suite_core.boot._run` re-raises after logging, so
+	# a single network hiccup at GitHub failed the whole migration: run NDR-00052
+	# (2026-08-11) lost 12 fleet instances out of 12 on `RemoteDisconnected`, and 2 out of
+	# 13 the next night — thirteen machines pulling the same release at 04:00.
+	# A mail tooling binary is not worth a site's migration. Log and carry on; the CLI is
+	# installed again on first real use (StalwartCLI.__init__ still installs on demand).
+	# Remove once upstream stops re-downloading on every migrate.
+	try:
+		StalwartCLI()._install()
+	except Exception as exc:  # noqa: BLE001
+		frappe.log_error(
+			"Stalwart CLI install skipped during migrate",
+			f"{type(exc).__name__}: {exc}\nMigration continued; the CLI will be "
+			f"installed on first use.",
+		)
 
 
 def add_rate_limits() -> None:

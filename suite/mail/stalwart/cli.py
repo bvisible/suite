@@ -4,6 +4,7 @@ import platform
 import shutil
 import subprocess
 import tarfile
+import time  #//// Neoffice — added: pauses between download retries (see _install)
 import urllib.request
 from typing import TYPE_CHECKING, ClassVar
 
@@ -58,7 +59,25 @@ class StalwartCLI:
 		self.cli_path = get_stalwart_cli_path()
 
 		if not os.path.exists(self.cli_path):
-			self._install()
+			#//// Neoffice — installing the CLI downloads a binary from GitHub, and this
+			# runs on EVERY `bench migrate` (the path check above is false each time).
+			# A network hiccup at GitHub therefore failed the migration of the whole
+			# fleet: run NDR-00052 (2026-08-11) lost 12 instances out of 12 on
+			# `RemoteDisconnected`, and 2 out of 13 the following night — thirteen
+			# machines fetching the same file at 04:00. A missing tooling binary must
+			# not cost a site its migration: during a migrate we record the failure and
+			# carry on, and the CLI is installed again on first real use.
+			# Remove this guard once upstream makes the download resilient.
+			try:
+				self._install()
+			except Exception as exc:  # noqa: BLE001
+				if not getattr(frappe.flags, "in_migrate", False):
+					raise
+				frappe.log_error(
+					"Stalwart CLI download failed during migrate",
+					f"{type(exc).__name__}: {exc}\nThe migration continued; the CLI will "
+					f"be installed on first use.",
+				)
 
 	def _url(self) -> tuple[str, str]:
 		"""Returns the download URL and filename for the appropriate Stalwart CLI release based on the current platform and architecture."""
@@ -102,7 +121,25 @@ class StalwartCLI:
 		if frappe.conf.developer_mode:
 			print(f"\tDownloading {url}...")
 
-		urllib.request.urlretrieve(url, tar_path)
+		#//// Neoffice — `urlretrieve` carries no timeout and no retry: it waits for ever
+		# on a stalled connection, and gives up for good on the first hiccup. Three
+		# attempts with an explicit timeout, because GitHub regularly drops the
+		# connection when the whole fleet pulls the same release at once.
+		last_error = None
+		for attempt in range(3):
+			try:
+				with urllib.request.urlopen(url, timeout=30) as response, open(tar_path, "wb") as out:
+					shutil.copyfileobj(response, out)
+				last_error = None
+				break
+			except Exception as exc:  # noqa: BLE001
+				last_error = exc
+				if os.path.exists(tar_path):
+					os.remove(tar_path)  # a partial file would break tarfile.open below
+				if attempt < 2:
+					time.sleep(2 * (attempt + 1))
+		if last_error:
+			raise last_error
 
 		if frappe.conf.developer_mode:
 			print(f"\tExtracting stalwart-cli from {filename}...")
