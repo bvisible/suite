@@ -121,6 +121,20 @@ def assign_drive_role_and_create_settings(user, method: str) -> None:
 	try:
 		frappe.set_user(user_name)
 		create_team(user=user_name, team_name=user_name, personal=1)
+	# //// Neoffice — creating the personal Drive team must never abort the
+	# //// creation of the USER. create_team() inserts a Drive Team as the new
+	# //// user, which only "Drive User" and "System Manager" may do — and the
+	# //// role granted a few lines above does not always survive: a User with a
+	# //// role_profile_name has its roles REPLACED by the profile's on validate
+	# //// (populate_role_profile_roles), so the role is gone by then. The
+	# //// PermissionError climbed out of after_insert and no user was created
+	# //// at all (measured 28.08.2026: profile "Caissier" -> PermissionError,
+	# //// no profile -> fine). Drive is an annex; the account is not.
+	except Exception:
+		frappe.log_error(
+			f"Drive: personal team not created for {user_name}",
+			frappe.get_traceback(),
+		)
 	finally:
 		frappe.set_user(original_user)
 		frappe.session.sid = original_sid
