@@ -71,16 +71,6 @@ website_route_rules = [
 
 home_page = "suite"
 
-#//// Neoffice — Frappe v15 compatibility, added hooks (no upstream equivalent).
-#//// Upstream writes response headers through `frappe.local.response_headers`,
-#//// which v16 creates per request and merges into the response. v15 has neither
-#//// half, so every write raised AttributeError and /suite and /drive answered
-#//// HTTP 500 to every visitor. These two hooks reproduce both halves at the same
-#//// points v16 uses. Drop them, and suite/suite_core/v15_response_headers.py,
-#//// when the fleet moves to v16.
-before_request = ["suite.suite_core.v15_response_headers.create"]
-after_request = ["suite.suite_core.v15_response_headers.apply"]
-
 # mail — website redirects
 website_redirects = [
     # //// Neoffice — there must be NO "/" -> "/suite" redirect here. Upstream
@@ -385,10 +375,26 @@ extend_bootinfo = "suite.suite_core.boot.extend_bootinfo"
 
 # drive — custom upload + after_request middleware (single definers)
 after_file_upload = "suite.drive.overrides.file.after_file_upload"
-after_request = "suite.drive.api.product.after_request"
+#//// Neoffice — Frappe v15 compatibility. Upstream writes response headers through
+#//// `frappe.local.response_headers`, which v16 creates per request and merges into
+#//// the response; v15 has neither half, so every write raised AttributeError and
+#//// /suite and /drive answered HTTP 500 to every visitor. `create` makes the object
+#//// (before_request) and `apply` merges it (after_request) — the same two points
+#//// v16 uses. ORDER MATTERS: create must run before any handler writes a header,
+#//// and apply last, once they all have. Drop both entries, and
+#//// suite/suite_core/v15_response_headers.py, when the fleet moves to v16.
+after_request = [
+    "suite.drive.api.product.after_request",
+    "suite.suite_core.v15_response_headers.apply",
+]
 
 # drive — WebDAV protocol dispatcher (list hook, additive; answers all verbs under /dav)
-before_request = ["suite.drive.webdav.dispatch.handle_before_request"]
+before_request = [
+    #//// Neoffice — see the v15 note on after_request above; this one has to come
+    #//// first, the WebDAV dispatcher below already writes a header.
+    "suite.suite_core.v15_response_headers.create",
+    "suite.drive.webdav.dispatch.handle_before_request",
+]
 
 # drive — the WebDAV dispatcher consumes /dav request bodies itself (frappe skips the
 # body cap and form_dict buffering; a no-op on frappe versions without this hook,
