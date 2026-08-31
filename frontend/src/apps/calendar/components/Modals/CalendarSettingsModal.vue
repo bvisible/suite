@@ -1,10 +1,19 @@
+<!-- //// Neoffice — frappe-ui's Dialog API changed with the submodule bump
+     (bceea1dbe): `:options="{ title, size }"` is gone in favour of plain props,
+     and the `#body-content` slot is now the DEFAULT slot. Passing the old shape
+     is not an error — Vue just ignores an unknown prop and never renders an
+     unknown slot — so the dialog opened EMPTY: no title, no fields, only the
+     footer. Found on screen 31.08.2026, the calendar settings modal had lost its
+     name, colour, sharing and CalDAV link. Upstream's own
+     apps/drive/components/Settings/WebDAVSettings.vue still passes the old shape
+     and has the same bug; worth reporting. //// -->
 <!-- //// Neoffice: new file — per-calendar settings opened from the sidebar gear:
      rename, colour, sharing, CalDAV URL, delete. Upstream exposed none of this
      in the SPA. Wraps the existing update_calendar / share_calendar /
      delete_calendars / get_caldav_url endpoints. //// -->
 <template>
-	<Dialog v-model="show" :options="{ title: __('Calendar settings'), size: 'xl' }">
-		<template #body-content>
+	<Dialog v-model="show" :title="__('Calendar settings')" size="xl">
+		<template #default>
 			<div v-if="detail.loading" class="text-ink-gray-5 py-8 text-center text-sm">
 				{{ __('Loading…') }}
 			</div>

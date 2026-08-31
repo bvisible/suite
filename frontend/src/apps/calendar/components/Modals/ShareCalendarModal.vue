@@ -1,9 +1,18 @@
+<!-- //// Neoffice — frappe-ui's Dialog API changed with the submodule bump
+     (bceea1dbe): `:options="{ title, size }"` is gone in favour of plain props,
+     and the `#body-content` slot is now the DEFAULT slot. Passing the old shape
+     is not an error — Vue just ignores an unknown prop and never renders an
+     unknown slot — so the dialog opened EMPTY: no title, no fields, only the
+     footer. Found on screen 31.08.2026, the calendar settings modal had lost its
+     name, colour, sharing and CalDAV link. Upstream's own
+     apps/drive/components/Settings/WebDAVSettings.vue still passes the old shape
+     and has the same bug; worth reporting. //// -->
 <!-- //// Neoffice: new file — share a calendar with colleagues. Upstream had no
      sharing UI at all; this drives the new share_calendar/get_shareable_principals
      endpoints. Each colleague gets a simple access level mapped to JMAP rights. //// -->
 <template>
-	<Dialog v-model="show" :options="{ title: __('Share a calendar') }">
-		<template #body-content>
+	<Dialog v-model="show" :title="__('Share a calendar')">
+		<template #default>
 			<div class="flex flex-col gap-4">
 				<FormControl
 					type="select"

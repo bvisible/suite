@@ -1,0 +1,92 @@
+####//// Neoffice — added workflow (no upstream equivalent).
+#
+# Upstream ignores the built SPA (.gitignore) and expects every instance to run
+# its own `bench build`. The Neoffice fleet does the opposite — it commits the
+# build, because fleet instances have no node and a 2 vCPU / 4 GB box cannot
+# compile this bundle (7190 modules) without OOMing. Same model as our LMS fork,
+# whose build-frontend.yml this mirrors.
+#
+# So the compile has to happen SOMEWHERE, and that somewhere is here rather than
+# on a laptop: a hand-built bundle is not reproducible, depends on whoever ran it
+# and on their pnpm/node versions, and it is easy to push source without the
+# matching artifacts (or the reverse).
+#
+# Push to one of the branches below and the artifacts come back committed, ready
+# to `git pull` on an instance.
+name: build-frontend
+
+on:
+  push:
+    # version-15 is what the fleet deploys from. The two wildcards let a branch be
+    # validated on a real instance BEFORE it lands there — testing a commit-the-build
+    # SPA in a browser needs compiled assets.
+    #   merge/upstream-*  upstream merges, which always need a real-instance pass
+    #   build/**          anything else you want built without touching version-15
+    branches: [version-15, 'merge/upstream-*', 'build/**']
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/build-frontend.yml'
+      - '!**/node_modules/**'
+      # Ignore the artifacts themselves, or the bot's own commit retriggers this.
+      - '!suite/public/frontend/**'
+      - '!suite/www/suite.html'
+      - '!suite/www/event_rsvp.html'
+      - '!suite/www/service-worker.js'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    # Never react to the bot's own artifact commit.
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    env:
+      # Vite/rolldown on this bundle exceeds Node's default heap and aborts with
+      # "JavaScript heap out of memory" (exit 134) even with RAM to spare.
+      NODE_OPTIONS: --max-old-space-size=4096
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.ref }}
+          # frappe-ui is a git submodule since upstream bceea1dbe, and the build
+          # resolves imports against it. Without this the build fails on
+          # '"./list" is not exported by frappe-ui'.
+          submodules: recursive
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        working-directory: frontend
+        run: pnpm run build
+
+      - name: Commit artifacts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add suite/public/frontend suite/www/suite.html \
+                  suite/www/event_rsvp.html suite/www/service-worker.js
+          if git diff --cached --quiet; then
+            echo "No artifact changes to commit"
+            exit 0
+          fi
+          git commit --no-verify -m "[skip-build] frontend artifacts for ${GITHUB_SHA::8}"
+          git push
