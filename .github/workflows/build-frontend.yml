@@ -70,6 +70,15 @@ jobs:
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
 
+      # frontend/vite.config.ts reads ../../sites/common_site_config.json at config
+      # load time (it needs socketio_port). On a bench that file exists; on a
+      # runner the workspace is /home/runner/work/<repo>/<repo>, so the path
+      # resolves to /home/runner/work/sites/. Stub it, exactly as our LMS fork does.
+      - name: Create common_site_config stub
+        run: |
+          mkdir -p ../../sites
+          echo '{"socketio_port": 9000}' > ../../sites/common_site_config.json
+
       - name: Install
         working-directory: frontend
         run: pnpm install --frozen-lockfile
