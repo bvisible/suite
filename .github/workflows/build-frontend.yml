@@ -79,6 +79,17 @@ jobs:
           mkdir -p ../../sites
           echo '{"socketio_port": 9000}' > ../../sites/common_site_config.json
 
+      # frappe-ui is consumed FROM SOURCE (the submodule), so its own styles are
+      # compiled here too: ToastProvider.vue does `@import 'vue-sonner/style.css'`,
+      # and postcss resolves that from frappe-ui/, not from frontend/. Without the
+      # submodule's own node_modules the build dies on
+      # "ENOENT: no such file or directory, open 'vue-sonner/style.css'".
+      # It only ever worked on a workstation that still had a stale node_modules at
+      # the repo root (679 packages from an old `yarn install`) shadowing the gap.
+      - name: Install frappe-ui dependencies
+        working-directory: frappe-ui
+        run: yarn install --frozen-lockfile
+
       - name: Install
         working-directory: frontend
         run: pnpm install --frozen-lockfile
