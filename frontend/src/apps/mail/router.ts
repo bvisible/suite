@@ -6,19 +6,14 @@ import { useSessionStore } from '@/boot/session'
 import { userStore } from '@/apps/mail/stores/user'
 
 /**
- * Mail router compat + guard.
+ * Mail-local guard on the shared suite router: setup-wizard escape, user-data
+ * wait, dashboard access control, account resolution, mailbox validation and
+ * shortcut-route expansion. Early-returns for any route whose name doesn't
+ * start with `mail-`; auth itself is the suite router's `beforeEach`
+ * (redirects guests unless `meta.allowGuest`).
  *
- * The standalone mail app had its own `createRouter` with a global
- * `beforeEach` that did: setup-wizard escape, auth, user-data wait, dashboard
- * access control, account resolution, mailbox validation and shortcut-route
- * expansion. In the suite there is ONE router (mail routes live under '/mail');
- * the suite router's own `beforeEach` already redirects guests to `/login`
- * unless the route has `meta.isPublic`. So only the mail-SPECIFIC parts are
- * ported here as a mail-local guard that early-returns for any route whose
- * name doesn't start with `mail-`.
- *
- * Re-exports the single suite router instance as `router` so mail pages/stores
- * can keep importing it (`@/apps/mail/router`), mirroring the calendar port.
+ * Re-exports the suite router instance as `router` so mail pages/stores can
+ * import it from `@/apps/mail/router`.
  */
 export const router = suiteRouter
 
@@ -81,17 +76,23 @@ function installMailGuard(r: Router) {
 
 		// Admin / dashboard access control.
 		if (!user?.is_jmap_configured) {
-			if (!user?.is_mail_admin) window.location.replace('/desk')
+			if (!user?.is_suite_admin) window.location.replace('/desk')
 			if (to.meta.isDashboard) return
-			return { name: 'mail-domains' }
+			return { name: 'mail-overview' }
 		}
 
-		// Resolve active account.
-		resolveAccount(user?.accounts, to.params.accountId as string | undefined)
+		// Resolve active account. The merged All Inboxes thread route carries the thread's
+		// owning account purely to scope the pane (see utils/accountScope) — opening a
+		// thread there must not switch the active account out from under the merged list.
+		const routeAccountId =
+			to.name === 'mail-all-inboxes-mail' ? undefined : (to.params.accountId as string | undefined)
+		resolveAccount(user?.accounts, routeAccountId)
 		const accountId = userStore().accountId
 
-		// Wait for mailbox list.
-		await mailboxes.promise
+		// Wait for mailbox list. The fetch rejects when the mail server is temporarily down;
+		// swallow that so navigation still completes — otherwise the initial navigation aborts,
+		// the app never mounts and the user gets a blank page instead of the unavailable banner.
+		await mailboxes.promise?.catch(() => {})
 		const defaultRoute = buildDefaultRoute(accountId, mailboxes)
 
 		// Validate mailbox param for mailbox routes.
@@ -103,14 +104,19 @@ function installMailGuard(r: Router) {
 			if (screenerId && to.params.mailbox === screenerId)
 				return { name: 'mail-screener', params: { accountId } }
 
+			// With no mailbox list (fetch failed above) the param can't be validated — keep the
+			// requested route rather than bouncing the user off the URL they asked for.
 			const mailboxExists =
-				mailboxes.data?.some((m: { id: string }) => m.id === to.params.mailbox) ||
+				!mailboxes.data ||
+				mailboxes.data.some((m: { id: string }) => m.id === to.params.mailbox) ||
 				['starred', 'search'].includes(to.params.mailbox as string)
 			if (!mailboxExists) return defaultRoute
 		}
 
-		// Expand shortcut routes to their full account-scoped equivalents.
-		if (to.meta.shortcut) return resolveShortcut(to.name, to.params, accountId, defaultRoute)
+		// Expand shortcut routes to their full account-scoped equivalents. The
+		// query rides along — it can carry a compose deep link (?compose=1&to=).
+		if (to.meta.shortcut)
+			return { ...resolveShortcut(to.name, to.params, accountId, defaultRoute), query: to.query }
 
 		// Login pages redirect already-authenticated users to their mailbox.
 		if (to.meta.isLogin) return defaultRoute

@@ -5,6 +5,7 @@
       variant="outline"
       type="number"
       v-model="size"
+      @focus="$event.target.select()"
       @update:modelValue="(val) => val && props.editor.commands.setFontSize(val + 'px')"
     />
     <FontSelect v-model="selected" :font_family :editor />
@@ -12,7 +13,7 @@
 </template>
 <script setup>
 import { FormControl } from 'frappe-ui'
-import { ref, watchEffect } from 'vue'
+import { ref, watch } from 'vue'
 import { FONT_FAMILIES } from '@/apps/writer/utils'
 import FontSelect from './FontSelect.vue'
 
@@ -25,12 +26,24 @@ const props = defineProps({
 const selected = ref(props.font_family)
 const size = ref(props.font_size)
 
-watchEffect(() => {
-  // potential perf?
+// The editor is plain @tiptap/core (not reactive), so state reads don't
+// trigger re-runs — sync on transactions instead.
+const sync = () => {
   selected.value =
     FONT_FAMILIES.find((opt) => opt.isActive(props.editor))?.key || props.font_family
   let fontSize = props.editor.getAttributes('textStyle')?.fontSize || props.font_size
-  if (fontSize && typeof fontSize !== 'number') fontSize = +fontSize.slice(0, -2)
+  if (typeof fontSize !== 'number') fontSize = parseFloat(fontSize)
   if (!Number.isNaN(fontSize)) size.value = fontSize
-})
+}
+
+watch(
+  () => props.editor,
+  (editor, _old, onCleanup) => {
+    if (typeof editor?.on !== 'function') return
+    sync()
+    editor.on('transaction', sync)
+    onCleanup(() => editor.off('transaction', sync))
+  },
+  { immediate: true },
+)
 </script>

@@ -3,9 +3,10 @@ import type * as mediasoup from 'mediasoup';
 import type {
 	AppData,
 	CloseProducerResult,
+	ProducerAppData,
 	ProducerData,
 	RtpParameters,
-	WebRtcTransport,
+	TransportData,
 } from '../types';
 import { loggers } from '../utils/logger';
 
@@ -13,14 +14,18 @@ export class ProducerManager extends EventEmitter {
 	private producers = new Map<string, ProducerData>();
 
 	async createProducer(
-		transport: WebRtcTransport,
+		transport: TransportData['transport'],
 		roomId: string,
 		peerId: string,
 		rtpParameters: RtpParameters,
 		kind: 'audio' | 'video',
-		appData: AppData = {},
+		appData: ProducerAppData = {},
 		paused = false,
-	): Promise<{ id: string; kind: 'audio' | 'video'; appData: AppData }> {
+	): Promise<{
+		id: string;
+		kind: 'audio' | 'video';
+		appData: ProducerAppData;
+	}> {
 		loggers.producerManager.info(
 			'Creating %s producer for peer %s',
 			kind,
@@ -51,11 +56,14 @@ export class ProducerManager extends EventEmitter {
 		producer.on('score', (scores) => {
 			this.emit('score', roomId, peerId, kind, scores);
 		});
+		producer.on('transportclose', () => {
+			this.emit('producer_transport_closed', producer.id);
+		});
 
 		return {
 			id: producer.id,
 			kind: producer.kind,
-			appData: producer.appData || appData,
+			appData: sanitizedAppData(producer.appData),
 		};
 	}
 
@@ -65,18 +73,19 @@ export class ProducerManager extends EventEmitter {
 
 		const { producer } = producerData;
 		const isScreen = producer?.appData?.type === 'screen';
-
-		try {
-			producer.close();
-		} catch (error) {
-			loggers.producerManager.warn(
-				'Error closing producer %s: %s',
-				producerId,
-				(error as Error).message,
-			);
-		}
-
 		this.producers.delete(producerId);
+
+		if (!producer.closed) {
+			try {
+				producer.close();
+			} catch (error) {
+				loggers.producerManager.warn(
+					'Error closing producer %s: %s',
+					producerId,
+					(error as Error).message,
+				);
+			}
+		}
 
 		loggers.producerManager.info(
 			'Producer closed: %s%s',
@@ -180,4 +189,19 @@ export class ProducerManager extends EventEmitter {
 		}
 		this.producers.clear();
 	}
+}
+
+function sanitizedAppData(value: AppData): ProducerAppData {
+	const appData: ProducerAppData = {};
+	if (value.type === 'screen') appData.type = 'screen';
+	if (typeof value.e2eeStartPaused === 'boolean') {
+		appData.e2eeStartPaused = value.e2eeStartPaused;
+	}
+	if (
+		typeof value.senderId === 'number' &&
+		Number.isSafeInteger(value.senderId)
+	) {
+		appData.senderId = value.senderId;
+	}
+	return appData;
 }

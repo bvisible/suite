@@ -13,9 +13,9 @@ IGNORE_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
 
 
 class IntegrationTestServerDeploymentService(IntegrationTestCase):
-	"""
-	Integration tests for ServerDeploymentService.
-	Use this class for testing interactions between multiple components.
-	"""
+    """
+    Integration tests for ServerDeploymentService.
+    Use this class for testing interactions between multiple components.
+    """
 
-	pass
+    pass

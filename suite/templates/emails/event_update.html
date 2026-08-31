@@ -1,0 +1,10 @@
+{% extends "templates/emails/_event_base.html" %}
+{% block card %}
+{% import "templates/emails/_event_macros.html" as m with context %}
+						{{ m.eyebrow('This event was updated') }}
+						{{ m.heading(title) }}
+						{{ m.details_table('When', when, timezone, location, organizer_name, organizer_email, bold=true) }}
+						{{ m.description(description) }}
+						{{ m.meet_card(meet) }}
+						{{ m.rsvp_block(rsvp, 'Does this still work for you?') }}
+{% endblock %}

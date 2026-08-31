@@ -13,9 +13,9 @@ IGNORE_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
 
 
 class IntegrationTestPushSubscription(IntegrationTestCase):
-	"""
-	Integration tests for PushSubscription.
-	Use this class for testing interactions between multiple components.
-	"""
+    """
+    Integration tests for PushSubscription.
+    Use this class for testing interactions between multiple components.
+    """
 
-	pass
+    pass

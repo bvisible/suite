@@ -1,6 +1,6 @@
 <template>
   <div
-    class="h-[65%] flex items-center justify-center rounded-t-[calc(theme(borderRadius.lg)-1px)] overflow-hidden"
+    class="relative h-[65%] flex items-center justify-center rounded-t-6 overflow-hidden"
   >
     <img
       v-show="!imgLoaded"
@@ -10,12 +10,14 @@
       :draggable="false"
     />
     <img
-      v-show="imgLoaded"
-      :class="
+      loading="lazy"
+      decoding="async"
+      :class="[
         hasThumbnail
-          ? 'h-full min-w-full object-cover rounded-t-[calc(theme(borderRadius.lg)-1px)]'
-          : 'h-10 w-auto'
-      "
+          ? 'absolute inset-0 h-full min-w-full object-cover rounded-t-6'
+          : 'absolute top-1/2 left-1/2 h-10 w-auto -translate-x-1/2 -translate-y-1/2',
+        imgLoaded ? 'opacity-100' : 'opacity-0',
+      ]"
       :src="src"
       :draggable="false"
       @load="imgLoaded = true"
@@ -24,9 +26,13 @@
   <div
     class="p-2 h-[35%] border-t border-outline-gray-1 flex flex-col justify-evenly"
   >
-    <div class="truncate w-full w-fit text-base-medium text-ink-gray-8">
-      {{ file.file_name }}
-    </div>
+    <InlineRenameInput :entity="file">
+      <Tooltip :text="file.file_name" :disabled="displayFileName(file) === file.file_name">
+        <div class="truncate w-full text-base text-ink-gray-8">
+          {{ displayFileName(file) }}
+        </div>
+      </Tooltip>
+    </InlineRenameInput>
     <div class="mt-[5px] text-xs text-ink-gray-5">
       <div class="flex items-center justify-start gap-1">
         <img
@@ -37,9 +43,7 @@
           :draggable="false"
         />
         <p class="truncate">
-          {{ file.is_folder ? childrenSentence + '∙' : '' }}
-          {{ file.file_type !== 'Unknown' ? file.file_type + '∙' : '' }}
-          {{ file.relativeModified }}
+          {{ metadata }}
         </p>
       </div>
       <!-- <p class="mt-1">
@@ -49,8 +53,10 @@
   </div>
 </template>
 <script setup>
-import { getIconUrl, getThumbnailUrl } from '@/apps/drive/utils/files'
+import { getIconUrl, getThumbnailUrl, displayFileName } from '@/apps/drive/utils/files'
+import { Tooltip } from 'frappe-ui'
 import { ref, computed } from 'vue'
+import InlineRenameInput from './InlineRenameInput.vue'
 const props = defineProps({ file: Object })
 
 const { src, fallback } = getThumbnailUrl(props.file, 'grid')
@@ -71,4 +77,13 @@ const childrenSentence = computed(() => {
   if (!props.file.child_count) return 'empty'
   return props.file.child_count + ' item' + (props.file.child_count === 1 ? '' : 's')
 })
+const metadata = computed(() =>
+  [
+    props.file.is_folder ? childrenSentence.value : null,
+    props.file.file_type !== 'Unknown' ? props.file.file_type : null,
+    props.file.relativeModified,
+  ]
+    .filter(Boolean)
+    .join(' · ')
+)
 </script>

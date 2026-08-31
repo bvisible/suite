@@ -24,28 +24,34 @@ class DriveUserInvitation(Document):
                 frappe.log_error(f"Failed to send invite email: {e}")
                 pass
         elif self.status == "Proposed":
-            admins = frappe.get_all("Drive Team Member", filters={"parent": self.team, "access_level": 2}, pluck="user")
+            admins = frappe.get_all(
+                "Has Role", filters={"role": "Suite Admin", "parenttype": "User"}, pluck="parent"
+            )
             for admin in admins:
                 frappe.get_doc(
                     {
                         "doctype": "Drive Notification",
                         "to_user": admin,
-                        "type": "Team",
+                        "type": "Site",
                         "message": f"A person ({self.email}) from your domain has joined Frappe Drive",
                     }
                 ).insert(ignore_permissions=True)
             frappe.db.commit()
 
     def invite_via_email(self):
+        from suite.drive.api.notifications import drive_logo_inline_images
+
         frappe.sendmail(
             recipients=self.email,
-            subject=f"Frappe Drive - Invitation",
+            subject="Frappe Drive - Invitation",
             template="drive_invitation",
             args={
-                "invite_link": frappe.utils.get_url(f"/api/method/suite.drive.api.product.accept_invite?key={self.name}"),
+                "invite_link": frappe.utils.get_url(
+                    f"/api/method/suite.drive.api.product.accept_invite?key={self.name}"
+                ),
                 "user": frappe.session.user,
-                "team_name": frappe.db.get_value("Drive Team", self.team, "title"),
             },
+            inline_images=drive_logo_inline_images(),
             now=True,
         )
 
@@ -83,17 +89,12 @@ class DriveUserInvitation(Document):
             user_exists = frappe.db.exists("User", self.email)
 
             if not user_exists:
-                team_name = frappe.db.get_value("Drive Team", self.team, "title")
-                url = f"/drive/signup?e={self.email}{'&t=' + team_name if team_name else ''}&r={req.name}"
+                url = f"/drive/signup?e={self.email}&r={req.name}"
                 if isinstance(redirect, str):
                     url += f"&redirect-to={redirect}"
                 frappe.local.response["location"] = url
                 return
 
-        # Otherwise, add the user to the team
-        team = frappe.get_doc("Drive Team", self.team)
-        team.append("users", {"user": self.email, "access_level": 0 if self.as_guest else 1})
-        team.save(ignore_permissions=True)
         self.status = "Accepted"
         self.accepted_at = frappe.utils.now()
         self.save(ignore_permissions=True)
@@ -102,5 +103,5 @@ class DriveUserInvitation(Document):
         if frappe.session.user == "Guest":
             frappe.local.login_manager.login_as(self.email)
 
-        frappe.local.response["location"] = "/drive/t/" + self.team
-        return "/drive/t/" + self.team
+        frappe.local.response["location"] = "/drive/"
+        return "/drive/"

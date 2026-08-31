@@ -34,7 +34,7 @@ export const userStore = defineStore('calendar-user', () => {
 	const setAccount = (id: string) => {
 		accountId.value = id
 		localStorage.setItem(ACCOUNT_STORAGE_KEY, id)
-		identities.fetch()
+		participantIdentities.fetch()
 	}
 
 	const userResource = createResource({
@@ -47,11 +47,11 @@ export const userStore = defineStore('calendar-user', () => {
 		auto: true,
 	})
 
-	const identities = createResource({
-		url: 'suite.mail.api.account.get_identities',
+	const participantIdentities = createResource({
+		url: 'suite.mail.api.account.get_participant_identities',
 		makeParams: () => ({ account: accountId.value }),
-		cache: ['identities', accountId.value],
+		cache: ['participantIdentities', accountId.value],
 	})
 
-	return { accountId, resolveAccount, userResource, identities }
+	return { accountId, resolveAccount, userResource, participantIdentities }
 })

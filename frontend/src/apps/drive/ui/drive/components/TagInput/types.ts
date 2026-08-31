@@ -1,4 +1,4 @@
-import type { Component, VNode } from 'vue'
+import type { Component, VNodeChild } from 'vue'
 
 export type ComboboxVariant = 'subtle' | 'outline' | 'ghost'
 
@@ -16,11 +16,11 @@ export type CustomOption = {
   key: string
   icon?: string | Component
   disabled?: boolean
-  onClick: (context: { searchTerm: string }) => void
+  onClick: (context: { query: string }) => void
   keepOpen?: boolean
-  slotName?: string
-  render?: () => VNode
-  condition?: (context: { searchTerm: string }) => boolean
+  slot?: string
+  slots?: { label?: (context: { query: string }) => VNodeChild }
+  condition?: (context: { query: string }) => boolean
 }
 
 export type SimpleOption = string | SelectableOption | CustomOption

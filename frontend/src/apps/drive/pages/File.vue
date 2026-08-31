@@ -17,19 +17,16 @@
             : 'px-10 py-5 flex justify-center align-center items-center'
         "
       >
-        <LoadingIndicator
-          v-if="file.loading"
-          class="w-10 h-full text-ink-gray-8"
-        />
+        <FilePreviewSkeleton v-if="file.loading" />
         <FileRender v-else-if="file.data" :preview-entity="file.data" />
       </div>
       <div
-        class="hidden sm:flex absolute bottom-4 left-1/2 transform -translate-x-1/2 w-fit items-center justify-center p-1 gap-1 rounded shadow-xl l bg-surface-base"
+        class="hidden sm:flex absolute bottom-4 left-1/2 transform -translate-x-1/2 w-fit items-center justify-center p-1 gap-1 rounded-4 shadow-xl l bg-surface-base"
       >
         <Button
           :disabled="!prevEntity?.name"
           :variant="'ghost'"
-          icon="arrow-left"
+          icon="lucide-arrow-left"
           @click="scrollEntity(true)"
         />
         <Button :variant="'ghost'" @click="enterFullScreen">
@@ -38,7 +35,7 @@
         <Button
           :disabled="!nextEntity?.name"
           :variant="'ghost'"
-          icon="arrow-right"
+          icon="lucide-arrow-right"
           @click="scrollEntity()"
         />
       </div>
@@ -48,12 +45,18 @@
 
 <script setup>
 import { setActiveEntity } from '@/apps/drive/data/selection'
-import { pageBreadcrumbs } from '@/apps/drive/data/breadcrumbs'
+import {
+  pageBreadcrumbs,
+  setCrumbEntity,
+  clearCrumbEntity,
+} from '@/apps/drive/data/breadcrumbs'
 import Navbar from '@/apps/drive/components/Navbar.vue'
-import { ref, computed, onMounted, defineProps } from 'vue'
-import { Button, LoadingIndicator } from 'frappe-ui'
+import { ref, computed, onMounted, onUnmounted, defineProps } from 'vue'
+import { Button } from 'frappe-ui'
 import FileRender from '@/apps/drive/components/FileRender.vue'
-// //// Neoffice: detect Office binaries to make the Collabora editor full-bleed ////
+import FilePreviewSkeleton from '@/apps/drive/components/FileTypePreview/FilePreviewSkeleton.vue'
+//// Neoffice — detect Office binaries so the Collabora editor renders full-bleed
+//// (no Drive chrome around it). Upstream ships no Office editing.
 import { isOfficeBinary } from '@/apps/drive/utils/files'
 import { createResource } from 'frappe-ui'
 import { useRouter } from 'vue-router'
@@ -61,7 +64,6 @@ import LucideScan from '~icons/lucide/scan'
 import { onKeyStroke } from '@vueuse/core'
 import {
   prettyData,
-  setBreadCrumbs,
   enterFullScreen,
   updateURLSlug,
   isWriterDocument,
@@ -119,10 +121,12 @@ const onSuccess = async (entity) => {
     window.location.href = '/writer/w/' + entity.name
   }
   document.title = entity.file_name
-  setBreadCrumbs(entity)
+  setCrumbEntity(entity)
   updateURLSlug(entity.file_name)
   trackVisit.submit({ entity_name: entity.name })
 }
+
+onUnmounted(() => clearCrumbEntity(props.entityName))
 
 const trackVisit = createResource({
   url: 'suite.drive.api.files.track_visit',

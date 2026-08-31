@@ -9,49 +9,53 @@ from frappe.model.document import Document
 
 
 def execute():
-	meetings = frappe.get_all("Sae Meeting", fields=["name", "members", "waiting_room"])
+    if not frappe.db.has_column("Meet Room", "members"):
+        # The legacy JSON columns never existed on this site — nothing to migrate.
+        return
 
-	for meeting in meetings:
-		try:
-			if meeting.members:
-				try:
-					members_data = json.loads(meeting.members)
-					if members_data:
-						for user in members_data:
-							if user:
-								child_doc = frappe.get_doc(
-									{
-										"doctype": "Sae Meeting User",
-										"parent": meeting.name,
-										"parenttype": "Sae Meeting",
-										"parentfield": "members",
-										"user": user,
-									}
-								)
-								child_doc.insert(ignore_permissions=True)
-				except (json.JSONDecodeError, TypeError):
-					pass
+    meetings = frappe.get_all("Meet Room", fields=["name", "members", "waiting_room"])
 
-			if meeting.waiting_room:
-				try:
-					waiting_data = json.loads(meeting.waiting_room)
-					if waiting_data:
-						for user in waiting_data:
-							if user:
-								child_doc = frappe.get_doc(
-									{
-										"doctype": "Sae Meeting User",
-										"parent": meeting.name,
-										"parenttype": "Sae Meeting",
-										"parentfield": "waiting_room",
-										"user": user,
-									}
-								)
-								child_doc.insert(ignore_permissions=True)
-				except (json.JSONDecodeError, TypeError):
-					pass
-		except Exception as e:
-			frappe.log_error(f"Error migrating meeting {meeting.name}: {e}")
-			continue
+    for meeting in meetings:
+        try:
+            if meeting.members:
+                try:
+                    members_data = json.loads(meeting.members)
+                    if members_data:
+                        for user in members_data:
+                            if user:
+                                child_doc = frappe.get_doc(
+                                    {
+                                        "doctype": "Meet Room User",
+                                        "parent": meeting.name,
+                                        "parenttype": "Meet Room",
+                                        "parentfield": "members",
+                                        "user": user,
+                                    }
+                                )
+                                child_doc.insert(ignore_permissions=True)
+                except (json.JSONDecodeError, TypeError):
+                    pass
 
-	frappe.db.commit()
+            if meeting.waiting_room:
+                try:
+                    waiting_data = json.loads(meeting.waiting_room)
+                    if waiting_data:
+                        for user in waiting_data:
+                            if user:
+                                child_doc = frappe.get_doc(
+                                    {
+                                        "doctype": "Meet Room User",
+                                        "parent": meeting.name,
+                                        "parenttype": "Meet Room",
+                                        "parentfield": "waiting_room",
+                                        "user": user,
+                                    }
+                                )
+                                child_doc.insert(ignore_permissions=True)
+                except (json.JSONDecodeError, TypeError):
+                    pass
+        except Exception as e:
+            frappe.log_error(f"Error migrating meeting {meeting.name}: {e}")
+            continue
+
+    frappe.db.commit()

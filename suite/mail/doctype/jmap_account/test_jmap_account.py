@@ -13,9 +13,9 @@ IGNORE_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
 
 
 class IntegrationTestJMAPAccount(IntegrationTestCase):
-	"""
-	Integration tests for JMAP Account.
-	Use this class for testing interactions between multiple components.
-	"""
+    """
+    Integration tests for JMAP Account.
+    Use this class for testing interactions between multiple components.
+    """
 
-	pass
+    pass

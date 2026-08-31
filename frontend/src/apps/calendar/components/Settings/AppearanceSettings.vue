@@ -1,50 +1,55 @@
 <template>
-	<h1>{{ __('Appearance') }}</h1>
-	<FormControl
-		v-model="colorScheme"
-		:label="__('Color Scheme')"
-		type="select"
-		variant="outline"
-		:options="COLOR_SCHEMES"
-	/>
-	<Button
-		:label="__('Save')"
-		variant="solid"
-		:loading="saveSettings.loading"
-		:disabled="isNotDirty"
-		@click="() => saveSettings.submit()"
-	/>
+	<AppSettingsHeader :title="__('Appearance')">
+		<template #actions>
+			<Button
+				:label="__('Save')"
+				variant="solid"
+				:loading="saving"
+				:disabled="isNotDirty"
+				@click="saveSettings"
+			/>
+		</template>
+	</AppSettingsHeader>
+	<AppSettingsBody>
+		<div class="flex flex-col gap-5">
+			<FormControl
+				v-model="colorScheme"
+				:label="__('Color Scheme')"
+				type="select"
+				variant="outline"
+				:options="COLOR_SCHEMES"
+			/>
+		</div>
+	</AppSettingsBody>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref } from 'vue'
-import { Button, FormControl, createResource } from 'frappe-ui'
+import { computed, ref } from 'vue'
+import { Button, FormControl } from 'frappe-ui'
+import AppSettingsHeader from '@/components/settings/AppSettingsHeader.vue'
+import AppSettingsBody from '@/components/settings/AppSettingsBody.vue'
 
 import { raiseToast } from '@/apps/calendar/utils'
+import { switchTheme, themeMode } from '@/utils/setupTheme'
 
-const user = inject('$user')
+const colorScheme = ref(themeMode.value)
+const saving = ref(false)
 
-const colorScheme = ref(user.data.color_scheme)
+const isNotDirty = computed(() => colorScheme.value === themeMode.value)
 
-const isNotDirty = computed(() => colorScheme.value === user.data.color_scheme)
-
-const saveSettings = createResource({
-	url: 'frappe.client.set_value',
-	makeParams: () => ({
-		doctype: 'User Settings',
-		name: user.data.user_settings,
-		fieldname: { color_scheme: colorScheme.value },
-	}),
-	onSuccess: () => {
+const saveSettings = async () => {
+	saving.value = true
+	try {
+		if (!(await switchTheme(colorScheme.value))) return
 		raiseToast(__('Appearance updated.'))
-		user.reload()
-	},
-	onError: () => raiseToast(__('Unable to save appearance settings.'), 'error'),
-})
+	} finally {
+		saving.value = false
+	}
+}
 
 const COLOR_SCHEMES = [
-	{ label: __('System Default'), value: 'System Default' },
-	{ label: __('Light Mode'), value: 'Light Mode' },
-	{ label: __('Dark Mode'), value: 'Dark Mode' },
+	{ label: __('Automatic'), value: 'automatic' },
+	{ label: __('Light'), value: 'light' },
+	{ label: __('Dark'), value: 'dark' },
 ]
 </script>

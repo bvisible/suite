@@ -11,7 +11,7 @@ export const usersWithAccess = createResource({
 export const updateAccess = createResource({
   url: 'suite.drive.api.files.share',
   makeParams: (params) => ({ ...params, method: params.method || 'share' }),
-  onError: (error) => toast({ type: 'error', title: error.messages[0] }),
+  onError: (error) => toast.error(error.messages[0]),
 })
 
 export const notifCount = createResource({
@@ -35,15 +35,15 @@ export const setSettings = createResource({
 })
 
 export const generalAccess = createResource({
-  url: 'suite.drive.api.permissions.get_user_access',
+  url: 'suite.drive.api.permissions.get_general_access',
 })
 
 export const userList = createResource({
   url: 'suite.drive.api.permissions.get_shared_with_list',
 })
 
-export const teamUsers = createResource({
-  url: 'suite.drive.api.product.get_team_users',
+export const siteUsers = createResource({
+  url: 'suite.drive.api.product.get_users',
   method: 'GET',
   transform: (data) => {
     data.map((item) => {
@@ -51,6 +51,20 @@ export const teamUsers = createResource({
       item.label = item.full_name.trimEnd()
     })
   },
+})
+
+export const getUserGroups = createResource({
+  url: 'suite.drive.api.product.get_user_groups',
+  method: 'GET',
+  transform: (data) =>
+    data.map((g) => ({
+      ...g,
+      is_group: 1,
+      value: `$GROUP:${g.name}`,
+      label: g.name,
+      // shown in place of the raw sentinel
+      description: `${g.member_count} ${g.member_count === 1 ? 'person' : 'people'}`,
+    })),
 })
 
 export const getInvites = createResource({
@@ -70,6 +84,11 @@ export const isAdmin = createResource({
   url: 'suite.drive.api.product.is_site_admin',
 })
 
+export const webdavConfig = createResource({
+  url: 'suite.drive.api.product.webdav_config',
+  cache: 'drive-webdav-config',
+})
+
 export const apps = {
   get data() {
     return getAppSwitcherItems('drive')
@@ -80,14 +99,6 @@ export const diskSettings = createResource({
   url: 'suite.drive.api.product.disk_settings',
   method: 'GET',
   cache: 'disk-settings',
-})
-
-export const createTeam = createResource({
-  url: 'suite.drive.api.product.create_team',
-  makeParams: (params) => ({
-    ...params,
-    user: useSessionStore().user,
-  }),
 })
 
 export const getDiskSettings = createResource({

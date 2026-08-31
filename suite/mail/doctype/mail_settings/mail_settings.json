@@ -7,9 +7,14 @@
   "config_tab",
   "jmap_section",
   "server_url",
+  "verify_ssl",
   "column_break_xvlo",
   "username",
   "password",
+  "mail_client_config_section",
+  "show_mail_client_config",
+  "show_calendar_client_config",
+  "mail_client_configurations",
   "spamassassin_section",
   "spamd_host",
   "spamd_port",
@@ -19,6 +24,7 @@
   "defaults_section",
   "default_dns_ttl",
   "default_disk_quota_gb",
+  "disabled_account_role",
   "enable_gravatar",
   "default_gravatar",
   "column_break_cuxv",
@@ -36,20 +42,20 @@
   "process_pending_emails_batch_size",
   "process_pending_emails_max_batch_size",
   "logs_section",
+  "admin_log_file_count",
   "push_log_file_count",
-  "storage_log_file_count",
   "inbound_log_file_count",
   "outbound_log_file_count",
   "exchange_log_file_count",
   "column_break_ztzv",
+  "admin_log_level",
   "push_log_level",
-  "storage_log_level",
   "inbound_log_level",
   "outbound_log_level",
   "exchange_log_level",
   "column_break_pvju",
+  "admin_log_max_file_size",
   "push_log_max_file_size",
-  "storage_log_max_file_size",
   "inbound_log_max_file_size",
   "outbound_log_max_file_size",
   "exchange_log_max_file_size",
@@ -65,10 +71,6 @@
   "column_break_wvdy",
   "exchange_export_timeout",
   "exchange_import_timeout",
-  "column_break_jotg",
-  "fetch_lock_timeout",
-  "lock_acquire_timeout",
-  "lock_timeout",
   "signup_tab",
   "allow_signup",
   "column_break_daqm",
@@ -91,10 +93,16 @@
   "dns_provider_private_zone",
   "jmap_push_tab",
   "section_break_qvpk",
-  "jmap_push_p256dh",
-  "jmap_push_private_key",
+  "enable_jmap_push_encryption",
   "column_break_wpvf",
-  "jmap_push_auth"
+  "jmap_push_auth",
+  "jmap_push_private_key",
+  "jmap_push_p256dh",
+  "event_invites_tab",
+  "event_invites_section",
+  "custom_event_invites",
+  "expand_mailing_list_participants",
+  "max_mailing_list_participants"
  ],
  "fields": [
   {
@@ -132,6 +140,13 @@
   {
    "fieldname": "section_break_qvpk",
    "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "description": "When enabled, push subscriptions are created with the encryption keys below, so the JMAP server end-to-end encrypts push payloads. Leave disabled to send push notifications as plain JSON.",
+   "fieldname": "enable_jmap_push_encryption",
+   "fieldtype": "Check",
+   "label": "Enable Push Encryption"
   },
   {
    "description": "P-256 ECDH public key for JMAP PushSubscription encryption.",
@@ -273,6 +288,13 @@
    "placeholder": "https://mail.frappemail.com"
   },
   {
+   "default": "1",
+   "description": "Verify the server's SSL certificate. Disable only for local development against a server with a self-signed certificate.",
+   "fieldname": "verify_ssl",
+   "fieldtype": "Check",
+   "label": "Verify SSL"
+  },
+  {
    "fieldname": "config_tab",
    "fieldtype": "Tab Break",
    "label": "Config"
@@ -320,33 +342,8 @@
    "reqd": 1
   },
   {
-   "fieldname": "column_break_jotg",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "300",
-   "fieldname": "fetch_lock_timeout",
-   "fieldtype": "Int",
-   "label": "Fetch Lock Timeout",
-   "reqd": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "lock_acquire_timeout",
-   "fieldtype": "Int",
-   "label": "Lock Acquire Timeout",
-   "reqd": 1
-  },
-  {
    "fieldname": "column_break_rtlq",
    "fieldtype": "Column Break"
-  },
-  {
-   "default": "10",
-   "fieldname": "lock_timeout",
-   "fieldtype": "Int",
-   "label": "Lock Timeout",
-   "reqd": 1
   },
   {
    "default": "120",
@@ -410,6 +407,12 @@
    "reqd": 1
   },
   {
+   "description": "Stalwart role (by description) applied to a user's mail account when the user is disabled. The role must be created manually on Stalwart with the appropriate allowed/disabled permissions. Leave blank to skip applying a role on disable.",
+   "fieldname": "disabled_account_role",
+   "fieldtype": "Data",
+   "label": "Disabled Account Role"
+  },
+  {
    "default": "0",
    "description": "Use Gravatar for default user images. Gravatar is a third-party service; enabling this shares users' email addresses (hashed) with it. When disabled, initials are shown instead.",
    "fieldname": "enable_gravatar",
@@ -426,17 +429,39 @@
    "reqd": 1
   },
   {
-   "default": "v1.0.8",
+   "default": "v1.0.12",
    "fieldname": "stalwart_cli_version",
    "fieldtype": "Data",
    "label": "Stalwart CLI Version",
    "reqd": 1
   },
   {
-   "default": "v0.16.8",
+   "default": "v0.16.16",
    "fieldname": "stalwart_version",
    "fieldtype": "Data",
    "label": "Stalwart Version",
+   "reqd": 1
+  },
+  {
+   "default": "10",
+   "fieldname": "admin_log_file_count",
+   "fieldtype": "Int",
+   "label": "Admin Log File Count",
+   "reqd": 1
+  },
+  {
+   "default": "INFO",
+   "fieldname": "admin_log_level",
+   "fieldtype": "Select",
+   "label": "Admin Log Level",
+   "options": "ERROR\nWARNING\nINFO\nDEBUG",
+   "reqd": 1
+  },
+  {
+   "default": "5000000",
+   "fieldname": "admin_log_max_file_size",
+   "fieldtype": "Int",
+   "label": "Admin Log Max File Size",
    "reqd": 1
   },
   {
@@ -463,28 +488,6 @@
    "fieldname": "push_log_max_file_size",
    "fieldtype": "Int",
    "label": "Push Log Max File Size",
-   "reqd": 1
-  },
-  {
-   "default": "10",
-   "fieldname": "storage_log_file_count",
-   "fieldtype": "Int",
-   "label": "Storage Log File Count",
-   "reqd": 1
-  },
-  {
-   "default": "INFO",
-   "fieldname": "storage_log_level",
-   "fieldtype": "Select",
-   "label": "Storage Log Level",
-   "options": "ERROR\nWARNING\nINFO\nDEBUG",
-   "reqd": 1
-  },
-  {
-   "default": "5000000",
-   "fieldname": "storage_log_max_file_size",
-   "fieldtype": "Int",
-   "label": "Storage Log Max File Size",
    "reqd": 1
   },
   {
@@ -550,6 +553,35 @@
    "fieldtype": "Int",
    "label": "Process Pending Emails Max Batch Size",
    "reqd": 1
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval: true",
+   "fieldname": "mail_client_config_section",
+   "fieldtype": "Section Break",
+   "label": "Mail Client Configuration"
+  },
+  {
+   "default": "1",
+   "description": "Show the SMTP/IMAP/POP connection details in the Mail UI so users can set up third-party mail clients. When unchecked, nothing is shown.",
+   "fieldname": "show_mail_client_config",
+   "fieldtype": "Check",
+   "label": "Show Connection Details in Mail UI"
+  },
+  {
+   "default": "1",
+   "description": "Show the CalDAV connection details in the Calendar UI so users can set up third-party calendar clients. When unchecked, nothing is shown.",
+   "fieldname": "show_calendar_client_config",
+   "fieldtype": "Check",
+   "label": "Show Connection Details in Calendar UI"
+  },
+  {
+   "depends_on": "eval: doc.show_mail_client_config",
+   "description": "Connection endpoints shown to users. Leave empty to fall back to the domain's DNS records.",
+   "fieldname": "mail_client_configurations",
+   "fieldtype": "Table",
+   "label": "Mail Client Configuration",
+   "options": "Mail Client Configuration"
   },
   {
    "collapsible": 1,
@@ -675,6 +707,38 @@
    "reqd": 1
   },
   {
+   "fieldname": "event_invites_tab",
+   "fieldtype": "Tab Break",
+   "label": "Event Invites"
+  },
+  {
+   "fieldname": "event_invites_section",
+   "fieldtype": "Section Break",
+   "label": "Event Invitations"
+  },
+  {
+   "default": "1",
+   "description": "Send calendar invitation, update, and cancellation emails from Frappe Mail using the templates below, with .ics attachments and HTTP RSVP links. When disabled, the JMAP server handles scheduling messages instead.",
+   "fieldname": "custom_event_invites",
+   "fieldtype": "Check",
+   "label": "Send Custom Event Invitations"
+  },
+  {
+   "default": "1",
+   "description": "Invite a mailing list's members individually when the list address is added to an event. The server expands a mailing list only when delivering mail, so an invitation addressed to the list itself reaches every member's inbox but is never added to their calendars.",
+   "fieldname": "expand_mailing_list_participants",
+   "fieldtype": "Check",
+   "label": "Expand Mailing List Participants"
+  },
+  {
+   "default": "100",
+   "depends_on": "expand_mailing_list_participants",
+   "description": "Largest number of participants an event may carry once its mailing lists have been expanded. Only members added by expansion are left out once this is reached, and they are reported; participants invited by name are always kept.",
+   "fieldname": "max_mailing_list_participants",
+   "fieldtype": "Int",
+   "label": "Max Mailing List Participants"
+  },
+  {
    "default": "INFO",
    "fieldname": "exchange_log_level",
    "fieldtype": "Select",
@@ -693,7 +757,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-06-23 17:16:11.209239",
+ "modified": "2026-08-03 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Settings",

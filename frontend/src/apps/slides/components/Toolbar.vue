@@ -1,102 +1,60 @@
 <template>
 	<div
-		class="absolute bottom-10 left-[calc(50%-128px)] z-10 flex h-10 items-center justify-center gap-1 rounded-lg bg-white p-1 shadow-xl"
+		class="absolute bottom-10 left-1/2 z-10 flex -translate-x-1/2 items-center justify-center gap-1 rounded-4 bg-surface-elevation-1 p-0.5 shadow-md"
 		@wheel="handleScrollBarWheelEvent"
 	>
 		<Tooltip text="Text" :hover-delay="0.7">
-			<div class="cursor-pointer rounded p-2 hover:bg-gray-100" @click="addTextElement(null)">
-				<Type size="16" class="stroke-[1.5]" />
+			<div class="cursor-pointer rounded-4 p-2 hover:bg-surface-gray-3" @click="addTextElement(null)">
+				<Type class="size-4 stroke-[1.5] text-ink-gray-7" />
 			</div>
 		</Tooltip>
 
 		<Tooltip text="Media" :hover-delay="0.7">
-			<FileUploader
-				:fileTypes="allowedImageFileTypes.concat(['video/*'])"
-				:uploadArgs="{
-					doctype: 'Presentation',
-					docname: presentationId,
-					private: true,
-				}"
-				@success="(file) => handleUploadSuccess(file)"
-			>
-				<template #default="{ openFileSelector }">
-					<div
-						class="cursor-pointer rounded p-2 hover:bg-gray-100"
-						@click="openFileSelector"
-					>
-						<ImagePlus size="16" class="stroke-[1.5]" />
-					</div>
-				</template>
-			</FileUploader>
-		</Tooltip>
-
-		<ShapesDropdown />
-
-		<div class="h-6 border-l"></div>
-
-		<Tooltip v-for="option in slideActions" :text="option.label" :hover-delay="0.5">
-			<div
-				class="cursor-pointer rounded p-2 hover:bg-gray-100"
-				@click="option.onClick"
-				@mouseenter="emit('setHighlight', true)"
-				@mouseleave="emit('setHighlight', false)"
-			>
-				<component :is="option.icon" size="16" class="stroke-[1.5]" />
+			<div class="cursor-pointer rounded-4 p-2 hover:bg-surface-gray-3" @click="openFilePicker">
+				<ImagePlus class="size-4 stroke-[1.5] text-ink-gray-7" />
 			</div>
 		</Tooltip>
+
+		<ToolDropdown tooltip="Shapes" :icon="Shapes" :options="shapeTools" />
+
+		<ToolDropdown tooltip="Lines" :icon="Polyline" :options="lineTools" />
+
+		<TableDropdown />
+
+		<input
+			ref="filePicker"
+			type="file"
+			class="hidden"
+			:accept="allowedImageFileTypes.concat('video/*').join(',')"
+			@change="addMedia"
+		/>
 	</div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { useTemplateRef } from 'vue'
 
-import { Type, ImagePlus, Trash, Copy, Square } from 'lucide-vue-next'
+import { Type, ImagePlus, Shapes } from 'lucide-vue-next'
 
-import { Tooltip, FileUploader, toast } from 'frappe-ui'
-import { isPublicPresentation, presentationId } from '@/apps/slides/stores/presentation'
-import { addTextElement, addMediaElement } from '@/apps/slides/stores/element'
+import { Tooltip } from 'frappe-ui'
+import { addTextElement } from '@/apps/slides/stores/element'
 import { allowedImageFileTypes } from '@/apps/slides/utils/constants'
 
-import ShapesDropdown from '@/apps/slides/components/ShapesDropdown.vue'
+import ToolDropdown from '@/apps/slides/components/ToolDropdown.vue'
+import Polyline from '@/apps/slides/icons/Polyline.vue'
+import TableDropdown from '@/apps/slides/components/TableDropdown.vue'
 
 import { handleScrollBarWheelEvent } from '@/apps/slides/utils/helpers'
+import { shapeTools, lineTools } from '@/apps/slides/utils/toolbarTools'
+import { handleUploadedMedia } from '@/apps/slides/utils/mediaUploads'
 
-const emit = defineEmits(['openLayoutDialog', 'delete', 'duplicate', 'setHighlight'])
+const filePicker = useTemplateRef('filePicker')
 
-const slideActions = [
-	{
-		label: 'Insert Slide',
-		icon: Square,
-		onClick: () => {
-			emit('openLayoutDialog')
-		},
-	},
-	{
-		label: 'Duplicate Slide',
-		icon: Copy,
-		onClick: (e) => {
-			emit('duplicate', e)
-		},
-	},
-	{
-		label: 'Delete Slide',
-		icon: Trash,
-		onClick: () => {
-			emit('delete')
-		},
-	},
-]
+const openFilePicker = () => filePicker.value.click()
 
-const handleUploadSuccess = (file) => {
-	const imageTypes = allowedImageFileTypes.map((type) => type.split('/')[1].toUpperCase())
-	const fileType = imageTypes.includes(file.file_type) ? 'image' : 'video'
-
-	const toastProps = {
-		loading: file.file_name ? `Uploading: ${file.file_name}` : 'Uploading...',
-		success: (data) => (file.file_name ? `Uploaded: ${file.file_name}` : 'Uploaded'),
-		error: (data) => 'Upload failed. Please try again.',
-	}
-
-	toast.promise(addMediaElement(file, fileType), toastProps)
+const addMedia = (e) => {
+	const file = e.target.files[0]
+	if (file) handleUploadedMedia([file])
+	e.target.value = ''
 }
 </script>

@@ -13,9 +13,9 @@ IGNORE_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
 
 
 class IntegrationTestServerJobCommand(IntegrationTestCase):
-	"""
-	Integration tests for ServerJobCommand.
-	Use this class for testing interactions between multiple components.
-	"""
+    """
+    Integration tests for ServerJobCommand.
+    Use this class for testing interactions between multiple components.
+    """
 
-	pass
+    pass

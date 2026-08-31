@@ -13,12 +13,13 @@
 		variant="outline"
 		:options="ARCHIVE_TYPE_OPTIONS"
 	/>
-	<Switch
-		v-model="customSelection"
-		:label="__('Custom Selection')"
+	<SettingsRow
+		class="!py-0"
+		:title="__('Custom Selection')"
 		:description="__('Apply filters to select specific emails for export.')"
-		class="hover:!bg-surface-base !cursor-default !p-0"
-	/>
+	>
+		<Switch v-model="customSelection" />
+	</SettingsRow>
 	<template v-if="customSelection">
 		<FormControl
 			v-model="filter.inMailbox"
@@ -88,9 +89,10 @@
 
 <script setup lang="ts">
 import { computed, inject, onMounted, reactive, ref } from 'vue'
-import { Button, ErrorMessage, FormControl, Switch, createResource } from 'frappe-ui'
+import { Button, ErrorMessage, FormControl, SettingsRow, Switch, createResource } from 'frappe-ui'
 
 import { getAttachmentOptions, getReadStatusOptions } from '@/apps/mail/constants'
+import { utcDayEnd, utcDayStart } from '@/apps/mail/utils/datetime'
 import { userStore } from '@/apps/mail/stores/user'
 
 const { accountId, mailboxes } = userStore()
@@ -137,7 +139,16 @@ const createMailExport = createResource({
 				.map(([k, v]) => [k, typeof v === 'string' ? v.trim() : v])
 				.filter(([, v]) => Boolean(v)),
 		)
-		return { account: accountId, ...mailExport, filter: cleanedFilter }
+		// The date pickers give local days; the API listens UTC, so send the day's bounds
+		// in the user's zone or the first/last hours of the range get cut off.
+		if (cleanedFilter.after) cleanedFilter.after = utcDayStart(cleanedFilter.after as string)
+		if (cleanedFilter.before) cleanedFilter.before = utcDayEnd(cleanedFilter.before as string)
+		return {
+			account: accountId,
+			...mailExport,
+			limit: mailExport.limit || undefined,
+			filter: cleanedFilter,
+		}
 	},
 	onSuccess: () => ongoingExport.reload(),
 })

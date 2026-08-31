@@ -10,6 +10,25 @@ body,
   height: 100%;
 }
 
+/* setupTheme adds this for one frame so a theme switch doesn't animate. */
+html.theme-switching,
+html.theme-switching * {
+  transition: none !important;
+}
+
+/* Lets the UA theme scrollbars, form controls and canvas backgrounds. */
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+* {
+  scrollbar-width: thin;
+}
+
 body {
   margin: 0;
 }

@@ -1,5 +1,7 @@
 import type { Server, Socket } from 'socket.io';
+import type { SFUConfig } from '../../config';
 import type { MediasoupManager } from '../../mediasoup/MediasoupManager';
+import type { Telemetry } from '../../telemetry/Telemetry';
 import type {
 	ClientToServerEvents,
 	ServerToClientEvents,
@@ -9,6 +11,7 @@ import type { RateLimiter } from '../../utils/rateLimiter';
 import type { AuthManager } from '../AuthManager';
 import type { E2EEEpochRelay } from '../E2EEEpochRelay';
 import type { E2eeRosterStore } from '../E2eeRosterStore';
+import type { RoomLifecycleCoordinator } from '../RoomLifecycleCoordinator';
 import type { RoomRegistry } from '../RoomRegistry';
 
 export type TypedSocket = Socket<
@@ -21,9 +24,12 @@ export type TypedSocket = Socket<
 export interface HandlerDeps {
 	io: Server<ClientToServerEvents, ServerToClientEvents>;
 	registry: RoomRegistry;
+	roomLifecycle: RoomLifecycleCoordinator;
 	mediasoup: MediasoupManager;
 	authManager: AuthManager;
 	rateLimiter: RateLimiter;
 	e2eeEpochRelay: E2EEEpochRelay;
 	e2eeRoster: E2eeRosterStore;
+	telemetry: Telemetry;
+	runtime: SFUConfig['runtime'];
 }

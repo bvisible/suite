@@ -35,7 +35,9 @@ export const AC_FUNS = {
   TIME:'(hour, minute, second)', TODAY:'()', TRIM:'(text)', TRUE:'()',
   UPPER:'(text)', VALUE:'(text)',
   VLOOKUP:'(value, table, col_index, [range_lookup])',
+  XLOOKUP:'(lookup, lookup_array, return_array, [if_not_found], [match_mode])',
   WEEKDAY:'(date, [return_type])', YEAR:'(date)',
+  SPARKLINE:'(data_range, [type], [color])',
 }
 
 // Pre-sorted for O(1) reuse in autocomplete filtering.
@@ -55,4 +57,106 @@ export function parseAcToken(value, cursor) {
   if (!m) return null
   const tok = m[1] || m[2]
   return { tok, tokStart: cursor - tok.length }
+}
+
+/**
+ * Given a formula and caret, find the innermost function call the caret sits
+ * inside and which argument is being typed. Used to show parameter help once
+ * the user has passed the opening paren (where {@link parseAcToken} stops).
+ * Respects string literals and nested calls.
+ * @returns {{ fn: string, argIndex: number } | null}
+ */
+export function parseSignatureContext(value, cursor) {
+  if (!value || !value.startsWith('=')) return null
+  const s = value.slice(0, cursor)
+  const stack = []
+  let inStr = false
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i]
+    if (inStr) { if (ch === '"') inStr = false; continue }
+    if (ch === '"') inStr = true
+    else if (ch === '(') {
+      const name = s.slice(0, i).match(/([A-Za-z][A-Za-z0-9_]*)$/)
+      stack.push(name ? { fn: name[1].toUpperCase(), argIndex: 0 } : null)
+    }
+    else if (ch === ')') stack.pop()
+    else if (ch === ',' && stack.length && stack[stack.length - 1]) stack[stack.length - 1].argIndex++
+  }
+  for (let i = stack.length - 1; i >= 0; i--) {
+    if (stack[i] && AC_FUNS[stack[i].fn]) return stack[i]
+  }
+  return null
+}
+
+// Functions where an adjacent numeric run is a sensible first-argument guess.
+// Kept narrow so we never nudge a range into e.g. IF( or CONCAT(.
+export const RANGE_SUGGEST_FUNS = new Set([
+  'SUM', 'AVERAGE', 'COUNT', 'COUNTA', 'MAX', 'MIN', 'PRODUCT', 'MEDIAN',
+])
+
+/**
+ * True when the caret sits at the empty first argument of a range-friendly
+ * function — the spot where Google Sheets offers an adjacent-range guess.
+ * Requires the arg to be empty on both sides so `=SUM(A1)` never re-suggests.
+ */
+export function shouldSuggestRange(value, cursor) {
+  const ctx = parseSignatureContext(value, cursor)
+  if (!ctx || ctx.argIndex !== 0 || !RANGE_SUGGEST_FUNS.has(ctx.fn)) return false
+  const left = value.slice(0, cursor).replace(/\s+$/, '')
+  if (!left.endsWith('(')) return false
+  const right = value.slice(cursor).replace(/^\s+/, '')
+  return right === '' || right.startsWith(')') || right.startsWith(',')
+}
+
+/**
+ * True when a display string reads as a number (tolerating currency symbols,
+ * thousands separators, percent and surrounding space) — used to decide which
+ * cells belong to a suggested range.
+ */
+export function isNumericText(v) {
+  if (v == null) return false
+  const stripped = String(v).replace(/[$€£₹%,\s]/g, '')
+  return stripped !== '' && Number.isFinite(Number(stripped))
+}
+
+/**
+ * Walk up (then left) from the active cell over a contiguous run of numeric
+ * cells — the adjacency Google Sheets guesses for SUM-style ranges.
+ * `isNumericAt(r, c)` reports whether that cell holds a number. Returns
+ * { r0, c0, r1, c1 } or null when no run of >= 2 cells abuts the cell.
+ */
+export function detectAdjacentRange(r, c, isNumericAt) {
+  if (r - 1 >= 0 && isNumericAt(r - 1, c)) {
+    let top = r - 1
+    while (top - 1 >= 0 && isNumericAt(top - 1, c)) top--
+    if (r - top >= 2) return { r0: top, c0: c, r1: r - 1, c1: c }
+  }
+  if (c - 1 >= 0 && isNumericAt(r, c - 1)) {
+    let left = c - 1
+    while (left - 1 >= 0 && isNumericAt(r, left - 1)) left--
+    if (c - left >= 2) return { r0: r, c0: left, r1: r, c1: c - 1 }
+  }
+  return null
+}
+
+/**
+ * Split a function's signature into its parameter names and mark which one is
+ * active for the given argument index. The trailing variadic param (`...`)
+ * stays active for any overflow index.
+ * @returns {{ params: string[], active: number } | null}
+ */
+export function describeSignature(fn, argIndex) {
+  const sig = AC_FUNS[fn]
+  if (!sig) return null
+  const inner = sig.slice(1, -1).trim()          // strip the wrapping parens
+  if (!inner) return { params: [], active: -1 }
+  const params = inner.split(',').map(p => p.trim())
+  // A trailing `...` marks the previous param as repeating, so overflow args
+  // (and the `...` token itself) keep that repeating param highlighted.
+  const repeat = params[params.length - 1] === '...' ? params.length - 2 : -1
+  let active
+  if (repeat >= 0 && argIndex >= repeat) active = repeat
+  else if (argIndex < params.length) active = argIndex
+  else active = -1
+  return { params, active }
 }

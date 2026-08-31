@@ -160,7 +160,11 @@ export function buildMenuButtons({ editor, settings, isPainting, openSettings })
     {
       label: 'Custom Spacing',
       icon: LucideAlignVerticalSpacingAround,
-      component: h(SpacingDialogAsync, { settings, editor }),
+      component: h(SpacingDialogAsync, {
+        settings,
+        editor,
+        icon: LucideAlignVerticalSpacingAround,
+      }),
       action: () => {},
     },
     {

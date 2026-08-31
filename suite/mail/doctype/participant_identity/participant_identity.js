@@ -5,7 +5,7 @@ frappe.ui.form.on('Participant Identity', {
 	user(frm) {
 		if (frm.doc.user) {
 			frappe.call({
-				method: 'mail.jmap.get_user_accounts',
+				method: 'suite.mail.jmap.get_user_accounts',
 				args: {
 					user: frm.doc.user,
 				},

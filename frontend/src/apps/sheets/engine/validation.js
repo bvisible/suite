@@ -6,6 +6,7 @@
 // Pure state, no DOM dependency.
 
 import { parseCellId, colLabel } from '../utils/cells.js'
+import { remapCellKeys } from './ref-remap.js'
 import { deepClone } from '../utils/deep-clone.js'
 
 function _checkNumOp(n, op, min, max) {
@@ -26,9 +27,16 @@ function _checkNumOp(n, op, min, max) {
 // Shared by the engine's per-cell validate() and the canvas painter (which
 // needs to know validity to draw the invalid marker) so there's one source
 // of truth for what "valid" means. No state, no sheet lookup.
+//
+// `severity` echoes the rule's setting: 'reject' (default) blocks the edit,
+// 'warn' lets it through but flags the cell. Callers gate on it.
 export function checkRule(rule, value) {
   if (!rule) return { valid: true }
+  const res = _evalRule(rule, value)
+  return { ...res, severity: res.valid ? undefined : (rule.severity || 'reject') }
+}
 
+function _evalRule(rule, value) {
   if (rule.type === 'list') {
     const opts = rule.options || []
     const ok = opts.includes(String(value))
@@ -144,6 +152,14 @@ export function createValidationEngine() {
     }
   }
 
+  function remapCols(mapCol, sheet = 'Sheet1') {
+    if (store[sheet]) store[sheet] = remapCellKeys(store[sheet], mapCol, null)
+  }
+
+  function remapRows(mapRow, sheet = 'Sheet1') {
+    if (store[sheet]) store[sheet] = remapCellKeys(store[sheet], null, mapRow)
+  }
+
   function renameSheet(oldName, newName) {
     if (!store[oldName] || store[newName] || oldName === newName) return
     store[newName] = store[oldName]
@@ -167,6 +183,7 @@ export function createValidationEngine() {
   return {
     get, set, clear, getAll, validate,
     insertRow, deleteRow, insertCol, deleteCol,
+    remapCols, remapRows,
     renameSheet, duplicateSheet, deleteSheet,
     snapshot, restore,
   }

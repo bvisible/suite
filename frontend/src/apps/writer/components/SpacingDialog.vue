@@ -1,20 +1,25 @@
 <template>
   <Popover>
-    <template #trigger="{ togglePopover, isOpen }">
-      <slot v-bind="{ onClick: () => togglePopover(), isActive: isOpen }"></slot>
+    <!-- MenuItems.vue renders the toolbar Button through its #default slot, but
+         that button gets no tooltip (only plain command items do), so we render
+         our own — same as DropdownMenuGroup.vue. It has to stay the direct child
+         of #trigger: PopoverTrigger wires the click onto it via as-child. -->
+    <template #trigger="{ open }">
+      <Button size="xs" variant="ghost" :icon="icon" label="Custom Spacing" tooltip="Custom Spacing"
+        class="aria-pressed:bg-surface-gray-3" :aria-pressed="open" />
     </template>
     <template #default>
       <div class="p-4 flex flex-col gap-4 w-64">
         <FormControl
           type="number"
           class="grow"
-          v-model.number="local.lineHeight"
+          v-model.number="local.lineSpacing"
           autocomplete="off"
-          min="0.75"
+          min="0.5"
           max="10"
-          step="0.2"
-          @update:modelValue="apply"
-          label="Line Height"
+          step="0.05"
+          @update:modelValue="applyLineSpacing"
+          label="Line spacing"
         />
         <div class="space-y-1">
           <FormLabel label="Paragraph Spacing" />
@@ -23,7 +28,7 @@
               type="number"
               autocomplete="off"
               v-model.number="local.spacingBefore"
-              @update:modelValue="apply"
+              @update:modelValue="applySpacing"
               placeholder="0"
               description="Above"
             />
@@ -31,7 +36,7 @@
               type="number"
               autocomplete="off"
               v-model.number="local.spacingAfter"
-              @update:modelValue="apply"
+              @update:modelValue="applySpacing"
               placeholder="0"
               description="Below"
             />
@@ -43,13 +48,19 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from 'vue'
-import { Popover } from 'frappe-ui'
+import { reactive, computed, watch } from 'vue'
+import { Popover, Button } from 'frappe-ui'
 import { FormControl, FormLabel } from 'frappe-ui'
+import {
+  DEFAULT_LINE_HEIGHT,
+  toCssLineHeight,
+  toLineSpacing,
+} from '@/apps/writer/utils/typography'
 
 const props = defineProps({
   editor: Object,
   settings: Object,
+  icon: [Object, Function, String],
 })
 
 const current = computed(() => {
@@ -69,40 +80,47 @@ const current = computed(() => {
   return {} // fallback
 })
 
-function parsePx(v, def) {
-  if (!v) return def
-  if (typeof v !== 'string') return v
-  return parseInt(v.replace('px', ''), 10) || def
+function parseNumber(value, fallback) {
+  const parsed = parseFloat(value)
+  return Number.isFinite(parsed) ? parsed : fallback
 }
 
-const local = reactive({
-  lineHeight: +(current.value.lineHeight || props.settings.line_height),
-  spacingAfter: parsePx(
-    current.value.marginBottom,
-    props.settings.paragraph_spacing_above,
-    current.value.marginTop,
-    props.settings.paragraph_spacing_above || 0,
-  ),
-  spacingBefore: parsePx(current.value.marginTop, props.settings.paragraph_spacing_below || 0),
-})
+// What the paragraph falls back to when it carries no override of its own.
+const defaults = computed(() => ({
+  lineHeight: parseNumber(props.settings?.line_height, DEFAULT_LINE_HEIGHT),
+  spacingBefore: parseNumber(props.settings?.paragraph_spacing_before, 0),
+  spacingAfter: parseNumber(props.settings?.paragraph_spacing_after, 0),
+}))
 
-watch(current, (cur) => {
-  local.lineHeight = cur.lineHeight ? +cur.lineHeight : props.settings.line_height
-  local.spacingAfter = parsePx(cur.spacingAfter, props.settings.paragraph_spacing_after || 0)
-  local.spacingBefore = parsePx(cur.spacingBefore, props.settings.paragraph_spacing_before || 0)
-})
+function fromAttrs(attrs) {
+  return {
+    lineSpacing: toLineSpacing(
+      parseNumber(attrs.lineHeight, defaults.value.lineHeight),
+    ),
+    spacingBefore: parseNumber(attrs.spacingBefore, defaults.value.spacingBefore),
+    spacingAfter: parseNumber(attrs.spacingAfter, defaults.value.spacingAfter),
+  }
+}
 
-function apply() {
+const local = reactive(fromAttrs(current.value))
+
+watch(current, (attrs) => Object.assign(local, fromAttrs(attrs)))
+
+function applyLineSpacing() {
+  if (!Number.isFinite(local.lineSpacing) || local.lineSpacing <= 0) return
+  const lineHeight = toCssLineHeight(local.lineSpacing)
   props.editor.commands.updateAttributes('paragraph', {
-    lineHeight: local.lineHeight === (props.settings.line_height || 1.5) ? null : local.lineHeight,
-    spacingAfter:
-      local.spacingAfter === (props.settings.paragraph_spacing_above || 0)
-        ? null
-        : `${local.spacingAfter}px`,
-    spacingBefore:
-      local.spacingBefore === props.settings.paragraph_spacing_below
-        ? null
-        : `${local.spacingBefore}px`,
+    lineHeight: lineHeight === defaults.value.lineHeight ? null : lineHeight,
   })
+}
+
+function applySpacing() {
+  const attrs = {}
+  for (const key of ['spacingBefore', 'spacingAfter']) {
+    if (!Number.isFinite(local[key])) continue
+    attrs[key] =
+      local[key] === defaults.value[key] ? null : `${local[key]}px`
+  }
+  props.editor.commands.updateAttributes('paragraph', attrs)
 }
 </script>

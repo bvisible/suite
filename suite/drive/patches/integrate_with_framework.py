@@ -6,8 +6,15 @@ from __future__ import annotations
 import json
 
 import frappe
+
 from suite.drive.install import ensure_custom_fields
-from suite.drive.utils import MIME_LIST_MAP, PRESENTATION_CONTENT_DOCTYPE, STATUS_ACTIVE, STATUS_TRASHED, WRITER_CONTENT_DOCTYPE
+from suite.drive.utils import (
+    MIME_LIST_MAP,
+    PRESENTATION_CONTENT_DOCTYPE,
+    STATUS_ACTIVE,
+    STATUS_TRASHED,
+    WRITER_CONTENT_DOCTYPE,
+)
 from suite.drive.utils.files import get_s3_url
 
 LEGACY_DOCTYPE = "Drive File"
@@ -35,7 +42,9 @@ def execute(files=None):
 
     frappe.flags.mute_drive_activity_log = True
     try:
-        root_files = files or frappe.get_all(LEGACY_DOCTYPE, filters={"parent_entity": ["is", "not set"]}, pluck="name")
+        root_files = files or frappe.get_all(
+            LEGACY_DOCTYPE, filters={"parent_entity": ["is", "not set"]}, pluck="name"
+        )
 
         is_remote = frappe.get_single("Drive Disk Settings").enabled
         failures = []

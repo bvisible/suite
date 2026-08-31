@@ -1,4 +1,5 @@
 import { cellId } from '../utils/cells.js'
+import { remapRect } from './ref-remap.js'
 import { deepClone } from '../utils/deep-clone.js'
 
 // Per-sheet merge state.
@@ -54,6 +55,30 @@ export function createMergeEngine() {
       delete s.masterMap[mid]
     }
   }
+
+  // Structural permutation — rebuild every merge from its remapped bounding box.
+  // A move that would split a merge grows it to the box (Sheets blocks such a
+  // move; here it degrades to the covering rectangle rather than corrupting).
+  function _remap(sheet, mapCol, mapRow) {
+    const s = store[sheet]
+    if (!s) return
+    const masters = Object.values(s.masterMap)
+    s.masterMap = {}
+    s.slaveMap = {}
+    for (const m of masters) {
+      const box = remapRect({ r0: m.r, c0: m.c, r1: m.r + m.rowSpan - 1, c1: m.c + m.colSpan - 1 }, mapCol, mapRow)
+      if (!box) continue
+      const rowSpan = box.r1 - box.r0 + 1, colSpan = box.c1 - box.c0 + 1
+      if (rowSpan === 1 && colSpan === 1) continue   // collapsed → no longer a merge
+      const mid = cellId(box.r0, box.c0)
+      s.masterMap[mid] = { r: box.r0, c: box.c0, rowSpan, colSpan }
+      for (let r = box.r0; r <= box.r1; r++)
+        for (let c = box.c0; c <= box.c1; c++)
+          if (!(r === box.r0 && c === box.c0)) s.slaveMap[cellId(r, c)] = mid
+    }
+  }
+  function remapCols(mapCol, sheet = 'Sheet1') { _remap(sheet, mapCol, null) }
+  function remapRows(mapRow, sheet = 'Sheet1') { _remap(sheet, null, mapRow) }
 
   function isMaster(id, sheet = 'Sheet1')      { return !!store[sheet]?.masterMap[id] }
   function isSlave(id, sheet = 'Sheet1')       { return !!store[sheet]?.slaveMap[id] }
@@ -117,7 +142,7 @@ export function createMergeEngine() {
   }
 
   return {
-    merge, unmerge,
+    merge, unmerge, remapCols, remapRows,
     isMaster, isSlave, getMasterInfo, getMasterId, resolveId,
     snapshot, restore,
     renameSheet, duplicateSheet, deleteSheet, reorderSheets,

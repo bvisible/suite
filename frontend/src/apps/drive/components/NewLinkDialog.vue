@@ -3,6 +3,7 @@
     {
       label: 'Create',
       variant: 'solid',
+      disabled: !file_name.trim() || !link.trim() || createLink.loading,
       loading: createLink.loading,
       onClick: createLink.submit,
     },
@@ -12,18 +13,13 @@
       <FormControl v-model="link" label="URL" type="url" @keydown.enter="createLink.submit"
         @keydown="createLink.error = null" />
     </div>
-    <div v-if="createLink.error" class="pt-4 text-base font-sm text-ink-red-6">
-      {{ createLink.error.messages[0] }}
-    </div>
+    <ErrorMessage v-if="createLink.error" class="pt-4" :message="createLink.error" />
   </Dialog>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import { Dialog, createResource, FormControl } from 'frappe-ui'
-import { useRoute } from 'vue-router'
-
-const route = useRoute()
+import { Dialog, createResource, FormControl, ErrorMessage } from 'frappe-ui'
 
 const props = defineProps({
   parent: String,
@@ -41,7 +37,6 @@ const createLink = createResource({
   makeParams: () => ({
     file_name: file_name.value.trim(),
     link: link.value.trim(),
-    team: route.params.team,
     parent: props.parent,
   }),
   validate(params) {

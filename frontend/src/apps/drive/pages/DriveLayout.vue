@@ -1,22 +1,47 @@
 <template>
   <FrappeUIProvider>
-    <div v-if="isLoggedIn || $route.meta.isPublic" class="flex flex-col sm:flex-row h-full">
-      <!-- //// Neoffice: shared NeoCockpit chrome replaces the native Drive
-           sidebar (auto-fallback to Sidebar inside the component). //// -->
-      <NeoCockpitSidebar v-if="normalView" />
-      <div id="dropzone" class="flex flex-col flex-1 overflow-hidden bg-surface-base relative">
+    <template v-if="isLoggedIn || $route.meta.allowGuest">
+      <div v-if="$route.name === 'drive-Signup'" id="dropzone" class="h-full">
         <router-view :key="$route.fullPath" v-slot="{ Component }">
           <component :is="Component" />
         </router-view>
       </div>
-      <BottomBar v-if="!inIframe && isLoggedIn" class="w-full sm:hidden" />
-    </div>
+      <!-- Keep sticky page chrome below dialogs portalled to body. -->
+      <DesktopShell v-else-if="isDesktop" :scroll="shellScroll" class="isolate">
+        <template v-if="normalView" #sidebar>
+          <!-- //// Neoffice — the shared NeoCockpit chrome takes the place of Drive's
+               native sidebar, so Drive, Calendar and Meet all carry the same left rail
+               as the rest of Neoffice. It falls back to <Sidebar /> on its own when the
+               chrome cannot mount (see NeoCockpitSidebar.vue), so this slot is never
+               left empty. Before the merge we mounted it beside the layout; upstream's
+               frappe-ui app shells (53bc173f6) own the sidebar slot now, so it belongs
+               here instead. //// -->
+          <NeoCockpitSidebar />
+        </template>
+        <div id="dropzone" class="relative flex min-h-full flex-col bg-surface-base" :class="{ 'h-full': !shellScroll }">
+          <router-view :key="$route.fullPath" v-slot="{ Component }">
+            <component :is="Component" />
+          </router-view>
+        </div>
+      </DesktopShell>
+      <MobileShell v-else class="isolate">
+        <div id="dropzone" class="relative flex min-h-full flex-col bg-surface-base" :class="{ 'h-full': !shellScroll }">
+          <router-view :key="$route.fullPath" v-slot="{ Component }">
+            <component :is="Component" />
+          </router-view>
+        </div>
+        <template v-if="!inIframe && isLoggedIn" #nav>
+          <BottomBar />
+        </template>
+      </MobileShell>
+    </template>
     <router-view v-else :key="$route.fullPath" v-slot="{ Component }">
       <component :is="Component" />
     </router-view>
     <SearchPopup v-if="isLoggedIn && showSearchPopup" v-model="showSearchPopup" />
     <button accesskey="u" class="hidden" @click="emitter.emit('uploadFile')" />
-    <FileUploader v-if="normalView && ['drive-Folder', 'drive-Home', 'drive-Team'].includes($route.name)" />
+    <FileUploader
+      v-if="normalView && ['drive-Folder', 'drive-Home'].includes($route.name) && !($route.name === 'drive-Home' && shareView)" />
     <FDialogs />
   </FrappeUIProvider>
 </template>
@@ -29,38 +54,34 @@ import BottomBar from '@/apps/drive/components/BottomBar.vue'
 import FileUploader from '@/apps/drive/components/FileUploader.vue'
 import { useSessionStore } from '@/boot/session'
 import { ref, computed, onMounted, provide } from 'vue'
-import { sidebarCollapsed } from '@/apps/drive/data/prefs'
-import { onKeyDown } from '@vueuse/core'
+import { sidebarCollapsed, shareView } from '@/apps/drive/data/prefs'
+import { onKeyDown, useMediaQuery } from '@vueuse/core'
 import emitter from '@/apps/drive/emitter'
+import { useEmitter } from '@/apps/drive/utils/useEmitter'
+import { isModKey } from '@/apps/drive/utils/files'
 import { initSocket } from '@/apps/drive/socket'
-import { FrappeUIProvider } from 'frappe-ui'
+import { DesktopShell, FrappeUIProvider, MobileShell } from 'frappe-ui'
 import { useRoute } from 'vue-router'
-import { setupTheme } from '@/apps/drive/utils/setupTheme'
-import '@/apps/drive/index.css'
+import { setupTheme } from '@/utils/setupTheme'
 
-// The standalone main.ts provided these via `app.provide`. Provide them from the
-// route-group layout instead.
+// Provided from the route-group layout since the suite main.ts is shared.
 provide('emitter', emitter)
 provide('socket', initSocket())
 
 const route = useRoute()
+const isDesktop = useMediaQuery('(min-width: 768px)')
+const shellScroll = computed(() => route.meta.shellScroll !== false)
 const inIframe = window.self !== window.top
 provide('inIframe', inIframe)
 
 const showSearchPopup = ref(false)
 const isLoggedIn = computed(() => useSessionStore().isLoggedIn)
-const normalView = computed(
-  () =>
-    !inIframe &&
-    isLoggedIn.value &&
-    !['drive-Teams', 'drive-Setup'].includes(route.name)
-)
-emitter.on('showSearchPopup', (data) => {
+const normalView = computed(() => !inIframe && isLoggedIn.value)
+useEmitter('showSearchPopup', (data) => {
   showSearchPopup.value = data
 })
 
 onMounted(() => {
-  // was `setupTheme().then(app.mount)` in the standalone main.ts
   setupTheme()
 })
 
@@ -89,10 +110,6 @@ onKeyDown((e) => {
   if (e.key == '?') emitter.emit('toggleShortcuts')
 
   if (e.metaKey) {
-    if (e.key == ',') {
-      emitter.emit('showSettings')
-      e.preventDefault()
-    }
     if (e.shiftKey) {
       if (e.key == 'ArrowRight') {
         sidebarCollapsed.value = false
@@ -101,10 +118,15 @@ onKeyDown((e) => {
         e.preventDefault()
       }
     }
-    if (e.key == 'k') {
-      showSearchPopup.value = true
-      e.preventDefault()
-    }
+  }
+
+  // Ctrl+K on Windows/Linux, Cmd+K on Mac - same convention as Mail's search
+  // shortcut (`HeaderActions.vue`). Not nested under the `e.metaKey` branch
+  // above: on Windows/Linux `metaKey` is the literal Windows key, which this
+  // never bound, so Ctrl+K did nothing there until now.
+  if (isModKey(e) && e.key.toLowerCase() == 'k') {
+    showSearchPopup.value = true
+    e.preventDefault()
   }
 })
 </script>

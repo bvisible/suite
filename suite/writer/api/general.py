@@ -1,20 +1,16 @@
 from __future__ import annotations
 import frappe
-
-import frappe
 from pypika import CustomFunction, Order
 from pypika import functions as fn
 
-from suite.drive.utils import get_default_team, FILE_FIELDS, STATUS_ACTIVE
 from suite.drive.api.permissions import get_user_access
+from suite.drive.utils import FILE_FIELDS, GENERAL_USER, STATUS_ACTIVE
 from suite.writer.search import WriterSearch
 
 DriveUser = frappe.qb.DocType("User")
 UserGroupMember = frappe.qb.DocType("User Group Member")
 DriveFile = frappe.qb.DocType("File")
 DrivePermission = frappe.qb.DocType("Drive Permission")
-Team = frappe.qb.DocType("Drive Team")
-TeamMember = frappe.qb.DocType("Drive Team Member")
 DriveFavourite = frappe.qb.DocType("Drive Favourite")
 Recents = frappe.qb.DocType("Drive Entity Log")
 
@@ -28,9 +24,7 @@ def get_document_list(
 ):
     user = frappe.session.user
 
-    recently_opened = (
-        frappe.qb.from_(Recents).select(Recents.entity_name).where(Recents.user == user)
-    )
+    recently_opened = frappe.qb.from_(Recents).select(Recents.entity_name).where(Recents.user == user)
 
     recent_field = fn.Coalesce(Recents.last_interaction, DriveFile.file_modified)
     query = (
@@ -72,7 +66,7 @@ def get_document_list(
     # Rest of your processing code
     child_count_query = (
         frappe.qb.from_(DriveFile)
-        .where((DriveFile.team == get_default_team()) & (DriveFile.status == STATUS_ACTIVE))
+        .where(DriveFile.status == STATUS_ACTIVE)
         .select(DriveFile.folder, fn.Count("*").as_("child_count"))
         .groupby(DriveFile.folder)
     )
@@ -80,43 +74,49 @@ def get_document_list(
         frappe.qb.from_(DriveFile)
         .right_join(DrivePermission)
         .on(DrivePermission.entity == DriveFile.name)
-        .where((DrivePermission.user != "") & (DrivePermission.user != "$TEAM"))
+        .where((DrivePermission.user.notin(["", GENERAL_USER])) & (DrivePermission.deny == 0))
         .select(DriveFile.name, fn.Count("*").as_("share_count"))
         .groupby(DriveFile.name)
     )
     public_files_query = (
         frappe.qb.from_(DrivePermission)
-        .where(DrivePermission.user == "")
+        .where((DrivePermission.user == "") & (DrivePermission.deny == 0))
         .select(DrivePermission.entity)
     )
-    team_files_query = (
+    general_files_query = (
         frappe.qb.from_(DrivePermission)
-        .where(DrivePermission.team == 1)
+        .where((DrivePermission.user == GENERAL_USER) & (DrivePermission.deny == 0))
         .select(DrivePermission.entity)
     )
     public_files = set(k[0] for k in public_files_query.run())
-    team_files = set(k[0] for k in team_files_query.run())
+    general_files = set(k[0] for k in general_files_query.run())
 
     children_count = dict(child_count_query.run())
     share_count = dict(share_query.run())
 
     default = 0
 
+    accessible = []
     for r in res:
+        access = get_user_access(r["name"])
+        # A stale "recently opened" entry can outlive the caller's access.
+        if not access.get("read"):
+            continue
+        accessible.append(r)
         r["children"] = children_count.get(r["name"], 0)
         r["html"] = frappe.get_cached_value("Writer Document", r["content_docname"], "html")
         if r["name"] in public_files:
             r["share_count"] = -2
-        elif default > -1 and (r["name"] in team_files):
+        elif default > -1 and (r["name"] in general_files):
             r["share_count"] = -1
         elif default == 0:
             r["share_count"] = share_count.get(r["name"], default)
         else:
             r["share_count"] = default
-        r |= get_user_access(r["name"])
+        r |= access
 
     # Return in the format useList expects
-    frappe.response["data"] = res
+    frappe.response["data"] = accessible
     frappe.response["has_next_page"] = has_next_page
 
 
@@ -144,11 +144,25 @@ def search(query: str, filters: str | None = None):
     metadata = get_drive_file_meta([k["name"] for k in search["results"]])
     cleaned_results = []
     for k in search["results"]:
-        if k["name"] not in metadata:
+        meta = metadata.get(k["name"])
+        # The index is unscoped; only surface documents the caller can read.
+        if not meta or not get_user_access(meta["name"]).get("read"):
             continue
-        k.update(metadata[k["name"]])
+        k.update(meta)
         cleaned_results.append(k)
     search["results"] = cleaned_results
+
+    # The index is unscoped, so summary stats and spelling corrections are
+    # computed against every document on the site, not just what the caller
+    # can read. Recompute counts from the filtered set and drop corrections
+    # outright, since validating them against readable content isn't worth
+    # the cost the UI doesn't use them.
+    match_count = len(cleaned_results)
+    search["summary"]["total_matches"] = match_count
+    search["summary"]["returned_matches"] = match_count
+    search["summary"]["filtered_matches"] = match_count
+    search["summary"]["corrected_words"] = None
+    search["summary"]["corrected_query"] = None
     return search
 
 
@@ -162,7 +176,7 @@ def get_drive_file_meta(names, ttl=3600):
     cache = frappe.cache()
 
     keys = {name: f"search:drive_file:{name}" for name in names}
-    cached = {"name": cache.get_value(k) for k in keys.values()}
+    cached = {k: cache.get_value(k) for k in keys.values()}
 
     result = {}
     missing = []
@@ -185,7 +199,7 @@ def get_drive_file_meta(names, ttl=3600):
                 "title": r["file_name"],
                 "name": r["name"],
             }
-            key = f"search:drive_file:{r['name']}"
+            key = f"search:drive_file:{r['content_docname']}"
             cache.set_value(key, meta, expires_in_sec=ttl)
             result[r["content_docname"]] = meta
 

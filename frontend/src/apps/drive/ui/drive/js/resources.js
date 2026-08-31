@@ -1,13 +1,11 @@
 import { createResource, toast } from 'frappe-ui'
 import { openEntity } from './utils'
 
-export const getTeams = createResource({
-  url: 'suite.drive.api.permissions.get_teams',
-  params: {
-    details: 1,
-  },
+// The site root and the current user's private folder
+export const rootInfo = createResource({
+  url: 'suite.drive.api.files.get_root_folder',
   method: 'GET',
-  cache: 'teams',
+  cache: 'root-info',
 })
 
 export const move = createResource({
@@ -38,7 +36,7 @@ export const updateAccess = createResource({
 })
 
 export const allUsers = createResource({
-  url: 'suite.drive.api.product.get_team_users',
+  url: 'suite.drive.api.product.get_users',
   transform: (data) => {
     data.map((item) => {
       item.value = item.email
@@ -57,6 +55,6 @@ export const rename = createResource({
     }
   },
   onError(error) {
-    toast.error(error)
+    toast.error(error.messages?.at(-1) || 'Could not rename this file.')
   },
 })

@@ -1,4 +1,5 @@
 import { colLabel, parseCellId } from '../utils/cells.js'
+import { remapRect, remapIndexKeys } from './ref-remap.js'
 import { deepClone } from '../utils/deep-clone.js'
 
 // Ranged, per-sheet sort & filter — Google-Sheets-style "basic filter":
@@ -210,6 +211,25 @@ export function createSortFilter(sheet) {
     e.byCol = _shiftByColKeys(e.byCol, atCol, -1)
   }
 
+  function remapCols(mapCol, sheetName) {
+    const e = _byShet[sheetName]
+    if (!e?.range) return
+    const rect = remapRect(e.range, mapCol, null)
+    if (!rect) { clearRange(sheetName); return }
+    e.range = rect
+    e.byCol = remapIndexKeys(e.byCol, mapCol)
+    // Drop specs for columns no longer inside the (grown/shrunk) range.
+    for (const k of Object.keys(e.byCol)) if (!_inCols(parseInt(k, 10), e.range)) delete e.byCol[k]
+  }
+
+  function remapRows(mapRow, sheetName) {
+    const e = _byShet[sheetName]
+    if (!e?.range) return
+    const rect = remapRect(e.range, null, mapRow)
+    if (!rect) { clearRange(sheetName); return }
+    e.range = rect
+  }
+
   function _shiftByColKeys(byCol, atCol, delta) {
     const next = {}
     for (const [k, v] of Object.entries(byCol)) {
@@ -247,6 +267,7 @@ export function createSortFilter(sheet) {
     getColumnValues,
     setRange, getRange, clearRange, hasFilter,
     insertRow, deleteRow, insertCol, deleteCol,
+    remapCols, remapRows,
     renameSheet, deleteSheet, duplicateSheet, snapshot, restore,
   }
 }

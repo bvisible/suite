@@ -1,0 +1,10 @@
+{% extends "templates/emails/_event_base.html" %}
+{% block card %}
+{% import "templates/emails/_event_macros.html" as m with context %}
+						{{ m.eyebrow(organizer_name ~ ' invited you to') }}
+						{{ m.heading(title) }}
+						{{ m.details_table('When', when, timezone, location, organizer_name, organizer_email, bold=true) }}
+						{{ m.description(description) }}
+						{{ m.meet_card(meet) }}
+						{{ m.rsvp_block(rsvp, 'Will you attend?') }}
+{% endblock %}

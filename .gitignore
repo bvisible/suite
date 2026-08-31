@@ -9,14 +9,24 @@ __pycache__/
 node_modules
 yarn-error.log
 
-# //// Neoffice (version-15): built SPA output (public/frontend, www/*.html,
-# service-worker) IS committed — commit-the-build like the other fleet SPAs,
-# instances never rebuild the frontend. Bench bundles (public/dist) stay
-# ignored: rebuilt on-instance by `bench build --app suite`. ////
+#//// Neoffice — the built SPA output IS committed here, where upstream ignores it.
+#//// Fleet instances never run a frontend build: they have no node, and a merge
+#//// window is not the moment to discover that. `bench build --app suite` on the
+#//// instance only rebuilds the desk bundles (public/dist), which stay ignored.
+#//// So public/frontend, www/*.html and the service worker are tracked on purpose
+#//// — do NOT restore upstream's ignore rules for them at the next merge.
 /suite/**/public/dist/
+# Not SPA output: copied verbatim from node_modules by the frontend prebuild
+# (~17 MB of DTLN weights) and by the recorder build. Both are build inputs the
+# instances do not need in git.
+/frontend/dist-recorder/
+/suite/public/noise-suppression/
 
 # Migrated Node sidecar build output (sfu-server / collab-server also carry own .gitignore)
 /suite/meet/sfu-server/dist/
+
+# Stray Playwright output created relative to the Python package root
+/suite/e2e/
 
 # Mail: auto-downloaded Stalwart control binary (lives at apps/suite/stalwart-cli)
 stalwart-cli
@@ -25,3 +35,5 @@ stalwart-cli
 .DS_Store
 *.swp
 *.swo
+.claude/
+.vscode

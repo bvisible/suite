@@ -7,18 +7,12 @@ import suiteRouter from '@/router'
 import { userStore } from '@/apps/calendar/stores/user'
 
 /**
- * Calendar router compat + guard.
+ * Calendar-local guard on the shared suite router: setup-wizard escape,
+ * user-data wait, account resolution and shortcut-route expansion.
+ * Early-returns for any route whose name doesn't start with `calendar-`;
+ * auth itself is the suite router's `beforeEach`.
  *
- * The standalone calendar app had its own `createRouter` with a global
- * `beforeEach` that did: setup-wizard escape, auth, user-data wait, ACCOUNT
- * RESOLUTION and SHORTCUT-ROUTE EXPANSION. In the suite there is ONE router
- * (mounted at '/', calendar routes live under '/calendar'); auth is handled by
- * the suite router's own `beforeEach` (redirects guests to `/login`). So only
- * the calendar-SPECIFIC parts are ported here as a calendar-local guard that
- * early-returns for any route whose name doesn't start with `calendar-`.
- *
- * This re-exports the single suite router instance as `router` so calendar views
- * can keep importing it if needed, mirroring the slides reference port.
+ * Re-exports the suite router instance as `router` for calendar views.
  */
 export const router = suiteRouter
 
@@ -88,8 +82,9 @@ function installCalendarGuard(r: Router) {
 			return undefined // already on no-account, stay
 		}
 
-		// Expand shortcut routes to their full account-scoped equivalents.
-		if (to.meta.shortcut) return resolveShortcut(to.name, to.params, accountId)
+		// Expand shortcut routes to their full account-scoped equivalents. The
+		// query rides along — it carries the open event's deep link (?event=).
+		if (to.meta.shortcut) return { ...resolveShortcut(to.name, to.params, accountId), query: to.query }
 	})
 }
 

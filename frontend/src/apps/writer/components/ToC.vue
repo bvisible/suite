@@ -1,18 +1,14 @@
 <template>
-  <div v-if="editor"
-    class="px-2.5 pt-3 gap-2 hidden md:block sticky top-0 self-start overflow-y-auto flex-shrink-0 h-full w-64"
-    :class="show && 'border-r border-outline-gray-2'">
-    <div v-if="(tabs.length || anchors.length > 1) && !show">
-      <Button variant="ghost" :icon="h(show ? LucidePanelLeftClose : LucideTableOfContents, {
-        class: 'text-ink-gray-6',
-      })
-        " :tooltip="show ? 'Hide' : 'Table of Contents'" @click="show = !show" />
+  <div v-if="editor && (hasContent || editor.isEditable)"
+    class="gap-2 hidden md:block overflow-y-auto overflow-x-hidden flex-shrink-0 h-full transition-[width] duration-300 ease-in-out"
+    :class="[show ? 'w-56 p-2' : 'w-12 p-2.5']">
+    <div v-if="!show" class="flex justify-center">
+      <Button variant="ghost" :icon="LucideTableOfContents" tooltip="Table of Contents" @click="show = !show" />
     </div>
-    <div v-if="show && (anchors.length > 1 || tabs.length)" class="grow flex flex-col gap-0.5">
-      <div class="flex justify-between items-center ps-2 pr-1 pb-1">
-        <span class="text-base-medium text-ink-gray-8 select-none">Table of Contents</span>
-        <Button :icon="LucideLeftClose" variant="ghost" @click="show = !show"
-          :tooltip="show ? 'Hide' : 'Table of Contents'" />
+    <div v-if="show" class="grow flex flex-col gap-0.5 w-52">
+      <div v-if="hasContent" class="flex justify-between items-center ps-2 pr-1 pb-1">
+        <span class="text-base-medium text-ink-gray-8 select-none whitespace-nowrap">Table of Contents</span>
+        <Button :icon="LucideLeftClose" variant="ghost" @click="show = !show" tooltip="Hide" />
       </div>
       <div v-if="tabs.length > 0" class="flex flex-col gap-0.5 mb-2" @drop.prevent="onDrop">
         <div v-for="(tab, index) in tabs" :key="tab.id" :class="[
@@ -26,34 +22,45 @@
             dragState.dropIndex === index &&
             dragState.dropIndex !== dragState.draggedIndex &&
             dragState.dropIndex !== dragState.draggedIndex + 1
-          " class="h-8 my-0.5 border border-dashed rounded-sm mx-2" />
+          " class="h-8 my-0.5 border border-dashed rounded-1 mx-2" />
           <div v-if="editingTabId === tab.id && delayedEdit" class="flex items-center">
             <TextInput v-model="editingTabLabel" v-on-outside-click="() => finishRenaming(false)" autofocus
-              @keydown.enter="finishRenaming(false)" @keydown.esc="finishRenaming(true)" class="w-full">
+              aria-label="Tab name" @keydown.enter="finishRenaming(false)" @keydown.esc="finishRenaming(true)"
+              class="w-full">
               <template #prefix>
                 <LucideFileText class="size-4" />
               </template>
             </TextInput>
           </div>
           <component v-else :is="tab.id === activeTabId ? ContextMenu : 'div'" :options="tabActions">
-            <Button variant="ghost" class="w-full !text-ink-gray-5 !justify-start cursor-grab active:cursor-grabbing"
-              :class="tab.id === activeTabId && 'font-medium !text-ink-gray-8'" :label="tab.label"
-              :icon-left="h(LucideFileText, { class: 'size-4 shrink-0' })" @click="
-                tab.id !== activeTabId && editor.commands.changeTab(tab.id)
-                " :draggable="editor.isEditable" @dragstart="onDragStart($event, tab, index)"
-              @dragend.prevent="onDragEnd">
-              <template #suffix v-if="tab.id === activeTabId"><Button @click="showHeadings = !showHeadings"
-                  class="ml-auto" variant="ghost" :icon="h(showHeadings ? LucideMinus : LucidePlus, {
-                    class: 'size-4',
-                  })
-                    " /></template>
-            </Button>
+            <div class="relative">
+              <Button variant="ghost" class="w-full !text-ink-gray-5 !justify-start cursor-grab active:cursor-grabbing"
+                :class="[
+                  tab.id === activeTabId && 'font-medium !text-ink-gray-8',
+                  tab.id === activeTabId && editor.isEditable && 'pr-7',
+                ]" :label="tab.label" @click="
+                  tab.id !== activeTabId && editor.commands.changeTab(tab.id)
+                  " :draggable="editor.isEditable" @dragstart="onDragStart($event, tab, index)"
+                @dragend.prevent="onDragEnd">
+                <template #prefix>
+                  <span v-if="tab.id === activeTabId && currentTabAnchors.length" role="button"
+                    class="shrink-0 cursor-pointer" @click.stop="showHeadings = !showHeadings">
+                    <LucideChevronRight class="size-4 transition-transform duration-200"
+                      :class="showHeadings && 'rotate-90'" />
+                  </span>
+                  <LucideFileText v-else class="size-4 shrink-0" />
+                </template>
+              </Button>
+              <Button v-if="tab.id === activeTabId && editor.isEditable" variant="ghost"
+                class="absolute right-0.5 top-1/2 -translate-y-1/2" :icon="LucideEllipsisVertical" label="Tab options"
+                @click.stop="openTabMenu" />
+            </div>
           </component>
           <template v-if="tab.id === activeTabId && currentTabAnchors.length">
             <div v-if="showHeadings" class="table-of-contents flex flex-col gap-0.5 ms-6 my-1">
               <div v-for="anchor in currentTabAnchors" class="flex pr-2.5">
                 <a :href="'#' + anchor.id"
-                  class="link text-ink-gray-5 hover:bg-surface-gray-2 text-sm px-2 py-1 rounded-sm cursor-pointer truncate grow"
+                  class="link text-ink-gray-5 hover:bg-surface-gray-2 text-sm px-2 py-1 rounded-1 cursor-pointer truncate grow"
                   :title="anchor.textContent" :data-item-index="anchor.itemIndex"
                   @click.prevent="onAnchorClick(anchor.id)" :key="anchor.id" :class="anchor.isActive &&
                     'text-ink-gray-8 bg-surface-gray-3 hover:bg-surface-gray-4'
@@ -65,12 +72,12 @@
           </template>
         </div>
         <div v-if="dragState.isDragging && dragState.dropIndex === tabs.length" @dragover.prevent
-          class="h-8 my-0.5 border border-dashed rounded-sm mx-2" />
+          class="h-8 my-0.5 border border-dashed rounded-1 mx-2" />
       </div>
       <div v-else-if="anchors.length > 1" class="table-of-contents flex flex-col gap-0.5 mb-2 px-0.5 pr-2.5">
         <div v-for="anchor in anchors" class="flex">
           <a :href="'#' + anchor.id"
-            class="link text-ink-gray-5 hover:bg-surface-gray-2 text-sm px-2 py-1 rounded-sm cursor-pointer truncate grow"
+            class="link text-ink-gray-5 hover:bg-surface-gray-2 text-sm px-2 py-1 rounded-1 cursor-pointer truncate grow"
             :title="anchor.textContent" :data-item-index="anchor.itemIndex" @click.prevent="onAnchorClick(anchor.id)"
             :key="anchor.id" :class="anchor.isActive && 'text-ink-gray-8'"
             :style="{ '--level': anchor.level - maxLevel }">
@@ -78,13 +85,16 @@
           </a>
         </div>
       </div>
-      <Button v-if="editor.isEditable" class="!justify-start text-xs opacity-50 hover:opacity-100"
-        :icon-left="h(LucidePlus, { class: 'size-4' })" :label="tabs.length ? 'Add tab' : 'Create tab'" variant="ghost"
-        @click="
-          tabs.length
-            ? editor.commands.createTab({ label: 'Untitled' })
-            : editor.commands.wrapInTab()
-          " />
+      <div v-if="editor.isEditable" class="flex items-center gap-1 pr-1">
+        <Button class="grow !justify-start text-xs opacity-50 hover:opacity-100"
+          :icon-left="h(LucidePlus, { class: 'size-4' })" :label="tabs.length ? 'Add tab' : 'Create tab'"
+          variant="ghost" @click="
+            tabs.length
+              ? editor.commands.createTab({ label: 'Untitled' })
+              : editor.commands.wrapInTab()
+            " />
+        <Button v-if="!hasContent" :icon="LucideLeftClose" variant="ghost" @click="show = !show" tooltip="Hide" />
+      </div>
     </div>
   </div>
 </template>
@@ -94,7 +104,7 @@ import { nextTick } from 'vue'
 
 import { TextSelection } from '@tiptap/pm/state'
 import LucidePlus from '~icons/lucide/plus'
-import LucideMinus from '~icons/lucide/minus'
+import LucideChevronRight from '~icons/lucide/chevron-right'
 import LucidePanelLeftClose from '~icons/lucide/panel-left-close'
 import LucideFileText from '~icons/lucide/file-text'
 import LucideTableOfContents from '~icons/lucide/table-of-contents'
@@ -102,9 +112,11 @@ import LucidePencil from '~icons/lucide/pencil'
 import LucideLink from '~icons/lucide/link'
 import LucideTrash from '~icons/lucide/trash'
 import LucideLeftClose from '~icons/lucide/panel-left-close'
+import LucideEllipsisVertical from '~icons/lucide/ellipsis-vertical'
 import { ref, watch, computed, h, onMounted, onBeforeUnmount } from 'vue'
-import { Button, TextInput, ContextMenu, onOutsideClickDirective as vOnOutsideClick } from 'frappe-ui'
-import { copyToClipboard } from '@/apps/drive/ui/drive/js/utils'
+import { Button, TextInput, ContextMenu, vOnOutsideClick } from 'frappe-ui'
+import { copyToClipboard } from '@/apps/drive/sdk'
+import { orderedTabs, findTab } from '@/apps/writer/extensions/tabs'
 
 const props = defineProps({
   editor: Object,
@@ -114,6 +126,10 @@ const props = defineProps({
   },
 })
 
+const hasContent = computed(
+  () => tabs.value.length > 0 || props.anchors.length > 1,
+)
+
 const show = ref(JSON.parse(localStorage.getItem('showToc') || 'false'))
 watch(show, (v) => localStorage.setItem('showToc', v))
 const showHeadings = ref(true)
@@ -122,13 +138,10 @@ const showHeadings = ref(true)
 const tabs = ref([])
 
 const updateTabs = () => {
-  const t = []
-  props.editor.state.doc.descendants((node) => {
-    if (node.type.name === 'tab') {
-      t.push({ id: node.attrs.id, label: node.attrs.label })
-    }
-  })
-  tabs.value = t
+  tabs.value = orderedTabs(props.editor.state.doc).map(({ node }) => ({
+    id: node.attrs.id,
+    label: node.attrs.label,
+  }))
 }
 
 // Get active tab ID
@@ -139,7 +152,7 @@ onMounted(() => {
 
   const handleTabChange = (e) => {
     activeTabId.value = e.detail.tabId
-    finishRenaming(true)
+    finishRenaming(false, false)
   }
 
   props.editor.view.dom.addEventListener('tab-changed', handleTabChange)
@@ -154,19 +167,10 @@ const currentTabAnchors = computed(() => {
   if (tabs.value.length === 0) return props.anchors
   if (!activeTabId.value) return props.anchors
 
-  // Find the tab node position in the document
-  let tabStart = null
-  let tabEnd = null
-
-  props.editor.state.doc.descendants((node, pos) => {
-    if (node.type.name === 'tab' && node.attrs.id === activeTabId.value) {
-      tabStart = pos
-      tabEnd = pos + node.nodeSize
-      return false
-    }
-  })
-
-  if (tabStart === null) return []
+  const tab = findTab(props.editor.state.doc, activeTabId.value)
+  if (!tab) return []
+  const tabStart = tab.pos
+  const tabEnd = tab.pos + tab.node.nodeSize
 
   // Filter anchors that are within the active tab's position range
   return props.anchors.filter((anchor) => {
@@ -206,6 +210,21 @@ const onAnchorClick = (id) => {
   })
 }
 
+// The menu lives on the row's ContextMenu trigger, so the button replays a
+// contextmenu event on it — that way it opens anchored to the button.
+const openTabMenu = (event) => {
+  const trigger = event.currentTarget.parentElement
+  const rect = event.currentTarget.getBoundingClientRect()
+  trigger.dispatchEvent(
+    new MouseEvent('contextmenu', {
+      bubbles: true,
+      cancelable: true,
+      clientX: rect.left + rect.width / 2,
+      clientY: rect.bottom,
+    }),
+  )
+}
+
 const editingTabId = ref(null)
 const editingTabLabel = ref('')
 const delayedEdit = ref(false)
@@ -220,17 +239,18 @@ const startRenaming = (tabId) => {
   })
 }
 
-const finishRenaming = (esc = false) => {
+const finishRenaming = (esc = false, refocus = true) => {
   if (!esc && editingTabId.value && editingTabLabel.value.trim()) {
     props.editor.commands.renameTab(
       editingTabId.value,
       editingTabLabel.value.trim(),
+      refocus,
     )
   }
   editingTabId.value = null
   editingTabLabel.value = ''
   delayedEdit.value = false
-  props.editor.commands.focus()
+  if (refocus) props.editor.commands.focus()
 }
 
 // Drag and drop state
@@ -343,9 +363,9 @@ const tabActions = [
       ),
   },
   {
-    group: true,
+    group: '',
     hideLabel: true,
-    items: [
+    options: [
       {
         label: 'Delete',
         icon: LucideTrash,

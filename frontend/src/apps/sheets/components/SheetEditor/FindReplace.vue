@@ -1,8 +1,8 @@
 <template>
-  <div class="fr-panel">
+  <div class="fr-panel" ref="panelRef">
     <div class="fr-header">
       <span class="fr-title">Find &amp; Replace</span>
-      <Button variant="ghost" size="sm" icon="x" @click="emit('close')" />
+      <Button variant="ghost" size="sm" icon="lucide-x" @click="emit('close')" />
     </div>
     <FormControl
       type="text"
@@ -11,6 +11,7 @@
       placeholder="Find"
       autocomplete="off"
       @keydown.enter="findNext"
+      @keydown.escape="emit('close')"
     />
     <FormControl
       type="text"
@@ -29,12 +30,14 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted, nextTick } from 'vue'
 import { Button, FormControl } from 'frappe-ui'
 
 const props = defineProps({
   sheet: { type: Object, required: true },
   grid:  { type: Object, required: true },
+  // (id) => boolean — true when a cell is protected and must not be rewritten.
+  isProtected: { type: Function, default: null },
 })
 const emit = defineEmits(['close', 'navigateTo'])
 
@@ -43,6 +46,30 @@ const replaceQuery = ref('')
 const matches      = ref([])
 const matchIndex   = ref(-1)
 const status       = ref('')
+const panelRef     = ref(null)
+
+function focusInput() {
+  const doFocus = () => {
+    const input = panelRef.value?.querySelector('input')
+    if (input && typeof input.focus === 'function') {
+      input.focus()
+      if (typeof input.select === 'function') {
+        input.select()
+      }
+    }
+  }
+  nextTick(doFocus)
+  setTimeout(doFocus, 0)
+  setTimeout(doFocus, 50)
+}
+
+onMounted(() => {
+  focusInput()
+})
+
+defineExpose({
+  focusInput,
+})
 
 function _buildMatches() {
   const q = findQuery.value.toLowerCase()
@@ -72,6 +99,7 @@ function findNext() {
 function replaceCurrent() {
   if (matchIndex.value < 0 || !matches.value.length) return
   const id  = matches.value[matchIndex.value]
+  if (props.isProtected?.(id)) { status.value = 'Cell is protected'; return }
   const cur = String(props.sheet.getCell(id))
   const q   = findQuery.value
   props.sheet.setCell(id, cur.replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), replaceQuery.value))
@@ -82,13 +110,16 @@ function replaceAll() {
   const q = findQuery.value
   if (!q) return
   _buildMatches()
-  let count = 0
+  let count = 0, skipped = 0
   for (const id of matches.value) {
+    if (props.isProtected?.(id)) { skipped++; continue }   // leave protected cells untouched
     const cur = String(props.sheet.getCell(id))
     props.sheet.setCell(id, cur.replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), replaceQuery.value))
     count++
   }
-  status.value = `Replaced ${count} cell(s)`
+  status.value = skipped
+    ? `Replaced ${count} cell(s), skipped ${skipped} protected`
+    : `Replaced ${count} cell(s)`
   _buildMatches()
 }
 </script>

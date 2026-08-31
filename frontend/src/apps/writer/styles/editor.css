@@ -1,11 +1,18 @@
 @import url('./fonts.css');
 @import url('./comment.css');
 @import url('./print.css');
-@import 'frappe-ui/editor-style.css';
 
 .prose.ProseMirror {
   font-size: var(--editor-font-size, 15px);
   line-height: var(--editor-line-height, 1.5);
+}
+
+.prose-v3 p + p {
+  margin-top: var(--paragraph-spacing-before, 0);
+}
+
+.prose-v3 p {
+  margin-bottom: var(--paragraph-spacing-after, 0);
 }
 
 .prose strong,
@@ -42,6 +49,20 @@ b {
 .selection {
   background: rgba(175, 204, 246, 0.95);
   padding: 0.2em 0;
+}
+
+/* tiptap's Selection extension injects a rule that makes ::selection
+   transparent while the editor is unfocused, then redraws it as a decoration
+   only when editable — leaving read-only docs with no visible selection.
+   Restore the browser's native selection highlight there. */
+.ProseMirror[contenteditable='false'] *::selection {
+  background: Highlight !important;
+  color: HighlightText !important;
+}
+
+.ProseMirror[contenteditable='false'] *::-moz-selection {
+  background: Highlight !important;
+  color: HighlightText !important;
 }
 
 div[data-page-break='true'] {

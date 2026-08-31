@@ -6,11 +6,11 @@
 					v-for="request in joinRequests"
 					:key="request.user_id"
 					:data-testid="`join-request-${request.user_id}`"
-					class="pointer-events-auto min-w-80 max-w-96 rounded-lg border border-outline-gray-2 bg-surface-gray-1 p-4 shadow-lg"
+					class="pointer-events-auto min-w-80 max-w-96 rounded-6 border border-outline-gray-2 bg-surface-gray-1 p-4 shadow-lg"
 				>
 					<div class="flex items-start justify-between mb-4">
 						<div class="flex items-center space-x-3 flex-1 min-w-0">
-							<Avatar
+							<MeetAvatar
 								size="2xl"
 								:image="request.user_image"
 								:label="request.user_name || request.user_id"
@@ -69,8 +69,9 @@
 </template>
 
 <script setup lang="ts">
-import { Avatar, Button } from "frappe-ui";
+import { Button } from "frappe-ui";
 import { computed, ref, watch } from "vue";
+import MeetAvatar from "./MeetAvatar.vue";
 
 interface WaitingUser {
 	user_id: string;

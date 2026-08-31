@@ -1,9 +1,9 @@
 <template>
-	<Dialog v-model="showDialog">
-		<template #body-title>
-			<h2 class="text-xl-bold">{{ __('Install Frappe Mail') }}</h2>
+	<Dialog v-model:open="showDialog">
+		<template #title>
+			<h2 class="text-lg-bold">{{ __('Install Frappe Mail') }}</h2>
 		</template>
-		<template #body-content>
+		<template #default>
 			<p>{{ __('Get the app on your device for easy access & a better experience!') }}</p>
 		</template>
 		<template #actions>
@@ -14,48 +14,52 @@
 		</template>
 	</Dialog>
 
-	<!-- iOS installation info message -->
-	<Popover :show="iosInstallMessage" placement="bottom">
-		<template #body>
-			<div
-				class="bg-surface-blue-2 mx-2 mt-[calc(100vh-15rem)] flex flex-col gap-3 rounded py-5 drop-shadow-xl"
-			>
-				<div class="mb-1 flex flex-row items-center justify-between px-3 text-center">
-					<span class="text-base-bold">
-						{{ __('Install Frappe Mail') }}
-					</span>
-					<span class="inline-flex items-baseline">
-						<FeatherIcon
-							name="x"
-							class="text-ink-gray-6 ml-auto h-4 w-4"
-							@click="iosInstallMessage = false"
-						/>
-					</span>
-				</div>
-				<div class="text-ink-gray-7 px-3 text-xs">
-					<span class="flex flex-col gap-2">
-						<span>
-							{{
-								__(
-									'Get the app on your iPhone for easy access & a better experience',
-								)
-							}}
-						</span>
-						<span class="inline-flex items-start whitespace-nowrap">
-							<span>Tap&nbsp;</span>
-							<FeatherIcon name="share" class="h-4 w-4 text-blue-600" />
-							<span>&nbsp;and then "Add to Home Screen"</span>
-						</span>
-					</span>
-				</div>
+	<!-- iOS installation info message — a plain fixed banner, not a Popover: no overlay to
+	     block the app behind it, and the viewport (not the content) bounds its width.
+	     Teleported to body and lifted past z-50: it lives in the app tree, so the
+	     body-portaled surfaces (bottom sheets, dialogs — z-50) would otherwise paint
+	     their backdrops over it. -->
+	<Teleport to="body">
+		<div
+			v-if="iosInstallMessage"
+			class="bg-surface-blue-2 fixed inset-x-2 bottom-4 z-[60] flex flex-col gap-3 rounded-4 py-5 drop-shadow-xl"
+		>
+			<div class="mb-1 flex flex-row items-center justify-between px-3 text-center">
+				<span class="text-base-bold">
+					{{ __('Install Frappe Mail') }}
+				</span>
+				<span class="inline-flex items-baseline">
+					<FeatherIcon
+						name="x"
+						class="text-ink-gray-6 ml-auto h-4 w-4"
+						@click="iosInstallMessage = false"
+					/>
+				</span>
 			</div>
-		</template>
-	</Popover>
+			<div class="text-ink-gray-7 px-3 text-xs">
+				<span class="flex flex-col gap-2">
+					<span>
+						{{
+							__(
+								'Get the app on your iPhone for easy access & a better experience',
+							)
+						}}
+					</span>
+					<span>
+						{{ __('Tap') }}
+						<FeatherIcon name="share" class="inline h-4 w-4 align-[-3px] text-blue-600" />
+						{{ __('and then "Add to Home Screen"') }}
+					</span>
+				</span>
+			</div>
+		</div>
+	</Teleport>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Button, Dialog, FeatherIcon, Popover } from 'frappe-ui'
+import { Button, Dialog } from 'frappe-ui'
+import { Icon as FeatherIcon } from 'frappe-ui/experimental'
 
 // Initialize deferredPrompt for use later to show browser install prompt.
 const deferredPrompt = ref(null)

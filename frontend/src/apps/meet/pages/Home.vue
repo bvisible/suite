@@ -1,13 +1,15 @@
 <template>
 	<div class="flex h-screen bg-surface-base" data-testid="home-page">
-		<!-- //// Neoffice: shared NeoCockpit chrome (auto-fallback to MeetSidebar) //// -->
+		<!-- //// Neoffice — the shared NeoCockpit chrome replaces Meet's own sidebar so
+		     every Suite app carries the same left rail as the rest of Neoffice. It
+		     falls back to <MeetSidebar /> by itself when the chrome cannot mount. //// -->
 		<NeoCockpitSidebar />
 
 		<div class="flex flex-1 flex-col overflow-auto">
 			<div class="flex flex-1 items-start justify-center pt-[100px]">
 				<div class="w-[760px] max-w-full px-6">
 					<div class="mb-2 flex flex-col gap-0.5">
-						<h1 class="text-xl-semibold text-ink-gray-8 tracking-[0.2px]">
+						<h1 class="text-lg-semibold text-ink-gray-8 tracking-[0.2px]">
 							Hey {{ firstName }},
 						</h1>
 						<p class="text-sm text-ink-gray-6 tracking-[0.28px] leading-[1.5]">
@@ -17,7 +19,7 @@
 
 					<div class="mt-[42px] grid grid-cols-2 gap-4 md:grid-cols-4">
 						<button
-							class="group flex flex-1 flex-col items-center gap-2.5 rounded-2xl border border-outline-gray-1 bg-surface-gray-1 p-1.5 transition-colors hover:bg-surface-gray-2"
+							class="group flex flex-1 flex-col items-center gap-2.5 rounded-8 border border-outline-gray-1 bg-surface-gray-1 p-1.5 transition-colors hover:bg-surface-gray-2"
 							@click="startInstantMeeting"
 						>
 							<div class="flex h-[100px] w-full items-center justify-center rounded-[14px] border border-outline-gray-1 bg-surface-base">
@@ -29,7 +31,7 @@
 						</button>
 
 						<button
-							class="group flex flex-1 flex-col items-center gap-2.5 rounded-2xl border border-outline-gray-1 bg-surface-gray-1 p-1.5 transition-colors hover:bg-surface-gray-2"
+							class="group flex flex-1 flex-col items-center gap-2.5 rounded-8 border border-outline-gray-1 bg-surface-gray-1 p-1.5 transition-colors hover:bg-surface-gray-2"
 							@click="startRestrictedMeeting"
 						>
 							<div class="flex h-[100px] w-full items-center justify-center rounded-[14px] border border-outline-gray-1 bg-surface-base">
@@ -41,7 +43,7 @@
 						</button>
 
 						<button
-							class="group flex flex-1 flex-col items-center gap-2.5 rounded-2xl border border-outline-gray-1 bg-surface-gray-1 p-1.5 transition-colors hover:bg-surface-gray-2"
+							class="group flex flex-1 flex-col items-center gap-2.5 rounded-8 border border-outline-gray-1 bg-surface-gray-1 p-1.5 transition-colors hover:bg-surface-gray-2"
 							@click="openScheduleDialog"
 						>
 							<div class="flex h-[100px] w-full items-center justify-center rounded-[14px] border border-outline-gray-1 bg-surface-base">
@@ -53,7 +55,7 @@
 						</button>
 
 						<button
-							class="group flex flex-1 flex-col items-center gap-2.5 rounded-2xl border border-outline-gray-1 bg-surface-gray-1 p-1.5 transition-colors hover:bg-surface-gray-2"
+							class="group flex flex-1 flex-col items-center gap-2.5 rounded-8 border border-outline-gray-1 bg-surface-gray-1 p-1.5 transition-colors hover:bg-surface-gray-2"
 							@click="showJoinDialog = true"
 						>
 							<div class="flex h-[100px] w-full items-center justify-center rounded-[14px] border border-outline-gray-1 bg-surface-base">
@@ -71,9 +73,9 @@
 		</div>
 
 		<Dialog
-			v-model="showJoinDialog"
+			v-model:open="showJoinDialog"
 			:title="'Join with meeting code'"
-			:dismissable="true"
+			dismissible
 		>
 			<template #default>
 				<FormControl
@@ -97,14 +99,26 @@
 			</template>
 		</Dialog>
 
-		<Dialog v-model="showScheduleDialog" :title="'Schedule meet'" :dismissable="true">
+		<Dialog v-model:open="showScheduleDialog" :title="'Schedule meet'" dismissible>
 			<template #default>
 				<div class="space-y-4">
 					<FormControl v-model="scheduleTitle" label="Title" placeholder="Team meeting" />
 					<div class="grid grid-cols-1 gap-3 md:grid-cols-3">
 						<FormControl v-model="scheduleDate" label="Date" type="date" />
-						<FormControl v-model="scheduleStartTime" label="Start" type="time" />
-						<FormControl v-model="scheduleEndTime" label="End" type="time" />
+						<FormControl
+							v-model="scheduleStartTime"
+							label="Start"
+							type="time"
+							:interval="15"
+							format="h:mm A"
+						/>
+						<FormControl
+							v-model="scheduleEndTime"
+							label="End"
+							type="time"
+							:interval="15"
+							format="h:mm A"
+						/>
 					</div>
 					<ParticipantSelector
 						v-model="scheduleParticipants"
@@ -138,12 +152,16 @@ import {
 	createResource,
 	toast,
 } from "frappe-ui";
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useRouter } from "vue-router";
 
 import { userStore as useCalendarUserStore } from "@/apps/calendar/stores/user";
 import dayjs from "@/apps/calendar/utils/dayjs";
 import ParticipantSelector from "@/apps/calendar/components/ParticipantSelector.vue";
+import {
+	adjustScheduleEndTime,
+	adjustScheduleStartTime,
+} from "@/apps/calendar/utils/scheduleTime";
 import { useConnectionState } from "../composables/useConnectionState";
 // //// Neoffice: NeoCockpit chrome (falls back to the native MeetSidebar itself) ////
 import NeoCockpitSidebar from "../components/NeoCockpitSidebar.vue";
@@ -152,6 +170,15 @@ import LucideCalendarPlus from "~icons/lucide/calendar-plus";
 import LucideZap from "~icons/lucide/zap";
 import LucideLink from "~icons/lucide/link";
 import LucideLock from "~icons/lucide/lock";
+
+interface CalendarParticipant {
+	email: string;
+	_name?: string;
+	user_image?: string;
+	participation_status?: string;
+	expect_reply?: boolean;
+	isNew?: boolean;
+}
 
 const router = useRouter();
 const connectionState = useConnectionState();
@@ -164,8 +191,16 @@ const scheduleTitle = ref("");
 const scheduleDate = ref(dayjs().format("YYYY-MM-DD"));
 const scheduleStartTime = ref(dayjs().add(1, "hour").startOf("hour").format("HH:mm"));
 const scheduleEndTime = ref(dayjs().add(2, "hour").startOf("hour").format("HH:mm"));
-const scheduleParticipants = ref<any[]>([]);
+const scheduleParticipants = ref<CalendarParticipant[]>([]);
 const upcomingMeetingsRef = ref<{ reload: () => void } | null>(null);
+
+watch(scheduleStartTime, (startTime) => {
+	scheduleEndTime.value = adjustScheduleEndTime(startTime, scheduleEndTime.value);
+});
+
+watch(scheduleEndTime, (endTime) => {
+	scheduleStartTime.value = adjustScheduleStartTime(scheduleStartTime.value, endTime);
+});
 
 const userResource = createResource({
 	url: "suite.api.account.get_logged_in_user",
@@ -188,7 +223,7 @@ const createMeeting = createResource({
 		});
 		connectionState.justCreated = true;
 	},
-	onError: (error: any) => {
+	onError: (error: unknown) => {
 		console.error("Error creating meeting:", error);
 		toast.error("Failed to create meeting. Please try again.");
 	},
@@ -218,7 +253,7 @@ const currentUserEmail = computed(() => calendarStore.userResource.data?.name ||
 const scheduledParticipants = computed(() => {
 	const currentName = calendarStore.userResource.data?.full_name || userResource.data?.full_name;
 	const currentImage = calendarStore.userResource.data?.user_image || userResource.data?.user_image;
-	const participants = currentUserEmail.value
+	const participants: CalendarParticipant[] = currentUserEmail.value
 		? [
 				{
 					email: currentUserEmail.value,
@@ -250,26 +285,37 @@ const scheduleMeeting = createResource({
 		toast.success("Meeting scheduled.");
 		upcomingMeetingsRef.value?.reload();
 	},
-	onError: (error: any) => {
+	onError: (error: unknown) => {
 		console.error("Error scheduling meeting:", error);
 	},
 });
 
-const startInstantMeeting = () => {
-	toast.promise(createMeeting.submit({ meeting_type: "open" }), {
-		loading: "Creating meeting...",
-		success: "Meeting created successfully!",
-		error: "Failed to create meeting. Please try again.",
-	});
+const startMeeting = (meetingType: "open" | "restricted") => {
+	const toastId = toast.loading("Creating meeting...");
+	createMeeting
+		.submit({ meeting_type: meetingType })
+		.then((meetingCode: string) => {
+			toast.dismiss(toastId);
+			toast.success("Meeting created successfully!", {
+				duration: 8000,
+				action: {
+					label: "Copy link",
+					onClick: () => {
+						const path = router.resolve({
+							name: "meet-meeting",
+							params: { meetingId: meetingCode },
+						}).href;
+						navigator.clipboard.writeText(new URL(path, window.location.origin).href);
+					},
+				},
+			});
+		})
+		.catch(() => toast.dismiss(toastId));
 };
 
-const startRestrictedMeeting = () => {
-	toast.promise(createMeeting.submit({ meeting_type: "restricted" }), {
-		loading: "Creating restricted meeting...",
-		success: "Restricted meeting created successfully!",
-		error: "Failed to create meeting. Please try again.",
-	});
-};
+const startInstantMeeting = () => startMeeting("open");
+
+const startRestrictedMeeting = () => startMeeting("restricted");
 
 const openScheduleDialog = async () => {
 	try {

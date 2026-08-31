@@ -14,17 +14,17 @@ from frappe.model.document import Document
 
 
 class SheetsAISettings(Document):
-	# begin: auto-generated types
-	# This code is auto-generated. Do not modify anything in this block.
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
 
-	from typing import TYPE_CHECKING
+    from typing import TYPE_CHECKING
 
-	if TYPE_CHECKING:
-		from frappe.types import DF
+    if TYPE_CHECKING:
+        from frappe.types import DF
 
-		api_key: DF.Password | None
-		enabled: DF.Check
-		model: DF.Data | None
-	# end: auto-generated types
+        api_key: DF.Password | None
+        enabled: DF.Check
+        model: DF.Data | None
+    # end: auto-generated types
 
-	pass
+    pass

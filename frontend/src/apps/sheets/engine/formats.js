@@ -13,6 +13,7 @@
 // saved payload to 100MB+ and freeze the main thread.
 
 import { parseCellId, colLabel } from '../utils/cells.js'
+import { remapCellKeys, remapIndexKeys } from './ref-remap.js'
 import { deepClone } from '../utils/deep-clone.js'
 
 export function createFormatsEngine() {
@@ -204,6 +205,20 @@ export function createFormatsEngine() {
 		_shiftAxis(s.cols, atCol + 1, -1)
 	}
 
+	// Structural permutation — remap the per-cell layer and the integer-keyed
+	// column layer through the same index map used everywhere else.
+	function remapCols(mapCol, sheet = 'Sheet1') {
+		const s = ensure(sheet)
+		s.cells = remapCellKeys(s.cells, mapCol, null)
+		s.cols  = remapIndexKeys(s.cols, mapCol)
+	}
+
+	function remapRows(mapRow, sheet = 'Sheet1') {
+		const s = ensure(sheet)
+		s.cells = remapCellKeys(s.cells, null, mapRow)
+		s.rows  = remapIndexKeys(s.rows, mapRow)
+	}
+
 	// ── Snapshot / restore for history integration ────────────────────────────
 
 	function snapshot() {
@@ -257,6 +272,7 @@ export function createFormatsEngine() {
 		applyToColumns, applyToRows, toggleColumns, toggleRows,
 		clearColumns, clearRows,
 		insertRow, deleteRow, insertCol, deleteCol,
+		remapCols, remapRows,
 		renameSheet, duplicateSheet, deleteSheet, reorderSheets,
 		snapshot, restore,
 	}

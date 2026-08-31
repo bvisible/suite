@@ -80,9 +80,11 @@ export const getRepeatMessage = (recurrenceRule: RecurrenceRule) => {
   const fullMessage = `${message}${suffix}`
 
   if (recurrenceRule?.until)
+    // `until` is a local date-time; strip the `Z` older events carry so the picked
+    // date survives instead of shifting a day in zones east of UTC.
     return __('{0} until {1}', [
       fullMessage,
-      dayjs(recurrenceRule.until).format('MMM DD, YYYY'),
+      dayjs(recurrenceRule.until.replace(/Z$/, '')).format('MMM DD, YYYY'),
     ])
   if (recurrenceRule?.count)
     return __('{0}, {1} times', [fullMessage, recurrenceRule.count])

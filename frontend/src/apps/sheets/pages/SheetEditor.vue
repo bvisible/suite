@@ -29,8 +29,7 @@ import { useRouter } from 'vue-router'
 import SheetEditor from '@/apps/sheets/components/SheetEditor/index.vue'
 
 defineProps({
-  // The sheet name (route param). 'new' is the special create id, preserved
-  // from the standalone app's `?id=new`.
+  // The sheet name (route param). 'new' is the special create id.
   id: { type: String, default: 'new' },
 })
 

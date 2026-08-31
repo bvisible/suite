@@ -62,7 +62,9 @@ def write_file_content(file, content: bytes) -> None:
     manager = FileManager()
     key = storage_key(file.file_url)
     if manager.s3_enabled:
-        manager.conn.put_object(Bucket=manager.get_bucket(file.team), Key=key, Body=content)
+        #//// Neoffice — one bucket for the site since the de-teaming (4df6ee65a):
+        #//// FileManager.get_bucket(team) is gone, the bucket is now an attribute.
+        manager.conn.put_object(Bucket=manager.bucket, Key=key, Body=content)
     else:
         path = manager.site_folder / key
         os.makedirs(os.path.dirname(path), exist_ok=True)

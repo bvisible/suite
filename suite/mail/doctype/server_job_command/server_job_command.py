@@ -7,13 +7,13 @@ from frappe.model.document import Document
 
 
 class ServerJobCommand(Document):
-	def _db_set(
-		self,
-		update_modified: bool = True,
-		commit: bool = False,
-		notify: bool = False,
-		**kwargs,
-	) -> None:
-		"""Updates the document with the given key-value pairs."""
+    def _db_set(
+        self,
+        update_modified: bool = True,
+        commit: bool = False,
+        notify: bool = False,
+        **kwargs,
+    ) -> None:
+        """Updates the document with the given key-value pairs."""
 
-		self.db_set(kwargs, update_modified=update_modified, notify=notify, commit=commit)
+        self.db_set(kwargs, update_modified=update_modified, notify=notify, commit=commit)

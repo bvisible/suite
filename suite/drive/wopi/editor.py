@@ -9,7 +9,7 @@ import shutil
 import frappe
 from frappe import _
 
-from suite.drive.utils import create_drive_file, get_default_team, get_file_type, get_home_folder
+from suite.drive.utils import create_drive_file, get_file_type, get_user_folder
 from suite.drive.utils.files import FileManager, get_s3_key, get_s3_url
 
 from .discovery import check_collabora_status, is_file_supported
@@ -50,15 +50,13 @@ def get_supported_extensions() -> list:
 
 
 @frappe.whitelist()
-def create_office_file(file_type: str, title: str, parent: str = None, team: str = None) -> dict:
+def create_office_file(file_type: str, title: str, parent: str = None) -> dict:
     """Create a new blank Office file in the Drive.
 
     Args:
         file_type: 'docx', 'xlsx' or 'pptx'
         title: file name (extension optional)
-        parent: parent folder File id (defaults to the team/home root)
-        team: Drive Team id, used when creating from a team root without a
-            parent folder (falls back to the user's personal team)
+        parent: parent folder File id (defaults to the caller's private folder)
 
     Note: simple annotations on purpose — v15's whitelist arg coercion
     breaks on union types (`str | None`) for HTTP-sent values.
@@ -76,30 +74,29 @@ def create_office_file(file_type: str, title: str, parent: str = None, team: str
     if not os.path.exists(template_path):
         frappe.throw(_("Template file not found"))
 
-    # Resolve team + parent folder (same defaults as the Drive upload flow):
-    # explicit folder > current team root > personal team root.
+    # Resolve the parent folder, same defaults as the Drive upload flow:
+    # an explicit folder, else the caller's private folder.
+    #//// Neoffice — rewritten for the de-teamed Drive (upstream 4df6ee65a /
+    #//// f3cf5206c, merged 31.08.2026). Drive Team and Drive Team Member are gone,
+    #//// get_home_folder(team)/get_default_team() with them, and storage is now
+    #//// one folder per user under a single site root. create_drive_file also lost
+    #//// its leading `team` argument — calling it positionally as before would not
+    #//// have raised, it would have silently shifted every argument by one and
+    #//// created files named after a team id.
     if parent:
         if not frappe.db.exists("File", parent):
             frappe.throw(_("Parent folder not found"))
-        team = frappe.db.get_value("File", parent, "team")
-        home_folder = get_home_folder(team)
     else:
-        if not team:
-            team = get_default_team()
-        if not team:
-            frappe.throw(_("No team found. Please set up your Drive first."))
-        home_folder = get_home_folder(team)
-        parent = home_folder["name"]
+        parent = get_user_folder()["name"]
 
     file_size = os.path.getsize(template_path)
     manager = FileManager()
 
     drive_file = create_drive_file(
-        team,
         title,
         parent,
         get_file_type(mime_type),
-        lambda file: "/" + str(manager.get_disk_path(file, home_folder)),
+        lambda file: "/" + str(manager.get_disk_path(file)),
         mime_type,
         file_size,
     )
@@ -111,7 +108,7 @@ def create_office_file(file_type: str, title: str, parent: str = None, team: str
 
     key = storage_key(drive_file.file_url)
     if manager.s3_enabled:
-        manager.conn.upload_file(template_path, manager.get_bucket(team), get_s3_key(drive_file.file_url))
+        manager.conn.upload_file(template_path, manager.bucket, get_s3_key(drive_file.file_url))
     else:
         dest = manager.site_folder / key
         os.makedirs(os.path.dirname(dest), exist_ok=True)

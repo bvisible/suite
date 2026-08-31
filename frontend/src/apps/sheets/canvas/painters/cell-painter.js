@@ -1,9 +1,10 @@
 import { COLORS, TOTAL_COLS } from '../constants.js'
 import { cellId } from '../../utils/cells.js'
-import { getTextWrap, isWrapText } from '../../utils/text-wrap.js'
+import { getTextWrap, isWrapText, wrapLines, lineHeightFor } from '../../utils/text-wrap.js'
 import { CHIP, chipFont, chipColor, chipMetrics } from '../chip-geometry.js'
 import { checkboxRect, CHECKBOX } from '../checkbox-geometry.js'
 import { checkRule } from '../../engine/validation.js'
+import { sparkGeometry } from '../../engine/sparkline.js'
 
 export function createCellPainter(ctx, { cw, rh, colX, rowY }) {
 
@@ -14,7 +15,7 @@ export function createCellPainter(ctx, { cw, rh, colX, rowY }) {
   // engine-backed lookup. The painter only ever touches cells in the visible
   // region, so the lazy path computes display strings for ~hundreds of cells
   // per frame instead of materialising the whole sheet up front.
-  function drawRegionCells(r0, c0, r1, c1, getVal, getFormat, getMergeInfo, isSlave, getComment, getValidation, getCondFormat, getRightInset, getDiffFor) {
+  function drawRegionCells(r0, c0, r1, c1, getVal, getFormat, getMergeInfo, isSlave, getComment, getValidation, getCondFormat, getRightInset, getDiffFor, getSparkline) {
     ctx.textBaseline = 'middle'
     // Two-pass paint: every cell's background + decorations first, then
     // every cell's text. Splitting the passes means an upstream cell's
@@ -30,7 +31,7 @@ export function createCellPainter(ctx, { cw, rh, colX, rowY }) {
     for (let r = r0; r <= r1; r++) {
       if (rh(r) === 0) continue
       for (let c = c0; c <= c1; c++)
-        _paintTextAt(r, c, getVal, getFormat, getMergeInfo, isSlave, getCondFormat, getRightInset, getValidation)
+        _paintTextAt(r, c, getVal, getFormat, getMergeInfo, isSlave, getCondFormat, getRightInset, getValidation, getSparkline)
     }
   }
 
@@ -85,7 +86,7 @@ export function createCellPainter(ctx, { cw, rh, colX, rowY }) {
         // List rule → a Sheets-style dropdown affordance. With a value it's a
         // chip (which owns the cell text — the text pass skips it); empty,
         // it's a plain caret so you know it's a dropdown.
-        if (has) _drawValidationChip(x, y, w, h, String(val), fmt, !invalid)
+        if (has) _drawValidationChip(x, y, w, h, String(val), fmt, !invalid, rule)
         else     _drawDropdownArrow(x, y, w, h)
       } else if (rule.type === 'checkbox') {
         // Checkbox rule → a tickbox that owns the cell (the text pass skips
@@ -105,10 +106,13 @@ export function createCellPainter(ctx, { cw, rh, colX, rowY }) {
     if (condFmt?.icon) _drawCellIcon(x, y, h, condFmt.icon)
   }
 
-  function _paintTextAt(r, c, getVal, getFormat, getMergeInfo, isSlave, getCondFormat, getRightInset, getValidation) {
+  function _paintTextAt(r, c, getVal, getFormat, getMergeInfo, isSlave, getCondFormat, getRightInset, getValidation, getSparkline) {
     const g = _cellGeom(r, c, getVal, getFormat, getMergeInfo, isSlave, getCondFormat)
     if (!g) return
     const { id, val, fmt, condFmt, x, y, w, h } = g
+    // A sparkline cell renders a mini chart in place of text.
+    const spark = getSparkline?.(id)
+    if (spark) { _drawSparkline(x, y, w, h, spark); return }
     if (val == null || val === '') return
     // List / checkbox cells render their value as a chip or tickbox in the bg
     // pass — don't paint the raw text a second time on top.
@@ -121,8 +125,11 @@ export function createCellPainter(ctx, { cw, rh, colX, rowY }) {
     const iconInset  = condFmt?.icon ? ICON_INSET : 0
     _setCellFont(efmt)
     const mode = getTextWrap(efmt)
-    if (mode === 'wrap') {
-      _drawWrappedText(s, x + iconInset, y, w - iconInset, h, efmt, rightInset)
+    // A value with hard newlines (Cmd+Enter) always renders multi-line, even
+    // in clip/overflow mode — matching Sheets, where only wrap mode also
+    // soft-wraps long lines.
+    if (mode === 'wrap' || s.includes('\n')) {
+      _drawWrappedText(s, x + iconInset, y, w - iconInset, h, efmt, rightInset, mode === 'wrap')
       return
     }
     let drawX = x + iconInset
@@ -141,6 +148,32 @@ export function createCellPainter(ctx, { cw, rh, colX, rowY }) {
       }
     }
     _drawCellText(drawX, y, drawW, h, s, efmt, rightInset)
+  }
+
+  // Paint a sparkline spec into the cell box. Geometry (points / bars) comes
+  // from the pure sparkline module; here we just stroke/fill it.
+  function _drawSparkline(x, y, w, h, spec) {
+    const geo = sparkGeometry(spec, w, h)
+    if (!geo) return
+    const color = spec.color || COLORS.sparkline
+    ctx.save()
+    ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip()   // dense charts can't spill into neighbours
+    if (geo.kind === 'bars') {
+      ctx.fillStyle = color
+      for (const b of geo.bars) ctx.fillRect(x + b.x, y + b.y, b.w, b.h)
+    } else if (geo.points.length === 1) {
+      const p = geo.points[0]                            // a lone point renders as a dot, not an empty stroke
+      ctx.fillStyle = color
+      ctx.beginPath(); ctx.arc(x + p.x, y + p.y, 1.5, 0, Math.PI * 2); ctx.fill()
+    } else {
+      ctx.strokeStyle = color
+      ctx.lineWidth = 1
+      ctx.lineJoin = 'round'
+      ctx.beginPath()
+      geo.points.forEach((p, i) => (i ? ctx.lineTo(x + p.x, y + p.y) : ctx.moveTo(x + p.x, y + p.y)))
+      ctx.stroke()
+    }
+    ctx.restore()
   }
 
   // Walk adjacent cells in the alignment direction and return how many CSS
@@ -307,21 +340,36 @@ export function createCellPainter(ctx, { cw, rh, colX, rowY }) {
     ctx.restore()
   }
 
+  // A soft, borderless chevron button on the cell's right edge — reads as a
+  // frappe-ui control rather than the old hard-bordered <select> box. Empty
+  // list cells get this; a cell with a value gets the same chevron inside its
+  // chip (see _drawChevron below).
   function _drawDropdownArrow(x, y, w, h) {
-    const aw = 14, ah = h - 2
+    const btn = 18
+    const bh  = Math.min(h - 4, CHIP.maxH)
+    if (bh < CHIP.minH) return   // row too short for a legible affordance
+    const bx = x + w - btn - 3
+    const by = y + (h - bh) / 2
     ctx.save()
-    ctx.strokeStyle = COLORS.gridLine || '#d0d0d0'
-    ctx.lineWidth = 1
-    ctx.strokeRect(x + w - aw, y + 1, aw - 1, ah)
-    ctx.fillStyle = '#666'
-    ctx.beginPath()
-    const mx = x + w - aw / 2, my = y + h / 2
-    ctx.moveTo(mx - 3, my - 1.5)
-    ctx.lineTo(mx + 3, my - 1.5)
-    ctx.lineTo(mx, my + 2.5)
-    ctx.closePath()
+    _roundRectPath(bx, by, btn, bh, 4)
+    ctx.fillStyle = COLORS.chipFill
     ctx.fill()
+    _drawChevron(bx + btn / 2, y + h / 2)
     ctx.restore()
+  }
+
+  // A small rounded chevron (⌄) centred on (cx, cy). Stroked, not a filled
+  // triangle, so it matches frappe-ui's FeatherIcon "chevron-down".
+  function _drawChevron(cx, cy) {
+    ctx.strokeStyle = COLORS.chipCaret
+    ctx.lineWidth = 1.5
+    ctx.lineJoin = 'round'
+    ctx.lineCap  = 'round'
+    ctx.beginPath()
+    ctx.moveTo(cx - 3.5, cy - 1.5)
+    ctx.lineTo(cx,       cy + 2)
+    ctx.lineTo(cx + 3.5, cy - 1.5)
+    ctx.stroke()
   }
 
   // Sheets-style checkbox: a rounded grey square centred in the cell. Checked
@@ -359,7 +407,7 @@ export function createCellPainter(ctx, { cw, rh, colX, rowY }) {
   // Sheets-style dropdown chip: a rounded pill holding the cell value with a
   // caret on its right. Drawn in the bg pass; the matching click zone lives in
   // canvas/index.js (both measure through chip-geometry so they stay aligned).
-  function _drawValidationChip(x, y, w, h, text, fmt, valid) {
+  function _drawValidationChip(x, y, w, h, text, fmt, valid, rule) {
     const chipH = Math.min(h - 4, CHIP.maxH)
     if (chipH < CHIP.minH) { _drawDropdownArrow(x, y, w, h); return }  // row too short for a pill
     ctx.save()
@@ -368,10 +416,10 @@ export function createCellPainter(ctx, { cw, rh, colX, rowY }) {
     const { offsetX, chipW } = chipMetrics(ctx, text, fmt, w)
     const chipX = x + offsetX
     const chipY = y + (h - chipH) / 2
-    // Pill — known options get a stable pastel colour; an out-of-list value
-    // stays neutral grey (it isn't one of the choices).
+    // Pill — a known option gets its custom colour (or the auto palette slot);
+    // an out-of-list value stays neutral grey (it isn't one of the choices).
     _roundRectPath(chipX, chipY, chipW, chipH, chipH / 2)
-    ctx.fillStyle = valid ? chipColor(text) : COLORS.chipFill
+    ctx.fillStyle = valid ? chipColor(text, rule) : COLORS.chipFill
     ctx.fill()
     // Value — ellipsised to the room left of the caret so a long option
     // doesn't get hard-clipped mid-glyph.
@@ -380,15 +428,8 @@ export function createCellPainter(ctx, { cw, rh, colX, rowY }) {
     ctx.textBaseline = 'middle'
     const textRoom = chipW - CHIP.innerPad - CHIP.caretW
     ctx.fillText(_ellipsize(text, textRoom), chipX + CHIP.innerPad, chipY + chipH / 2)
-    // Caret
-    const mx = chipX + chipW - CHIP.caretW / 2, my = chipY + chipH / 2
-    ctx.fillStyle = COLORS.chipCaret
-    ctx.beginPath()
-    ctx.moveTo(mx - 3, my - 1.5)
-    ctx.lineTo(mx + 3, my - 1.5)
-    ctx.lineTo(mx, my + 2.5)
-    ctx.closePath()
-    ctx.fill()
+    // Caret — same chevron as the empty-cell affordance, for consistency.
+    _drawChevron(chipX + chipW - CHIP.caretW / 2, chipY + chipH / 2)
     ctx.restore()
     if (!valid) _drawInvalidTriangle(x, y)
   }
@@ -500,11 +541,12 @@ export function createCellPainter(ctx, { cw, rh, colX, rowY }) {
 
   // ── Wrapped text ─────────────────────────────────────────────────────────────
 
-  function _drawWrappedText(val, x, y, w, h, fmt, rightInset = 0) {
+  function _drawWrappedText(val, x, y, w, h, fmt, rightInset = 0, softWrap = true) {
     const innerW = w - rightInset
-    const lines = _wrapLines(val, innerW - 8)
+    const lines = softWrap ? wrapLines(val, innerW - 8, t => ctx.measureText(t).width)
+                           : String(val).split('\n')
     if (!lines.length) return
-    const lineH  = 16
+    const lineH  = lineHeightFor(fmt)
     const totalH = lines.length * lineH
     const startY = fmt.valign === 'top'    ? y + lineH / 2 + 2
                  : fmt.valign === 'bottom' ? y + h - totalH + lineH / 2 - 2
@@ -517,27 +559,6 @@ export function createCellPainter(ctx, { cw, rh, colX, rowY }) {
     ctx.beginPath(); ctx.rect(x + 1, y + 1, Math.max(0, w - 2 - rightInset), h - 2); ctx.clip()
     for (let i = 0; i < lines.length; i++) ctx.fillText(lines[i], textX, startY + i * lineH)
     ctx.restore()
-  }
-
-  function _wrapLines(val, maxW) {
-    const tokens = val.split(/(\s+)/)
-    const lines  = []
-    let line = ''
-    for (const tok of tokens) {
-      if (!tok) continue
-      if (ctx.measureText(line + tok).width <= maxW) { line += tok; continue }
-      if (/^\s+$/.test(tok)) {
-        if (line.trim()) lines.push(line.trimEnd())
-        line = ''; continue
-      }
-      for (const ch of tok) {
-        if (line && ctx.measureText(line + ch).width > maxW) {
-          lines.push(line.trimEnd()); line = ch
-        } else { line += ch }
-      }
-    }
-    if (line.trim()) lines.push(line.trimEnd())
-    return lines
   }
 
   // ── Cell borders ─────────────────────────────────────────────────────────────

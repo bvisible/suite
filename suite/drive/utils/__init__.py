@@ -1,13 +1,12 @@
 from __future__ import annotations
 import os
-import inspect
 from datetime import datetime
-from functools import wraps
 from pathlib import Path
 
 import frappe
-from pypika import Field, functions as fn
 import mimemapper
+from pypika import Field
+from pypika import functions as fn
 
 DriveFile = frappe.qb.DocType("File")
 
@@ -20,20 +19,43 @@ WRITER_CONTENT_DOCTYPE = "Writer Document"
 PRESENTATION_CONTENT_DOCTYPE = "Presentation"
 
 # `kind` — how Drive may treat a listing row (NOT the MIME `file_kinds` filter):
-#   native   — Drive-managed team file. Rename / move / share allowed.
-#   readonly — Shown in Drive but not managed here. Sub-cases use existing fields:
-#                no `team` → site file ("Open in Desk")
+#   native   — Drive-managed file. Rename / move / share allowed.
+#   readonly — Shown in Drive but not managed here:
 #                content_doctype == "File" → attachment ref ("Go to original")
 #   virtual  — Fabricated folder for the attachments browser (not a DB row).
 KIND_NATIVE = "native"
 KIND_READONLY = "readonly"
 KIND_VIRTUAL = "virtual"
 
+# Drive Permission.user sentinels, from most to least specific:
+#   <email>  — that user
+#   $GENERAL — any logged-in user
+#   ""       — anyone with the link, including guests
+GENERAL_USER = "$GENERAL"
+GROUP_PREFIX = "$GROUP:"
 
-def is_site_file(entity):
-    """Site files live outside any Drive team; they defer to framework storage & perms."""
-    team = entity.get("team") if isinstance(entity, dict) else getattr(entity, "team", None)
-    return not team
+# Drive's two roots (folder-less Files, pinned by name), and the well-known
+# folder inside `Drive`. There is no `Site` folder: `Drive` itself is the shared
+# tree the "Site" listing shows.
+ROOT_FOLDER = "Drive"
+USERS_FOLDER = "Users"
+PREVIOUS_TEAMS_FOLDER = "Previous Teams"
+# What a user's own folder is called back to them.
+HOME_LABEL = "Home"
+
+# Framework-created folders (the site root and its attachments folder);
+# uploads still sitting in them haven't been adopted into a user folder yet.
+FRAMEWORK_FOLDERS = ("Home", "Home/Attachments")
+
+# App-created buckets under the framework root, outside Drive's own tree
+# (`ROOT_FOLDER` / `USERS_FOLDER`). Like the framework folders they are shared
+# scaffolding rather than anyone's private space, so any user may add to them -
+# but unlike those, what lands here stays put instead of being adopted into a
+# user folder. Mail's compose attachments go to `Home/Frappe Mail`
+# (`suite/mail/install.py`).
+APP_FOLDERS = ("Home/Frappe Mail",)
+
+PERMISSION_TYPES = ["read", "comment", "share", "upload", "write"]
 
 
 def entity_kind(row):
@@ -41,9 +63,11 @@ def entity_kind(row):
 
     `virtual` nodes are built in `list.get_attachments` and never reach here.
     """
-    if is_site_file(row) or row.get("content_doctype") == ATTACHMENT_CONTENT_DOCTYPE:
+    if row.get("content_doctype") == ATTACHMENT_CONTENT_DOCTYPE:
         return KIND_READONLY
     return KIND_NATIVE
+
+
 MIME_LIST_MAP = {
     "Image": [
         "image/png",
@@ -73,6 +97,7 @@ MIME_LIST_MAP = {
         "frappe_doc",
     ],
     "Spreadsheet": [
+        "frappe/sheet",
         "application/vnd.ms-excel",
         "link/googlesheets",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -132,7 +157,6 @@ FILE_FIELDS = [
     "is_folder",
     "content_doctype",
     "content_docname",
-    "team",
     "creation",
     fn.Coalesce(Field("file_modified"), DriveFile.modified).as_("modified"),
     "owner",
@@ -140,9 +164,13 @@ FILE_FIELDS = [
     "attached_to_name",
 ]
 
-# //// Neoffice (v15): frappe.get_all on Frappe v15 rejects pypika expressions
-# inside `fields` (v16 accepts them) — string-only variant for get_all call
-# sites; callers must coalesce file_modified/modified in Python. ////
+#//// Neoffice — string-only variant of FILE_FIELDS, for `frappe.get_all` call sites.
+#//// FILE_FIELDS carries a pypika expression (the fn.Coalesce above). Frappe v16's
+#//// get_all accepts those inside `fields`; v15's does not — it raises rather than
+#//// compiling them, which took out the SPA's file view. Query-builder call sites
+#//// (`query.select(*FILE_FIELDS)`) are fine and must keep using FILE_FIELDS.
+#//// Callers of this variant coalesce file_modified/modified in Python themselves.
+#//// Drop this the day the fleet moves to Frappe v16.
 FILE_FIELDS_SQL = [f for f in FILE_FIELDS if isinstance(f, str)] + ["file_modified", "modified"]
 
 
@@ -150,37 +178,174 @@ def hide_storage_key(row):
     """Blank file_url unless the client needs it as a real URL.
 
     For managed files it's the raw storage key, which leaks the owner's path;
-    only Link/Presentation/site files use it client-side.
+    only Link/Presentation files use it client-side.
     """
-    if row.get("file_type") not in ("Link", "Presentation") and not is_site_file(row):
+    if row.get("file_type") not in ("Link", "Presentation"):
         row["file_url"] = None
     return row
 
 
-def get_home_folder(team):
-    team_filter = DriveFile.team.isnull() if not team else (DriveFile.team == team)
-    ls = (
-        frappe.qb.from_(DriveFile)
-        .where(team_filter & DriveFile.folder.isnull())
-        .select(DriveFile.name, DriveFile.file_url)
-        .run(as_dict=True)
+def get_root_folder():
+    """Shared Drive content, the tree the "Site" listing shows. Carries $GENERAL
+    read; `Users` beside it stays private."""
+    root = _pinned_root(ROOT_FOLDER)
+    _ensure_general_read(root.name)
+    return root
+
+
+def _ensure_general_read(entity):
+    if frappe.db.exists("Drive Permission", {"entity": entity, "user": GENERAL_USER}):
+        return
+    frappe.get_doc({"doctype": "Drive Permission", "entity": entity, "user": GENERAL_USER, "read": 1}).insert(
+        ignore_permissions=True
     )
-    if not ls:
-        error_msg = f"This team doesn't exist."
-        team_names = frappe.get_all(
-            "Drive Team Member",
-            pluck="parent",
-            filters=[
-                ["parenttype", "=", "Drive Team"],
-                ["user", "=", frappe.session.user],
-            ],
-        )
-        if team_names:
-            error_msg += f"<br /><br />Or maybe you want <a class='text-black' href='/drive/t/{team_names[0]}'>{frappe.db.get_value('Drive Team', team_names[0], 'title')}</a>?"
-        if not team_names:
-            error_msg += f"<br /><br />Please <a class='text-black' href='/drive/setup'>setup</a> an account."
-        frappe.throw(error_msg)
-    return ls[0]
+
+
+def get_users_folder():
+    """Private user folders. A root beside `Drive`, not inside it, so nothing granted
+    on the shared tree reaches in. Carries no grant."""
+    return _pinned_root(USERS_FOLDER)
+
+
+def _pinned_root(file_name):
+    """Folder-less `File`s, siblings of frappe's `Home` rather than children, so no
+    framework node sits on a Drive permission path.
+
+    Pinned by name, never derived: a site upgraded from the old app has one
+    folder-less File per team, so any "find the root" query picks a team folder.
+    """
+    root = frappe.db.get_value("File", file_name, ["name", "file_url"], as_dict=1)
+    if not root:
+        root = _create_root_folder(file_name)
+    return root if root.file_url else _init_root_storage(root, file_name)
+
+
+def _create_root_folder(file_name):
+    root = frappe.get_doc(
+        {
+            "doctype": "File",
+            "file_name": file_name,
+            "is_folder": 1,
+            "is_private": 1,
+            "file_type": "Folder",
+        }
+    )
+    # `folder` stays unset: `set_folder_name` would reparent under `Home`, but it
+    # only runs on the framework's before_insert path, which file_created skips.
+    root._name = file_name
+    root.flags.file_created = True
+    root.insert(ignore_permissions=True)
+    # creation is triggered by whoever touches Drive first; a pinned root owned
+    # by that visitor would hand them the owner's all-access bypass forever
+    root.db_set("owner", "Administrator", update_modified=False)
+    return frappe._dict(name=root.name, file_url=root.file_url)
+
+
+def _init_root_storage(root, file_name):
+    """A root's prefix comes from settings, not a parent. Two logical roots, one
+    storage prefix — `Users` is just a directory beside the shared tree."""
+    from suite.drive.utils.files import get_s3_url
+
+    settings = frappe.get_single("Drive Disk Settings")
+    prefix = settings.root_folder or ""
+    if file_name != ROOT_FOLDER:
+        prefix = f"{prefix}/{file_name}" if prefix else file_name
+
+    disk_path = Path(frappe.get_site_path("private/files")) / prefix
+    disk_path.mkdir(exist_ok=True, parents=True)
+    if file_name == ROOT_FOLDER:
+        # scaffolding is shared, and keyed off the Drive root everywhere
+        (disk_path / ".uploads").mkdir(exist_ok=True)
+        (disk_path / settings.thumbnail_prefix).mkdir(exist_ok=True)
+
+    root.file_url = get_s3_url(prefix) if settings.enabled else "/private/files/" + prefix
+    frappe.db.set_value("File", root.name, "file_url", root.file_url, update_modified=False)
+    return root
+
+
+def get_previous_teams_folder():
+    """Landing area for migrated teams, inside `Drive`. Teams were private, so this
+    denies the root's inherited $GENERAL read; each team below re-grants to its own
+    members from a nearer node. They reach it via "Shared with me"."""
+    root = get_root_folder()
+    existing = frappe.db.get_value(
+        "File",
+        {"folder": root.name, "file_name": PREVIOUS_TEAMS_FOLDER, "is_folder": 1},
+        ["name", "file_url"],
+        as_dict=1,
+    )
+    if existing:
+        _deny_general_read(existing.name)
+        return existing
+
+    from suite.drive.utils.files import FileManager
+
+    manager = FileManager()
+    folder = create_drive_file(PREVIOUS_TEAMS_FOLDER, root.name, "Folder", lambda f: manager.create_folder(f))
+    _deny_general_read(folder.name)
+    return frappe._dict(name=folder.name, file_url=folder.file_url)
+
+
+def drop_previous_teams_if_empty():
+    """The container only earns its place once a team lands in it. Empty - nothing
+    migrated, or everything was moved out since - it's a dead end in the listing."""
+    container = frappe.db.get_value(
+        "File", {"folder": ROOT_FOLDER, "file_name": PREVIOUS_TEAMS_FOLDER, "is_folder": 1}, "name"
+    )
+    if not container:
+        return
+    if frappe.db.exists("File", {"folder": container, "status": ("in", [STATUS_ACTIVE, STATUS_TRASHED])}):
+        return
+    # cascades to the removed children and to the $GENERAL deny row
+    frappe.delete_doc("File", container, ignore_permissions=True, force=True)
+
+
+def _deny_general_read(entity):
+    if frappe.db.exists("Drive Permission", {"entity": entity, "user": GENERAL_USER}):
+        return
+    frappe.get_doc(
+        {"doctype": "Drive Permission", "entity": entity, "user": GENERAL_USER, "deny": 1, "read": 1}
+    ).insert(ignore_permissions=True)
+
+
+def get_user_folder(user=None):
+    """The user's private folder under the root; created on first use."""
+    user = user or frappe.session.user
+    name = frappe.db.get_value("Drive Settings", user, "user_folder")
+    if name:
+        folder = frappe.db.get_value("File", name, ["name", "file_url"], as_dict=1)
+        if folder:
+            return folder
+
+    if not frappe.db.exists("Drive Settings", user):
+        try:
+            frappe.get_doc({"doctype": "Drive Settings", "user": user}).insert(ignore_permissions=True)
+        except frappe.DuplicateEntryError:
+            pass
+
+    name = frappe.db.get_value("Drive Settings", user, "user_folder", for_update=True)
+    if name:
+        folder = frappe.db.get_value("File", name, ["name", "file_url"], as_dict=1)
+        if folder:
+            return folder
+
+    from suite.drive.utils.files import FileManager
+
+    manager = FileManager()
+    root = get_users_folder()
+    folder = create_drive_file(
+        user,
+        root.name,
+        "Folder",
+        lambda f: manager.create_folder(f),
+        owner=user,
+    )
+    grant_owner_access(folder.name, user)
+
+    if not frappe.db.exists("Drive Settings", user):
+        frappe.get_doc({"doctype": "Drive Settings", "user": user}).insert(ignore_permissions=True)
+    frappe.db.set_value("Drive Settings", user, "user_folder", folder.name, update_modified=False)
+    return frappe._dict(name=folder.name, file_url=folder.file_url)
 
 
 def get_ancestors_of(entity_name):
@@ -213,37 +378,89 @@ def get_ancestors_of(entity_name):
     return flattened_list
 
 
+def grant_owner_access(entity, user):
+    """Ownership of a folder is stored as a row like any other grant, so it
+    inherits down the tree and a deny below can still narrow it."""
+    if frappe.db.exists("Drive Permission", {"entity": entity, "user": user}):
+        return
+    frappe.get_doc(
+        {
+            "doctype": "Drive Permission",
+            "entity": entity,
+            "user": user,
+            **dict.fromkeys(PERMISSION_TYPES, 1),
+        }
+    ).insert(ignore_permissions=True)
+
+
+def get_principals(user=None):
+    """Everything a `Drive Permission.user` row can name the caller by, most
+    specific first: themselves, their user groups, any logged-in user, anyone
+    with the link. Guests are only ever the last."""
+    user = user or frappe.session.user
+    if user == "Guest":
+        return [""]
+
+    groups = frappe.cache().hget("drive_user_groups", user, generator=lambda: _user_groups(user))
+    return [user, *(GROUP_PREFIX + g for g in groups), GENERAL_USER, ""]
+
+
+def _user_groups(user):
+    return frappe.get_all(
+        "User Group Member",
+        filters={"parenttype": "User Group", "user": user},
+        pluck="parent",
+        distinct=True,
+    )
+
+
+def clear_user_group_cache(doc=None, method=None):
+    frappe.cache().delete_key("drive_user_groups")
+
+
+def principal_list(user=None):
+    return ", ".join(frappe.db.escape(p) for p in get_principals(user))
+
+
 def dribble_access(path):
-    default_access = {
-        "read": 0,
-        "comment": 0,
-        "share": 0,
-        "upload": 0,
-        "write": 0,
-        "shared_team": None,
-    }
-    result = {}
-    for k in path[::-1]:
-        for t in default_access.keys():
-            if k[t] and not result.get(t):
-                result[t] = k[t]
-    return {**default_access, **result}
+    """Resolve access at the leaf of `path`: per permission type the nearest row
+    decides (grant → 1, deny → 0). Nothing is granted by default. `decided`
+    lists the types an explicit row settled."""
+    decided = {}
+    for node in path[::-1]:
+        for row in node.get("perms", ()):
+            for t in PERMISSION_TYPES:
+                if row[t] and t not in decided:
+                    decided[t] = 0 if row["deny"] else 1
+    access = dict.fromkeys(PERMISSION_TYPES, 0)
+    access.update(decided)
+    access["decided"] = list(decided)
+    return access
 
 
-def generate_upward_path(entity_name, user=None, team=0):
+def generate_upward_path(entity_name, user=None):
     """
     Given an ID traverse upwards till the root node
     Stops when parent_drive_file IS NULL
     """
     if user is None:
         user = frappe.session.user
-    user = frappe.db.escape(user if user != "Guest" else "")
+    principals = get_principals(user)
+    user_lit = frappe.db.escape(user)
+    perm_filter = "p.user IN ({})".format(", ".join(frappe.db.escape(p) for p in principals))
 
-    filter_: str
-    if team:
-        filter_ = "p.team = 1"
-    else:
-        filter_ = f"p.user = {user}"
+    # Nearest folder wins; within a folder the most specific principal wins, and
+    # among equally specific group rows a deny beats a grant.
+    groups = [p for p in principals if p.startswith(GROUP_PREFIX)]
+    group_when = ""
+    if groups:
+        group_lit = ", ".join(frappe.db.escape(g) for g in groups)
+        group_when = f"WHEN p.user IN ({group_lit}) THEN 1"
+    tier = f"""CASE
+			WHEN p.user = {user_lit} THEN 0
+			{group_when}
+			WHEN p.user = '{GENERAL_USER}' THEN 2
+			ELSE 3 END"""
 
     result = frappe.db.sql(
         f"""WITH RECURSIVE
@@ -251,7 +468,6 @@ def generate_upward_path(entity_name, user=None, team=0):
                 SELECT
                     `tabFile`.file_name,
                     `tabFile`.name,
-                    `tabFile`.team,
                     `tabFile`.folder,
                     `tabFile`.owner,
                     0 AS level
@@ -263,7 +479,6 @@ def generate_upward_path(entity_name, user=None, team=0):
                 SELECT
                     t.file_name,
                     t.name,
-                    t.team,
                     t.folder,
                     t.owner,
                     gp.level + 1
@@ -276,45 +491,63 @@ def generate_upward_path(entity_name, user=None, team=0):
             gp.name,
             gp.owner,
             gp.folder,
-            gp.team,
+            p.user AS perm_user,
+            p.deny,
             p.read,
             p.upload,
-            p.user AS shared_team,
             p.write,
             p.comment,
             p.share
         FROM
             generated_path  as gp
         LEFT JOIN `tabDrive Permission` as p
-        ON gp.name = p.entity AND {filter_}
-        ORDER BY gp.level DESC;
+        ON gp.name = p.entity AND {perm_filter}
+        ORDER BY gp.level DESC, {tier}, p.deny DESC;
     """,
         values={"entity_name": entity_name},
         as_dict=1,
     )
-    for i, p in enumerate(result):
-        result[i] = {**p, **dribble_access(result[: i + 1])}
-    return result
+
+    nodes = []
+    for row in result:
+        if not nodes or nodes[-1]["name"] != row["name"]:
+            nodes.append(
+                {
+                    "file_name": row["file_name"],
+                    "name": row["name"],
+                    "owner": row["owner"],
+                    "folder": row["folder"],
+                    "perms": [],
+                }
+            )
+        if row["perm_user"] is not None:
+            nodes[-1]["perms"].append(row)
+
+    return [{**node, **dribble_access(nodes[: i + 1])} for i, node in enumerate(nodes)]
 
 
 def get_valid_breadcrumbs(entity_name, user_access):
     """
     Determine user access and generate upward path (breadcrumbs).
     """
-    # If team/admin of this entity, then entire path
-    paths = [generate_upward_path(entity_name)]
-    if user_access.get("type") in ["admin", "user"]:
-        return paths[0]
-    paths.append(generate_upward_path(entity_name, team=1))
-    paths.append(generate_upward_path(entity_name, user="Guest"))
+    # Admins see the entire path; others get the contiguous readable suffix.
+    path = generate_upward_path(entity_name)
+    if user_access.get("type") not in ["admin", "user"]:
+        lose_access = next((i for i, k in enumerate(path[::-1]) if not k["read"]), 0)
+        path = path[-lose_access:]
+    return _name_own_drive(path)
 
-    # Otherwise, slice where they lose read access.
-    try:
-        lose_access = max(next((i for i, k in enumerate(path[::-1]) if not k["read"]), 0) for path in paths if path)
-        return paths[0][-lose_access:]
-    except:
-        frappe.log_error("Breadcrumbs errored out", (entity_name, user_access, frappe.session.user, paths))
-        return paths[0] if len(paths) else []
+
+def _name_own_drive(path):
+    """Your own files hang off `Users/<your id>`, which reads back to you as a
+    container you have never seen and your own address as a folder. Show the one
+    crumb you know it by instead."""
+    if len(path) < 2 or path[0]["name"] != USERS_FOLDER:
+        return path
+    if path[1]["file_name"] != frappe.session.user:
+        # somebody else's drive: leave it spelled out
+        return path
+    return [{**path[1], "file_name": HOME_LABEL}, *path[2:]]
 
 
 def get_file_type(mime_type):
@@ -335,26 +568,53 @@ def update_file_size(entity, delta):
     doc.save(ignore_permissions=True)
 
 
-def if_folder_exists(team, folder_name, parent):
+def apply_file_size_delta(folder, delta):
+    """Roll a size delta up the ancestor chain in one atomic UPDATE.
+
+    update_file_size's per-ancestor read-modify-write save silently loses
+    concurrent deltas (the TimestampMismatchError its api/files.py call site
+    swallows with a TODO); an in-place SQL delta serializes on the row locks
+    instead, so simultaneous uploads all land. Bumps modified the way the
+    save-based walk did — a folder's WebDAV getlastmodified reads it."""
+    names = []
+    cursor = folder
+    while cursor and cursor not in names:  # `not in` guards a corrupt cycle
+        names.append(cursor)
+        cursor = frappe.db.get_value("File", cursor, "folder")
+    if not names:
+        return
+    file_table = frappe.qb.DocType("File")
+    (
+        frappe.qb.update(file_table)
+        .set(file_table.file_size, file_table.file_size + delta)
+        .set(file_table.modified, frappe.utils.now())
+        .where(file_table.name.isin(names))
+        .run()
+    )
+
+
+def if_folder_exists(folder_name, parent):
     values = {
         "file_name": folder_name,
         "is_folder": 1,
+        "is_private": 1,
         "status": STATUS_ACTIVE,
-        "team": team,
         "folder": parent,
     }
-    existing_folder = frappe.db.get_value("File", values, ["name", "file_name", "is_folder", "status"], as_dict=1)
+    existing_folder = frappe.db.get_value(
+        "File", values, ["name", "file_name", "is_folder", "status"], as_dict=1
+    )
 
     if existing_folder:
         return existing_folder.name
     else:
         d = frappe.get_doc({"doctype": "File", **values, "file_modified": frappe.utils.now_datetime()})
+        d.flags.file_created = True
         d.insert()
         return d.name
 
 
 def create_drive_file(
-    team,
     file_name,
     parent,
     file_type,
@@ -369,7 +629,6 @@ def create_drive_file(
     values = {
         "doctype": "File",
         "is_private": 1,
-        "team": team,
         "file_name": file_name,
         "folder": parent,
         "file_size": file_size,
@@ -391,76 +650,6 @@ def create_drive_file(
         drive_file.db_set("owner", owner, update_modified=False)
     return drive_file
 
-
-@frappe.whitelist()
-def get_default_team(with_file: bool = False):
-    # //// Neoffice: lazy-provision the personal team. Users that existed
-    # before suite was installed never went through the Setup page: the
-    # NeoCockpit replaced upstream's Drive Sidebar, which carried the only
-    # "no personal team -> redirect to /drive/setup" guard. Those users hit
-    # every @default_team endpoint with team=None and get a 500 ("You must
-    # provide a folder to query"). Guarantee the team on first touch instead
-    # (same principle as ensure_personal_mail_account for Calendar).
-    # Concurrent first-touch requests can race just like upstream's Setup
-    # page; the deterministic order keeps the pick stable in that case. ////
-    user = frappe.session.user
-    default_team = frappe.get_value(
-        "Drive Team", {"owner": user, "personal": 1}, "name", order_by="creation asc"
-    )
-    if not default_team and user and user != "Guest":
-        from suite.drive.api.product import create_team
-
-        default_team = create_team(user=user, personal=1)
-        # Most @default_team endpoints are GETs and Frappe rolls back GET
-        # transactions — without an explicit commit the team would be
-        # recreated (and discarded) on every request, never persisted.
-        frappe.db.commit()
-    if with_file:
-        file = get_home_folder(default_team)
-        return {"team": default_team, "file": file.name}
-    return default_team
-
-
-def default_team(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        # Handle weird frappe thing
-        if "cmd" in kwargs:
-            kwargs.pop("cmd")
-
-        sig = inspect.signature(func)
-        bound_args = sig.bind_partial(*args, **kwargs)
-        bound_args.apply_defaults()
-        if (
-            "team" not in bound_args.arguments
-            or not bound_args.arguments["team"]
-            or bound_args.arguments["team"] == "home"
-        ):
-            kwargs["team"] = get_default_team()
-        return func(*args, **kwargs)
-
-    return wrapper
-
-
-# Copied over to avoid circular import
-def get_teams(user=None, details=None, exclude_personal=True):
-    """
-    Returns all the teams that the current user is part of.
-    """
-    if not user:
-        user = frappe.session.user
-
-    teams = frappe.get_all(
-        "Drive Team Member",
-        pluck="parent",
-        filters=[["parenttype", "=", "Drive Team"], ["user", "=", user]],
-    )
-    if details:
-        teams_info = {team: frappe.get_doc("Drive Team", team) for team in teams}
-        if exclude_personal:
-            return {t: team for t, team in teams_info.items() if not team.personal}
-        return teams_info
-    return teams
 
 def get_new_file_name(file_name: str, parent_name: str, type: str = False, entity: str | None = None):
     entity_title, entity_ext = os.path.splitext(file_name)
@@ -509,14 +698,13 @@ def map_ff_to_drive_type(file):
         return "Unknown"
 
 
-def get_upload_path(team_path, file_name):
-    uploads_path = Path(frappe.get_site_path(team_path), ".uploads")
+def get_upload_path(base_path, file_name):
+    uploads_path = Path(frappe.get_site_path(base_path), ".uploads")
     if not os.path.exists(uploads_path):
         uploads_path.mkdir()
     return uploads_path / file_name
 
 
-@default_team
 def create_file(
     title="Untitled",
     parent=None,
@@ -525,16 +713,12 @@ def create_file(
     file_type=None,
     content_doctype=None,
     content_docname=None,
-    team=None,
 ):
     """Convenience wrapper for external apps (e.g. Slides, Writer) to create a Drive file."""
     if not parent:
-        parent = get_home_folder(team).name
-    else:
-        team = frappe.db.get_value("File", parent, "team")
+        parent = get_user_folder().name
 
     return create_drive_file(
-        team,
         title,
         parent,
         file_type or "Unknown",

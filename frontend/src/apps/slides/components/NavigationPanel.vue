@@ -2,52 +2,67 @@
 	<!-- Slide Navigation Panel -->
 	<div
 		:class="[panelClasses, attrs.class]"
-		@mouseenter="handleHoverChange"
-		@mouseleave="handleHoverChange"
 		@wheel="handleScrollBarWheelEvent"
 		@click.stop
 	>
 		<div
-			ref="scrollableArea"
-			class="h-svh overflow-y-auto p-4 pe-3 custom-scrollbar"
-			:class="{ 'pb-14': !inReadonlyMode }"
-			:style="scrollbarStyles"
+			v-if="slidesLength"
+			class="flex items-center justify-between px-4 pt-3"
 		>
-			<div :style="virtualContainerStyles">
-				<div
-					v-for="virtualRow in virtualRows"
-					:key="virtualRow.key"
-					:class="getRowClasses(orderedSlides[virtualRow.index])"
-					:style="getRowStyles(virtualRow)"
-					@click="handleSlideClick(orderedSlides[virtualRow.index])"
-					@mousedown="slideSort.handleSortStart($event, virtualRow.index)"
-				>
-					<ThumbnailContainer
-						:slide="orderedSlides[virtualRow.index]"
-						:isActive="isSlideActive(orderedSlides[virtualRow.index])"
-					/>
+			<span :class="labelClasses">Slide</span>
+			<span :class="labelClasses">{{ (slideIndex ?? 0) + 1 }} of {{ slidesLength }}</span>
+		</div>
+		<div
+			ref="scrollableArea"
+			class="faded-scroll [--fade-length:6px] min-h-0 flex-1 overflow-y-auto p-4 pt-3 no-scrollbar"
+		>
+			<component :is="menuWrapper" v-bind="menuWrapperProps">
+				<div :style="virtualContainerStyles">
+					<div
+						v-for="virtualRow in virtualRows"
+						:key="virtualRow.key"
+						:class="getRowClasses(orderedSlides[virtualRow.index])"
+						:style="getRowStyles(virtualRow)"
+						@click="handleSlideClick(orderedSlides[virtualRow.index])"
+						@mousedown="slideSort.handleSortStart($event, virtualRow.index)"
+						@contextmenu="handleSlideContextMenu(virtualRow.index)"
+					>
+						<ThumbnailContainer
+							:slide="orderedSlides[virtualRow.index]"
+							:isActive="isSlideActive(orderedSlides[virtualRow.index])"
+							:scale="thumbnailScale"
+							:height="thumbnailHeight"
+						/>
+						<div
+							v-if="isSlideActive(orderedSlides[virtualRow.index])"
+							class="pointer-events-none absolute -left-4 top-0 z-10 w-1 rounded-r-6 bg-surface-gray-8 dark:bg-surface-gray-5"
+							:style="{ height: `${thumbnailHeight}px` }"
+						/>
+					</div>
 				</div>
-			</div>
+			</component>
 
-			<!-- add slide option -->
 			<div
-				v-if="!inReadonlyMode"
+				v-if="!inReadonlyMode && presentationDoc"
 				:class="insertButtonClasses"
-				@click="emit('openLayoutDialog')"
+				@click="openLayoutDialog(slidesLength - 1)"
 			>
-				<LucidePlus class="size-3.5" />
+				<LucidePlus class="size-4 stroke-[1.5]" />
+				<span class="font-text text-base">Add Slide</span>
 			</div>
 		</div>
 	</div>
 
 	<!-- Slide Navigator Toggle -->
 	<div v-if="!isNavigationPanelOpen" :class="toggleButtonClasses" @click="toggleNavigationPanel">
-		<LucideChevronRight class="size-3.5 text-gray-500" />
+		<LucideChevronRight class="size-4 stroke-[1.5]" />
 	</div>
 </template>
 
 <script setup>
 import { ref, computed, watch, useTemplateRef, useAttrs, inject, onActivated, nextTick } from 'vue'
+
+import { ContextMenu } from 'frappe-ui'
 
 import ThumbnailContainer from '@/apps/slides/components/ThumbnailContainer.vue'
 
@@ -59,18 +74,42 @@ import { slides, slideIndex, focusedSlide } from '@/apps/slides/stores/slide'
 import { commandHistory } from '@/apps/slides/stores/historyMeta'
 import { reorderSlidesCommand } from '@/apps/slides/stores/commands'
 import { resetFocus } from '@/apps/slides/stores/element'
-import { slidesLength } from '@/apps/slides/stores/presentation'
+import { slidesLength, presentationDoc } from '@/apps/slides/stores/presentation'
 import { handleScrollBarWheelEvent } from '@/apps/slides/utils/helpers'
+import { labelClasses } from '@/apps/slides/utils/constants'
+import { buildSlideContextOptions } from '@/apps/slides/utils/slideMenu'
 
 const attrs = useAttrs()
 
 const inReadonlyMode = inject('inReadonlyMode', ref(false))
 
-const emit = defineEmits(['changeSlide', 'openLayoutDialog'])
+const emit = defineEmits(['changeSlide'])
 
-const ROW_HEIGHT = 90
+const openLayoutDialog = inject('openLayoutDialog', () => {})
+
+const activeOptions = ref([])
+
+const menuWrapper = computed(() => (inReadonlyMode.value ? 'div' : ContextMenu))
+const menuWrapperProps = computed(() =>
+	inReadonlyMode.value ? {} : { options: activeOptions.value },
+)
+
+const handleSlideContextMenu = (index) => {
+	if (inReadonlyMode.value) return
+	activeOptions.value = buildSlideContextOptions({ index, openLayoutDialog })
+}
+
+const SLIDE_WIDTH = 960
+const SLIDE_ASPECT = 540 / 960
 const ROW_GAP = 8
-const ROW_SIZE = ROW_HEIGHT + ROW_GAP * 2
+
+// keep in sync with the panel's w-56 width and its p-4 horizontal padding
+const PANEL_WIDTH = 224
+const PANEL_PADDING_X = 16
+const THUMBNAIL_WIDTH = PANEL_WIDTH - PANEL_PADDING_X * 2
+const thumbnailScale = THUMBNAIL_WIDTH / SLIDE_WIDTH
+const thumbnailHeight = THUMBNAIL_WIDTH * SLIDE_ASPECT
+const rowSize = thumbnailHeight + ROW_GAP * 2
 
 const scrollableArea = useTemplateRef('scrollableArea')
 
@@ -83,20 +122,21 @@ const handleSortEnd = (sortChange) => {
 	commandHistory.execute(reorderSlidesCommand(sortChange))
 }
 
-const slideSort = useDragSort(scrollableArea, slidesLength, ROW_SIZE, handleSortEnd)
-
-const showCollapseShortcut = ref(false)
+const slideSort = useDragSort(scrollableArea, slidesLength, rowSize, handleSortEnd)
 
 const insertButtonClasses =
-	'flex w-full aspect-video cursor-pointer items-center justify-center rounded border border-dashed border-gray-400 hover:border-blue-400 hover:bg-blue-50'
+	'mb-10 flex aspect-video w-full cursor-pointer items-center justify-center gap-2 rounded-6 bg-surface-gray-2 text-ink-gray-5 hover:bg-surface-gray-3'
 
 const panelClasses = computed(() => {
 	// can't add it from parent attrs.class since attrs is not reactive
-	const positionClass = isNavigationPanelOpen.value ? 'left-0' : '-left-48'
+	const positionClass = isNavigationPanelOpen.value ? 'left-0' : '-left-56'
 	const baseClasses = [
-		'w-48',
+		'w-56',
+		'flex',
+		'flex-col',
 		'border-r',
-		'bg-white',
+		'border-outline-elevation-1',
+		'bg-surface-elevation-1',
 		'transition-all',
 		'duration-300',
 		'ease-in-out',
@@ -105,16 +145,12 @@ const panelClasses = computed(() => {
 })
 
 const toggleButtonClasses = computed(() => {
-	const baseClasses = 'flex cursor-pointer items-center border bg-white'
+	const baseClasses = 'flex cursor-pointer items-center bg-surface-elevation-1'
 	if (isNavigationPanelOpen.value) {
-		return `${baseClasses} fixed -left-0.4 bottom-0 h-10 w-48 justify-between p-4`
+		return `${baseClasses} border border-outline-elevation-1 fixed -left-0.4 bottom-0 h-10 w-48 justify-between p-4`
 	}
-	return `${baseClasses} absolute top-1/2 transform -transform-y-1/2 h-12 w-4 justify-center rounded-r-lg shadow-xl`
+	return `${baseClasses} absolute top-1/2 transform -transform-y-1/2 h-12 w-4 justify-center rounded-r-6 shadow-xl`
 })
-
-const scrollbarStyles = computed(() => ({
-	'--scrollbar-thumb-color': showCollapseShortcut.value ? '#cfcfcf' : 'transparent',
-}))
 
 const orderedSlides = computed(() => {
 	const startIndex = slideSort.itemStartIndex.value
@@ -136,7 +172,7 @@ const rowVirtualizer = useVirtualizer(
 	computed(() => ({
 		count: slides.value.length,
 		getScrollElement: () => scrollableArea.value,
-		estimateSize: () => ROW_SIZE,
+		estimateSize: () => rowSize,
 		overscan: 3,
 	})),
 )
@@ -163,14 +199,6 @@ const handleSlideClick = async (slide) => {
 		return
 	}
 	emit('changeSlide', index)
-}
-
-const handleHoverChange = (e) => {
-	if (e.type === 'mouseenter') {
-		showCollapseShortcut.value = true
-	} else if (e.type === 'mouseleave') {
-		showCollapseShortcut.value = false
-	}
 }
 
 const scrollToVirtualItem = (index, behavior = 'smooth') => {
@@ -236,17 +264,3 @@ onActivated(() => {
 	})
 })
 </script>
-
-<style scoped>
-.virtual-row-wrapper.is-active::before {
-	content: '';
-	position: absolute;
-	left: -1.25rem;
-	top: 0;
-	width: 0.5rem;
-	height: 90px;
-	border-radius: 0 0.25rem 0.25rem 0;
-	background: rgb(59 130 246 / 0.9);
-	pointer-events: none;
-}
-</style>

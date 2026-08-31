@@ -1,16 +1,18 @@
 import { createGeometry } from './geometry.js'
 import { createRenderer } from './renderer.js'
 import { createOverlay }  from './overlay.js'
+import { createScrollbars } from './scrollbars.js'
 import { TOTAL_ROWS, TOTAL_COLS, DEFAULT_TOTAL_ROWS, DEFAULT_TOTAL_COLS, DEFAULT_ROW_H, ROW_HEADER_W, COL_HEADER_H, setTotalRows, setTotalCols } from './constants.js'
 import { cellId, colLabel, parseCellId } from '../utils/cells.js'
-import { AC_FUNS, AC_FUN_KEYS, parseAcToken } from '../utils/formula-ac.js'
-import { isWrapText } from '../utils/text-wrap.js'
-import { CHIP, chipMetrics } from './chip-geometry.js'
+import { AC_FUNS, AC_FUN_KEYS, parseAcToken, parseSignatureContext, describeSignature, shouldSuggestRange, detectAdjacentRange, isNumericText } from '../utils/formula-ac.js'
+import { autoCloseKey } from '../utils/formula-autoclose.js'
+import { isWrapText, getTextWrap, wrapLines, lineHeightFor } from '../utils/text-wrap.js'
+import { chipFont } from './chip-geometry.js'
 import { checkboxRect } from './checkbox-geometry.js'
 
 export { colLabel, cellId, parseCellId } from '../utils/cells.js'
 
-export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getFormat, onFill, onBatchCommit, getMergeInfo, isSlave, getMasterId, getComment, getValidation, getCondFormat, getRightInset, onHyperlinkClick, onDropdownClick, onCheckboxToggle, onPivotDrill, onResizeEnd, getSheetNames, getCurrentSheet, getEditingHomeSheet, getDisplay, getCellIds, lazyValues = false } = {}) {
+export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getFormat, onFill, onBatchCommit, getMergeInfo, isSlave, getMasterId, getComment, getValidation, getCondFormat, getSparkline, getRightInset, onHyperlinkClick, onLinkHover, onDropdownClick, onCheckboxToggle, onPivotDrill, onResizeEnd, onColMove, getSheetNames, getCurrentSheet, getEditingHomeSheet, getDisplay, getCellIds, lazyValues = false, canEdit = () => true, isCellEditable, onBlockedEdit } = {}) {
   const ctx = canvas.getContext('2d')
   const dpr = window.devicePixelRatio || 1
 
@@ -42,10 +44,19 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
   let selEnd = { r: 0, c: 0 }
   let selMode    = 'cell'  // 'cell' | 'col' | 'row'
   let dragging   = false
+  // A plain single-click anywhere in a list-validated cell opens its dropdown.
+  // We record the candidate on mousedown and fire on mouseup, so a click that
+  // turns into a range-drag selects instead of opening, and a double-click
+  // (which edits) is excluded. Set to { hId, rule, r, c, downX, downY, pos }.
+  let _pendingListOpen = null
   let editing    = false
   let resizing   = null  // { col, startX, startW }
   let resizingRow = null  // { row, startY, startH }
   let filling    = null  // { startCell }
+  // Column-header drag-to-reorder. Armed on a header mousedown (pending, moved:
+  // false) and promoted to an active drag once the pointer passes threshold, so
+  // a plain click still selects. { fromCol, count, startX, startY, moved, insertCol }
+  let colDrag    = null
   let _tabAnchorCol = null  // column where the current Tab sequence started
 
   const scroll     = { x: 0, y: 0 }
@@ -72,6 +83,7 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
   const geo      = createGeometry(colW, rowH, scroll, freeze, hiddenRows, hiddenCols, () => _zoom, filterHiddenRows)
   const renderer = createRenderer(ctx, geo)
   const overlay  = createOverlay(canvas.parentElement)
+  const scrollbars = createScrollbars(canvas.parentElement, { getModel: () => _scrollModel(), scrollTo })
   _acSetup()
 
   // ── Render ──────────────────────────────────────────────────────────────────
@@ -110,7 +122,8 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
   }
 
   function render() {
-    renderer.render({ cssW, cssH, getValue, sel, selEnd, selMode, editing, getFormat, freeze, getMergeInfo, isSlave, getComment, getValidation, getCondFormat, getRightInset, getDiffFor: _diffCells ? _getDiffFor : null, marchAnts, marchPhase, pickerRect, zoom: _zoom })
+    renderer.render({ cssW, cssH, getValue, sel, selEnd, selMode, editing, getFormat, freeze, getMergeInfo, isSlave, getComment, getValidation, getCondFormat, getSparkline, getRightInset, getDiffFor: _diffCells ? _getDiffFor : null, marchAnts, marchPhase, pickerRect, colDrag: (colDrag && colDrag.moved) ? colDrag : null, zoom: _zoom })
+    scrollbars.layout()
     for (const cb of _renderListeners) cb()
   }
 
@@ -161,11 +174,14 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
   // ── Selection ────────────────────────────────────────────────────────────────
 
   function getSelRange() {
-    return {
-      r0: Math.min(sel.r, selEnd.r), c0: Math.min(sel.c, selEnd.c),
-      r1: Math.max(sel.r, selEnd.r), c1: Math.max(sel.c, selEnd.c),
-      mode: selMode,
-    }
+    let r0 = Math.min(sel.r, selEnd.r), r1 = Math.max(sel.r, selEnd.r)
+    let c0 = Math.min(sel.c, selEnd.c), c1 = Math.max(sel.c, selEnd.c)
+    // Whole-row / column / sheet selections keep their anchor on the user's
+    // active cell — selMode, not the stored corners, defines the perpendicular
+    // span. So a Shift+Space row still reports every column for copy/delete/etc.
+    if (selMode === 'row' || selMode === 'all') { c0 = 0; c1 = TOTAL_COLS - 1 }
+    if (selMode === 'col' || selMode === 'all') { r0 = 0; r1 = TOTAL_ROWS - 1 }
+    return { r0, c0, r1, c1, mode: selMode }
   }
 
   // Restore a rectangular selection (used by the contextmenu handler when
@@ -188,13 +204,64 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
   // Max scroll so the last col/row sits flush with the viewport's right/bottom.
   // Beyond this we'd just be showing empty canvas past the sheet — Google
   // Sheets clamps to here, so do we.
-  function _sheetTotalW() { let w = 0; for (let c = 0; c < TOTAL_COLS; c++) w += geo.cw(c); return w }
-  function _sheetTotalH() { let h = 0; for (let r = 0; r < TOTAL_ROWS; r++) h += geo.rh(r); return h }
-  function _maxScrollX()  { return Math.max(0, _sheetTotalW() + ROW_HEADER_W - cssW) }
-  function _maxScrollY()  { return Math.max(0, _sheetTotalH() + COL_HEADER_H - cssH) }
+  // Full sheet extent incl. the header gutter, in logical px. Summing every
+  // column/row is O(cols+rows) — up to tens of thousands of iterations — so we
+  // cache it and recompute only in `_applyCanvasSize`, the single choke point
+  // every structural change (resize, col/row size, expand, freeze, hide) routes
+  // through. Scroll clamping and the scrollbar model then read it for free.
+  let _contentW = ROW_HEADER_W, _contentH = COL_HEADER_H
+  function _recomputeExtent() {
+    let w = 0; for (let c = 0; c < TOTAL_COLS; c++) w += geo.cw(c)
+    let h = 0; for (let r = 0; r < TOTAL_ROWS; r++) h += geo.rh(r)
+    _contentW = w + ROW_HEADER_W
+    _contentH = h + COL_HEADER_H
+  }
+  // Prime the cache at construction so _clampScroll / scrollTo are correct even
+  // before the first resize() → _applyCanvasSize. Otherwise the header-only
+  // seed values above would clamp any pre-resize scroll to ~0.
+  _recomputeExtent()
+  function _maxScrollX()  { return Math.max(0, _contentW - cssW) }
+  function _maxScrollY()  { return Math.max(0, _contentH - cssH) }
   function _clampScroll() {
     scroll.x = Math.max(0, Math.min(scroll.x, _maxScrollX()))
     scroll.y = Math.max(0, Math.min(scroll.y, _maxScrollY()))
+  }
+
+  // Pin the open in-cell editor to `sel`'s current on-screen rect. ANY change
+  // to scroll, zoom, or layout that repaints the grid must call this too, or
+  // the <textarea> is left floating at a stale offset while the highlight moves
+  // under it — the "editor shows somewhere else" bug. Cheap no-op when idle.
+  function _positionEditor() {
+    if (!editing) return
+    const fmt = getFormat ? (getFormat(cellId(sel.r, sel.c)) || {}) : {}
+    overlay.position(geo.colX(sel.c) * _zoom, geo.rowY(sel.r) * _zoom, geo.cw(sel.c) * _zoom, geo.rh(sel.r) * _zoom, fmt, _zoom)
+  }
+
+  // Single entry point for setting the scroll offset (logical units). Used by
+  // the wheel handler and the overlay scrollbars so both keep the in-cell
+  // editor pinned to its cell and repaint. Values are clamped to the sheet.
+  function scrollTo(x, y) {
+    scroll.x = x
+    scroll.y = y
+    _clampScroll()
+    _positionEditor()
+    render()
+  }
+
+  // Scroll model consumed by the overlay scrollbars — everything the thumbs
+  // need to size and position themselves, in logical units (the scrollbars work
+  // in ratios, so zoom cancels out). `content` is the full sheet extent incl.
+  // the header gutter; `view` is the visible logical span.
+  function _scrollModel() {
+    return {
+      x: { pos: scroll.x, max: _maxScrollX(), view: cssW, content: _contentW },
+      y: { pos: scroll.y, max: _maxScrollY(), view: cssH, content: _contentH },
+      // Physical viewport (the grid-wrap's content box). Lets the scrollbars
+      // size their tracks arithmetically instead of reading clientWidth/Height
+      // each render — avoiding a forced reflow in the scroll/selection hot path.
+      viewportW: _viewportW,
+      viewportH: _viewportH,
+    }
   }
 
   function ensureVisible(r, c) {
@@ -285,8 +352,9 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     _acEl = document.createElement('div')
     _acEl.style.cssText = [
       'position:absolute', 'display:none', 'z-index:50',
-      'background:#fff', 'border:1px solid #e2e2e2', 'border-radius:6px',
-      'box-shadow:0 4px 14px rgba(0,0,0,.1)',
+      'background:var(--surface-elevation-2, var(--surface-base, #ffffff))',
+      'border:1px solid var(--outline-gray-2, #e2e2e2)', 'border-radius:6px',
+      'box-shadow:0 4px 14px rgba(0,0,0,.25)',
       'min-width:200px', 'max-height:208px', 'overflow-y:auto',
       'padding:4px 0',
       'font:13px Inter,system-ui,sans-serif',
@@ -294,11 +362,43 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     canvas.parentElement.appendChild(_acEl)
   }
 
-  // _acItems: { name, kind: 'fn' | 'sheet' }[]
+  // Drop a passive range-suggestion highlight (never touches a real pick).
+  function _clearSuggestion() {
+    if (!_sugActive) return
+    _sugActive = false
+    pickerRect = null
+    render()
+  }
+
+  // Build the { kind:'range', name, rect } suggestion for an empty SUM-style
+  // first argument, or null when there's nothing sensible to offer.
+  function _suggestRangeItem(value, cursor) {
+    if (!shouldSuggestRange(value, cursor)) return null
+    const rect = detectAdjacentRange(sel.r, sel.c, (r, c) => isNumericText(getValue(cellId(r, c))))
+    if (!rect) return null
+    const name = _refForRange(rect.r0, rect.c0, rect.r1, rect.c1, _crossSheetName())
+    return { kind: 'range', name, rect }
+  }
+
+  // _acItems: { name, kind: 'fn' | 'sheet' | 'range' }[]
   function _acUpdate(value, cursor) {
     if (!_acEl) return
+    _clearSuggestion()
     const result = parseAcToken(value, cursor)
-    if (!result) { _acHide(); return }
+    if (!result) {
+      // Empty first arg of a SUM-style function — offer the adjacent numeric
+      // run as a one-tap range (Google Sheets behaviour). Otherwise fall back
+      // to passive parameter help. Both leave _acItems empty for key nav only
+      // in the signature case; the range item IS selectable.
+      const sug = _suggestRangeItem(value, cursor)
+      if (sug) {
+        _acItems = [sug]; _acIdx = 0
+        pickerRect = sug.rect; _sugActive = true
+        _acRender(); render()
+        return
+      }
+      _acShowSignature(value, cursor); return
+    }
     const up     = result.tok.toUpperCase()
     const fns    = AC_FUN_KEYS.filter(n => n.startsWith(up)).slice(0, 6)
     const sheets = (getSheetNames?.() || [])
@@ -318,11 +418,13 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     _acEl.innerHTML = ''
     _acItems.forEach((item, i) => {
       const row = document.createElement('div')
-      row.style.cssText = `display:flex;align-items:baseline;gap:10px;padding:6px 12px;cursor:pointer;white-space:nowrap;border-radius:4px;${i === _acIdx ? 'background:#f3f3f3;' : ''}`
+      row.style.cssText = `display:flex;align-items:baseline;gap:10px;padding:6px 12px;cursor:pointer;white-space:nowrap;border-radius:4px;${i === _acIdx ? 'background:var(--surface-gray-2, #f3f3f3);' : ''}`
       const right = item.kind === 'sheet'
-        ? `<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:#0891b2;background:#ecfeff;border-radius:3px;padding:1px 5px;">sheet</span>`
-        : `<span style="font-size:11px;color:#7c7c7c;">${AC_FUNS[item.name]}</span>`
-      row.innerHTML = `<span style="font-weight:600;min-width:80px;color:#171717;">${item.name}</span>${right}`
+        ? `<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-cyan-6, #0891b2);background:var(--surface-cyan-1, #ecfeff);border-radius:3px;padding:1px 5px;">sheet</span>`
+        : item.kind === 'range'
+          ? `<span style="font-size:11px;color:var(--ink-gray-5, #7c7c7c);">Tab to fill range</span>`
+          : `<span style="font-size:11px;color:var(--ink-gray-5, #7c7c7c);">${AC_FUNS[item.name]}</span>`
+      row.innerHTML = `<span style="font-weight:600;min-width:80px;color:var(--ink-gray-9, #171717);">${item.name}</span>${right}`
       row.addEventListener('mousedown', e => { e.preventDefault(); _acCommit(item) })
       row.addEventListener('mouseover', () => { _acIdx = i; _acHighlight() })
       _acEl.appendChild(row)
@@ -343,28 +445,84 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
   function _acHighlight() {
     if (!_acEl) return
     Array.from(_acEl.children).forEach((row, i) => {
-      row.style.background = i === _acIdx ? '#f3f3f3' : ''
+      row.style.background = i === _acIdx ? 'var(--surface-gray-2, #f3f3f3)' : ''
     })
   }
 
   function _acHide() {
     _acItems = []; _acIdx = 0
+    // A live range suggestion owns pickerRect — drop that highlight too, and
+    // repaint so it actually leaves the canvas (the Escape path returns without
+    // its own render()). The range-accept path pre-clears _sugActive so its
+    // inserted ref stays lit.
+    if (_sugActive) { _sugActive = false; pickerRect = null; render() }
     if (_acEl) _acEl.style.display = 'none'
   }
 
-  // item: { name, kind: 'fn' | 'sheet' }
+  // Non-selectable parameter-help row: shows FN(a, b, c) with the argument the
+  // caret is on bolded. _acItems stays empty so Up/Down/Enter/Tab don't capture.
+  function _acShowSignature(value, cursor) {
+    const ctx = parseSignatureContext(value, cursor)
+    const desc = ctx && describeSignature(ctx.fn, ctx.argIndex)
+    if (!desc) { _acHide(); return }
+    _acItems = []; _acIdx = 0
+    const params = desc.params
+      .map((p, i) => i === desc.active ? `<b style="color:var(--ink-gray-9, #171717);">${p}</b>` : p)
+      .join(', ')
+    _acEl.innerHTML =
+      `<div style="padding:6px 12px;white-space:nowrap;color:var(--ink-gray-5, #7c7c7c);">` +
+      `<span style="font-weight:600;color:var(--ink-gray-9, #171717);">${ctx.fn}</span>(${params})</div>`
+    const ox = parseFloat(overlay.el.style.left)   || 0
+    const oy = parseFloat(overlay.el.style.top)    || 0
+    const oh = parseFloat(overlay.el.style.height) || 24
+    _acEl.style.left    = ox + 'px'
+    _acEl.style.top     = (oy + oh + 2) + 'px'
+    _acEl.style.display = 'block'
+  }
+
+  // item: { name, kind: 'fn' | 'sheet' | 'range' }
   function _acCommit(item) {
     const input  = overlay.el
     const cursor = input.selectionStart
+    if (item.kind === 'range') {
+      // Splice the suggested ref in at the caret (which sits just after the
+      // opening paren).
+      const newVal = input.value.slice(0, cursor) + item.name + input.value.slice(cursor)
+      input.value  = newVal
+      const pos    = cursor + item.name.length
+      input.setSelectionRange(pos, pos)
+      onInput?.(cellId(sel.r, sel.c), newVal)
+      // Promote the accepted suggestion to a real pick so the highlight is
+      // owned exactly like a click-picked ref — cleared on commit/cancel, and
+      // extendable from its origin on the next click — instead of lingering as
+      // a stale, unowned suggestion. Set `pickMouseAnchor` (survives with no
+      // active drag) but NOT `picker`: `picker` marks an in-flight drag, and
+      // the mousemove handler would rewrite the ref on the next pointer move.
+      const rr = item.rect
+      pickerRect      = { r0: rr.r0, c0: rr.c0, r1: rr.r1, c1: rr.c1 }
+      pickMouseAnchor = { r: rr.r0, c: rr.c0 }
+      _sugActive      = false       // the ref is now committed text, not a suggestion
+      _acHide()
+      input.focus()
+      render()
+      return
+    }
     const result = parseAcToken(input.value, cursor)
     if (result) {
       const { tokStart } = result
-      const suffix = item.kind === 'sheet' ? '!' : '('
+      // A function accepts an auto-closed '()' with the caret between; a sheet
+      // gets a trailing '!'. Caret lands one char past the name either way.
+      const suffix = item.kind === 'sheet' ? '!' : '()'
       const newVal = input.value.slice(0, tokStart) + item.name + suffix + input.value.slice(cursor)
       input.value  = newVal
       const pos    = tokStart + item.name.length + 1
       input.setSelectionRange(pos, pos)
       onInput?.(cellId(sel.r, sel.c), newVal)
+      input.focus()
+      // Caret now sits inside the fresh '(' — surface a range suggestion or
+      // parameter help instead of leaving the user with a bare, empty popup.
+      _acUpdate(newVal, pos)
+      return
     }
     _acHide()
     input.focus()
@@ -391,6 +549,12 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
   // arrow keys while editing a formula at a ref-acceptable caret position.
   // Going to null returns us to EDITING (text caret moves). See _pickerKb*.
   let pickerKb   = null  // { target, anchorR, anchorC, headR, headC, insertStart, insertEnd, savedValue, savedCaret }
+  // Anchor for click-to-extend range picking. Survives mouseup (unlike
+  // `picker`) so the next click extends the ref from the first-clicked cell.
+  let pickMouseAnchor = null  // { r, c }
+  // True while `pickerRect` is a passive range *suggestion* (not a real pick),
+  // so we know it's safe to clear when the suggestion goes away.
+  let _sugActive = false
 
   function _pickTarget() {
     const ae = document.activeElement
@@ -452,6 +616,8 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     picker = null
     pickerKb = null
     pickerRect = null
+    pickMouseAnchor = null
+    _sugActive = false
     render()
   }
 
@@ -536,6 +702,9 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
       else if (y + h > cssH) scroll.y += y + h - cssH + 8
     }
     _clampScroll()
+    // Picking scrolls the view while the editor stays anchored to the formula
+    // cell; repin it so it tracks that cell instead of hanging in place.
+    _positionEditor()
   }
 
   // Compute the ref text from anchor+head and rewrite the inserted span.
@@ -647,13 +816,33 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     // last picked rect. It'll clear on next selection move / commit / cancel.
   }
 
+  // True unless the host marks any cell in the rect protected. Guards the two
+  // canvas-owned write paths (opening the editor, and Delete-clear) so a
+  // protected cell can't be edited even before the host handlers run.
+  function _rangeEditable(r0, c0, r1, c1) {
+    if (!isCellEditable) return true
+    for (let r = r0; r <= r1; r++)
+      for (let c = c0; c <= c1; c++)
+        if (!isCellEditable(r, c)) return false
+    return true
+  }
+
   function showEditor(initialValue, mode = 'enter') {
+    // Read-only viewers: never open the in-cell editor. This is the single
+    // choke point for every begin-edit path (typing, F2, Enter, double-click),
+    // so blocking it here keeps a viewer from typing into a cell that can't be
+    // saved. Selection/navigation still work.
+    if (!canEdit()) return
+    if (isCellEditable && !isCellEditable(sel.r, sel.c)) { onBlockedEdit?.(); return }
     editMode = mode
     selEnd = { r: sel.r, c: sel.c }
-    const fmt = getFormat ? getFormat(cellId(sel.r, sel.c)) : {}
-    overlay.position(geo.colX(sel.c) * _zoom, geo.rowY(sel.r) * _zoom, geo.cw(sel.c) * _zoom, geo.rh(sel.r) * _zoom, fmt, _zoom)
-    overlay.show(initialValue)
+    // Type-to-edit and F2 don't move the selection, so `sel` may have been
+    // scrolled off-screen (wheel/scrollbar leaves the selection put). Bring it
+    // back into view before positioning, or the editor opens off in the void.
+    ensureVisible(sel.r, sel.c)
     editing = true
+    _positionEditor()
+    overlay.show(initialValue)
     onInput?.(cellId(sel.r, sel.c), initialValue)
     render()
   }
@@ -669,6 +858,35 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     onCommit?.(id, val)
   }
 
+  // A committed value with hard newlines (Cmd+Enter) grows the row so every
+  // line is visible — Google Sheets behavior. Grow-only (never shrinks a row
+  // the user sized). Called by the host on commit; returns the {before,
+  // after} height diff so it can ride the undo op, or null when no growth.
+  function autoGrowRowFor(r, c, val) {
+    if (typeof val !== 'string' || val.startsWith('=') || !val.includes('\n')) return null
+    const fmt = getFormat ? (getFormat(cellId(r, c)) || {}) : {}
+    const needed = Math.min(400, _cellVisualLines(val, c, fmt) * lineHeightFor(fmt) + 8)
+    const before = rowH[r] ?? DEFAULT_ROW_H
+    if (needed <= before) return null
+    rowH[r] = needed
+    _applyCanvasSize()
+    return { before, after: needed }
+  }
+
+  // How many visual lines `val` occupies in column `c` at `fmt`'s font. In
+  // wrap mode a paragraph also soft-wraps, so count the wrapped lines with the
+  // same maxW the painter uses (cell width minus its 8px inset); otherwise
+  // only hard newlines break.
+  function _cellVisualLines(val, c, fmt) {
+    if (getTextWrap(fmt) !== 'wrap') return String(val).split('\n').length
+    ctx.save()
+    ctx.font = chipFont(fmt)
+    const maxW = Math.max(1, geo.cw(c) - 8)
+    const n = wrapLines(val, maxW, t => ctx.measureText(t).width).length
+    ctx.restore()
+    return n
+  }
+
   overlay.el.addEventListener('input', () => {
     const val = overlay.getValue()
     onInput?.(cellId(sel.r, sel.c), val)
@@ -677,10 +895,27 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
 
   overlay.el.addEventListener('keydown', e => {
     if (_acItems.length) {
+      const cur = _acItems[_acIdx]
+      // A range suggestion accepts on Tab only; Enter falls through to commit
+      // the formula (so an unwanted guess never hijacks Enter). Fn/sheet items
+      // accept on either key.
+      const acceptKey = cur && cur.kind === 'range' ? e.key === 'Tab' : (e.key === 'Tab' || e.key === 'Enter')
       if (e.key === 'ArrowDown') { e.preventDefault(); _acIdx = Math.min(_acIdx + 1, _acItems.length - 1); _acHighlight(); return }
       if (e.key === 'ArrowUp')   { e.preventDefault(); _acIdx = Math.max(_acIdx - 1, 0); _acHighlight(); return }
-      if ((e.key === 'Tab' || e.key === 'Enter') && _acItems[_acIdx]) { e.preventDefault(); _acCommit(_acItems[_acIdx]); return }
+      if (acceptKey && cur) { e.preventDefault(); _acCommit(cur); return }
       if (e.key === 'Escape')    { _acHide(); return }
+    }
+    // Auto-close parens (`(` → `()`, `)` steps over, Backspace clears an empty
+    // pair) — only inside a formula. Handle before the picker/nav branches so
+    // typing `(` never leaks into them.
+    const ac = autoCloseKey(e.key, overlay.el.value, overlay.el.selectionStart, overlay.el.selectionEnd)
+    if (ac) {
+      e.preventDefault()
+      if (pickerKb) _pickerKbCommit()   // finalize an in-progress keyboard pick first
+      overlay.el.value = ac.value
+      overlay.el.setSelectionRange(ac.caret, ac.caret)
+      overlay.el.dispatchEvent(new Event('input', { bubbles: true }))
+      return
     }
     // Commit any active cell-ref pick when the user types a printable char
     // (e.g. '+' after picking C1) so the next arrow key starts a fresh ref
@@ -722,6 +957,14 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     if (e.key === 'Enter') {
       e.preventDefault()
       if (pickerKb) _pickerKbCommit()
+      // Cmd/Ctrl/Alt+Enter: newline inside the cell (Google Sheets), not commit.
+      if (e.metaKey || e.ctrlKey || e.altKey) {
+        const { selectionStart: s0, selectionEnd: s1, value } = overlay.el
+        overlay.el.value = value.slice(0, s0) + '\n' + value.slice(s1)
+        overlay.el.setSelectionRange(s0 + 1, s0 + 1)
+        overlay.el.dispatchEvent(new Event('input', { bubbles: true }))
+        return
+      }
       _commitAndHide()
       const anchorC = _tabAnchorCol ?? sel.c
       _tabAnchorCol = null
@@ -843,15 +1086,10 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
       if (!p || p.row !== r) continue
       const val = getValue(id)
       if (val == null || val === '') continue
-      const fmt = getFormat ? getFormat(id) : {}
-      let h = 18 // single line height at 13px
-      if (isWrapText(fmt)) {
-        // Estimate wrapped line count from measured width vs. column width.
-        const w   = _measureWidth(val, fmt)
-        const cw  = Math.max(1, geo.cw(p.col) - 8)
-        const ln  = Math.max(1, Math.ceil(w / cw))
-        h = ln * 18
-      }
+      const fmt = getFormat ? (getFormat(id) || {}) : {}
+      // Hard newlines and (in wrap mode) soft-wrapping both add lines; size to
+      // whichever the cell actually renders, at the cell's own line height.
+      const h = _cellVisualLines(val, p.col, fmt) * lineHeightFor(fmt)
       if (h + ROW_PAD > tallest) tallest = h + ROW_PAD
     }
     rowH[r] = Math.max(MIN_H, Math.min(MAX_H, Math.ceil(tallest)))
@@ -934,15 +1172,32 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
         const mid = getMasterId(cellId(h.r, h.c))
         if (mid) { const p = parseCellId(mid); if (p) { tr = p.row; tc = p.col } }
       }
-      _writeRef(pickInput, _refForRange(tr, tc, tr, tc, _crossSheetName()), _refReplaceStart(pickInput))
-      picker     = { anchorR: tr, anchorC: tc, target: pickInput, kind: 'cell' }
-      pickerRect = { r0: tr, c0: tc, r1: tr, c1: tc }
+      // Range picking by click (Google Sheets style). A plain click writes a
+      // single-cell ref and remembers it as the anchor; the NEXT click extends
+      // from that anchor to here → A1:A3, no drag or modifier needed. The
+      // anchor only "continues" while the last-picked ref still abuts the caret
+      // (the user hasn't typed since) — so typing an operator/comma, or picking
+      // in a new argument, resets to a fresh ref. Shift+click always extends.
+      // pickMouseAnchor outlives `picker` (which mouseup clears).
+      const rStart   = _refReplaceStart(pickInput)
+      const abutting = pickInput.value.slice(rStart, pickInput.selectionStart)
+      const lastRef  = (pickerRect && !_sugActive)
+        ? _refForRange(pickerRect.r0, pickerRect.c0, pickerRect.r1, pickerRect.c1, _crossSheetName())
+        : null
+      const continuing = !!pickMouseAnchor && lastRef !== null && abutting === lastRef
+      const anchor = ((e.shiftKey || continuing) && pickMouseAnchor) ? pickMouseAnchor : { r: tr, c: tc }
+      const r0 = Math.min(anchor.r, tr), r1 = Math.max(anchor.r, tr)
+      const c0 = Math.min(anchor.c, tc), c1 = Math.max(anchor.c, tc)
+      _writeRef(pickInput, _refForRange(r0, c0, r1, c1, _crossSheetName()), rStart)
+      picker     = { anchorR: anchor.r, anchorC: anchor.c, target: pickInput, kind: 'cell' }
+      pickerRect = { r0, c0, r1, c1 }
+      pickMouseAnchor = anchor   // keep the origin so the next click re-extends
       pickerKb   = null   // mouse-pick supersedes any keyboard pick state
       render()
       return
     }
 
-    const resizeCol = geo.hitTestColResize(e.clientX, e.clientY, rect)
+    const resizeCol = canEdit() ? geo.hitTestColResize(e.clientX, e.clientY, rect) : null
     if (resizeCol !== null) {
       e.preventDefault()
       // Broadcast resize: when the dragged column is part of a multi-column
@@ -959,7 +1214,7 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
       return
     }
 
-    const resizeRowHit = geo.hitTestRowResize(e.clientX, e.clientY, rect)
+    const resizeRowHit = canEdit() ? geo.hitTestRowResize(e.clientX, e.clientY, rect) : null
     if (resizeRowHit !== null) {
       e.preventDefault()
       const range = getSelRange()
@@ -972,7 +1227,7 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
       return
     }
 
-    if (hitTestFillHandle(e.clientX, e.clientY, rect)) {
+    if (canEdit() && hitTestFillHandle(e.clientX, e.clientY, rect)) {
       const { r0, c0, r1, c1 } = getSelRange()
       // Track the mousedown screen position so mousemove can ignore sub-pixel
       // jitter — otherwise a 1px wobble during the click extends the selection
@@ -996,12 +1251,24 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     const colHit = geo.hitTestColHeader(e.clientX, e.clientY, rect)
     if (colHit !== null) {
       if (editing) _commitAndHide()
-      selMode = 'col'
-      sel    = { r: 0, c: colHit }
-      selEnd = { r: TOTAL_ROWS - 1, c: colHit }
+      // Pressing inside an existing multi-column selection keeps it and arms a
+      // block move; otherwise select the single column (and arm a 1-col move).
+      const range = getSelRange()
+      const inBlock = selMode === 'col' && range.c1 > range.c0 && colHit >= range.c0 && colHit <= range.c1
+      if (!inBlock) {
+        selMode = 'col'
+        sel    = { r: 0, c: colHit }
+        selEnd = { r: TOTAL_ROWS - 1, c: colHit }
+        onSelect?.(colLabel(colHit) + ':' + colLabel(colHit))
+      }
+      // Moving columns is a data mutation — arm the drag only with write access.
+      if (canEdit() && onColMove) {
+        colDrag = inBlock
+          ? { fromCol: range.c0, count: range.c1 - range.c0 + 1, startX: e.clientX, startY: e.clientY, moved: false, insertCol: null }
+          : { fromCol: colHit, count: 1, startX: e.clientX, startY: e.clientY, moved: false, insertCol: null }
+      }
       canvas.focus()
       render()
-      onSelect?.(colLabel(colHit) + ':' + colLabel(colHit))
       return
     }
 
@@ -1036,7 +1303,7 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
 
     // Click on the tickbox of a checkbox-validated cell → toggle it. Clicking
     // elsewhere in the cell falls through to a normal selection.
-    if (vrule?.type === 'checkbox') {
+    if (vrule?.type === 'checkbox' && canEdit()) {
       const x = geo.colX(h.c), y = geo.rowY(h.r)
       const w = geo.cw(h.c), hh = geo.rh(h.r)
       const box = checkboxRect(w, hh)
@@ -1050,30 +1317,22 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
       }
     }
 
-    // Click on the dropdown caret of a list-validated cell → open dropdown.
-    // The caret zone tracks the chip when one is drawn (list rule + value),
-    // else it's the plain arrow box at the cell's right edge. Only list rules
-    // get a dropdown — number/length rules fall through to normal selection.
-    if (vrule?.type === 'list') {
-      const x = geo.colX(h.c), y = geo.rowY(h.r)
-      const w = geo.cw(h.c), cellRight = x + w
-      const lx = (e.clientX - rect.left) / _zoom
-      const val = getValue(hId)
-      let caretL = cellRight - 14
-      if (val != null && String(val) !== '') {
-        const { offsetX, chipW } = chipMetrics(ctx, String(val), getFormat?.(hId) || {}, w)
-        caretL = x + offsetX + chipW - CHIP.caretW
-      }
-      if (lx >= caretL && lx <= cellRight) {
-        e.stopPropagation()   // prevent _onDocMouseDown from closing the just-opened panel
-        moveSel(h.r, h.c)
-        const pos = {
+    // A plain single-click anywhere in a list-validated cell opens its dropdown
+    // (not just a caret zone). Record the candidate here and open it on mouseup,
+    // so the click still falls through to select the cell / start a range-drag;
+    // a drag or a double-click (which edits) cancels the open. Modifier-clicks
+    // (shift/ctrl/cmd range ops) and non-list rules never open a dropdown.
+    if (vrule?.type === 'list' && canEdit() && e.detail === 1 &&
+        !e.shiftKey && !e.metaKey && !e.ctrlKey) {
+      const x = geo.colX(h.c), y = geo.rowY(h.r), w = geo.cw(h.c)
+      _pendingListOpen = {
+        hId, rule: vrule, r: h.r, c: h.c,
+        downX: e.clientX, downY: e.clientY,
+        pos: {
           x: rect.left + x * _zoom,
           y: rect.top  + (y + geo.rh(h.r)) * _zoom,
           w: w * _zoom,
-        }
-        onDropdownClick?.(hId, vrule, pos)
-        return
+        },
       }
     }
 
@@ -1090,6 +1349,9 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
 
   canvas.addEventListener('dblclick', e => {
     const rect = canvas.getBoundingClientRect()
+
+    // Read-only viewers: dbl-click neither edits a cell nor resizes/fills.
+    if (!canEdit()) return
 
     // Double-click on the fill handle → fill down to the bottom of the
     // adjacent column's contiguous data run (Google Sheets behaviour).
@@ -1124,6 +1386,14 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     showEditor(getValue(cellId(h.r, h.c)) ?? '', 'edit')
   })
 
+  let _lastLinkHover = null   // 'r,c' of the linked cell the pointer is on
+
+  canvas.addEventListener('mouseleave', () => {
+    if (_lastLinkHover === null) return
+    _lastLinkHover = null
+    onLinkHover?.(null)
+  })
+
   canvas.addEventListener('mousemove', e => {
     const rect = canvas.getBoundingClientRect()
     const resizeCol = geo.hitTestColResize(e.clientX, e.clientY, rect)
@@ -1132,11 +1402,27 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     const hoverCell = !resizing && !resizingRow && !dragging && !overFill
       ? geo.hitTest(e.clientX, e.clientY, rect) : null
     const overLink = hoverCell && getFormat?.(cellId(hoverCell.r, hoverCell.c))?.hyperlink
-    if (resizeCol !== null || resizing)            canvas.style.cursor = 'col-resize'
+    // A column header (away from its resize edge) is grabbable — signal it with a
+    // grab/grabbing cursor so drag-to-reorder is discoverable, not hidden.
+    const overColHeader = resizeCol === null && !resizing && !resizingRow && canEdit() && onColMove &&
+                          geo.hitTestColHeader(e.clientX, e.clientY, rect) !== null
+    if ((colDrag && colDrag.moved))                canvas.style.cursor = 'grabbing'
+    else if (resizeCol !== null || resizing)       canvas.style.cursor = 'col-resize'
     else if (resizeRowHit !== null || resizingRow) canvas.style.cursor = 'row-resize'
     else if (overFill)                             canvas.style.cursor = 'crosshair'
+    else if (overColHeader)                        canvas.style.cursor = 'grab'
     else if (overLink)                             canvas.style.cursor = 'pointer'
     else                                           canvas.style.cursor = 'default'
+
+    // Hover-card feed: notify once per enter/leave of a linked cell (not per
+    // pixel). The editor layers debounce + the popover itself on top of this.
+    const linkKey = overLink ? `${hoverCell.r},${hoverCell.c}` : null
+    if (linkKey !== _lastLinkHover) {
+      _lastLinkHover = linkKey
+      onLinkHover?.(linkKey
+        ? { r: hoverCell.r, c: hoverCell.c, id: cellId(hoverCell.r, hoverCell.c), url: overLink }
+        : null)
+    }
 
     if (filling) {
       if (!filling.moved) {
@@ -1181,10 +1467,31 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
       picker = null
       t?.focus?.()
     }
+    // A click that stayed on its origin list cell (no range-drag) opens the
+    // dropdown. A drag past a few px is a selection, so it cancels the open.
+    if (_pendingListOpen) {
+      const p = _pendingListOpen
+      _pendingListOpen = null
+      const moved = Math.hypot(e.clientX - p.downX, e.clientY - p.downY) > 4
+      if (!moved) {
+        const rect = canvas.getBoundingClientRect()
+        const h = geo.hitTest(e.clientX, e.clientY, rect)
+        if (h && h.r === p.r && h.c === p.c) onDropdownClick?.(p.hId, p.rule, p.pos)
+      }
+    }
     dragging = false
   })
 
   function _onDocMouseMove(e) {
+    if (colDrag) {
+      const moved = Math.hypot(e.clientX - colDrag.startX, e.clientY - colDrag.startY) >= 5
+      if (colDrag.moved || moved) {
+        colDrag.moved = true
+        colDrag.insertCol = geo.colInsertIndex(e.clientX, canvas.getBoundingClientRect())
+        document.body.style.cursor = 'grabbing'
+        render()
+      }
+    }
     if (resizing) {
       // Drag delta is in physical CSS px; colW stores logical units, so undo
       // the zoom on the delta before applying. When multiple columns are in
@@ -1206,6 +1513,15 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
   }
 
   function _onDocMouseUp() {
+    if (colDrag) {
+      const cd = colDrag
+      colDrag = null
+      document.body.style.cursor = ''
+      if (cd.moved && cd.insertCol != null) {
+        onColMove?.(cd.fromCol, cd.insertCol, cd.count)
+      }
+      render()
+    }
     const didResize = resizing || resizingRow
     if (resizing)    resizing    = null
     if (resizingRow) resizingRow = null
@@ -1274,14 +1590,7 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     e.preventDefault()
     // Wheel deltas are physical pixels; scroll is logical. Divide so a single
     // notch advances the same logical distance regardless of zoom.
-    scroll.x += e.deltaX / _zoom
-    scroll.y += e.deltaY / _zoom
-    _clampScroll()
-    if (editing) {
-      const fmt = getFormat ? getFormat(cellId(sel.r, sel.c)) : {}
-      overlay.position(geo.colX(sel.c) * _zoom, geo.rowY(sel.r) * _zoom, geo.cw(sel.c) * _zoom, geo.rh(sel.r) * _zoom, fmt, _zoom)
-    }
-    render()
+    scrollTo(scroll.x + e.deltaX / _zoom, scroll.y + e.deltaY / _zoom)
   }, { passive: false })
 
   canvas.setAttribute('tabindex', '0')
@@ -1347,7 +1656,11 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
 
     if ((e.key === 'Delete' || e.key === 'Backspace') && !mod) {
       e.preventDefault()
+      if (!canEdit()) return
       const { r0, c0, r1, c1 } = getSelRange()
+      // Bail before touching the local cell cache — otherwise a blocked host
+      // handler would leave the canvas showing empty cells the engine still holds.
+      if (!_rangeEditable(r0, c0, r1, c1)) { onBlockedEdit?.(); return }
       if (r0 === r1 && c0 === c1) {
         onCommit?.(cellId(r, c), '')
       } else {
@@ -1359,6 +1672,48 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
         for (const { id } of cells) delete data[id]
         render()
       }
+      return
+    }
+
+    // Shift+Space — select whole row(s); Ctrl/Cmd+Space — whole column(s);
+    // Ctrl/Cmd+Shift+Space — the entire sheet. Mirrors Google Sheets. Kept
+    // above the printable-char handler below so the Space keystroke isn't
+    // swallowed into cell-edit mode. The anchor stays on the active cell
+    // (r, c) — getSelRange() expands the perpendicular axis by selMode — so the
+    // highlighted cell keeps its column/row and arrows + typing resume from
+    // there, exactly like Sheets. A pre-existing range promotes its span.
+    if (e.code === 'Space' || e.key === ' ') {
+      if (mod && e.shiftKey) {
+        e.preventDefault()
+        selMode = 'all'; sel = { r: 0, c: 0 }; selEnd = { r: TOTAL_ROWS - 1, c: TOTAL_COLS - 1 }
+        render(); onSelect?.('A1'); return
+      }
+      if (mod) {
+        e.preventDefault()
+        selMode = 'col'; sel = { r, c }; selEnd = { r, c: ec }
+        const cc0 = Math.min(c, ec), cc1 = Math.max(c, ec)
+        render(); onSelect?.(colLabel(cc0) + ':' + colLabel(cc1)); return
+      }
+      if (e.shiftKey) {
+        e.preventDefault()
+        selMode = 'row'; sel = { r, c }; selEnd = { r: er, c }
+        const rr0 = Math.min(r, er), rr1 = Math.max(r, er)
+        render(); onSelect?.(String(rr0 + 1) + ':' + String(rr1 + 1)); return
+      }
+    }
+
+    // PageDown / PageUp — move the active cell one screenful down / up; Shift
+    // extends the selection instead. Page size is the count of rows currently
+    // visible in the viewport, so it tracks zoom and row heights.
+    if (e.key === 'PageDown' || e.key === 'PageUp') {
+      e.preventDefault()
+      _tabAnchorCol = null
+      const top  = geo.firstVisRow()
+      const page = Math.max(1, geo.lastVisRow(top, cssH) - top)
+      const dir  = e.key === 'PageDown' ? 1 : -1
+      const from = e.shiftKey ? er : r
+      const target = _skipHiddenR(from + dir * page, dir)
+      if (e.shiftKey) extendSel(target, ec); else moveSel(target, c)
       return
     }
 
@@ -1404,8 +1759,9 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     // smaller area while the on-screen pixels stay constant. The canvas's
     // *physical* size is tied to the viewport (×dpr ×zoom), so high-DPI plus
     // zoom both contribute to backing-store resolution.
-    const sheetW = _sheetTotalW() + ROW_HEADER_W
-    const sheetH = _sheetTotalH() + COL_HEADER_H
+    _recomputeExtent()
+    const sheetW = _contentW
+    const sheetH = _contentH
     const viewLogicalW = _viewportW / _zoom
     const viewLogicalH = _viewportH / _zoom
     cssW = Math.min(viewLogicalW, sheetW)
@@ -1418,6 +1774,11 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     canvas.style.width  = physW + 'px'
     canvas.style.height = physH + 'px'
     _clampScroll()
+    // A viewport/zoom/extent change can re-clamp scroll and shift every cell;
+    // repin the open editor so it doesn't strand at its pre-resize offset (e.g.
+    // a ResizeObserver firing mid-edit when a side panel opens or the window
+    // resizes).
+    _positionEditor()
   }
 
   function resize(w, h) {
@@ -1458,6 +1819,7 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
 
   function destroy() {
     overlay.remove()
+    scrollbars.destroy()
     _acEl?.remove()
     if (_raf)       { cancelAnimationFrame(_raf);       _raf = null }
     if (_marchRAF)  { cancelAnimationFrame(_marchRAF);  _marchRAF = null }
@@ -1485,6 +1847,27 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     _applyCanvasSize()
   }
 
+  // View-metadata half of a structural op — permute column widths and the
+  // hidden-column set through the same index map the engines use. (The engines
+  // own cell/format/range state; the grid owns widths / hidden / freeze.)
+  function remapColsMeta(mapCol) {
+    const pairs = Object.entries(colW).map(([k, v]) => [+k, v])
+    for (const [c] of pairs) delete colW[c]
+    for (const [c, w] of pairs) { const nc = mapCol(c); if (nc != null && nc >= 0) colW[nc] = w }
+    const cols = [...hiddenCols]; hiddenCols.clear()
+    for (const c of cols) { const nc = mapCol(c); if (nc != null && nc >= 0) hiddenCols.add(nc) }
+    _applyCanvasSize()
+  }
+
+  function remapRowsMeta(mapRow) {
+    const pairs = Object.entries(rowH).map(([k, v]) => [+k, v])
+    for (const [r] of pairs) delete rowH[r]
+    for (const [r, h] of pairs) { const nr = mapRow(r); if (nr != null && nr >= 0) rowH[nr] = h }
+    const rows = [...hiddenRows]; hiddenRows.clear()
+    for (const r of rows) { const nr = mapRow(r); if (nr != null && nr >= 0) hiddenRows.add(nr) }
+    _applyCanvasSize()
+  }
+
   function getHitRegion(ex, ey) {
     const rect = canvas.getBoundingClientRect()
     return {
@@ -1504,6 +1887,9 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     scroll.x = 0
     scroll.y = 0
     _clampScroll()
+    // Freezing resets the scroll origin, shifting every cell; repin the open
+    // editor so it tracks its cell instead of stranding at the old offset.
+    _positionEditor()
     render()
   }
 
@@ -1623,12 +2009,16 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     // SheetEditor uses this to keep the editor alive across sheet-tab clicks
     // for cross-sheet range picking.
     isEditingFormula: () => editing && overlay.getValue().startsWith('='),
+    // Whether the in-cell overlay editor is open at all. The host uses this to
+    // hand clipboard ops (copy/cut/paste) to the textarea's native handling
+    // while editing, instead of hijacking them for grid-level cell ops.
+    isEditing: () => editing,
     getSelection: getSelRange,
     setSelection: setSelRange,
     getPreMousedownSel,
     moveTo: (r, c) => moveSel(r, c),
     getColWidth, setColWidth, getRowHeight, setRowHeight,
-    shiftRowHeights, shiftColWidths, getHitRegion,
+    shiftRowHeights, shiftColWidths, remapColsMeta, remapRowsMeta, getHitRegion,
     setFreeze, setHiddenRows, setHiddenCols, setFilterHiddenRows, getHiddenRows, getHiddenCols,
     getColumnHeaderRects, getRow0Rect, getRowRect, onRender,
     setMarchingAnts,
@@ -1638,8 +2028,12 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     // included here.
     getCellRect: (r, c) => ({ x: geo.colX(c) * _zoom, y: geo.rowY(r) * _zoom,
                               width: geo.cw(c) * _zoom, height: geo.rh(r) * _zoom }),
+    // Physical size of the visible grid viewport (the grid-wrap content box), in
+    // CSS px. Cached in _applyCanvasSize, so reading it is reflow-free — used by
+    // DOM overlays to clamp themselves to what's on screen.
+    getViewportSize: () => ({ w: _viewportW, h: _viewportH }),
     setDiffOverlay, setActiveDiffSheet,
-    autoFitCol, autoFitRow,
+    autoFitCol, autoFitRow, autoGrowRowFor,
     expandRows, getTotalRows, isNearBottom,
     expandCols, getTotalCols,
     setZoom, getZoom,

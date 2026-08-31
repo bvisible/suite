@@ -9,36 +9,113 @@ import type {
 } from '../types';
 import { loggers } from '../utils/logger';
 
+interface WebRtcTransportParams {
+	id: string;
+	iceParameters: IceParameters;
+	iceCandidates: IceCandidate[];
+	dtlsParameters: DtlsParameters;
+}
+
 export class TransportManager {
 	private transports = new Map<string, TransportData>();
+	private pendingTransports = new Map<string, Promise<WebRtcTransportParams>>();
+	private transportGenerations = new Map<string, number>();
+	private stateListeners: Array<
+		(event: {
+			protocol: 'ice' | 'dtls';
+			direction: 'send' | 'recv';
+			state: string;
+		}) => void
+	> = [];
+
+	onStateChange(
+		listener: (event: {
+			protocol: 'ice' | 'dtls';
+			direction: 'send' | 'recv';
+			state: string;
+		}) => void,
+	): void {
+		this.stateListeners.push(listener);
+	}
 
 	async createWebRtcTransport(
 		roomId: string,
 		peerId: string,
 		router: mediasoup.types.Router,
+		webRtcServer: mediasoup.types.WebRtcServer,
 		direction: 'send' | 'recv',
 		options: WebRTCTransportOptions,
-	): Promise<{
-		id: string;
-		iceParameters: IceParameters;
-		iceCandidates: IceCandidate[];
-		dtlsParameters: DtlsParameters;
-	}> {
+	): Promise<WebRtcTransportParams> {
+		const key = `${roomId}:${peerId}:${direction}`;
+		const pending = this.pendingTransports.get(key);
+		if (pending) return pending;
+
+		const generation = this.transportGenerations.get(key) ?? 0;
+		let creation: Promise<WebRtcTransportParams>;
+		creation = this.replaceWebRtcTransport(
+			roomId,
+			peerId,
+			router,
+			webRtcServer,
+			direction,
+			options,
+			key,
+			generation,
+		).finally(() => {
+			if (this.pendingTransports.get(key) === creation) {
+				this.pendingTransports.delete(key);
+			}
+		});
+		this.pendingTransports.set(key, creation);
+		return creation;
+	}
+
+	private async replaceWebRtcTransport(
+		roomId: string,
+		peerId: string,
+		router: mediasoup.types.Router,
+		webRtcServer: mediasoup.types.WebRtcServer,
+		direction: 'send' | 'recv',
+		options: WebRTCTransportOptions,
+		key: string,
+		generation: number,
+	): Promise<WebRtcTransportParams> {
 		loggers.transportManager.info(
 			'Creating %s transport for peer %s',
 			direction,
 			peerId,
 		);
+		if (direction === 'recv') {
+			this.closePeerDirectionTransports(roomId, peerId, direction);
+		}
 
-		const transport = await router.createWebRtcTransport(options);
+		const transport = await router.createWebRtcTransport({
+			webRtcServer,
+			enableTcp: options.enableTcp,
+			initialAvailableOutgoingBitrate: options.initialAvailableOutgoingBitrate,
+		});
+		if ((this.transportGenerations.get(key) ?? 0) !== generation) {
+			transport.close();
+			throw new Error(`Transport creation for peer ${peerId} was cancelled`);
+		}
+		transport.on('icestatechange', (state) => {
+			this.emitState({ protocol: 'ice', direction, state });
+		});
+		transport.on('dtlsstatechange', (state) => {
+			this.emitState({ protocol: 'dtls', direction, state });
+		});
 
-		const _transportKey = `${direction}-${Date.now()}`;
 		const transportData: TransportData = {
 			roomId,
 			peerId,
 			transport,
+			direction,
+			type: 'webrtc',
 		};
 		this.transports.set(transport.id, transportData);
+		transport.observer.on('close', () => {
+			this.transports.delete(transport.id);
+		});
 
 		loggers.transportManager.info(
 			'%s transport created for peer %s',
@@ -54,6 +131,32 @@ export class TransportManager {
 		};
 	}
 
+	private closePeerDirectionTransports(
+		roomId: string,
+		peerId: string,
+		direction: 'send' | 'recv',
+	): void {
+		for (const [transportId, transportData] of this.transports) {
+			if (
+				transportData.roomId !== roomId ||
+				transportData.peerId !== peerId ||
+				transportData.direction !== direction
+			) {
+				continue;
+			}
+			transportData.transport.close();
+			this.transports.delete(transportId);
+		}
+	}
+
+	private emitState(event: {
+		protocol: 'ice' | 'dtls';
+		direction: 'send' | 'recv';
+		state: string;
+	}): void {
+		for (const listener of this.stateListeners) listener(event);
+	}
+
 	async connectWebRtcTransport(
 		transportId: string,
 		dtlsParameters: DtlsParameters,
@@ -61,6 +164,9 @@ export class TransportManager {
 		const transportData = this.transports.get(transportId);
 		if (!transportData) {
 			throw new Error(`Transport ${transportId} not found`);
+		}
+		if (transportData.type !== 'webrtc') {
+			throw new Error(`Transport ${transportId} is not a WebRTC transport`);
 		}
 
 		try {
@@ -85,12 +191,16 @@ export class TransportManager {
 		if (!transportData) {
 			throw new Error(`Transport ${transportId} not found`);
 		}
+		if (transportData.type !== 'webrtc') {
+			throw new Error(`Transport ${transportId} is not a WebRTC transport`);
+		}
 
 		return transportData.transport.restartIce();
 	}
 
 	getTransport(transportId: string): WebRtcTransport | undefined {
-		return this.transports.get(transportId)?.transport;
+		const data = this.transports.get(transportId);
+		return data?.type === 'webrtc' ? data.transport : undefined;
 	}
 
 	getTransportData(transportId: string): TransportData | undefined {
@@ -102,6 +212,14 @@ export class TransportManager {
 	}
 
 	closePeerTransports(roomId: string, peerId: string): void {
+		for (const direction of ['send', 'recv'] as const) {
+			const key = `${roomId}:${peerId}:${direction}`;
+			this.transportGenerations.set(
+				key,
+				(this.transportGenerations.get(key) ?? 0) + 1,
+			);
+			this.pendingTransports.delete(key);
+		}
 		for (const [transportId, transportData] of this.transports) {
 			if (transportData.roomId !== roomId || transportData.peerId !== peerId)
 				continue;
@@ -119,6 +237,13 @@ export class TransportManager {
 	}
 
 	cleanup(): void {
+		for (const key of this.pendingTransports.keys()) {
+			this.transportGenerations.set(
+				key,
+				(this.transportGenerations.get(key) ?? 0) + 1,
+			);
+		}
+		this.pendingTransports.clear();
 		for (const [transportId, transportData] of this.transports) {
 			try {
 				transportData.transport.close();
@@ -160,7 +285,9 @@ export class TransportManager {
 		const transportData: TransportData = {
 			roomId,
 			peerId,
-			transport: transport as unknown as WebRtcTransport, // fake as WebRtcTransport
+			transport,
+			direction: 'send',
+			type: 'plain',
 		};
 		this.transports.set(transport.id, transportData);
 

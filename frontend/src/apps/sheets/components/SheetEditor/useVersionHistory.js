@@ -20,15 +20,17 @@ function flattenDiff(diff, parse) {
 }
 
 function captureLiveState({ getCurrentTitle, getSheet, getFormats, getMerge,
-                            getComments, getValidation, getCondFormat,
-                            getSortFilter, getGrid }) {
+                            getComments, getValidation, getProtection, getCondFormat,
+                            getSortFilter, getSlicers, getGrid }) {
   const sheet      = getSheet()
   const formats    = getFormats()
   const merge      = getMerge()
   const comments   = getComments()
   const validation = getValidation()
+  const protection = getProtection?.()
   const condFormat = getCondFormat()
   const sortFilter = getSortFilter()
+  const slicers    = getSlicers?.()
   const grid       = getGrid()
   return {
     title:      getCurrentTitle(),
@@ -38,32 +40,38 @@ function captureLiveState({ getCurrentTitle, getSheet, getFormats, getMerge,
       merge:      merge?.snapshot(),
       comments:   comments?.snapshot(),
       validation: validation?.snapshot(),
+      protection: protection?.snapshot(),
       condFormat: condFormat?.snapshot(),
       sortFilter: sortFilter?.snapshot(),
+      slicers:    slicers?.snapshot(),
       view:       grid?.viewSnapshot?.() ?? null,
     },
   }
 }
 
 function applyEngineState(saved, title,
-    { getSheet, getFormats, getMerge, getComments, getValidation,
-      getCondFormat, getSortFilter, getGrid, getCurrentTitle,
+    { getSheet, getFormats, getMerge, getComments, getValidation, getProtection,
+      getCondFormat, getSortFilter, getSlicers, getGrid, getCurrentTitle,
       repopulateGrid, syncViewMirrors, syncNames, currentTitle }) {
   const sheet      = getSheet()
   const formats    = getFormats()
   const merge      = getMerge()
   const comments   = getComments()
   const validation = getValidation()
+  const protection = getProtection?.()
   const condFormat = getCondFormat()
   const sortFilter = getSortFilter()
+  const slicers    = getSlicers?.()
   const grid       = getGrid()
   if (saved.formats)    formats?.restore(saved.formats)
   if (saved.sheet)      sheet?.restore(unpackSheet(saved.sheet))
   if (saved.merge      && merge?.restore)      merge.restore(saved.merge)
   if (saved.comments   && comments?.restore)   comments.restore(saved.comments)
   if (saved.validation && validation?.restore) validation.restore(saved.validation)
+  if (saved.protection && protection?.restore) protection.restore(saved.protection)
   if (saved.condFormat && condFormat?.restore) condFormat.restore(saved.condFormat)
   if (saved.sortFilter && sortFilter?.restore) sortFilter.restore(saved.sortFilter)
+  if (saved.slicers    && slicers?.restore)    slicers.restore(saved.slicers)
   if (saved.view       && grid?.viewRestore)   grid.viewRestore(saved.view)
   if (title) currentTitle.value = title
   repopulateGrid()
@@ -80,7 +88,9 @@ export function useVersionHistory({
   getMerge,
   getComments,
   getValidation,
+  getProtection,
   getCondFormat,
+  getSlicers,
   getSortFilter,
   getGrid,
   currentTitle,
@@ -107,8 +117,8 @@ export function useVersionHistory({
 
   // Shared engine context forwarded to pure helpers.
   const ctx = {
-    getSheet, getFormats, getMerge, getComments, getValidation,
-    getCondFormat, getSortFilter, getGrid,
+    getSheet, getFormats, getMerge, getComments, getValidation, getProtection,
+    getCondFormat, getSortFilter, getSlicers, getGrid,
     getCurrentTitle: () => currentTitle.value,
     currentTitle, repopulateGrid, syncViewMirrors, syncNames,
   }

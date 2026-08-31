@@ -1,44 +1,34 @@
 <template>
-  <Sidebar id="sidebar" v-model:collapsed="sidebarCollapsed" class="hidden sm:flex" :header="{
-    title: 'Drive',
-    subtitle: currentUserFullName,
-    menuItems: settingsItems,
-    logo: FrappeDriveLogo,
-  }" :sections="sidebarItems">
-    <template #footer-items="{ isCollapsed }">
-      <StorageBar v-if="teamExists.data" :is-expanded="!isCollapsed" />
-    </template>
-    <template #sidebar-item="{ item, isCollapsed }">
-      <SidebarItem :class="draggedSpace === item.label &&
-        'ring-1 ring-outline-gray-3 !bg-surface-gray-3'
-        " :label="item.label" :accessKey="item.accessKey" :icon="item.icon" :suffix="item.suffix" :to="item.to"
-        :isActive="item.isActive" :isCollapsed :onClick="item.onClick" @dragover.prevent="
-          ; (['Trash', 'Home'].includes(item.label) ||
-          item.to?.name === 'drive-Team') &&
-          (draggedSpace = item.label)
-          " @dragleave="draggedSpace = null" @drop.prevent="handleDrop($event, item)" />
-    </template>
+  <Sidebar id="sidebar" v-model:collapsed="sidebarCollapsed" class="hidden md:flex">
+    <SidebarHeader title="Drive" :subtitle="currentUserFullName" :menu-items="settingsItems" :logo="FrappeDriveLogo" />
+    <div class="flex-1 overflow-y-auto px-2">
+      <SidebarSection v-for="(section, index) in sidebarItems" :key="section.label || index" :label="section.label" :collapsible="section.collapsible">
+        <SidebarItem v-for="item in section.items" :key="item.label" :class="draggedSpace === item.label && 'ring-1 ring-outline-gray-3 !bg-surface-gray-3'" :label="item.label" :access-key="item.accessKey" :icon="item.icon" :suffix="item.suffix" :to="item.to" :active="item.isActive" :on-click="item.onClick" @dragover.prevent=";['Trash', 'Home'].includes(item.label) && (draggedSpace = item.label)" @dragleave="draggedSpace = null" @drop.prevent="handleDrop($event, item)" />
+      </SidebarSection>
+    </div>
+    <div class="p-2">
+      <StorageBar :is-expanded="!sidebarCollapsed" />
+      <SidebarCollapseToggle />
+    </div>
   </Sidebar>
-  <SettingsDialog v-if="showSettings" v-model="showSettings" :suggested-tab="suggestedTab" />
+  <SettingsDialog v-model="showSettings" :suggested-tab="suggestedTab" />
   <ShortcutsDialog v-if="showShortcuts" v-model="showShortcuts" />
 </template>
 <script setup>
 import FrappeDriveLogo from '@/apps/drive/components/FrappeDriveLogo.vue'
 
 import StorageBar from './StorageBar.vue'
-import { Sidebar, SidebarItem, createResource } from 'frappe-ui'
+import { Sidebar, SidebarCollapseToggle, SidebarHeader, SidebarItem, SidebarSection } from 'frappe-ui'
 import { notifCount, apps } from '@/apps/drive/resources/permissions'
-import { getTeams } from '@/apps/drive/resources/files'
-import { dynamicList } from '@/apps/drive/utils/files'
+import { rootInfo } from '@/apps/drive/resources/files'
+import { dynamicList, isApple } from '@/apps/drive/utils/files'
 
 import { useCurrentUser, useSessionStore } from '@/boot/session'
 const { fullName: currentUserFullName } = useCurrentUser()
 import { getRootSection } from '@/apps/drive/data/breadcrumbs'
 import { sidebarCollapsed } from '@/apps/drive/data/prefs'
-import icons from '@/apps/drive/utils/icons'
 import LucideClock from '~icons/lucide/clock'
-import LucideUsers from '~icons/lucide/users'
-import LucideFiles from '~icons/lucide/files'
+import LucideBuilding2 from '~icons/lucide/building-2'
 import LucideTrash from '~icons/lucide/trash'
 import LucideHome from '~icons/lucide/home'
 import LucideStar from '~icons/lucide/star'
@@ -51,8 +41,9 @@ import LucideGalleryVerticalEnd from '~icons/lucide/gallery-vertical-end'
 import SettingsDialog from '@/apps/drive/components/Settings/SettingsDialog.vue'
 import ShortcutsDialog from '@/apps/drive/components/ShortcutsDialog.vue'
 import emitter from '@/apps/drive/emitter'
-import { ref, computed, watch, h } from 'vue'
-import AppsIcon from '@/apps/drive/components/AppsIcon.vue'
+import { useEmitter } from '@/apps/drive/utils/useEmitter'
+import { ref, computed, watch } from 'vue'
+import { useAppSwitcher } from '@/composables/useAppSwitcher'
 import { useRouter, useRoute } from 'vue-router'
 import { move } from '@/apps/drive/resources/files'
 
@@ -63,70 +54,36 @@ import LucideSun from '~icons/lucide/sun'
 import LucideMoon from '~icons/lucide/moon'
 import LucideMonitor from '~icons/lucide/monitor'
 import LucideCheck from '~icons/lucide/check'
-import { getThemeMode, switchTheme } from '@/apps/drive/utils/setupTheme'
+import { themeMode, switchTheme } from '@/utils/setupTheme'
 
 defineEmits(['toggleMobileSidebar', 'showSearchPopUp'])
 const router = useRouter()
 const route = useRoute()
 notifCount.fetch()
-getTeams.fetch()
-
-const teamExists = createResource({
-  url: 'suite.drive.utils.get_default_team',
-  auto: true,
-  onSuccess: (d) => !d && router.replace({ name: 'drive-Setup' }),
-})
+rootInfo.fetch()
 
 const showSettings = ref(false)
 const showShortcuts = ref(false)
-const suggestedTab = ref(0)
-emitter.on('showSettings', (val = 0) => {
+const suggestedTab = ref('profile')
+useEmitter('showSettings', (val = 'profile') => {
   if (val === -1) showSettings.value = false
   else {
     showSettings.value = true
     suggestedTab.value = val
   }
 })
-emitter.on('toggleShortcuts', () => {
+useEmitter('toggleShortcuts', () => {
   showShortcuts.value = !showShortcuts.value
 })
 
-const themeMode = ref(getThemeMode())
-
-function selectTheme(theme) {
-  switchTheme(theme)
-  themeMode.value = theme.toLowerCase()
-}
+const appsMenuOption = useAppSwitcher('drive')
 
 const settingsItems = computed(() => [
   {
     group: __('Manage'),
     hideLabel: true,
-    items: [
-      {
-        icon: AppsIcon,
-        label: __('Apps'),
-        submenu: apps.data?.map?.((app) => ({
-          label: app.title,
-          icon: app.logo,
-          component: h(
-            'a',
-            {
-              class:
-                'flex items-center gap-2 p-1.5 rounded hover:bg-surface-gray-2',
-              href: app.route,
-            },
-            [
-              h('img', { src: app.logo, class: 'size-6' }),
-              h(
-                'span',
-                { class: 'max-w-18 text-sm w-full truncate text-ink-gray-9' },
-                app.title
-              ),
-            ]
-          ),
-        })),
-      },
+    options: [
+      appsMenuOption.value,
       {
         icon: LucideBook,
         label: __('Documentation'),
@@ -144,17 +101,17 @@ const settingsItems = computed(() => [
           {
             label: __('Light'),
             icon: themeMode.value === 'light' ? LucideCheck : LucideSun,
-            onClick: () => selectTheme('Light'),
+            onClick: () => switchTheme('Light'),
           },
           {
             label: __('Dark'),
             icon: themeMode.value === 'dark' ? LucideCheck : LucideMoon,
-            onClick: () => selectTheme('Dark'),
+            onClick: () => switchTheme('Dark'),
           },
           {
             label: __('Automatic'),
             icon: themeMode.value === 'automatic' ? LucideCheck : LucideMonitor,
-            onClick: () => selectTheme('Automatic'),
+            onClick: () => switchTheme('Automatic'),
           },
         ],
       },
@@ -163,14 +120,14 @@ const settingsItems = computed(() => [
   {
     group: __('Others'),
     hideLabel: true,
-    items: [
+    options: [
       {
-        icon: 'settings',
+        icon: 'lucide-settings',
         label: __('Settings'),
         onClick: () => (showSettings.value = true),
       },
       {
-        icon: 'log-out',
+        icon: 'lucide-log-out',
         label: __('Log out'),
         onClick: logout,
       },
@@ -193,9 +150,10 @@ const sidebarItems = computed(() => {
           label: __('Search'),
           icon: LucideSearch,
           onClick: () => emitter.emit('showSearchPopup', true),
+          suffix: isApple() ? '⌘ + K' : 'Ctrl + K',
         },
         {
-          label: __('Inbox'),
+          label: __('Notifications'),
           icon: LucideInbox,
           to: { name: 'drive-Inbox' },
           isActive: active('drive-Inbox'),
@@ -205,7 +163,6 @@ const sidebarItems = computed(() => {
       ],
     },
     {
-      label: 'Drive',
       items: [
         {
           label: 'Home',
@@ -222,11 +179,25 @@ const sidebarItems = computed(() => {
           accessKey: 'r',
         },
         {
-          label: 'Shared',
-          to: { name: 'drive-Shared' },
-          icon: LucideUsers,
-          isActive: active('drive-Shared'),
-          accessKey: 's',
+          label: 'Favourites',
+          to: { name: 'drive-Favourites' },
+          icon: LucideStar,
+          isActive: active('drive-Favourites'),
+          accessKey: 'f',
+        },
+        {
+          label: 'Everyone',
+          to: rootInfo.data
+            ? {
+                name: 'drive-Folder',
+                params: { entityName: rootInfo.data.root },
+              }
+            : undefined,
+          icon: LucideBuilding2,
+          isActive:
+            route.params.entityName === rootInfo.data?.root ||
+            first.name === rootInfo.data?.root,
+          accessKey: 'e',
         },
         {
           label: 'Trash',
@@ -237,23 +208,7 @@ const sidebarItems = computed(() => {
       ],
     },
     {
-      label: 'Teams',
-      cond: getTeams.data && Object.keys(getTeams.data).length > 0,
-      collapsible: true,
-      items:
-        getTeams.data &&
-        Object.values(getTeams.data).map((team) => ({
-          label: team.title,
-          to: { name: 'drive-Team', params: { team: team.name } },
-          icon: h(icons[team.icon || 'building']),
-          isActive:
-            (route.name === 'drive-Team' && route.params.team === team.name) ||
-            first.name === team.name,
-          accessKey: 't',
-        })),
-    },
-    {
-      label: 'Views',
+      label: 'Browse',
       collapsible: true,
       items: dynamicList([
         {
@@ -262,13 +217,6 @@ const sidebarItems = computed(() => {
           icon: LucidePaperclip,
           isActive: active('drive-Attachments'),
           accessKey: 'a',
-        },
-        {
-          label: 'Favourites',
-          to: { name: 'drive-Favourites' },
-          icon: LucideStar,
-          isActive: active('drive-Favourites'),
-          accessKey: 'f',
         },
         {
           label: 'Documents',
@@ -292,20 +240,24 @@ const sidebarItems = computed(() => {
 const draggedSpace = ref(null)
 const handleDrop = (e, space) => {
   draggedSpace.value = null
-  const file_name = e.dataTransfer.getData('application/x-filename')
+  // Prefer the multi-selection payload, falling back to the single dragged file.
+  let names = []
+  try {
+    names = JSON.parse(e.dataTransfer.getData('application/x-filenames') || '[]')
+  } catch {
+    names = []
+  }
+  if (!names.length) {
+    const single = e.dataTransfer.getData('application/x-filename')
+    if (single) names = [single]
+  }
+  if (!names.length) return
+  const clearFromList = () =>
+    names.forEach((name) => emitter.emit('remove-file-ui', name))
   if (space.label === 'Trash') {
-    emitter.emit('remove-file', file_name)
+    emitter.emit('remove-file', names)
   } else if (space.label === 'Home') {
-    move.submit(
-      { entity_names: [file_name] },
-      { onSuccess: () => emitter.emit('remove-file-ui', file_name) }
-    )
-  } else if (space.to?.name === 'drive-Team') {
-    const team = space.to.params.team
-    move.submit(
-      { entity_names: [file_name], team },
-      { onSuccess: () => emitter.emit('remove-file-ui', file_name) }
-    )
+    move.submit({ entity_names: names }, { onSuccess: clearFromList })
   }
 }
 </script>

@@ -1,6 +1,7 @@
 <template>
+	<!-- clip, not just hidden: a hidden root still scrolls when a caret lands past its edge -->
 	<div
-		class="flex h-screen w-screen select-none flex-col overflow-hidden"
+		class="isolate flex h-screen w-screen select-none flex-col overflow-hidden overflow-clip"
 		@click="focusedSlide = null"
 	>
 		<EditorNavbar
@@ -8,43 +9,28 @@
 			@performDropdownAction="performNavbarDropdownAction"
 		/>
 
-		<div class="relative flex h-screen bg-gray-300">
+		<div class="relative flex h-screen bg-surface-gray-1 dark:bg-surface-base">
 			<SlideContainer
 				ref="slideContainer"
 				v-if="presentationDoc"
-				:highlight="slideHighlight"
 				v-model:hasOngoingInteraction="isSlideInteractionActive"
 			/>
 
-			<NavigationPanel
-				class="absolute bottom-0 top-0"
-				@changeSlide="changeEditorSlide"
-				@openLayoutDialog="openLayoutDialog('insert')"
-			/>
+			<NavigationPanel class="absolute bottom-0 top-0" @changeSlide="changeEditorSlide" />
 
-			<Toolbar
-				v-if="!inReadonlyMode && presentationDoc"
-				@setHighlight="setHighlight"
-				@openLayoutDialog="openLayoutDialog('insert')"
-				@duplicate="duplicateSlide"
-				@delete="deleteSlide(true)"
-			/>
+			<Toolbar v-if="!inReadonlyMode && presentationDoc" />
 
-			<PropertiesPanel
-				v-if="!inReadonlyMode"
-				class="absolute bottom-0 right-0 top-0"
-				@openLayoutDialog="openLayoutDialog('replace')"
-			/>
+			<PropertiesPanel v-if="!inReadonlyMode" class="absolute bottom-0 right-0 top-0" />
 		</div>
 	</div>
 
 	<LayoutDialog
-		v-model="showLayoutDialog"
-		@insert="(layoutObj) => handleInsertSlide(null, layoutObj)"
+		v-model:open="showLayoutDialog"
+		@insert="(layoutObj) => handleInsertSlide(insertIndex, layoutObj)"
 	/>
 
 	<ThemeDialog
-		v-model="showThemeDialog"
+		v-model:open="showThemeDialog"
 		@create="(theme) => createPresentation(theme)"
 		@update="(theme) => updatePresentationTheme(theme)"
 		:update="themeDialogAction == 'update'"
@@ -60,6 +46,8 @@
 		:slide="slides[0]"
 		:disableCapture="isSlideInteractionActive"
 	/>
+
+	<KeyboardShortcutsDialog v-model:open="showShortcutsModal" />
 </template>
 
 <script setup>
@@ -67,20 +55,21 @@ import {
 	ref,
 	watch,
 	onMounted,
+	onActivated,
 	onBeforeUnmount,
 	provide,
-	inject,
 	nextTick,
 	useTemplateRef,
 } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 
-import { call, usePageMeta } from 'frappe-ui'
+import { call, toast, usePageMeta, KeyboardShortcutsDialog } from 'frappe-ui'
 
 import ExportView from '@/apps/slides/pages/ExportView.vue'
 import EditorNavbar from '@/apps/slides/components/EditorNavbar.vue'
 import NavigationPanel from '@/apps/slides/components/NavigationPanel.vue'
 import PropertiesPanel from '@/apps/slides/components/PropertiesPanel.vue'
+
 import SlideContainer from '@/apps/slides/components/SlideContainer.vue'
 import Toolbar from '@/apps/slides/components/Toolbar.vue'
 import ThemeDialog from '@/apps/slides/components/ThemeDialog.vue'
@@ -91,15 +80,15 @@ import {
 	presentationId,
 	initPresentationDoc,
 	presentationDoc,
-	unsyncedPresentationRecord,
 	templateList,
 	templateListResource,
 	inReadonlyMode,
 	createPresentationResource,
 	duplicatePresentation,
-	deletePresentation,
+	confirmDeletePresentation,
 	presentationTheme,
 	resetEditorState,
+	pageTitle,
 } from '@/apps/slides/stores/presentation'
 import {
 	slides,
@@ -108,8 +97,6 @@ import {
 	focusedSlide,
 	setSlideIndex,
 	changeEditorSlide,
-	deleteSlide,
-	duplicateSlide,
 	addEmptySlide,
 	handleInsertSlide,
 } from '@/apps/slides/stores/slide'
@@ -121,13 +108,17 @@ import {
 	actionOrder as historyMetaActionOrder,
 } from '@/apps/slides/stores/historyMeta'
 
-import { useShortcuts } from '@/apps/slides/composables/useShortcuts'
+import { useShortcuts, showShortcutsModal } from '@/apps/slides/composables/useShortcuts'
 import { saveChanges, saveCurrentState, dirty } from '@/apps/slides/stores/saving'
+import {
+	refreshOfflineStatus,
+	warmOfflineCopyAssets,
+	pruneOfflineCopy,
+} from '@/apps/slides/stores/offlineCopy'
 import { inSlideShowMode, startSlideShow } from '@/apps/slides/stores/slideshow'
 import { Layout } from 'lucide-vue-next'
 import { useCommandHistory } from '@/apps/slides/composables/useCommandHistory'
 
-const isDriveInstalled = inject('isDriveInstalled', false)
 
 const route = useRoute()
 const router = useRouter()
@@ -150,13 +141,12 @@ const props = defineProps({
 
 const showThemeDialog = ref(false)
 const themeDialogAction = ref('update')
-const slideHighlight = ref(false)
 const isSlideInteractionActive = ref(false)
 
 const showLayoutDialog = ref(false)
-const layoutAction = ref('')
 const insertIndex = ref(null)
 const showExportView = ref(false)
+let deleteDialog = null
 
 const historyMetaForCommandHistory = {
 	actions: historyMetaActions,
@@ -169,13 +159,11 @@ useShortcuts(inReadonlyMode, inSlideShowMode)
 
 usePageMeta(() => {
 	return {
-		title: presentationDoc.value?.title || 'Slides',
+		title: pageTitle(),
 	}
 })
 
-const setHighlight = (value) => {
-	slideHighlight.value = value
-}
+onActivated(() => (document.title = pageTitle()))
 
 const handleAutoSave = () => {
 	if (isSlideInteractionActive.value || focusElementId.value != null) return
@@ -199,15 +187,6 @@ const loadPresentation = async (id) => {
 	presentationDoc.value = await initPresentationDoc(id, inReadonlyMode.value)
 }
 
-const updateUnsyncedRecord = () => {
-	unsyncedPresentationRecord.value = {
-		...unsyncedPresentationRecord.value,
-		modified: presentationDoc.value.modified,
-		thumbnail: presentationDoc.value.thumbnail,
-		slide_count: slides.value.length,
-	}
-}
-
 const handleBeforeUnload = (e) => {
 	if (dirty.value) {
 		e.preventDefault()
@@ -229,6 +208,8 @@ const performBeforeLoadOperations = () => {
 const performAfterLoadOperations = () => {
 	setSlideIndex(props.activeSlideId)
 	updateRoute(presentationDoc.value.slug)
+	// once per open: an image deleted then undone must not cost the copy its bytes
+	pruneOfflineCopy(presentationId.value).catch(() => {})
 
 	if (inReadonlyMode.value) return
 
@@ -258,11 +239,11 @@ const handleMounted = () => {
 const hideOpenDialogs = () => {
 	showThemeDialog.value = false
 	showLayoutDialog.value = false
+	deleteDialog?.close()
 }
 
 const handleBeforeUnmount = () => {
 	thumbnailCaptureRef.value?.reset()
-	updateUnsyncedRecord()
 	clearInterval(autosaveInterval)
 
 	if (router.currentRoute.value.name !== 'slides-slideshow') {
@@ -272,6 +253,13 @@ const handleBeforeUnmount = () => {
 	window.removeEventListener('beforeunload', handleBeforeUnload)
 	window.removeEventListener('popstate', hideOpenDialogs)
 }
+
+// slides land after the load resolves; a save is when new media shows up in them
+watch([slides, () => presentationDoc.value?.modified], () => {
+	const id = slides.value.length ? presentationId.value : null
+	refreshOfflineStatus(id)
+	warmOfflineCopyAssets(id)
+})
 
 watch(
 	() => props.activeSlideId,
@@ -349,6 +337,7 @@ const createPresentation = async (theme) => {
 	showThemeDialog.value = false
 	const newPresentation = await createPresentationResource.submit({
 		template: theme,
+		parent: route.query.parent || '',
 	})
 	const name = newPresentation?.name
 
@@ -357,30 +346,35 @@ const createPresentation = async (theme) => {
 		return
 	}
 
-	if (isDriveInstalled) {
-		const parent = route.query.parent || ''
-		call('suite.slides.api.file.create_drive_file', {
-			name: name,
-			parent: parent,
-		})
-	}
-
 	navigateToPresentation(name)
 }
 
 const updatePresentationTheme = async (theme) => {
-	if (!presentationId.value) return
+	const id = presentationId.value
+	if (!id) return
 
 	showThemeDialog.value = false
 
-	call('frappe.client.set_value', {
-		doctype: 'Presentation',
-		name: presentationId.value,
-		fieldname: 'theme',
-		value: theme,
-	}).then(() => {
+	try {
+		const doc = await call('frappe.client.set_value', {
+			doctype: 'Presentation',
+			name: id,
+			fieldname: 'theme',
+			value: theme,
+		})
+
+		// the editor can move on mid-request; writing then would apply the theme
+		// and the modified stamp to a different presentation
+		if (presentationDoc.value?.name !== id) return
+
 		presentationDoc.value.theme = theme
-	})
+		// autosave stamps this onto the local copy, so a stale value would make the
+		// next load discard edits that had not synced yet
+		presentationDoc.value.modified = doc.modified
+	} catch (error) {
+		console.error('Failed to update theme: ', error)
+		toast.error('Could not update the theme. Please try again.')
+	}
 }
 
 const performNavbarDropdownAction = async (action) => {
@@ -390,9 +384,13 @@ const performNavbarDropdownAction = async (action) => {
 		const newPresentation = await duplicatePresentation(presentationId.value)
 		navigateToPresentation(newPresentation)
 	} else if (action == 'delete') {
-		await deletePresentation(presentationId.value)
-		unsyncedPresentationRecord.value = { name: presentationId.value, deleted: true }
-		router.push({ name: 'slides-home' })
+		deleteDialog = confirmDeletePresentation(
+			{ name: presentationId.value, title: presentationDoc.value?.title },
+			() => {
+				thumbnailCaptureRef.value?.reset()
+				router.push({ name: 'slides-home' })
+			},
+		)
 	} else if (action == 'updateTheme') {
 		themeDialogAction.value = 'update'
 		showThemeDialog.value = true
@@ -401,11 +399,12 @@ const performNavbarDropdownAction = async (action) => {
 	}
 }
 
-const openLayoutDialog = (action, index) => {
+const openLayoutDialog = (index) => {
 	showLayoutDialog.value = true
-	layoutAction.value = action
 	insertIndex.value = index
 }
+
+provide('openLayoutDialog', openLayoutDialog)
 
 const cleanup = () => {
 	showExportView.value = false

@@ -6,6 +6,7 @@
 <template>
 	<AppSidebar
 		v-if="failed"
+		v-bind="$attrs"
 		:calendars="calendars"
 		:visible-calendars="visibleCalendars"
 		@update:visible-calendars="(n: string) => emit('update:visibleCalendars', n)"
@@ -38,6 +39,13 @@ import AppSidebar from '@/apps/calendar/components/AppSidebar.vue'
 import NewCalendarModal from '@/apps/calendar/components/Modals/NewCalendarModal.vue'
 import CalendarSettingsModal from '@/apps/calendar/components/Modals/CalendarSettingsModal.vue'
 import { userStore } from '@/apps/calendar/stores/user'
+
+//// Neoffice — `inheritAttrs: false` + `v-bind="$attrs"` on the fallback: upstream's
+//// AppSidebar grew a mini-month and an event list (month/year/day/view/events/
+//// selectedEvent, @select-date, @select-event) after the merge of 31.08.2026. This
+//// chrome does not read them itself, but it must not swallow them either — they are
+//// relayed untouched so the fallback keeps upstream's full behaviour.
+defineOptions({ inheritAttrs: false })
 
 const { calendars, visibleCalendars } = defineProps<{
 	calendars: any[]

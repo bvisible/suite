@@ -1,9 +1,6 @@
 import { ref } from 'vue'
 import { getElementCenter } from '@/apps/slides/stores/element'
-
-// module-scoped so the active element and selection box read it directly —
-// passing it as a per-frame prop re-rendered every element during rotation
-export const rotationDelta = ref(0)
+import { rotationDelta } from '@/apps/slides/stores/interaction'
 
 export const useRotator = () => {
 	const isRotating = ref(false)
@@ -27,8 +24,8 @@ export const useRotator = () => {
 		isRotating.value = true
 		rotationDelta.value = 0
 
-		centerX = getElementCenter('Y')
-		centerY = getElementCenter('X')
+		centerX = getElementCenter('X')
+		centerY = getElementCenter('Y')
 
 		startAngle = getAngle(e.clientX, e.clientY)
 
@@ -60,9 +57,5 @@ export const useRotator = () => {
 		window.removeEventListener('mousemove', rotate)
 	}
 
-	const resetRotation = () => {
-		rotationDelta.value = 0
-	}
-
-	return { isRotating, rotationDelta, startRotate, resetRotation }
+	return { isRotating, rotationDelta, startRotate }
 }

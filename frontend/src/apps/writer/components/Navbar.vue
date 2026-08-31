@@ -21,8 +21,9 @@
       <WriterLogo v-else class="size-7" />
     </div>
     <slot name="breadcrumbs">
-      <Breadcrumbs
+      <EditableBreadcrumbs
         :items="formattedCrumbs"
+        :entity="file?.doc || null"
         class="select-none truncate max-w-[80%]"
       />
     </slot>
@@ -82,19 +83,33 @@
       <Dropdown
         v-else-if="fileActions.length"
         :options="fileActions"
-        placement="right"
+        align="end"
         :button="{
           variant: 'ghost',
           icon: LucideMoreHorizontal,
+          label: 'Document actions',
         }"
       />
     </div>
+    <!-- Kept out of the navbar DOM: the rename field is meant to be the only <input> in there, and e2e locates it as such. -->
+    <Teleport to="body">
+      <input
+        ref="docxInputRef"
+        name="docx-import"
+        type="file"
+        accept=".docx"
+        style="display: none"
+        @change="onImportDocx"
+      />
+    </Teleport>
     <Dialogs v-model="dialog" :docs="file?.doc && [file]" />
   </nav>
 </template>
 <script setup>
-import { Button, Breadcrumbs, Dropdown } from 'frappe-ui'
-import { getFileLink } from '@/apps/drive/ui/drive/js/utils'
+import { Button, Dropdown } from 'frappe-ui'
+import EditableBreadcrumbs from '@/apps/drive/components/EditableBreadcrumbs.vue'
+import { getFileLink } from '@/apps/drive/sdk'
+import { toggleFav } from '@/apps/drive/resources/files'
 
 import { useSessionStore } from '@/boot/session'
 import emitter from '@/apps/writer/emitter'
@@ -105,6 +120,9 @@ import Dialogs from '@/apps/writer/components/Dialogs.vue'
 import { dynamicList } from '@/apps/writer/utils/'
 import { downloadZippedHTML, downloadMD } from '@/apps/writer/utils'
 import { downloadDocxFromHtml } from '../utils/docxexporter'
+import { importDocx } from '../utils/docximporter'
+import { orderedTabs } from '@/apps/writer/extensions/tabs'
+import { createDialog } from '@/apps/writer/utils/dialogs'
 
 import LucideUsers from '~icons/lucide/users'
 import LucideBuilding2 from '~icons/lucide/building-2'
@@ -119,6 +137,7 @@ import LucideTrash from '~icons/lucide/trash'
 import LucideMoreHorizontal from '~icons/lucide/more-horizontal'
 import LucideShare2 from '~icons/lucide/share-2'
 import LucideDownload from '~icons/lucide/download'
+import LucideUpload from '~icons/lucide/upload'
 import LucidePlus from '~icons/lucide/plus'
 import LucideLink from '~icons/lucide/link'
 import LucideArrowLeftRight from '~icons/lucide/arrow-left-right'
@@ -160,6 +179,42 @@ const showTemplates = defineModel('showTemplates')
 const isLoggedIn = computed(() => useSessionStore().isLoggedIn)
 const dialog = inject('dialog', ref(''))
 const editor = inject('editor', null)
+const docxInputRef = ref(null)
+
+const exportDocx = () => {
+  if (!editor.value) return
+  const filename = `${props.file.doc.file_name}.docx`
+  const settings = props.document?.doc?.settings
+  const tabs = orderedTabs(editor.value.state.doc)
+
+  if (tabs.length <= 1) {
+    downloadDocxFromHtml(editor.value.getHTML(), filename, settings)
+    return
+  }
+
+  createDialog({
+    title: 'Export DOCX',
+    message: 'This document has multiple tabs. Export just the current tab, or all of them?',
+    actions: [
+      {
+        label: 'All Tabs',
+        variant: 'outline',
+        onClick: ({ close }) => {
+          downloadDocxFromHtml(editor.value.getHTML(), filename, settings)
+          close()
+        },
+      },
+      {
+        label: 'Current Tab',
+        variant: 'solid',
+        onClick: ({ close }) => {
+          downloadDocxFromHtml(editor.value.commands.getCurrentTabHTML(), filename, settings)
+          close()
+        },
+      },
+    ],
+  })
+}
 
 const route = useRoute()
 const formattedCrumbs = computed(() => {
@@ -185,9 +240,9 @@ const fileActions = computed(() =>
   props.document?.doc?.settings
     ? [
         {
-          group: true,
+          group: '',
           hideLabel: true,
-          items: [
+          options: [
             {
               label: __('Share'),
               icon: LucideShare2,
@@ -210,9 +265,9 @@ const fileActions = computed(() =>
           ],
         },
         {
-          group: true,
+          group: '',
           hideLabel: true,
-          items: [
+          options: [
             {
               label: __('Move'),
               icon: LucideArrowLeftRight,
@@ -222,7 +277,7 @@ const fileActions = computed(() =>
             {
               label: __('Rename'),
               icon: LucideSquarePen,
-              onClick: () => (dialog.value = 'rn'),
+              onClick: () => emitter.emit('rename'),
               isEnabled: () => props.file.doc.write,
             },
             {
@@ -235,9 +290,18 @@ const fileActions = computed(() =>
               icon: LucideStar,
               onClick: () => {
                 props.file.doc.is_favourite = true
-                toggleFav.submit({ entities: [props.file.doc] })
+                toggleFav.submit(
+                  {
+                    entities: [{ name: props.file.doc.name, is_favourite: true }],
+                  },
+                  {
+                    onError: () => {
+                      props.file.doc.is_favourite = false
+                    },
+                  }
+                )
               },
-              isEnabled: () => !props.file.doc.is_favourite,
+              isEnabled: () => isLoggedIn.value && !props.file.doc.is_favourite,
             },
             {
               label: __('Unfavourite'),
@@ -245,16 +309,25 @@ const fileActions = computed(() =>
               color: 'stroke-amber-500 fill-amber-500',
               onClick: () => {
                 props.file.doc.is_favourite = false
-                toggleFav.submit({ entities: [props.file.doc] })
+                toggleFav.submit(
+                  {
+                    entities: [{ name: props.file.doc.name, is_favourite: false }],
+                  },
+                  {
+                    onError: () => {
+                      props.file.doc.is_favourite = true
+                    },
+                  }
+                )
               },
-              isEnabled: () => props.file.doc.is_favourite,
+              isEnabled: () => isLoggedIn.value && props.file.doc.is_favourite,
             },
           ],
         },
         {
-          group: true,
+          group: '',
           hideLabel: true,
-          items: dynamicList([
+          options: dynamicList([
             {
               label: 'View',
               icon: LucideView,
@@ -300,13 +373,7 @@ const fileActions = computed(() =>
                 {
                   label: 'DOCX',
                   icon: LucideFileText,
-                  onClick: () => {
-                    downloadDocxFromHtml(
-                      editor.getHTML(),
-                      `${file.doc.file_name}.docx`,
-                      props.document?.doc?.settings,
-                    )
-                  },
+                  onClick: () => exportDocx(),
                 },
                 {
                   label: 'Folder',
@@ -333,6 +400,18 @@ const fileActions = computed(() =>
               ],
             },
             {
+              label: 'Import',
+              icon: LucideUpload,
+              cond: props.file.doc.write,
+              submenu: [
+                {
+                  label: 'DOCX',
+                  icon: LucideFileText,
+                  onClick: () => docxInputRef.value?.click(),
+                },
+              ],
+            },
+            {
               icon: LucideHistory,
               label: 'Versions',
               cond: props.file.doc.write,
@@ -347,9 +426,9 @@ const fileActions = computed(() =>
           ]),
         },
         {
-          group: true,
+          group: '',
           hideLabel: true,
-          items: [
+          options: [
             {
               onClick: () => clearCache(),
               label: 'Clear Cache',
@@ -367,11 +446,18 @@ const fileActions = computed(() =>
       ].map((k) => {
         return {
           ...k,
-          items: k.items.filter((l) => !l.isEnabled || l.isEnabled()),
+          options: k.options.filter((l) => !l.isEnabled || l.isEnabled()),
         }
       })
     : [],
 )
+
+const onImportDocx = async (e) => {
+  const file = e.target.files?.[0]
+  e.target.value = ''
+  if (!file) return
+  await importDocx(file, { editor, currentFileId: props.file.doc.name })
+}
 
 // Utility functions for doc
 const clearCache = () => {

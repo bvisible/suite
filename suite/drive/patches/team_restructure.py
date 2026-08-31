@@ -7,6 +7,10 @@ import frappe
 
 
 def execute():
+    if not frappe.db.table_exists("Drive Entity"):
+        # Site never had the legacy Drive schema — nothing to restructure.
+        return
+
     print(
         "This migration to an alpha release might CORRUPT your data. Do NOT run this before taking a complete backup. You have two minutes left to cancel this deployment. "
     )
@@ -65,7 +69,7 @@ def execute():
     frappe.db.commit()
 
     for k in entities:
-        if not k.get("old_name") in translate:
+        if k.get("old_name") not in translate:
             continue
         name = translate[k["old_name"]]
         frappe.db.set_value("Drive File", name, "owner", k["owner"], update_modified=False)

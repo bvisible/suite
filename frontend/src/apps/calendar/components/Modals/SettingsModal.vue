@@ -1,64 +1,114 @@
 <template>
-	<Dialog v-model="show" :options="{ title: __('Settings'), size: '4xl' }">
-		<template #body>
-			<div class="flex" :style="{ height: 'calc(100vh - 9rem)' }">
-				<div class="bg-surface-sidebar flex w-52 shrink-0 flex-col border-r p-4 py-3">
-					<h1 class="px-2 text-3xl leading-6">{{ __('Settings') }}</h1>
-					<div class="mt-3 space-y-1">
-						<button
-							v-for="tab in TABS"
-							:key="tab.label"
-							class="flex h-7 w-full items-center gap-2 rounded px-2 py-1"
-							:class="[
-								activeTab.label == tab.label
-									? 'bg-surface-gray-3'
-									: 'hover:bg-surface-gray-2',
-							]"
-							@click="activeTab = tab"
-						>
-							<component
-								:is="tab.icon"
-								class="text-ink-gray-6 h-4 w-4 stroke-[1.5]"
-							/>
-							<span class="text-ink-gray-7 text-base"> {{ tab.label }} </span>
-						</button>
-					</div>
-				</div>
-				<div class="flex flex-1 flex-col space-y-5 overflow-y-auto p-12">
-					<component :is="activeTab.component" v-if="activeTab" />
-				</div>
-				<Button
-					class="absolute right-0 my-3 mr-4"
-					variant="ghost"
-					icon="x"
-					@click="show = false"
-				/>
-			</div>
-		</template>
-	</Dialog>
+	<SettingsDialog v-model:open="show" v-model:tab="activeTab" size="5xl">
+		<template #title>{{ __('Settings') }}</template>
+		<SettingsSidebar>
+			<SettingsNavGroup v-for="group in tabGroups" :key="group.label" :label="group.label">
+				<SettingsNavItem v-for="tab in group.items" :key="tab.value" :value="tab.value">
+					<template #prefix>
+						<component :is="tab.icon" class="size-4 shrink-0 text-ink-gray-6" />
+					</template>
+					{{ tab.label }}
+				</SettingsNavItem>
+			</SettingsNavGroup>
+		</SettingsSidebar>
+		<SettingsContent>
+			<SettingsPanel v-for="tab in tabs" :key="tab.value" :value="tab.value">
+				<component :is="tab.component" />
+			</SettingsPanel>
+		</SettingsContent>
+	</SettingsDialog>
 </template>
 <script setup lang="ts">
-import { markRaw, ref } from 'vue'
-import { Palette, User } from 'lucide-vue-next'
-import { Button, Dialog } from 'frappe-ui'
+import { computed, markRaw, ref } from 'vue'
+import { Code, Contact, HardDriveDownload, HardDriveUpload, Palette, User } from 'lucide-vue-next'
+import {
+	createResource,
+	SettingsContent,
+	SettingsDialog,
+	SettingsNavGroup,
+	SettingsNavItem,
+	SettingsPanel,
+	SettingsSidebar,
+} from 'frappe-ui'
 
+import AdvancedSettings from '@/apps/calendar/components/Settings/AdvancedSettings.vue'
 import AppearanceSettings from '@/apps/calendar/components/Settings/AppearanceSettings.vue'
+import ExportSettings from '@/apps/calendar/components/Settings/ExportSettings.vue'
+import ImportSettings from '@/apps/calendar/components/Settings/ImportSettings.vue'
+import ParticipantIdentitySettings from '@/apps/calendar/components/Settings/ParticipantIdentitySettings.vue'
 import ProfileSettings from '@/apps/calendar/components/Settings/ProfileSettings.vue'
 
 const show = defineModel<boolean>({ default: false })
 
-const TABS = [
+const TAB_GROUPS = [
 	{
-		label: __('Profile'),
-		icon: User,
-		component: markRaw(ProfileSettings),
+		label: __('General'),
+		items: [
+			{
+				label: __('Profile'),
+				value: 'profile',
+				icon: User,
+				component: markRaw(ProfileSettings),
+			},
+			{
+				label: __('Participant Identity'),
+				value: 'participant-identity',
+				icon: Contact,
+				component: markRaw(ParticipantIdentitySettings),
+			},
+			{
+				label: __('Appearance'),
+				value: 'appearance',
+				icon: Palette,
+				component: markRaw(AppearanceSettings),
+			},
+		],
 	},
 	{
-		label: __('Appearance'),
-		icon: Palette,
-		component: markRaw(AppearanceSettings),
+		label: __('Data'),
+		items: [
+			{
+				label: __('Import'),
+				value: 'import',
+				icon: HardDriveDownload,
+				component: markRaw(ImportSettings),
+			},
+			{
+				label: __('Export'),
+				value: 'export',
+				icon: HardDriveUpload,
+				component: markRaw(ExportSettings),
+			},
+		],
+	},
+	{
+		label: __('Developer'),
+		items: [
+			{
+				label: __('Advanced'),
+				value: 'advanced',
+				icon: Code,
+				component: markRaw(AdvancedSettings),
+			},
+		],
 	},
 ]
 
-const activeTab = ref(TABS[0])
+// The Advanced tab only holds the CalDAV client config, which the server withholds
+// unless Mail Settings enables it — hide the whole Developer group when it's empty.
+const clientConfig = createResource({
+	url: 'suite.mail.api.account.get_calendar_client_config',
+	cache: 'calendar-client-config',
+	auto: true,
+})
+
+const tabGroups = computed(() =>
+	clientConfig.data?.server_url
+		? TAB_GROUPS
+		: TAB_GROUPS.filter((group) => group.label !== __('Developer')),
+)
+
+const tabs = computed(() => tabGroups.value.flatMap((group) => group.items))
+
+const activeTab = ref(tabs.value[0].value)
 </script>

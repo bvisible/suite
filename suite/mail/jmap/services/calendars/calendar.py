@@ -5,165 +5,172 @@ from suite.mail.jmap.services.calendars.calendars import CalendarsService
 
 
 class CalendarService(CalendarsService):
-	"""Service for handling calendar-related functionality based on the JMAP server capabilities."""
+    """Service for handling calendar-related functionality based on the JMAP server capabilities."""
 
-	type: ClassVar[str] = "Calendar"
+    type: ClassVar[str] = "Calendar"
 
-	def create(self, calendars: list[dict]) -> dict:
-		"""Public method to create calendars, handling batching if the number of calendars exceeds the server's maximum allowed in a single 'set' call."""
+    def create(self, calendars: list[dict]) -> dict:
+        """Public method to create calendars, handling batching if the number of calendars exceeds the server's maximum allowed in a single 'set' call."""
 
-		result = {"created": {}, "notCreated": {}}
-		for batch in self.create_batches(calendars, self.max_objects_in_set):
-			payload = {}
-			kwargs = {}
-			for calendar in batch:
-				payload[calendar["creation_id"]] = {
-					"name": calendar["name"],
-					"color": calendar.get("color"),
-					"description": calendar.get("description"),
-					"sortOrder": int(calendar.get("sort_order") or 0),
-					"timeZone": calendar.get("time_zone"),
-					"isSubscribed": bool(calendar.get("is_subscribed") or False),
-					"isVisible": bool(calendar.get("is_visible") or True),
-				}
+        result = {"created": {}, "notCreated": {}}
+        for batch in self.create_batches(calendars, self.max_objects_in_set):
+            payload = {}
+            kwargs = {}
+            for calendar in batch:
+                payload[calendar["creation_id"]] = {
+                    "name": calendar["name"],
+                    "color": calendar.get("color"),
+                    "description": calendar.get("description"),
+                    "sortOrder": int(calendar.get("sort_order") or 0),
+                    "timeZone": calendar.get("time_zone"),
+                    "isSubscribed": bool(calendar.get("is_subscribed") or False),
+                    "isVisible": bool(calendar.get("is_visible", True)),
+                    "includeInAvailability": calendar.get("include_in_availability") or "all",
+                }
 
-				if bool(calendar.get("is_default") or False):
-					kwargs["onSuccessSetIsDefault"] = f"#{calendar['creation_id']}"
+                if bool(calendar.get("is_default") or False):
+                    kwargs["onSuccessSetIsDefault"] = f"#{calendar['creation_id']}"
 
-			response = self._create(payload, **kwargs)
+            response = self._create(payload, **kwargs)
 
-			if method_responses := response.get("methodResponses"):
-				result["created"].update(method_responses[0][1].get("created", {}))
-				if not_created := method_responses[0][1].get("notCreated", {}):
-					result["notCreated"].update(not_created)
+            if method_responses := response.get("methodResponses"):
+                result["created"].update(method_responses[0][1].get("created", {}))
+                if not_created := method_responses[0][1].get("notCreated", {}):
+                    result["notCreated"].update(not_created)
 
-		return result
+        return result
 
-	# //// Neoffice: JMAP returns only a default subset of properties when none
-	# are requested — and that subset excludes shareWith AND isVisible/
-	# includeInAvailability. So the sidebar never saw who a calendar was shared
-	# with, nor the persisted visibility. Request them explicitly. ////
-	GET_PROPERTIES: ClassVar[list[str]] = [
-		"id",
-		"name",
-		"description",
-		"color",
-		"timeZone",
-		"sortOrder",
-		"isDefault",
-		"isSubscribed",
-		"isVisible",
-		"includeInAvailability",
-		"myRights",
-		"shareWith",
-	]
+    #//// Neoffice — request the properties explicitly, where upstream sends none.
+    #//// JMAP returns a default subset when no properties are asked for, and that
+    #//// subset excludes shareWith AND isVisible/includeInAvailability — yet
+    #//// format_calendar() in the Calendar doctype reads all three. Without this
+    #//// the sidebar never saw who a calendar was shared with, nor the persisted
+    #//// show/hide state: the read-back was blind. Keep in sync with
+    #//// format_calendar and with our share_calendar/set_calendar_visibility
+    #//// endpoints (suite/calendar/doctype/calendar/calendar.py).
+    GET_PROPERTIES: ClassVar[list[str]] = [
+        "id",
+        "name",
+        "description",
+        "color",
+        "timeZone",
+        "sortOrder",
+        "isDefault",
+        "isSubscribed",
+        "isVisible",
+        "includeInAvailability",
+        "myRights",
+        "shareWith",
+    ]
 
-	def get(self, ids: list[str] | None = None) -> list[dict]:
-		"""Public method to get calendars, handling batching if a list of ids is provided."""
+    def get(self, ids: list[str] | None = None) -> list[dict]:
+        """Public method to get calendars, handling batching if a list of ids is provided."""
 
-		results = []
-		if ids:
-			for batch in self.create_batches(ids, self.max_objects_in_get):
-				response = self._get(batch, properties=self.GET_PROPERTIES)
+        results = []
+        if ids:
+            for batch in self.create_batches(ids, self.max_objects_in_get):
+                response = self._get(batch, properties=self.GET_PROPERTIES)
 
-				if method_responses := response.get("methodResponses"):
-					results.extend(method_responses[0][1].get("list", []))
-		else:
-			response = self._get(properties=self.GET_PROPERTIES)
-			if method_responses := response.get("methodResponses"):
-				results.extend(method_responses[0][1].get("list", []))
+                if method_responses := response.get("methodResponses"):
+                    results.extend(method_responses[0][1].get("list", []))
+        else:
+            response = self._get(properties=self.GET_PROPERTIES)
+            if method_responses := response.get("methodResponses"):
+                results.extend(method_responses[0][1].get("list", []))
 
-		return results
+        return results
 
-	def update(self, calendars: list[dict]) -> dict:
-		"""Public method to update calendars, handling batching if the number of calendars exceeds the server's maximum allowed in a single 'set' call."""
+    def update(self, calendars: list[dict]) -> dict:
+        """Public method to update calendars, handling batching if the number of calendars exceeds the server's maximum allowed in a single 'set' call."""
 
-		result = {"updated": [], "notUpdated": {}}
-		for batch in self.create_batches(calendars, self.max_objects_in_set):
-			payload = {}
-			kwargs = {}
-			for calendar in batch:
-				payload[calendar["id"]] = {
-					"name": calendar["name"],
-					"color": calendar.get("color"),
-					"description": calendar.get("description"),
-					"sortOrder": int(calendar.get("sort_order") or 0),
-					"timeZone": calendar.get("time_zone"),
-					"isSubscribed": bool(calendar.get("is_subscribed") or False),
-					"isVisible": bool(calendar.get("is_visible") or True),
-				}
+        result = {"updated": [], "notUpdated": {}}
+        for batch in self.create_batches(calendars, self.max_objects_in_set):
+            payload = {}
+            kwargs = {}
+            for calendar in batch:
+                payload[calendar["id"]] = {
+                    "name": calendar["name"],
+                    "color": calendar.get("color"),
+                    "description": calendar.get("description"),
+                    "sortOrder": int(calendar.get("sort_order") or 0),
+                    "timeZone": calendar.get("time_zone"),
+                    "isSubscribed": bool(calendar.get("is_subscribed") or False),
+                    "isVisible": bool(calendar.get("is_visible", True)),
+                    "includeInAvailability": calendar.get("include_in_availability") or "all",
+                }
 
-				if bool(calendar.get("is_default") or False):
-					kwargs["onSuccessSetIsDefault"] = calendar["id"]
+                if bool(calendar.get("is_default") or False):
+                    kwargs["onSuccessSetIsDefault"] = calendar["id"]
 
-			response = self._update(payload, **kwargs)
+            response = self._update(payload, **kwargs)
 
-			if method_responses := response.get("methodResponses"):
-				result["updated"].extend(method_responses[0][1].get("updated", {}).keys())
-				if not_updated := method_responses[0][1].get("notUpdated", {}):
-					result["notUpdated"].update(not_updated)
+            if method_responses := response.get("methodResponses"):
+                result["updated"].extend(method_responses[0][1].get("updated", {}).keys())
+                if not_updated := method_responses[0][1].get("notUpdated", {}):
+                    result["notUpdated"].update(not_updated)
 
-		return result
+        return result
 
-	def set_visibility(self, id: str, visible: bool) -> dict:
-		"""//// Neoffice: partial update of ONLY isVisible, to persist the sidebar
-		show/hide toggle across reloads (upstream toggled it client-side only). ////"""
+    #//// Neoffice — added methods (no upstream equivalent). Both are partial
+    #//// JMAP Calendar/set updates: the protocol merges, so unspecified properties
+    #//// are left untouched and there is no need to resend name/color/etc.
+    #////
+    #//// set_visibility persists the sidebar show/hide toggle across reloads —
+    #//// upstream toggles it in client state only. set_sharing is the write path
+    #//// for shareWith: upstream reads the map (format_calendar) but has never
+    #//// wired a way to write it, so sharing could not be exposed in the SPA.
+    def set_visibility(self, id: str, visible: bool) -> dict:
+        result = {"updated": [], "notUpdated": {}}
+        response = self._update({id: {"isVisible": bool(visible)}})
 
-		result = {"updated": [], "notUpdated": {}}
-		response = self._update({id: {"isVisible": bool(visible)}})
+        if method_responses := response.get("methodResponses"):
+            result["updated"].extend(method_responses[0][1].get("updated", {}).keys())
+            if not_updated := method_responses[0][1].get("notUpdated", {}):
+                result["notUpdated"].update(not_updated)
 
-		if method_responses := response.get("methodResponses"):
-			result["updated"].extend(method_responses[0][1].get("updated", {}).keys())
-			if not_updated := method_responses[0][1].get("notUpdated", {}):
-				result["notUpdated"].update(not_updated)
+        return result
 
-		return result
+    def set_sharing(self, id: str, share_with: dict) -> dict:
+        result = {"updated": [], "notUpdated": {}}
+        response = self._update({id: {"shareWith": share_with or {}}})
 
-	def set_sharing(self, id: str, share_with: dict) -> dict:
-		"""//// Neoffice: partial update of ONLY the shareWith map. JMAP Calendar/set
-		merges (unspecified properties are left untouched), so we don't need to
-		resend name/color/etc. Upstream never wired a write path for sharing. ////"""
+        if method_responses := response.get("methodResponses"):
+            result["updated"].extend(method_responses[0][1].get("updated", {}).keys())
+            if not_updated := method_responses[0][1].get("notUpdated", {}):
+                result["notUpdated"].update(not_updated)
 
-		result = {"updated": [], "notUpdated": {}}
-		response = self._update({id: {"shareWith": share_with or {}}})
+        return result
 
-		if method_responses := response.get("methodResponses"):
-			result["updated"].extend(method_responses[0][1].get("updated", {}).keys())
-			if not_updated := method_responses[0][1].get("notUpdated", {}):
-				result["notUpdated"].update(not_updated)
+    def delete(self, ids: list[str], remove_events: bool = False) -> dict:
+        """Public method to delete calendars, handling batching if the number of calendar ids exceeds the server's maximum allowed in a single 'set' call."""
 
-		return result
+        result = {"destroyed": [], "notDestroyed": {}}
+        for batch in self.create_batches(ids, self.max_objects_in_set):
+            response = self._delete(batch, onDestroyRemoveEvents=remove_events)
 
-	def delete(self, ids: list[str], remove_events: bool = False) -> dict:
-		"""Public method to delete calendars, handling batching if the number of calendar ids exceeds the server's maximum allowed in a single 'set' call."""
+            if method_responses := response.get("methodResponses"):
+                result["destroyed"].extend(method_responses[0][1].get("destroyed", []))
+                if not_destroyed := method_responses[0][1].get("notDestroyed", {}):
+                    result["notDestroyed"].update(not_destroyed)
 
-		result = {"destroyed": [], "notDestroyed": {}}
-		for batch in self.create_batches(ids, self.max_objects_in_set):
-			response = self._delete(batch, onDestroyRemoveEvents=remove_events)
+        return result
 
-			if method_responses := response.get("methodResponses"):
-				result["destroyed"].extend(method_responses[0][1].get("destroyed", []))
-				if not_destroyed := method_responses[0][1].get("notDestroyed", {}):
-					result["notDestroyed"].update(not_destroyed)
+    def changes(self, since_state: str) -> dict:
+        """Public method to get calendar changes since a given state."""
 
-		return result
+        response = self._changes(since_state)
 
-	def changes(self, since_state: str) -> dict:
-		"""Public method to get calendar changes since a given state."""
+        if method_responses := response.get("methodResponses"):
+            return method_responses[0][1]
 
-		response = self._changes(since_state)
+        return {}
 
-		if method_responses := response.get("methodResponses"):
-			return method_responses[0][1]
+    def get_default(self, raise_exception: bool = False) -> str | None:
+        """Returns the ID of the default calendar, or None if no default calendar is found. If raise_exception is True, raises a ValueError if no default calendar is found."""
 
-		return {}
+        for calendar in self.calendars:
+            if calendar.get("isDefault"):
+                return calendar["id"]
 
-	def get_default(self, raise_exception: bool = False) -> str | None:
-		"""Returns the ID of the default calendar, or None if no default calendar is found. If raise_exception is True, raises a ValueError if no default calendar is found."""
-
-		for calendar in self.calendars:
-			if calendar.get("isDefault"):
-				return calendar["id"]
-
-		if raise_exception:
-			raise ValueError("No default calendar found.")
+        if raise_exception:
+            raise ValueError("No default calendar found.")

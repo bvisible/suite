@@ -1,6 +1,6 @@
 <template>
-  <Dialog v-model="show" :options="{ title: dialogTitle, size: 'md' }">
-    <template #body-content>
+  <Dialog v-model:open="show" :title="dialogTitle" size="lg">
+    <template #default>
 
       <!-- Inline error banner for permission / network failures from any of
            the share endpoints. Auto-clears after 5 s. -->
@@ -13,45 +13,36 @@
       />
 
       <!-- ── General Access ────────────────────────────────────────────────── -->
-      <p class="sd-label">General Access</p>
-      <div class="sd-access-row">
-        <Dropdown :options="generalAccessOpts" placement="bottom-start">
-          <template #default>
-            <Button
-              variant="outline"
-              size="sm"
-              :iconLeft="generalAccess === 'all' ? 'globe' : 'lock'"
-              iconRight="chevron-down"
-              :label="generalAccess === 'all' ? 'Accessible to all' : 'Restricted'"
-              class="sd-pill-btn"
-            />
-          </template>
-        </Dropdown>
-
-        <Dropdown v-if="generalAccess === 'all'" :options="generalRoleOpts" placement="bottom-end">
-          <template #default>
-            <Button
-              variant="outline"
-              size="sm"
-              icon-left="eye"
-              icon-right="chevron-down"
-              :label="generalRole === '1' ? 'Can edit' : 'Can view'"
-              class="sd-pill-btn"
-            />
-          </template>
-        </Dropdown>
+      <!-- Mirrors Frappe Writer / Drive: two frappe-ui Selects side by side
+           (access level + role) so the whole dialog speaks one consistent
+           control + typography language instead of a mix of pills and badges. -->
+      <p class="sd-section-label">General Access</p>
+      <div class="flex items-center justify-between gap-2">
+        <Select
+          :model-value="generalAccess"
+          :options="generalAccessOptions"
+          size="sm"
+          @update:model-value="onGeneralLevel"
+        />
+        <Select
+          v-if="generalAccess === 'all'"
+          :model-value="generalRole"
+          :options="generalRoleOptions"
+          size="sm"
+          @update:model-value="onGeneralRole"
+        />
       </div>
 
       <div class="sd-divider" />
 
       <!-- ── Members ────────────────────────────────────────────────────────── -->
-      <p class="sd-label">Members</p>
+      <p class="sd-section-label">Members</p>
 
       <!-- Stage row: chips for users pending invite + free-text search input
-           on the left; the role dropdown on the right applies to the whole
+           on the left; the role Select on the right applies to the whole
            batch on Invite. Drive-style — nothing commits until the user
            clicks "Invite" in the actions row. -->
-      <div class="sd-stage-row">
+      <div class="flex items-start gap-2">
         <div class="sd-stage-wrap sd-search-wrap" :class="{ 'sd-stage-wrap--has-chips': staged.length }">
           <div v-for="(c, i) in staged" :key="c.user" class="sd-chip">
             <Avatar :label="c.initials" :image="c.user_image || undefined" size="xs" />
@@ -68,6 +59,7 @@
             type="text"
             class="sd-stage-input"
             :placeholder="staged.length ? '' : 'Add people...'"
+            aria-label="Add people"
             autocomplete="off"
             @input="e => onSearchInput(e.target.value)"
             @keydown.backspace="onStageBackspace"
@@ -81,8 +73,8 @@
             >
               <Avatar :label="u.initials" :image="u.user_image || undefined" size="sm" />
               <div class="sd-result-info">
-                <span class="sd-result-name">{{ u.full_name }}</span>
-                <span class="sd-result-email">{{ u.name }}</span>
+                <span class="sd-primary-text">{{ u.full_name }}</span>
+                <span class="sd-secondary-text">{{ u.name }}</span>
               </div>
             </button>
           </div>
@@ -90,18 +82,12 @@
 
         <!-- Role for the staged batch — shown only when there is something
              to invite, mirroring Drive's behaviour. -->
-        <Dropdown v-if="staged.length" :options="pendingRoleOpts" placement="bottom-end">
-          <template #default>
-            <Button
-              variant="outline"
-              size="sm"
-              icon-left="eye"
-              icon-right="chevron-down"
-              :label="pendingRole === '1' ? 'Can edit' : 'Can view'"
-              class="sd-pill-btn"
-            />
-          </template>
-        </Dropdown>
+        <Select
+          v-if="staged.length"
+          v-model="pendingRole"
+          :options="pendingRoleOptions"
+          size="sm"
+        />
       </div>
 
       <!-- Member list -->
@@ -109,33 +95,29 @@
       <div v-else class="sd-member-list">
         <!-- Owner always first -->
         <div class="sd-member-row">
-          <Avatar :label="ownerInitials" size="md" :tooltip="ownerFullName" />
+          <Avatar :label="ownerInitials" :image="ownerImage || undefined" size="lg" :tooltip="ownerFullName" />
           <div class="sd-member-info">
-            <span class="sd-member-name">{{ ownerFullName }}</span>
-            <span v-if="props.ownerId !== ownerFullName" class="sd-member-email">{{ props.ownerId }}</span>
+            <span class="sd-primary-text">{{ ownerFullName }}</span>
+            <span v-if="props.ownerId !== ownerFullName" class="sd-secondary-text">{{ props.ownerId }}</span>
           </div>
-          <span class="sd-role-label">Owner (you)</span>
+          <span class="sd-role-static">{{ _ownerIsMe ? 'Owner (you)' : 'Owner' }}</span>
         </div>
 
         <div v-for="s in shares" :key="s.user" class="sd-member-row">
-          <Avatar :label="s.initials" :image="s.user_image || undefined" size="md" :tooltip="s.full_name" />
+          <Avatar :label="s.initials" :image="s.user_image || undefined" size="lg" :tooltip="s.full_name" />
           <div class="sd-member-info">
-            <span class="sd-member-name">{{ s.full_name }}</span>
-            <span class="sd-member-email">{{ s.user }}</span>
+            <span class="sd-primary-text">{{ s.full_name }}</span>
+            <span class="sd-secondary-text">{{ s.user }}</span>
           </div>
-          <Dropdown :options="memberRoleOpts(s)" placement="bottom-end">
-            <template #default>
-              <Button
-                variant="ghost"
-                size="sm"
-                :label="s.write ? 'Can edit' : 'Can view'"
-                icon-right="chevron-down"
-              />
-            </template>
-          </Dropdown>
+          <div class="shrink-0">
+            <Select
+              :model-value="s.write ? '1' : '0'"
+              :options="memberRoleOptions"
+              size="sm"
+              @update:model-value="v => onMemberRole(s, v)"
+            />
+          </div>
         </div>
-
-        <p v-if="!shares.length" class="sd-empty">No one else has access yet.</p>
       </div>
 
     </template>
@@ -150,7 +132,7 @@
           :disabled="!staged.length || inviting"
           @click="inviteStaged"
         />
-        <Button variant="outline" size="sm" icon-left="link-2" label="Copy link" @click="copyLink" />
+        <Button variant="outline" size="sm" icon-left="lucide-link-2" label="Copy link" @click="copyLink" />
       </div>
     </template>
   </Dialog>
@@ -158,8 +140,10 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { Badge, Button, Dialog, Spinner, Dropdown, Avatar } from 'frappe-ui'
+import { Badge, Button, Dialog, Spinner, Avatar, Select } from 'frappe-ui'
 import { call } from '../../utils/api.js'
+import { useCurrentUser } from '@/boot/session'
+import { userInitials } from '../../utils/session.js'
 
 const props = defineProps({
   modelValue:  { type: Boolean, default: false },
@@ -186,6 +170,19 @@ watch(show, (open) => {
     searchQuery.value = ''
     searchResults.value = []
     fetchShares()
+    fetchOwnerInfo()
+  }
+})
+
+// get_sheet can resolve *after* the dialog is already open — a fast click on
+// Share before the sheet finishes loading opens it with ownerId still the
+// current viewer, then ownerId flips to the real owner once load lands. Re-run
+// the owner-profile lookup (so the row shows the real name/avatar, not a raw
+// email) and re-filter the member list, which keys off ownerId too.
+watch(() => props.ownerId, () => {
+  if (show.value) {
+    fetchOwnerInfo()
+    fetchShares()
   }
 })
 
@@ -205,45 +202,101 @@ function _flashError(err) {
 
 // ── owner ──────────────────────────────────────────────────────────────────
 
+const currentUser = useCurrentUser()
+
+// A read-only member can open this dialog for a sheet they don't own (see the
+// error-banner note above), so the owner is often *not* the current user. When
+// it is, read the name/image from the shared session store; otherwise fetch the
+// owner's User record — the same way the invite autocomplete resolves people —
+// so the owner row shows a real name instead of the raw email.
+const ownerInfo = ref(null)   // { full_name, user_image } for a non-self owner
+async function fetchOwnerInfo() {
+  ownerInfo.value = null
+  if (!props.ownerId || props.ownerId === currentUser.user.value) return
+  try {
+    ownerInfo.value = await call('frappe.client.get_value', {
+      doctype: 'User', filters: props.ownerId, fieldname: ['full_name', 'user_image'],
+    })
+  } catch (_) { /* fall back to the id below */ }
+}
+
+const _ownerIsMe = computed(() => !!props.ownerId && props.ownerId === currentUser.user.value)
 const ownerFullName = computed(() =>
-  window.frappe?.session?.user_fullname
-  || window.frappe?.boot?.user_info?.[props.ownerId]?.fullname
+  (_ownerIsMe.value && currentUser.fullName.value)
+  || ownerInfo.value?.full_name
   || props.ownerId
   || 'You'
 )
-const ownerInitials = computed(() =>
-  ownerFullName.value.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()
+const ownerImage = computed(() =>
+  (_ownerIsMe.value ? currentUser.imageURL.value : ownerInfo.value?.user_image) || ''
 )
+const ownerInitials = computed(() => userInitials(ownerFullName.value, props.ownerId))
 
 // ── general access ─────────────────────────────────────────────────────────
+//
+// Org-wide access is a DocShare `everyone` row (share_sheet everyone=1 / unshare
+// everyone=1), seeded from get_sheet_shares on open. Two Selects: the level
+// (Restricted / Accessible to all) and, when public, the role (view / edit).
 
-const generalAccess = ref('restricted')
-const generalRole   = ref('0')
+const generalAccess = ref('restricted')   // 'restricted' | 'all'
+const generalRole   = ref('0')            // '0' = Can view, '1' = Can edit
 
-const generalAccessOpts = computed(() => [
-  { label: 'Restricted',        onClick: () => applyGeneralAccess('restricted') },
-  { label: 'Accessible to all', onClick: () => applyGeneralAccess('all') },
-])
-const generalRoleOpts = computed(() => [
-  { label: 'Can view', onClick: () => { generalRole.value = '0'; applyGeneralAccess('all') } },
-  { label: 'Can edit', onClick: () => { generalRole.value = '1'; applyGeneralAccess('all') } },
-])
+const generalAccessOptions = [
+  { label: 'Restricted',        value: 'restricted', icon: 'lucide-lock' },
+  { label: 'Accessible to all', value: 'all',        icon: 'lucide-globe' },
+]
+const generalRoleOptions = [
+  { label: 'Can view', value: '0', icon: 'lucide-eye' },
+  { label: 'Can edit', value: '1', icon: 'lucide-pencil' },
+]
 
-async function applyGeneralAccess(type) {
+// Serializes the two general-access handlers so a rapid restricted→all toggle
+// can't read a stale `generalRole` and silently re-grant edit the user had
+// just revoked.
+const _persistingAccess = ref(false)
+
+async function _persistGeneral(access, role) {
+  if (access === 'all') {
+    await call('suite.sheets.api.share_sheet', {
+      name: props.sheetId, everyone: 1, write: role === '1' ? 1 : 0,
+    })
+  } else {
+    await call('suite.sheets.api.unshare_sheet', { name: props.sheetId, everyone: 1 })
+  }
+}
+
+async function onGeneralLevel(type) {
+  if (_persistingAccess.value || type === generalAccess.value) return
   const prevAccess = generalAccess.value
+  const prevRole   = generalRole.value
+  _persistingAccess.value = true
+  // Going public always starts view-only; the edit scope is a deliberate
+  // second step, so the persisted write never depends on a stale role.
   generalAccess.value = type
-  if (!props.sheetId) return
+  generalRole.value   = '0'
   try {
-    if (type === 'all') {
-      await call('suite.sheets.api.share_sheet', {
-        name: props.sheetId, everyone: 1, write: generalRole.value === '1' ? 1 : 0,
-      })
-    } else {
-      await call('suite.sheets.api.unshare_sheet', { name: props.sheetId, everyone: 1 })
-    }
+    if (props.sheetId) await _persistGeneral(type, '0')
   } catch (err) {
     generalAccess.value = prevAccess   // revert visual state
+    generalRole.value   = prevRole
     _flashError(err)
+  } finally {
+    _persistingAccess.value = false
+  }
+}
+
+async function onGeneralRole(role) {
+  if (_persistingAccess.value || role === generalRole.value) return
+  const prev = generalRole.value
+  _persistingAccess.value = true
+  generalRole.value = role
+  try {
+    if (props.sheetId) await _persistGeneral('all', role)
+  } catch (err) {
+    generalRole.value = prev            // revert visual state
+    _flashError(err)
+  } finally {
+    _persistingAccess.value = false
   }
 }
 
@@ -252,13 +305,19 @@ async function applyGeneralAccess(type) {
 const loading = ref(false)
 const shares  = ref([])
 
+const memberRoleOptions = [
+  { label: 'Can view',      value: '0',      icon: 'lucide-eye' },
+  { label: 'Can edit',      value: '1',      icon: 'lucide-pencil' },
+  { label: 'Remove access', value: 'remove', icon: 'lucide-trash-2' },
+]
+
 async function fetchShares() {
   if (!props.sheetId) return
   loading.value = true
   try {
     const rows = await call('suite.sheets.api.get_sheet_shares', { name: props.sheetId })
     // The "everyone" row encodes general access; keep it out of the member
-    // list and use it to seed the General Access dropdown so the dialog
+    // list and use it to seed the General Access Selects so the dialog
     // reflects persisted state on re-open.
     const everyoneRow = rows.find(r => r.everyone)
     if (everyoneRow) {
@@ -266,6 +325,7 @@ async function fetchShares() {
       generalRole.value   = everyoneRow.write ? '1' : '0'
     } else {
       generalAccess.value = 'restricted'
+      generalRole.value   = '0'
     }
     shares.value = rows
       .filter(r => !r.everyone && r.user !== props.ownerId)
@@ -277,15 +337,15 @@ async function fetchShares() {
   finally { loading.value = false }
 }
 
-function memberRoleOpts(s) {
-  return [
-    { label: 'Can view',      onClick: () => changeRole(s, false) },
-    { label: 'Can edit',      onClick: () => changeRole(s, true)  },
-    { label: 'Remove access', onClick: () => removeShare(s)       },
-  ]
+function onMemberRole(s, val) {
+  if (val === 'remove') return removeShare(s)
+  changeRole(s, val === '1')
 }
 
 async function changeRole(s, write) {
+  // `write` is a boolean (from `val === '1'`); normalise s.write too so the
+  // no-op guard is correct regardless of how the share row was shaped.
+  if (Boolean(s.write) === write) return
   const prev = s.write; s.write = write
   try {
     await call('suite.sheets.api.share_sheet', {
@@ -361,10 +421,10 @@ const staged      = ref([])         // [{ user, full_name, user_image, initials 
 const pendingRole = ref('0')        // '0' = Can view, '1' = Can edit
 const inviting    = ref(false)
 
-const pendingRoleOpts = computed(() => [
-  { label: 'Can view', onClick: () => { pendingRole.value = '0' } },
-  { label: 'Can edit', onClick: () => { pendingRole.value = '1' } },
-])
+const pendingRoleOptions = [
+  { label: 'Can view', value: '0', icon: 'lucide-eye' },
+  { label: 'Can edit', value: '1', icon: 'lucide-pencil' },
+]
 
 function addChip(u) {
   staged.value.push({
@@ -419,33 +479,38 @@ async function copyLink() {
 </script>
 
 <style scoped>
+/* ── Type scale ──────────────────────────────────────────────────────────────
+   The whole dialog speaks three text styles, differentiated by weight + colour
+   rather than a spread of pixel sizes (this was the founder's "so many different
+   font styles" note). The metrics mirror frappe-ui's own text tokens exactly —
+   line-height 1.15, letter-spacing 0.02em, regular weight 420 (InterVar) — so
+   this text tracks identically to the Dialog title, Selects and Buttons around
+   it (there's no compound `text-*-medium` class to reuse, and `text-base` +
+   `font-medium` utilities fight over weight, so we set it here). */
+.sd-section-label {                 /* "General Access", "Members" */
+  font-size: 13px; font-weight: 500; letter-spacing: 0.02em; line-height: 1.15;
+  color: var(--ink-gray-5); margin: 0 0 12px;
+}
+.sd-primary-text {                  /* people's names */
+  font-size: 14px; font-weight: 500; letter-spacing: 0.02em; line-height: 1.15;
+  color: var(--ink-gray-8);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sd-secondary-text,                 /* emails */
+.sd-role-static {                   /* "Owner (you)" */
+  font-size: 13px; font-weight: 420; letter-spacing: 0.02em; line-height: 1.15;
+  color: var(--ink-gray-6);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
 /* Inline error banner — sits above the dialog body for permission / network
    failures from any of the share endpoints. */
 .sd-error { display: block; margin: 0 0 12px; max-width: 100%; }
 
-/* ── Labels ── */
-.sd-label {
-  font-size: 13px; font-weight: 500; color: var(--ink-gray-6);
-  margin: 0 0 10px; letter-spacing: .01em;
-}
-
-/* ── General access row ── */
-.sd-access-row {
-  display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  margin-bottom: 4px;
-}
-
-/* Make Frappe UI Button pill-shaped inside the access row */
-.sd-pill-btn :deep(button) { border-radius: 999px; }
-
 /* ── Divider ── */
-.sd-divider { height: 1px; background: var(--outline-gray-1); margin: 16px 0; }
+.sd-divider { height: 1px; background: var(--outline-gray-1); margin: 20px 0; }
 
-/* ── Stage row (chips + input + role) ── */
-.sd-stage-row {
-  display: flex; align-items: flex-start; gap: 8px; margin-bottom: 4px;
-}
-
+/* ── Stage row (chips + input) ── */
 /* Pill-shaped wrapper holds the chips inline with the free-text input.
    Background and focus styling mimic the prior FormControl-based search
    so existing visual language is preserved. */
@@ -455,7 +520,7 @@ async function copyLink() {
   padding: 6px 12px;
   background: var(--surface-gray-2);
   border: 1px solid transparent;
-  border-radius: 18px;
+  border-radius: 8px;
   transition: background-color .1s, border-color .1s;
 }
 .sd-stage-wrap:hover        { background: var(--surface-gray-3); }
@@ -468,7 +533,7 @@ async function copyLink() {
 .sd-stage-input {
   flex: 1; min-width: 80px;
   border: 0; background: transparent;
-  font-size: 13px; color: var(--ink-gray-9);
+  font-size: 13px; letter-spacing: 0.02em; color: var(--ink-gray-9);
   padding: 2px 4px;
 }
 /* Belt-and-braces: some global styles (frappe-ui, browser default) add a
@@ -485,7 +550,7 @@ async function copyLink() {
   border: 1px solid var(--outline-gray-2);
   border-radius: 999px;
   padding: 2px 6px 2px 4px;
-  font-size: 12px; color: var(--ink-gray-8);
+  font-size: 13px; letter-spacing: 0.02em; color: var(--ink-gray-8);
   max-width: 240px;
 }
 .sd-chip-text {
@@ -516,20 +581,15 @@ async function copyLink() {
 }
 .sd-result-row:hover { background: var(--surface-gray-2); }
 .sd-result-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.sd-result-name  { font-size: 13px; font-weight: 500; color: var(--ink-gray-9); }
-.sd-result-email { font-size: 11px; color: var(--ink-gray-5); }
 
 /* ── Member list ── */
 .sd-loading      { display: flex; justify-content: center; padding: 20px; }
-.sd-member-list  { display: flex; flex-direction: column; margin-top: 8px; }
+.sd-member-list  { display: flex; flex-direction: column; margin-top: 12px; }
 .sd-member-row   {
   display: flex; align-items: center; gap: 12px;
   padding: 8px 4px; border-radius: 8px; transition: background-color .1s;
 }
 .sd-member-row:hover { background: var(--surface-gray-1); }
 .sd-member-info  { flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0; overflow: hidden; }
-.sd-member-name  { font-size: 13px; font-weight: 600; color: var(--ink-gray-9); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sd-member-email { font-size: 11px; color: var(--ink-gray-5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sd-role-label   { font-size: 12px; color: var(--ink-gray-5); flex-shrink: 0; white-space: nowrap; padding-right: 4px; }
-.sd-empty        { font-size: 13px; color: var(--ink-gray-5); padding: 12px 4px; margin: 0; }
+.sd-role-static  { flex-shrink: 0; padding-right: 4px; }
 </style>

@@ -1,64 +1,20 @@
 <template>
-  <h1 class="font-semibold mb-4 text-ink-gray-9">
-    {{ __('Storage') }}
-  </h1>
-
+  <AppSettingsHeader :title="__('Statistics')" />
+  <AppSettingsBody>
   <div class="flex items-center justify-between w-full mb-2">
     <span class="text-base-medium text-ink-gray-8"
-      >{{ showFileStorage ? 'You have' : 'Your team has' }} used
-      {{ formatSize(usedSpace) ? formatSize(usedSpace) + ' out' : 'none' }} of
-      {{ showFileStorage ? 'your' : '' }} {{ base2BlockSize(spaceLimit) }} ({{
-        formatPercent((usedSpace / spaceLimit) * 100)
-      }})</span
+      >You have used
+      {{ formatSize(usedSpace) ? formatSize(usedSpace) + ' out' : 'none' }} of your
+      {{ base2BlockSize(spaceLimit) }} ({{ formatPercent((usedSpace / spaceLimit) * 100) }})</span
     >
-    <div class="bg-surface-gray-2 rounded-[10px] space-x-0.5 h-7 flex items-center px-0.5 py-1">
-      <TabButtons
-        v-model="showFileStorage"
-        :buttons="[
-          {
-            label: __('You'),
-            value: true,
-          },
-          { label: __('Team'), value: false },
-        ]"
-      />
-      <!-- <Button
-        variant="ghost"
-        class="max-h-6 leading-none transition-colors focus:outline-none"
-        :class="[
-          showFileStorage === true
-            ? 'bg-surface-base shadow-sm hover:bg-surface-base active:bg-surface-base'
-            : '',
-        ]"
-        @click="showFileStorage = true"
-      >
-        {{  }}
-      </Button>
-      <Button
-        variant="ghost"
-        class="max-h-6 leading-none transition-colors focus:outline-none"
-        :class="[
-          showFileStorage === false
-            ? 'bg-surface-base shadow-sm hover:bg-surface-base active:bg-surface-base'
-            : '',
-        ]"
-        @click="showFileStorage = false"
-      >
-        {{ }}
-      </Button> -->
-    </div>
   </div>
   <div
     v-if="usedSpace > 0"
-    class="w-full flex justify-start items-start bg-surface-sidebar border rounded overflow-clip h-7 pl-0 mb-4"
+    class="w-full flex justify-start items-start bg-surface-sidebar border rounded-4 overflow-clip h-7 pl-0 mb-4"
   >
     <Tooltip v-for="[file_kind, i] in storageBreakdown.data?.total" :key="file_kind">
-      <template #body>
-        <div
-          class="text-center rounded bg-surface-gray-10 px-2 py-1 text-xs text-ink-base shadow-xl"
-        >
-          {{ i.kind }} <br />{{ i.h_size }} ({{ i.percentageFormat }})
-        </div>
+      <template #content>
+        {{ i.kind }} <br />{{ i.h_size }} ({{ i.percentageFormat }})
       </template>
       <div
         class="h-7"
@@ -81,7 +37,7 @@
   >
     Large Files:
   </div>
-  <div class="flex flex-col items-start justify-start w-full rounded full px-1.5 overflow-y-auto">
+  <div class="flex flex-col items-start justify-start w-full rounded-4 full px-1.5 overflow-y-auto">
     <div
       v-for="(i, index) in storageBreakdown.data?.entities"
       :key="i.name"
@@ -93,7 +49,7 @@
       <img :src="getIconUrl(i.file_type)" />
       <span class="text-ink-gray-8 text-sm truncate">{{ i.file_name }}</span>
 
-      <div class="text-ink-gray-8 text-sm ml-auto flex gap-2 h-10 leading-10">
+      <div class="text-ink-gray-8 text-sm ml-auto flex items-center gap-2 h-10">
         <Button
           v-if="hoveredRow === i.name"
           variant="ghost"
@@ -106,25 +62,24 @@
       </div>
     </div>
   </div>
+  </AppSettingsBody>
 </template>
 <script setup>
 import { formatSize, base2BlockSize, COLOR_MAP, formatPercent } from '@/apps/drive/utils/format'
-import { Tooltip, TabButtons, Button } from 'frappe-ui'
+import { Tooltip, Button } from 'frappe-ui'
+import AppSettingsHeader from '@/components/settings/AppSettingsHeader.vue'
+import AppSettingsBody from '@/components/settings/AppSettingsBody.vue'
 import { getIconUrl, openEntity, MIME_LIST_MAP } from '@/apps/drive/utils/files'
 import { createResource } from 'frappe-ui'
-import { ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref } from 'vue'
 import LucideCloud from '~icons/lucide/cloud'
 
 const hoveredRow = ref(null)
-const showFileStorage = ref(true)
 const usedSpace = ref(0)
 const spaceLimit = ref(0)
-const route = useRoute()
 
 const storageBreakdown = createResource({
   url: 'suite.drive.api.storage.storage_breakdown',
-  makeParams: (p) => p,
   onSuccess(data) {
     const res = {}
     usedSpace.value = 0
@@ -147,18 +102,8 @@ const storageBreakdown = createResource({
     })
     data.total = Object.entries(res).sort((a, b) => b[1].file_size - a[1].file_size)
   },
-  auto: false,
+  auto: true,
 })
-
-watch(
-  showFileStorage,
-  (val) =>
-    storageBreakdown.fetch({
-      team: route.params.team || localStorage.getItem('recentTeam'),
-      owned_only: val,
-    }),
-  { immediate: true }
-)
 
 defineEmits(['close'])
 </script>

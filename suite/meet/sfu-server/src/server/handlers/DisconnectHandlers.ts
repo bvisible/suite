@@ -1,11 +1,18 @@
 import type { Socket } from 'socket.io';
+import { normalizeDisconnectReason } from '../../telemetry/Telemetry';
 import { loggers } from '../../utils/logger';
 import type { HandlerDeps } from './Handler';
 import { isRealParticipant } from './utils';
 
 export function registerDisconnectHandlers(deps: HandlerDeps) {
 	return (socket: Socket) => {
-		socket.on('disconnect', async () => {
+		socket.on('disconnect', async (reason) => {
+			const normalizedReason = normalizeDisconnectReason(reason);
+			deps.telemetry.socketDisconnects.inc({ reason: normalizedReason });
+			loggers.telemetry.event('socket_disconnect', {
+				reason: normalizedReason,
+				scope: socket.scope ?? 'unassigned',
+			});
 			deps.authManager.cleanupSocket(socket);
 
 			loggers.socketHandler.info(
@@ -17,29 +24,40 @@ export function registerDisconnectHandlers(deps: HandlerDeps) {
 
 			const roomId = socket.roomId;
 			const participantId = socket.participantId;
+			const peerId = socket.peerId ?? participantId;
+			if (socket.scope === 'recording') {
+				deps.registry.deactivateRecorder(socket);
+			}
 
-			if (roomId && participantId) {
+			if (roomId && participantId && peerId) {
 				try {
-					deps.registry.leaveScope(socket, roomId, 'full');
-					deps.registry.leaveScope(socket, roomId, 'presence-preview');
-
-					if (socket.scope === 'full') {
-						const shouldCleanupPeer = deps.registry.releaseParticipant(
+					if (socket.scope === 'recording') {
+						const ownsPeer = deps.registry.leaveRecorder(
 							socket,
 							roomId,
 							participantId,
 						);
-						if (shouldCleanupPeer) {
-							if (socket.senderId !== undefined) {
-								await deps.e2eeRoster.remove(roomId, socket.senderId);
-								deps.e2eeEpochRelay.removePendingJoiner(
-									roomId,
-									socket.senderId,
-								);
-							}
-							deps.registry.removeSender(roomId, participantId);
+						if (ownsPeer) {
 							await deps.mediasoup.removePeer(roomId, participantId);
+						}
+					}
+					deps.registry.leaveScope(socket, roomId, 'full');
+					deps.registry.leaveScope(socket, roomId, 'presence-preview');
 
+					if (socket.scope === 'full') {
+						const participantDeparted = deps.registry.releaseParticipant(
+							socket,
+							roomId,
+							participantId,
+						);
+						if (socket.senderId !== undefined) {
+							await deps.e2eeRoster.remove(roomId, socket.senderId);
+							deps.e2eeEpochRelay.removePendingJoiner(roomId, socket.senderId);
+						}
+						deps.registry.removeSender(roomId, peerId);
+						await deps.mediasoup.removePeer(roomId, peerId);
+
+						if (participantDeparted) {
 							if (isRealParticipant(participantId)) {
 								deps.registry.emitParticipantEvent(
 									roomId,
@@ -50,15 +68,11 @@ export function registerDisconnectHandlers(deps: HandlerDeps) {
 
 							if (deps.registry.hasRaisedHand(roomId, participantId)) {
 								deps.registry.clearRaisedHand(roomId, participantId);
-								deps.registry.emitToFullAccessParticipants(
-									roomId,
-									'hand_raised',
-									{
-										participantId,
-										raised: false,
-										timestamp: new Date().toISOString(),
-									},
-								);
+								deps.registry.emitRaisedHand(roomId, {
+									participantId,
+									raised: false,
+									timestamp: new Date().toISOString(),
+								});
 							}
 
 							loggers.socketHandler.info(
@@ -67,13 +81,7 @@ export function registerDisconnectHandlers(deps: HandlerDeps) {
 								roomId,
 							);
 						}
-					}
-
-					if (deps.registry.isEmpty(roomId)) {
-						deps.registry.cleanupRoom(roomId);
-						deps.e2eeEpochRelay.clearRoom(roomId);
-						await deps.e2eeRoster.clearRoom(roomId);
-						deps.mediasoup.closeRoom(roomId);
+						deps.roomLifecycle.scheduleCleanupIfHumanEmpty(roomId);
 					}
 				} catch (error) {
 					loggers.socketHandler.error('Error handling disconnect: %s', error);

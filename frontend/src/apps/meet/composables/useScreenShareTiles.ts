@@ -5,6 +5,7 @@ import type { GridLayout, PinnedTile } from "./useGridLayout";
 interface ScreenShare {
 	consumerId: string;
 	participantId: string;
+	source: "local" | "remote";
 }
 
 interface CurrentUser {
@@ -13,7 +14,7 @@ interface CurrentUser {
 	name?: string;
 }
 
-interface ScreenShareTileParticipant {
+export interface ScreenShareTileParticipant {
 	user_id: string;
 	user_name: string;
 	avatar: string;
@@ -21,8 +22,9 @@ interface ScreenShareTileParticipant {
 	isLocalScreenShare: boolean;
 }
 
-interface ScreenShareTile {
+export interface ScreenShareTile {
 	pinId: string;
+	consumerId: string;
 	participant: ScreenShareTileParticipant;
 }
 
@@ -42,20 +44,20 @@ export function useScreenShareTiles({
 	getParticipantName,
 }: UseScreenShareTilesOptions) {
 	const screenShareSignature = computed(() =>
-		displayScreenShares.value.map((share) => share.consumerId).join(","),
+		displayScreenShares.value.map((share) => share.participantId).join(","),
 	);
 
 	watch(
 		screenShareSignature,
 		(signature, previousSignature) => {
 			const shares = displayScreenShares.value;
-			const primaryShareId = shares[0]?.consumerId;
+			const primaryShareId = shares[0]?.participantId;
 
 			const activePinnedShares = pinnedTiles.value.filter(
 				(t) => t.type === "screenshare",
 			);
 			activePinnedShares.forEach((share) => {
-				if (!shares.some((s) => s.consumerId === share.id)) {
+				if (!shares.some((s) => s.participantId === share.id)) {
 					gridLayout.unpinTile("screenshare", share.id);
 				}
 			});
@@ -80,14 +82,15 @@ export function useScreenShareTiles({
 	const screenShareTiles = computed<ScreenShareTile[]>(() => {
 		return displayScreenShares.value.map((share) => {
 			const participantName = getParticipantName(share.participantId);
-			const isLocalSharer = currentUser.value?.user_id === share.participantId;
+			const isLocalSharer = share.source === "local";
 			const localName = currentUser.value?.full_name || currentUser.value?.name;
 			const displayName = `${
 				isLocalSharer ? localName : participantName
 			}'s screen`;
 
 			return {
-				pinId: share.consumerId,
+				pinId: share.participantId,
+				consumerId: share.consumerId,
 				participant: {
 					user_id: share.participantId,
 					user_name: displayName,

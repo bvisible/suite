@@ -1,48 +1,88 @@
 <template>
-	<SettingsLayoutBase
-		:description="'Select your preferred camera, microphone, and speaker'"
-	>
-		<template #title>
-			Devices
-		</template>
-		<template #content>
-			<LoadingText
-				v-if="!cameraSelectOptions.length && !micSelectOptions.length && !speakerSelectOptions.length"
-				class="mx-auto w-max my-32"
-				:text="'Loading devices...'"
-			/>
-			<div v-else class="space-y-6">
-				<div class="space-y-2">
-					<FormControl label="Camera" type="autocomplete" v-model="selectedCameraIdLocal"
-						:options="cameraSelectOptions" placeholder="Select camera">
-						<template #prefix>
-							<lucide-camera class="mr-2 h-4 w-4 text-ink-gray-7" />
-						</template>
-						<template #item-prefix="{ selected }">
-							<lucide-check v-if="selected" class="w-4 h-4 text-ink-gray-8" />
-						</template>
-					</FormControl>
-				</div>
-
-				<div class="space-y-2 flex gap-4 items-center">
-					<FormControl class="w-full" label="Microphone" type="autocomplete" v-model="selectedMicIdLocal"
-						:options="micSelectOptions" placeholder="Select microphone">
-						<template #prefix>
-							<lucide-mic class="mr-2 h-4 w-4 text-ink-gray-7" />
-						</template>
-						<template #item-prefix="{ selected }">
-							<lucide-check v-if="selected" class="w-4 h-4 text-ink-gray-8" />
-						</template>
-					</FormControl>
-
-					<div v-if="selectedMicIdLocal" class="w-5">
-						<AudioIndicator class="mt-2" :device-id="getDeviceId(selectedMicIdLocal)" :is-active="true" :sensitivity="2"
-							:max-height="40" activeColorClass="bg-ink-gray-6" />
+	<AppSettingsHeader
+		title="Devices"
+		description="Select your preferred camera, microphone, and speaker"
+	/>
+	<AppSettingsBody>
+		<LoadingText
+			v-if="isLoadingDevices"
+			class="mx-auto w-max my-32"
+			:text="'Loading devices...'"
+		/>
+		<div v-else class="space-y-6">
+			<div class="space-y-1.5">
+				<label class="block text-base text-ink-gray-5">Camera</label>
+				<div class="flex items-center gap-2">
+					<div class="relative w-full">
+						<FormControl class="device-select" type="combobox" trigger="button" v-model="selectedCameraIdLocal"
+							:options="hasVideoPermission ? cameraSelectOptions : []" :disabled="!hasVideoPermission"
+							placeholder="Camera access required">
+							<template #prefix>
+								<lucide-camera class="mr-2 h-4 w-4 text-ink-gray-7" />
+							</template>
+						</FormControl>
+						<button
+							v-if="!hasVideoPermission"
+							type="button"
+							class="absolute inset-0 cursor-pointer rounded-4 bg-transparent focus-visible:focus-ring disabled:cursor-wait"
+							aria-label="Allow camera access"
+							:disabled="isRequestingVideoPermission"
+							@click="requestPermission('video')"
+						/>
 					</div>
+					<Tooltip v-if="!hasVideoPermission" text="Allow camera access to select a camera">
+						<Button
+							variant="ghost"
+							icon="lucide-alert-triangle"
+							:loading="isRequestingVideoPermission"
+							@click="requestPermission('video')"
+						/>
+					</Tooltip>
 				</div>
+			</div>
 
-				<div class="space-y-2 flex gap-2">
-					<FormControl class="w-full" label="Speaker" type="autocomplete" v-model="selectedSpeakerIdLocal"
+			<div class="space-y-1.5">
+				<label class="block text-base text-ink-gray-5">Microphone</label>
+				<div class="flex items-center gap-2">
+					<div class="relative w-full">
+						<FormControl class="device-select" type="combobox" trigger="button" v-model="selectedMicIdLocal"
+							:options="hasAudioPermission ? micSelectOptions : []" :disabled="!hasAudioPermission"
+							placeholder="Microphone access required">
+							<template #prefix>
+								<lucide-mic class="mr-2 h-4 w-4 text-ink-gray-7" />
+							</template>
+							<template #suffix>
+								<AudioIndicator v-if="hasAudioPermission && selectedMicIdLocal"
+									:device-id="getDeviceId(selectedMicIdLocal)" :is-active="true" :sensitivity="2"
+									:max-height="16" activeColorClass="bg-surface-gray-7" />
+								<span class="lucide-chevron-down size-4 shrink-0 text-ink-gray-4" />
+							</template>
+						</FormControl>
+						<button
+							v-if="!hasAudioPermission"
+							type="button"
+							class="absolute inset-0 cursor-pointer rounded-4 bg-transparent focus-visible:focus-ring disabled:cursor-wait"
+							aria-label="Allow microphone access"
+							:disabled="isRequestingAudioPermission"
+							@click="requestPermission('audio')"
+						/>
+					</div>
+					<Tooltip v-if="!hasAudioPermission" text="Allow microphone access to select a microphone">
+						<Button
+							variant="ghost"
+							icon="lucide-alert-triangle"
+							:loading="isRequestingAudioPermission"
+							@click="requestPermission('audio')"
+						/>
+					</Tooltip>
+				</div>
+			</div>
+
+			<div class="space-y-1.5">
+				<label class="block text-base text-ink-gray-5">Speaker</label>
+				<div class="flex">
+					<FormControl :class="['w-full', selectedSpeakerIdLocal && '!rounded-r-none']"
+						type="combobox" trigger="button" v-model="selectedSpeakerIdLocal"
 						:options="speakerSelectOptions" placeholder="Select speaker">
 						<template #prefix>
 							<lucide-speaker class="mr-2 h-4 w-4 text-ink-gray-7" />
@@ -52,25 +92,30 @@
 						</template>
 					</FormControl>
 
-					<div>
-						<Button 
-						class="mt-3" 
-						v-if="selectedSpeakerIdLocal" 
-						@click="testSpeaker" 
+					<Button
+						v-if="selectedSpeakerIdLocal"
+						class="-ml-px !rounded-l-none"
+						@click="testSpeaker"
 						:loading="isTestingAudio"
 						icon-left="lucide-volume-2"
-						>
-							Test
-						</Button>
-					</div>
+					>
+						Test
+					</Button>
 				</div>
 			</div>
-		</template>
-	</SettingsLayoutBase>
+		</div>
+	</AppSettingsBody>
 </template>
 
 <script setup lang="ts">
-import { Button, FormControl, LoadingText } from "frappe-ui";
+import AppSettingsHeader from '@/components/settings/AppSettingsHeader.vue'
+import AppSettingsBody from '@/components/settings/AppSettingsBody.vue'
+import {
+	Button,
+	FormControl,
+	LoadingText,
+	Tooltip,
+} from 'frappe-ui';
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import LucideCamera from "~icons/lucide/camera";
 import LucideCheck from "~icons/lucide/check";
@@ -85,7 +130,6 @@ import {
 } from "../../data/mediaPreferences";
 import { deviceManager } from "../../utils/media/DeviceManager";
 import AudioIndicator from "../AudioIndicator.vue";
-import SettingsLayoutBase from "./SettingsLayoutBase.vue";
 
 interface DeviceInfo {
 	label: string;
@@ -127,6 +171,11 @@ const micOptions = ref<DeviceInfo[]>([]);
 const speakerOptions = ref<DeviceInfo[]>([]);
 
 const isTestingAudio = ref(false);
+const isLoadingDevices = ref(true);
+const hasVideoPermission = ref(false);
+const hasAudioPermission = ref(false);
+const isRequestingVideoPermission = ref(false);
+const isRequestingAudioPermission = ref(false);
 let testAudio: HTMLAudioElement | null = null;
 
 const getDeviceId = (
@@ -262,11 +311,51 @@ const testSpeaker = async () => {
 	}
 };
 
+const checkPermissions = async () => {
+	if (!navigator.permissions) return;
+
+	try {
+		const [cameraPermission, microphonePermission] = await Promise.all([
+			navigator.permissions.query({ name: "camera" }),
+			navigator.permissions.query({ name: "microphone" }),
+		]);
+		hasVideoPermission.value = cameraPermission.state === "granted";
+		hasAudioPermission.value = microphonePermission.state === "granted";
+	} catch (error) {
+		console.warn("Could not check media permissions:", error);
+	}
+};
+
+const requestPermission = async (type: "video" | "audio") => {
+	const isVideo = type === "video";
+	const isRequesting = isVideo
+		? isRequestingVideoPermission
+		: isRequestingAudioPermission;
+	if (isRequesting.value) return;
+
+	try {
+		isRequesting.value = true;
+		const stream = await navigator.mediaDevices.getUserMedia(
+			isVideo ? { video: true } : { audio: true },
+		);
+		for (const track of stream.getTracks()) track.stop();
+		if (isVideo) {
+			hasVideoPermission.value = true;
+		} else {
+			hasAudioPermission.value = true;
+		}
+		await checkPermissions();
+		await loadDevices();
+	} catch (error) {
+		console.warn(`Could not get ${type} permission:`, error);
+	} finally {
+		isRequesting.value = false;
+	}
+};
+
 const loadDevices = async () => {
 	try {
-		await deviceManager.checkExistingPermissions();
-
-		await deviceManager.enumerateDevices({ video: true, audio: true });
+		await deviceManager.enumerateDevices();
 
 		cameraOptions.value = deviceManager.getCameras();
 		micOptions.value = deviceManager.getMicrophones();
@@ -289,6 +378,8 @@ const loadDevices = async () => {
 		}
 	} catch (error) {
 		console.error("Failed to load devices:", error);
+	} finally {
+		isLoadingDevices.value = false;
 	}
 };
 
@@ -379,7 +470,8 @@ const handleDeviceChange = () => {
 	}
 };
 
-onMounted(() => {
+onMounted(async () => {
+	await checkPermissions();
 	loadDevices();
 
 	deviceManager.addDeviceChangeListener(handleDeviceChange);
@@ -394,3 +486,9 @@ onUnmounted(() => {
 	}
 });
 </script>
+
+<style scoped>
+:deep(.device-select:disabled) {
+	background-color: var(--surface-gray-2);
+}
+</style>

@@ -6,13 +6,13 @@
   "engine": "InnoDB",
   "field_order": [
     "entity",
-    "team",
     "user",
     "read",
     "comment",
     "share",
     "write",
-    "upload"
+    "upload",
+    "deny"
   ],
   "fields": [
     {
@@ -61,9 +61,9 @@
     },
     {
       "default": "0",
-      "fieldname": "team",
+      "fieldname": "deny",
       "fieldtype": "Check",
-      "label": "Team"
+      "label": "Deny"
     }
   ],
   "grid_page_length": 50,
@@ -96,7 +96,7 @@
       "print": 1,
       "read": 1,
       "report": 1,
-      "role": "Drive User",
+      "role": "Suite User",
       "share": 1,
       "write": 1
     }

@@ -1,78 +1,25 @@
 <template>
-	<Popover :placement="'bottom-end'">
-		<template #target="{ togglePopover }">
-			<Button @click="openSharePopover(togglePopover)" label="Share">
-				<template #prefix>
-					<LucideShare2 class="size-4 stroke-[1.5]" />
-				</template>
-			</Button>
+	<Button variant="ghost" tooltip="Share" @click="openShareDialog">
+		<template #icon>
+			<LucideShare2 class="size-4 stroke-[1.5]" />
 		</template>
-		<template #body="{ close }">
-			<div class="my-4 flex w-[24rem] flex-col gap-2 rounded-lg bg-white p-4 shadow-xl">
-				<div class="flex items-center justify-between">
-					<div class="flex items-center gap-2">
-						<LucideEarth class="size-4 stroke-[1.5] text-gray-700" />
-						<div class="text-base-medium text-gray-900">Allow Public Access</div>
-					</div>
-					<Switch
-						:modelValue="publicPresentation"
-						@update:modelValue="(value) => updateAccessLevel(value)"
-					/>
-				</div>
-				<div class="pl-0.5 text-sm text-gray-600">
-					Anyone with the link can view this presentation.
-				</div>
-				<Button
-					class="mt-2"
-					label="Copy Link"
-					@click="handleCopyLink(close)"
-					v-if="publicPresentation"
-				>
-					<template #prefix>
-						<LucideClipboard class="size-3.5 stroke-[1.5]" />
-					</template>
-				</Button>
-			</div>
-		</template>
-	</Popover>
+	</Button>
+	<ShareDialog v-if="showShareDialog && file" v-model="showShareDialog" :file allowed-access="reader" />
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import { Button, Popover, Switch, call, toast } from 'frappe-ui'
-import { presentationId, isPublicPresentation } from '@/apps/slides/stores/presentation'
+import { Button } from 'frappe-ui'
+import { ShareDialog, getFileForDoc } from '@/apps/drive/sdk'
+import { presentationId } from '@/apps/slides/stores/presentation'
 import { resetFocus } from '@/apps/slides/stores/element'
-import { copyToClipboard } from '@/apps/slides/stores/copyPaste'
 
-const publicPresentation = ref()
+const showShareDialog = ref(false)
+const file = ref(null)
 
-const openSharePopover = async (togglePopover) => {
-	publicPresentation.value = isPublicPresentation.value
+const openShareDialog = async () => {
 	await resetFocus()
-	togglePopover()
-}
-
-const updateAccessLevel = async (isPublic) => {
-	if (!presentationId.value) return
-
-	publicPresentation.value = isPublic
-
-	call('frappe.client.set_value', {
-		doctype: 'Presentation',
-		name: presentationId.value,
-		fieldname: 'is_public',
-		value: isPublic,
-	}).then(() => {
-		isPublicPresentation.value = isPublic
-		toast.success('Access level updated')
-	})
-}
-
-const handleCopyLink = async (close) => {
-	if (!presentationId.value) return
-
-	close()
-	const link = `${window.location.origin}/slides/presentation/${presentationId.value}`
-	copyToClipboard(link)
+	file.value = await getFileForDoc('Presentation', presentationId.value)
+	showShareDialog.value = true
 }
 </script>

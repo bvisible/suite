@@ -2,8 +2,6 @@ import type { UserAccount } from './doctypes'
 
 export * from './doctypes'
 
-export type COLOR_SCHEME = 'System Default' | 'Light Mode' | 'Dark Mode'
-
 // What happens to a sender when one of their messages is marked as Junk (JMAP Account).
 export type OnMarkAsJunk = "Junk Sender's Mail" | 'Ask to Block Sender'
 
@@ -18,13 +16,28 @@ export interface ScreenedAddress {
 	modified: string
 }
 
+// A JMAP push subscription (virtual doctype: Push Subscription). Each one registers a device/client
+// with the JMAP server so it receives StateChange notifications. `name` is `user|id` and is the row
+// key used by bulk_delete. `types` is a JSON string of the data types the client subscribes to.
+export interface PushSubscription {
+	user: string
+	id: string
+	name: string
+	device_client_id: string
+	expires: string | null
+	types: string
+	creation: string
+	modified: string
+}
+
 // A row in the Screener: one unique sender in the Screening folder, summarised by their latest mail.
 export interface ScreeningSender {
 	from_email: string
 	from_name: string
 	subject: string
 	preview: string
-	received_at: number
+	// UTC "...Z" wire timestamp, not an epoch.
+	received_at: string
 	count: number
 	unread: number
 }
@@ -38,13 +51,18 @@ export interface User {
 	username: string | null
 	user_image: string | null
 	api_key: string | null
+	// The zone every timestamp is shown in and typed in; see utils/datetime.ts.
+	time_zone: string
+	// The site's zone — what plain DB datetime fields are stored in; see formatSystemDateTime.
+	system_time_zone: string
 	user_settings?: string
-	color_scheme?: COLOR_SCHEME
 	group_messages_by?: 'None' | 'Day' | 'Month'
 	show_reading_pane?: 0 | 1
+	// Seconds a plain Send is held so it can be undone; see utils/undoSend.ts.
+	undo_send_period?: '5' | '10' | '20' | '30'
 
 	enabled: boolean
-	is_mail_admin: boolean
+	is_suite_admin: boolean
 	is_system_manager: boolean
 	is_jmap_configured: boolean
 
@@ -70,6 +88,14 @@ export interface Recipient {
 	type: 'To' | 'Cc' | 'Bcc'
 	email: string
 	display_name: string | null
+}
+
+// Everyone who has written in a thread, in the order they first wrote. Derived from the thread's own
+// messages rather than served with it (see utils/participants), `is_self` included.
+export interface ThreadParticipant {
+	name: string
+	email: string
+	is_self: boolean
 }
 
 export interface Mailbox {
@@ -112,6 +138,8 @@ export interface Mail {
 	}
 	reply_to: { display_name: string; email: string }[]
 	attachments: Attachment[]
+	// Blob id of a bounce message's message/delivery-status part (see DeliveryStatusBanner).
+	dsn_blob_id?: string | null
 	user_image?: string
 	collapsed?: boolean
 }
@@ -142,6 +170,13 @@ export interface ComposeMailData {
 export interface Thread {
 	name: string
 	account: string
+	// Populated by the cross-account views (All Inboxes' get_all_inbox_threads and search's
+	// search_mails): the owning account's display name and its Inbox/Archive/Trash mailbox ids, so a
+	// merged row can be opened in / acted on within the correct JMAP account.
+	account_name?: string
+	inbox?: string
+	archive?: string
+	trash?: string
 	id: string
 	thread_id: string
 	from_name: string
@@ -167,6 +202,7 @@ export interface MailboxData {
 	name: string
 	id: string
 	role: string | null
+	total_emails: number
 	total_threads: number
 	unread_threads: number
 	_name: string
@@ -192,4 +228,13 @@ export interface NotificationPayload {
 		notification_icon?: string
 		click_action?: string
 	}
+}
+
+export interface QuotaUsage {
+	total: number
+	used: number
+	available: number
+	used_percentage: number
+	available_percentage: number
+	unlimited: boolean
 }

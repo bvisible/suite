@@ -2,7 +2,7 @@
 	<DashboardLayout v-if="contact?.doc" :breadcrumbs="breadcrumbs">
 		<template #actions>
 			<Dropdown :options="DROPDOWN_OPTIONS">
-				<Button icon="more-horizontal" class="text-ink-gray-5" />
+				<Button icon="lucide-more-horizontal" class="text-ink-gray-5" />
 			</Dropdown>
 		</template>
 		<template #default>
@@ -201,11 +201,11 @@
 			}
 		"
 	/>
-	<Dialog v-model="showDeleteContact" :options="deleteContactOptions" />
-	<Dialog v-model="showRemoveAddressBooks" :options="removeAddressBooksOptions" />
-	<Dialog v-model="showRemoveEmails" :options="removeEmailsOptions" />
-	<Dialog v-model="showRemovePhones" :options="removePhonesOptions" />
-	<Dialog v-model="showRemoveAddresses" :options="removeAddressesOptions" />
+	<Dialog v-model:open="showDeleteContact" v-bind="deleteContactOptions" />
+	<Dialog v-model:open="showRemoveAddressBooks" v-bind="removeAddressBooksOptions" />
+	<Dialog v-model:open="showRemoveEmails" v-bind="removeEmailsOptions" />
+	<Dialog v-model:open="showRemovePhones" v-bind="removePhonesOptions" />
+	<Dialog v-model:open="showRemoveAddresses" v-bind="removeAddressesOptions" />
 </template>
 
 <script setup lang="ts">
@@ -213,18 +213,8 @@ import { capitalize, computed, inject, ref, useTemplateRef } from 'vue'
 import { useRouter } from 'vue-router'
 import { Trash2 } from 'lucide-vue-next'
 import {
-	Button,
-	Dialog,
-	Dropdown,
-	ListEmptyState,
-	ListHeader,
-	ListRows,
-	ListSelectBanner,
-	ListView,
-	createDocumentResource,
-	createResource,
-	usePageMeta,
-} from 'frappe-ui'
+	Button, Dialog, Dropdown, createDocumentResource, createResource, usePageMeta } from 'frappe-ui'
+import { ListEmptyState, ListHeader, ListRows, ListSelectBanner, ListView } from 'frappe-ui/experimental'
 
 import { raiseToast } from '@/apps/mail/utils'
 import { userStore } from '@/apps/mail/stores/user'
@@ -287,7 +277,7 @@ const deleteContact = createResource({
 const deleteContactOptions = computed(() => ({
 	title: __('Delete Contact'),
 	message: __('Are you sure you want to delete the contact for {0}?', [contact.doc?.full_name]),
-	icon: { name: 'alert-triangle', appearance: 'warning' },
+	icon: { name: 'lucide-alert-triangle', theme: 'amber' },
 	actions: [{ label: __('Confirm'), variant: 'solid', onClick: deleteContact.submit }],
 }))
 
@@ -295,7 +285,7 @@ const addressBooksList = useTemplateRef('addressBooksList')
 const removeAddressBooksOptions = computed(() => ({
 	title: __('Remove from Address Books'),
 	message: __('Are you sure you want to remove this contact from the selected address books?'),
-	icon: { name: 'alert-triangle', appearance: 'warning' },
+	icon: { name: 'lucide-alert-triangle', theme: 'amber' },
 	actions: [
 		{
 			label: __('Confirm'),
@@ -316,7 +306,7 @@ const emailsList = useTemplateRef('emailsList')
 const removeEmailsOptions = computed(() => ({
 	title: __('Remove Emails'),
 	message: __('Are you sure you want to remove the selected emails?'),
-	icon: { name: 'alert-triangle', appearance: 'warning' },
+	icon: { name: 'lucide-alert-triangle', theme: 'amber' },
 	actions: [
 		{
 			label: __('Confirm'),
@@ -337,7 +327,7 @@ const phonesList = useTemplateRef('phonesList')
 const removePhonesOptions = computed(() => ({
 	title: __('Remove Phones'),
 	message: __('Are you sure you want to remove the selected phones?'),
-	icon: { name: 'alert-triangle', appearance: 'warning' },
+	icon: { name: 'lucide-alert-triangle', theme: 'amber' },
 	actions: [
 		{
 			label: __('Confirm'),
@@ -358,7 +348,7 @@ const addressesList = useTemplateRef('addressesList')
 const removeAddressesOptions = computed(() => ({
 	title: __('Remove Addresses'),
 	message: __('Are you sure you want to remove the selected addresses?'),
-	icon: { name: 'alert-triangle', appearance: 'warning' },
+	icon: { name: 'lucide-alert-triangle', theme: 'amber' },
 	actions: [
 		{
 			label: __('Confirm'),

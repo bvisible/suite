@@ -1,64 +1,109 @@
 <template>
-  <!-- '/suite' launcher: the NeoCockpit sidebar + a brand-logo app switcher. -->
+  <!-- '/suite' launcher: brand-logo app switcher for all 7 suite apps. -->
   <div class="flex h-screen bg-surface-base">
-    <!-- //// Neoffice: cockpit sidebar on the /suite hub (was a bare centered
-         grid with no chrome). Global search + module switcher + NORA come from
-         the cockpit; contextNav is empty (this IS the hub). //// -->
+    <!-- //// Neoffice — the cockpit rail on the /suite hub. Upstream's launcher is a
+         bare centered grid; ours carries the same chrome as every other Neoffice
+         surface (global search, module switcher, NORA). contextNav is empty on
+         purpose: this page IS the hub. //// -->
     <NeoCockpitBridge :surface-app="surfaceApp" :navigate="(r: string) => router.push(r)" />
 
+    <div class="flex min-w-0 flex-1 flex-col">
+    <header class="flex h-12 shrink-0 items-center justify-between border-b p-2">
+      <div v-if="workspaceName" class="flex items-center gap-2">
+        <Avatar :image="workspaceLogo" :label="workspaceName" shape="square" size="lg" />
+        <div class="text-md-medium">{{ workspaceName }}</div>
+      </div>
+      <div v-else />
+
+      <Dropdown :options="userMenuOptions" align="end">
+        <button
+          class="flex rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+          :aria-label="__('User menu')"
+        >
+          <Avatar :image="imageURL" :label="fullName" size="lg" />
+        </button>
+      </Dropdown>
+    </header>
+
     <div class="flex-1 overflow-auto">
-      <div class="mx-auto flex min-h-full max-w-5xl flex-col px-6 pt-[10%] pb-16">
-        <div class="mx-auto grid grid-cols-4 gap-x-20 gap-y-10">
-          <!-- //// Neoffice: tiles with `external` leave the SPA (plain <a>, e.g. Mail ->
-               /app/webmail); tiles with `createsOffice` create a blank Office file in the
-               Drive and open it in Collabora (replaces the native editors). //// -->
-          <component
-            :is="app.external ? 'a' : app.createsOffice ? 'button' : RouterLink"
+      <div class="mx-auto flex min-h-full max-w-5xl flex-col px-6 pt-[8%] pb-16">
+        <div class="mx-auto grid grid-cols-3 gap-x-10 gap-y-10 min-[480px]:grid-cols-4 min-[480px]:gap-x-20">
+          <!-- //// Neoffice — two tile kinds upstream does not have: `external` leaves
+               the SPA entirely (plain <a>, e.g. Mail -> /app/webmail) and `createsOffice`
+               creates a blank Office file in Drive and opens it in Collabora, in place of
+               the native Writer/Sheets/Slides editors. Upstream's LauncherTile already
+               renders a RouterLink, an <a> or a <button> depending on which of to/href is
+               set, so the three cases share one component. //// -->
+          <LauncherTile
             v-for="app in apps"
             :key="app.id"
-            v-bind="app.external ? { href: app.external } : app.createsOffice ? {} : { to: app.prefix }"
-            class="group flex flex-col items-center text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+            :to="app.external || app.createsOffice ? undefined : app.prefix"
+            :href="app.external || undefined"
+            :logo="app.logo"
+            :label="creating === app.id ? __('Creating…') : app.name"
             @click="app.createsOffice && createOfficeFile(app)"
-          >
-            <div class="flex size-[3.375rem] items-center justify-center">
-              <img
-                :src="app.logo"
-                :alt="`${app.name} logo`"
-                class="size-[3.375rem] object-contain"
-                :class="{ 'opacity-50': creating === app.id }"
-                draggable="false"
-              />
-            </div>
-            <div class="mt-3 text-sm-medium leading-none text-ink-gray-9">
-              {{ creating === app.id ? __('Creating…') : app.name }}
-            </div>
-          </component>
+          />
 
-          <!-- //// Neoffice: removed the "Settings" tile — it linked to
-               /app/user-settings, the technical User Settings (mail-account)
-               list, which is not user-facing. The doctype itself stays (it
-               backs the mail + calendar accounts). //// -->
+          <LauncherTile :logo="settingsLogo" :label="__('Settings')" @click="openSettings()" />
         </div>
       </div>
+    </div>
+
+      <SuiteSettingsDialog />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-// //// Neoffice: RouterLink imported for the dynamic <component :is> above ////
-import { RouterLink, useRouter } from 'vue-router'
+import { h, onMounted, onUnmounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { Avatar, Dropdown } from 'frappe-ui'
+import { CircleUser, LogOut } from 'lucide-vue-next'
 
-import NeoCockpitBridge from '@/shell/NeoCockpitBridge.vue'
 import { SUITE_APPS, SUITE_LOGO } from '@/apps/registry'
 import type { SuiteApp } from '@/apps/registry'
+//// Neoffice — the shared cockpit rail (see the template).
+import NeoCockpitBridge from '@/shell/NeoCockpitBridge.vue'
+import settingsLogo from '@/assets/app-logos/settings.svg'
+import { useCurrentUser, useSessionStore } from '@/boot/session'
+import { useThemeMenuOption } from '@/composables/useThemeMenuOption'
+import LauncherTile from '@/shell/LauncherTile.vue'
+import SuiteSettingsDialog from '@/shell/settings/SuiteSettingsDialog.vue'
+import { openSettings } from '@/shell/settings/useSettingsDialog'
+import { useWorkspace } from '@/shell/useWorkspace'
 import { useRootStore } from '@/stores/root'
+import { setupTheme } from '@/utils/setupTheme'
 
 const apps = SUITE_APPS
 const router = useRouter()
 
+const { workspaceName, workspaceLogo } = useWorkspace()
+
+const { fullName, imageURL } = useCurrentUser()
+const sessionStore = useSessionStore()
+
+const userMenuOptions = [
+  {
+    label: __('My Profile'),
+    icon: h(CircleUser, { class: 'stroke-[1.5]' }),
+    onClick: () => openSettings('profile'),
+  },
+  useThemeMenuOption(),
+  {
+    label: __('Log out'),
+    icon: h(LogOut, { class: 'stroke-[1.5]' }),
+    onClick: () => sessionStore.logout.submit(),
+  },
+]
+
 onMounted(() => {
+  setupTheme()
   useRootStore().setActiveApp(null)
+  document.documentElement.style.overscrollBehavior = 'none'
+})
+
+onUnmounted(() => {
+  document.documentElement.style.overscrollBehavior = ''
 })
 
 // //// Neoffice: identity of the hub in the cockpit module switcher ////

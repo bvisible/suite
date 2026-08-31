@@ -1,104 +1,96 @@
 <template>
-  <div class="bg-surface-base border-b w-full px-5 py-2.5 h-12 flex items-center justify-between">
-    <div class="bg-surface-gray-2 rounded-[10px] space-x-0.5 h-7 flex items-center px-0.5 py-1">
-      <TabButtons
-        v-model="onlyUnread"
-        :buttons="[
-          {
-            label: 'Unread',
-            value: true,
-          },
-          { label: 'All', value: false },
-        ]"
-      />
-    </div>
-    <div>
+  <div class="sticky top-0 z-20 bg-surface-base border-b w-full px-5 py-2.5 h-12 flex items-center justify-between">
+    <TabButtons
+      v-model="onlyUnread"
+      :options="[
+        {
+          label: 'Unread',
+          value: true,
+        },
+        { label: 'All', value: false },
+      ]"
+    />
+    <div class="flex items-center gap-2">
       <Button
         :loading="notifications.loading"
-        icon="refresh-ccw"
-        class="mr-2"
+        icon="lucide-refresh-ccw"
         @click="notifications.reload()"
       />
       <Button
-        icon-left="check-circle"
+        icon-left="lucide-check-circle"
         @click="markAllRead"
       >
-        Mark all as Read
+        Mark all as read
       </Button>
     </div>
   </div>
-  <ListView
-    v-if="notifications.data?.length"
+  <DriveListSkeleton v-if="!notifications.data" />
+  <List
+    v-else-if="notifications.data.length"
     class="px-5 pt-5"
-    :columns="columns"
-    :options="options"
-    :rows="notifications.data"
-    row-key="name"
-  />
-  <div
-    v-else
-    class="flex flex-col items-center justify-center m-auto min-h-full overflow-auto"
-    style="transform: translate(0, -42px)"
+    :row-height="44"
   >
-    <LucideInbox class="w-14 h-auto text-ink-gray-4 pb-4" />
-    <span class="text-base-medium text-ink-gray-5">No Notifications</span>
-  </div>
+    <ListRow
+      v-for="row in notifications.data"
+      :key="row.name"
+      :value="row.name"
+      @click="onRowClick(row)"
+    >
+      <ListCell class="w-20 shrink-0">
+        <span class="truncate text-sm text-ink-gray-6">{{ row.type }}</span>
+      </ListCell>
+      <ListCell>
+        <div class="flex items-center gap-2 min-w-0">
+          <Avatar
+            v-if="row.from_user"
+            shape="circle"
+            :label="row.from_user"
+            :image="row.user_image"
+            size="sm"
+          />
+          <span class="truncate text-p-base text-ink-gray-7">{{ row.message }}</span>
+        </div>
+      </ListCell>
+      <ListCell class="justify-end shrink-0">
+        <span class="text-sm text-ink-gray-5">{{ row.relativeTime }}</span>
+      </ListCell>
+    </ListRow>
+  </List>
+  <NoFilesSection
+    v-else
+    :icon="LucideInbox"
+    title="No notifications"
+    description="Updates about your files will show up here."
+  />
 </template>
 <script setup>
-import { ref, h, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { formatTimeAgo } from '@vueuse/core'
-import { createResource, Avatar, ListView, TabButtons, Button} from 'frappe-ui'
+import { createResource, Avatar, TabButtons, Button } from 'frappe-ui'
+import { List, ListRow, ListCell } from 'frappe-ui/list'
+import { useRouter } from 'vue-router'
 import { notifCount } from '@/apps/drive/resources/permissions'
+import NoFilesSection from '@/apps/drive/components/NoFilesSection.vue'
+import DriveListSkeleton from '@/apps/drive/components/DriveListSkeleton.vue'
 import { formatDate } from '@/apps/drive/utils/format'
-import emitter from '@/apps/drive/emitter'
 import LucideInbox from '~icons/lucide/inbox'
 
+const router = useRouter()
 const onlyUnread = ref(true)
-const options = {
-  getRowRoute: (row) => ({
-    name: row.entity_type,
-    params: { entityName: row.notif_doctype_name },
-  }),
-  onRowClick: (row) => {
-    if (row.type === 'Team') emitter.emit('showSettings', 1)
-    if (onlyUnread.value) {
-      markAsRead.submit({ name: row.name })
-      if (notifCount.data > 0) notifCount.setData(notifCount.data - 1)
-    }
-  },
-  selectable: false,
-  showTooltip: true,
-  resizeColumn: false,
-}
 
-const columns = [
-  {
-    label: 'Subject',
-    key: 'subject',
-    width: '80px',
-    getLabel: ({ row }) => row.type,
-  },
-  {
-    label: 'Message',
-    key: 'message',
-    width: 4,
-    getLabel: ({ row }) => row.message,
-    prefix: ({ row }) => {
-      if (row.from_user)
-        return h(Avatar, {
-          shape: 'circle',
-          label: row.from_user,
-          image: row.user_image,
-          size: 'sm',
-        })
-    },
-  },
-  {
-    key: 'creation',
-    align: 'end',
-    getLabel: ({ row }) => row.relativeTime,
-  },
-]
+function onRowClick(row) {
+  if (!row.read) {
+    row.read = 1
+    markAsRead.submit({ name: row.name })
+    if (notifCount.data > 0) notifCount.setData(notifCount.data - 1)
+  }
+  if (row.entity_type) {
+    router.push({
+      name: 'drive-' + row.entity_type,
+      params: { entityName: row.notif_doctype_name },
+    })
+  }
+}
 
 watch(onlyUnread, (newValue) => {
   notifications.fetch({

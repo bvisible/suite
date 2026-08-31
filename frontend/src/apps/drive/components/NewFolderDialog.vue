@@ -23,9 +23,7 @@
 <script setup>
 import { ref } from 'vue'
 import { Dialog, createResource, FormControl } from 'frappe-ui'
-import { useRoute } from 'vue-router'
 
-const route = useRoute()
 const props = defineProps({
   parent: String,
 })
@@ -41,7 +39,6 @@ const createFolder = createResource({
   makeParams(file_name) {
     return {
       file_name,
-      team: route.params.team,
       parent: props.parent,
     }
   },

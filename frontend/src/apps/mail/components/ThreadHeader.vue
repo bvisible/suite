@@ -1,69 +1,78 @@
 <template>
-	<div class="bg-surface-base sticky top-0 flex items-center border-b py-2.5 sm:px-3.5">
+	<!-- px-3.5 matches the body/subject axis; the max-sm negative margins cancel the
+	     ghost buttons' own padding so the edge glyphs land on that axis too. -->
+	<div class="bg-surface-base border-b sticky top-0 flex items-center px-3.5 py-2.5 max-sm:min-h-14 max-sm:border-b-0 max-sm:py-0">
 		<Button
 			variant="ghost"
-			class="mr-2 shrink-0"
-			@click="$router.push({ name: 'mail-mailbox', params: { mailbox }, query: route.query })"
+			class="mr-2 shrink-0 max-sm:-ml-2 max-sm:!h-8 max-sm:!w-8"
+			@click="$router.push(backRoute)"
 		>
 			<template #icon>
-				<ChevronLeft class="icon" />
+				<ChevronLeft class="icon max-sm:!h-[18px] max-sm:!w-[18px]" />
 			</template>
 		</Button>
 		<template v-if="thread?.length">
 			<Tooltip v-if="!isMobile" :text="thread?.[0]?.subject">
-				<h2 class="mr-2 select-none truncate font-semibold leading-5">
+				<h2 class="mr-2 truncate font-semibold leading-5">
 					{{ thread?.[0]?.subject || __('[No subject]') }}
 				</h2>
 			</Tooltip>
-			<div class="ml-auto shrink-0 space-x-2">
-				<Dropdown v-if="user.data?.show_reading_pane" :options="threadActions">
-					<Button variant="ghost" :tooltip="__('Actions')">
-						<template #icon>
-							<Ellipsis class="icon" />
-						</template>
-					</Button>
-				</Dropdown>
-				<template v-else>
-					<Button
-						v-for="action in threadActions.filter((a) => a.condition())"
-						:key="action.label"
-						:tooltip="action.label"
-						variant="ghost"
-						@click="action.onClick"
-					>
-						<template #icon>
-							<component :is="action.icon" class="icon" />
-						</template>
-					</Button>
-				</template>
+			<div class="ml-auto shrink-0 space-x-2 max-sm:-mr-2">
+				<Button
+					variant="ghost"
+					class="max-sm:!h-8 max-sm:!w-8"
+					:tooltip="isFlagged ? __('Unstar') : __('Star')"
+					@click="
+						emit(
+							'setFlagged',
+							thread.map((m) => m.id),
+							!isFlagged,
+						)
+					"
+				>
+					<template #icon>
+						<Star
+							:style="isFlagged ? FLAGGED_STAR_STYLE : undefined"
+							class="icon max-sm:!h-[18px] max-sm:!w-[18px]"
+						/>
+					</template>
+				</Button>
 
-				<Dropdown :options="moveToOptions">
-					<Button variant="ghost" :tooltip="__('Move To')">
+				<AdaptiveDropdown :options="moveToOptions" :title="__('Move To')">
+					<Button variant="ghost" class="max-sm:!h-8 max-sm:!w-8" :tooltip="__('Move To')">
 						<template #icon>
-							<FolderInput class="icon" />
+							<FolderInput class="icon max-sm:!h-[18px] max-sm:!w-[18px]" />
 						</template>
 					</Button>
-				</Dropdown>
-				<Dropdown v-if="showAddTo" :options="addToOptions">
-					<Button variant="ghost" :tooltip="__('Add To')">
+				</AdaptiveDropdown>
+				<AdaptiveDropdown v-if="showAddTo" :options="addToOptions" :title="__('Add To')">
+					<Button variant="ghost" class="max-sm:!h-8 max-sm:!w-8" :tooltip="__('Add To')">
 						<template #icon>
-							<FolderPlus class="icon" />
+							<FolderPlus class="icon max-sm:!h-[18px] max-sm:!w-[18px]" />
 						</template>
 					</Button>
-				</Dropdown>
-				<Dropdown v-if="canRemoveFrom" :options="removeFromOptions">
-					<Button variant="ghost" :tooltip="__('Remove From')">
+				</AdaptiveDropdown>
+				<AdaptiveDropdown v-if="canRemoveFrom" :options="removeFromOptions" :title="__('Remove From')">
+					<Button variant="ghost" class="max-sm:!h-8 max-sm:!w-8" :tooltip="__('Remove From')">
 						<template #icon>
-							<FolderMinus class="icon" />
+							<FolderMinus class="icon max-sm:!h-[18px] max-sm:!w-[18px]" />
 						</template>
 					</Button>
-				</Dropdown>
+				</AdaptiveDropdown>
+				<AdaptiveDropdown :options="moreActions">
+					<Button variant="ghost" class="max-sm:!h-8 max-sm:!w-8" :tooltip="__('More')">
+						<template #icon>
+							<Ellipsis class="icon max-sm:!h-[18px] max-sm:!w-[18px]" />
+						</template>
+					</Button>
+				</AdaptiveDropdown>
 
-				<template v-if="threads.includes(threadID)">
+				<!-- Prev/next thread arrows are a desktop affordance (↑/K, ↓/J). -->
+				<template v-if="threads.includes(threadID) && !isMobile">
 					<Button
 						variant="ghost"
 						:tooltip="__('Previous Thread (↑/K)')"
-						:disabled="threadID === threads[0] && !canGoPrev"
+						:disabled="threadID === threads[0]"
 						@click="emit('prevThread')"
 					>
 						<template #icon>
@@ -88,9 +97,9 @@
 </template>
 
 <script setup lang="ts">
-import { type Component, computed, h, inject } from 'vue'
+import { type Component, computed, h } from 'vue'
 import { useRoute } from 'vue-router'
-import { Icon } from 'frappe-ui/icons'
+import { Icon } from 'frappe-ui/experimental'
 import {
 	Archive,
 	ArrowLeft,
@@ -106,19 +115,19 @@ import {
 	Star,
 	Trash2,
 } from 'lucide-vue-next'
-import { Button, Dropdown, Tooltip } from 'frappe-ui'
+import { Button, Tooltip } from 'frappe-ui'
 
-import { FOLDER_ICON_COLOR_MAP } from '@/apps/mail/constants'
+import { FLAGGED_STAR_STYLE, FOLDER_ICON_COLOR_MAP } from '@/apps/mail/constants'
+import AdaptiveDropdown from '@/apps/mail/components/AdaptiveDropdown.vue'
 import { getIcon, getMailboxName } from '@/apps/mail/utils'
 import { useScreenSize } from '@/apps/mail/utils/composables'
-import { userStore } from '@/apps/mail/stores/user'
+import { injectAccountScope } from '@/apps/mail/utils/accountScope'
 
 import type { Mail, MailboxData } from '@/apps/mail/types'
 
-const { thread, threads, canGoPrev, canGoNext } = defineProps<{
+const { thread, threads, canGoNext } = defineProps<{
 	thread: Mail[]
 	threads: string[]
-	canGoPrev?: boolean
 	canGoNext?: boolean
 }>()
 const emit = defineEmits([
@@ -135,12 +144,22 @@ const emit = defineEmits([
 
 const { isMobile } = useScreenSize()
 const route = useRoute()
-const { mailboxes, mailboxIds } = userStore()
-
-const user = inject('$user')
+// Folder menus come from the pane's account scope — the thread's owning account
+// when All Inboxes opened it, the active account otherwise.
+const { mailboxes, mailboxIds } = injectAccountScope()
 
 const mailbox = computed(() => route.params.mailbox as string)
 const threadID = computed(() => route.params.threadID as string)
+
+// Back returns to the list the thread was opened from: the merged All Inboxes
+// list on its thread route (whose mailbox param is the thread's real folder —
+// usually an account's Inbox, which is where back used to land), the mailbox
+// list otherwise.
+const backRoute = computed(() =>
+	route.name === 'mail-all-inboxes-mail'
+		? { name: 'mail-all-inboxes', query: route.query }
+		: { name: 'mail-mailbox', params: { mailbox: mailbox.value }, query: route.query },
+)
 
 const threadMailboxes = computed(() => {
 	if (!thread?.length) return []
@@ -163,38 +182,18 @@ const canRemoveFrom = computed(() =>
 	(thread ?? []).some((mail: Mail) => mail.id && mail.mailboxes.length > 1),
 )
 
-const threadActions = computed((): Action[] => [
+const isFlagged = computed(() => thread.every((m) => m.flagged))
+
+const moreActions = computed((): Action[] => [
 	{
-		label: __('Star Thread'),
+		label: __('Archive (E)'),
 		onClick: () =>
 			emit(
-				'setFlagged',
-				thread.map((m) => m.id),
-				true,
-			),
-		icon: Star,
-		condition: () => thread.some((m) => !m.flagged),
-	},
-	{
-		label: __('Unstar Thread'),
-		onClick: () =>
-			emit(
-				'setFlagged',
-				thread.map((m) => m.id),
-				false,
-			),
-		icon: h(Star, { style: 'fill: var(--ink-amber-6); color: var(--ink-amber-6)' }),
-		condition: () => thread.every((m) => m.flagged),
-	},
-	{
-		label: __('Archive Thread (E)'),
-		onClick: () =>
-			emit(
-				mailbox.value === mailboxIds.sent ? 'addThreadToMailbox' : 'moveThread',
-				mailboxIds.archive,
+				mailbox.value === mailboxIds.value.sent ? 'addThreadToMailbox' : 'moveThread',
+				mailboxIds.value.archive,
 			),
 		icon: Archive,
-		condition: () => !threadMailboxes.value.includes(mailboxIds.archive),
+		condition: () => !threadMailboxes.value.includes(mailboxIds.value.archive),
 	},
 	{
 		label: __('Mark as Junk (!)'),
@@ -202,26 +201,26 @@ const threadActions = computed((): Action[] => [
 		icon: CircleAlert,
 		condition: () =>
 			!threadMailboxes.value.some((m: string) =>
-				[mailboxIds.junk, mailboxIds.drafts].includes(m),
+				[mailboxIds.value.junk, mailboxIds.value.drafts].includes(m),
 			),
 	},
 	{
 		label: __('Mark as Not Junk'),
 		onClick: () => emit('setSpamStatus', false),
 		icon: CircleCheck,
-		condition: () => threadMailboxes.value.includes(mailboxIds.junk),
+		condition: () => threadMailboxes.value.includes(mailboxIds.value.junk),
 	},
 	{
 		label: __('Move to Trash (Delete)'),
-		onClick: () => emit('moveThread', mailboxIds.trash),
+		onClick: () => emit('moveThread', mailboxIds.value.trash),
 		icon: Trash2,
-		condition: () => !threadMailboxes.value.includes(mailboxIds.trash),
+		condition: () => !threadMailboxes.value.includes(mailboxIds.value.trash),
 	},
 	{
 		label: __('Delete Thread (Shift+Delete)'),
 		onClick: () => emit('deleteThread'),
 		icon: Trash2,
-		condition: () => threadMailboxes.value.includes(mailboxIds.trash),
+		condition: () => threadMailboxes.value.includes(mailboxIds.value.trash),
 	},
 	{
 		label: __('Mark as Unread (U)'),
@@ -232,39 +231,41 @@ const threadActions = computed((): Action[] => [
 ])
 
 const showAddTo = computed(() =>
-	threadMailboxes.value.every((m) => ![mailboxIds.junk, mailboxIds.trash].includes(m)),
+	threadMailboxes.value.every((m) => ![mailboxIds.value.junk, mailboxIds.value.trash].includes(m)),
 )
 
+// Default to [] rather than undefined: in All Inboxes the pane's mailbox resource belongs to the
+// row's account and is still loading on first paint, and AdaptiveDropdown requires an array.
 const addToOptions = computed(() =>
-	mailboxes.data
-		?.filter(
+	(mailboxes.value.data ?? [])
+		.filter(
 			(m) =>
 				(!m.role || ['inbox', 'archive'].includes(m.role)) &&
-				m.id !== mailboxIds.screener &&
+				m.id !== mailboxIds.value.screener &&
 				!threadMailboxes.value.includes(m.id),
 		)
 		.map((m) => getMailboxOption(m, 'addThreadToMailbox')),
 )
 
 const removeFromOptions = computed(() =>
-	mailboxes.data
-		?.filter(
+	(mailboxes.value.data ?? [])
+		.filter(
 			(m) =>
 				threadMailboxesUnion.value.includes(m.id) &&
-				![mailboxIds.sent, mailboxIds.drafts].includes(m.id),
+				![mailboxIds.value.sent, mailboxIds.value.drafts].includes(m.id),
 		)
 		.map((m) => getMailboxOption(m, 'removeThreadFromMailbox')),
 )
 
 const moveToOptions = computed(() => {
 	const excludedMailboxes = new Set([
-		mailboxIds.sent,
-		mailboxIds.drafts,
-		mailboxIds.screener,
+		mailboxIds.value.sent,
+		mailboxIds.value.drafts,
+		mailboxIds.value.screener,
 		...threadMailboxes.value,
 	])
-	return mailboxes.data
-		?.filter((m) => !excludedMailboxes.has(m.id))
+	return (mailboxes.value.data ?? [])
+		.filter((m) => !excludedMailboxes.has(m.id))
 		.map((m) => getMailboxOption(m, 'moveThread'))
 })
 

@@ -8,7 +8,6 @@
  "field_order": [
   "title",
   "content",
-  "team",
   "keymap"
  ],
  "fields": [
@@ -25,12 +24,6 @@
    "in_list_view": 1,
    "label": "Content",
    "reqd": 1
-  },
-  {
-   "fieldname": "team",
-   "fieldtype": "Link",
-   "label": "Team",
-   "options": "Drive Team"
   },
   {
    "fieldname": "keymap",
@@ -68,7 +61,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Drive User",
+   "role": "Suite User",
    "share": 1,
    "write": 1
   }

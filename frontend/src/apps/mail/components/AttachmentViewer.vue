@@ -15,7 +15,7 @@
 				@click.self="closeViewer"
 			>
 				<div class="flex w-full justify-between">
-					<div class="flex max-w-2xl items-center space-x-2 truncate rounded">
+					<div class="flex max-w-2xl items-center space-x-2 truncate rounded-4">
 						<component
 							:is="getFileIcon(currentAttachment?.type)"
 							class="h-4 w-4 shrink-0"
@@ -27,7 +27,7 @@
 					<div class="shrink-0 space-x-2 sm:space-x-4">
 						<button
 							v-if="previewUrl && !fetchAttachment.loading && canPrint"
-							class="rounded p-1.5 hover:bg-white/20"
+							class="rounded-4 p-1.5 hover:bg-white/20"
 							@click="printAttachment"
 						>
 							<Printer class="h-4 w-4" />
@@ -35,12 +35,12 @@
 						<button
 							v-if="previewUrl && !fetchAttachment.loading"
 							:disabled="isDownloading"
-							class="rounded p-1.5 hover:bg-white/20 disabled:opacity-50"
+							class="rounded-4 p-1.5 hover:bg-white/20 disabled:opacity-50"
 							@click="downloadAttachment"
 						>
 							<Download class="h-4 w-4" />
 						</button>
-						<button class="rounded p-1.5 hover:bg-white/20" @click="closeViewer">
+						<button class="rounded-4 p-1.5 hover:bg-white/20" @click="closeViewer">
 							<X class="h-4 w-4" />
 						</button>
 					</div>
@@ -123,7 +123,7 @@
 				>
 					<button
 						:disabled="currentIndex === 0"
-						class="rounded p-1.5 disabled:opacity-50"
+						class="rounded-4 p-1.5 disabled:opacity-50"
 						:class="{ 'hover:bg-white/20': currentIndex !== 0 }"
 						@click="previousAttachment"
 					>
@@ -139,7 +139,7 @@
 					</span>
 					<button
 						:disabled="currentIndex === attachments.length - 1"
-						class="rounded p-1.5 disabled:opacity-50"
+						class="rounded-4 p-1.5 disabled:opacity-50"
 						:class="{ 'hover:bg-white/20': currentIndex !== attachments.length - 1 }"
 						@click="nextAttachment"
 					>
@@ -172,14 +172,16 @@ import {
 import { Button } from 'frappe-ui'
 
 import { fetchAttachment, getAttachmentUrl } from '@/apps/mail/resources'
-import { getFileIcon } from '@/apps/mail/utils'
+import { getFileIcon, revokeObjectUrlAfterDownload } from '@/apps/mail/utils'
 import { useScreenSize } from '@/apps/mail/utils/composables'
 
 import type { Attachment } from '@/apps/mail/types'
 
-const { attachments, initialIndex } = defineProps<{
+const { attachments, initialIndex, account } = defineProps<{
 	attachments?: Attachment[]
 	initialIndex?: number
+	// The blobs' owning account (merged lists / cross-account panes); active when unset.
+	account?: string
 }>()
 
 const { isMobile } = useScreenSize()
@@ -196,12 +198,23 @@ const isVideo = computed(() => currentAttachment.value?.type?.startsWith('video/
 const isAudio = computed(() => currentAttachment.value?.type?.startsWith('audio/'))
 const canPrint = computed(() => isImage.value || isPDF.value)
 
+// Set to the preview URL a download was started from: Safari fetches the blob after
+// the click returns, so that URL has to outlive the viewer (see downloadUrlAsFile).
+const downloadedUrl = ref<string | null>(null)
+
+const releasePreview = () => {
+	if (!previewUrl.value) return
+
+	if (previewUrl.value === downloadedUrl.value) revokeObjectUrlAfterDownload(previewUrl.value)
+	else URL.revokeObjectURL(previewUrl.value)
+
+	downloadedUrl.value = null
+	previewUrl.value = null
+}
+
 const closeViewer = () => {
 	show.value = false
-	if (previewUrl.value) {
-		URL.revokeObjectURL(previewUrl.value)
-		previewUrl.value = null
-	}
+	releasePreview()
 }
 
 const previousAttachment = () => {
@@ -215,21 +228,27 @@ const nextAttachment = () => {
 const loadAttachment = async () => {
 	if (!currentAttachment.value?.blob_id) return
 
-	if (previewUrl.value) {
-		URL.revokeObjectURL(previewUrl.value)
-		previewUrl.value = null
-	}
+	releasePreview()
 
-	previewUrl.value = await getAttachmentUrl(
-		currentAttachment.value.blob_id,
-		currentAttachment.value.type,
-	)
+	try {
+		previewUrl.value = await getAttachmentUrl(
+			currentAttachment.value.blob_id,
+			currentAttachment.value.type,
+			account,
+		)
+	} catch {
+		// the resource's onError already raised a toast; the viewer falls back to
+		// its "Failed to load attachment" state
+	}
 }
 
 const downloadAttachment = () => {
 	if (!currentAttachment.value?.blob_id || !previewUrl.value) return
 
 	isDownloading.value = true
+	// Not downloadUrlAsFile(): this URL is still bound to the <img>/<embed> on screen,
+	// so releasePreview() owns revoking it.
+	downloadedUrl.value = previewUrl.value
 	const link = document.createElement('a')
 	link.href = previewUrl.value
 	link.download = currentAttachment.value?.filename || 'attachment'
@@ -307,5 +326,8 @@ const handleKeyDown = (event: KeyboardEvent) => {
 }
 
 onMounted(() => window.addEventListener('keydown', handleKeyDown))
-onUnmounted(() => window.removeEventListener('keydown', handleKeyDown))
+onUnmounted(() => {
+	window.removeEventListener('keydown', handleKeyDown)
+	releasePreview()
+})
 </script>

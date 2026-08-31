@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, inject, reactive, watch } from 'vue'
-import { Dialog, FormControl } from 'frappe-ui'
+import { Repeat } from 'lucide-vue-next'
+import { Button, Dialog, FormControl, TabButtons } from 'frappe-ui'
 
-import { getRepeatFrequencyOptions, getRepeatMessage } from '@/apps/calendar/utils/format'
+import { getRepeatMessage } from '@/apps/calendar/utils/format'
 
 const show = defineModel<boolean>()
 const { startDate, rRule } = defineProps<{ startDate: string; rRule: any }>()
@@ -37,7 +38,9 @@ const parseRRule = () => {
 
 	if (rRule.until) {
 		end = 'On Date'
-		until = dayjs(rRule.until).format('YYYY-MM-DD')
+		// `until` is a local date-time; strip the `Z` older events carry so the picked
+		// date survives instead of shifting a day in zones east of UTC.
+		until = dayjs(rRule.until.replace(/Z$/, '')).format('YYYY-MM-DD')
 	} else if (rRule.count) {
 		end = 'After Occurrences'
 		count = rRule.count
@@ -133,7 +136,8 @@ const recurrenceRule = computed(() => {
 		else rule.byMonthDay = monthlyByMonthDay[repeat.repeatOn]
 	}
 
-	if (repeat.end === 'On Date') rule.until = `${repeat.until}T23:59:59Z`
+	// JSCalendar `until` is a LocalDateTime in the event's zone (RFC 8984) — no `Z`.
+	if (repeat.end === 'On Date') rule.until = `${repeat.until}T23:59:59`
 	else if (repeat.end === 'After Occurrences') rule.count = repeat.count
 
 	return rule
@@ -142,13 +146,20 @@ const recurrenceRule = computed(() => {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const WEEKDAYS = [
-	{ label: __('Sun'), value: 'su' },
-	{ label: __('Mon'), value: 'mo' },
-	{ label: __('Tue'), value: 'tu' },
-	{ label: __('Wed'), value: 'we' },
-	{ label: __('Thu'), value: 'th' },
-	{ label: __('Fri'), value: 'fr' },
-	{ label: __('Sat'), value: 'sa' },
+	{ label: __('Su'), value: 'su' },
+	{ label: __('Mo'), value: 'mo' },
+	{ label: __('Tu'), value: 'tu' },
+	{ label: __('We'), value: 'we' },
+	{ label: __('Th'), value: 'th' },
+	{ label: __('Fr'), value: 'fr' },
+	{ label: __('Sa'), value: 'sa' },
+]
+
+const FREQUENCIES = [
+	{ label: __('Day'), value: 'daily' },
+	{ label: __('Week'), value: 'weekly' },
+	{ label: __('Month'), value: 'monthly' },
+	{ label: __('Year'), value: 'yearly' },
 ]
 
 const END_OPTIONS = [
@@ -157,59 +168,50 @@ const END_OPTIONS = [
 	{ label: __('After Occurrences'), value: 'After Occurrences' },
 ]
 
-const DIALOG_OPTIONS = {
-	title: __('Repeat Settings'),
-	actions: [
-		{
-			label: __('Apply'),
-			variant: 'solid',
-			onClick: () => {
-				emit('updateRecurrenceRule', recurrenceRule.value)
-				show.value = false
-			},
-		},
-	],
+const DIALOG_OPTIONS = { title: __('Repeat') }
+
+const apply = () => {
+	emit('updateRecurrenceRule', recurrenceRule.value)
+	show.value = false
+}
+
+const removeRepeat = () => {
+	emit('updateRecurrenceRule', {})
+	show.value = false
 }
 </script>
 
 <template>
-	<Dialog v-model="show" :options="DIALOG_OPTIONS">
-		<template #body-content>
+	<Dialog v-model:open="show" v-bind="DIALOG_OPTIONS">
+		<template #default>
 			<div class="space-y-4">
-				<!-- Interval + Frequency -->
-				<div class="flex space-x-4">
-					<FormControl
-						v-model.number="repeat.interval"
-						:label="__('Repeat Every')"
-						type="number"
-						class="w-full"
-					/>
-					<FormControl
-						v-model="repeat.frequency"
-						type="select"
-						label="‎"
-						:options="getRepeatFrequencyOptions(repeat.interval)"
-						class="w-full"
-					/>
+				<!-- Interval + segmented frequency -->
+				<div>
+					<label class="mb-1.5 block text-xs text-ink-gray-5">{{ __('Repeat Every') }}</label>
+					<div class="flex gap-2.5">
+						<FormControl v-model.number="repeat.interval" type="number" class="w-14 shrink-0" />
+						<TabButtons
+							v-model="repeat.frequency"
+							:options="FREQUENCIES"
+							class="min-w-0 flex-1 [&>div]:w-full [&>div>[data-slot=tab-button]]:flex-1 [&_[data-slot=tab-button]>span]:w-full"
+						/>
+					</div>
 				</div>
 
-				<!-- Repeat on days: weekly -->
+				<!-- Weekly: weekday dots -->
 				<div v-if="repeat.frequency === 'weekly'">
-					<label class="text-ink-gray-5 mb-1 block text-xs">
-						{{ __('Repeat On Days') }}
-					</label>
-					<div class="flex w-full overflow-hidden rounded border">
+					<label class="mb-1.5 block text-xs text-ink-gray-5">{{ __('On') }}</label>
+					<div class="flex gap-1.5">
 						<button
-							v-for="(d, i) in WEEKDAYS"
+							v-for="d in WEEKDAYS"
 							:key="d.value"
 							type="button"
-							class="text-ink-gray-7 h-7 w-full text-xs focus:outline-none"
-							:class="{
-								'border-r': i !== WEEKDAYS.length - 1,
-								'bg-surface-gray-2': !repeat.byDay
-									.map((d) => d.day)
-									.includes(d.value),
-							}"
+							class="size-7 rounded-full text-xs focus:outline-none"
+							:class="
+								repeat.byDay.some((x) => x.day === d.value)
+									? 'bg-surface-gray-10 text-ink-base'
+									: 'bg-surface-gray-2 text-ink-gray-8'
+							"
 							@click="toggleDay(d.value)"
 						>
 							{{ d.label }}
@@ -217,38 +219,45 @@ const DIALOG_OPTIONS = {
 					</div>
 				</div>
 
-				<!-- Repeat on: monthly -->
-				<FormControl
-					v-else-if="repeat.frequency === 'monthly'"
-					v-model="repeat.repeatOn"
-					type="select"
-					:label="__('Repeat On')"
-					:options="monthlyRepeatOnOptions"
-				/>
+				<!-- Monthly: repeat-on select -->
+				<div v-else-if="repeat.frequency === 'monthly'">
+					<label class="mb-1.5 block text-xs text-ink-gray-5">{{ __('On') }}</label>
+					<FormControl v-model="repeat.repeatOn" type="select" :options="monthlyRepeatOnOptions" />
+				</div>
 
 				<!-- End condition -->
-				<FormControl
-					v-model="repeat.end"
-					type="select"
-					:label="__('End')"
-					:options="END_OPTIONS"
-				/>
-				<FormControl
-					v-if="repeat.end === 'On Date'"
-					v-model="repeat.until"
-					type="date"
-					:label="__('End Date')"
-				/>
-				<FormControl
-					v-else-if="repeat.end === 'After Occurrences'"
-					v-model.number="repeat.count"
-					type="number"
-					:label="__('Total Occurrences')"
-				/>
+				<div>
+					<label class="mb-1.5 block text-xs text-ink-gray-5">{{ __('Ends') }}</label>
+					<div class="grid grid-cols-2 items-center gap-2.5">
+						<FormControl v-model="repeat.end" type="select" :options="END_OPTIONS" />
+						<FormControl
+							v-if="repeat.end === 'On Date'"
+							v-model="repeat.until"
+							type="date"
+							class="w-full"
+						/>
+						<FormControl
+							v-else-if="repeat.end === 'After Occurrences'"
+							v-model.number="repeat.count"
+							type="number"
+							class="w-full"
+						/>
+					</div>
+				</div>
 
-				<hr />
-
-				<div class="text-base-medium">{{ getRepeatMessage(recurrenceRule) }}</div>
+				<!-- Summary -->
+				<div
+					class="flex items-center gap-2.5 rounded-4 bg-surface-gray-2 px-3 py-2 text-base text-ink-gray-8"
+				>
+					<Repeat :size="14" class="shrink-0 text-ink-gray-5" />
+					{{ getRepeatMessage(recurrenceRule) }}
+				</div>
+			</div>
+		</template>
+		<template #actions>
+			<div class="flex justify-end gap-2">
+				<Button :label="__('Remove Repeat')" @click="removeRepeat" />
+				<Button :label="__('Apply')" variant="solid" @click="apply" />
 			</div>
 		</template>
 	</Dialog>

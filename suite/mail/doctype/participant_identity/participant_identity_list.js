@@ -16,7 +16,7 @@ function add_bulk_delete_button_to_actions(listview) {
 			__('Delete {0} {1} permanently?', [count, count === 1 ? 'item' : 'items']),
 			() => {
 				frappe.call({
-					method: 'mail.client.doctype.participant_identity.participant_identity.bulk_delete',
+					method: 'suite.mail.doctype.participant_identity.participant_identity.bulk_delete',
 					args: {
 						names: listview.get_checked_items(true),
 					},
@@ -39,7 +39,7 @@ function set_account_options(listview) {
 	if (!user) return
 
 	frappe.call({
-		method: 'mail.jmap.get_user_accounts',
+		method: 'suite.mail.jmap.get_user_accounts',
 		args: {
 			user: user,
 		},

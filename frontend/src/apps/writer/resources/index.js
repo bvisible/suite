@@ -1,6 +1,7 @@
 import { useList, createResource, useCall } from 'frappe-ui'
 import { prettyData } from '@/apps/writer/utils'
 import { getAppSwitcherItems } from '@/apps/registry'
+import { getSessionUser } from '@/boot/session'
 
 export const getDocuments = useList({
   url: '/api/method/suite.writer.api.general.get_document_list',
@@ -23,7 +24,7 @@ export const getTemplates = useList({
   doctype: 'Writer Template',
   fields: ['name', 'title', 'content', 'keymap'],
   cacheKey: 'writer-templates',
-  immediate: true,
+  immediate: !!getSessionUser(),
 })
 
 export const search = createResource({

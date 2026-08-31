@@ -1,36 +1,23 @@
 <template>
-  <div class="flex items-center mb-4 ps-1">
-    <h1 class="font-semibold text-ink-gray-9">
-      {{ __('Storage') }}
-    </h1>
-    <Button label="Sync" class="ml-auto mr-4" @click="confirmSync" />
-  </div>
-  <div class="overflow-y-auto ps-1">
-    <div v-if="getDiskSettings.loading" class="flex flex-col gap-4 pb-5 pr-5">
+  <AppSettingsHeader :title="__('Storage')">
+    <template #actions>
+      <Button :label="__('Sync')" @click="confirmSync" />
+    </template>
+  </AppSettingsHeader>
+  <AppSettingsBody>
+    <div v-if="getDiskSettings.loading" class="flex flex-col gap-4">
       <div v-for="i in 4" :key="i" class="flex flex-col gap-1.5">
-        <Skeleton class="h-3 rounded w-24" />
-        <Skeleton class="h-7 rounded w-full" />
+        <Skeleton class="h-3 rounded-4 w-24" />
+        <Skeleton class="h-7 rounded-4 w-full" />
       </div>
     </div>
-    <div v-else class="flex flex-col gap-4 pb-5 pr-5">
+    <div v-else class="flex flex-col gap-4">
       <FormControl
         v-model="generalSettings.root_folder"
         label="Root Folder Name"
         placeholder="/"
         description="Where to store Drive files, defaults to the root folder."
       />
-      <FormControl
-        v-model="generalSettings.team_prefix"
-        type="select"
-        label="Team Prefix"
-        :options="[
-          { label: 'Team ID', value: 'team_id' },
-          { label: 'Team Name', value: 'team_name' },
-          { label: 'None', value: 'none' },
-        ]"
-        description="The folder name for each team, defaults to the team name."
-      />
-
       <FormControl
         v-model="generalSettings.backend_type"
         type="select"
@@ -85,12 +72,19 @@
         @click="updateSettings.submit()"
       />
     </div>
-  </div>
+  </AppSettingsBody>
 </template>
 
 <script setup>
 import { ref, reactive, watch, markRaw } from 'vue'
-import { FormControl, Button, createResource, Skeleton } from 'frappe-ui'
+import {
+  FormControl,
+  Button,
+  createResource,
+  Skeleton,
+} from 'frappe-ui'
+import AppSettingsHeader from '@/components/settings/AppSettingsHeader.vue'
+import AppSettingsBody from '@/components/settings/AppSettingsBody.vue'
 import { toast } from '@/apps/drive/utils/toasts'
 import { createDialog } from '@/apps/drive/utils/dialogs'
 import { getDiskSettings } from '@/apps/drive/resources/permissions'
@@ -99,7 +93,6 @@ import SyncBreakdown from '@/apps/drive/components/SyncBreakdown.vue'
 const edited = ref(false)
 
 const generalSettings = reactive({
-  team_prefix: 'team_id',
   root_folder: '',
   backend_type: 'disk',
 })
@@ -147,9 +140,7 @@ const updateSettings = createResource({
   makeParams: () => ({ ...generalSettings, ...s3Settings }),
   onSuccess() {
     edited.value = false
-    toast({
-      title: 'S3 settings updated successfully',
-    })
+    toast.success('S3 settings updated successfully')
   },
 })
 </script>

@@ -51,6 +51,22 @@ frappe.ui.form.on('JMAP Account', {
 				__('Clear Cache'),
 			)
 		})
+
+		frm.add_custom_button(
+			__('Drop Indexes'),
+			() =>
+				frm.events.run_cache_clear_action(frm, {
+					method: 'clear_search_indexes',
+					message: __('Dropping Search Indexes...'),
+				}),
+			__('Search Index'),
+		)
+
+		frm.add_custom_button(
+			__('Rebuild Email Address Index'),
+			() => frm.events.rebuild_search_index(frm),
+			__('Search Index'),
+		)
 	},
 
 	run_cache_clear_action(frm, action) {
@@ -62,6 +78,23 @@ frappe.ui.form.on('JMAP Account', {
 			callback: (r) => {
 				if (!r.exc) {
 					frm.refresh()
+				}
+			},
+		})
+	},
+
+	rebuild_search_index(frm) {
+		frappe.call({
+			doc: frm.doc,
+			method: 'rebuild_search_index',
+			freeze: true,
+			freeze_message: __('Queuing rebuild...'),
+			callback: (r) => {
+				if (!r.exc) {
+					frappe.show_alert({
+						message: __('Rebuilding the email address index in the background.'),
+						indicator: 'green',
+					})
 				}
 			},
 		})

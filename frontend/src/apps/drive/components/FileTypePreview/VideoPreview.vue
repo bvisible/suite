@@ -1,10 +1,10 @@
 <template>
-  <LoadingIndicator v-show="loading" class="w-10" />
+  <FilePreviewSkeleton v-show="loading" />
   <video
     v-show="!loading"
     :key="src"
     ref="mediaRef"
-    class="max-h-[70vh] max-w-full rounded-lg"
+    class="max-h-[70vh] max-w-full rounded-6"
     autoplay
     muted
     preload="none"
@@ -25,7 +25,7 @@
   Server side byte is good enough for now 
 */
 
-import { LoadingIndicator } from 'frappe-ui'
+import FilePreviewSkeleton from '@/apps/drive/components/FileTypePreview/FilePreviewSkeleton.vue'
 import { ref, onBeforeUnmount, watch } from 'vue'
 
 const props = defineProps({

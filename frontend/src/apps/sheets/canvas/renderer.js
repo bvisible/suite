@@ -1,4 +1,4 @@
-import { COLORS, COL_HEADER_H, ROW_HEADER_W } from './constants.js'
+import { COLORS, COL_HEADER_H, ROW_HEADER_W, TOTAL_ROWS, TOTAL_COLS } from './constants.js'
 import { createGridPainter }      from './painters/grid-painter.js'
 import { createSelectionPainter } from './painters/selection-painter.js'
 import { createCellPainter }      from './painters/cell-painter.js'
@@ -17,8 +17,8 @@ export function createRenderer(ctx, geometry) {
   function render({ cssW, cssH, getValue, sel, selEnd, selMode = 'cell', editing, getFormat,
                     freeze: frz = { rows: 0, cols: 0 }, getMergeInfo, isSlave,
                     getComment = null, getValidation = null, getCondFormat = null,
-                    getRightInset = null, getDiffFor = null,
-                    marchAnts = null, marchPhase = 0, pickerRect = null, zoom = 1 }) {
+                    getRightInset = null, getDiffFor = null, getSparkline = null,
+                    marchAnts = null, marchPhase = 0, pickerRect = null, colDrag = null, zoom = 1 }) {
     if (!cssW || !cssH) return
     ctx.save()
     const k = (window.devicePixelRatio || 1) * zoom
@@ -32,11 +32,15 @@ export function createRenderer(ctx, geometry) {
     const c0s    = firstVisCol(), r0s = firstVisRow()
     const c1s    = lastVisCol(c0s, cssW), r1s = lastVisRow(r0s, cssH)
     const range  = _selRange(sel, selEnd)
+    // The fill spans the full width (row mode) / height (col mode) / both (all)
+    // while headers + anchor keep the literal `range`, so the active cell stays
+    // in the user's column even though the whole row/column is shaded.
+    const fillRange = _fillRange(range, selMode)
 
     const state = { cssW, cssH, getValue, getFormat, getMergeInfo, isSlave,
                     getComment, getValidation, getCondFormat, getRightInset,
-                    getDiffFor,
-                    editing, range, marchAnts, marchPhase, pickerRect }
+                    getDiffFor, getSparkline,
+                    editing, range, fillRange, marchAnts, marchPhase, pickerRect }
 
     _renderRegion(r0s, c0s, r1s, c1s, mainX, mainY, cssW - mainX, cssH - mainY, state)
     if (fr > 0) _renderRegion(0, c0s, fr - 1, c1s, mainX, COL_HEADER_H, cssW - mainX, frozH_, state)
@@ -52,6 +56,28 @@ export function createRenderer(ctx, geometry) {
 
     if (frozW_ > 0 || frozH_ > 0) gridPainter.drawFreezeSeparators(frozW_, frozH_, cssW, cssH)
 
+    if (colDrag) _drawColDrag(colDrag, cssH)
+
+    ctx.restore()
+  }
+
+  // Column drag affordance: shade the column(s) being moved and draw a thick
+  // insertion line at the drop boundary. Drawn last so it sits above everything.
+  function _drawColDrag({ fromCol, count, insertCol }, cssH) {
+    const { colX, cw } = geometry
+    ctx.save()
+    ctx.fillStyle = 'rgba(37, 99, 235, 0.14)'
+    for (let i = 0; i < count; i++) {
+      const c = fromCol + i
+      ctx.fillRect(colX(c), 0, cw(c), cssH)
+    }
+    const ix = colX(insertCol)
+    ctx.strokeStyle = '#2563eb'
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    ctx.moveTo(ix, 0)
+    ctx.lineTo(ix, cssH)
+    ctx.stroke()
     ctx.restore()
   }
 
@@ -59,13 +85,13 @@ export function createRenderer(ctx, geometry) {
     if (clipW <= 0 || clipH <= 0 || r1 < r0 || c1 < c0) return
     const { cssW, cssH, getValue, getFormat, getMergeInfo, isSlave,
             getComment, getValidation, getCondFormat, getRightInset,
-            getDiffFor,
-            editing, range, marchAnts, marchPhase, pickerRect } = state
+            getDiffFor, getSparkline,
+            editing, range, fillRange, marchAnts, marchPhase, pickerRect } = state
     ctx.save()
     ctx.beginPath(); ctx.rect(clipX, clipY, clipW, clipH); ctx.clip()
-    if (!editing) selPainter.drawSelFill(range)
+    if (!editing) selPainter.drawSelFill(fillRange || range)
     gridPainter.drawGridLines(r0, c0, r1, c1, cssW, cssH)
-    cellPainter.drawRegionCells(r0, c0, r1, c1, getValue, getFormat, getMergeInfo, isSlave, getComment, getValidation, getCondFormat, getRightInset, getDiffFor)
+    cellPainter.drawRegionCells(r0, c0, r1, c1, getValue, getFormat, getMergeInfo, isSlave, getComment, getValidation, getCondFormat, getRightInset, getDiffFor, getSparkline)
     cellPainter.drawRegionBorders(r0, c0, r1, c1, getFormat, getMergeInfo, isSlave)
     if (marchAnts)  selPainter.drawMarchingAnts(marchAnts, marchPhase)
     if (pickerRect) selPainter.drawPickerRect(pickerRect)
@@ -77,6 +103,16 @@ export function createRenderer(ctx, geometry) {
       r0: Math.min(sel.r, selEnd.r), c0: Math.min(sel.c, selEnd.c),
       r1: Math.max(sel.r, selEnd.r), c1: Math.max(sel.c, selEnd.c),
     }
+  }
+
+  // Whole-line selections shade the full width/height regardless of where the
+  // anchor sits. Mirrors getSelRange()'s expansion in the grid module.
+  function _fillRange(range, selMode) {
+    if (!selMode || selMode === 'cell') return range
+    const r = { ...range }
+    if (selMode === 'row' || selMode === 'all') { r.c0 = 0; r.c1 = TOTAL_COLS - 1 }
+    if (selMode === 'col' || selMode === 'all') { r.r0 = 0; r.r1 = TOTAL_ROWS - 1 }
+    return r
   }
 
   return { render }

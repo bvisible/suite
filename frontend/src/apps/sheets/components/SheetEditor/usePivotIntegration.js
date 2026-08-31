@@ -2,6 +2,7 @@ import { ref, computed, watch } from 'vue'
 import { computePivotModel, computePivotModelAsync, pivotDrillDown, writePivotToSheet } from '../../engine/pivot.js'
 import { colLabel, cellId, parseCellId } from '../../utils/cells.js'
 import { COL_HEADER_H, ROW_HEADER_W } from '../../canvas/constants.js'
+import { overlayRectStyle } from '../../utils/overlay-rect.js'
 
 // Styling applied to the pivot's column header row (row 0) and Grand Total
 // row (last row). Matches the Google Sheets look the user asked for.
@@ -153,24 +154,21 @@ export function usePivotIntegration({
     const br = grid.getCellRect?.(ext.r1, ext.c1)
     if (!tl || !br) return null
     const zoom    = grid.getZoom?.() ?? 1
-    const headerY = COL_HEADER_H * zoom
-    const headerX = ROW_HEADER_W * zoom
-    const right   = br.x + br.width
-    const bottom  = br.y + br.height
-    if (bottom <= headerY || right <= headerX) return null
-    const top  = Math.max(tl.y, headerY)
-    const left = Math.max(tl.x, headerX)
-    return {
-      top:    top  + 'px',
-      left:   left + 'px',
-      width:  (right  - left) + 'px',
-      height: (bottom - top)  + 'px',
-    }
+    // `|| Infinity` treats a 0/undefined viewport (before the first layout) as
+    // "unclamped" — a 0 would otherwise collapse the overlay to nothing.
+    const vp    = grid.getViewportSize?.()
+    const viewW = vp?.w || Infinity
+    const viewH = vp?.h || Infinity
+    return overlayRectStyle(tl, br, {
+      headerX: ROW_HEADER_W * zoom,
+      headerY: COL_HEADER_H * zoom,
+      viewW, viewH,
+    })
   })
 
   const pivotBannerMenuOptions = [
-    { label: 'Edit pivot',   icon: 'edit-2',                    onClick: onPivotEdit   },
-    { label: 'Delete pivot', icon: 'trash-2', theme: 'red',     onClick: onPivotDelete },
+    { label: 'Edit pivot',   icon: 'lucide-edit-2',                onClick: onPivotEdit   },
+    { label: 'Delete pivot', icon: 'lucide-trash-2', theme: 'red', onClick: onPivotDelete },
   ]
 
   function openPivotDialog() {

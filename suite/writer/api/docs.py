@@ -1,21 +1,20 @@
 from __future__ import annotations
-from pathlib import Path
 import io
+from pathlib import Path
 
 import frappe
 import markdown
-from markdown.extensions.wikilinks import WikiLinkExtension
 import mimemapper
+from markdown.extensions.wikilinks import WikiLinkExtension
 
-from suite.drive.utils import (
-    create_drive_file,
-    default_team,
-    get_home_folder,
-)
 from suite.drive.api.files import get_new_title
 from suite.drive.api.permissions import (
-    user_has_permission,
     get_entity_with_permissions,
+    user_has_permission,
+)
+from suite.drive.utils import (
+    create_drive_file,
+    get_user_folder,
 )
 from suite.drive.utils.files import FileManager, storage_key
 
@@ -27,14 +26,9 @@ QUICK_MAP = {
 
 
 @frappe.whitelist()
-@default_team
-def create_document(team: str, title: str | None = None, parent: str | None = None, template: str | None = None):
-    home_directory = get_home_folder(team)
-    parent = parent or home_directory.name
+def create_document(title: str | None = None, parent: str | None = None, template: str | None = None):
+    parent = parent or get_user_folder().name
     parent_doc = frappe.get_doc("File", parent)
-    team = frappe.db.get_value("File", parent, "team")
-    if not title:
-        title = get_new_title("Untitled Document", parent)
 
     if not user_has_permission(parent, "upload"):
         frappe.throw(
@@ -42,11 +36,12 @@ def create_document(team: str, title: str | None = None, parent: str | None = No
             frappe.PermissionError,
         )
 
+    if not title:
+        title = get_new_title("Untitled Document", parent)
+
     writer_doc = frappe.new_doc("Writer Document")
     writer_doc.settings = (
-        '{"collab": true}'
-        if not template
-        else '{"collab": true, "template": "' + template + '"}'
+        '{"collab": true}' if not template else '{"collab": true, "template": "' + template + '"}'
     )
     writer_doc.save()
 
@@ -55,25 +50,20 @@ def create_document(team: str, title: str | None = None, parent: str | None = No
         frappe._dict(
             {
                 "file_name": title,
-                "team": team,
                 "parent_path": Path(storage_key(parent_doc.file_url)),
             }
-        ),
-        home_directory,
+        )
     )
     manager.create_folder(
         frappe._dict(
             {
                 "file_name": ".embeds",
-                "team": team,
                 "parent_path": Path(path) if path else None,
             }
-        ),
-        home_directory,
+        )
     )
 
     entity = create_drive_file(
-        team,
         title,
         parent,
         "Document",
@@ -106,9 +96,7 @@ def get_document(file_id: str):
 def get_markdown_file(entity, return_obj):
     manager = FileManager()
     wrapper = io.TextIOWrapper(manager.get_file(entity))
-    url_builder = (
-        lambda label, base, end: f"/api/method/suite.writer.api.docs.get_wiki_link?team={entity.team}&title={label}"
-    )
+    url_builder = lambda label, base, end: f"/api/method/suite.writer.api.docs.get_wiki_link?title={label}"
     with wrapper as r:
         content = r.read()
         md = markdown.Markdown(
@@ -125,21 +113,15 @@ def get_markdown_file(entity, return_obj):
 def clean_content_for_obsidian(content):
     property_end = content[3:].find("---")
     if content.startswith("---") and property_end != -1:
-        content = (
-            content[:property_end].replace("\n  ", " " * 4) + content[property_end:]
-        )
+        content = content[:property_end].replace("\n  ", " " * 4) + content[property_end:]
     content = content[:property_end] + content[property_end:].replace("\n", "\n\n")
-    content = content[:property_end] + content[property_end:].replace(
-        "\n\n\n", "\n<p></p>"
-    )
+    content = content[:property_end] + content[property_end:].replace("\n\n\n", "\n<p></p>")
     return content
 
 
 @frappe.whitelist(allow_guest=True)
 def save_comments(doc: str, data: str):
-    file = frappe.get_doc(
-        "File", {"content_docname": doc, "content_doctype": "Writer Document"}
-    )
+    file = frappe.get_doc("File", {"content_docname": doc, "content_doctype": "Writer Document"})
     if not user_has_permission(file, "comment"):
         frappe.throw("You cannot comment on this file.")
 
@@ -161,14 +143,14 @@ def create_blog(entity_name: str, html: str, attachments: str | None = None):
     If the blog app is installed, creates a blog
     """
     file = frappe.get_doc("File", entity_name)
+    if not user_has_permission(file, "read"):
+        frappe.throw("You don't have access to this file.", frappe.PermissionError)
     blogger = frappe.db.exists("Blogger", {"user": frappe.session.user})
     if not blogger:
         frappe.throw("Please create a Blogger for your user first.")
 
     if not frappe.db.exists("Blog Category", {"name": "writer-export"}):
-        category = frappe.get_doc(
-            {"doctype": "Blog Category", "title": "Writer Export"}
-        )
+        category = frappe.get_doc({"doctype": "Blog Category", "title": "Writer Export"})
         category.insert()
         print("insrted", category, category.name)
     else:
@@ -189,19 +171,14 @@ def create_blog(entity_name: str, html: str, attachments: str | None = None):
 
 
 @frappe.whitelist(allow_guest=True)
-def get_wiki_link(title: str, team: str):
+def get_wiki_link(title: str):
     title = title.strip("/")
     possible_titles = [title, title + ".md", title + ".txt"]
-    names = (
-        frappe.get_value(
-            "File", {"file_name": k, "team": team, "is_folder": 0}, "name"
-        )
-        for k in possible_titles
-    )
+    names = (frappe.get_value("File", {"file_name": k, "is_folder": 0}, "name") for k in possible_titles)
     try:
-        name = next(k for k in names if k)
+        name = next(k for k in names if k and user_has_permission(k, "read"))
     except StopIteration:
-        frappe.throw("Cannot get this wikilink in this team.", frappe.NotFound)
+        frappe.throw("Cannot get this wikilink.", frappe.NotFound)
 
     frappe.local.response["type"] = "redirect"
     frappe.local.response["location"] = "/drive/f/" + name

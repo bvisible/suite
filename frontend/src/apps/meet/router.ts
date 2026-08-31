@@ -2,24 +2,16 @@ import type { RouteLocationNormalized, Router } from "vue-router";
 
 import suiteRouter from "@/router";
 import { userResource } from "@/boot/session";
+import { isUnknownRecord } from "./types";
 
 /**
- * Meet router compat + guard.
+ * Meet-local guard on the shared suite router: the `requiresAdmin` role check
+ * (audio-test, restricted to System Manager / Administrator). Early-returns
+ * for any route whose name doesn't start with `meet-`; auth itself is the
+ * suite router's `beforeEach` (redirects guests unless `meta.allowGuest`,
+ * which `meet-meeting` carries so guests can join).
  *
- * The standalone Meet app had its own `createRouter` with a global `beforeEach`
- * implementing: auth redirect to /login, `requiresAdmin` (audio-test, restricted
- * to System Manager / Administrator), and `allowGuest` (the Meeting route is
- * reachable by guests). In the suite there is ONE router; the suite router's own
- * `beforeEach` already redirects guests to /login UNLESS the route is marked
- * `meta.isPublic` (we mark `meet-meeting` public so guests can join).
- *
- * So only the meet-SPECIFIC `requiresAdmin` role check is ported here as a
- * meet-local guard that early-returns for any route whose name doesn't start
- * with `meet-`. Login state comes from the shared session store via the suite
- * guard; here we only use meet's `userResource` for the admin role check.
- *
- * Re-exports the single suite router instance as `router` so meet pages/
- * composables can keep importing it, mirroring the calendar/slides ports.
+ * Re-exports the suite router instance as `router` for meet pages/composables.
  */
 export const router = suiteRouter;
 
@@ -37,8 +29,14 @@ function installMeetGuard(r: Router) {
 				// userResource onError already redirects to /login on auth errors.
 				return false;
 			}
-			const user = userResource.data as Record<string, unknown> | null;
-			const isAdmin = (user?.roles as string[])?.some((r) =>
+			const user = userResource.data;
+			const roles =
+				isUnknownRecord(user) &&
+				Array.isArray(user.roles) &&
+				user.roles.every((role) => typeof role === "string")
+					? user.roles
+					: [];
+			const isAdmin = roles.some((r) =>
 				["System Manager", "Administrator"].includes(r),
 			);
 			if (!isAdmin) {

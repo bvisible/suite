@@ -9,7 +9,7 @@
 						name: 'slides-editor',
 						params: { presentationId: presentation?.name },
 					}"
-					class="aspect-video cursor-pointer rounded-2xl bg-white shadow-2xl"
+					class="aspect-video cursor-pointer rounded-8 bg-white shadow-2xl"
 					:style="previewStyles"
 				></router-link>
 
@@ -25,8 +25,8 @@
 							:key="detailLabel"
 							class="flex items-center gap-2"
 						>
-							<div class="font-medium text-gray-800">{{ detailLabel }}</div>
-							<div class="font-medium text-gray-600">{{ detailValue }}</div>
+							<div class="font-medium text-ink-gray-8">{{ detailLabel }}</div>
+							<div class="font-medium text-ink-gray-6">{{ detailValue }}</div>
 						</div>
 					</div>
 				</div>
@@ -38,7 +38,7 @@
 					v-for="action in presentationActions"
 					:text="action.label"
 					:hover-delay="0.3"
-					placement="right"
+					side="right"
 				>
 					<div :class="getActionButtonClasses(action.label)" @click="action.onClick">
 						<component
@@ -51,7 +51,7 @@
 			</div>
 		</div>
 
-		<div class="absolute bottom-0 left-0 h-[53%] w-full bg-white" @click.stop></div>
+		<div class="absolute bottom-0 left-0 h-[53%] w-full bg-surface-base" @click.stop></div>
 	</div>
 </template>
 
@@ -74,7 +74,7 @@ const emit = defineEmits(['setPreview', 'openDialog', 'navigate', 'duplicatePres
 
 const previewOverlayClasses = computed(() => {
 	const baseClasses =
-		'absolute left-0 size-full transition-all duration-300 ease-in-out flex items-center backdrop-blur-[1px] bg-gray-900/25'
+		'absolute left-0 size-full transition-all duration-300 ease-in-out flex items-center backdrop-blur-[1px] bg-black-overlay-200'
 	if (props.presentation) {
 		return `${baseClasses} top-0`
 	}
@@ -82,23 +82,23 @@ const previewOverlayClasses = computed(() => {
 })
 
 const getActionButtonClasses = (action) => {
-	const baseClasses = 'size-8 flex items-center justify-center rounded cursor-pointer'
+	const baseClasses = 'size-8 flex items-center justify-center rounded-4 cursor-pointer'
 	if (action === 'Present') {
-		return `${baseClasses} bg-gray-900`
+		return `${baseClasses} bg-surface-gray-10`
 	}
-	return `${baseClasses} bg-gray-200`
+	return `${baseClasses} bg-surface-gray-2`
 }
 
 const getActionIconClasses = (action) => {
 	const baseClasses = 'stroke-[1.5]'
 	if (action === 'Present') {
-		return `${baseClasses} text-white`
+		return `${baseClasses} text-ink-base`
 	}
-	return baseClasses
+	return `${baseClasses} text-ink-gray-7`
 }
 
 const previewStyles = computed(() => {
-	return getThumbnailCardStyles(props.presentation.thumbnail)
+	return getThumbnailCardStyles(props.presentation.thumbnail, props.presentation)
 })
 
 const previewDetails = computed(() => {

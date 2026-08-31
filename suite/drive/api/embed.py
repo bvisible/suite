@@ -3,9 +3,9 @@ from pathlib import Path
 
 import frappe
 
-from suite.drive.api.permissions import user_has_permission
 from suite.drive.api.files import get_file_internal
-from suite.drive.utils import WRITER_CONTENT_DOCTYPE, get_home_folder
+from suite.drive.api.permissions import user_has_permission
+from suite.drive.utils import WRITER_CONTENT_DOCTYPE, get_root_folder
 
 
 @frappe.whitelist(allow_guest=True)
@@ -16,7 +16,7 @@ def get_file_content(embed_name: str, parent_entity_name: str):
     parent = frappe.get_value(
         "File",
         parent_entity_name,
-        ["content_doctype", "file_name", "mime_type", "file_size", "owner", "file_url", "team"],
+        ["content_doctype", "file_name", "mime_type", "file_size", "owner", "file_url"],
         as_dict=1,
     )
 
@@ -32,12 +32,11 @@ def get_file_content(embed_name: str, parent_entity_name: str):
         embed = frappe._dict(
             file_url=str(
                 Path(
-                    get_home_folder(embed.team)["file_url"],
+                    get_root_folder()["file_url"],
                     "embeds",
                     embed_name,
                 )
             ),
-            team=embed.team,
             file_name=embed.file_name,
         )
     return get_file_internal(embed)

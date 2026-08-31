@@ -16,6 +16,7 @@
 // Persistence: `snapshot()` / `restore()` round-trip the store as part of
 // `sheets_data`, alongside formats / pivots / charts.
 
+import { remapRangeString } from './ref-remap.js'
 import { deepClone } from '../utils/deep-clone.js'
 
 const _RESERVED = new Set([
@@ -137,6 +138,22 @@ export function createNamedRanges({ isBuiltinFunction } = {}) {
 		if (changed) _notify()
 	}
 
+	// Structural permutation — rewrite the range of every named range that lives
+	// on the op sheet so it keeps pointing at the same logical data.
+	function _remap(sheet, mapCol, mapRow) {
+		const lc = String(sheet || '').toLowerCase()
+		let changed = false
+		for (const k of Object.keys(_store)) {
+			const e = _store[k]
+			if (String(e.sheet || '').toLowerCase() !== lc) continue
+			const next = remapRangeString(e.range, { opSheet: e.sheet, mapCol, mapRow })
+			if (next !== e.range) { _store[k] = { ...e, range: next }; changed = true }
+		}
+		if (changed) _notify()
+	}
+	function remapCols(mapCol, sheet) { _remap(sheet, mapCol, null) }
+	function remapRows(mapRow, sheet) { _remap(sheet, null, mapRow) }
+
 	function snapshot() { return { entries: deepClone(_store) } }
 	function restore(data) {
 		_store = {}
@@ -148,6 +165,7 @@ export function createNamedRanges({ isBuiltinFunction } = {}) {
 
 	return {
 		add, update, remove, get, has, list, resolve,
+		remapCols, remapRows,
 		renameSheet, snapshot, restore, setOnChange,
 	}
 }

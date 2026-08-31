@@ -3,9 +3,10 @@
 
 # import frappe
 from __future__ import annotations
-from suite.drive.api.permissions import user_has_permission
-from frappe.model.document import Document
 import frappe
+from frappe.model.document import Document
+
+from suite.drive.api.permissions import user_has_permission
 
 
 class DriveFavourite(Document):

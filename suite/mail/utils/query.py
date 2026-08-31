@@ -1,123 +1,126 @@
 from __future__ import annotations
 import frappe
 
+from suite.calendar.doctype.calendar.calendar import fetch_calendars
 from suite.mail.doctype.address_book.address_book import fetch_address_books
-from suite.mail.doctype.calendar.calendar import fetch_calendars
 from suite.mail.doctype.mailbox.mailbox import fetch_mailboxes
-from suite.mail.doctype.user_account.user_account import fetch_user_accounts
+from suite.mail.doctype.user_account.user_account import get_user_jmap_accounts
+from suite.utils.user import is_system_manager
 
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def get_user_accounts(
-	doctype: str | None = None,
-	txt: str | None = None,
-	searchfield: str | None = None,
-	start: int = 0,
-	page_len: int = 20,
-	filters: dict | None = None,
+    doctype: str | None = None,
+    txt: str | None = None,
+    searchfield: str | None = None,
+    start: int = 0,
+    page_len: int = 20,
+    filters: dict | None = None,
 ) -> list:
-	"""Returns a list of accounts for the user."""
+    """Returns a list of accounts for the user."""
 
-	filters = filters or {}
-	user = filters.get("user") or frappe.session.user
+    filters = filters or {}
+    user = filters.get("user") or frappe.session.user
 
-	if not user or user in ("Guest", "Administrator"):
-		return []
+    if not user or user in ("Guest", "Administrator"):
+        return []
 
-	result = []
-	if user_accounts := fetch_user_accounts(user):
-		for account in user_accounts:
-			if txt and txt.lower() not in account["name"].lower():
-				continue
+    if user != frappe.session.user and not is_system_manager(frappe.session.user):
+        return []
 
-			result.append([account["name"]])
+    result = []
+    for account in get_user_jmap_accounts(user):
+        if txt and txt.lower() not in account.lower():
+            continue
 
-	return result[start : start + page_len]
+        result.append([account])
+
+    return result[start : start + page_len]
 
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def get_account_mailboxes(
-	doctype: str | None = None,
-	txt: str | None = None,
-	searchfield: str | None = None,
-	start: int = 0,
-	page_len: int = 20,
-	filters: dict | None = None,
+    doctype: str | None = None,
+    txt: str | None = None,
+    searchfield: str | None = None,
+    start: int = 0,
+    page_len: int = 20,
+    filters: dict | None = None,
 ) -> list:
-	"""Returns a list of mailboxes for the account."""
+    """Returns a list of mailboxes for the account."""
 
-	filters = filters or {}
-	account = filters.get("account")
+    filters = filters or {}
+    account = filters.get("account")
 
-	if not account:
-		return []
+    if not account:
+        return []
 
-	result = []
-	if mailboxes := fetch_mailboxes(account):
-		for mailbox in mailboxes:
-			if txt and txt.lower() not in mailbox["name"].lower():
-				continue
+    result = []
+    if mailboxes := fetch_mailboxes(account):
+        for mailbox in mailboxes:
+            if txt and txt.lower() not in mailbox["name"].lower():
+                continue
 
-			result.append([mailbox["name"]])
+            result.append([mailbox["name"]])
 
-	return result[start : start + page_len]
+    return result[start : start + page_len]
 
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def get_account_address_books(
-	doctype: str | None = None,
-	txt: str | None = None,
-	searchfield: str | None = None,
-	start: int = 0,
-	page_len: int = 20,
-	filters: dict | None = None,
+    doctype: str | None = None,
+    txt: str | None = None,
+    searchfield: str | None = None,
+    start: int = 0,
+    page_len: int = 20,
+    filters: dict | None = None,
 ) -> list:
-	"""Returns a list of address books for the account."""
+    """Returns a list of address books for the account."""
 
-	filters = filters or {}
-	account = filters.get("account")
+    filters = filters or {}
+    account = filters.get("account")
 
-	if not account:
-		return []
+    if not account:
+        return []
 
-	result = []
-	if address_books := fetch_address_books(account):
-		for address_book in address_books:
-			if txt and txt.lower() not in address_book["name"].lower():
-				continue
+    result = []
+    if address_books := fetch_address_books(account):
+        for address_book in address_books:
+            if txt and txt.lower() not in address_book["name"].lower():
+                continue
 
-			result.append([address_book["name"]])
+            result.append([address_book["name"]])
 
-	return result[start : start + page_len]
+    return result[start : start + page_len]
 
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def get_account_calendars(
-	doctype: str | None = None,
-	txt: str | None = None,
-	searchfield: str | None = None,
-	start: int = 0,
-	page_len: int = 20,
-	filters: dict | None = None,
+    doctype: str | None = None,
+    txt: str | None = None,
+    searchfield: str | None = None,
+    start: int = 0,
+    page_len: int = 20,
+    filters: dict | None = None,
 ) -> list:
-	"""Returns a list of calendars for the account."""
+    """Returns a list of calendars for the account."""
 
-	filters = filters or {}
-	account = filters.get("account")
+    filters = filters or {}
+    account = filters.get("account")
 
-	if not account:
-		return []
+    if not account:
+        return []
 
-	result = []
-	if calendars := fetch_calendars(account):
-		for calendar in calendars:
-			if txt and txt.lower() not in calendar["name"].lower():
-				continue
+    result = []
+    if calendars := fetch_calendars(account):
+        for calendar in calendars:
+            if txt and txt.lower() not in calendar["name"].lower():
+                continue
 
-			result.append([calendar["name"]])
+            result.append([calendar["name"]])
 
-	return result[start : start + page_len]
+    return result[start : start + page_len]

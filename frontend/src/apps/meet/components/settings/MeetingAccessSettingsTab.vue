@@ -1,69 +1,62 @@
 <template>
-	<SettingsLayoutBase
-		title="Meeting Access"
-		description="Manage how participants can join and interact in the meeting."
-	>
-		<template #content>
-			<div class="space-y-6">
-				<!-- Allow Guest Toggle -->
-				<div class="space-y-3">
+	<AppSettingsHeader
+		title="Controls"
+		description="Manage join rules, chat, and security for this meeting."
+	/>
+	<AppSettingsBody>
+			<div>
+				<SettingsRow
+					title="Allow Guests"
+					description="Allow non-registered users to join this meeting"
+				>
 					<Switch
-						class="w-full !px-0"
-						label="Allow Guests"
-						description="Allow non-registered users to join this meeting"
 						v-model="allowGuest"
 						:disabled="meetingDoc.updateSettings.loading || meetingDoc.get.loading"
 					/>
-				</div>
+				</SettingsRow>
 
-				<!-- Meeting Type Selector -->
-				<div>
-					<FormControl
-						v-model="meetingType"
-						type="select"
-						label="Control who can join this meeting"
-						:options="[
-							{
-								label: 'Open - Anyone can join directly',
-								value: 'open',
-							},
-							{
-								label: 'Restricted - Requires host approval',
-								value: 'restricted',
-							},
-						]"
+				<SettingsRow
+					title="Require host approval"
+					description="People wait in the lobby until a host or co-host admits them"
+				>
+					<Switch
+						v-model="requireHostApproval"
 						:disabled="meetingDoc.updateSettings.loading || meetingDoc.get.loading"
 					/>
-				</div>
+				</SettingsRow>
 
-				<div class="space-y-3">
+				<SettingsRow
+					title="Host Only Chat"
+					description="Restrict chat so only hosts and co-hosts can send messages"
+				>
 					<Switch
-						class="w-full !px-0"
-						label="Host Only Chat"
-						description="Restrict chat so only hosts and co-hosts can send messages"
 						v-model="hostOnlyChat"
 						:disabled="meetingDoc.updateSettings.loading || meetingDoc.get.loading"
 					/>
-				</div>
+				</SettingsRow>
 
-				<!-- E2EE Toggle -->
 				<E2EESettingsSection
 					:meeting-id="props.meetingId"
 					:meeting-doc="meetingDoc"
 					:globally-enabled="globalE2EEEnabled"
 				/>
 			</div>
-		</template>
-	</SettingsLayoutBase>
+	</AppSettingsBody>
 </template>
 
 <script setup lang="ts">
-import { debounce, FormControl, Switch, toast } from "frappe-ui";
-import { onMounted, ref, watch } from "vue";
+import AppSettingsHeader from '@/components/settings/AppSettingsHeader.vue'
+import AppSettingsBody from '@/components/settings/AppSettingsBody.vue'
+import {
+	debounce,
+	SettingsRow,
+	Switch,
+	toast,
+} from 'frappe-ui';
+import { computed, onMounted, ref, watch } from "vue";
 import { useChatStore } from "@/apps/meet/composables/useChatStore";
 import { useMeetingDoc } from "../../composables/useMeetingDoc";
 import E2EESettingsSection from "./E2EESettingsSection.vue";
-import SettingsLayoutBase from "./SettingsLayoutBase.vue";
 
 const props = defineProps({
 	meetingId: {
@@ -84,6 +77,13 @@ const chatStore = useChatStore();
 const allowGuest = ref<boolean>(globalAllowGuest.value);
 const meetingType = ref<string>(globalMeetingType.value);
 const hostOnlyChat = ref<boolean>(chatStore.hostOnlyChat);
+
+const requireHostApproval = computed({
+	get: () => meetingType.value === "restricted",
+	set: (enabled: boolean) => {
+		meetingType.value = enabled ? "restricted" : "open";
+	},
+});
 
 const meetingDoc = getMeetingDoc(props.meetingId);
 

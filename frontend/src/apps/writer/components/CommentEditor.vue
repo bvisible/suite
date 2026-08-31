@@ -4,8 +4,8 @@
     " @keydown.meta.enter.capture.stop="
       !disabled && !isEmpty && $emit('submit', editor)
       " @keydown.esc.stop="$emit('cancel', editor)">
-    <div class="flex" :class="editable && 'border rounded'">
-      <Editor ref="textEditor" v-model="editorContent" :autofocus="true" :editable="editable" :extensions
+    <div class="flex" :class="editable && 'border rounded-4'">
+      <Editor ref="textEditor" v-model="editorContent" :editable="editable" :extensions
         @change="(val) => { modelValue = val; $emit('change') }">
         <template #default="{ editor }">
           <EditorBubbleMenu :editor :items="bubbleItems" />
@@ -41,8 +41,8 @@ import {
   Separator,
 } from 'frappe-ui/editor'
 import { Button } from 'frappe-ui'
-import { allUsers } from '@/apps/drive/ui/drive/js/resources'
-import { computed, ref } from 'vue'
+import { allUsers } from '@/apps/drive/sdk'
+import { computed, ref, watch, nextTick, onMounted } from 'vue'
 import LucideMessageCircleReply from '~icons/lucide/message-circle-reply'
 import LucideX from '~icons/lucide/x'
 
@@ -62,6 +62,20 @@ const editorContent = ref(props.content || '')
 
 const textEditor = ref('textEditor')
 const editor = computed(() => textEditor.value?.editor)
+
+const focusWithoutScroll = () =>
+  nextTick(() => editor.value?.commands.focus('end', { scrollIntoView: false }))
+
+onMounted(() => {
+  if (props.editable) focusWithoutScroll()
+})
+
+watch(
+  () => props.editable,
+  (editable) => {
+    if (editable) focusWithoutScroll()
+  },
+)
 
 const extensions = [RichTextKit.configure({ mention: { items: () => allUsers.data ?? [] } })]
 

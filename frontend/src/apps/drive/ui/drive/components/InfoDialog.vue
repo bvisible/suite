@@ -1,7 +1,7 @@
 <template>
   <Dialog v-model:open="open" @close="dialogType = ''">
     <template #title>
-      <h3 class="text-4xl-semibold leading-6 text-ink-gray-9 cursor-pointer pr-2" @click="emitter.emit('rename')">
+      <h3 class="text-xl-semibold leading-6 text-ink-gray-9 cursor-pointer pr-2" @click="emitter.emit('rename')">
         {{ entity.file_name }}
       </h3>
     </template>
@@ -62,7 +62,7 @@
       <div class="flex justify-between items-center">
         <span class="text-base-semibold text-ink-gray-8">Access</span>
         <Button v-if="entity.share" :variant="'subtle'" size="sm"
-          class="rounded flex justify-center items-center scale-[90%]" @click="emitter.emit('share')">
+          class="rounded-4 flex justify-center items-center scale-[90%]" @click="emitter.emit('share')">
           {{ __('Manage') }}
         </Button>
       </div>
@@ -111,10 +111,6 @@
           <span class="inline-block w-24">Disk path:</span>
           <span class="col-span-1">{{ entity.storage_path }}</span>
         </li>
-        <li>
-          <span class="inline-block w-24">Team:</span>
-          <span class="col-span-1">{{ entity.team }}</span>
-        </li>
       </ul>
   </Dialog>
 </template>
@@ -146,24 +142,10 @@ const props = defineProps({
 
 // Refactor to share with ShareDialog
 const getGeneralAccess = createResource({
-  url: 'suite.drive.api.permissions.get_user_access',
-  makeParams: (params) => ({
-    ...params,
-    entity: props.entity.name,
-  }),
-  transform: (data) => {
-    if (!data || !data.read) {
-      if (getGeneralAccess.params.user === 'Guest')
-        getGeneralAccess.fetch({ team: 1 })
-      else
-        return {
-          type: 'restricted',
-        }
-    }
-    return { ...data, type: getGeneralAccess.params.team ? 'team' : 'public' }
-  },
+  url: 'suite.drive.api.permissions.get_general_access',
+  params: { entity: props.entity.name },
+  auto: true,
 })
-getGeneralAccess.fetch({ user: 'Guest' })
 
 const userAccess = createResource({
   url: 'suite.drive.api.permissions.get_shared_with_list',
@@ -177,10 +159,10 @@ onKeyDown('D', () => {
 })
 
 const accessConfig = {
-  team: {
+  site: {
     icon: LucideBuilding2,
     color: 'bg-surface-blue-2 text-ink-blue-5',
-    label: 'Team',
+    label: 'Site',
   },
   public: {
     icon: LucideGlobe2,

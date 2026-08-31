@@ -1,8 +1,7 @@
 <template>
   <!-- Mutation dialogs -->
-  <RenameDialog v-if="dialog === 'rn'" v-model="dialog" :entity @complete="refresh" />
-  <ShareDialog v-else-if="dialog === 's'" v-model="dialog" :add-users="params || []" :entity @success="() => resource.fetch()" />
-  <MoveDialog v-else-if="dialog === 'm'" :entities @complete="refresh" />
+  <ShareDialog v-if="dialog === 's'" v-model="dialog" :add-users="params || []" :file="entity" @success="() => resource.fetch()" />
+  <MoveDialog v-else-if="dialog === 'm'" v-model="dialog" :entities @complete="refresh" />
   
   <!-- Confirmation dialogs -->
   <RemoveDialog v-if="dialog === 'remove'" v-model="dialog" :entities @success="$router.push({ name: 'writer-home' })" />
@@ -14,7 +13,8 @@
 import { ref, watch, computed } from 'vue'
 import emitter from '@/apps/writer/emitter'
 
-import { ShareDialog, MoveDialog, InfoDialog, RenameDialog } from '@/apps/drive/ui/drive'
+import { ShareDialog, MoveDialog, InfoDialog } from '@/apps/drive/sdk'
+import { startRename } from '@/apps/drive/data/selection'
 import RemoveDialog from './RemoveDialog.vue'
 import SearchDialog from './SearchDialog.vue'
 
@@ -26,7 +26,7 @@ const props = defineProps({
 
 
 const resource = computed(() => props.docs?.[0])
-const entities = computed(() => props.docs.map(r => r.doc))
+const entities = computed(() => props.docs?.map(r => r.doc) ?? [])
 const entity = computed(() => entities.value?.[0])
 const dialog = defineModel(String)
 const params = ref(null)
@@ -45,7 +45,7 @@ emitter.on('share', (data) => {
   dialog.value = 's'
 })
 emitter.on('newFolder', () => (dialog.value = 'f'))
-emitter.on('rename', () => (dialog.value = 'rn'))
+emitter.on('rename', () => entity.value && startRename(entity.value.name))
 emitter.on('remove', () => (dialog.value = 'remove'))
 emitter.on('move', () => (dialog.value = 'm'))
 emitter.on('newLink', () => (dialog.value = 'l'))

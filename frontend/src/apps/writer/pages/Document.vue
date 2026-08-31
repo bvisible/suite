@@ -12,10 +12,7 @@
     v-model:showTemplates="showTemplates" :file :document
     :breadcrumbs="file.doc.breadcrumbs?.map((k) => ({ ...k, label: k.file_name }))">
     <template #content v-if="document.doc?.settings && file.doc.write">
-      <UsersBar v-if="editor?.storage?.collaborationCaret?.users?.filter((k) => k.id !== currentUserId).length" :users="editor.storage.collaborationCaret.users.filter(
-        (k) => k.id !== currentUserId,
-      )
-        " />
+      <UsersBar v-if="collaborators.length" :users="collaborators" />
 
       <Button v-if="document.doc?.settings?.lock" :icon="LucideLock" variant="outline" @click="
         () => {
@@ -46,12 +43,12 @@
   <ErrorPage v-if="file.error" :error="file.error" />
   <div v-else-if="!document?.doc" class="flex-1 overflow-y-auto flex justify-center">
     <div class="w-full md:min-w-[48rem] md:max-w-[48rem] px-5 pt-10 space-y-3">
-      <Skeleton class="h-7 w-2/5 rounded" />
+      <Skeleton class="h-7 w-2/5 rounded-4" />
       <div class="h-3" />
       <Skeleton v-for="(w, i) in ['92%', '78%', '85%', '65%', '88%', '40%', '80%', '70%', '60%', '84%']" :key="i"
-        class="h-3.5 rounded" :style="{ width: w }" />
+        class="h-3.5 rounded-4" :style="{ width: w }" />
       <div class="h-4" />
-      <Skeleton v-for="(w, i) in ['88%', '72%', '90%', '55%', '76%']" :key="'p' + i" class="h-3.5 rounded"
+      <Skeleton v-for="(w, i) in ['88%', '72%', '90%', '55%', '76%']" :key="'p' + i" class="h-3.5 rounded-4"
         :style="{ width: w }" />
     </div>
   </div>
@@ -107,6 +104,11 @@ const props = defineProps({
 
 const editorEl = useTemplateRef('editorEl')
 const editor = computed(() => editorEl.value?.editor)
+const collaborators = computed(() =>
+  (editorEl.value?.users || []).filter(
+    (user) => user.id !== currentUserId.value,
+  ),
+)
 provide('editor', editor)
 
 const versionPreview = ref(null)

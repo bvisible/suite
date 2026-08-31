@@ -1,4 +1,12 @@
-export type SFUScope = "presence-preview" | "full";
+export type SFUScope = 'presence-preview' | 'full' | 'recording';
+
+export interface RecordingJoinRequest {
+	roomId: string;
+}
+
+export interface RecordingProofRequest {
+	signature: string;
+}
 
 export interface UserData {
 	name: string;
@@ -33,31 +41,79 @@ export interface PreviewParticipantInfo {
 	};
 }
 
-export type MediaControlAction = "mute" | "unmute" | "video_off" | "video_on";
+export type MediaControlAction = 'mute' | 'unmute' | 'video_off' | 'video_on';
 
 export type HostControlAction =
-	| "mute_participant"
-	| "kick_participant"
-	| "lower_hand";
+	| 'mute_participant'
+	| 'kick_participant'
+	| 'ban_participant'
+	| 'lower_hand';
+
+export type ProducerCloseReason =
+	| 'user-click'
+	| 'track-ended'
+	| 'publish-failed'
+	| 'cleanup';
+
+export type ProducerCloseSource = 'screen-share';
+
+export interface ProducerCloseTrackSettings {
+	aspectRatio?: number;
+	autoGainControl?: boolean;
+	channelCount?: number;
+	deviceId?: string;
+	displaySurface?: string;
+	echoCancellation?: boolean;
+	facingMode?: string;
+	frameRate?: number;
+	groupId?: string;
+	height?: number;
+	latency?: number;
+	logicalSurface?: boolean;
+	noiseSuppression?: boolean;
+	restrictOwnAudio?: boolean;
+	sampleRate?: number;
+	sampleSize?: number;
+	screenPixelRatio?: number;
+	suppressLocalAudioPlayback?: boolean;
+	width?: number;
+}
+
+export interface ProducerCloseDetails {
+	trackId?: string;
+	trackReadyState?: 'live' | 'ended';
+	trackSettings?: ProducerCloseTrackSettings;
+	message?: string;
+}
 
 export interface ScreenShareData {
 	streamId?: string;
-	kind?: "video";
+	kind?: 'video';
 	isScreen?: boolean;
-	reason?: string;
-	source?: string;
+	reason?: ProducerCloseReason;
+	source?: ProducerCloseSource;
 	producerId?: string;
-	details?: Record<string, unknown>;
-	[key: string]: unknown;
+	details?: ProducerCloseDetails;
+	startedAt?: number;
+	stoppedAt?: number;
 }
 
 export interface ChatMessage {
 	roomId: string;
+	messageId: string;
 	message: string;
 	fromUser: string;
 	fromName: string;
 	timestamp: string;
 	clientId?: string;
+}
+
+export interface PinnedChatMessage {
+	messageId: string;
+	message: string;
+	fromUser: string;
+	fromName: string;
+	timestamp: string;
 }
 
 export interface ReactionMessage {
@@ -71,7 +127,7 @@ export interface ReactionMessage {
 export interface ParticipantJoinedEvent {
 	roomId: string;
 	participantId: string;
-	userData: UserData;
+	userData: UserData | Pick<UserData, 'name' | 'avatar'>;
 }
 
 export interface ParticipantLeftEvent {
@@ -79,7 +135,7 @@ export interface ParticipantLeftEvent {
 	participantId: string;
 }
 
-export type ProducerKind = "audio" | "video";
+export type ProducerKind = 'audio' | 'video';
 
 export interface ProducerCreatedEvent {
 	roomId: string;
@@ -95,9 +151,9 @@ export interface ProducerClosedEvent {
 	producerId: string;
 	participantId: string;
 	isScreen: boolean;
-	reason?: string;
-	source?: string;
-	details?: Record<string, unknown>;
+	reason?: ProducerCloseReason;
+	source?: ProducerCloseSource;
+	details?: ProducerCloseDetails;
 }
 
 export interface ConsumerClosedEvent {
@@ -126,6 +182,7 @@ export interface ScreenShareStartedEvent {
 
 export interface ScreenShareStoppedEvent {
 	participantId: string;
+	producerId: string;
 	timestamp: string;
 	reason?: string;
 }
@@ -146,7 +203,7 @@ export interface AuthExpiredEvent {
 
 export interface NetworkQualityUpdateEvent {
 	participantId: string;
-	quality: "good" | "poor" | "critical";
+	quality: 'good' | 'poor' | 'critical';
 }
 
 export interface HandRaisedEvent {
@@ -156,7 +213,7 @@ export interface HandRaisedEvent {
 }
 
 export interface ExistingRaisedHandsEvent {
-	hands: Record<string, boolean>;
+	hands: Record<string, string>;
 }
 
 export interface UpdateTokenRequest {
@@ -168,7 +225,7 @@ export interface MediaState {
 	video_enabled: boolean;
 }
 
-export type E2EEMode = "insertable-streams" | "none";
+export type E2EEMode = 'insertable-streams' | 'none';
 
 export interface E2EECapability {
 	supported: boolean;
@@ -183,13 +240,15 @@ export interface E2EESessionMetadata {
 
 export interface JoinRoomRequest {
 	roomId: string;
+	connectionId?: string;
+	conflictId?: string;
 	userData: UserData;
 	mediaState: MediaState;
 	e2ee?: E2EESessionMetadata;
 }
 
 export interface CreateWebRtcTransportRequest {
-	direction: "send" | "recv";
+	direction: 'send' | 'recv';
 	encryptionEnabled?: boolean;
 }
 
@@ -203,7 +262,7 @@ export interface HostControlRequest {
 }
 
 export interface ScreenShareRequest {
-	action: "start_share" | "stop_share";
+	action: 'start_share' | 'stop_share';
 	shareData?: ScreenShareData;
 }
 
@@ -241,7 +300,7 @@ export interface PresenceTokenResponse {
 
 export interface PresenceParticipant extends PreviewParticipantInfo {
 	user_id?: string;
-	info: PreviewParticipantInfo["info"] & {
+	info: PreviewParticipantInfo['info'] & {
 		userId?: string;
 		audio_enabled?: boolean;
 		video_enabled?: boolean;

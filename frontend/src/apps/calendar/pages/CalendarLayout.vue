@@ -1,33 +1,39 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, provide, watchEffect } from 'vue'
-import { FrappeUIProvider, createResource } from 'frappe-ui'
+import { onMounted, onUnmounted, provide } from 'vue'
+import { FrappeUIProvider } from 'frappe-ui'
 
-import { raiseToast, shouldIgnoreKeypress } from '@/apps/calendar/utils'
+import { shouldIgnoreKeypress } from '@/apps/calendar/utils'
 import dayjs from '@/apps/calendar/utils/dayjs'
 import { useTheme } from '@/apps/calendar/utils/composables'
 import { userStore } from '@/apps/calendar/stores/user'
+import { initSocket } from '@/apps/calendar/socket'
 
 /**
  * Calendar route-group layout.
  *
- * Maps the standalone app's root App.vue. The suite shell already provides the
- * top-level chrome, so this layout only:
- *   - provides the calendar-local `$user` (mail/calendar userResource) and
- *     `$dayjs` injections that calendar components depend on,
- *   - applies the user's color scheme to <html data-theme>,
+ * The suite shell already provides the top-level chrome, so this layout only:
+ *   - provides the calendar-local `$user` (mail/calendar userResource), `$dayjs`
+ *     and `$socket` injections that calendar components depend on,
  *   - ports the Cmd/Ctrl+Shift+L theme-cycle shortcut,
  *   - wraps children in FrappeUIProvider and renders the nested <router-view>.
  */
 const { userResource } = userStore()
-const { dataTheme } = useTheme()
+const { cycleTheme } = useTheme()
 
 provide('$user', userResource)
 provide('$dayjs', dayjs)
+provide('$socket', initSocket())
 
-watchEffect(() => document.documentElement.setAttribute('data-theme', dataTheme.value))
-
-onMounted(() => window.addEventListener('keydown', handleKeyDown))
-onUnmounted(() => window.removeEventListener('keydown', handleKeyDown))
+// Mark <body> while calendar is mounted so the `.icon` helper below (see <style>) can
+// reach frappe-ui Dropdowns/Dialogs, which teleport to <body> — outside the calendar tree.
+onMounted(() => {
+	document.body.classList.add('calendar-app')
+	window.addEventListener('keydown', handleKeyDown)
+})
+onUnmounted(() => {
+	document.body.classList.remove('calendar-app')
+	window.removeEventListener('keydown', handleKeyDown)
+})
 
 const handleKeyDown = (e: KeyboardEvent) => {
 	const key = e.key.toLowerCase()
@@ -38,30 +44,6 @@ const handleKeyDown = (e: KeyboardEvent) => {
 		return cycleTheme()
 	}
 }
-
-const COLOR_SCHEME_CYCLE = ['System Default', 'Light Mode', 'Dark Mode'] as const
-
-const cycleTheme = () => {
-	const current = userResource.data?.color_scheme
-	if (!current) return
-
-	const idx = COLOR_SCHEME_CYCLE.indexOf(current)
-	const next = COLOR_SCHEME_CYCLE[(idx + 1) % COLOR_SCHEME_CYCLE.length]
-	updateColorScheme.submit(next)
-}
-
-const updateColorScheme = createResource({
-	url: 'frappe.client.set_value',
-	makeParams: (color_scheme) => ({
-		doctype: 'User Settings',
-		name: userResource.data.user_settings,
-		fieldname: { color_scheme },
-	}),
-	onSuccess: (data) => {
-		raiseToast(__('Color scheme updated to {0}.', [data.color_scheme]))
-		userResource.reload()
-	},
-})
 </script>
 
 <template>
@@ -69,3 +51,23 @@ const updateColorScheme = createResource({
 		<router-view />
 	</FrappeUIProvider>
 </template>
+
+<style>
+/* Lucide icons render an <svg> whose default stroke-width is 2, and Tailwind has no
+   `stroke-1.5` utility, so give the calendar a shared `.icon` helper for the 1.5 stroke —
+   mirrors the mail layout. Scoped to `body.calendar-app` (toggled while this layout is
+   mounted) so it also reaches Dropdowns/Dialogs that teleport to <body>, and never leaks
+   into the other suite apps. */
+body.calendar-app .icon {
+	stroke-width: 1.5;
+}
+
+/* Icons imported straight from lucide-vue-next ship stroke-width 2, and menu
+   item icons (frappe-ui Dropdown/Menu) render without the `.icon` class — so
+   default every lucide svg to 1.5, mirroring the mail layout. :where() keeps
+   the rule at zero specificity so an explicit stroke-* utility still wins.
+   Covers teleported menus/dialogs too. */
+:where(body.calendar-app svg.lucide) {
+	stroke-width: 1.5;
+}
+</style>

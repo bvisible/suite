@@ -7,9 +7,10 @@ import json
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import get_url, random_string
+from frappe.utils import random_string
 
-from suite.drive.utils.users import generate_otp, get_country_info
+from suite.drive.utils.users import get_country_info
+from suite.utils import generate_otp
 
 
 class AccountRequest(Document):
@@ -25,7 +26,7 @@ class AccountRequest(Document):
         self.email = self.email.strip()
 
     def set_otp(self):
-        self.otp = generate_otp()
+        self.otp = generate_otp(length=6)
         self.otp_generated_at = frappe.utils.now_datetime()
         self.save(ignore_permissions=True)
 

@@ -1,386 +1,342 @@
 from __future__ import annotations
-import json
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import ClassVar
 
 import frappe
 from frappe import _
 from frappe.utils import random_string
 
-from suite.mail.stalwart.cli import StalwartCLI
-from suite.mail.utils import snake_to_camel
+from suite.mail.stalwart.service import ManagementService
+from suite.utils import snake_to_camel
+
+# Stalwart requires every account to carry a locale, so one is picked when none was chosen.
+DEFAULT_LOCALE = "en_US"
 
 
 class CredentialType(Enum):
-	PASSWORD = "Password"
+    PASSWORD = "Password"
 
 
 @dataclass
 class PasswordCredential:
-	secret: str
+    secret: str
 
 
 def _default_password_credential() -> PasswordCredential:
-	return PasswordCredential(secret=random_string(20))
+    """Returns a password credential seeded with a random secret."""
+
+    return PasswordCredential(secret=random_string(20))
 
 
-def _default_credentials() -> list["Credential"]:
-	return [Credential()]
+def _default_credentials() -> list[Credential]:
+    """Returns the default credential list (a single random password)."""
+
+    return [Credential()]
 
 
 @dataclass
 class Credential:
-	type: CredentialType = CredentialType.PASSWORD
-	password: PasswordCredential = field(default_factory=_default_password_credential)
+    type: CredentialType = CredentialType.PASSWORD
+    password: PasswordCredential = field(default_factory=_default_password_credential)
 
-	def to_dict(self) -> dict:
-		if self.type == CredentialType.PASSWORD:
-			return {
-				"@type": self.type.value,
-				"secret": self.password.secret,
-			}
-		else:
-			raise ValueError(f"Unsupported credential type: {self.type}")
+    def to_dict(self) -> dict:
+        """Serializes the credential to the JMAP wire format."""
+
+        if self.type == CredentialType.PASSWORD:
+            return {"@type": self.type.value, "secret": self.password.secret}
+
+        raise ValueError(f"Unsupported credential type: {self.type}")
 
 
 class RoleType(Enum):
-	USER = "User"
-	ADMIN = "Admin"
-	CUSTOM = "Custom"
+    USER = "User"
+    ADMIN = "Admin"
+    CUSTOM = "Custom"
 
 
 @dataclass
 class CustomRoles:
-	role_ids: list[str] = field(default_factory=list)
+    role_ids: list[str] = field(default_factory=list)
 
 
 @dataclass
 class UserRoles:
-	type: RoleType = RoleType.USER
-	roles: CustomRoles | None = None
+    type: RoleType = RoleType.USER
+    roles: CustomRoles | None = None
 
-	def __post_init__(self) -> None:
-		if self.type == RoleType.CUSTOM and not self.roles:
-			raise ValueError("Custom role type requires roles to be defined.")
+    def __post_init__(self) -> None:
+        """Validates that role ids are present only for the custom role type."""
 
-		if self.type != RoleType.CUSTOM and self.roles:
-			raise ValueError("Only custom role type can have roles defined.")
+        if self.type == RoleType.CUSTOM and not self.roles:
+            raise ValueError("Custom role type requires roles to be defined.")
 
-	def to_dict(self) -> dict:
-		if self.type == RoleType.CUSTOM:
-			return {"@type": self.type.value, "roleIds": {role_id: True for role_id in self.roles.role_ids}}
-		else:
-			return {"@type": self.type.value}
+        if self.type != RoleType.CUSTOM and self.roles:
+            raise ValueError("Only custom role type can have roles defined.")
+
+    def to_dict(self) -> dict:
+        """Serializes the roles tagged union to the JMAP wire format."""
+
+        if self.type == RoleType.CUSTOM:
+            return {"@type": self.type.value, "roleIds": {role_id: True for role_id in self.roles.role_ids}}
+
+        return {"@type": self.type.value}
 
 
 class PermissionType(Enum):
-	INHERIT = "Inherit"
-	MERGE = "Merge"
-	REPLACE = "Replace"
+    INHERIT = "Inherit"
+    MERGE = "Merge"
+    REPLACE = "Replace"
 
 
 @dataclass
 class PermissionsList:
-	enabled_permissions: list[str] | None = None
-	disabled_permissions: list[str] | None = None
+    enabled_permissions: list[str] | None = None
+    disabled_permissions: list[str] | None = None
 
 
 @dataclass
 class Permissions:
-	type: PermissionType = PermissionType.INHERIT
-	permissions: PermissionsList | None = None
+    type: PermissionType = PermissionType.INHERIT
+    permissions: PermissionsList | None = None
 
-	def __post_init__(self) -> None:
-		if self.type == PermissionType.INHERIT and (
-			self.permissions
-			and (self.permissions.enabled_permissions or self.permissions.disabled_permissions)
-		):
-			raise ValueError(
-				"Inherit permission type should not have enabled or disabled permissions defined."
-			)
+    def __post_init__(self) -> None:
+        """Validates that a permission list is present unless the type is Inherit."""
 
-		if self.type != PermissionType.INHERIT and not (
-			self.permissions
-			and (self.permissions.enabled_permissions or self.permissions.disabled_permissions)
-		):
-			raise ValueError(
-				"Merge or Replace permission type requires at least one of enabled or disabled permissions to be defined."
-			)
+        has_permissions = self.permissions and (
+            self.permissions.enabled_permissions or self.permissions.disabled_permissions
+        )
 
-	def to_dict(self) -> dict:
-		if self.type == PermissionType.INHERIT:
-			return {"@type": self.type.value}
-		else:
-			return {
-				"@type": self.type.value,
-				"enabledPermissions": {perm: True for perm in self.permissions.enabled_permissions}
-				if self.permissions and self.permissions.enabled_permissions
-				else {},
-				"disabledPermissions": {perm: True for perm in self.permissions.disabled_permissions}
-				if self.permissions and self.permissions.disabled_permissions
-				else {},
-			}
+        if self.type == PermissionType.INHERIT and has_permissions:
+            raise ValueError("Inherit permission type cannot define enabled or disabled permissions.")
+
+        if self.type != PermissionType.INHERIT and not has_permissions:
+            raise ValueError("Merge or Replace permission type requires enabled or disabled permissions.")
+
+    def to_dict(self) -> dict:
+        """Serializes the permissions tagged union to the JMAP wire format."""
+
+        if self.type == PermissionType.INHERIT:
+            return {"@type": self.type.value}
+
+        return {
+            "@type": self.type.value,
+            "enabledPermissions": {perm: True for perm in self.permissions.enabled_permissions}
+            if self.permissions and self.permissions.enabled_permissions
+            else {},
+            "disabledPermissions": {perm: True for perm in self.permissions.disabled_permissions}
+            if self.permissions and self.permissions.disabled_permissions
+            else {},
+        }
 
 
 @dataclass
 class StorageQuota:
-	max_emails: int | None = None
-	max_mailboxes: int | None = None
-	max_email_submissions: int | None = None
-	max_email_identities: int | None = None
-	max_participant_identities: int | None = None
-	max_sieve_scripts: int | None = None
-	max_push_subscriptions: int | None = None
-	max_calendars: int | None = None
-	max_calendar_events: int | None = None
-	max_calendar_event_notifications: int | None = None
-	max_address_books: int | None = None
-	max_contact_cards: int | None = None
-	max_files: int | None = None
-	max_folders: int | None = None
-	max_masked_addresses: int | None = None
-	max_app_passwords: int | None = None
-	max_api_keys: int | None = None
-	max_public_keys: int | None = None
-	max_disk_quota: int | None = None
+    max_emails: int | None = None
+    max_mailboxes: int | None = None
+    max_email_submissions: int | None = None
+    max_email_identities: int | None = None
+    max_participant_identities: int | None = None
+    max_sieve_scripts: int | None = None
+    max_push_subscriptions: int | None = None
+    max_calendars: int | None = None
+    max_calendar_events: int | None = None
+    max_calendar_event_notifications: int | None = None
+    max_address_books: int | None = None
+    max_contact_cards: int | None = None
+    max_files: int | None = None
+    max_folders: int | None = None
+    max_masked_addresses: int | None = None
+    max_app_passwords: int | None = None
+    max_api_keys: int | None = None
+    max_public_keys: int | None = None
+    max_disk_quota: int | None = None
 
-	def __post_init__(self) -> None:
-		for field_name, value in self.__dict__.items():
-			if value is not None and value < 0:
-				raise ValueError(f"{field_name} cannot be negative")
+    def __post_init__(self) -> None:
+        """Rejects any negative quota value."""
 
-	def to_dict(self) -> dict:
-		quotas = {}
-		for field_name, value in self.__dict__.items():
-			if value is not None:
-				quotas[snake_to_camel(field_name)] = value
+        for field_name, value in self.__dict__.items():
+            if value is not None and value < 0:
+                raise ValueError(f"{field_name} cannot be negative")
 
-		return quotas
+    def to_dict(self) -> dict:
+        """Serializes the set quotas to a camelCase JMAP map, omitting unset limits."""
+
+        return {snake_to_camel(name): value for name, value in self.__dict__.items() if value is not None}
 
 
 @dataclass
 class EmailAlias:
-	name: str
-	domain_id: str
-	enabled: bool = True
-	description: str | None = None
+    name: str
+    domain_id: str
+    enabled: bool = True
+    description: str | None = None
 
-	def to_dict(self) -> dict:
-		return {
-			"name": self.name,
-			"domainId": self.domain_id,
-			"enabled": self.enabled,
-			"description": self.description,
-		}
+    def to_dict(self) -> dict:
+        """Serializes the alias to the JMAP wire format."""
+
+        return {
+            "name": self.name,
+            "domainId": self.domain_id,
+            "enabled": self.enabled,
+            "description": self.description,
+        }
 
 
 class EncryptionType(Enum):
-	DISABLED = "Disabled"
-	AES128 = "Aes128"
-	AES256 = "Aes256"
+    DISABLED = "Disabled"
+    AES128 = "Aes128"
+    AES256 = "Aes256"
 
 
 @dataclass
 class EncryptionSettings:
-	public_key_id: str
-	encrypt_on_append: bool = False
-	allow_spam_training: bool = False
+    public_key_id: str
+    encrypt_on_append: bool = False
+    allow_spam_training: bool = False
 
-	def to_dict(self) -> dict:
-		return {
-			"publicKey": self.public_key_id,
-			"encryptOnAppend": self.encrypt_on_append,
-			"allowSpamTraining": self.allow_spam_training,
-		}
+    def to_dict(self) -> dict:
+        """Serializes the encryption settings to the JMAP wire format."""
+
+        return {
+            "publicKey": self.public_key_id,
+            "encryptOnAppend": self.encrypt_on_append,
+            "allowSpamTraining": self.allow_spam_training,
+        }
 
 
 @dataclass
 class EncryptionAtRest:
-	type: EncryptionType = EncryptionType.DISABLED
-	settings: EncryptionSettings | None = None
+    type: EncryptionType = EncryptionType.DISABLED
+    settings: EncryptionSettings | None = None
 
-	def __post_init__(self) -> None:
-		if self.type != EncryptionType.DISABLED and not self.settings:
-			raise ValueError("Encryption settings must be provided when encryption is enabled.")
+    def __post_init__(self) -> None:
+        """Validates that settings are present only when encryption is enabled."""
 
-		if self.type == EncryptionType.DISABLED and self.settings:
-			raise ValueError("Encryption settings should not be provided when encryption is disabled.")
+        if self.type != EncryptionType.DISABLED and not self.settings:
+            raise ValueError("Encryption settings must be provided when encryption is enabled.")
 
-	def to_dict(self) -> dict:
-		if self.type == EncryptionType.DISABLED:
-			return {"@type": self.type.value}
-		else:
-			return {"@type": self.type.value, "settings": self.settings.to_dict()}
+        if self.type == EncryptionType.DISABLED and self.settings:
+            raise ValueError("Encryption settings should not be provided when encryption is disabled.")
+
+    def to_dict(self) -> dict:
+        """Serializes the encryption-at-rest tagged union to the JMAP wire format."""
+
+        if self.type == EncryptionType.DISABLED:
+            return {"@type": self.type.value}
+
+        return {"@type": self.type.value, "settings": self.settings.to_dict()}
 
 
 @dataclass
 class Account:
-	name: str
-	domain_id: str
-	credentials: list[Credential] = field(default_factory=_default_credentials)
-	member_group_ids: list[str] | None = None
-	roles: UserRoles = field(default_factory=UserRoles)
-	permissions: Permissions = field(default_factory=Permissions)
-	quotas: StorageQuota = field(default_factory=StorageQuota)
-	aliases: list[EmailAlias] | None = None
-	description: str | None = None
-	locale: str = "en_US"
-	timezone: str | None = None
-	encryption_at_rest: EncryptionAtRest = field(default_factory=EncryptionAtRest)
+    name: str
+    domain_id: str
+    credentials: list[Credential] = field(default_factory=_default_credentials)
+    member_group_ids: list[str] | None = None
+    roles: UserRoles = field(default_factory=UserRoles)
+    permissions: Permissions = field(default_factory=Permissions)
+    quotas: StorageQuota = field(default_factory=StorageQuota)
+    aliases: list[EmailAlias] | None = None
+    description: str | None = None
+    locale: str = DEFAULT_LOCALE
+    timezone: str | None = None
+    encryption_at_rest: EncryptionAtRest = field(default_factory=EncryptionAtRest)
 
-	def __post_init__(self) -> None:
-		self.encryption_at_rest = self.encryption_at_rest or EncryptionAtRest(type=EncryptionType.DISABLED)
+    def to_dict(self) -> dict:
+        """Serializes the account to the JMAP wire format."""
 
-	def to_dict(self) -> dict:
-		return {
-			"@type": "User",
-			"name": self.name,
-			"domainId": self.domain_id,
-			"credentials": {f"{idx}": credential.to_dict() for idx, credential in enumerate(self.credentials)}
-			if self.credentials
-			else {},
-			"memberGroupIds": {group_id: True for group_id in self.member_group_ids}
-			if self.member_group_ids
-			else {},
-			"roles": self.roles.to_dict() if self.roles else {},
-			"permissions": self.permissions.to_dict() if self.permissions else {},
-			"quotas": self.quotas.to_dict() if self.quotas else {},
-			"aliases": {f"{idx}": alias.to_dict() for idx, alias in enumerate(self.aliases)}
-			if self.aliases
-			else {},
-			"description": self.description,
-			"locale": self.locale,
-			"timeZone": self.timezone,
-			"encryptionAtRest": self.encryption_at_rest.to_dict(),
-		}
+        return {
+            "@type": "User",
+            "name": self.name,
+            "domainId": self.domain_id,
+            # credentials, memberGroupIds and aliases are id-keyed maps on the wire, not arrays.
+            "credentials": {f"{idx}": c.to_dict() for idx, c in enumerate(self.credentials)}
+            if self.credentials
+            else {},
+            "memberGroupIds": {group_id: True for group_id in self.member_group_ids}
+            if self.member_group_ids
+            else {},
+            "roles": self.roles.to_dict() if self.roles else {},
+            "permissions": self.permissions.to_dict() if self.permissions else {},
+            "quotas": self.quotas.to_dict() if self.quotas else {},
+            "aliases": {f"{idx}": a.to_dict() for idx, a in enumerate(self.aliases)} if self.aliases else {},
+            "description": self.description,
+            "locale": self.locale,
+            "timeZone": self.timezone,
+            "encryptionAtRest": self.encryption_at_rest.to_dict(),
+        }
 
 
-class AccountService(StalwartCLI):
-	DEFAULT_FIELDS: ClassVar[list[str]] = [
-		"@type",
-		"id",
-		"name",
-		"description",
-		"emailAddress",
-		"aliases",
-		"domainId",
-		"memberGroupIds",
-		"quotas",
-		"roles",
-		"timeZone",
-		"usedDiskQuota",
-	]
-	ALLOWED_FILTER_KEYS: ClassVar[set[str]] = {"text", "name", "domainId", "memberGroupIds"}
+class AccountService(ManagementService):
+    type = "Account"
+    default_properties = [
+        "@type",
+        "id",
+        "name",
+        "description",
+        "emailAddress",
+        "aliases",
+        "domainId",
+        "locale",
+        "memberGroupIds",
+        "quotas",
+        "roles",
+        "timeZone",
+        "usedDiskQuota",
+    ]
 
-	@classmethod
-	def _resolved_fields(cls, fields: list[str] | None) -> list[str]:
-		return fields if isinstance(fields, list) else cls.DEFAULT_FIELDS
+    def get_by_name(
+        self, name: str, properties: list[str] | None = None, raise_exception: bool = True
+    ) -> dict | None:
+        """Returns the account with the given name, or ``None`` (throws if ``raise_exception``)."""
 
-	@classmethod
-	def _append_filters(cls, commands: list[str], filters: dict[str, str]) -> None:
-		for key, value in filters.items():
-			if key in cls.ALLOWED_FILTER_KEYS:
-				commands.extend(["--where", f"{key}={value}"])
-			else:
-				frappe.throw(
-					_("Invalid filter key: {0}. Allowed keys are: {1}").format(
-						key, ", ".join(cls.ALLOWED_FILTER_KEYS)
-					)
-				)
+        account = self.find({"name": name}, properties=properties or ["id"])
+        if not account and raise_exception:
+            frappe.throw(_("Account {0} not found on the Stalwart server.").format(name))
 
-	@staticmethod
-	def _parse_query_output(output: str) -> list[dict]:
-		if not output:
-			return []
+        return account
 
-		return [json.loads(account) for account in output.splitlines()]
+    def _current_role_ids(self, account_id: str) -> list[str]:
+        """Returns the account's currently assigned custom role ids."""
 
-	def get(self, id: str, fields: list[str] | None = None) -> dict:
-		"""Fetches an account by ID from the Stalwart server, selecting specific fields if provided."""
+        roles = (self.get(account_id, properties=["roles"]) or {}).get("roles") or {}
+        role_ids = roles.get("roleIds") or {}
+        return list(role_ids.keys() if isinstance(role_ids, dict) else role_ids)
 
-		fields = self._resolved_fields(fields)
+    def _set_roles(self, account_id: str, role_ids: list[str]) -> None:
+        """Replaces the account's roles with the given ids (empty reverts to the default user role)."""
 
-		commands = ["get", "Account", id]
+        # roles is a tagged union; its @type discriminator can't be patched via a sub-path, so the
+        # whole field is replaced.
+        if role_ids:
+            roles = UserRoles(type=RoleType.CUSTOM, roles=CustomRoles(role_ids=list(dict.fromkeys(role_ids))))
+        else:
+            roles = UserRoles(type=RoleType.USER)
 
-		if fields:
-			commands.extend(["--fields", ",".join(fields)])
+        self.update(account_id, {"roles": roles.to_dict()})
 
-		commands.append("--json")
-		response = self.run(commands)
+    def add_roles(self, account_id: str, role_ids: list[str]) -> None:
+        """Adds role ids to the account, keeping any it already has."""
 
-		if response["success"]:
-			if response["output"]:
-				return json.loads(response["output"])
-			else:
-				frappe.throw(title=_("Account not found"), msg=_("Account with ID {0} not found.").format(id))
-		else:
-			frappe.throw(title=_("Failed to fetch account"), msg=response["output"] or response["error"])
+        if role_ids:
+            self._set_roles(account_id, [*self._current_role_ids(account_id), *role_ids])
 
-	def get_all(self, filters: dict[str, str] | None = None, fields: list[str] | None = None) -> list[dict]:
-		"""Fetches all accounts from the Stalwart server, applying optional filters and selecting specific fields."""
+    def remove_roles(self, account_id: str, role_ids: list[str]) -> None:
+        """Removes the given role ids from the account."""
 
-		filters = filters or {}
-		fields = self._resolved_fields(fields)
+        if role_ids:
+            remove = set(role_ids)
+            self._set_roles(account_id, [r for r in self._current_role_ids(account_id) if r not in remove])
 
-		commands = ["query", "Account"]
+    def set_password(self, account_id: str, new_password: str) -> None:
+        """Sets the account's primary password credential, leaving other credentials intact."""
 
-		if filters:
-			self._append_filters(commands, filters)
+        if not new_password:
+            frappe.throw(_("New password cannot be empty."))
 
-		if fields:
-			commands.extend(["--fields", ",".join(fields)])
+        credentials = (self.get(account_id, properties=["credentials"]) or {}).get("credentials") or {}
+        row_id = next(
+            (idx for idx, c in credentials.items() if c.get("@type") == CredentialType.PASSWORD.value), "0"
+        )
 
-		commands.append("--json")
-		response = self.run(commands)
-
-		if response["success"]:
-			return self._parse_query_output(response["output"])
-		else:
-			frappe.throw(title=_("Failed to fetch accounts"), msg=response["output"] or response["error"])
-
-	def create(self, account: "Account") -> None:
-		"""Creates a new account on the Stalwart server with the provided account data."""
-
-		account_data = account.to_dict()
-		account_json = json.dumps(account_data)
-		response = self.run(["create", "Account", "--json", account_json])
-
-		if not response["success"]:
-			frappe.throw(title=_("Failed to create account"), msg=response["output"] or response["error"])
-
-	def delete(self, ids: list[str]) -> None:
-		"""Deletes accounts with the specified IDs from the Stalwart server."""
-
-		if not ids:
-			frappe.throw(title=_("No account IDs provided"), msg=_("No account IDs provided for deletion."))
-
-		response = self.run(["delete", "Account", "--ids", ",".join(ids)])
-
-		if not response["success"]:
-			frappe.throw(title=_("Failed to delete accounts"), msg=response["output"] or response["error"])
-
-	def update_password(self, account: str, new_password: str) -> None:
-		"""Updates the password for the specified account on the Stalwart server."""
-
-		if not new_password:
-			frappe.throw(title=_("Invalid password"), msg=_("New password cannot be empty."))
-
-		credentials = self.get(account, fields=["credentials"]).get("credentials", {})
-
-		row_id = "0"
-		if credentials:
-			for idx, credential in credentials.items():
-				if credential["@type"] == CredentialType.PASSWORD.value:
-					row_id = str(idx)
-					break
-
-		response = self.run(
-			["update", "Account", account, "--field", f"credentials/{row_id}/secret={new_password}"]
-		)
-
-		if not response["success"]:
-			frappe.throw(
-				title=_("Failed to update password for account {0}").format(account),
-				msg=response["output"] or response["error"],
-			)
+        self.update(account_id, {f"credentials/{row_id}/secret": new_password})

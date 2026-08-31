@@ -1,124 +1,100 @@
 from __future__ import annotations
-from datetime import UTC, date, datetime, timezone
+from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime as parsedate
 from zoneinfo import ZoneInfo
 
 import frappe
-import isodate
 from frappe import _
-from frappe.utils import convert_utc_to_system_timezone, get_datetime, get_datetime_str, get_system_timezone
+from frappe.utils import (
+    convert_utc_to_system_timezone,
+    get_datetime,
+    get_datetime_str,
+    get_system_timezone,
+)
+
+from suite.utils.dt import convert_to_utc, parse_iso_datetime
+
+# The one timestamp shape the mail APIs accept and return, matching what Stalwart speaks.
+UTC_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
 
-def get_utc_now(naive: bool = False) -> datetime:
-	"""Returns the current UTC datetime."""
+def to_utc_z(value: datetime | str | None) -> str | None:
+    """Formats a value as the ``2026-07-28T09:02:30Z`` UTC timestamp the mail APIs return.
 
-	now = datetime.now(UTC)
-	return now.replace(tzinfo=None) if naive else now
+    Aware values (Stalwart's timestamps, or the ``...Z`` an API was called with) are converted;
+    naive ones are read as system time, which is how Frappe stores datetimes in the database.
 
+    Distinct from ``suite.utils.dt.to_iso8601_z``, which reads a naive value as UTC — wrong for a
+    value that came out of a Frappe field.
+    """
 
-def utcnow() -> "str":
-	"""Returns current UTC time in ISO format."""
+    if not value:
+        return None
 
-	return get_utc_now().isoformat().replace("+00:00", "Z")
-
-
-def convert_to_utc(
-	date_time: datetime | str, from_timezone: str | None = None, naive: bool = False
-) -> "datetime":
-	"""Converts the given datetime to UTC timezone."""
-
-	dt = get_datetime(date_time)
-	if dt.tzinfo is None:
-		tz = ZoneInfo(from_timezone or get_system_timezone())
-		dt = dt.replace(tzinfo=tz)
-
-	utc_dt = dt.astimezone(UTC)
-	return utc_dt.replace(tzinfo=None) if naive else utc_dt
+    return convert_to_utc(value).strftime(UTC_DATETIME_FORMAT)
 
 
-def parsedate_to_datetime(date_header: str) -> "datetime":
-	"""Returns datetime object from parsed date header."""
+def from_utc_z(value: str | None) -> str | None:
+    """Converts a ``...Z`` timestamp an API was called with to the system-time string Frappe stores.
 
-	utc_dt = parsedate(date_header)
-	if not utc_dt:
-		frappe.throw(_("Invalid date format: {0}").format(date_header))
+    Only for values written to Frappe datetime fields; Stalwart's own fields stay in UTC.
+    """
 
-	return convert_utc_to_system_timezone(utc_dt)
+    if not value:
+        return None
 
-
-def parse_iso_datetime(
-	datetime_str: str, to_timezone: str | None = None, as_str: bool = True
-) -> str | datetime:
-	"""Converts ISO datetime string to datetime object in given timezone."""
-
-	if not to_timezone:
-		to_timezone = get_system_timezone()
-
-	dt = datetime.fromisoformat(datetime_str.replace("Z", "+00:00")).astimezone(ZoneInfo(to_timezone))
-
-	return get_datetime_str(dt) if as_str else dt
+    return get_datetime_str(parse_iso_datetime(value, as_str=False))
 
 
-def add_or_update_tzinfo(date_time: datetime | str, time_zone: str | None = None) -> str:
-	"""Adds or updates timezone to the datetime."""
+def normalize_utc_z(value: datetime | str | None) -> str | None:
+    """Normalizes a wire timestamp to the ``...Z`` UTC format the mail APIs speak.
 
-	date_time = get_datetime(date_time)
-	target_tz = ZoneInfo(time_zone or get_system_timezone())
+    For values that are already on the wire: Stalwart's ``2026-03-23T20:03:40-05:00`` offset form,
+    its ``...Z`` form, or a ``...Z`` value an API was called with. Naive values are read as UTC —
+    unlike ``to_utc_z``, which reads a naive value as system time (a Frappe DB field).
+    """
 
-	if date_time.tzinfo is None:
-		date_time = date_time.replace(tzinfo=target_tz)
-	else:
-		date_time = date_time.astimezone(target_tz)
+    if not value:
+        return None
 
-	return str(date_time)
+    dt = get_datetime(value)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=UTC)
 
-
-def to_iso8601_z(dt: datetime) -> str:
-	"""
-	Convert a datetime (naive or aware) to an ISO 8601 string ending with 'Z' (UTC).
-
-	Rules:
-	- If naive, assume UTC.
-	- Always return a string like "YYYY-MM-DDTHH:MM:SS.sssZ".
-	"""
-
-	if isinstance(dt, date):
-		dt = get_datetime(dt)
-
-	if dt.tzinfo is None:
-		dt = dt.replace(tzinfo=UTC)
-	else:
-		dt = dt.astimezone(UTC)
-
-	return dt.isoformat().replace("+00:00", "Z")
+    return dt.astimezone(UTC).strftime(UTC_DATETIME_FORMAT)
 
 
-def add_iso_duration(
-	start_dt: str,
-	duration: str,
-	time_zone: str,
-) -> datetime:
-	"""
-	Add ISO-8601 duration to an ISO datetime string using timezone-aware math,
-	but return a naive datetime (no offset) in the same local timezone.
-	"""
+def to_user_timezone(value: datetime | str) -> datetime:
+    """Converts a UTC wire timestamp to the session user's time zone for server-rendered text.
 
-	tz = ZoneInfo(time_zone)
-	start = datetime.fromisoformat(start_dt).replace(tzinfo=tz)
-	delta = isodate.parse_duration(duration)
-	end = start + delta
+    Only for strings baked into content (quoted-reply headers, digests) where the browser can't
+    do the conversion; API responses stay UTC. Falls back to the system time zone when the user
+    hasn't set one.
+    """
 
-	return end.replace(tzinfo=None)
+    dt = get_datetime(value)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=UTC)
+
+    time_zone = None
+    if frappe.session.user:
+        time_zone = frappe.db.get_value("User", frappe.session.user, "time_zone")
+
+    return dt.astimezone(ZoneInfo(time_zone or get_system_timezone()))
 
 
-def timestamp_to_datetime(
-	timestamp: float, to_timezone: str | None = None, as_str: bool = True
-) -> str | datetime:
-	"""Converts a timestamp to a datetime object in the given timezone."""
+def parsedate_to_datetime(date_header: str) -> datetime:
+    """Returns datetime object from parsed date header."""
 
-	if not to_timezone:
-		to_timezone = get_system_timezone()
+    # email.utils.parsedate_to_datetime raises ValueError on an unparsable header rather than
+    # returning None, so the guard below only works if we catch it - otherwise a malformed Date
+    # on an inbound or imported message escapes as a traceback instead of this validation error.
+    try:
+        utc_dt = parsedate(date_header)
+    except ValueError:
+        utc_dt = None
 
-	dt = datetime.fromtimestamp(timestamp, tz=UTC).astimezone(ZoneInfo(to_timezone))
+    if not utc_dt:
+        frappe.throw(_("Invalid date format: {0}").format(date_header))
 
-	return get_datetime_str(dt) if as_str else dt
+    return convert_utc_to_system_timezone(utc_dt)

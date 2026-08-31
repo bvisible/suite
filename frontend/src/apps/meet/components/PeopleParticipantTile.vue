@@ -1,10 +1,10 @@
 <template>
 	<div
-		class="flex min-h-11 items-center gap-3 rounded-lg px-3 py-1.5 transition-colors hover:bg-surface-gray-2"
+		class="flex min-h-11 items-center gap-3 rounded-6 px-3 py-1.5 transition-colors hover:bg-surface-gray-2"
 		:data-testid="`people-participant-${participant.user_id}`"
 		:data-audio-enabled="participant.audio_enabled ? 'true' : 'false'"
 	>
-		<Avatar
+		<MeetAvatar
 			size="lg"
 			:image="participant.avatar"
 			:label="participant.user_name || participant.user_id"
@@ -36,7 +36,7 @@
 
 		<div class="flex flex-shrink-0 items-center gap-1">
 			<!-- Raised Hand Indicator -->
-			<div v-if="isHandRaised" class="flex items-center justify-center p-1.5 rounded-lg" :title="`${participant.user_name || participant.user_id} has raised their hand`">
+			<div v-if="isHandRaised" class="flex items-center justify-center p-1.5 rounded-6" :title="`${participant.user_name || participant.user_id} has raised their hand`">
 				<div class="rounded-full bg-amber-500 p-0.5">
 					<lucide-hand class="w-3.5 h-3.5 text-ink-gray-9" />
 				</div>
@@ -62,10 +62,10 @@
 
 			<!-- Host Controls -->
 			<div v-if="canControlParticipant" class="relative">
-				<Dropdown :options="hostOptions" placement="bottom-end">
+				<Dropdown :options="hostOptions">
 					<template #default>
 						<button
-							class="flex items-center justify-center rounded-lg p-1.5 text-ink-gray-6 hover:bg-surface-gray-3"
+							class="flex items-center justify-center rounded-6 p-1.5 text-ink-gray-6 hover:bg-surface-gray-3"
 							:aria-label="`Actions for ${participant.user_name || participant.user_id}`"
 							:data-testid="`people-participant-actions-${participant.user_id}`"
 						>
@@ -74,7 +74,7 @@
 					</template>
 				</Dropdown>
 			</div>
-			<div v-else class="w-7 shrink-0" aria-hidden="true" />
+			<div v-else-if="reserveHostControlSpace" class="w-7 shrink-0" aria-hidden="true" />
 		</div>
 	</div>
 
@@ -82,12 +82,13 @@
 	<KickParticipantDialog
 		v-model="showKickDialog"
 		:participant-name="participant.user_name || 'this participant'"
+		:can-ban="participant.is_guest === true"
 		@confirm="handleKickConfirm"
 	/>
 </template>
 
 <script setup lang="ts">
-import { Avatar, Dropdown } from "frappe-ui";
+import { Dropdown } from "frappe-ui";
 import { computed, ref } from "vue";
 import { useMeetingContext } from "../composables/useMeetingContext";
 import MeetCameraIcon from "../icons/MeetCameraIcon.vue";
@@ -96,12 +97,14 @@ import MeetMicIcon from "../icons/MeetMicIcon.vue";
 import MeetMicOffIcon from "../icons/MeetMicOffIcon.vue";
 import type { Participant } from "../utils/media/ParticipantManager";
 import KickParticipantDialog from "./KickParticipantDialog.vue";
+import MeetAvatar from "./MeetAvatar.vue";
 
 interface Props {
 	participant: Participant;
 	isCurrentUser?: boolean;
 	isHost?: boolean;
 	canControlParticipant?: boolean;
+	reserveHostControlSpace?: boolean;
 	canPromoteToCohost?: boolean;
 }
 
@@ -109,6 +112,7 @@ const props = withDefaults(defineProps<Props>(), {
 	isCurrentUser: false,
 	isHost: false,
 	canControlParticipant: false,
+	reserveHostControlSpace: false,
 	canPromoteToCohost: false,
 });
 
@@ -147,8 +151,8 @@ const hostOptions = computed(() => {
 			onClick: () => emit("lowerHand", props.participant.user_id),
 		},
 		{
-            icon: "lucide-user-plus",
-            label: "Promote to Co-host",
+			icon: "lucide-user-shield",
+			label: "Promote to Co-host",
 			condition: () => props.canPromoteToCohost,
 			onClick: () => emit("promoteToCohost", props.participant.user_id),
 		},

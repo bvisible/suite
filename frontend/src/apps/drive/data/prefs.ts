@@ -1,4 +1,5 @@
 import { ref, watch } from 'vue'
+import { useStorage } from '@vueuse/core'
 
 export type ViewMode = 'list' | 'grid'
 
@@ -29,7 +30,11 @@ watch(view, (v) => setJson('view', v))
 export const sortOrders = ref<Record<string, SortOrder>>(getJson('sortOrder', {}))
 
 export function getSortOrder(scopeId: string): SortOrder | undefined {
-  return sortOrders.value[scopeId]
+  const order = sortOrders.value[scopeId]
+  // Temporary: saved before Name/Type sorts were fixed to use real fields
+  if (order?.field === 'title') order.field = 'file_name'
+  if (order?.field === 'mime_type') order.field = 'file_type'
+  return order
 }
 
 export function setSortOrder(scopeId: string, order: SortOrder) {
@@ -38,8 +43,7 @@ export function setSortOrder(scopeId: string, order: SortOrder) {
 }
 
 /** Sidebar collapsed on desktop. */
-export const sidebarCollapsed = ref(getJson('sidebarCollapsed', false))
-watch(sidebarCollapsed, (v) => setJson('sidebarCollapsed', v))
+export const sidebarCollapsed = useStorage('isSidebarCollapsed', false)
 
-/** Shared page: site files vs shared-with-you (in-memory only). */
+/** Home: your own files vs shared-with-you (in-memory only). */
 export const shareView = ref(false)

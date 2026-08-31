@@ -1,17 +1,39 @@
 <template>
+	<AppSettingsHeader :title="__('Identity')">
+		<template #actions>
+			<Button
+				v-if="identity?.doc && !identity.loading"
+				:label="__('Save')"
+				variant="solid"
+				:size="isMobile ? 'md' : 'sm'"
+				:disabled="
+					identity.get.loading ||
+					JSON.stringify(identity.doc) === JSON.stringify(identity.originalDoc)
+				"
+				:loading="identity.save.loading"
+				@click="save"
+			/>
+			<Button
+				icon-left="lucide-plus"
+				:label="__('New')"
+				:size="isMobile ? 'md' : 'sm'"
+				variant="outline"
+				@click="showAddIdentity"
+			/>
+		</template>
+	</AppSettingsHeader>
+	<AppSettingsBody>
 	<template v-if="identities?.data?.length">
 		<div class="flex min-h-full flex-col">
-			<div class="flex-1 space-y-4 overflow-y-auto">
-				<h1>{{ __('Identity') }}</h1>
-
+			<div class="flex-1 space-y-4">
 				<FormControl
 					v-model="identityName"
 					type="combobox"
-					:label="__('Email')"
+					:label="__('Identity')"
 					variant="outline"
 					:options="
 						identities.data.map((identity: Identity) => ({
-							label: identity.email,
+							label: `${identity.email} (${identity.id})`,
 							value: identity.name,
 						}))
 					"
@@ -76,7 +98,7 @@
 							{{ __('Default Signature') }}
 						</label>
 						<TextEditor
-							editor-class="prose-sm min-h-[8rem] border rounded-b-lg border-t-0 p-2 max-w-none border-outline-gray-2"
+							editor-class="prose-sm min-h-[8rem] border rounded-b-6 border-t-0 p-2 max-w-none border-outline-gray-2"
 							:extensions="[CustomParagraphExtension]"
 							:fixed-menu="buttons"
 							:placeholder="__('Write your signature here')"
@@ -87,26 +109,9 @@
 				</template>
 			</div>
 
-			<div
-				v-if="identity?.doc && !identity.loading"
-				class="bg-surface-elevation-2 sticky bottom-0 py-4"
-			>
-				<Button
-					:label="__('Save')"
-					variant="solid"
-					:disabled="
-						identity.get.loading ||
-						JSON.stringify(identity.doc) === JSON.stringify(identity.originalDoc)
-					"
-					:loading="identity.save.loading"
-					class="min-h-7 w-full"
-					@click="save"
-				/>
-			</div>
-
 			<Dialog
-				v-model="showDialog"
-				:options="{
+				v-model:open="showDialog"
+			 v-bind="{
 					title: isAddReplyTo ? __('New Reply To') : __('New Bcc'),
 					actions: [
 						{
@@ -118,7 +123,7 @@
 					],
 				}"
 			>
-				<template #body-content>
+				<template #default>
 					<FormControl
 						v-model="email"
 						:label="__('Email')"
@@ -137,21 +142,52 @@
 			</Dialog>
 		</div>
 	</template>
+
+	<Dialog
+		v-model:open="showAddIdentityDialog"
+	 v-bind="{
+			title: __('New Identity'),
+			actions: [
+				{
+					label: __('Save'),
+					variant: 'solid',
+					disabled: !newEmail,
+					loading: addIdentity.loading,
+					onClick: () => addIdentity.submit(),
+				},
+			],
+		}"
+	>
+		<template #default>
+			<FormControl
+				v-model="newEmail"
+				:label="__('Email')"
+				placeholder="johndoe@example.com"
+				type="email"
+				class="mb-4 w-full"
+				:required="true"
+			/>
+			<FormControl
+				v-model="newDisplayName"
+				:label="__('Display Name')"
+				placeholder="John Doe"
+				class="w-full"
+			/>
+		</template>
+	</Dialog>
+	</AppSettingsBody>
 </template>
 
 <script setup lang="ts">
 import { inject, ref, watch } from 'vue'
 import {
-	Button,
-	Dialog,
-	FormControl,
-	TextEditor,
-	createDocumentResource,
-	useList,
-} from 'frappe-ui'
+	Button, Dialog, FormControl, createDocumentResource, createResource, useList } from 'frappe-ui'
+import { TextEditor } from 'frappe-ui/experimental'
+import AppSettingsHeader from '@/components/settings/AppSettingsHeader.vue'
+import AppSettingsBody from '@/components/settings/AppSettingsBody.vue'
 
-import { convertHtmlToText, raiseToast } from '@/apps/mail/utils'
-import { useTextEditorButtons } from '@/apps/mail/utils/composables'
+import { raiseToast } from '@/apps/mail/utils'
+import { useScreenSize, useTextEditorButtons } from '@/apps/mail/utils/composables'
 import { CustomParagraphExtension } from '@/apps/mail/utils/text-editor'
 import { userStore } from '@/apps/mail/stores/user'
 import IdentitySettingsListView from '@/apps/mail/components/IdentitySettingsListView.vue'
@@ -159,9 +195,10 @@ import IdentitySettingsListView from '@/apps/mail/components/IdentitySettingsLis
 import type { Identity } from '@/apps/mail/types'
 
 const user = inject('$user')
-const { identities } = userStore()
+const { accountId, identities } = userStore()
 
 const { buttons } = useTextEditorButtons()
+const { isMobile } = useScreenSize()
 
 const signatures = useList({
 	doctype: 'Mail Signature',
@@ -186,10 +223,9 @@ const getIdentity = () =>
 		},
 	})
 
-const save = () => {
-	identity.value.doc.text_signature = convertHtmlToText(identity.value.doc.html_signature)
-	identity.value.save.submit()
-}
+// text_signature is derived server-side on save (Identity.validate), so the two forms of the
+// signature stay the same signature rather than one being a flattened trace of the other.
+const save = () => identity.value.save.submit()
 
 const identity = ref(getIdentity())
 const savedSignature = ref('')
@@ -212,6 +248,32 @@ const addEmailAddress = () => {
 	else identity.value.doc.bcc.push({ email: email.value, display_name: displayName.value })
 	showDialog.value = false
 }
+
+const showAddIdentityDialog = ref(false)
+const newEmail = ref('')
+const newDisplayName = ref('')
+
+const showAddIdentity = () => {
+	newEmail.value = ''
+	newDisplayName.value = ''
+	showAddIdentityDialog.value = true
+}
+
+const addIdentity = createResource({
+	url: 'suite.mail.doctype.identity.identity.add_identity',
+	makeParams: () => ({
+		account: accountId,
+		email: newEmail.value,
+		name: newDisplayName.value,
+	}),
+	onSuccess: (id: string) => {
+		raiseToast(__('Identity created.'))
+		showAddIdentityDialog.value = false
+		identityName.value = `${accountId}|${id}`
+		identities.reload()
+	},
+	onError: (error) => raiseToast(error.messages?.[0] || error.message, 'error'),
+})
 
 watch(identityName, (val) => {
 	if (val) identity.value = getIdentity()

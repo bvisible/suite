@@ -11,6 +11,7 @@ export class RoomManager {
 	async createRoom(
 		roomId: string,
 		worker: mediasoup.types.Worker,
+		webRtcServer: mediasoup.types.WebRtcServer,
 		mediaCodecs: RtpCodecCapability[],
 		onActiveSpeaker?: (roomId: string, participantIds: string[]) => void,
 	): Promise<Room> {
@@ -54,6 +55,7 @@ export class RoomManager {
 		const room: Room = {
 			id: roomId,
 			router,
+			webRtcServer,
 			audioLevelObserver,
 			peers: new Map(),
 			created: new Date(),
@@ -105,6 +107,9 @@ export class RoomManager {
 			id: roomId,
 			created: room.created,
 			peerCount: room.peers.size,
+			participantCount: Array.from(room.peers.keys()).filter(
+				(peerId) => !peerId.startsWith('recorder:'),
+			).length,
 			peers: Array.from(room.peers.keys()),
 			producerCount: Array.from(room.peers.values()).reduce(
 				(count, peer) => count + peer.producers.size,
@@ -119,6 +124,16 @@ export class RoomManager {
 
 	getRoomCount(): number {
 		return this.rooms.size;
+	}
+
+	getParticipantCount(): number {
+		let count = 0;
+		for (const room of this.rooms.values()) {
+			for (const peerId of room.peers.keys()) {
+				if (!peerId.startsWith('recorder:')) count++;
+			}
+		}
+		return count;
 	}
 
 	async cleanup(): Promise<void> {

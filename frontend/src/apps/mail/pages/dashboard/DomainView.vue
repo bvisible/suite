@@ -1,22 +1,31 @@
 <template>
-	<DashboardLayout
-		v-if="domain?.data"
-		:breadcrumbs="BREADCRUMBS"
-		:badge-label="badge.label"
-		:badge-theme="badge.theme"
-	>
-		<template #actions>
-			<Dropdown :options="dropdownOptions" :button="{ icon: 'more-horizontal' }" />
-		</template>
+	<DashboardLayout :breadcrumbs="BREADCRUMBS" :loading="!domain.data">
 		<template #default>
-			<div class="bg-surface-blue-1 rounded-md border">
-				<div class="space-y-2 p-4">
-					<h3 class="font-medium">{{ BANNER.title }}</h3>
+			<DashboardDetailHeader
+				:title="domain.data.name"
+				:badge-label="badge.label"
+				:badge-theme="badge.theme"
+				:meta="[domain.data.description, addedAgo]"
+			>
+				<template #icon><Globe class="h-5 w-5" /></template>
+				<template #actions>
+					<Dropdown
+						:options="exportOptions"
+						:button="{ label: __('Export DNS'), iconLeft: 'lucide-download' }"
+					/>
+					<Dropdown :options="dropdownOptions" :button="{ icon: 'lucide-more-horizontal' }" />
+				</template>
+			</DashboardDetailHeader>
+			<div class="bg-surface-blue-1 flex items-start gap-3 rounded-4 border p-4">
+				<Info class="text-ink-blue-5 mt-0.5 h-4 w-4 shrink-0" />
+				<div class="space-y-1">
+					<h3 class="text-base font-medium">{{ BANNER.title }}</h3>
 					<p class="text-ink-gray-5 text-sm">{{ BANNER.message }}</p>
+					<p class="text-ink-gray-5 text-sm">{{ BANNER.subtitle }}</p>
 				</div>
 			</div>
-			<div class="rounded-md border">
-				<h2 class="p-4">{{ __('DNS Records') }}</h2>
+			<div class="rounded-4 border">
+				<h2 class="h-13 flex shrink-0 items-center px-4">{{ __('DNS Records') }}</h2>
 				<DNSRecords
 					:title="__('Email Deliverability')"
 					:description="
@@ -35,7 +44,7 @@
 					"
 					:records="inboundMailRoutingRecords"
 					:badge-label="__('Recommended')"
-					badge-theme="orange"
+					badge-theme="amber"
 				/>
 				<DNSRecords
 					:title="__('Service Configuration Records')"
@@ -67,15 +76,20 @@
 			</div>
 		</template>
 	</DashboardLayout>
-	<Dialog v-model="showConfirmDialog" :options="confirmDialogOptions" />
+	<Dialog v-model:open="showConfirmDialog" v-bind="confirmDialogOptions" />
 </template>
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Dialog, Dropdown, createResource, usePageMeta } from 'frappe-ui'
 
-import { raiseToast } from '@/apps/mail/utils'
+import Globe from '~icons/lucide/globe'
+import Info from '~icons/lucide/info'
+
+import { downloadUrlAsFile, raiseToast } from '@/apps/mail/utils'
+import { fromNow } from '@/apps/mail/utils/datetime'
 import DNSRecords from '@/apps/mail/components/DNSRecords.vue'
+import DashboardDetailHeader from '@/apps/mail/components/DashboardDetailHeader.vue'
 import DashboardLayout from '@/apps/mail/components/DashboardLayout.vue'
 
 type DNSRecord = Record<string, string>
@@ -110,7 +124,10 @@ const domain = createResource({
 	auto: true,
 	makeParams: () => ({ domain_id: domainId }),
 	cache: ['mailDomain', domainId],
-	onError: () => router.replace({ name: 'mail-domains' }),
+	onError: (error: { messages?: string[] }) => {
+		raiseToast(error.messages?.[0] || __('Domain not found.'), 'error')
+		router.replace({ name: 'mail-domains' })
+	},
 })
 
 const domainRecords = computed<DNSRecord[]>(
@@ -160,16 +177,7 @@ const downloadFile = (content: string, extension: string, mimeType: string) => {
 	const domainName = (domain.data as DomainData | undefined)?.name || domainId
 	const fileName = `${domainName.replace(/[^a-zA-Z0-9.-]+/g, '_')}.${extension}`
 	const blob = new Blob([content], { type: mimeType })
-	const url = URL.createObjectURL(blob)
-
-	const link = document.createElement('a')
-	link.href = url
-	link.download = fileName
-	document.body.appendChild(link)
-	link.click()
-	document.body.removeChild(link)
-
-	URL.revokeObjectURL(url)
+	downloadUrlAsFile(URL.createObjectURL(blob), fileName)
 }
 
 const downloadDNSZone = createResource({
@@ -221,33 +229,34 @@ const confirmDialogOptions = computed(() => {
 		title: config.title,
 		message: config.message,
 		size: 'xl',
-		icon: { name: 'alert-triangle', appearance: 'warning' },
-		actions: [{ label: __('Confirm'), variant: 'solid', onClick: config.action }],
+		icon: { name: 'lucide-alert-triangle', theme: 'amber' },
+		actions: [{ label: __('Confirm'), variant: 'solid', theme: 'red', onClick: config.action }],
 	}
 })
+
+const addedAgo = computed(() => {
+	const createdAt = (domain.data as DomainData | undefined)?.created_at
+	return createdAt ? __('Added {0}', [fromNow(createdAt)]) : undefined
+})
+
+const exportOptions = [
+	{
+		group: '',
+		options: [
+			{ label: __('Zone File'), icon: 'lucide-file-text', onClick: downloadDNSZone.submit },
+			{ label: __('CSV'), icon: 'lucide-file-text', onClick: downloadDNSCsv.submit },
+			{ label: __('JSON'), icon: 'lucide-file-text', onClick: downloadDNSJson.submit },
+		],
+	},
+]
 
 const dropdownOptions = computed(() => [
 	{
 		group: '',
-		items: [
-			{
-				label: __('Export Zone File'),
-				icon: 'download',
-				onClick: downloadDNSZone.submit,
-			},
-			{
-				label: __('Export CSV'),
-				icon: 'download',
-				onClick: downloadDNSCsv.submit,
-			},
-			{
-				label: __('Export JSON'),
-				icon: 'download',
-				onClick: downloadDNSJson.submit,
-			},
+		options: [
 			{
 				label: __('Delete Domain'),
-				icon: 'trash-2',
+				icon: 'lucide-trash-2',
 				onClick: () => {
 					confirmDialogAction.value = 'deleteDomain'
 					showConfirmDialog.value = true
@@ -263,15 +272,3 @@ const BANNER = {
 	subtitle: __('DNS changes may take up to 48 hours to propagate globally.'),
 }
 </script>
-
-<style scoped>
-.expand-enter-active,
-.expand-leave-active {
-	@apply max-h-full opacity-100 transition-all duration-700 ease-linear;
-}
-
-.expand-enter-from,
-.expand-leave-to {
-	@apply max-h-0 p-0 opacity-0;
-}
-</style>

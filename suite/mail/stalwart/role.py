@@ -1,85 +1,44 @@
 from __future__ import annotations
-import json
-from typing import ClassVar
+from dataclasses import dataclass, field
 
 import frappe
 from frappe import _
 
-from suite.mail.stalwart.cli import StalwartCLI
+from suite.mail.stalwart.service import ManagementService
 
 
-class RoleService(StalwartCLI):
-	DEFAULT_FIELDS: ClassVar[list[str]] = [
-		"id",
-		"description",
-		"disabledPermissions",
-		"enabledPermissions",
-		"roleIds",
-	]
-	ALLOWED_FILTER_KEYS: ClassVar[set[str]] = {"description"}
+@dataclass
+class Role:
+    description: str
+    role_ids: list[str] = field(default_factory=list)
+    enabled_permissions: list[str] = field(default_factory=list)
+    disabled_permissions: list[str] = field(default_factory=list)
 
-	@classmethod
-	def _resolved_fields(cls, fields: list[str] | None) -> list[str]:
-		return fields if isinstance(fields, list) else cls.DEFAULT_FIELDS
+    def to_dict(self) -> dict:
+        """Serializes the role to the JMAP wire format.
 
-	@classmethod
-	def _append_filters(cls, commands: list[str], filters: dict[str, str]) -> None:
-		for key, value in filters.items():
-			if key in cls.ALLOWED_FILTER_KEYS:
-				commands.extend(["--where", f"{key}={value}"])
-			else:
-				frappe.throw(
-					_("Invalid filter key: {0}. Allowed keys are: {1}").format(
-						key, ", ".join(cls.ALLOWED_FILTER_KEYS)
-					)
-				)
+        ``roleIds`` and the permission sets are id-keyed maps on the wire, not arrays.
+        """
 
-	@staticmethod
-	def _parse_query_output(output: str) -> list[dict]:
-		if not output:
-			return []
+        return {
+            "description": self.description,
+            "roleIds": {role_id: True for role_id in self.role_ids},
+            "enabledPermissions": {perm: True for perm in self.enabled_permissions},
+            "disabledPermissions": {perm: True for perm in self.disabled_permissions},
+        }
 
-		return [json.loads(role) for role in output.splitlines()]
 
-	def get(self, id: str, fields: list[str] | None = None) -> dict:
-		"""Fetches a role by ID from the Stalwart server, selecting specific fields if provided."""
+class RoleService(ManagementService):
+    type = "Role"
+    default_properties = ["id", "description", "roleIds", "enabledPermissions", "disabledPermissions"]
 
-		fields = self._resolved_fields(fields)
+    def get_by_description(
+        self, description: str, properties: list[str] | None = None, raise_exception: bool = True
+    ) -> dict | None:
+        """Returns the role with the given description, or ``None`` (throws if ``raise_exception``)."""
 
-		commands = ["get", "role", id]
+        role = self.find({"description": description}, properties=properties or ["id", "description"])
+        if not role and raise_exception:
+            frappe.throw(_("Role {0} not found on the Stalwart server.").format(description))
 
-		if fields:
-			commands.extend(["--fields", ",".join(fields)])
-
-		commands.append("--json")
-		response = self.run(commands)
-
-		if response["success"]:
-			if response["output"]:
-				return json.loads(response["output"])
-			else:
-				frappe.throw(title=_("Role not found"), msg=_("Role with ID {0} not found.").format(id))
-		else:
-			frappe.throw(title=_("Failed to fetch role"), msg=response["output"] or response["error"])
-
-	def get_all(self, filters: dict[str, str] | None = None, fields: list[str] | None = None) -> list[dict]:
-		"""Fetches all roles from the Stalwart server, applying optional filters and selecting specific fields."""
-
-		filters = filters or {}
-		fields = self._resolved_fields(fields)
-
-		commands = ["query", "role"]
-
-		if filters:
-			self._append_filters(commands, filters)
-
-		if fields:
-			commands.extend(["--fields", ",".join(fields)])
-
-		commands.append("--json")
-		response = self.run(commands)
-
-		if response["success"]:
-			return self._parse_query_output(response["output"])
-		else:
-			frappe.throw(title=_("Failed to fetch roles"), msg=response["output"] or response["error"])
+        return role

@@ -1,7 +1,6 @@
 <template>
   <GenericPage
     :get-entities="getDocuments"
-    :icon="LucideFileText"
     :empty="{
       icon: LucideFileText,
       title: 'No documents yet',

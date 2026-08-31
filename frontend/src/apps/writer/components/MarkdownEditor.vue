@@ -9,6 +9,7 @@ import {
   RichTextKit,
   articleToolbar,
 } from 'frappe-ui/editor'
+import { cssLineHeight } from '@/apps/writer/utils/typography'
 
 const props = defineProps({
   document: Object,
@@ -44,7 +45,7 @@ const extensions = [RichTextKit]
                 :style="{
                   fontFamily: `var(--font-${settings?.font_family})`,
                   fontSize: `${settings?.font_size || 15}px`,
-                  lineHeight: settings?.line_height || 1.5,
+                  lineHeight: cssLineHeight(settings?.line_height),
                 }"
                 :editor
               />

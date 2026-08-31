@@ -16,6 +16,7 @@
   "create_contacts_after_email_submit",
   "destroy_email_after_submit",
   "destroy_newsletter_after_submit",
+  "keep_forwarded_email_in_thread",
   "incoming_section",
   "on_mark_as_junk",
   "column_break_fnnk",
@@ -76,6 +77,14 @@
    "label": "Destroy Newsletter After Submit"
   },
   {
+   "default": "0",
+   "description": "When enabled, forwarded emails include an In-Reply-To header pointing to the original email, so the mail server keeps them in the same thread as the original.",
+   "fieldname": "keep_forwarded_email_in_thread",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Keep Forwarded Email In Thread"
+  },
+  {
    "fieldname": "incoming_section",
    "fieldtype": "Section Break",
    "label": "Incoming"
@@ -92,7 +101,7 @@
   },
   {
    "default": "0",
-   "description": "When enabled, mail from senders not on the Accepted list is filed into the Screening folder instead of the inbox (Hey-style screening). Only senders you accept reach the inbox.",
+   "description": "When enabled, mail from senders not on the Accepted list is filed into the Screening folder instead of the inbox (Hey-style screening). Only senders you accept reach the inbox. Enabled by default for personal accounts.",
    "fieldname": "enable_screening",
    "fieldtype": "Check",
    "label": "Enable Screening"
@@ -330,7 +339,7 @@
    "link_fieldname": "account"
   }
  ],
- "modified": "2026-07-02 17:31:11.002220",
+ "modified": "2026-08-31 09:41:45.879147",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "JMAP Account",
@@ -338,7 +347,6 @@
  "owner": "Administrator",
  "permissions": [
   {
-   "create": 1,
    "delete": 1,
    "email": 1,
    "export": 1,
@@ -351,13 +359,21 @@
   },
   {
    "read": 1,
-   "role": "All",
+   "role": "Suite Admin",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Suite User",
    "write": 1
   }
  ],
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
+ "show_title_field_in_link": 1,
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "_name",
+ "track_changes": 1
 }

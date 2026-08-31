@@ -14,7 +14,9 @@ import type {
 
 export function useMeetingPreviewPresence(meetingId: string) {
 	const participants = ref<ParticipantPreview[]>([]);
+	const isCurrentUserPresent = ref(false);
 	const error = ref<string | null>(null);
+	const hasFetchedParticipants = ref(false);
 	let socket: Socket | null = null;
 	let refreshTimer: ReturnType<typeof setTimeout> | null = null;
 	let isRefreshing = false;
@@ -42,7 +44,12 @@ export function useMeetingPreviewPresence(meetingId: string) {
 		params: { meeting_id: meetingId },
 		auto: false,
 		onSuccess(data: PresenceTokenResponse) {
-			if (data && (data.auth_token || data.sfu_url)) {
+			if (data.restricted_preview) {
+				hasFetchedParticipants.value = true;
+				return;
+			}
+
+			if (data.auth_token || data.sfu_url) {
 				connectToSFU(data);
 			} else {
 				error.value = data.error || "Failed to get presence token";
@@ -128,7 +135,9 @@ export function useMeetingPreviewPresence(meetingId: string) {
 				"get_room_participants",
 				{},
 				(response: PresenceParticipantsResponse) => {
+					hasFetchedParticipants.value = true;
 					if (response.success && response.participants) {
+						isCurrentUserPresent.value = !!response.isCurrentUserPresent;
 						participants.value = response.participants.map((p) => ({
 							user_id: p.info.userId || p.user_id || p.id,
 							full_name: p.info.name || p.user_id || p.id,
@@ -203,7 +212,9 @@ export function useMeetingPreviewPresence(meetingId: string) {
 
 	return {
 		participants: readonly(participants),
+		isCurrentUserPresent: readonly(isCurrentUserPresent),
 		error: readonly(error),
+		hasFetchedParticipants: readonly(hasFetchedParticipants),
 		refresh,
 		topParticipants: computed(() => participants.value.slice(0, 3)),
 		extraCount: computed(() => Math.max(0, participants.value.length - 3)),

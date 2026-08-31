@@ -3,17 +3,20 @@
 		xmlns="http://www.w3.org/2000/svg"
 		width="16"
 		height="16"
-		viewBox="0 0 24 24"
+		viewBox="0 0 16 16"
 		fill="none"
 		stroke="currentColor"
-		stroke-width="1.5"
-		stroke-linecap="round"
-		stroke-linejoin="round"
-		class="lucide lucide-bring-to-front-icon lucide-bring-to-front"
 	>
-		<rect x="6.5" y="6.5" width="11" height="11" rx="2" fill="#737373" />
-		<path d="M4 10a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2" />
-		<path d="M14 20a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2" />
+		<g clip-path="url(#bring-to-front-clip)">
+			<rect x="1" y="1" width="6" height="6" rx="1" />
+			<rect x="9" y="9" width="6" height="6" rx="1" />
+			<rect x="4" y="4" width="8" height="8" rx="1" style="fill: var(--surface-gray-3)" />
+		</g>
+		<defs>
+			<clipPath id="bring-to-front-clip">
+				<rect width="16" height="16" fill="white" />
+			</clipPath>
+		</defs>
 	</svg>
 </template>
 

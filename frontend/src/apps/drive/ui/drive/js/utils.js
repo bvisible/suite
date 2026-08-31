@@ -24,10 +24,12 @@ export function getFileLink(entity, copy = true) {
   let link
   if (entity.file_type === 'Link') link = entity.file_url
   else if (isOfficeBinary(entity)) {
-    // //// Neoffice: Collabora-backed preview ////
+    //// Neoffice — link to the Drive preview (Collabora over WOPI), not to a
+    //// native editor that cannot open the binary. See utils/files.js.
     link = `${window.location.origin}/drive/${getLinkStem(entity)}`
-  } else if (entity.file_type === 'Presentation') {
-    link = `${window.location.origin}/slides/presentation/${entity.name}`
+  }
+else if (entity.content_doctype === 'Presentation') {
+    link = `${window.location.origin}/slides/presentation/${entity.content_docname}`
   } else if (entity.file_type === 'Document' || entity.file_type === 'Markdown') {
     link = `${window.location.origin}/writer/w/${entity.name}`
   } else {
@@ -125,8 +127,7 @@ export const openEntity = (entity, new_tab = false) => {
   }
 
   if (entity.name === '') {
-    if (entity.is_private) window.location.href = '/drive/'
-    else window.location.href = '/drive/t/' + entity.team
+    window.location.href = '/drive/'
   } else if (entity.is_folder) {
     window.location.href = '/drive/d/' + entity.name
   } else if (entity.file_type === 'Link') {

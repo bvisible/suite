@@ -13,9 +13,9 @@ IGNORE_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
 
 
 class IntegrationTestReferencePresentation(IntegrationTestCase):
-	"""
-	Integration tests for ReferencePresentation.
-	Use this class for testing interactions between multiple components.
-	"""
+    """
+    Integration tests for ReferencePresentation.
+    Use this class for testing interactions between multiple components.
+    """
 
-	pass
+    pass

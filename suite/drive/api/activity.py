@@ -2,6 +2,8 @@ from __future__ import annotations
 import frappe
 from pypika import Order
 
+from suite.drive.api.permissions import user_has_permission
+
 
 def create_new_activity_log(
     entity,
@@ -24,12 +26,16 @@ def create_new_activity_log(
         doc.new_value = field_new_value
     try:
         doc.save(ignore_permissions=True)
-    except:
+    except Exception:
         pass
+    return doc
 
 
 @frappe.whitelist()
 def get_entity_activity_log(entity_name: str):
+    if not user_has_permission(entity_name, "read"):
+        frappe.throw("You do not have permission to view this file.", frappe.PermissionError)
+
     Activity = frappe.qb.DocType("Drive Entity Activity Log")
     User = frappe.qb.DocType("User")
     selectedFields = [

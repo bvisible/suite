@@ -2,8 +2,6 @@
 // buildCommandGroups takes a map of action callbacks and returns the groups array
 // consumed by the <CommandPalette> component.
 
-import { CommandPaletteItem } from 'frappe-ui'
-
 function item(name, title, description, fn) {
   return { name, title, description, fn }
 }
@@ -11,7 +9,6 @@ function item(name, title, description, fn) {
 function buildFormatGroup({ toggleFmt, setAlign, setValign, adjustDecimals, toggleWrap, clearFormatting }) {
   return {
     title: 'Format',
-    component: CommandPaletteItem,
     items: [
       item('bold',          'Bold',                    'Ctrl+B',       () => toggleFmt('bold')),
       item('italic',        'Italic',                  'Ctrl+I',       () => toggleFmt('italic')),
@@ -31,15 +28,14 @@ function buildFormatGroup({ toggleFmt, setAlign, setValign, adjustDecimals, togg
   }
 }
 
-function buildEditGroup({ undo, redo, repeatLast, showFindReplace, showFormulas, repopulateGrid, showShortcutsHelp }) {
+function buildEditGroup({ undo, redo, repeatLast, showFindReplace, openFindReplace, showFormulas, repopulateGrid, showShortcutsHelp }) {
   return {
     title: 'Edit',
-    component: CommandPaletteItem,
     items: [
       item('undo',      'Undo',               'Ctrl+Z', () => undo()),
       item('redo',      'Redo',               'Ctrl+Y', () => redo()),
       item('repeat',    'Repeat last action', 'F4',     () => repeatLast()),
-      item('find',      'Find & replace',     'Ctrl+F', () => { showFindReplace.value = true }),
+      item('find',      'Find & replace',     'Ctrl+F', () => { openFindReplace ? openFindReplace() : (showFindReplace.value = true) }),
       item('formulas',  'Show formulas',      'Ctrl+`', () => { showFormulas.value = !showFormulas.value; repopulateGrid() }),
       item('shortcuts', 'Keyboard shortcuts', '?',      () => { showShortcutsHelp.value = true }),
     ],
@@ -50,6 +46,7 @@ function buildStructureGroup({
   contextMenu, getGrid,
   doInsertRow, doDeleteRow,
   doInsertCol, doDeleteCol,
+  doMoveColLeft, doMoveColRight,
   doHideRows, doHideCols,
   doUnhideAllRows, doUnhideAllCols,
   doAutoFitCol, doAutoFitRow,
@@ -57,7 +54,6 @@ function buildStructureGroup({
 }) {
   return {
     title: 'Structure',
-    component: CommandPaletteItem,
     items: [
       item('row-above',  'Insert row above',      '', () => { contextMenu.targetRow = getGrid().getSelection().r0; doInsertRow(false) }),
       item('row-below',  'Insert row below',      '', () => { contextMenu.targetRow = getGrid().getSelection().r0; doInsertRow(true)  }),
@@ -65,6 +61,8 @@ function buildStructureGroup({
       item('col-left',   'Insert column left',    '', () => { contextMenu.targetCol = getGrid().getSelection().c0; doInsertCol(false) }),
       item('col-right',  'Insert column right',   '', () => { contextMenu.targetCol = getGrid().getSelection().c0; doInsertCol(true)  }),
       item('col-del',    'Delete column',         '', () => { contextMenu.targetCol = getGrid().getSelection().c0; doDeleteCol()      }),
+      item('col-move-l', 'Move column left',      '', () => { contextMenu.targetCol = getGrid().getSelection().c0; doMoveColLeft()  }),
+      item('col-move-r', 'Move column right',     '', () => { contextMenu.targetCol = getGrid().getSelection().c0; doMoveColRight() }),
       item('row-hide',   'Hide row',              '', () => doHideRows()),
       item('col-hide',   'Hide column',           '', () => doHideCols()),
       item('row-unhide', 'Unhide all rows',       '', () => doUnhideAllRows()),
@@ -80,7 +78,6 @@ function buildStructureGroup({
 function buildViewGroup({ contextMenu, getGrid, doFreezeRow, doFreezeCol, doUnfreezeRows, doUnfreezeCols, showSortFilter }) {
   return {
     title: 'View',
-    component: CommandPaletteItem,
     items: [
       item('freeze-row',   'Freeze rows up to selection', '', () => { contextMenu.targetRow = getGrid().getSelection().r0; doFreezeRow()  }),
       item('freeze-col',   'Freeze cols up to selection', '', () => { contextMenu.targetCol = getGrid().getSelection().c0; doFreezeCol()  }),
@@ -94,7 +91,6 @@ function buildViewGroup({ contextMenu, getGrid, doFreezeRow, doFreezeCol, doUnfr
 function buildInsertGroup({ openPivotDialog }) {
   return {
     title: 'Insert',
-    component: CommandPaletteItem,
     items: [
       item('pivot-insert', 'Insert pivot table', '', () => openPivotDialog()),
     ],
@@ -104,7 +100,6 @@ function buildInsertGroup({ openPivotDialog }) {
 function buildSheetGroup({ addSheet, currentSheet, openRenameDialog, doDuplicateSheet, doDeleteSheet }) {
   return {
     title: 'Sheet',
-    component: CommandPaletteItem,
     items: [
       item('sheet-add',       'Add sheet',       '', () => addSheet()),
       item('sheet-rename',    'Rename sheet',    '', () => openRenameDialog(currentSheet.value)),
@@ -117,7 +112,6 @@ function buildSheetGroup({ addSheet, currentSheet, openRenameDialog, doDuplicate
 function buildFileGroup({ onSave, exportCSV, exportXLSX, exportPDF, csvInputRef, xlsxInputRef }) {
   return {
     title: 'File',
-    component: CommandPaletteItem,
     items: [
       item('save',        'Save',        'Ctrl+S', () => onSave()),
       item('csv-export',  'Export CSV',  '',       () => exportCSV()),
@@ -134,7 +128,7 @@ function buildFileGroup({ onSave, exportCSV, exportXLSX, exportPDF, csvInputRef,
  * command-palette groups array.
  *
  * @param {object} actions — flat map of every callback / ref used across groups
- * @returns {Array} groups array consumed by <CommandPalette :groups="…">
+ * @returns {Array} command palette groups
  */
 export function buildCommandGroups(actions) {
   return [

@@ -26,7 +26,7 @@ class CustomShareNotification(unittest.TestCase):
         self.frappe.has_permission.return_value = True
         # Recipient lookup (`enabled` check) — return 1 so share proceeds.
         self.frappe.db.get_value.side_effect = lambda dt, name, field=None: {
-            ("User", "bob@example.com", "enabled"):  1,
+            ("User", "bob@example.com", "enabled"): 1,
             ("User", "alice@example.com", "full_name"): "Alice",
         }.get((dt, name, field))
         # frappe.get_doc("Sheet", name) → mock title

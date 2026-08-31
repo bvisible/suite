@@ -1,26 +1,28 @@
 <template>
-	<div class="flex items-center space-x-3">
+	<div class="flex items-center justify-between gap-3">
 		<FormControl v-model="search" :placeholder="__('Search')" class="w-80">
 			<template #prefix>
 				<FeatherIcon name="search" class="text-ink-gray-5 w-4" />
 			</template>
 		</FormControl>
-		<FormControl
-			v-model="status"
-			:placeholder="__('Invitation Status')"
-			class="w-40"
-			type="select"
-			:options="STATUS_OPTIONS"
-		/>
+		<div class="flex items-center gap-3">
+			<FormControl
+				v-model="status"
+				:placeholder="__('Invitation Status')"
+				class="w-40"
+				type="select"
+				:options="STATUS_OPTIONS"
+			/>
+		</div>
 	</div>
 
 	<ListView
-		v-if="inviteRows"
+		v-if="invites.data"
 		ref="listView"
 		class="flex-1"
 		:columns="LIST_COLUMNS"
 		:rows="inviteRows"
-		:options="LIST_OPTIONS"
+		:options="listOptions"
 		row-key="name"
 	>
 		<ListHeader />
@@ -37,7 +39,7 @@
 						<template v-if="column.key === 'role'">
 							<Badge
 								:label="row.is_admin ? __('Admin') : __('User')"
-								:theme="row.is_admin ? 'orange' : 'blue'"
+								:theme="row.is_admin ? 'amber' : 'blue'"
 							/>
 						</template>
 						<Badge
@@ -61,6 +63,7 @@
 			</template>
 		</ListSelectBanner>
 	</ListView>
+	<DashboardListSkeleton v-else :columns="5" />
 
 	<EditInviteModal
 		v-if="selectedInvite"
@@ -68,29 +71,18 @@
 		:invite-i-d="selectedInvite"
 		@reload-invites="invites.reload()"
 	/>
-	<Dialog v-model="showDeleteInvites" :options="DELETE_INVITES_OPTIONS" />
+	<Dialog v-model:open="showDeleteInvites" v-bind="DELETE_INVITES_OPTIONS" />
 </template>
 
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch } from 'vue'
 import { watchDebounced } from '@vueuse/core'
 import {
-	Badge,
-	Button,
-	Dialog,
-	FeatherIcon,
-	FormControl,
-	ListEmptyState,
-	ListHeader,
-	ListRow,
-	ListRowItem,
-	ListRows,
-	ListSelectBanner,
-	ListView,
-	createResource,
-} from 'frappe-ui'
+	Badge, Button, Dialog, FormControl, createResource } from 'frappe-ui'
+import { Icon as FeatherIcon, ListEmptyState, ListHeader, ListRow, ListRowItem, ListRows, ListSelectBanner, ListView } from 'frappe-ui/experimental'
 
 import { raiseToast } from '@/apps/mail/utils'
+import DashboardListSkeleton from '@/apps/mail/components/DashboardListSkeleton.vue'
 import EditInviteModal from '@/apps/mail/components/Modals/EditInviteModal.vue'
 
 type InviteStatus = 'All' | 'Pending' | 'Accepted' | 'Expired'
@@ -160,7 +152,7 @@ const DELETE_INVITES_OPTIONS = {
 	message: __(
 		'Are you sure you want to delete the selected invites? This will invalidate them for the recipients if pending.',
 	),
-	actions: [{ label: __('Confirm'), variant: 'solid', onClick: deleteInvites.submit }],
+	actions: [{ label: __('Confirm'), variant: 'solid', theme: 'red', onClick: deleteInvites.submit }],
 }
 
 const LIST_COLUMNS = [
@@ -171,15 +163,27 @@ const LIST_COLUMNS = [
 	{ label: __('Invitation Status'), key: 'status' },
 ]
 
-const LIST_OPTIONS = {
+const hasActiveFilters = computed(() => !!search.value || status.value !== 'All')
+
+const listOptions = computed(() => ({
 	showTooltip: false,
 	rowHeight: 50,
-	emptyState: { description: __('No invites found.') },
+	emptyState: hasActiveFilters.value
+		? {
+				title: __('No matching invites'),
+				description: __('Try adjusting your search or filters.'),
+			}
+		: {
+				title: __('No pending invites'),
+				description: __(
+					'Invitations you send and self-signup requests will appear here until they are accepted.',
+				),
+			},
 	onRowClick: (row: InviteRow) => {
 		selectedInvite.value = row.name
 		showEditInvite.value = true
 	},
-}
+}))
 
 const STATUS_OPTIONS = [
 	{ label: __('All'), value: 'All' },
@@ -189,5 +193,5 @@ const STATUS_OPTIONS = [
 ]
 
 const getTheme = (status: InviteStatusLabel) =>
-	status === 'Accepted' ? 'green' : status === 'Expired' ? 'gray' : 'orange'
+	status === 'Accepted' ? 'green' : status === 'Expired' ? 'gray' : 'amber'
 </script>

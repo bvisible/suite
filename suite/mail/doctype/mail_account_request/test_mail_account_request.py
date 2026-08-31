@@ -13,18 +13,18 @@ IGNORE_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
 
 
 class UnitTestMailAccountRequest(UnitTestCase):
-	"""
-	Unit tests for MailAccountRequest.
-	Use this class for testing individual functions and methods.
-	"""
+    """
+    Unit tests for MailAccountRequest.
+    Use this class for testing individual functions and methods.
+    """
 
-	pass
+    pass
 
 
 class IntegrationTestMailAccountRequest(IntegrationTestCase):
-	"""
-	Integration tests for MailAccountRequest.
-	Use this class for testing interactions between multiple components.
-	"""
+    """
+    Integration tests for MailAccountRequest.
+    Use this class for testing interactions between multiple components.
+    """
 
-	pass
+    pass

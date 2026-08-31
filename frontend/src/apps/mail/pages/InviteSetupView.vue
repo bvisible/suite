@@ -31,6 +31,18 @@
 			autocomplete="current-password"
 			required
 		/>
+		<div class="space-y-1.5">
+			<label class="text-ink-gray-5 block text-xs">{{ __('Locale') }}</label>
+			<Combobox v-model="locale" :options="localeOptions" :placeholder="__('Select a locale')" />
+		</div>
+		<div class="space-y-1.5">
+			<label class="text-ink-gray-5 block text-xs">{{ __('Time Zone') }}</label>
+			<Combobox
+				v-model="timeZone"
+				:options="timeZoneOptions"
+				:placeholder="__('Select a time zone')"
+			/>
+		</div>
 		<ErrorMessage :message="errorMessage" />
 		<Button
 			variant="solid"
@@ -46,9 +58,9 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { Button, ErrorMessage, FormControl, createResource } from 'frappe-ui'
+import { Button, Combobox, ErrorMessage, FormControl, createResource } from 'frappe-ui'
 
 import { sessionStore } from '@/apps/mail/stores/session'
 
@@ -57,21 +69,39 @@ const { requestKey } = defineProps<{ requestKey: string }>()
 const router = useRouter()
 const { login } = sessionStore()
 
+type Option = { value: string; label: string }
+
 const email = ref('')
 const firstName = ref('')
 const lastName = ref('')
 const password = ref('')
+const locale = ref('')
+const timeZone = ref('')
 const errorMessage = ref('')
 
 const getAccountRequest = createResource({
 	url: 'suite.mail.api.account.get_account_request',
 	makeParams: () => ({ request_key: requestKey }),
 	onSuccess: (data) => {
-		if ((data?.backup_email || data?.account) && !data?.is_verified && !data?.is_expired)
+		if ((data?.backup_email || data?.account) && !data?.is_verified && !data?.is_expired) {
 			email.value = data.account || data.backup_email
-		else router.replace({ name: 'mail-signup' })
+			accountOptions.submit()
+		} else router.replace({ name: 'mail-signup' })
 	},
 })
+
+// Fetched only once the request is known to be pending, since the endpoint is gated on that too.
+const accountOptions = createResource({
+	url: 'suite.mail.api.account.get_account_setup_options',
+	makeParams: () => ({ request_key: requestKey }),
+})
+
+const localeOptions = computed<Option[]>(() => accountOptions.data?.locales || [])
+// The time zone is optional, so it needs a blank choice to leave it unset.
+const timeZoneOptions = computed<Option[]>(() => [
+	{ value: '', label: __('Not set') },
+	...(accountOptions.data?.time_zones || []),
+])
 
 const createAccount = createResource({
 	url: 'suite.mail.api.account.create_account',
@@ -80,6 +110,9 @@ const createAccount = createResource({
 		first_name: firstName.value,
 		last_name: lastName.value,
 		password: password.value,
+		// Blank means "server default" for both, which the API spells as null.
+		locale: locale.value || null,
+		time_zone: timeZone.value || null,
 	}),
 	onSuccess: () => {
 		errorMessage.value = ''

@@ -1,5 +1,7 @@
 <template>
-	<div class="space-y-4 border-t p-4">
+	<!-- A category with zero records renders nothing: an empty table with a
+	     "Required" badge would read as missing setup data. -->
+	<div v-if="records.length" class="space-y-4 border-t p-4">
 		<div class="space-y-2">
 			<h3 class="flex items-center font-medium">
 				{{ title }}
@@ -20,8 +22,15 @@
 					<template #default="{ item }">
 						<ListRowItem>
 							<Tooltip :text="__('Click to copy')">
-								<div class="cursor-copy truncate" @click="copyToClipBoard(item)">
-									{{ item }}
+								<div
+									class="group/copy flex min-w-0 cursor-copy items-center gap-1.5"
+									@click="copyToClipBoard(item)"
+								>
+									<span class="truncate">{{ item }}</span>
+									<FeatherIcon
+										name="copy"
+										class="text-ink-gray-5 invisible h-3.5 w-3.5 shrink-0 group-hover/copy:visible"
+									/>
 								</div>
 							</Tooltip>
 						</ListRowItem>
@@ -33,7 +42,8 @@
 </template>
 
 <script setup lang="ts">
-import { Badge, ListHeader, ListRow, ListRowItem, ListRows, ListView, Tooltip } from 'frappe-ui'
+import { Badge, Tooltip } from 'frappe-ui'
+import { Icon as FeatherIcon, ListHeader, ListRow, ListRowItem, ListRows, ListView } from 'frappe-ui/experimental'
 
 import { copyToClipBoard } from '@/apps/mail/utils'
 
@@ -42,7 +52,7 @@ const { title, description, records } = defineProps<{
 	description: string
 	records: Record<string, string>[]
 	badgeLabel?: string
-	badgeTheme?: 'green' | 'red' | 'gray' | 'orange' | 'blue'
+	badgeTheme?: 'green' | 'red' | 'gray' | 'amber'  | 'blue'
 }>()
 
 const LIST_COLUMNS = [

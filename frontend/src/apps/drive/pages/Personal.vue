@@ -1,9 +1,16 @@
 <template>
-  <GenericPage :get-entities="getPersonal" :empty="{
-    icon: LucideHome,
-    title: 'No files yet',
-    description: 'Upload to get started!',
-  }" :verify="!shareView && {
+  <GenericPage :get-entities="shareView ? getShared : getPersonal" :empty="shareView
+    ? {
+      icon: LucideUsers,
+      title: 'No shared files',
+      description: 'You can share files easily on Drive - try it out!',
+    }
+    : {
+      icon: LucideHome,
+      title: 'No files yet',
+      description: 'Upload to get started!',
+    }
+    " :verify="!shareView && {
           data: {
             write: 1,
             upload: 1,
@@ -14,10 +21,11 @@
 
 <script setup>
 import GenericPage from '@/apps/drive/components/GenericPage.vue'
-import { getPersonal } from '@/apps/drive/resources/files'
+import { getPersonal, getShared } from '@/apps/drive/resources/files'
 import { shareView } from '@/apps/drive/data/prefs'
 import { setCurrentFolder } from '@/apps/drive/data/currentFolder'
 import LucideHome from '~icons/lucide/home'
+import LucideUsers from '~icons/lucide/users'
 
-setCurrentFolder({ name: '', team: '' })
+setCurrentFolder({ name: '' })
 </script>

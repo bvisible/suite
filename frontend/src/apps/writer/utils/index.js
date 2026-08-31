@@ -9,7 +9,9 @@ import editorStyle from '@/apps/writer/styles/editor.css?inline'
 import globalStyle from '@/apps/writer/styles/index.css?inline'
 import slugify from 'slugify'
 import { useFileUpload, toast as nToast, createResource } from 'frappe-ui'
-import { getTeams } from '@/apps/drive/ui/drive/js/resources'
+import { rootInfo } from '@/apps/drive/sdk'
+
+rootInfo.fetch()
 import emitter from '@/apps/writer/emitter'
 import { createLowlight, common } from 'lowlight'
 import { toHtml } from 'hast-util-to-html'
@@ -25,6 +27,7 @@ import { FontSize } from '@/apps/writer/extensions/font-size'
 import EmbedExtension from '@/apps/writer/extensions/embed-extension'
 import ExtendedParagraph from '@/apps/writer/extensions/extended-paragraph'
 import FontFamily from '@/apps/writer/extensions/font-family'
+import { cssLineHeight } from '@/apps/writer/utils/typography'
 
 function trimCommonPrefix(a, b) {
   let i = 0
@@ -58,8 +61,7 @@ export const prettyData = (entities) => {
   })
 }
 export const setBreadCrumbs = (entity) => {
-  const breadcrumbs = entity.breadcrumbs
-  const in_home = entity.in_home
+  let breadcrumbs = entity.breadcrumbs
   let res = [
     {
       label: __('Shared'),
@@ -67,19 +69,11 @@ export const setBreadCrumbs = (entity) => {
       route: useSessionStore().isLoggedIn && '/shared',
     },
   ]
-  const team = getTeams.data?.[breadcrumbs[0].team]
-  if (team || in_home)
-    res = [
-      {
-        label: in_home ? __('Home') : team.title,
-        name: in_home ? 'Home' : team.name,
-        route: in_home
-          ? { name: 'Home' }
-          : { name: 'Team', params: { team: team.name } },
-      },
-    ]
-
-  if (!breadcrumbs[0].folder) breadcrumbs.splice(0, 1)
+  const homeIdx = breadcrumbs.findIndex((k) => k.name === rootInfo.data?.home)
+  if (homeIdx > -1) {
+    res = [{ label: __('Home'), name: 'Home', route: { name: 'Home' } }]
+    breadcrumbs.splice(0, homeIdx + 1)
+  } else if (!breadcrumbs[0].folder) breadcrumbs.splice(0, 1)
   const popBreadcrumbs = (item) => () =>
     res.splice(res.findIndex((k) => k.name === item.name) + 1)
 
@@ -254,13 +248,15 @@ export function printDoc(html, settings = {}) {
     nunito: 'var(--font-nunito)',
   }
   const fontFamily = fontMap[settings?.font_family]
-  const applyWatermark = settings?.apply_watermark || false
-  const watermark = {
-    text: settings?.watermark_text || '',
-    size: settings?.watermark_size || 90,
-    angle: settings?.watermark_angle || -45,
-  }
-  const shouldShowWatermark = applyWatermark && watermark.text.trim() !== ''
+  // The print document reuses the editor stylesheet, so it needs the same
+  // custom properties the editor sets — otherwise paragraphs fall back to the
+  // prose defaults and print looser than what is on screen.
+  const editorVars = [
+    `--editor-font-size: ${settings?.font_size || 15}px`,
+    `--editor-line-height: ${cssLineHeight(settings?.line_height)}`,
+    `--paragraph-spacing-before: ${settings?.paragraph_spacing_before || 0}px`,
+    `--paragraph-spacing-after: ${settings?.paragraph_spacing_after || 0}px`,
+  ].join('; ')
   const content = `
             <!DOCTYPE html>
             <html>
@@ -269,8 +265,8 @@ export function printDoc(html, settings = {}) {
               <style>${editorStyle}</style>
               <style>
               @page {
-                margin: 1.25cm 0.5cm;
-                
+                margin: 1.25cm 2.5cm;
+
                 @top-left {
                   content: "${settings?.print_header_left || ''}";  
                   font-family: ${fontFamily};
@@ -311,25 +307,12 @@ export function printDoc(html, settings = {}) {
                 }
                 div[data-page-break='true'] {
                   border: none;
-                  margin: none;
-                }  
-                .watermark {
-                  position: fixed;
-                  top: 50%;
-                  left: 50%;
-                  transform: translate(-50%, -50%) rotate(${watermark.angle}deg);
-                  opacity: 0.12;
-                  font-size: ${watermark.size}px;
-                  color: #999;
-                  pointer-events: none;
-                  z-index: 9999;
-                  white-space: nowrap;
+                  margin: 0;
                 }
               </style>
               </head>
               <body>
-                ${shouldShowWatermark ? `<div class="watermark">${watermark.text}</div>` : ''}
-                <div class="ProseMirror prose-sm" style='padding-left: 40px; padding-right: 40px; padding-top: 20px; padding-bottom: 20px; margin: 0;'>
+                <div class="ProseMirror prose prose-sm prose-v3" style='max-width: ${settings?.wide ? '100ch' : '48rem'}; margin: 0 auto; padding-top: 20px; padding-bottom: 20px; ${editorVars}'>
                   ${highlightedHtml}
                 </div>
               </body>
@@ -437,7 +420,7 @@ export function getLink(entity, copy = true, withDomain = true) {
   } catch (err) {
     if (err.name === 'NotAllowedError') {
       toast({
-        icon: 'alert-triangle',
+        icon: 'lucide-alert-triangle',
         iconClasses: 'text-red-700',
         title: 'Clipboard permission denied',
         position: 'bottom-right',
@@ -459,6 +442,7 @@ export const setTitle = (title) =>
 async function uploadImage(file, params) {
   const uploader = useFileUpload()
   const upload = uploader.upload(file, {
+    private: false,
     params,
     upload_endpoint: '/api/method//api/method/suite.drive.api.files.upload_file',
   })
@@ -627,7 +611,12 @@ export function toast(obj) {
   })
 }
 
-export const COMMON_EXTENSIONS = [EmbedExtension, ExtendedParagraph]
+export const COMMON_EXTENSIONS = [
+  FontSize,
+  FontFamily,
+  EmbedExtension,
+  ExtendedParagraph,
+]
 
 export async function downloadMD(editor, foldername) {
   let html = editor.value.getHTML()

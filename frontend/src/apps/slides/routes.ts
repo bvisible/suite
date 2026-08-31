@@ -4,6 +4,9 @@ import { createResource } from 'frappe-ui'
 
 import { router, setEditorAccess, setPreviousRoute } from '@/apps/slides/router'
 import SlidesShell from '@/apps/slides/SlidesShell.vue'
+import { getSessionUser, useSessionStore } from '@/boot/session'
+import { claimSlidesCachesFor, postToServiceWorker } from '@/apps/slides/utils/serviceWorker'
+import { removeOfflineCopy } from '@/apps/slides/stores/offlineCopy'
 
 /**
  * Slides route module — mounted by the suite router under the '/slides' prefix.
@@ -11,10 +14,6 @@ import SlidesShell from '@/apps/slides/SlidesShell.vue'
  * Paths are RELATIVE to '/slides' (no leading slash; '' is the app index).
  * Route names are namespaced `slides-*` to avoid collisions in the single
  * suite router. Views are lazy so slides' heavy editor deps stay code-split.
- *
- * Names map from the standalone app: Home -> slides-home,
- * EditorNew -> slides-editor-new, PresentationEditor -> slides-editor,
- * Slideshow -> slides-slideshow, NotPermitted -> slides-not-permitted.
  */
 
 let currentEditorAccess = 'none'
@@ -34,6 +33,8 @@ export const routes: RouteRecordRaw[] = [
   {
     path: '',
     component: SlidesShell,
+    // before the route components resolve, so the whole graph loads as slides
+    beforeEnter: () => postToServiceWorker('slides-entered'),
     children: [
       {
         path: '',
@@ -51,6 +52,7 @@ export const routes: RouteRecordRaw[] = [
         name: 'slides-editor',
         component: () => import('@/apps/slides/pages/PresentationEditor.vue'),
         props: withPresentationProps,
+        meta: { allowGuest: true },
       },
       {
         path: 'presentation/view/:presentationId/:slug?',
@@ -65,11 +67,13 @@ export const routes: RouteRecordRaw[] = [
         name: 'slides-slideshow',
         component: () => import('@/apps/slides/pages/Slideshow.vue'),
         props: withPresentationProps,
+        meta: { allowGuest: true },
       },
       {
         path: 'not-permitted',
         name: 'slides-not-permitted',
         component: () => import('@/apps/slides/pages/errorPages/NotPermitted.vue'),
+        meta: { allowGuest: true },
       },
     ],
   },
@@ -78,11 +82,9 @@ export const routes: RouteRecordRaw[] = [
 export default routes
 
 /* -------------------------------------------------------------------------- */
-/* Slides navigation guards                                                    */
-/*                                                                             */
-/* Ported from the standalone app's router.beforeEach: maintain `previousRoute`*/
-/* and gate the editor route on the per-presentation access level. Installed   */
-/* once, the first time this module is loaded (see bottom of file).            */
+/* Slides navigation guards: maintain `previousRoute` and gate the editor      */
+/* route on the per-presentation access level. Installed once, the first time  */
+/* this module is loaded (see bottom of file).                                 */
 /* -------------------------------------------------------------------------- */
 
 const getEditorAccess = async (presentationId: string) => {
@@ -112,6 +114,11 @@ function installSlidesGuards(r: Router) {
 
     setPreviousRoute(from)
 
+    // before the first slides request of this visit is cached; a guest may be
+    // this user with an expired session, so their copy stays
+    const user = getSessionUser()
+    if (user) await claimSlidesCachesFor(user).catch(() => {})
+
     if (!SLIDES_GUARDED.has(to.name)) {
       return next()
     }
@@ -127,6 +134,14 @@ function installSlidesGuards(r: Router) {
       }
       if (['edit', 'view'].includes(currentEditorAccess)) {
         return next()
+      }
+      if (!useSessionStore().isLoggedIn) {
+        window.location.href = `/login?redirect-to=${encodeURIComponent(to.fullPath)}`
+        return next(false)
+      }
+      // the server has withdrawn this presentation, so the offline copy goes with it
+      if (currentEditorAccess === 'none') {
+        removeOfflineCopy(to.params.presentationId as string).catch(() => {})
       }
       return next({ name: 'slides-not-permitted' })
     }

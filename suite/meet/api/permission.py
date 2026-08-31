@@ -1,14 +1,9 @@
 from __future__ import annotations
 import frappe
 
+from suite.utils.user import is_administrator, is_suite_user
+
 
 def has_app_permission() -> bool:
-	if frappe.session.user == "Administrator":
-		return True
-
-	roles = frappe.get_roles()
-	meet_roles = ["Meet User"]
-	if any(role in roles for role in meet_roles):
-		return True
-
-	return False
+    user = frappe.session.user
+    return is_administrator(user) or is_suite_user(user)

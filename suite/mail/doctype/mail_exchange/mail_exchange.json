@@ -276,7 +276,7 @@
  "is_submittable": 1,
  "links": [],
  "max_attachments": 1,
- "modified": "2026-06-29 21:50:52.926334",
+ "modified": "2026-08-31 09:42:32.984669",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Mail Exchange",
@@ -300,15 +300,16 @@
    "create": 1,
    "delete": 1,
    "read": 1,
-   "role": "Mail Admin",
+   "role": "Suite Admin",
    "submit": 1,
    "write": 1
   },
   {
    "create": 1,
    "delete": 1,
+   "if_owner": 1,
    "read": 1,
-   "role": "All",
+   "role": "Suite User",
    "submit": 1,
    "write": 1
   }
@@ -317,5 +318,6 @@
  "rows_threshold_for_grid_search": 20,
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

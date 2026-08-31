@@ -2,22 +2,15 @@ import suiteRouter from '@/router'
 import { setActiveEntity } from '@/apps/drive/data/selection'
 
 /**
- * Drive router compat shim + app-local navigation guard.
+ * Drive-local navigation guard on the shared suite router, scoped to `drive-*`
+ * routes so it never runs for other apps:
+ *   - clears the active entity on every navigation,
+ *   - stores the current route in sessionStorage.
+ * Auth itself is the suite router's `beforeEach` (redirects guests for
+ * non-`meta.allowGuest` routes).
  *
- * The standalone Drive app had its own `createRouter` with a global
- * `beforeEach`/`afterEach`. In the suite there is ONE router (mounted at '/',
- * drive routes live under '/drive'); the suite router's own `beforeEach`
- * already redirects guests to /login for non-`meta.isPublic` routes.
- *
- * Drive's standalone guard also:
- *   - stored `recentTeam` in localStorage,
- *   - cleared the active entity on every navigation,
- *   - stored the current route in sessionStorage.
- * We re-install that behaviour here, scoped to `drive-*` routes only so it
- * never runs for other apps (calendar/writer pattern).
- *
- * Re-exporting the single suite router instance keeps drive utils that read
- * `router.currentRoute` / call `router.push` working unchanged.
+ * Re-exports the suite router instance for drive utils that read
+ * `router.currentRoute` / call `router.push`.
  */
 const isDriveRoute = (route: { name?: unknown; path?: string }) =>
   (typeof route.name === 'string' && route.name.startsWith('drive-')) ||
@@ -25,7 +18,6 @@ const isDriveRoute = (route: { name?: unknown; path?: string }) =>
 
 suiteRouter.beforeEach((to, _from, next) => {
   if (!isDriveRoute(to)) return next()
-  if (to.params.team) localStorage.setItem('recentTeam', String(to.params.team))
   setActiveEntity(null)
   next()
 })

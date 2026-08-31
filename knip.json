@@ -10,16 +10,27 @@
   ],
   "workspaces": {
     "frontend": {
-      "entry": ["src/main.ts", "vite.config.ts"],
-      "project": ["src/**/*.{ts,tsx,vue}", "!src/main.ts"],
+      "entry": [
+        "src/main.ts",
+        "vite.config.ts",
+        "src/apps/mail/sw.ts",
+        "src/apps/slides/service-worker.js",
+        "src/apps/sheets/engine/difftest/compare-engines.js",
+        "src/apps/sheets/engine/difftest/run.js"
+      ],
+      "project": ["src/**/*.{js,ts,tsx,vue}", "!src/main.ts"],
       "ignoreUnresolved": ["~icons/lucide/*", "unplugin-icons/types/vue"]
     },
-    "suite/meet/e2e": {
+    "e2e": {
+      "entry": [
+        "drive-backed-apps/global-setup.ts",
+        "drive-backed-apps/global-teardown.ts",
+        "meet/global-setup.ts"
+      ],
       "project": [
-        "fixtures/**/*.ts",
-        "helpers/**/*.ts",
-        "specs/**/*.ts",
-        "!playwright.config.ts"
+        "shared/**/*.ts",
+        "drive-backed-apps/**/*.ts",
+        "meet/**/*.ts"
       ]
     },
     "suite/meet/sfu-server": {

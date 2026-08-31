@@ -1,74 +1,32 @@
 <template>
-  <div
+  <!-- Opens the statistics page: the sidebar block is the glance, that is the detail. -->
+  <SidebarStorage
     v-if="!storageBar.loading"
-    class="flex flex-col hover:bg-surface-gray-2 rounded cursor-pointer mb-0.5"
-    @click="emitter.emit('showSettings', 2)"
-  >
-    <SidebarItem :label="__('Storage')" :is-collapsed="!props.isExpanded">
-      <template #icon>
-        <LucideCloud class="w-4" />
-      </template>
-    </SidebarItem>
-    <div class="w-auto mx-2 bg-surface-gray-4 rounded-full h-1 my-2">
-      <div
-        class="h-1 rounded-full"
-        :class="
-          (100 * storageBar.data.total_size) / storageMax > 100
-            ? 'bg-surface-red-500'
-            : 'bg-surface-gray-10'
-        "
-        :style="{
-          width: calculatePercent,
-          maxWidth: '100%',
-        }"
-      />
-    </div>
-    <span
-      class="text-xs text-ink-gray-5 line-clamp-1 ml-2"
-      :class="isExpanded ? 'opacity-100' : 'opacity-0'"
-      >{{ formattedString }}</span
-    >
-  </div>
+    class="cursor-pointer hover:bg-surface-gray-2"
+    :used-percentage
+    :label
+    :collapsed="!isExpanded"
+    @click="emitter.emit('showSettings', 'statistics')"
+  />
 </template>
 
 <script setup>
-import { computed, inject, watch } from 'vue'
-import SidebarItem from './SidebarItem.vue'
+import { computed, inject } from 'vue'
+import SidebarStorage from '@/components/SidebarStorage.vue'
 import { formatSize, base2BlockSize } from '@/apps/drive/utils/format'
 import { storageBar } from '@/apps/drive/resources/files'
-import { useRoute } from 'vue-router'
-import LucideCloud from '~icons/lucide/cloud'
 
 const emitter = inject('emitter')
 
+const props = defineProps(['isExpanded'])
+
 const storageMax = computed(() => storageBar.data.limit || 5368709120)
 
-const props = defineProps(['isExpanded'])
-const formattedString = computed(() => {
-  return (
-    formatSize(storageBar.data.total_size || 0) + ' used out of ' + base2BlockSize(storageMax.value)
-  )
-})
+const usedPercentage = computed(() => (100 * (storageBar.data.total_size || 0)) / storageMax.value)
 
-const calculatePercent = computed(() => {
-  const num = (100 * storageBar.data.total_size) / storageMax.value
-  return new Intl.NumberFormat('default', {
-    style: 'percent',
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  }).format(num / 100)
-})
-const route = useRoute()
-const team = computed(() => route.params.team)
-watch(
-  team,
-  (val) =>
-    storageBar.fetch({
-      team: val || '',
-      entity_name: route.params.entityName || '',
-    }),
-  {
-    immediate: true,
-  }
+const label = computed(
+  () => formatSize(storageBar.data.total_size || 0) + ' used out of ' + base2BlockSize(storageMax.value),
 )
+
+storageBar.fetch()
 </script>

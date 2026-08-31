@@ -1,3 +1,5 @@
+import DOMPurify from 'dompurify'
+
 import { getAttachmentUrl } from './mediaUploads'
 
 let isClicked = false
@@ -64,8 +66,11 @@ const handleScrollBarWheelEvent = (e: WheelEvent) => {
 
 const cloneObj = (obj: any) => JSON.parse(JSON.stringify(obj))
 
-const getThumbnailCardStyles = (thumbnail: string) => {
-	const thumbnailUrl = getAttachmentUrl(thumbnail)
+const getThumbnailCardStyles = (
+	thumbnail: string,
+	sourcePresentation?: { name: string; owner: string },
+) => {
+	const thumbnailUrl = getAttachmentUrl(thumbnail, sourcePresentation)
 	return {
 		backgroundImage: `url(${thumbnailUrl})`,
 		backgroundSize: 'cover',
@@ -78,9 +83,39 @@ const getDocFromHTML = (html: string) => {
 	return parser.parseFromString(html, 'text/html')
 }
 
+const sanitizeSlideHTML = (html: string) => {
+	return DOMPurify.sanitize(html, {
+		ALLOWED_TAGS: [
+			'p',
+			'span',
+			'strong',
+			'b',
+			'em',
+			'i',
+			'u',
+			's',
+			'ul',
+			'ol',
+			'li',
+			'br',
+			'table',
+			'colgroup',
+			'col',
+			'thead',
+			'tbody',
+			'tr',
+			'th',
+			'td',
+		],
+		ALLOWED_ATTR: ['style', 'class', 'colspan', 'rowspan', 'colwidth'],
+	})
+}
+
 const isCmdOrCtrl = (e: KeyboardEvent | MouseEvent) => {
 	return e.metaKey || e.ctrlKey
 }
+
+const normalizeRotation = (deg: number) => ((deg % 360) + 360) % 360
 
 export {
 	handleSingleAndDoubleClick,
@@ -91,5 +126,7 @@ export {
 	cloneObj,
 	getThumbnailCardStyles,
 	getDocFromHTML,
+	sanitizeSlideHTML,
 	isCmdOrCtrl,
+	normalizeRotation,
 }

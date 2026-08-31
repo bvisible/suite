@@ -1,10 +1,11 @@
 from __future__ import annotations
 import os
+import shutil
+import unicodedata
 from contextlib import contextmanager
 from io import BytesIO
 from pathlib import Path
-import shutil
-from urllib.parse import unquote
+from urllib.parse import quote, unquote
 
 import boto3
 import frappe
@@ -12,12 +13,15 @@ import mimemapper
 from botocore.config import Config
 from botocore.exceptions import ClientError
 from PIL import Image, ImageOps
+from werkzeug.http import dump_options_header
 
 from suite.drive.locks.distributed_lock import DistributedLock
 
-from . import get_home_folder, STATUS_ACTIVE
+from . import STATUS_ACTIVE, get_root_folder
 
 S3_URL_PREFIX = "/api/method/suite.drive.api.s3.fetch?path="
+# Sidecar directories under the Drive root, beside the mirrored tree.
+TRASH_PREFIX = ".trash"
 
 
 class FileManager:
@@ -25,13 +29,11 @@ class FileManager:
         settings = frappe.get_single("Drive Disk Settings")
         self.settings = settings
         self.s3_enabled = settings.enabled
-        self.flat = settings.flat
+        # not settings.flat: the Single may predate the field, and the doctype
+        # overrides __getattribute__ so a missing row raises instead of defaulting
+        self.flat = getattr(settings, "flat", 0)
         self.bucket = settings.bucket
         self.site_folder = Path(frappe.get_site_path())
-
-        TEAMS = frappe.get_all("Drive Team", fields=["name", "s3_bucket", "prefix"])
-        self.bucket_map = {k["name"]: k["s3_bucket"] for k in TEAMS}
-        self.prefix_map = {k["name"]: k["prefix"] for k in TEAMS}
 
         if self.s3_enabled:
             self.conn = boto3.client(
@@ -42,10 +44,19 @@ class FileManager:
                 config=Config(signature_version=settings.signature_version),
             )
 
+    def get_prefix(self):
+        return self.settings.root_folder or ""
+
+    def get_root_storage_key(self):
+        """Return the backend-normalized storage key for the Drive root folder."""
+        file_url = get_root_folder()["file_url"]
+        if self.s3_enabled:
+            file_url = get_s3_key(file_url)
+        return storage_key(file_url)
+
     def _not_if_flat(func):
-        """
-        Decorator to skip the function if flat structure is enabled.
-        """
+        """Flat storage has no directories and no per-file paths, so anything that
+        rearranges them is a no-op."""
 
         def wrapper(self, *args, **kwargs):
             if self.flat:
@@ -54,18 +65,9 @@ class FileManager:
 
         return wrapper
 
-    def get_bucket(self, team):
-        return self.bucket_map.get(team) or self.bucket
-
-    def get_prefix(self, team):
-        prefix = self.prefix_map.get(team)
-        if prefix is None:
-            return self.settings.root_folder
-        return prefix
-
     def can_create_thumbnail(self, file):
         # Only images, videos and PDFs get thumbnails.
-        if not hasattr(file, "mime_type"):
+        if not getattr(file, "mime_type", None):
             return False
         return file.mime_type.startswith(("image", "video")) or file.mime_type == "application/pdf"
 
@@ -74,7 +76,7 @@ class FileManager:
         Moves the file from the current path to another path
         """
         if self.s3_enabled:
-            self.conn.upload_file(current_path, self.get_bucket(file.team), get_s3_key(file.file_url))
+            self.conn.upload_file(current_path, self.bucket, get_s3_key(file.file_url))
             if create_thumbnail and self.can_create_thumbnail(file):
                 frappe.enqueue(
                     self.upload_thumbnail,
@@ -98,9 +100,9 @@ class FileManager:
 
     def upload_thumbnail(self, file, file_path: str):
         """
-        Creates a thumbnail for the file on disk and then uploads to the relevant team directory
+        Creates a thumbnail for the file on disk and then uploads to the thumbnail directory
         """
-        save_path = self.get_thumbnail_path(file.team, file.name).with_suffix(".png")
+        save_path = self.get_thumbnail_path(file.name).with_suffix(".png")
         disk_path = str(self.site_folder / save_path)
 
         try:
@@ -135,9 +137,7 @@ class FileManager:
                 if self.s3_enabled:
                     # Removes original file
                     os.remove(file_path)
-                    self.conn.upload_file(
-                        disk_path, self.get_bucket(file.team), str(save_path.with_suffix(".thumbnail"))
-                    )
+                    self.conn.upload_file(disk_path, self.bucket, str(save_path.with_suffix(".thumbnail")))
                     disk_path.unlink()
                 else:
                     final_path = disk_path.with_suffix(".thumbnail")
@@ -150,36 +150,37 @@ class FileManager:
                 except FileNotFoundError:
                     pass
 
-    def get_disk_path(self, entity, root: dict = None, embed=False):
+    def get_disk_path(self, entity, embed=False):
         """
         Helper function to get path of a file
         """
         if self.flat:
-            if not root:
-                root = get_home_folder(entity.team)
-            return Path(storage_key(root["file_url"])) / (Path("embeds") / entity.name if embed else entity.name)
-        else:
-            # perf: stupidly complicated because we use this both with a real entity and a dict
-            parent = (
-                Path(storage_key(frappe.get_value("File", entity.folder, "file_url") or ""))
-                if not hasattr(entity, "parent_path")
-                else Path(entity.parent_path)
-            )
-            if embed:
-                return parent / ".embeds" / entity.file_name
-            return parent / entity.file_name
+            # One namespace under the root, keyed by id — no tree, no team, so a
+            # rename or move never touches storage.
+            root = Path(self.get_root_storage_key())
+            return root / ("embeds" if embed else "") / entity.name
+
+        # perf: stupidly complicated because we use this both with a real entity and a dict
+        parent = (
+            Path(storage_key(frappe.get_value("File", entity.folder, "file_url") or ""))
+            if not hasattr(entity, "parent_path")
+            else Path(entity.parent_path)
+        )
+        name = escape_component(entity.file_name)
+        if embed:
+            return parent / ".embeds" / name
+        return parent / name
 
     @_not_if_flat
-    def create_folder(self, entity, root):
+    def create_folder(self, entity):
         """
         Function to create a folder in the S3 bucket or on disk.
-        Only creates if flat structure is disabled.
         """
-        path = self.get_disk_path(entity, root)
+        path = self.get_disk_path(entity)
         if self.s3_enabled:
-            self.conn.put_object(Bucket=self.get_bucket(entity.team), Key=str(path) + "/", Body="")
+            self.conn.put_object(Bucket=self.bucket, Key=str(path) + "/", Body="")
         else:
-            (self.site_folder / path).mkdir()
+            (self.site_folder / path).mkdir(exist_ok=True)
         return str(path) + "/"
 
     def get_file(self, entity, range_header=None, log=True):
@@ -188,15 +189,13 @@ class FileManager:
         """
         file_url = storage_key(entity.file_url)
         try:
-            if self.s3_enabled:
+            if self.s3_enabled and not stored_on_disk(entity.file_url):
                 if range_header:
-                    buf = self.conn.get_object(Bucket=self.get_bucket(entity.team), Key=file_url, Range=range_header)[
-                        "Body"
-                    ]
+                    buf = self.conn.get_object(Bucket=self.bucket, Key=file_url, Range=range_header)["Body"]
                 else:
-                    buf = self.conn.get_object(Bucket=self.get_bucket(entity.team), Key=file_url)["Body"]
+                    buf = self.conn.get_object(Bucket=self.bucket, Key=file_url)["Body"]
             else:
-                with open(self.site_folder / file_url, "rb") as fh:
+                with open(self.get_local_path(file_url), "rb") as fh:
                     buf = BytesIO(fh.read())
         except (ClientError, FileNotFoundError, OSError) as e:
             if log:
@@ -204,6 +203,75 @@ class FileManager:
             frappe.throw("Could not find this file.", frappe.DoesNotExistError)
 
         return buf
+
+    def get_local_path(self, file_url):
+        path = (self.site_folder / storage_key(file_url)).resolve()
+        roots = [
+            (self.site_folder / "private" / "files").resolve(),
+            (self.site_folder / "public" / "files").resolve(),
+        ]
+        if not any(path.is_relative_to(root) for root in roots):
+            frappe.throw("The File URL you've entered is incorrect", frappe.ValidationError)
+        return path
+
+    def presigned_url(self, key, download_name, mime_type=None, expires=3600):
+        """Short-lived S3 GET URL, range-capable, served straight to the client."""
+        bucket = self.bucket
+        params = {
+            "Bucket": bucket,
+            "Key": key,
+            "ResponseContentDisposition": content_disposition(download_name),
+        }
+        if mime_type:
+            params["ResponseContentType"] = mime_type
+        return self._presign_client(bucket).generate_presigned_url(
+            "get_object", Params=params, ExpiresIn=expires
+        )
+
+    def _presign_client(self, bucket):
+        """generate_presigned_url signs offline, so it never gets the automatic
+        region-redirect retry that a real S3 call (get_object, put_object, ...)
+        gets for free. Signed against the wrong region, S3 rejects the URL
+        outright with PermanentRedirect instead of serving the object. Detect
+        the bucket's real region once (get_bucket_location is itself
+        region-agnostic) and sign with a client that matches it."""
+        if self.settings.endpoint_url:
+            # custom/S3-compatible endpoints (e.g. MinIO) don't do AWS's
+            # multi-region redirect dance
+            return self.conn
+
+        cache_key = f"drive-s3-bucket-region:{bucket}"
+        region = frappe.cache().get_value(cache_key)
+        if not region:
+            try:
+                region = self.conn.get_bucket_location(Bucket=bucket).get("LocationConstraint") or "us-east-1"
+            except ClientError:
+                region = self.conn.meta.region_name or "us-east-1"
+            frappe.cache().set_value(cache_key, region, expires_in_sec=24 * 60 * 60)
+
+        if region == self.conn.meta.region_name:
+            return self.conn
+        return boto3.client(
+            "s3",
+            aws_access_key_id=self.settings.aws_key,
+            aws_secret_access_key=self.settings.get_password("aws_secret"),
+            region_name=region,
+            config=Config(signature_version=self.settings.signature_version),
+        )
+
+    def iter_blocks(self, entity, block_size=4 * 1024 * 1024):
+        """Yield a file's bytes lazily so a worker never holds the whole file."""
+        if self.s3_enabled and not stored_on_disk(entity.file_url):
+            source = self.get_file(entity)
+            try:
+                while chunk := source.read(block_size):
+                    yield chunk
+            finally:
+                source.close()
+        else:
+            with open(self.get_local_path(entity.file_url), "rb") as fh:
+                while chunk := fh.read(block_size):
+                    yield chunk
 
     def write_file(self, path: str | Path, content: str):
         if self.s3_enabled:
@@ -219,7 +287,7 @@ class FileManager:
         - On disk: opens in binary mode, closes automatically.
         - On S3: yields the botocore StreamingBody, closes automatically.
         """
-        if self.s3_enabled:
+        if self.s3_enabled and not stored_on_disk(path):
             obj = self.conn.get_object(Bucket=self.bucket, Key=path)
             body = obj["Body"]
             try:
@@ -227,21 +295,21 @@ class FileManager:
             finally:
                 body.close()
         else:
-            f = open(self.site_folder / path, "rb")
+            f = open(self.get_local_path(path), "rb")
             try:
                 yield f
             finally:
                 f.close()
 
-    def fetch_new_files(self, team) -> dict[Path, tuple[str]]:
+    def fetch_new_files(self) -> dict[Path, tuple[str]]:
         """
         Traverse the site folder and return a list of all yet-uncreated files with information
-        Returns path, location (team or personal), file size, and modified
+        Returns path, file size, and modified
         Ignores hidden files
         """
         if self.s3_enabled:
-            root_folder = Path(self.get_prefix(team))
-            objects = self.conn.list_objects_v2(Bucket=self.get_bucket(team)).get("Contents", [])
+            root_folder = Path(self.get_prefix())
+            objects = self.conn.list_objects_v2(Bucket=self.bucket).get("Contents", [])
             basic_files = {}
 
             # Get files...
@@ -278,7 +346,6 @@ class FileManager:
                     {
                         "file_url": f["Key"].rstrip("/") + ("/" if is_folder else ""),
                         "status": STATUS_ACTIVE,
-                        "team": team,
                         "is_folder": int(is_folder),
                     },
                     "name",
@@ -287,10 +354,10 @@ class FileManager:
                     continue
 
                 mime_type = "folder" if is_folder else mimemapper.get_mime_type(f["Key"], native_first=False)
-                # Team path is key, DB path is f["Key"]
+                # Relative path is key, DB path is f["Key"]
                 files[path] = (f["Size"], f["LastModified"].timestamp(), mime_type, f["Key"])
         else:
-            root_folder = self.site_folder / self.get_prefix(team)
+            root_folder = self.site_folder / "private" / "files" / self.get_prefix()
 
             # ... and stitch them together with information
             files = {}
@@ -298,7 +365,7 @@ class FileManager:
                 path = f.relative_to(self.site_folder)
                 exists = frappe.get_value(
                     "File",
-                    {"file_url": str(path), "team": team, "status": STATUS_ACTIVE},
+                    {"file_url": str(path), "status": STATUS_ACTIVE},
                     "name",
                 )
                 if exists or any(p for p in f.parts if p.startswith(".")):
@@ -314,17 +381,21 @@ class FileManager:
 
         return files
 
-    def get_thumbnail_path(self, team, name):
-        return Path(storage_key(get_home_folder(team)["file_url"])) / self.settings.thumbnail_prefix / (name + ".thumbnail")
+    def get_thumbnail_path(self, name):
+        return Path(self.get_root_storage_key()) / self.settings.thumbnail_prefix / (name + ".thumbnail")
 
-    def get_thumbnail(self, team, name):
-        return self.get_file(
-            frappe._dict({"team": team, "file_url": str(self.get_thumbnail_path(team, name))}), log=False
-        )
+    def get_thumbnail(self, name):
+        return self.get_file(frappe._dict({"file_url": str(self.get_thumbnail_path(name))}), log=False)
 
     def __get_trash_path(self, entity):
-        root = get_home_folder(entity.team)
-        return Path(storage_key(root["file_url"])) / ".trash" / entity.file_name
+        """Keyed by id, not file_name: trash is one flat directory under a single
+        root now, and two teams could each trash a `readme.md`."""
+        return Path(self.get_root_storage_key()) / TRASH_PREFIX / entity.name
+
+    def get_trash_path(self, entity):
+        """Where move_to_trash put (or will put) this entity's blob, relative
+        to the storage root."""
+        return self.__get_trash_path(entity)
 
     @_not_if_flat
     def rename(self, entity):
@@ -341,7 +412,7 @@ class FileManager:
         trash_path = self.__get_trash_path(entity)
         try:
             if self.s3_enabled:
-                bucket = self.get_bucket(entity.team)
+                bucket = self.bucket
                 self.conn.copy_object(
                     Bucket=bucket,
                     CopySource={"Bucket": bucket, "Key": storage_key(entity.file_url)},
@@ -354,7 +425,7 @@ class FileManager:
                     shutil.rmtree(full_trash_path)
 
                 full_trash_path.parent.mkdir(exist_ok=True)
-                cur_path = self.site_folder / storage_key(entity.file_url)
+                cur_path = self.get_local_path(entity.file_url)
                 if cur_path.is_dir():
                     shutil.move(cur_path, full_trash_path)
                 else:
@@ -368,7 +439,7 @@ class FileManager:
         """
         Restore a file from the trash.
         """
-        self.move(frappe._dict(file_url=self.__get_trash_path(entity), team=entity.team), entity.file_url)
+        self.move(frappe._dict(file_url=self.__get_trash_path(entity)), entity.file_url)
 
     @_not_if_flat
     def move(self, entity, new_path: str | Path):
@@ -381,7 +452,7 @@ class FileManager:
         dest_key = storage_key(new_path)
         try:
             if self.s3_enabled:
-                bucket = self.get_bucket(entity.team)
+                bucket = self.bucket
                 self.conn.copy_object(
                     Bucket=bucket,
                     CopySource={"Bucket": bucket, "Key": src_key},
@@ -389,44 +460,130 @@ class FileManager:
                 )
                 self.conn.delete_object(Bucket=bucket, Key=src_key)
             else:
-                cur_path = self.site_folder / src_key
-                dest_path = self.site_folder / dest_key
+                cur_path = self.get_local_path(src_key)
+                dest_path = self.get_local_path(dest_key)
                 if cur_path.is_dir():
                     shutil.move(cur_path, dest_path)
                 else:
                     cur_path.rename(dest_path)
-        except BaseException as e:
+        except BaseException:
             frappe.throw("This file doesn't exist on disk.")
         return new_path
 
+    def copy_file(self, source, target):
+        """Duplicate a blob (files only — folders go through create_folder).
+        S3-to-S3 copies server-side; a local blob under an S3 config (framework
+        adoptions) uploads to the target's key."""
+        src_key = storage_key(source.file_url)
+        dst_key = storage_key(target.file_url)
+        if self.s3_enabled:
+            if stored_on_disk(source.file_url):
+                self.conn.upload_file(str(self.get_local_path(src_key)), self.bucket, dst_key)
+            else:
+                # managed copy: copy_object caps at 5GB, conn.copy does multipart
+                self.conn.copy(
+                    {"Bucket": self.bucket, "Key": src_key},
+                    self.bucket,
+                    dst_key,
+                )
+        else:
+            shutil.copy2(self.get_local_path(src_key), self.get_local_path(dst_key))
+        self._copy_thumbnail(source, target)
+
+    def _copy_thumbnail(self, source, target):
+        # cheap to carry over, saves a regeneration; best-effort only
+        src_thumb = str(self.get_thumbnail_path(source.name))
+        dst_thumb = str(self.get_thumbnail_path(target.name))
+        try:
+            if self.s3_enabled:
+                self.conn.copy_object(
+                    Bucket=self.bucket,
+                    CopySource={"Bucket": self.bucket, "Key": src_thumb},
+                    Key=dst_thumb,
+                )
+            else:
+                shutil.copy2(self.site_folder / src_thumb, self.site_folder / dst_thumb)
+        except (ClientError, FileNotFoundError, OSError):
+            pass
+
     def delete_file(self, entity):
-        thumbnail_path = self.get_thumbnail_path(entity.team, entity.name)
+        thumbnail_path = self.get_thumbnail_path(entity.name)
 
         if self.s3_enabled:
-            bucket = self.get_bucket(entity.team)
+            bucket = self.bucket
             try:
                 self.conn.delete_object(Bucket=bucket, Key=storage_key(entity.file_url))
                 if thumbnail_path:
                     self.conn.delete_object(Bucket=bucket, Key=str(thumbnail_path))
-            except:
+            except Exception:
                 pass
         else:
             try:
-                (self.site_folder / storage_key(entity.file_url)).unlink()
+                path = self.get_local_path(entity.file_url)
+                if path.is_dir():
+                    shutil.rmtree(path)
+                else:
+                    path.unlink()
                 if thumbnail_path:
                     (self.site_folder / thumbnail_path).unlink()
             except FileNotFoundError:
                 pass
 
+    def delete_from_trash(self, entity):
+        trash_path = self.__get_trash_path(entity)
+        if self.s3_enabled:
+            self.conn.delete_object(Bucket=self.bucket, Key=str(trash_path))
+            return
+        local_path = self.site_folder / trash_path
+        if local_path.is_dir():
+            shutil.rmtree(local_path)
+        else:
+            local_path.unlink(missing_ok=True)
+
 
 # Utils
+def escape_component(file_name):
+    """A name is one path component, but `/` is legal in a name and would forge a
+    directory level. Escape it rather than renaming the user's file — `%` first, or
+    a name containing a literal `%2F` would decode back into a separator."""
+    return (file_name or "").replace("%", "%25").replace("/", "%2F").replace("\\", "%5C")
+
+
+def unescape_component(component):
+    return component.replace("%5C", "\\").replace("%2F", "/").replace("%25", "%")
+
+
 def storage_key(file_url):
-    # file_url -> backend storage key, always relative so `base / key` can't
-    # reset to an absolute path (Path("a") / "/b" == Path("/b")).
+    # file_url -> backend storage key. NOT always relative: upgraded sites stored
+    # `?path=/<team>/<id>` and that slash is part of the S3 key. Callers building a
+    # local path must lstrip("/") — `Path("a") / "/b" == Path("/b")`.
     file_url = str(file_url)
     if file_url.startswith(S3_URL_PREFIX):
         return unquote(file_url[len(S3_URL_PREFIX) :])
     return file_url.lstrip("/")
+
+
+def stored_on_disk(file_url):
+    """Whether a file_url (or storage key) names a blob on the site's disk.
+
+    Framework-managed blobs (attachments, adopted uploads) keep their
+    /private/files url and live on the site's disk even when Drive stores its
+    own blobs on S3 — those always carry S3_URL_PREFIX or a bare bucket key.
+    """
+    return storage_key(file_url).startswith("private/files/")
+
+
+def content_disposition(download_name):
+    """RFC 6266 attachment header; non-ASCII names ride in RFC 5987 filename*
+    (`secure_filename` would strip them to nothing)."""
+    try:
+        download_name.encode("ascii")
+        names = {"filename": download_name}
+    except UnicodeEncodeError:
+        simple = unicodedata.normalize("NFKD", download_name).encode("ascii", "ignore").decode("ascii")
+        quoted = quote(download_name, safe="!#$&+-.^_`|~")
+        names = {"filename": simple, "filename*": f"UTF-8''{quoted}"}
+    return dump_options_header("attachment", names)
 
 
 def get_s3_key(file_url):

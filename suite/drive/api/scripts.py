@@ -1,26 +1,38 @@
 from __future__ import annotations
+from datetime import UTC, date, datetime, timedelta, timezone
+
 import frappe
 
-from suite.drive.api.product import is_admin
+from suite.drive.api.files import delete_entities
+from suite.drive.api.product import is_drive_site_admin
 from suite.drive.utils import (
-    create_drive_file,
-    default_team,
-    get_file_type,
-    get_home_folder,
-    update_file_size,
-    STATUS_TRASHED,
     STATUS_REMOVED,
+    STATUS_TRASHED,
+    create_drive_file,
+    get_file_type,
+    get_root_folder,
+    update_file_size,
 )
 from suite.drive.utils.files import FileManager
-from suite.drive.api.files import delete_entities
-from datetime import date, timedelta
 
 
 @frappe.whitelist()
-@default_team
-def sync_preview(team: str, json: bool = True):
+def sync_preview(json: bool = True):
+    """
+    List files present on disk but not yet registered in Drive.
+
+    Admin-only: these files have no `File` record yet, so there is no share or
+    folder permission to filter them by - the listing exposes the raw storage
+    tree (paths, sizes, mtimes) of everything staged under the site folder.
+    """
+    if not is_drive_site_admin():
+        frappe.throw(
+            "You do not have permission to view files on disk.",
+            frappe.PermissionError,
+        )
+
     manager = FileManager()
-    files = manager.fetch_new_files(team)
+    files = manager.fetch_new_files()
     sorted_files = sorted(files.items(), key=lambda p: len(p[0].parts))
     # For just checking, strip the root folder
     if json:
@@ -29,28 +41,27 @@ def sync_preview(team: str, json: bool = True):
 
 
 @frappe.whitelist()
-@default_team
-def sync_from_disk(team: str):
+def sync_from_disk():
     """
     One-way sync from disk to Drive. Ignores hidden files.
     """
-    if not is_admin(team):
+    if not is_drive_site_admin():
         frappe.throw(
             "You do not have permission to sync files from disk.",
             frappe.PermissionError,
         )
 
-    sorted_files = sync_preview(team, json=False)
+    sorted_files = sync_preview(json=False)
     files_added = []
-    home_folder = get_home_folder(team)["name"]
+    root_folder = get_root_folder().name
 
     def get_or_create_parent(parent_path, owner):
         if not parent_path:
-            return home_folder
+            return root_folder
         # Check if the parent folder exists
         parent = frappe.get_value(
             "File",
-            {"file_url": (parent_path + "/") if parent_path else "", "team": team},
+            {"file_url": (parent_path + "/") if parent_path else ""},
             "name",
         )
         if parent:
@@ -62,7 +73,6 @@ def sync_from_disk(team: str):
 
         # Now create this parent folder
         new_parent = create_drive_file(
-            team,
             file_name=parent_path.strip("/").split("/")[-1],
             parent=grandparent,
             file_type="Folder",
@@ -75,16 +85,10 @@ def sync_from_disk(team: str):
 
     for file, (file_size, file_modified, mime_type, actual_path) in sorted_files:
         parent_path = str(file.parent).strip("./")
-        parent = frappe.get_value(
-            "File",
-            {"file_url": parent_path + "/" if parent_path else "", "team": team},
-            "name",
-        )
         parent = get_or_create_parent(parent_path, frappe.session.user)
 
         files_added.append(
             create_drive_file(
-                team,
                 file.name,
                 parent,
                 "Folder" if mime_type == "folder" else get_file_type(mime_type),
@@ -107,7 +111,8 @@ def auto_delete_from_trash():
         filters={"status": STATUS_TRASHED, "file_modified": ["<", days_before]},
         fields=["name"],
     )
-    delete_entities(result)
+    if result:
+        delete_entities(result)
 
 
 def clear_deleted_files():
@@ -117,6 +122,43 @@ def clear_deleted_files():
         filters={"status": STATUS_REMOVED, "modified": ["<", days_before]},
         fields=["name"],
     )
+    failed = 0
     for entity in result:
-        doc = frappe.get_doc("File", entity, ignore_permissions=True)
-        doc.delete()
+        # One undeletable file must not stop the sweep: it ran nightly for weeks
+        # refusing at the first document and reclaiming nothing behind it.
+        try:
+            frappe.get_doc("File", entity, ignore_permissions=True).delete()
+            frappe.db.commit()
+        except Exception:
+            frappe.db.rollback()
+            failed += 1
+            frappe.log_error("Drive: could not purge a removed file", frappe.get_traceback())
+    if failed:
+        print(f"Drive: {failed} of {len(result)} removed file(s) could not be purged")
+
+
+def clear_download_archives():
+    """Sweep expired folder-download zip artifacts from disk and S3."""
+    import os
+    import time
+
+    from suite.drive.api.files import ARCHIVE_DIR, DOWNLOAD_TTL
+
+    cutoff = time.time() - DOWNLOAD_TTL
+    manager = FileManager()
+
+    local_dir = manager.site_folder / ARCHIVE_DIR
+    if local_dir.exists():
+        for path in local_dir.iterdir():
+            if path.is_file() and path.stat().st_mtime < cutoff:
+                path.unlink(missing_ok=True)
+
+    if manager.s3_enabled:
+        cutoff_dt = datetime.now(UTC) - timedelta(seconds=DOWNLOAD_TTL)
+        for bucket in filter(None, {manager.bucket}):
+            objects = manager.conn.list_objects_v2(Bucket=bucket, Prefix=".drive-downloads/").get(
+                "Contents", []
+            )
+            stale = [{"Key": o["Key"]} for o in objects if o["LastModified"] < cutoff_dt]
+            if stale:
+                manager.conn.delete_objects(Bucket=bucket, Delete={"Objects": stale})

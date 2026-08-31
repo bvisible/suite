@@ -8,6 +8,7 @@
 import { evaluate } from './formula.js'
 import { createDepsEngine } from './deps.js'
 import { renameSheetInFormula } from './formula-adjust.js'
+import { remapRefs, remapCellKeys } from './ref-remap.js'
 import { parseCellId, colLabel } from '../utils/cells.js'
 import { deepClone } from '../utils/deep-clone.js'
 
@@ -122,6 +123,7 @@ export function createSheet({ onCellChanged, onCellsChanged } = {}) {
 		const raw = sheets[sheet]?.[id] ?? ''
 		if (typeof raw === 'string' && raw.startsWith('=')) {
 			const result = _evalFormula(raw.slice(1), sheet, id)
+			if (result?.__spark) return ''   // a sparkline renders as a chart, not text
 			return result === null || result === undefined ? '' : String(result)
 		}
 		return raw === null || raw === undefined ? '' : String(raw)
@@ -238,15 +240,21 @@ export function createSheet({ onCellChanged, onCellsChanged } = {}) {
 		// cached formula result might now reference the wrong cell. Safer
 		// to clear everything than try to remap memo keys.
 		_clearAllMemo()
-		const entries = Object.entries(sh)
-			.map(([id, v]) => ({ id, p: parseCellId(id), v }))
-			.filter(({ p }) => p && pred(p))
-		entries.sort((a, b) => a.p.row !== b.p.row ? b.p.row - a.p.row : b.p.col - a.p.col)
-		for (const { id, p, v } of entries) {
+		// Two-phase move: clear every source id first, then write the targets.
+		// A single-pass delete-then-write breaks whenever the shift is *toward*
+		// existing cells (e.g. deleteRow shifts rows up): a target id can still
+		// hold an unprocessed source, and its later delete would wipe the value
+		// we just moved there. Draining sources up front makes the order — and
+		// the shift direction — irrelevant.
+		const moves = []
+		for (const [id, v] of Object.entries(sh)) {
+			const p = parseCellId(id)
+			if (!p || !pred(p)) continue
 			delete sh[id]
 			const nid = newIdFn(p)
-			if (nid) sh[nid] = v
+			if (nid) moves.push([nid, v])
 		}
+		for (const [nid, v] of moves) sh[nid] = v
 		deps.rebuild(sh, sheet)
 	}
 
@@ -298,6 +306,34 @@ export function createSheet({ onCellChanged, onCellsChanged } = {}) {
 		_clearAllMemo()
 	}
 
+	// Structural permutation: relocate cells on `opSheet` through the index maps,
+	// then rewrite formula references across the WHOLE workbook (a formula on any
+	// sheet may point into the op sheet). This is the shared path behind move,
+	// and behind the retrofitted insert/delete — the reason references now stay
+	// correct after a structural op. `mapCol`/`mapRow` are `(i) => new | null`.
+	function _structuralRemap({ mapCol = null, mapRow = null, opSheet = current }) {
+		const target = sheets[opSheet]
+		if (target) {
+			// Mutate in place (preserve object identity for any external binding).
+			const remapped = remapCellKeys(target, mapCol, mapRow)
+			for (const k of Object.keys(target)) delete target[k]
+			Object.assign(target, remapped)
+		}
+		for (const [name, sh] of Object.entries(sheets)) {
+			for (const id of Object.keys(sh)) {
+				const v = sh[id]
+				if (typeof v === 'string' && v.startsWith('=')) {
+					sh[id] = remapRefs(v, { sheetOfFormula: name, opSheet, mapCol, mapRow })
+				}
+			}
+			deps.rebuild(sh, name)
+		}
+		_clearAllMemo()
+	}
+
+	function remapCols(mapCol, opSheet = current) { _structuralRemap({ mapCol, opSheet }) }
+	function remapRows(mapRow, opSheet = current) { _structuralRemap({ mapRow, opSheet }) }
+
 	// ── Sheet management ──────────────────────────────────────────────────────
 
 	function switchSheet(name) {
@@ -318,8 +354,13 @@ export function createSheet({ onCellChanged, onCellsChanged } = {}) {
 
 	function renameSheet(oldName, newName) {
 		if (!sheets[oldName] || sheets[newName] || oldName === newName) return false
-		sheets[newName] = sheets[oldName]
-		delete sheets[oldName]
+		// Rename in place: rebuild the dict in the same key order, swapping
+		// newName into oldName's slot. A naive `sheets[newName] = sheets[oldName];
+		// delete sheets[oldName]` would re-add the key at the end, jumping the
+		// renamed tab to the last position (tab order == Object.keys order).
+		const entries = Object.entries(sheets)
+		for (const [k] of entries) delete sheets[k]
+		for (const [k, v] of entries) sheets[k === oldName ? newName : k] = v
 		// Walk every sheet (not just the renamed one) and rewrite cross-sheet
 		// formulas that referenced the old name. Without this, `=OldName!A1`
 		// formulas in *other* sheets break with `#REF!` after a rename.
@@ -426,6 +467,7 @@ export function createSheet({ onCellChanged, onCellsChanged } = {}) {
 		switchSheet, addSheet, renameSheet, duplicateSheet, deleteSheet, reorderSheets,
 		getSheetNames, getCurrentSheet, getRawData, getAllRaw, consumeBounds,
 		insertRow, deleteRow, insertCol, deleteCol,
+		remapCols, remapRows,
 		snapshot, restore,
 		setNamedRangeResolver,
 		// Drop the entire formula-result cache. Public so external engines

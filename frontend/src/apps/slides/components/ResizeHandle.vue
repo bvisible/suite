@@ -5,6 +5,7 @@
 import { computed } from 'vue'
 
 import { slideBounds } from '@/apps/slides/stores/slide'
+import { getHandleBaseStyles, portColor, selectionColor } from '@/apps/slides/utils/constants'
 
 const props = defineProps({
 	direction: {
@@ -15,44 +16,58 @@ const props = defineProps({
 		type: String,
 		default: null,
 	},
+	filled: {
+		type: Boolean,
+		default: false,
+	},
+	// a held end that has found a port shows in the port colour until release
+	snapping: {
+		type: Boolean,
+		default: false,
+	},
+	// an elbow end's spot inside the selection box, in slide units
+	position: {
+		type: Object,
+		default: null,
+	},
 })
 
 const emit = defineEmits(['startResize'])
 
-const baseStyles = {
-	position: 'absolute',
-	zIndex: 9999,
-	backgroundColor: '#70b6f0',
-	borderRadius: '10px',
-}
+const scaledPx = (value) => `${value / slideBounds.scale}px`
+
+const EDGE_THICKNESS = 7
+const EDGE_LENGTH = 18
 
 const getWidthResizerStyles = () => {
 	const resizer = props.direction
 
-	const offsetX = `-${3 / slideBounds.scale}px`
+	const offset = `-${scaledPx(EDGE_THICKNESS / 2)}`
 	return {
-		...baseStyles,
+		...getHandleBaseStyles(slideBounds.scale),
+		borderRadius: '9999px',
 		cursor: 'ew-resize',
-		left: resizer.includes('left') ? offsetX : 'auto',
-		right: resizer.includes('right') ? offsetX : 'auto',
-		top: `calc(50% - ${7 / slideBounds.scale}px)`,
-		width: `${4 / slideBounds.scale}px`,
-		height: `${14 / slideBounds.scale}px`,
+		left: resizer.includes('left') ? offset : 'auto',
+		right: resizer.includes('right') ? offset : 'auto',
+		top: `calc(50% - ${scaledPx(EDGE_LENGTH / 2)})`,
+		width: scaledPx(EDGE_THICKNESS),
+		height: scaledPx(EDGE_LENGTH),
 	}
 }
 
 const getHeightResizerStyles = () => {
 	const resizer = props.direction
 
-	const offsetX = `-${3 / slideBounds.scale}px`
+	const offset = `-${scaledPx(EDGE_THICKNESS / 2)}`
 	return {
-		...baseStyles,
+		...getHandleBaseStyles(slideBounds.scale),
+		borderRadius: '9999px',
 		cursor: 'ns-resize',
-		left: `calc(50% - ${7 / slideBounds.scale}px)`,
-		top: resizer.includes('top') ? offsetX : 'auto',
-		bottom: resizer.includes('bottom') ? offsetX : 'auto',
-		width: `${14 / slideBounds.scale}px`,
-		height: `${4 / slideBounds.scale}px`,
+		left: `calc(50% - ${scaledPx(EDGE_LENGTH / 2)})`,
+		top: resizer.includes('top') ? offset : 'auto',
+		bottom: resizer.includes('bottom') ? offset : 'auto',
+		width: scaledPx(EDGE_LENGTH),
+		height: scaledPx(EDGE_THICKNESS),
 	}
 }
 
@@ -64,37 +79,45 @@ const getDimensionResizerStyles = () => {
 		'bottom-left': 'nesw-resize',
 		'bottom-right': 'nwse-resize',
 	}
-	const offset = props.currentResizer
-		? `-${5 / slideBounds.scale}px`
-		: `-${4.5 / slideBounds.scale}px`
-	const size = props.currentResizer ? `${10 / slideBounds.scale}px` : `${7 / slideBounds.scale}px`
+	const size = props.currentResizer ? 11 : 9
+	const offset = `-${scaledPx(size / 2)}`
 	return {
-		...baseStyles,
+		...getHandleBaseStyles(slideBounds.scale),
+		borderRadius: '9999px',
 		top: resizer.includes('top') ? offset : 'auto',
 		bottom: resizer.includes('bottom') ? offset : 'auto',
 		left: resizer.includes('left') ? offset : 'auto',
 		right: resizer.includes('right') ? offset : 'auto',
-		width: size,
-		height: size,
+		width: scaledPx(size),
+		height: scaledPx(size),
 		cursor: cursorStyles[resizer],
 	}
 }
 
 const getLineResizerStyles = () => {
 	const resizer = props.direction
+	const snapped = props.snapping && props.filled
 
-	const offsetX = props.currentResizer
-		? `-${5 / slideBounds.scale}px`
-		: `-${4.5 / slideBounds.scale}px`
-	const size = props.currentResizer ? `${10 / slideBounds.scale}px` : `${7 / slideBounds.scale}px`
+	const size = props.currentResizer ? 11 : 9
+	const offset = `-${scaledPx(size / 2)}`
+	const at = props.position
+	const centred = (value) => `calc(${value}px - ${scaledPx(size / 2)})`
+	const spot = at
+		? { left: centred(at.x), top: centred(at.y) }
+		: {
+				left: resizer === 'line-left' ? offset : 'auto',
+				right: resizer === 'line-right' ? offset : 'auto',
+				top: `calc(50% - ${scaledPx(size / 2)})`,
+			}
 	return {
-		...baseStyles,
+		...getHandleBaseStyles(slideBounds.scale),
+		...(snapped ? { border: `${1 / slideBounds.scale}px solid ${portColor}` } : {}),
+		backgroundColor: snapped ? portColor : props.filled ? selectionColor : '#ffffff',
+		borderRadius: '9999px',
 		cursor: 'ew-resize',
-		left: resizer === 'line-left' ? offsetX : 'auto',
-		right: resizer === 'line-right' ? offsetX : 'auto',
-		top: `calc(50% - ${size} / 2)`,
-		width: size,
-		height: size,
+		...spot,
+		width: scaledPx(size),
+		height: scaledPx(size),
 	}
 }
 

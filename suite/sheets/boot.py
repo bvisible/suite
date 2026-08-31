@@ -15,7 +15,7 @@ import frappe
 
 
 def extend_bootinfo(bootinfo) -> None:
-	# Default to legacy behaviour — opt-in to the Hocuspocus path per-site.
-	bootinfo.collab_v2 = bool(frappe.conf.get("collab_v2") or False)
-	# `None` lets the frontend fall back to the same-origin `/collab/` URL.
-	bootinfo.collab_ws_url = frappe.conf.get("collab_ws_url") or None
+    # Default to legacy behaviour — opt-in to the Hocuspocus path per-site.
+    bootinfo.collab_v2 = bool(frappe.conf.get("collab_v2") or False)
+    # `None` lets the frontend fall back to the same-origin `/collab/` URL.
+    bootinfo.collab_ws_url = frappe.conf.get("collab_ws_url") or None

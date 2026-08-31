@@ -12,7 +12,7 @@
       <div
         class="flex justify-between items-center sticky top-0 bg-surface-base h-8 z-10 mt-3 mb-1 -mx-3"
       >
-        <h2 class="text-sm-medium text-ink-gray-5">
+        <h2 class="text-sm font-medium text-ink-gray-5">
           {{ group }}
         </h2>
         <TabButtons
@@ -24,13 +24,11 @@
               label: 'Grid',
               value: 'grid',
               icon: LucideGrid,
-              hideLabel: true,
             },
             {
               label: 'List',
               value: 'list',
               icon: LucideList,
-              hideLabel: true,
             },
           ]"
         />
@@ -41,7 +39,11 @@
           'grid grid-cols-2 gap-x-5 gap-y-8 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 !mb-0 mx-0.5'
         "
       >
-        <div v-for="(row, i) in files" :key="row.name">
+        <div
+          v-for="(row, i) in files"
+          :key="row.name"
+          :data-testid="`writer-document-${row.name}`"
+        >
           <template v-if="thumbnail === 'grid'">
             <section
               class="group"
@@ -50,7 +52,7 @@
               "
             >
               <div
-                class="aspect-[37/50] cursor-pointer overflow-hidden rounded-md dark:bg-gray-900 border border-gray-50 dark:border-outline-gray-1 px-2.5 py-1 shadow-lg transition-shadow hover:shadow-xl"
+                class="aspect-[37/50] cursor-pointer overflow-hidden rounded-4 dark:bg-gray-900 border border-gray-50 dark:border-outline-gray-1 px-2.5 py-1 shadow-lg transition-shadow hover:shadow-xl"
               >
                 <div class="overflow-hidden text-ellipsis whitespace-nowrap">
                   <div
@@ -73,7 +75,7 @@
               @click="
                 $router.push({ name: 'writer-document', params: { id: row.name } })
               "
-              class="group flex flex-col gap-2 md:flex-row p-3 md:items-center md:justify-between hover:bg-surface-gray-1 rounded cursor-pointer my-px -mx-3"
+              class="group flex flex-col gap-2 md:flex-row p-3 md:items-center md:justify-between hover:bg-surface-gray-1 rounded-4 cursor-pointer my-px -mx-3"
             >
               <p
                 class="text-base-medium text-ink-gray-8 truncate md:w-1/2 overflow-clip"

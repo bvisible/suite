@@ -21,7 +21,7 @@
 // We lazy-register only the chart types we actually use so the bundle
 // doesn't drag in the full ECharts library.
 
-import { computed, defineAsyncComponent, onBeforeUnmount, shallowRef, watch } from 'vue'
+import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
 
 // Width/height accept either a pixel number (overlay charts get a fixed
 // frame) or the string "auto" (preview / responsive contexts where the
@@ -63,6 +63,24 @@ const _wrapStyle = computed(() => ({
   height: _toCssDim(props.height),
 }))
 
+const isDark = ref(typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'dark')
+
+let _themeObserver = null
+
+onMounted(() => {
+  const checkDark = () => {
+    isDark.value = document.documentElement.getAttribute('data-theme') === 'dark'
+  }
+  checkDark()
+  if (typeof MutationObserver !== 'undefined') {
+    _themeObserver = new MutationObserver(checkDark)
+    _themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    })
+  }
+})
+
 // `notMerge: true` clears component-level state (axes / legend) on every
 // setOption. Combined with the `:key="config.chartType"` on <VChart>
 // (which forces a fresh ECharts instance whenever the type changes), this
@@ -81,17 +99,20 @@ let _rafId = 0
 // effect with zero deps after first run, and option toggles would silently
 // stop propagating to ECharts.
 watch(
-  [() => props.config, () => props.matrix],
+  [() => props.config, () => props.matrix, isDark],
   () => {
     cancelAnimationFrame(_rafId)
     _rafId = requestAnimationFrame(() => {
-      option.value = buildOption(props.config, props.matrix)
+      option.value = buildOption(props.config, props.matrix, isDark.value)
     })
   },
   { immediate: true, deep: true },
 )
 
-onBeforeUnmount(() => cancelAnimationFrame(_rafId))
+onBeforeUnmount(() => {
+  cancelAnimationFrame(_rafId)
+  _themeObserver?.disconnect()
+})
 </script>
 
 <style scoped>
@@ -109,3 +130,4 @@ onBeforeUnmount(() => cancelAnimationFrame(_rafId))
   font: 12px/1 InterVar, Inter, ui-sans-serif, system-ui, sans-serif;
 }
 </style>
+

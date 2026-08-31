@@ -1,13 +1,19 @@
 # Patches consolidated in Phase 3 (grouped by source app, preserving order).
 
 [pre_model_sync]
+# --- meet ---
+suite.meet.patches.rename_sae_meeting_to_meet_room
+suite.meet.patches.rename_sae_settings_to_meet_settings
 # --- drive ---
+# Upgraded sites still point the Drive module at the old standalone app, so its
+# doctypes resolve there. Must precede model sync or the new columns never land.
+execute:frappe.db.set_value("Module Def", "Drive", "app_name", "suite", update_modified=False)
 suite.drive.patches.team_restructure #8
 suite.drive.patches.update_roles
 suite.drive.patches.remove_personal #3
 suite.drive.patches.integrate_with_framework
 # --- mail ---
-execute:frappe.db.delete("Mail Cluster Store")
+suite.mail.patches.delete_stale_cluster_stores
 # --- writer ---
 suite.writer.patches.remove_frappe_writer_module
 
@@ -16,6 +22,8 @@ suite.mail.patches.delete_client_module
 suite.mail.patches.capture_user_outgoing_settings
 suite.mail.patches.rebuild_rate_limit_unique_constraint
 suite.mail.patches.rename_account_settings_to_jmap_account
+# --- suite_core ---
+suite.suite_core.patches.move_rate_limit_to_suite_core
 [post_model_sync]
 # --- drive ---
 suite.drive.patches.folder_size #3
@@ -23,26 +31,40 @@ suite.drive.patches.settings
 suite.drive.patches.new_writer #3
 suite.drive.patches.turn_on_flat_disk
 suite.drive.patches.add_modified_field
-suite.drive.patches.add_drive_user_role
 suite.drive.patches.add_search_index
 suite.drive.patches.migrate_s3_url_prefix
-# Runs LAST of the drive patches: integrate_with_framework (pre_model_sync) is
-# what normally brings the roots over from the legacy tables, so this only has
-# work to do when that migration could not run — a restored database whose
-# `drive` app was dropped before the data ever moved.
-suite.drive.patches.ensure_team_root_folders
+suite.drive.patches.switch_drive_roles_to_suite_roles
+suite.drive.patches.normalize_attachment_file_types
 # --- slides ---
 suite.slides.doctype.presentation.patches.sanitize_attachment_urls
 suite.slides.doctype.presentation.patches.move_attachments_to_private_folder
 suite.slides.doctype.presentation.patches.move_slide_thumbnail_to_presentation
 suite.slides.doctype.presentation.patches.cleanup_unused_thumbnail_files
+suite.slides.doctype.presentation.patches.clear_missing_presentation_thumbnails
 # --- writer ---
 suite.writer.patches.change_versioning_schema
 suite.writer.patches.autopopulate_html
 # --- sheets ---
 suite.sheets.patches.v0_1.migrate_blob_to_cells
+# --- drive (remove teams) ---
+# Indexes first: the collapse does thousands of exists() checks on Drive Permission
+# and one File lookup per team, and core indexes neither. Unindexed it is quadratic.
+# S3 has no rename, so a mirrored tree makes a folder move copy and delete every
+# object beneath it. Sites on S3 belong on flat storage.
+execute:frappe.db.set_single_value("Drive Disk Settings", "flat", 1) if frappe.db.get_single_value("Drive Disk Settings", "enabled") else None
+suite.drive.patches.index_file_folder
+suite.drive.patches.dedupe_drive_permissions
+suite.drive.patches.remove_teams #2
+suite.drive.patches.drop_team_doctypes #2
+# content-app backfills, rewritten for the single-root world so they must
+# run after remove_teams
+suite.slides.doctype.presentation.patches.integrate_with_drive
+suite.sheets.patches.integrate_with_drive
 # --- meet ---
 suite.meet.patches.migrate_meeting_fields_to_table_multiselect
+suite.meet.patches.switch_meet_user_to_suite_user
+suite.meet.patches.migrate_pending_recording_startups
+suite.meet.patches.backfill_recording_storage_reservations
 # --- mail ---
 suite.mail.patches.generate_ssh_keypair_for_cluster
 suite.mail.patches.create_push_subscriptions
@@ -58,6 +80,40 @@ suite.mail.patches.sync_jmap_accounts_for_configured_users
 suite.mail.patches.copy_sync_history_account_id_to_account
 suite.mail.patches.destroy_data_store
 suite.mail.patches.backfill_screened_email_address_account
+suite.mail.patches.rebuild_email_address_indexes #3
+suite.mail.patches.enable_screening_for_personal_accounts
+suite.mail.patches.create_suite_user_role
+suite.mail.patches.rename_mail_admin_to_suite_admin
+suite.suite_core.patches.move_blob_store_out_of_files
+suite.mail.patches.migrate_cache_to_mail_namespace
+suite.mail.patches.migrate_search_index_to_mail_namespace
+suite.mail.patches.rebuild_automation_sieve_scripts
+suite.mail.patches.migrate_data_store_timestamps_to_utc
+suite.mail.patches.rename_default_mailboxes
+execute:frappe.db.set_single_value("Mail Settings", "verify_ssl", 1)
+execute:frappe.db.set_single_value("Mail Settings", "show_mail_client_config", 1)
+execute:frappe.db.set_single_value("Mail Settings", "custom_event_invites", 1)
+suite.mail.patches.reset_push_subscription_types_to_all
+suite.mail.patches.rename_skip_schedule_fetch_changes
+execute:frappe.db.set_single_value("Mail Settings", "expand_mailing_list_participants", 1)
+execute:frappe.db.set_single_value("Mail Settings", "max_mailing_list_participants", 100)
+suite.mail.patches.remove_held_queue_statuses
+#//// Neoffice — added patch (no upstream equivalent): provision a Stalwart
+#//// mailbox for the users that already existed when mail was rolled out.
+#//// Runs after the mail patches above so it sees the migrated schema.
 suite.mail.patches.provision_existing_mail_accounts
 # --- calendar ---
 # (no patches)
+# --- suite_core ---
+# Existing, already-set-up sites shouldn't be sent through Suite's onboarding.
+execute:frappe.db.set_single_value("Suite Settings", "is_onboarded", 1) if frappe.is_setup_complete() else None
+suite.suite_core.patches.move_blob_store_out_of_private
+suite.suite_core.patches.align_owner_with_user
+suite.drive.patches.webdav_property_index
+#//// Neoffice — added patch (no upstream equivalent). Runs LAST, after every
+#//// role patch above. 8b911806e folded the desk-less "Drive User"/"Meet User"
+#//// roles into a desk-access "Suite User", and renamed "Mail Admin" (desk-less
+#//// on this fleet) to "Suite Admin" (desk access) — both of which silently turn
+#//// portal accounts into System Users. This patch is the backstop that proves
+#//// they did not.
+suite.suite_core.patches.keep_portal_accounts_off_the_desk

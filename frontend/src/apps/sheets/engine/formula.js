@@ -1,5 +1,7 @@
 // FormulaEngine — full expression parser + evaluator for Frappe Sheets
-// Converted from v1 IIFE to ES module. Zero dependencies.
+// Converted from v1 IIFE to ES module. One local dep: the sparkline spec builder.
+
+import { sparkSpec, isSparkSpec } from './sparkline.js'
 
 const T = {
 	NUM:'NUM', STR:'STR', BOOL:'BOOL', ERR:'ERR',
@@ -175,6 +177,19 @@ function toNumStrict(v) {
 }
 
 function isErr(v) { return typeof v === 'string' && v.startsWith('#') }
+
+// A sparkline spec is a render-only object — coerce it to '' anywhere it would
+// otherwise stringify to "[object Object]" (concat, string comparison).
+function _str(v) { return v == null || isSparkSpec(v) ? '' : String(v) }
+
+// Loose equality for lookups: case-insensitive string match, or numeric match
+// when BOTH sides are genuinely numeric. Guards against toNum('a')===toNum('b')
+// ===0 silently matching the first cell for any non-numeric lookup.
+function looseMatch(a, lookup) {
+	if (String(a).toLowerCase() === String(lookup).toLowerCase()) return true
+	const an = Number(a), ln = Number(lookup)
+	return !isNaN(an) && a !== '' && !isNaN(ln) && lookup !== '' && an === ln
+}
 
 function makeCriteriaTest(c) {
 	if (typeof c === 'string') {
@@ -687,6 +702,32 @@ const FUNCTIONS = {
 		if(ci===-1) return '#N/A'
 		return table[ri] ? (table[ri][ci]!==undefined?table[ri][ci]:'#REF!') : '#REF!'
 	},
+	// XLOOKUP(lookup, lookup_array, return_array, [if_not_found], [match_mode])
+	// match_mode: 0 exact (default), -1 exact-or-next-smaller, 1 exact-or-next-larger.
+	// Pre-spill: lookup/return arrays are flattened and a single matched value is
+	// returned (full spill is a planned follow-up, same as VLOOKUP).
+	XLOOKUP: ([lookup,lookupArr,returnArr,ifNotFound,matchMode]) => {
+		if (Array.isArray(lookup)) lookup = Array.isArray(lookup[0]) ? lookup[0][0] : lookup[0]
+		const keys = flatten([lookupArr]), vals = flatten([returnArr])
+		const mm = matchMode !== undefined ? toNum(matchMode) : 0
+		// Approximate match only makes sense for a numeric lookup — otherwise
+		// Number('cherry')→NaN (and toNum→0) would spuriously match numeric keys.
+		// A non-numeric lookup falls back to exact-only, returning if_not_found.
+		const target = Number(lookup)
+		const canApprox = mm !== 0 && lookup !== '' && lookup != null && !isNaN(target)
+		let idx = -1, bestNum = null
+		for (let i = 0; i < keys.length; i++) {
+			if (looseMatch(keys[i], lookup)) { idx = i; break }
+			if (!canApprox) continue
+			const n = Number(keys[i])
+			if (isNaN(n) || keys[i] === '') continue
+			// mm=1 wants the smallest key >= target; mm=-1 the largest key <= target.
+			if (mm === 1  && n > target && (bestNum === null || n < bestNum)) { bestNum = n; idx = i }
+			if (mm === -1 && n < target && (bestNum === null || n > bestNum)) { bestNum = n; idx = i }
+		}
+		if (idx === -1) return ifNotFound !== undefined ? ifNotFound : '#N/A'
+		return vals[idx] !== undefined ? vals[idx] : '#REF!'
+	},
 	MATCH: ([lookup,range,matchType]) => {
 		const arr=flatten([range]), mt=matchType!==undefined?toNum(matchType):1
 		if(mt===0){
@@ -736,6 +777,11 @@ const FUNCTIONS = {
 	},
 	ROWS:    ([v]) => Array.isArray(v)?v.length:1,
 	COLUMNS: ([v]) => Array.isArray(v)&&Array.isArray(v[0])?v[0].length:(Array.isArray(v)?v.length:1),
+
+	// SPARKLINE(data_range, [type], [color]) — returns a spec the cell renders as
+	// an in-cell mini chart instead of text (type: line | column | bar). It's a
+	// normal formula, so it recomputes and shifts with its range like any other.
+	SPARKLINE: ([range, type, color]) => sparkSpec(flatten([range]), type, color),
 
 	// ── Array functions ─────────────────────────────────────────────────────
 	//
@@ -900,8 +946,8 @@ function createParser(tokens, getCellValue, getRangeValues, getSheetCellValue, g
 		while (peek()?.t===T.OP && ['=','<>','>','<','>=','<='].includes(peek().v)) {
 			const op=next().v, r=concat()
 			switch(op) {
-				case '=':  l = String(l).toLowerCase()===String(r).toLowerCase() || toNum(l)===toNum(r); break
-				case '<>': l = String(l).toLowerCase()!==String(r).toLowerCase(); break
+				case '=':  l = _str(l).toLowerCase()===_str(r).toLowerCase() || toNum(l)===toNum(r); break
+				case '<>': l = _str(l).toLowerCase()!==_str(r).toLowerCase(); break
 				case '>':  l = toNum(l)>toNum(r);  break
 				case '<':  l = toNum(l)<toNum(r);  break
 				case '>=': l = toNum(l)>=toNum(r); break
@@ -916,7 +962,7 @@ function createParser(tokens, getCellValue, getRangeValues, getSheetCellValue, g
 		while (peek()?.t===T.OP && peek().v==='&') {
 			next()
 			const r = add()
-			l = (l==null?'':String(l)) + (r==null?'':String(r))
+			l = _str(l) + _str(r)
 		}
 		return l
 	}
@@ -1122,10 +1168,12 @@ const FN_HINTS = {
 	VLOOKUP:'(lookup_value, table_array, col_index, [range_lookup])',
 	HLOOKUP:'(lookup_value, table_array, row_index, [range_lookup])',
 	MATCH:'(lookup_value, lookup_array, [match_type])',
+	XLOOKUP:'(lookup_value, lookup_array, return_array, [if_not_found], [match_mode])',
 	INDEX:'(array, row_num, [col_num])',
 	CHOOSE:'(index_num, value1, [value2, ...])',
 	ROW:'([reference])', COLUMN:'([reference])', ROWS:'(array)', COLUMNS:'(array)',
 	LARGE:'(array, k)', SMALL:'(array, k)',
+	SPARKLINE:'(data_range, [type], [color])',
 }
 
 export function getFunctionNames() { return _fnNames }

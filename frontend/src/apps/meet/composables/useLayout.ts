@@ -29,12 +29,18 @@ interface UseLayoutReturn {
 	hiddenParticipantsTooltip: ComputedRef<string>;
 }
 
+interface LayoutOptions {
+	localTileCount?: 0 | 1;
+}
+
 export function useLayout(
 	participants: Ref<Record<string, Participant>>,
 	pinnedTiles: Ref<PinnedTile[]>,
 	layoutDeps: LayoutDeps,
 	extraTiles: Ref<number>,
+	options: LayoutOptions = {},
 ): UseLayoutReturn {
+	const localTileCount = options.localTileCount ?? 1;
 	const { isMobile, maxColumns, sidebarMaxColumns } = useResponsiveGrid();
 
 	const mode = computed<"grid" | "sidebar">(() =>
@@ -51,18 +57,6 @@ export function useLayout(
 			return sidebarMaxColumns.value * 4;
 		}
 		return maxColumns.value * 4;
-	});
-
-	const gridColumns = computed<number>(() => {
-		if (mode.value === "sidebar") {
-			if (isMobile.value) return 1;
-			const total = Object.keys(stripParticipants.value || {}).length + 1;
-			return Math.min(total > 4 ? 2 : 1, sidebarMaxColumns.value);
-		}
-		const count = visibleTileCount.value;
-		if (count <= 0) return 1;
-		if (isMobile.value && count === 2) return 1;
-		return Math.min(maxColumns.value, Math.ceil(Math.sqrt(count)));
 	});
 
 	// ── Slot persistence ──────────────────────────────────────────────────────
@@ -99,7 +93,7 @@ export function useLayout(
 	): number => {
 		const overlayRemoteCount = pinnedParticipantIds.length;
 		const stripRemoteCount = remoteCount - overlayRemoteCount;
-		const reserved = 1 + extraTiles.value;
+		const reserved = localTileCount + extraTiles.value;
 		const total = stripRemoteCount + reserved;
 		const threshold = maxVisibleTiles.value;
 
@@ -309,11 +303,28 @@ export function useLayout(
 
 	const visibleTileCount = computed<number>(
 		() =>
-			1 +
+			localTileCount +
 			extraTiles.value +
 			displayParticipants.value.list.length +
 			(displayParticipants.value.extra > 0 ? 1 : 0),
 	);
+
+	const gridColumns = computed<number>(() => {
+		if (mode.value === "sidebar") {
+			if (isMobile.value) return 1;
+			const pinnedParticipantIds = new Set(getPinnedParticipantId());
+			const stripTileCount =
+				visibleTileCount.value -
+				displayParticipants.value.list.filter((participant) =>
+					pinnedParticipantIds.has(participant.user_id),
+				).length;
+			return Math.min(stripTileCount > 4 ? 2 : 1, sidebarMaxColumns.value);
+		}
+		const count = visibleTileCount.value;
+		if (count <= 0) return 1;
+		if (isMobile.value && count === 2) return 1;
+		return Math.min(maxColumns.value, Math.ceil(Math.sqrt(count)));
+	});
 
 	const allParticipants = computed<LayoutParticipant[]>(() => {
 		const { list, hidden } = displayParticipants.value;

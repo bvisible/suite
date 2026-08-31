@@ -1,97 +1,55 @@
 <template>
-	<div class="bg-surface-base fixed inset-0 z-10 flex flex-col">
-		<div class="sticky top-0 flex items-center border-b px-3 py-2.5">
-			<Button variant="ghost" class="mr-2" @click="emit('close')">
+	<div class="bg-surface-base fixed inset-0 z-20 flex flex-col pt-[env(safe-area-inset-top)]">
+		<!-- Root bar — same compact-header recipe as ThreadHeader: -ml-2 cancels
+		     the ghost button's padding so the chevron glyph lands on the body's
+		     px-3 axis. -->
+		<div class="bg-surface-base flex h-14 shrink-0 items-center border-b px-3">
+			<Button variant="ghost" class="-ml-2 mr-2 !h-8 !w-8 shrink-0" @click="emit('close')">
 				<template #icon>
-					<ChevronLeft class="text-ink-gray-5 h-4 w-4" />
+					<ChevronLeft class="icon !h-[18px] !w-[18px]" />
 				</template>
 			</Button>
 
-			<h2 class="text-xl-semibold leading-5">{{ __('Settings') }}</h2>
+			<h2 class="min-w-0 flex-1 truncate text-xl !font-semibold tracking-[-0.01em]">
+				{{ __('Settings') }}
+			</h2>
 		</div>
 
-		<div class="px-3 py-4">
-			<Switch
-				size="md"
-				:label="__('Enable Push Notifications')"
-				:class="{ 'p-2': description }"
-				:model-value="isPushNotificationsSettingEnabled"
-				:disabled="!isPushNotificationEnabled || isLoading"
-				:description
-				@update:model-value="togglePushNotifications"
-			/>
-
-			<div v-if="isLoading" class="-mt-0.5 flex items-center gap-2 px-3">
-				<LoadingIndicator class="text-ink-gray-7 h-3 w-3" />
-				<span class="text-sm">
-					{{
-						isPushNotificationsSettingEnabled
-							? __('Disabling Push Notifications...')
-							: __('Enabling Push Notifications...')
-					}}
-				</span>
-			</div>
+		<!-- Root: grouped section list mirroring the desktop dialog's groups. The
+		     Profile tab reaches the same rows through ProfileView (see useSettingsTabs);
+		     this page stays for the entry points that aren't the tab bar — the sidebar,
+		     and the Block List / Screener links inside a thread. -->
+		<div
+			class="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3"
+		>
+			<MobileSettingsCard v-for="group in groups" :key="group.label" :label="group.label">
+				<MobileSettingsRow
+					v-for="tab in group.items"
+					:key="tab.value"
+					:icon="tab.icon"
+					:label="tab.label"
+					@click="activeTab = tab"
+				/>
+			</MobileSettingsCard>
 		</div>
+
+		<MobileSettingsSubPage :tab="activeTab" safe-area-top @close="activeTab = null" />
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { ChevronLeft } from 'lucide-vue-next'
-import { Button, LoadingIndicator, Switch, createResource } from 'frappe-ui'
+import { Button } from 'frappe-ui'
 
-import { raiseToast } from '@/apps/mail/utils'
+import { useSettingsTabs, type SettingsTab } from '@/apps/mail/composables/useSettingsTabs'
+import MobileSettingsCard from '@/apps/mail/components/mobile/MobileSettingsCard.vue'
+import MobileSettingsRow from '@/apps/mail/components/mobile/MobileSettingsRow.vue'
+import MobileSettingsSubPage from '@/apps/mail/components/mobile/MobileSettingsSubPage.vue'
 
 const emit = defineEmits(['close'])
 
-const isPushNotificationsSettingEnabled = ref(
-	window.frappePushNotification?.isNotificationEnabled(),
-)
-const isLoading = ref(false)
+const { groups } = useSettingsTabs()
 
-const isPushNotificationEnabled = computed(
-	() => window.push_relay_server_url && isPushNotificationRelayEnabled.data,
-)
-
-const description = computed(() =>
-	!isPushNotificationEnabled.value
-		? __('Push notifications have been disabled on your site')
-		: '',
-)
-
-const togglePushNotifications = async (isEnabled: boolean) => {
-	if (isEnabled) return enablePushNotifications()
-
-	isLoading.value = true
-	try {
-		await window.frappePushNotification.disableNotification()
-		isPushNotificationsSettingEnabled.value = false
-		raiseToast(__('Push notifications disabled'))
-	} catch (error) {
-		raiseToast(__(error.message), 'error')
-	}
-	isLoading.value = false
-}
-
-const enablePushNotifications = async () => {
-	isLoading.value = true
-	try {
-		const data = await window.frappePushNotification.enableNotification()
-		if (data.permission_granted) isPushNotificationsSettingEnabled.value = true
-		else {
-			raiseToast(__('Push Notification permission denied'), 'error')
-			isPushNotificationsSettingEnabled.value = false
-		}
-	} catch (error) {
-		raiseToast(__(error.message), 'error')
-		isPushNotificationsSettingEnabled.value = false
-	}
-	isLoading.value = false
-}
-
-const isPushNotificationRelayEnabled = createResource({
-	url: 'suite.mail.api.account.is_push_notification_relay_enabled',
-	cache: 'mail:push_notifications_enabled',
-	auto: true,
-})
+const activeTab = ref<SettingsTab | null>(null)
 </script>

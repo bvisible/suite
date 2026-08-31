@@ -1,47 +1,61 @@
 <template>
-	<div v-if="activeElementIds.length" :style="boxStyles">
-		<Resizer
-			v-if="showResizers"
+	<div v-if="activeElementIds.length && !inCropMode" data-selection-box :style="boxStyles">
+		<SelectionControls
+			v-if="showControls"
 			:elementType="activeElement?.shapeType || activeElement?.type"
 			:dimensions="selectionBounds"
 			:style="{ pointerEvents: 'auto' }"
 		/>
+
+		<LockBadge v-if="isSelectionLocked" :rotation="selectionRotation" />
 	</div>
 </template>
 <script setup>
 import { computed } from 'vue'
 
-import Resizer from '@/apps/slides/components/Resizer.vue'
+import SelectionControls from '@/apps/slides/components/SelectionControls.vue'
+import LockBadge from '@/apps/slides/components/LockBadge.vue'
 
 import { slideBounds, selectionBounds } from '@/apps/slides/stores/slide'
-import { rotationDelta } from '@/apps/slides/composables/useRotator'
+import { interactionOffset } from '@/apps/slides/stores/interaction'
+import { inCropMode } from '@/apps/slides/stores/imageCrop'
+import { rotationDelta } from '@/apps/slides/stores/interaction'
 import {
 	activeElementIds,
 	focusElementId,
 	activeElement,
 	cropSelectionToFitContent,
+	isSelectionLocked,
 } from '@/apps/slides/stores/element'
+import { selectionColor, lockColor } from '@/apps/slides/utils/constants'
 
 const props = defineProps({
 	isDragging: {
 		type: Boolean,
 		default: false,
 	},
-	elementOffset: {
-		type: Object,
-		default: () => ({ left: 0, top: 0 }),
-	},
 })
 
-const showResizers = computed(() => {
-	return activeElementIds.value.length == 1 && !focusElementId.value && !props.isDragging
+const showControls = computed(() => {
+	return (
+		activeElementIds.value.length == 1 &&
+		!focusElementId.value &&
+		!props.isDragging &&
+		!isSelectionLocked.value
+	)
 })
+
+const isLine = computed(() => activeElement.value?.shapeType == 'line')
 
 const outline = computed(() => {
-	if (activeElement.value?.shapeType == 'line') return 'none'
+	if (activeElementIds.value.length != 1) return 'none'
 
-	if (activeElementIds.value.length == 1) return `#70B6F0 solid ${2 / slideBounds.scale}px`
-	return `#70B6F092 solid ${0.1 / slideBounds.scale}px`
+	// a locked line keeps its outline; without handles it would have no affordance left
+	if (isSelectionLocked.value) return `${lockColor} dashed ${1.5 / slideBounds.scale}px`
+
+	// a line's endpoints are all the affordance it needs
+	if (isLine.value) return 'none'
+	return `${selectionColor} solid ${1.5 / slideBounds.scale}px`
 })
 
 const isRotatable = computed(() => {
@@ -54,8 +68,8 @@ const selectionRotation = computed(() => {
 })
 
 const boxStyles = computed(() => {
-	const offsetLeft = props.elementOffset.left
-	const offsetTop = props.elementOffset.top
+	const offsetLeft = interactionOffset.left
+	const offsetTop = interactionOffset.top
 
 	// selectionBounds track the live position; rendering subtracts the
 	// transient offset and reapplies it as a transform so moving the box
@@ -66,8 +80,10 @@ const boxStyles = computed(() => {
 
 	return {
 		position: 'absolute',
-		backgroundColor: activeElementIds.value.length == 1 ? '' : '#70b6f025',
+		backgroundColor: activeElementIds.value.length == 1 ? '' : `${selectionColor}25`,
 		outline: outline.value,
+		// straddle the edge instead of sitting outside it, so snap guides line up
+		outlineOffset: `-${0.75 / slideBounds.scale}px`,
 		width: `${selectionBounds.width}px`,
 		height: `${selectionBounds.height}px`,
 		left: `${selectionBounds.left - offsetLeft}px`,

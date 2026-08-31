@@ -5,10 +5,8 @@ import { getMessaging, onBackgroundMessage } from 'firebase/messaging/sw'
 // (injectManifest) and emitted at /assets/suite/frontend/sw.js, where
 // MailLayout.registerServiceWorker() registers it with `?config=<fcm-web-config>`.
 //
-// Ported from the standalone mail app's public/sw.ts. The workbox precaching
-// (precacheAndRoute(self.__WB_MANIFEST) / cleanupOutdatedCaches) was intentionally
-// dropped: the suite is a shared 7-app SPA and we only want FCM background
-// notifications here, not to turn the whole suite into a precaching PWA.
+// No workbox precaching on purpose: the suite is a shared 7-app SPA and we
+// only want FCM background notifications here, not a precaching PWA.
 
 declare const self: ServiceWorkerGlobalScope
 

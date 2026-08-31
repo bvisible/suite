@@ -1,27 +1,95 @@
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import emitter from '@/apps/drive/emitter'
-import { getTeams, getPublicTeams } from '@/apps/drive/resources/files'
+import router from '@/apps/drive/router'
+import { rootInfo } from '@/apps/drive/resources/files'
+import { shareView } from '@/apps/drive/data/prefs'
 import { useSessionStore } from '@/boot/session'
 
 export type DriveBreadcrumb = Record<string, unknown>
 
-/** Current page breadcrumb trail — in-memory only; derived from route + entity API. */
-export const pageBreadcrumbs = ref<DriveBreadcrumb[]>([])
+/** Published by the page that owns the entity; crumbs derive from it + route. */
+const crumbEntity = ref<Record<string, unknown> | null>(null)
 
-export type BreadcrumbUpdate =
-  | DriveBreadcrumb[]
-  | { loading: true; name: string }
+const ENTITY_ROUTES = ['drive-Folder', 'drive-File', 'drive-Document']
 
-export function setPageBreadcrumbs(items: BreadcrumbUpdate) {
-  if (!Array.isArray(items)) {
-    const crumbs = [...pageBreadcrumbs.value]
-    if (crumbs.length > 1) crumbs.splice(1)
-    crumbs.push({ loading: true, name: items.name })
-    pageBreadcrumbs.value = crumbs
-    return
-  }
-  pageBreadcrumbs.value = items
+export function setCrumbEntity(entity: Record<string, unknown> | null) {
+  crumbEntity.value = entity
 }
+
+export function renameCrumbEntity(entityName: string, label: string) {
+  const entity = crumbEntity.value
+  if (!entity) return
+  if (entity.name === entityName) entity.file_name = label
+  const trail = entity.breadcrumbs as Array<Record<string, unknown>> | undefined
+  const crumb = trail?.find((folder) => folder.name === entityName)
+  if (crumb) crumb.file_name = label
+}
+
+export function clearCrumbEntity(entityName?: string) {
+  if (!entityName || crumbEntity.value?.name === entityName) {
+    crumbEntity.value = null
+  }
+}
+
+function rootCrumb(routeName: string, path: string): DriveBreadcrumb {
+  return {
+    label: __(routeName.replace(/^drive-/, '')),
+    name: routeName,
+    route: path,
+  }
+}
+
+function attachmentCrumbs(
+  routeName: string,
+  doctype?: string,
+  docname?: string,
+): DriveBreadcrumb[] {
+  // Its own route, not the current path: this crumb is the way back out of a
+  // doctype or document, so it can't point at the page you're already on.
+  const crumbs = [
+    { ...rootCrumb(routeName, ''), route: { name: routeName } },
+  ]
+  if (doctype) {
+    crumbs.push({
+      label: doctype,
+      name: doctype,
+      route: { name: routeName, params: { doctype } },
+    })
+    if (docname) {
+      crumbs.push({
+        label: docname,
+        name: docname,
+        route: { name: routeName, params: { doctype, docname } },
+      })
+    }
+  }
+  return crumbs
+}
+
+export const pageBreadcrumbs = computed<DriveBreadcrumb[]>(() => {
+  const route = router.currentRoute.value
+  const routeName = typeof route?.name === 'string' ? route.name : ''
+  if (!routeName.startsWith('drive-')) return []
+
+  if (routeName === 'drive-Attachments')
+    return attachmentCrumbs(
+      routeName,
+      route.params.doctype as string,
+      route.params.docname as string,
+    )
+  if (ENTITY_ROUTES.includes(routeName)) {
+    const entityName = String(route.params.entityName || '')
+    const entity = crumbEntity.value
+    // The trail is anchored on the caller's home and the Site folder, so
+    // rendering before rootInfo lands yields a wrong trail, not a late one.
+    // Guests never get rootInfo, so they render the plain trail instead.
+    const anchored = rootInfo.data || !useSessionStore().isLoggedIn
+    return entity && entity.name === entityName && anchored
+      ? buildBreadCrumbs(entity)
+      : [{ loading: true, name: entityName }]
+  }
+  return [rootCrumb(routeName, route.path)]
+})
 
 export function getRootSection(): DriveBreadcrumb {
   return pageBreadcrumbs.value[0] || {}
@@ -31,24 +99,13 @@ export function isHomeContext() {
   return getRootSection().name === 'drive-Home'
 }
 
-export function appendBreadcrumb(item: DriveBreadcrumb) {
-  pageBreadcrumbs.value = [...pageBreadcrumbs.value, item]
-}
-
-export function updateLastBreadcrumbLabel(label: string, entityName?: string) {
-  const last = pageBreadcrumbs.value[pageBreadcrumbs.value.length - 1]
-  if (last && (!entityName || last.name === entityName)) {
-    last.label = label
-  }
-}
-
 /** Build navbar crumbs from entity API payload — pure, no side effects. */
 export function buildBreadCrumbs(entity: Record<string, unknown>) {
-  let breadcrumbs = entity.breadcrumbs as Array<Record<string, unknown>>
-  const in_home = entity.in_home
-  const team =
-    getTeams.data?.[breadcrumbs[0].team as string] ||
-    getPublicTeams.data?.[breadcrumbs[0].team as string]
+  let breadcrumbs = [
+    ...((entity.breadcrumbs as Array<Record<string, unknown>>) || []),
+  ]
+  if (!breadcrumbs.length)
+    return [{ label: entity.file_name, name: entity.name, route: null }]
 
   let res: DriveBreadcrumb[] = []
   if (entity.attached_to_doctype) {
@@ -81,54 +138,49 @@ export function buildBreadCrumbs(entity: Record<string, unknown>) {
       })
     }
     breadcrumbs = breadcrumbs.slice(-1)
-  } else if (team || in_home) {
-    res = [
-      {
-        label: in_home ? __('Home') : team.title,
-        name: in_home ? 'drive-Home' : team.name,
-        route: in_home
-          ? { name: 'drive-Home' }
-          : { name: 'drive-Team', params: { team: team.name } },
-      },
-    ]
-  } else if (entity.folder === 'Home/Attachments' || entity.folder === 'Home') {
-    res = [
-      {
-        label: __('Shared'),
-        name: 'drive-Shared',
-        route: '/drive/shared',
-      },
-    ]
-  } else if (useSessionStore().isLoggedIn) {
-    res = [
-      {
-        label: __('Shared'),
-        name: 'drive-Shared',
-        route: '/drive?shared=1',
-      },
-    ]
+  } else {
+    // The path runs through the caller's own folder (→ "Home"), the shared
+    // site folder (→ "Everyone"), or is a shared suffix (→ Home's "With you").
+    const homeIdx = breadcrumbs.findIndex((b) => b.name === rootInfo.data?.home)
+    const siteIdx = breadcrumbs.findIndex((b) => b.name === rootInfo.data?.root)
+    if (homeIdx > -1) {
+      res = [{ label: __('Home'), name: 'drive-Home', route: { name: 'drive-Home' } }]
+      breadcrumbs = breadcrumbs.slice(homeIdx + 1)
+    } else if (siteIdx > -1) {
+      res = [
+        {
+          label: __('Everyone'),
+          name: breadcrumbs[siteIdx].name,
+          route: {
+            name: 'drive-Folder',
+            params: { entityName: breadcrumbs[siteIdx].name },
+          },
+        },
+      ]
+      breadcrumbs = breadcrumbs.slice(siteIdx + 1)
+    } else if (useSessionStore().isLoggedIn) {
+      res = [
+        {
+          label: __('Shared with me'),
+          name: 'drive-Home',
+          route: { name: 'drive-Home' },
+          // Home opens on your own files; this crumb means the other tab.
+          onClick: () => (shareView.value = true),
+        },
+      ]
+    }
   }
-
-  if (!breadcrumbs[0].folder) breadcrumbs.splice(0, 1)
-  const popBreadcrumbs = (item: DriveBreadcrumb) => () =>
-    res.splice(res.findIndex((k) => k.name === item.name) + 1)
 
   breadcrumbs.forEach((folder, idx) => {
     const final = idx === breadcrumbs.length - 1
     res.push({
       label: folder.file_name,
       name: folder.name,
-      onClick: final
-        ? () => entity.write && emitter.emit('rename')
-        : popBreadcrumbs(folder),
+      onClick: final ? () => entity.write && emitter.emit('rename') : undefined,
       route: final
         ? null
         : { name: 'drive-Folder', params: { entityName: folder.name } },
     })
   })
   return res
-}
-
-export function applyBreadCrumbs(entity: Record<string, unknown>) {
-  setPageBreadcrumbs(buildBreadCrumbs(entity))
 }

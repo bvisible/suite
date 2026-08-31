@@ -5,12 +5,14 @@ import type {
 	DtlsParameters,
 	IceCandidate,
 	IceParameters,
+	PlainTransport,
 	Producer,
 	Router,
 	RouterRtpCodecCapability,
 	RtpCapabilities,
 	RtpCodecCapability,
 	RtpParameters,
+	WebRtcServer,
 	WebRtcTransport,
 	WorkerLogLevel,
 	WorkerSettings,
@@ -36,12 +38,19 @@ import type {
 	ParticipantInfo,
 	ParticipantJoinedEvent,
 	ParticipantLeftEvent,
+	PinnedChatMessage,
 	PreviewParticipantInfo,
+	ProducerCloseDetails,
 	ProducerClosedEvent,
+	ProducerCloseReason,
+	ProducerCloseSource,
+	ProducerCloseTrackSettings,
 	ProducerCreatedEvent,
 	RaiseHandRequest,
 	ReactionMessage,
 	ReactionSendRequest,
+	RecordingJoinRequest,
+	RecordingProofRequest,
 	ScreenShareRequest,
 	ScreenShareStartedEvent,
 	ScreenShareStoppedEvent,
@@ -79,13 +88,21 @@ export type {
 	ParticipantInfo,
 	ParticipantJoinedEvent,
 	ParticipantLeftEvent,
+	PinnedChatMessage,
+	PlainTransport,
 	PreviewParticipantInfo,
 	Producer,
+	ProducerCloseDetails,
 	ProducerClosedEvent,
+	ProducerCloseReason,
+	ProducerCloseSource,
+	ProducerCloseTrackSettings,
 	ProducerCreatedEvent,
 	RaiseHandRequest,
 	ReactionMessage,
 	ReactionSendRequest,
+	RecordingJoinRequest,
+	RecordingProofRequest,
 	Router,
 	RouterRtpCodecCapability,
 	RtpCapabilities,
@@ -98,6 +115,7 @@ export type {
 	SFUScope,
 	UpdateTokenRequest,
 	UserData,
+	WebRtcServer,
 	WebRtcTransport,
 	WorkerLogLevel,
 	WorkerSettings,
@@ -105,8 +123,14 @@ export type {
 
 // Socket.IO types
 export interface ServerToClientEvents {
+	'recording:challenge': (
+		data: import('../server/RecordingGrantManager').RecordingProofChallenge,
+	) => void;
 	participant_joined: (data: ParticipantJoinedEvent) => void;
 	participant_left: (data: ParticipantLeftEvent) => void;
+	participant_connection_replaced: (data: {
+		reason: 'takeover' | 'reconnect';
+	}) => void;
 	producer_created: (data: ProducerCreatedEvent) => void;
 	producer_closed: (data: ProducerClosedEvent) => void;
 	consumer_closed: (data: ConsumerClosedEvent) => void;
@@ -116,6 +140,8 @@ export interface ServerToClientEvents {
 	screen_share_stopped: (data: ScreenShareStoppedEvent) => void;
 	'chat:message': (data: ChatMessage) => void;
 	'chat:restriction_updated': (data: { enabled: boolean }) => void;
+	'chat:pin_updated': (data: { pinned: PinnedChatMessage | null }) => void;
+	existing_pinned_message: (data: { pinned: PinnedChatMessage | null }) => void;
 	'reaction:message': (data: ReactionMessage) => void;
 	'poll:new': (data: PollPayloadFE) => void;
 	'poll:update': (data: PollPayloadFE) => void;
@@ -130,6 +156,15 @@ export interface ServerToClientEvents {
 }
 
 export interface ClientToServerEvents {
+	'recording:proof': (
+		data: RecordingProofRequest,
+		callback: (response: SFUResponse) => void,
+	) => void;
+	'recording:join': (
+		data: RecordingJoinRequest,
+		callback: (response: SFUResponse) => void,
+	) => void;
+	client_telemetry: (data: ClientTelemetryEvent) => void;
 	'auth:update_token': (
 		data: UpdateTokenRequest,
 		callback: (response: SFUResponse) => void,
@@ -159,7 +194,7 @@ export interface ClientToServerEvents {
 			transportId: string;
 			rtpParameters: RtpParameters;
 			kind: 'audio' | 'video';
-			appData?: Record<string, unknown>;
+			appData?: AppData;
 		},
 		callback: (response: ProducerResponse) => void,
 	) => void;
@@ -174,9 +209,9 @@ export interface ClientToServerEvents {
 	close_producer: (
 		data: {
 			producerId: string;
-			reason?: string;
-			source?: string;
-			details?: Record<string, unknown>;
+			reason?: ProducerCloseReason;
+			source?: ProducerCloseSource;
+			details?: ProducerCloseDetails;
 		},
 		callback: (response: CloseProducerResponse) => void,
 	) => void;
@@ -201,10 +236,29 @@ export interface ClientToServerEvents {
 		callback: (response: RoomParticipantsResponse) => void,
 	) => void;
 	media_control: (data: MediaControlRequest) => void;
-	host_control: (data: HostControlRequest) => void;
-	screen_share: (data: ScreenShareRequest) => void;
-	'chat:send': (data: ChatSendRequest) => void;
+	host_control: (
+		data: HostControlRequest,
+		callback: (response: SFUResponse) => void,
+	) => void;
+	screen_share: (
+		data: ScreenShareRequest,
+		callback?: (response: SFUResponse) => void,
+	) => void;
+	'chat:send': (
+		data: ChatSendRequest,
+		callback?: (
+			response: SFUResponse & { timestamp?: string; messageId?: string },
+		) => void,
+	) => void;
 	'chat:toggle_restriction': (data: { enabled: boolean }) => void;
+	'chat:pin': (
+		data: {
+			messageId: string;
+			action: 'pin' | 'unpin';
+			encryptedMessage?: string;
+		},
+		callback?: (response: SFUResponse) => void,
+	) => void;
 	'poll:create': (
 		data: {
 			question: string;
@@ -242,20 +296,68 @@ export interface ClientToServerEvents {
 	'e2ee:epoch': (data: E2eeEpochEnvelope) => void;
 }
 
+export type ClientTelemetryEvent =
+	| {
+			event: 'first_remote_media';
+			media: 'audio' | 'video';
+			durationMs: number;
+	  }
+	| { event: 'media_stall'; media: 'audio' | 'video' }
+	| {
+			event: 'recovery';
+			direction: 'send' | 'recv' | 'both';
+			trigger: 'signaling' | 'ice' | 'stall';
+			outcome: 'success' | 'failure';
+			durationMs: number;
+	  }
+	| {
+			event: 'recovery_exhausted';
+			subsystem: 'signaling' | 'transport' | 'consumer';
+			direction: 'send' | 'recv' | 'both';
+			reason: 'retry_limit' | 'restart_failed' | 'rebuild_failed';
+	  }
+	| {
+			event: 'network_quality';
+			rttMs: number;
+			packetLossPercent: number;
+			availableOutgoingBitrate: number;
+	  }
+	| {
+			event: 'media_repair';
+			media: 'audio' | 'video';
+			source: 'camera' | 'microphone' | 'screen' | 'remote';
+			stage: 'capture' | 'publication' | 'subscription' | 'rtp' | 'decode';
+			action:
+				| 'reacquire'
+				| 'recreate_producer'
+				| 'subscribe'
+				| 'recreate_consumer'
+				| 'request_keyframe';
+			attempt: number;
+			outcome: 'success' | 'failure' | 'exhausted' | 'cancelled';
+			durationMs: number;
+	  };
+
 export interface SocketData {
 	userId: string;
+	peerId?: string;
 	userName: string;
 	meetingId: string;
 	isHost: boolean;
 	isGuest?: boolean;
+	guestGeneration?: number;
 	roomId?: string;
 	participantId?: string;
+	participantConnectionId?: string;
+	participantOwnershipId?: string;
 	scope?: SFUScope;
 }
 
 export interface SFUResponse {
 	success: boolean;
 	error?: string;
+	code?: string;
+	details?: { conflictId?: string };
 }
 
 export interface RouterRtpCapabilitiesResponse extends SFUResponse {
@@ -298,13 +400,29 @@ export interface ExistingProducersResponse extends SFUResponse {
 
 export interface RoomParticipantsResponse extends SFUResponse {
 	participants: ParticipantInfo[] | PreviewParticipantInfo[];
+	isCurrentUserPresent?: boolean;
 }
 
 export interface ProducerInfo {
 	id: string;
 	kind: 'audio' | 'video';
-	appData: Record<string, unknown>;
+	appData: ProducerAppData;
 }
+
+export interface ProducerAppData extends AppData {
+	type?: 'screen';
+	e2eeStartPaused?: boolean;
+	senderId?: number;
+}
+
+export type JsonValue =
+	| string
+	| number
+	| boolean
+	| null
+	| JsonValue[]
+	| { [key: string]: JsonValue };
+
 export interface ConsumerInfo {
 	id: string;
 	producerId: string;
@@ -335,6 +453,7 @@ export interface ExistingProducer {
 export interface Room {
 	id: string;
 	router: Router;
+	webRtcServer: WebRtcServer;
 	audioLevelObserver: AudioLevelObserver;
 	peers: Map<string, Peer>;
 	created: Date;
@@ -354,11 +473,23 @@ export interface PeerInfo extends UserData {
 	isHost?: boolean;
 }
 
-export interface TransportData {
+export interface WebRtcTransportData {
 	roomId: string;
 	peerId: string;
 	transport: WebRtcTransport;
+	direction: 'send' | 'recv';
+	type: 'webrtc';
 }
+
+export interface PlainTransportData {
+	roomId: string;
+	peerId: string;
+	transport: PlainTransport;
+	direction: 'send';
+	type: 'plain';
+}
+
+export type TransportData = WebRtcTransportData | PlainTransportData;
 
 export interface ProducerData {
 	roomId: string;
@@ -369,6 +500,7 @@ export interface ProducerData {
 export interface ConsumerData {
 	roomId: string;
 	peerId: string;
+	transportId: string;
 	consumer: Consumer;
 }
 
@@ -376,6 +508,7 @@ export interface RoomStats {
 	id: string;
 	created: Date;
 	peerCount: number;
+	participantCount: number;
 	peers: string[];
 	producerCount?: number;
 	consumerCount?: number;
@@ -387,6 +520,7 @@ export interface MediasoupConfig {
 	worker: WorkerSettings;
 	router: RouterConfig;
 	webRtcTransport: WebRTCTransportOptions;
+	webRtcServer: WebRTCServerOptions;
 }
 
 export interface RouterConfig {
@@ -394,16 +528,14 @@ export interface RouterConfig {
 }
 
 export interface WebRTCTransportOptions {
-	listenIps: Array<{ ip: string; announcedIp: string }>;
-	enableUdp: boolean;
 	enableTcp: boolean;
-	preferUdp: boolean;
-	portRange: { min: number; max: number };
-	maxIncomingBitrate: number;
-	maxOutgoingBitrate: number;
 	initialAvailableOutgoingBitrate: number;
-	iceServers: Array<{ urls: string[] }>;
-	iceTransportPolicy: string;
+}
+
+export interface WebRTCServerOptions {
+	listenIp: string;
+	announcedAddress: string;
+	basePort: number;
 }
 
 // JWT types
@@ -416,18 +548,12 @@ export interface JWTPayload {
 	is_host: boolean;
 	is_cohost?: boolean;
 	is_guest?: boolean;
+	guest_generation?: number;
 	scope?: SFUScope;
 	e2ee_required?: boolean;
 	session_id?: string;
 	exp?: number;
 	iat?: number;
-}
-
-// Server types
-export interface ServerConfig {
-	port: number;
-	host: string;
-	jwtSecret: string;
 }
 
 export interface HealthStats {
@@ -557,19 +683,26 @@ export type E2eeEpochJoinStatus = {
 declare module 'socket.io' {
 	interface Socket {
 		userId: string;
+		peerId?: string;
 		userName: string;
 		meetingId: string;
 		site?: string;
 		isHost: boolean;
 		isCohost: boolean;
 		isGuest?: boolean;
+		guestGeneration?: number;
 		roomId?: string;
 		participantId?: string;
+		participantConnectionId?: string;
+		participantOwnershipId?: string;
 		senderId?: number;
 		currentToken?: string;
 		tokenExpiresAt?: number;
+		tokenExpiryTimer?: NodeJS.Timeout;
 		scope?: SFUScope;
 		e2eeRequired?: boolean;
 		e2eeReady?: boolean;
+		recordingProofComplete?: boolean;
+		recordingClaims?: import('../server/RecordingGrantManager').RecordingGrantClaims;
 	}
 }

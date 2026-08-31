@@ -2,32 +2,35 @@ import { createResource } from 'frappe-ui'
 import { toast } from '@/apps/drive/utils/toasts'
 import { openEntity, setTitle } from '@/apps/drive/utils/files'
 import { activeEntity } from '@/apps/drive/data/selection'
-import { updateLastBreadcrumbLabel } from '@/apps/drive/data/breadcrumbs'
+import { renameCrumbEntity } from '@/apps/drive/data/breadcrumbs'
 import { getSortOrder } from '@/apps/drive/data/prefs'
-import router from '@/apps/drive/router'
-import { prettyData, setCache } from '@/apps/drive/utils/files'
+import {
+  prettyData,
+  setCache,
+  unwrapRows,
+  PRESENTATION_CONTENT_DOCTYPE,
+} from '@/apps/drive/utils/files'
 import { updateURLSlug } from '@/apps/drive/utils/files'
 
 // GETTERS
+export const PAGE_SIZE = 50
+
+/**
+ * Rows -> display rows. Dotfiles are hidden, matching the convention on disk.
+ * Exported because GenericPage's load-more path fetches pages itself and must
+ * format them identically — it previously called prettyData directly and skipped
+ * the dotfile filter, so dotfiles were hidden on page 1 and visible from page 2.
+ */
+export const formatRows = (data) =>
+  prettyData(unwrapRows(data).filter((k) => !k.file_name?.startsWith('.')))
+
 export const COMMON_OPTIONS = {
   method: 'GET',
   debounce: 500,
-  transform(data) {
-    return prettyData(data.filter((k) => !k.file_name?.startsWith('.')))
-  },
+  // Paginated calls (`paginated: 1`) answer with {rows, has_next}; every other
+  // caller still gets a bare list. formatRows accepts either.
+  transform: formatRows,
 }
-
-export const getTeam = createResource({
-  ...COMMON_OPTIONS,
-  url: 'suite.drive.api.list.files',
-  makeParams: (params) => {
-    return {
-      ...params,
-      personal: 0,
-    }
-  },
-  cache: 'team-folder-contents',
-})
 
 export const getFiles = createResource({
   ...COMMON_OPTIONS,
@@ -35,25 +38,14 @@ export const getFiles = createResource({
   makeParams: (params) => {
     return params
   },
-  cache: 'team-folder-contents',
+  cache: 'folder-contents',
 })
 
-export const getTeams = createResource({
-  url: '/api/method/suite.drive.api.permissions.get_teams',
-  params: {
-    details: 1,
-  },
+// The site root and the current user's private folder
+export const rootInfo = createResource({
+  url: 'suite.drive.api.files.get_root_folder',
   method: 'GET',
-  cache: 'teams',
-})
-
-export const getPublicTeams = createResource({
-  url: 'suite.drive.api.permissions.get_public_teams',
-  method: 'GET',
-  cache: 'public-teams',
-  transform: (d) => {
-    return d.reduce((acc, k) => ({ ...acc, [k.name]: k }), {})
-  },
+  cache: 'root-info',
 })
 
 export const getRecents = createResource({
@@ -67,17 +59,6 @@ export const getPersonal = createResource({
   url: 'suite.drive.api.list.files',
   cache: 'personal-folder-contents',
   makeParams: (params) => params,
-})
-
-export const getSiteFiles = createResource({
-  ...COMMON_OPTIONS,
-  url: 'suite.drive.api.list.files',
-  cache: 'site-folder-contents',
-  makeParams: (params) => ({ ...params, entity_name: 'Home' }),
-  transform(data) {
-    data = COMMON_OPTIONS.transform(data)
-    return data.filter((k) => k.name !== 'Home/Attachments')
-  },
 })
 
 export const getAttachments = createResource({
@@ -108,6 +89,9 @@ export const getSlides = createResource({
   transform(data) {
     data = data.map((k) => ({
       ...k,
+      file_name: k.title,
+      content_doctype: PRESENTATION_CONTENT_DOCTYPE,
+      content_docname: k.name,
       mime_type: 'frappe/slides',
       file_type: 'Presentation',
       path: k.name,
@@ -137,6 +121,16 @@ export const getTrash = createResource({
   },
 })
 
+;[
+  getFiles,
+  getPersonal,
+  getRecents,
+  getFavourites,
+  getDocuments,
+  getShared,
+  getTrash,
+].forEach((r) => (r.paginated = true))
+
 // SETTERS
 export const LISTS = [
   getPersonal,
@@ -160,34 +154,28 @@ export const mutate = (entities, func) => {
   )
 }
 
-export const updateMoved = (team, new_parent, special) => {
-  if (!special) {
-    // All details are repetetively provided (check Folder.vue) because if this is run first
-    // No further mutation of the resource object can take place
-    createResource({
-      ...COMMON_OPTIONS,
-      url: 'suite.drive.api.list.files',
-      makeParams: (params) => ({
-        ...params,
-        entity_name: new_parent,
-        personal: -2,
-        team,
-      }),
-      cache: ['folder', new_parent],
-    }).fetch(
-      (() => {
-        const order = getSortOrder(new_parent)
-        return order
-          ? {
-              order_by: order.field,
-              ascending: order.ascending,
-            }
-          : {}
-      })()
-    )
-  } else {
-    ;(move.params.is_private ? getPersonal : getFiles).fetch({ team })
-  }
+export const updateMoved = (new_parent) => {
+  // All details are repetetively provided (check Folder.vue) because if this is run first
+  // No further mutation of the resource object can take place
+  createResource({
+    ...COMMON_OPTIONS,
+    url: 'suite.drive.api.list.files',
+    makeParams: (params) => ({
+      ...params,
+      entity_name: new_parent,
+    }),
+    cache: ['folder', new_parent],
+  }).fetch(
+    (() => {
+      const order = getSortOrder(new_parent)
+      return order
+        ? {
+            order_by: order.field,
+            ascending: order.ascending,
+          }
+        : {}
+    })()
+  )
 }
 
 export const toggleFav = createResource({
@@ -201,8 +189,8 @@ export const toggleFav = createResource({
     const entity_names = data.entities.map(({ name }) => name)
     getFavourites.setData((d) => {
       return data.entities[0].is_favourite
-        ? [...d, ...data.entities]
-        : d.filter(({ name }) => !entity_names.includes(name))
+        ? [...(d ?? []), ...data.entities]
+        : (d ?? []).filter(({ name }) => !entity_names.includes(name))
     })
     mutate(
       data.entities,
@@ -218,6 +206,22 @@ export const toggleFav = createResource({
     if (toggleFav.params.entities[0].is_favourite === false)
       toast(`${toggleFav.params.entities.length} items unfavourited`)
     else toast(`${toggleFav.params.entities.length} items favourited`)
+  },
+  onError() {
+    if (toggleFav.params?.entities) {
+      const reverted = toggleFav.params.entities.map((e) => ({
+        ...e,
+        is_favourite: !e.is_favourite,
+      }))
+      getFavourites.setData((d) => {
+        const names = reverted.map((r) => r.name)
+        return reverted[0].is_favourite
+          ? [...(d ?? []), ...reverted]
+          : (d ?? []).filter(({ name }) => !names.includes(name))
+      })
+      mutate(reverted, (el, { is_favourite }) => (el.is_favourite = is_favourite))
+    }
+    toast.error('Failed to update favourite status')
   },
 })
 
@@ -237,10 +241,7 @@ export const clearRecent = createResource({
     }
   },
   onError: () => {
-    toast({
-      message: 'There was an error while clearing recents.',
-      type: 'error',
-    })
+    toast.error('There was an error while clearing recents.')
   },
 })
 
@@ -261,10 +262,7 @@ export const clearTrash = createResource({
     )
   },
   onError(error) {
-    toast({
-      text: JSON.stringify(error),
-      error: true,
-    })
+    toast.error(JSON.stringify(error))
   },
 })
 
@@ -277,10 +275,7 @@ export const rename = createResource({
     }
   },
   onSuccess: () => {
-    updateLastBreadcrumbLabel(
-      rename.params.new_title,
-      rename.params.entity_name,
-    )
+    renameCrumbEntity(rename.params.entity_name, rename.params.new_title)
     if (activeEntity.value?.name === rename.params.entity_name) {
       activeEntity.value.file_name = rename.params.new_title
       activeEntity.value.modified = new Date()
@@ -289,12 +284,7 @@ export const rename = createResource({
     updateURLSlug(rename.params.new_title)
   },
   onError(error) {
-    toast({
-      title: error.messages[error.messages.length - 1],
-      position: 'bottom-right',
-      type: 'error',
-      timeout: 2,
-    })
+    toast.error(error.messages[error.messages.length - 1], { duration: 2000 })
   },
 })
 
@@ -304,32 +294,28 @@ export const createDocument = createResource({
   makeParams: (params) => params,
 })
 
+export const createSheet = createResource({
+  method: 'POST',
+  url: 'suite.sheets.api.create_sheet',
+  makeParams: (params) => params,
+})
+
 
 export const move = createResource({
   url: 'suite.drive.api.files.move',
   onSuccess(data) {
-    toast({
-      title: 'Moved to ' + data.title,
-      buttons: [
-        {
-          label: 'Go',
-          onClick: () => {
-            if (!data.special)
-              openEntity({
-                name: data.name,
-                is_folder: true,
-              })
-            else router.push({ name: data.file_name })
-          },
-        },
-      ],
+    toast('Moved to ' + data.file_name, {
+      action: {
+        label: 'Go',
+        onClick: () => openEntity({ name: data.name, is_folder: true }),
+      },
     })
 
     // Update moved-into folder
-    updateMoved(data.team, data.name, data.special)
+    updateMoved(data.name)
   },
-  onError() {
-    toast({ title: 'There was an error.', type: 'error' })
+  onError(error) {
+    toast.error(error?.messages?.at(-1) || 'Could not move this file.')
   },
 })
 

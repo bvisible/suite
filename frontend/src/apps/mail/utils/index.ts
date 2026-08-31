@@ -4,12 +4,21 @@ import { toast } from 'frappe-ui'
 
 import { FOLDER_ICON_MAP, SCREENER_MAILBOX_NAME } from '@/apps/mail/constants'
 import dayjs from '@/apps/mail/utils/dayjs'
+import { flattenMentions } from '@/apps/mail/utils/mentions'
+import { preserveEditorColors } from '@/apps/mail/utils/editorColors'
 import AudioIcon from '@/apps/mail/components/Icons/AudioIcon.vue'
 import ImageIcon from '@/apps/mail/components/Icons/ImageIcon.vue'
 import PDFIcon from '@/apps/mail/components/Icons/PDFIcon.vue'
 import VideoIcon from '@/apps/mail/components/Icons/VideoIcon.vue'
 
 import type { ComposeMailData, MailboxData, Recipient } from '@/apps/mail/types'
+
+// Keyboard hints in action labels — "Archive Thread (E)", "Move to Trash (Delete)" —
+// are noise on touch surfaces. Strips only trailing parentheticals that look like
+// shortcuts, so a folder named "Work (old)" is never clipped.
+const SHORTCUT_HINT =
+	/\s*\((?:(?:Shift|Ctrl|Cmd|Alt|⌘|⇧|⌥)\+)*(?:[A-Z!,.;]|Delete|Backspace|Esc(?:ape)?|Enter|Tab|Space|↑\/K|↓\/J)\)$/
+export const stripShortcutHint = (label: string) => label.replace(SHORTCUT_HINT, '')
 
 export const toTitleCase = (str: string) =>
 	str
@@ -19,29 +28,6 @@ export const toTitleCase = (str: string) =>
 			return word.charAt(0).toUpperCase().concat(word.substr(1))
 		})
 		.join(' ') || ''
-
-export function startResizing(event) {
-	const startX = event.clientX
-	const sidebar = document.getElementsByClassName('mailSidebar')[0]
-	const startWidth = sidebar.offsetWidth
-
-	const onMouseMove = (event) => {
-		const diff = event.clientX - startX
-		let newWidth = startWidth + diff
-		if (newWidth < 200) {
-			newWidth = 200
-		}
-		sidebar.style.width = newWidth + 'px'
-	}
-
-	const onMouseUp = () => {
-		document.removeEventListener('mousemove', onMouseMove)
-		document.removeEventListener('mouseup', onMouseUp)
-	}
-
-	document.addEventListener('mousemove', onMouseMove)
-	document.addEventListener('mouseup', onMouseUp)
-}
 
 export const formatBytes = (bytes: number) => {
 	if (!+bytes) return '0 Bytes'
@@ -58,8 +44,39 @@ export const raiseToast = (
 	message: string,
 	type = 'success',
 	action?: { label: string; onClick: () => void },
+	duration?: number,
+	// A toast can carry two buttons: `action` is the urgent one, `secondaryAction` the aside. The
+	// second is sonner's `cancel` slot — named for its usual job, but it is just a second button, and
+	// frappe-ui already styles it (ToastProvider's `cancelButton`). Sonner dismisses the toast when
+	// it is pressed, which suits anything that navigates away.
+	secondaryAction?: { label: string; onClick: () => void },
 ) => {
-	if (type === 'success') return toast.success(message, action ? { action } : undefined)
+	if (type === 'success')
+		return toast.success(
+			message,
+			action || duration || secondaryAction
+				? {
+						action,
+						duration,
+						cancel: secondaryAction,
+						// frappe-ui styles the two slots for being alone: the action carries `ml-auto` to
+						// sit against the right edge, and the cancel — never used until now — never got
+						// the action's shape. With both present that reads as one button by the message
+						// and another across the toast, in two different styles. Overridden per toast
+						// (sonner merges these over the provider's) so the pair sits together, matching:
+						// the cancel takes the auto margin for both, the action gives its up.
+						...(action && secondaryAction
+							? {
+									classes: {
+										cancelButton:
+											'!ml-auto mr-1 h-7 shrink-0 rounded-4 bg-transparent !transition-colors',
+										actionButton: '!ml-0',
+									},
+								}
+							: {}),
+					}
+				: undefined,
+		)
 
 	const div = document.createElement('div')
 	div.innerHTML = message
@@ -90,6 +107,25 @@ export const raisePromiseToast = (
 		})
 
 	toast.promise(action(), { loading, success, error })
+}
+
+// Toast for an OPTIMISTIC action: the UI has already updated, so show the success message (with an
+// optional Undo) immediately — no "…ing" loading phase. If the (already in-flight) request fails, the
+// caller rolls the UI back; this only swaps the confirmation for an error toast.
+export const raiseOptimisticToast = (
+	forward: Promise<unknown>,
+	success: string,
+	undoAction?: () => void,
+) => {
+	toast.removeAll()
+	const id = toast.success(
+		success,
+		undoAction ? { action: { label: __('Undo'), onClick: () => undoAction() } } : undefined,
+	)
+	forward.catch(() => {
+		toast.dismiss(id)
+		raiseToast(__('Action failed. Please try again later.'), 'error')
+	})
 }
 
 export const copyToClipBoard = async (text: string) => {
@@ -151,8 +187,6 @@ export const getFormattedDate = (date: Date | string, omitDate = false) => {
 	return dateObj.format(isCurrentYear ? 'D MMMM' : 'D MMMM YYYY')
 }
 
-export const getFirstAlphabet = (str?: string) => str?.match(/\p{L}/u)?.[0]
-
 export const getTheme = (
 	status: 'Draft' | 'Queued' | 'In Progress' | 'Completed' | 'Failed' | 'Cancelled',
 ) => {
@@ -176,7 +210,9 @@ export const extractQuotedContent = (htmlBody?: string) => {
 	const doc = parser.parseFromString(htmlBody, 'text/html')
 
 	const topLevelDiv = Array.from(doc.body.children).find(
-		(el) => el.tagName.toLowerCase() === 'div' && el.classList.contains('frappe_mail_quote'),
+		(el) =>
+			el.tagName.toLowerCase() === 'div' &&
+			(el.classList.contains('frappe_mail_quote') || el.classList.contains('frappe_mail_fwd')),
 	)
 
 	let quoted_content = ''
@@ -210,35 +246,6 @@ export const shouldIgnoreKeypress = (
 		target.isContentEditable ||
 		e.altKey
 	)
-}
-
-export const convertHtmlToText = (html: string) => {
-	if (!html) return ''
-
-	const parser = new DOMParser()
-	const doc = parser.parseFromString(html, 'text/html')
-	const body = doc.body || doc.documentElement
-
-	const anchors = body.querySelectorAll('a')
-	const buttons = body.querySelectorAll('button')
-	const inputs = body.querySelectorAll('input')
-
-	anchors.forEach((anchor) => {
-		const text = document.createTextNode(anchor.textContent)
-		anchor.parentNode?.replaceChild(text, anchor)
-	})
-
-	buttons.forEach((button) => button.remove())
-
-	inputs.forEach((input) => {
-		const type = input.getAttribute('type') || 'text'
-		if (['button', 'submit', 'reset'].includes(type)) {
-			input.remove()
-		}
-	})
-
-	const text = body.textContent || body.innerText || ''
-	return text.replace(/\s+/g, ' ').trim()
 }
 
 export const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
@@ -350,9 +357,18 @@ export const randomString = (length: number) => {
 	return result
 }
 
-export const processInlineImages = (mail: ComposeMailData) => {
+// `sending`: mentions are flattened to plain links only on the way out. A draft keeps
+// the editor's own mention nodes, so reopening one still shows the chips.
+export const processInlineImages = (mail: ComposeMailData, { sending = false } = {}) => {
 	const htmlBody = mail.html_body! + mail.quoted_content
 	const $ = cheerio.load(htmlBody)
+
+	// Unconditional, unlike the mention flattening below: a draft is rendered by the reader too,
+	// in the same iframe that can't see the editor's stylesheet, so a draft left holding the
+	// variables would already be showing the wrong colours back to its own author.
+	preserveEditorColors($)
+
+	if (sending) flattenMentions($)
 
 	const regularAttachments = mail.attachments?.filter((a) => a.disposition !== 'inline') || []
 	const inlineAttachments = mail.attachments?.filter((a) => a.disposition === 'inline') || []
@@ -399,12 +415,7 @@ export const getScriptName = (scriptName: string) => {
 export const isSystemScript = (scriptName: string) =>
 	['vacation', 'frappe_mail_automation'].includes(scriptName)
 
-export const hasHtmlContent = (content: string | null | undefined): boolean => {
-	if (!content) return false
-	return /<(html|head|body|div|p|span|table|td|tr|a|img|br|hr|h[1-6]|ul|ol|li|strong|em|b|i|font|style)[^>]*>/i.test(
-		content,
-	)
-}
+export { decodeHtmlEntities, hasHtmlContent, plainTextToHtml } from '@/apps/mail/utils/html'
 
 export const getIcon = (mailbox: MailboxData) => {
 	// The Screener is a system folder: its 'eye' icon is authoritative and can't be overridden by a
@@ -419,6 +430,17 @@ export const getIcon = (mailbox: MailboxData) => {
 export const getMailboxName = (mailbox: MailboxData) =>
 	mailbox._name === SCREENER_MAILBOX_NAME ? __('Screener') : mailbox._name
 
+// Safari reads the blob behind an `<a download>` asynchronously, after the click has
+// already returned, so revoking the object URL in the same tick silently cancels the
+// download. Chrome and Firefox snapshot the blob synchronously, which is why this only
+// shows up on Safari. Keep the URL alive long enough for the browser to read it, then
+// free the blob.
+const DOWNLOAD_URL_TTL = 60_000
+
+export const revokeObjectUrlAfterDownload = (url: string) => {
+	setTimeout(() => URL.revokeObjectURL(url), DOWNLOAD_URL_TTL)
+}
+
 export const downloadUrlAsFile = (url: string, filename: string) => {
 	const link = document.createElement('a')
 	link.href = url
@@ -426,5 +448,5 @@ export const downloadUrlAsFile = (url: string, filename: string) => {
 	document.body.appendChild(link)
 	link.click()
 	document.body.removeChild(link)
-	URL.revokeObjectURL(url)
+	revokeObjectUrlAfterDownload(url)
 }

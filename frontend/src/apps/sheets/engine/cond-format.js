@@ -28,6 +28,7 @@
 // — strictly additive; rules that don't use the new keys are unaffected.
 
 import { parseCellId, colLabel, cellId } from '../utils/cells.js'
+import { remapRect } from './ref-remap.js'
 import { deepClone } from '../utils/deep-clone.js'
 
 let _nextId = 1
@@ -294,6 +295,17 @@ export function createCondFormatEngine() {
     _shiftRules(sheet, 0, -1, (r0, c0) => c0 > atCol)
   }
 
+  function _remap(sheet, mapCol, mapRow) {
+    const rules = store[sheet]
+    if (!rules) return
+    store[sheet] = rules
+      .map(rule => { const range = remapRect(rule.range, mapCol, mapRow); return range ? { ...rule, range } : null })
+      .filter(Boolean)
+    _invalidateStats()
+  }
+  function remapCols(mapCol, sheet = 'Sheet1') { _remap(sheet, mapCol, null) }
+  function remapRows(mapRow, sheet = 'Sheet1') { _remap(sheet, null, mapRow) }
+
   function renameSheet(oldName, newName) {
     if (!store[oldName] || store[newName] || oldName === newName) return
     store[newName] = store[oldName]
@@ -324,6 +336,7 @@ export function createCondFormatEngine() {
     getRules, addRule, updateRule, removeRule, getFormatOverride,
     addRulesForRange, extendRulesToRange,
     insertRow, deleteRow, insertCol, deleteCol,
+    remapCols, remapRows,
     renameSheet, duplicateSheet, deleteSheet,
     snapshot, restore, invalidate,
   }

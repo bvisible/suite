@@ -9,16 +9,17 @@
 	>
 		<div v-show="open" class="h-full flex justify-end py-2.5" data-testid="people-panel-wrapper">
 			<div
-				class="w-[380px] bg-surface-gray-1 flex flex-col z-40 h-full rounded-md mr-2 overflow-hidden"
+				class="w-[380px] bg-surface-gray-1 flex flex-col z-40 h-full rounded-4 mr-2 overflow-hidden"
 				data-testid="people-panel"
 			>
-				<div class="flex items-center justify-between px-4 py-5 shrink-0">
-					<div class="text-sm-medium text-ink-gray-8">
+				<div class="flex items-center justify-between gap-3 px-4 py-5 shrink-0">
+					<div class="min-w-0 truncate text-sm-medium text-ink-gray-8 tracking-[0.21px]">
 						People
 					</div>
-					<lucide-x
+					<Button
+						variant="ghost"
+						icon="lucide-x"
 						@click="$emit('close')"
-						class="w-4 h-4 text-ink-gray-8 cursor-pointer hover:text-ink-gray-6"
 					/>
 				</div>
 
@@ -38,7 +39,7 @@
 
 				<div class="flex-1 overflow-y-auto px-2">
 					<PeopleWaitingSection
-						v-if="isCreator"
+						v-if="isHostOrCohost"
 						:lobbyUsers="filteredLobbyUsers"
 						@approve="handleApproveLobbyUser"
 						@reject="handleRejectLobbyUser"
@@ -59,6 +60,8 @@
 							:isCurrentUser="participant.isCurrentUser"
 							:isHost="participant.isHost"
 							:canControlParticipant="participant.canControlParticipant"
+							:canPromoteToCohost="participant.canPromoteToCohost"
+							:reserveHostControlSpace="isHostOrCohost"
 							@muteParticipant="handleMuteParticipant"
 							@kickParticipant="handleKickParticipant"
 							@lowerHand="handleLowerHand"
@@ -79,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { FormControl } from "frappe-ui";
+import { Button, FormControl } from "frappe-ui";
 import { computed, ref } from "vue";
 import { useMeetingContext } from "../composables/useMeetingContext";
 import type { Participant } from "../utils/media/ParticipantManager";
@@ -100,7 +103,7 @@ interface CurrentUser {
 	user_id?: string;
 	full_name?: string;
 	name?: string;
-	avatar?: string;
+	avatar?: string | null;
 	initials?: string;
 	is_guest?: boolean;
 }
@@ -140,7 +143,7 @@ const emit = defineEmits<{
 
 const searchQuery = ref<string>("");
 
-const isCreator = computed(() => {
+const isHostOrCohost = computed(() => {
 	return (
 		props.currentUser.user_id === props.creatorUserId ||
 		props.coHosts.includes(props.currentUser.user_id || "")
@@ -232,7 +235,7 @@ const allVisibleParticipants = computed(() => {
 			user_id: props.currentUser?.user_id || "",
 			participantData: currentUserData.value,
 			isCurrentUser: true,
-			isHost: isCreator.value,
+			isHost: isHostOrCohost.value,
 			canControlParticipant: false,
 			canPromoteToCohost: false,
 		});
@@ -247,7 +250,7 @@ const allVisibleParticipants = computed(() => {
 				participant.user_id === props.creatorUserId ||
 				props.coHosts.includes(participant.user_id),
 			canControlParticipant:
-				isCreator.value && participant.user_id !== props.creatorUserId,
+				isHostOrCohost.value && participant.user_id !== props.creatorUserId,
 			canPromoteToCohost:
 				isHost.value &&
 				!participant.is_guest &&

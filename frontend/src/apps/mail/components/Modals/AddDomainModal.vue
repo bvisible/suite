@@ -1,19 +1,20 @@
 <template>
 	<Dialog
-		v-model="show"
-		:options="{
+		v-model:open="show"
+	 v-bind="{
 			title: __('Add Domain'),
 			actions: [
 				{
 					label: __('Add Domain'),
 					variant: 'solid',
 					disabled: !domainName,
+					loading: addDomain.loading,
 					onClick: addDomain.submit,
 				},
 			],
 		}"
 	>
-		<template #body-content>
+		<template #default>
 			<div class="space-y-4">
 				<p class="text-p-base">
 					{{
@@ -27,6 +28,7 @@
 					:label="__('Domain Name')"
 					placeholder="example.com"
 					autocomplete="off"
+					:description="__('After adding, copy the generated DNS records to your DNS provider.')"
 				/>
 				<FormControl
 					v-model="domainDescription"
@@ -35,7 +37,7 @@
 					type="textarea"
 				/>
 				<ErrorMessage
-					:message="addDomain.error?.messages[0] || addDomain.error?.message"
+					:message="addDomain.error && (addDomain.error?.messages?.[0] || addDomain.error?.message || __('Request failed.'))"
 				/>
 			</div>
 		</template>

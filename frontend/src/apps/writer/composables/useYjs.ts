@@ -10,6 +10,7 @@ import {
 import { rebuild } from '@/apps/writer/extensions/comments'
 import { inject, ref } from 'vue'
 import { updateComments } from '@/apps/writer/resources'
+import { useCollaborationUsers } from './useCollaborationUsers'
 
 import { useSessionStore } from '@/boot/session'
 
@@ -145,8 +146,16 @@ export function useYjs(id, document, editor, edited) {
 
   // WebRTC for real-time P2P collaboration
   const provider = new WebrtcProvider(roomName, doc, REALTIME_CONFIG)
+  const { users, cleanup: cleanupUsers } = useCollaborationUsers(
+    provider.awareness,
+  )
   const permanentUserData = new Y.PermanentUserData(doc)
-  permanentUserData.setUserMapping(doc, doc.clientID, useSessionStore().user)
+  // null (guest) as a user key crashes yjs' PermanentUserData map observer
+  permanentUserData.setUserMapping(
+    doc,
+    doc.clientID,
+    useSessionStore().user || 'Guest',
+  )
 
   // Comments
   const { cleanup: cleanupComments, ...commentsData } = useComments(
@@ -156,12 +165,14 @@ export function useYjs(id, document, editor, edited) {
   return {
     doc,
     cleanup: () => {
+      cleanupUsers()
       provider.destroy()
       db.destroy()
       cleanupComments()
     },
     save,
     provider,
+    users,
     permanentUserData,
     loaded,
     ...commentsData,

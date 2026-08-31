@@ -1,91 +1,74 @@
 <template>
   <Dialog v-model:open="open" size="lg" @close="dialogType = ''">
-    <template #body-main>
-      <div class="p-4 sm:px-6">
-        <div class="flex w-full justify-between gap-x-15 mb-4">
-          <div class=" text-4xl-semibold flex text-nowrap overflow-hidden">
-            <template v-if="props.entities.length > 1">
-              Moving {{ props.entities.length }} items
-            </template>
-            <template v-else>
-              Moving "
-              <div class="truncate max-w-[80%]">
-                {{ props.entities[0].file_name }}
-              </div>
-              "
-            </template>
-          </div>
-          <Button class="ml-auto" variant="ghost" @click="dialogType = ''">
-            <template #icon>
-              <LucideX class="size-4" />
-            </template>
-          </Button>
+    <template #default>
+      <div>
+        <div class="text-xl-semibold flex text-nowrap overflow-hidden pr-8 mb-4">
+          <template v-if="props.entities.length > 1">
+            Moving {{ props.entities.length }} items
+          </template>
+          <template v-else>
+            Moving "
+            <div class="truncate max-w-[80%]">
+              {{ props.entities[0].file_name }}
+            </div>
+            "
+          </template>
         </div>
-        <Tabs v-model="tabIndex" as="div" :tabs="tabs">
+        <Tabs v-model="activeTab" :tabs="tabs">
           <template #tab-panel>
-            <div class="py-1 h-64 overflow-auto flex flex-col">
-              <TeamSelector v-if="tabIndex === 1" v-model="chosenTeam" class="py-2 px-1" />
-              <Tree v-for="k in tree.children" :key="k.value" node-key="value" :node="k">
-                <template #node="{ node, hasChildren, isCollapsed, toggleCollapsed }">
-                  <div class="flex items-center cursor-pointer select-none gap-1 h-7 shrink-0"
-                    @click="openEntity(node)">
-                    <div ref="iconRef" @click="
-                      (e) => {
-                        if (isCollapsed)
-                          node.children.forEach((k) =>
-                            fetchFolderContents(
-                              k,
-                              { entity_name: k.value },
-                              true,
-                            ),
-                          )
-                        toggleCollapsed(e)
-                      }
-                    ">
-                      <LucideChevronDown v-if="hasChildren && !isCollapsed" class="size-3.5" />
-                      <LucideChevronRight v-else-if="hasChildren" class="size-3.5" />
-                      <div v-else class="ps-3.5" />
+            <div class="px-1 py-1 h-64 overflow-auto flex flex-col">
+              <Tree v-if="tree.children.length" :nodes="tree.children" node-key="value" guides="none">
+                <template #item="{ node, expanded, hasChildren, toggle }">
+                  <div class="group grow min-w-0 flex items-center gap-2 rounded-4 px-1 -mx-1"
+                    :class="entities[0].folder === node.value
+                      ? 'cursor-not-allowed'
+                      : 'cursor-pointer hover:bg-surface-gray-2'"
+                    @click.stop="openEntity(node)">
+                    <button v-if="hasChildren" class="flex shrink-0 text-ink-gray-5 hover:text-ink-gray-8"
+                      @click.stop="
+                        () => {
+                          if (!expanded)
+                            node.children.forEach((k) =>
+                              fetchFolderContents(k, { entity_name: k.value }, true),
+                            )
+                          toggle()
+                        }
+                      ">
+                      <LucideChevronDown v-if="expanded" class="size-3.5" />
+                      <LucideChevronRight v-else class="size-3.5" />
+                    </button>
+                    <span v-else class="w-3.5 shrink-0" />
+                    <LucideFolder class="size-4 shrink-0 text-ink-gray-5" />
+                    <div v-if="node.value === null" class="grow">
+                      <Input v-model="node.label" autofocus type="text" input-class="!h-6" @click.stop
+                        @keydown.enter="openEntity(node)" />
                     </div>
-                    <div class="flex-grow rounded-sm text-base truncate h-full flex items-center pl-1" :class="[
-                      selected === node.value
-                        ? 'bg-surface-gray-3'
-                        : 'hover:bg-surface-gray-2',
-                      entities[0].folder === node.value
-                        ? 'cursor-not-allowed hover:bg-surface-base'
-                        : 'group',
-                    ]">
-                      <LucideFolderClosed v-if="isCollapsed" class="mr-1 size-4" />
-                      <LucideFolder v-else class="mr-1 size-4" />
-                      <div v-if="node.value === null" class="overflow-visible">
-                        <Input v-model="node.label" autofocus type="text" input-class=" !h-6" @click.stop
-                          @keydown.enter="openEntity(node)" />
-                      </div>
-                      <span v-else>{{ node.label }}
-                        <span v-if="entities[0].folder === node.value" class="text-ink-gray-5">(current)</span></span>
-                      <Button class="shrink hidden group-hover:block ml-auto" :class="{
-                        '!bg-surface-gray-3': selected === node.value,
-                      }" @click.stop="
-                          (e) => {
-                            let obj = {
-                              parent: node.value,
-                              value: null,
-                              label: 'New folder',
-                            }
-                            node.children.push(obj)
-                            if (isCollapsed) toggleCollapsed(e)
-                          }
-                        ">
-                        <LucideFolderPlus class="size-4" />
-                      </Button>
-                    </div>
+                    <span v-else class="grow truncate text-base"
+                      :class="selected === node.value ? 'font-medium text-ink-gray-9' : 'text-ink-gray-8'">{{
+                        node.label }}<span v-if="entities[0].folder === node.value" class="text-ink-gray-5 font-normal">
+                        (current)</span></span>
+                    <Button v-if="entities[0].folder !== node.value"
+                      class="shrink-0 opacity-0 group-hover:opacity-100" variant="ghost" @click.stop="
+                        () => {
+                          node.children.push({
+                            parent: node.value,
+                            value: null,
+                            label: 'New folder',
+                          })
+                          if (!expanded) toggle()
+                        }
+                      ">
+                      <template #icon><LucideFolderPlus class="size-4" /></template>
+                    </Button>
+                    <LucideCheck v-if="selected === node.value" class="shrink-0 size-4 text-ink-gray-6" />
                   </div>
                 </template>
               </Tree>
               <div v-if="tree.loading" class="space-y-1 py-1">
                 <div v-for="i in 4" :key="i" class="flex items-center gap-1.5 h-7 px-1">
-                  <Skeleton class="size-3.5 rounded shrink-0" />
-                  <Skeleton class="size-4 rounded shrink-0" />
-                  <Skeleton class="h-3 rounded" :style="{ width: folderWidths[(i - 1) % folderWidths.length] }" />
+                  <Skeleton class="size-3.5 rounded-4 shrink-0" />
+                  <Skeleton class="size-4 rounded-4 shrink-0" />
+                  <Skeleton class="h-3 rounded-4" :style="{ width: folderWidths[(i - 1) % folderWidths.length] }" />
                 </div>
               </div>
               <div v-else-if="!tree.children.length" class="flex justify-center flex-1">
@@ -97,9 +80,9 @@
             </div>
           </template>
         </Tabs>
-        <div class="flex items-center justify-between pt-4">
+        <div class="flex items-center justify-between border-t border-outline-gray-1 pt-4">
           <div class="flex items-center my-auto justify-start">
-            <p class="text-sm pr-0.5 shrink-0">Moving to:</p>
+            <p class="text-sm text-ink-gray-5 pr-1 shrink-0">Moving to:</p>
             <Dropdown v-if="dropDownBreadcrumbs.length" class="h-7" :options="dropDownBreadcrumbs">
               <Button variant="ghost">
                 <LucideEllipsis class="size-3.5" />
@@ -113,18 +96,23 @@
                 <span v-if="breadcrumbs.length > 1 && index > 0" class="text-ink-gray-5 mx-0.5">
                   {{ '/' }}
                 </span>
-                <button class="text-base cursor-pointer truncate max-w-20" :title="crumb.file_name" :class="index === slicedBreadcrumbs.length - 1
-                    ? 'text-ink-gray-9 text-base font-medium p-1'
-                    : 'text-ink-gray-5 text-base rounded-[6px] hover:bg-surface-gray-2 p-1'
-                  " @click="closeEntity(crumb.name)">
-                  {{ crumb.file_name }}
-                </button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  :label="crumb.file_name"
+                  :title="crumb.file_name"
+                  class="truncate max-w-20"
+                  :class="index === slicedBreadcrumbs.length - 1
+                    ? 'text-ink-gray-9 font-medium'
+                    : 'text-ink-gray-5'
+                  "
+                  @click="closeEntity(crumb.name)"
+                />
               </div>
             </div>
           </div>
-          <Button variant="solid" class="ml-auto" size="sm" :disabled="entities[0].folder !== selected &&
-            chosenTeam === entities[0].team
-            " :loading="move.loading" @click="moveFile">
+          <Button variant="solid" class="ml-auto" size="sm"
+            :loading="move.loading" @click="moveFile">
             <template #prefix>
               <LucideArrowLeftRight class="size-4" />
             </template>
@@ -145,25 +133,22 @@ import {
   Tabs,
   Dropdown,
   Tree,
-  Input,
+   TextInput as Input,
   Skeleton,
   toast,
 } from 'frappe-ui'
-import { move, getTeams } from '../js/resources'
-
-import { useRoute } from 'vue-router'
+import { move, rootInfo } from '../js/resources'
 
 import LucideBuilding2 from '~icons/lucide/building-2'
+import LucideCheck from '~icons/lucide/check'
 import LucideChevronDown from '~icons/lucide/chevron-down'
 import LucideChevronRight from '~icons/lucide/chevron-right'
 import LucideFolder from '~icons/lucide/folder'
 import LucideFolderPlus from '~icons/lucide/folder-plus'
 import LucideFolderClosed from '~icons/lucide/folder-closed'
 import LucideHome from '~icons/lucide/home'
-import LucideX from '~icons/lucide/x'
 import LucideArrowLeftRight from '~icons/lucide/arrow-left-right'
 import LucideEllipsis from '~icons/lucide/ellipsis'
-import TeamSelector from './TeamSelector.vue'
 
 const folderWidths = ['45%', '60%', '38%', '52%']
 
@@ -179,9 +164,21 @@ const emit = defineEmits(['success', 'complete'])
 const dialogType = defineModel()
 const open = ref(true)
 
-const route = useRoute()
-const tabIndex = ref(route.name == 'drive-Home' ? 0 : 1)
-const chosenTeam = ref(route.params.team || '')
+const activeTab = ref('home')
+rootInfo.fetch()
+
+// Reopen at the folder the user last moved into this session, so repeated moves
+// to the same place don't start from root each time.
+const LAST_MOVE_KEY = 'drive:last-move-dest'
+function lastMoveParent() {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(LAST_MOVE_KEY) || 'null')
+    if (!saved || typeof saved !== 'object') return ''
+    return saved.parent || ''
+  } catch {
+    return ''
+  }
+}
 const tree = reactive({
   name: '',
   label: 'Home',
@@ -193,30 +190,18 @@ const tree = reactive({
 
 // State variables
 const selected = ref('')
-const breadcrumbs = ref([
-  { name: '', file_name: tabIndex.value === 0 ? 'Home' : 'Team' },
-])
+const breadcrumbs = ref([{ name: '', file_name: 'Home' }])
 
-const tabs = [
-  {
-    label: 'Home',
-    icon: h(LucideHome, { class: 'size-4' }),
-  },
-  {
-    label: 'Teams',
-    icon: h(LucideBuilding2, { class: 'size-4' }),
-  },
-  // {
-  //   label: "Favourites",
-  //   icon: h(Star, { class: "size-4" }),
-  // },
-]
+// iconLeft, not icon: `icon` makes an icon-only trigger and drops the label.
+const tabs = computed(() => [
+  { label: 'Home', value: 'home', iconLeft: h(LucideHome, { class: 'size-4' }) },
+  { label: 'Site', value: 'site', iconLeft: h(LucideBuilding2, { class: 'size-4' }) },
+])
 
 const folderContents = createResource({
   url: 'suite.drive.api.list.files',
   makeParams: (params) => ({
     ...params,
-    team: chosenTeam.value,
     file_kinds: '["Folder"]',
   }),
 })
@@ -231,8 +216,8 @@ const fetchFolderContents = (tree, params = {}, nested = false) => {
           label: item.file_name,
           value: item.name,
           children: [],
+          expanded: false,
         })
-        node.isCollapsed = true
         tree.children.push(node)
         if (!nested)
           fetchFolderContents(
@@ -252,43 +237,36 @@ const selectedPerms = createResource({
     entity_name: selected.value,
   }),
   onSuccess: (data) => {
-    const team = getTeams.data[data.team]
-    const first = [
-      {
-        name: '',
-        file_name: team ? team.title : 'Home',
-      },
-    ]
-    breadcrumbs.value = first.concat(data.breadcrumbs.slice(1))
+    breadcrumbs.value = data.breadcrumbs.map((k) => ({
+      ...k,
+      file_name: k.name === rootInfo.data?.home ? 'Home' : k.file_name,
+    }))
+  },
+  onError: () => {
+    // Remembered folder is gone or inaccessible — fall back to the root.
+    selected.value = ''
+    breadcrumbs.value = [{ name: '', file_name: 'Home' }]
   },
 })
 
 watch(
-  [tabIndex, chosenTeam],
-  ([newValue, team], [prev, _]) => {
+  activeTab,
+  (newValue) => {
     selected.value = ''
     tree.loading = true
-    if ((newValue === 1 && !team) || (newValue === 0 && prev == newValue))
-      return
     tree.children = []
-    switch (newValue) {
-      case 0:
-        chosenTeam.value = ''
-        breadcrumbs.value = [{ name: '', file_name: 'Home' }]
-        fetchFolderContents(tree)
-        break
-      case 1:
-        breadcrumbs.value = [
-          { name: '', file_name: getTeams.data[team].title },
-        ]
-        fetchFolderContents(tree)
-        break
-      case 2:
-        folderContents.fetch({
-          entity_name: '',
-          favourites_only: true,
-        })
-        break
+    if (newValue === 'home') {
+      breadcrumbs.value = [{ name: '', file_name: 'Home' }]
+      fetchFolderContents(tree)
+    } else {
+      breadcrumbs.value = [{ name: '', file_name: 'Site' }]
+      fetchFolderContents(tree, { entity_name: rootInfo.data?.root })
+    }
+    // Re-applied on every tab switch, which resets `selected` above.
+    const remembered = lastMoveParent()
+    if (remembered) {
+      selected.value = remembered
+      selectedPerms.fetch()
     }
   },
   { immediate: true },
@@ -319,10 +297,7 @@ const createdNode = ref(null)
 const createFolder = createResource({
   url: 'suite.drive.api.files.create_folder',
   makeParams(params) {
-    return {
-      ...params,
-      team: chosenTeam.value,
-    }
+    return params
   },
   validate(params) {
     if (!params?.file_name) return false
@@ -363,7 +338,6 @@ function closeEntity(name) {
     selected.value = breadcrumbs.value[breadcrumbs.value.length - 1].name
     folderContents.fetch({
       entity_name: selected.value,
-      personal: selected.value === '' ? 1 : -1,
     })
   }
 }
@@ -373,8 +347,15 @@ const moveFile = async () => {
   await move.submit({
     entity_names: props.entities.map((obj) => obj.name),
     new_parent: selected.value,
-    team: chosenTeam.value,
   })
+  try {
+    sessionStorage.setItem(
+      LAST_MOVE_KEY,
+      JSON.stringify({ parent: selected.value }),
+    )
+  } catch {
+    // sessionStorage unavailable — non-fatal.
+  }
   open.value = false
   emit('complete')
 }

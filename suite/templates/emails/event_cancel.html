@@ -1,0 +1,10 @@
+{% extends "templates/emails/_event_base.html" %}
+{% block card %}
+{% import "templates/emails/_event_macros.html" as m with context %}
+						<div style="margin: 0 0 14px;"><span style="display: inline-block; padding: 4px 10px; background-color: #fff7f7; color: #e03636; border-radius: 6px; font-family: {{ font }}; font-size: 12px; font-weight: 600;">Cancelled</span></div>
+						{{ m.heading(title, cancelled=true) }}
+						{{ m.details_table('Was', when, timezone, location, organizer_name, organizer_email, bold=false) }}
+						{% call m.panel(bg='#fff7f7', margin='20px 0 0', padding='13px 16px') %}
+							<div style="font-size: 14px; line-height: 1.5; color: #383838;">This event has been cancelled and removed from your calendar. No further action is needed.</div>
+						{% endcall %}
+{% endblock %}

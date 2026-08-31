@@ -1,14 +1,14 @@
 from __future__ import annotations
 import frappe
-from pypika import Order
 from frappe.model.document import Document
+from pypika import Order
 
 
 def get_link(entity):
-    if entity.file_type == 'Document':
+    if entity.file_type == "Document":
         return "/writer/w/" + entity.name
     type_ = {True: "f", bool(entity.is_folder): "d"}
-    return entity.file_url if entity.file_type == 'Link' else f"/drive/{type_.get(True)}/{entity.name}/"
+    return entity.file_url if entity.file_type == "Link" else f"/drive/{type_.get(True)}/{entity.name}/"
 
 
 @frappe.whitelist()
@@ -55,9 +55,13 @@ def get_unread_count():
 @frappe.whitelist()
 def mark_as_read(name: str | None = None, all: bool = False):
     if all:
-        frappe.db.set_value("Drive Notification", {"to_user": frappe.session.user, "read": False}, "read", True)
+        frappe.db.set_value(
+            "Drive Notification", {"to_user": frappe.session.user, "read": False}, "read", True
+        )
         return
-    frappe.db.set_value("Drive Notification", name, "read", True)
+    # filter on the recipient too: a bare name would let any caller flip the flag
+    # on someone else's notification
+    frappe.db.set_value("Drive Notification", {"name": name, "to_user": frappe.session.user}, "read", True)
     return
 
 
@@ -88,25 +92,27 @@ def notify_share(entity_name, docperm_name):
     docshare = frappe.get_doc("Drive Permission", docperm_name)
 
     author_full_name = frappe.db.get_value("User", {"name": docshare.owner}, ["full_name"])
-    entity_type = "document" if entity.file_type == 'Document' else "folder" if entity.is_folder else "file"
+    entity_type = "document" if entity.file_type == "Document" else "folder" if entity.is_folder else "file"
     link = get_link(entity)
     message = f'{author_full_name} shared a {entity_type} with you: "{entity.file_name}"'
     if not frappe.db.exists("User", docshare.user):
         key = frappe.get_value("Drive User Invitation", {"email": docshare.user})
-        link = frappe.utils.get_url(f"/api/method/suite.drive.api.product.accept_invite?key={key}&redirect={link}")
+        link = frappe.utils.get_url(
+            f"/api/method/suite.drive.api.product.accept_invite?key={key}&redirect={link}"
+        )
     else:
         create_notification(docshare.owner, docshare.user, "Share", entity, message)
-    send_share_email(docshare.user, message, link, entity.team, entity_type)
+    send_share_email(docshare.user, message, link, entity_type)
 
 
 def create_notification(from_user: str, to_user: str, type: str, entity: str, message: str | None = None):
-    from suite.drive.api.permissions import get_user_access
+    from suite.drive.api.permissions import get_user_access_for_user
 
-    user_access = get_user_access(entity.name, to_user)
+    user_access = get_user_access_for_user(entity.name, to_user)
     if user_access.get("read") == 0:
         return
 
-    entity_type = "Document" if entity.file_type == 'Document' else "Folder" if entity.is_folder else "File"
+    entity_type = "Document" if entity.file_type == "Document" else "Folder" if entity.is_folder else "File"
     details = {
         "from_user": from_user,
         "to_user": to_user,
@@ -127,7 +133,18 @@ def create_notification(from_user: str, to_user: str, type: str, entity: str, me
         return False
 
 
-def send_share_email(to, message, link, team, type_):
+def drive_logo_inline_images():
+    """The Drive wordmark logo in frappe.sendmail's `embed=` format (templates
+    reference it as embed="drive-logo.png")."""
+
+    try:
+        with open(frappe.get_app_path("suite", "public", "drive", "images", "logo.png"), "rb") as f:
+            return [{"filename": "drive-logo.png", "filecontent": f.read()}]
+    except OSError:
+        return []
+
+
+def send_share_email(to, message, link, type_):
     try:
         frappe.sendmail(
             recipients=to,
@@ -137,9 +154,8 @@ def send_share_email(to, message, link, team, type_):
                 "message": message,
                 "type": type_,
                 "link": link,
-                "team_name": frappe.db.get_value("Drive Team", team, "title"),
             },
-            now=True,
+            inline_images=drive_logo_inline_images(),
         )
-    except:
+    except Exception:
         pass

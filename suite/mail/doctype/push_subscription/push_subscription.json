@@ -54,8 +54,7 @@
    "set_only_once": 1
   },
   {
-   "default": "[\n    \"Email\",\n    \"Mailbox\",\n    \"Identity\",\n    \"VacationResponse\"\n]",
-   "description": "A list of types the client is interested in. A `StateChange` notification will only be sent if the data for one of these types changes.",
+   "description": "A list of types the client is interested in. Leave blank to subscribe to all types. A `StateChange` notification is sent when data for a subscribed type changes; the `CalendarAlert` pseudo-type delivers triggered event alerts instead of state changes.",
    "fieldname": "types",
    "fieldtype": "JSON",
    "label": "Types",
@@ -87,7 +86,7 @@
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2026-04-16 20:11:56.710258",
+ "modified": "2026-08-02 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Push Subscription",
@@ -109,7 +108,7 @@
    "create": 1,
    "delete": 1,
    "read": 1,
-   "role": "All",
+   "role": "Suite User",
    "write": 1
   }
  ],

@@ -5,12 +5,13 @@ import frappe
 from frappe import _
 from frappe.utils import random_string
 
+from suite.calendar.doctype.calendar_event.calendar_event import enqueue_send_event_alert_notification
 from suite.mail.doctype.mail_message.mail_message import enqueue_fetch_changes
 from suite.mail.doctype.push_subscription.push_subscription import (
-	decrypt_jmap_push_payload,
-	get_push_subscription_keys,
-	is_jmap_push_notifications_frozen,
-	verify_push_subscription,
+    decrypt_jmap_push_payload,
+    get_push_subscription_keys,
+    is_jmap_push_notifications_frozen,
+    verify_push_subscription,
 )
 from suite.mail.jmap import invalidate_jmap_identities_cache, invalidate_jmap_mailboxes_cache
 from suite.mail.utils.logger import get_push_logger
@@ -18,98 +19,106 @@ from suite.mail.utils.logger import get_push_logger
 
 @frappe.whitelist(methods=["POST"], allow_guest=True)
 def push_notification() -> dict:
-	"""Handle JMAP Push Notification."""
+    """Handle JMAP Push Notification."""
 
-	ctx = {
-		"req_id": random_string(10),
-		"ip": frappe.request.remote_addr,
-	}
-	logger = get_push_logger(ctx)
+    ctx = {
+        "req_id": random_string(10),
+        "ip": frappe.request.remote_addr,
+    }
+    logger = get_push_logger(ctx)
 
-	try:
-		logger.debug("push-received")
+    try:
+        logger.debug("push-received")
 
-		user = frappe.request.args.get("user")
-		if not user:
-			logger.warning("missing-user")
-			return {"status": "error", "message": _("Missing user query parameter.")}
+        user = frappe.request.args.get("user")
+        if not user:
+            logger.warning("missing-user")
+            return {"status": "error", "message": _("Missing user query parameter.")}
 
-		user = unquote(user)
-		ctx["user"] = user
+        user = unquote(user)
+        ctx["user"] = user
 
-		if is_jmap_push_notifications_frozen(user):
-			logger.warning("push-frozen")
-			return {
-				"status": "frozen",
-				"message": _("Push notifications are currently frozen for this user."),
-			}
+        if is_jmap_push_notifications_frozen(user):
+            logger.warning("push-frozen")
+            return {
+                "status": "frozen",
+                "message": _("Push notifications are currently frozen for this user."),
+            }
 
-		keys = get_push_subscription_keys()
-		content_encoding = frappe.request.headers.get("Content-Encoding", "")
+        keys = get_push_subscription_keys()
+        content_encoding = frappe.request.headers.get("Content-Encoding", "")
 
-		if keys:
-			logger.debug("encrypted-payload-expected")
+        if keys:
+            logger.debug("encrypted-payload-expected")
 
-			if content_encoding != "aes128gcm":
-				logger.warning("invalid-content-encoding", encoding=content_encoding)
-				return {
-					"status": "error",
-					"message": _("Invalid Content-Encoding. Expected 'aes128gcm'."),
-				}
+            if content_encoding != "aes128gcm":
+                logger.warning("invalid-content-encoding", encoding=content_encoding)
+                return {
+                    "status": "error",
+                    "message": _("Invalid Content-Encoding. Expected 'aes128gcm'."),
+                }
 
-			logger.debug("decrypting-payload")
-			request_data = decrypt_jmap_push_payload(frappe.request.get_data())
-		else:
-			logger.debug("using-plain-json-payload")
-			request_data = frappe.request.get_json()
+            logger.debug("decrypting-payload")
+            request_data = decrypt_jmap_push_payload(frappe.request.get_data())
+        else:
+            logger.debug("using-plain-json-payload")
+            request_data = frappe.request.get_json()
 
-		event_type = request_data.get("@type")
-		ctx["type"] = event_type
-		logger.debug("push-type-received")
+        event_type = request_data.get("@type")
+        ctx["type"] = event_type
+        logger.debug("push-type-received")
 
-		if event_type == "PushVerification":
-			logger.info("verifying-subscription")
+        if event_type == "PushVerification":
+            logger.info("verifying-subscription")
 
-			verify_push_subscription(
-				user,
-				request_data["pushSubscriptionId"],
-				request_data["verificationCode"],
-			)
+            verify_push_subscription(
+                user,
+                request_data["pushSubscriptionId"],
+                request_data["verificationCode"],
+            )
 
-			logger.info("subscription-verified")
-			return {"status": "verified"}
+            logger.info("subscription-verified")
+            return {"status": "verified"}
 
-		elif event_type == "StateChange":
-			logger.debug("state-change-received")
+        elif event_type == "StateChange":
+            logger.debug("state-change-received")
 
-			for account, changes in request_data.get("changed", {}).items():
-				ctx["account"] = account
+            for account, changes in request_data.get("changed", {}).items():
+                ctx["account"] = account
 
-				for entity, state in changes.items():
-					if entity == "Email":
-						logger.debug("queueing-email-sync", entity=entity, state=state)
-						enqueue_fetch_changes(user, account, state, ctx=ctx)
+                for entity, state in changes.items():
+                    if entity == "Email":
+                        logger.debug("queueing-email-sync", entity=entity, state=state)
+                        enqueue_fetch_changes(user, account, state, ctx=ctx)
 
-					elif entity == "Mailbox":
-						logger.debug("invalidating-mailbox-cache", entity=entity, state=state)
-						invalidate_jmap_mailboxes_cache(account)
+                    elif entity == "Mailbox":
+                        logger.debug("invalidating-mailbox-cache", entity=entity, state=state)
+                        invalidate_jmap_mailboxes_cache(account)
 
-					elif entity == "Identity":
-						logger.debug("invalidating-identity-cache", entity=entity, state=state)
-						invalidate_jmap_identities_cache(account)
+                    elif entity == "Identity":
+                        logger.debug("invalidating-identity-cache", entity=entity, state=state)
+                        invalidate_jmap_identities_cache(account)
 
-					else:
-						logger.warning("unhandled-state-change-entity", entity=entity)
+                    else:
+                        logger.warning("unhandled-state-change-entity", entity=entity)
 
-			return {"status": "processed"}
+            return {"status": "processed"}
 
-		else:
-			logger.warning("unknown-push-type")
-			return {
-				"status": "error",
-				"message": _("Invalid Push Notification @type = {0}").format(event_type),
-			}
+        elif event_type == "CalendarAlert":
+            ctx["account"] = request_data.get("accountId")
 
-	except Exception:
-		logger.exception("failed-to-process", traceback=frappe.get_traceback())
-		return {"status": "error", "message": _("Failed to handle JMAP Push Notification.")}
+            logger.info("calendar-alert-received")
+            enqueue_send_event_alert_notification(user, request_data, ctx=ctx)
+
+            return {"status": "processed"}
+
+        else:
+            logger.warning("unknown-push-type")
+            return {
+                "status": "error",
+                "message": _("Invalid Push Notification @type = {0}").format(event_type),
+            }
+
+    except Exception:
+        logger.exception("failed-to-process", traceback=frappe.get_traceback())
+        return {"status": "error", "message": _("Failed to handle JMAP Push Notification.")}

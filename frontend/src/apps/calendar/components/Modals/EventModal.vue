@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { computed, inject, reactive, ref, watch } from 'vue'
-import { Button, Dialog, Dropdown, FormControl, createResource, toast } from 'frappe-ui'
+import { computed, inject, nextTick, reactive, ref, watch } from 'vue'
+import { AlignLeft, Bell, Briefcase, ChevronDown, Clock, Copy, MapPin, Users, X } from 'lucide-vue-next'
+import { Button, Dialog, Dropdown, FormControl, Switch, createResource, toast } from 'frappe-ui'
 
-import { getReorderedParticipants } from '@/apps/calendar/utils'
+import meetLogo from '@/assets/app-logos/meet.png'
+import { getMeetUrl, getReorderedParticipants } from '@/apps/calendar/utils'
+import { fromEventZone, fromWallClock, inUserTimeZone } from '@/apps/calendar/utils/datetime'
 import { getRepeatMessage } from '@/apps/calendar/utils/format'
 import { userStore } from '@/apps/calendar/stores/user'
 import EventAlertList from '@/apps/calendar/components/EventAlertList.vue'
@@ -16,10 +19,15 @@ const emit = defineEmits(['reloadEvents'])
 const user = inject('$user')
 const dayjs = inject('$dayjs')
 const store = userStore()
-const { identities } = store
+const { participantIdentities } = store
 
 const isNew = computed(() => !selectedEvent?.calendarEvent)
-const showRSVP = computed(() => !isNew.value && selectedEvent.calendarEvent.role !== 'Organizer')
+// A saved draft: the server holds it but has sent nothing. Only a new event can become
+// one (the server refuses to turn a published event back into a draft), and saving it
+// as a draft again or publishing it are the two ways out of the modal.
+const isDraft = computed(() => !!selectedEvent?.calendarEvent?.isDraft)
+// Set for the length of one save: the resources read it into `draft`.
+const savingDraft = ref(false)
 
 // --- Event initialization ---
 
@@ -27,7 +35,9 @@ const getEventData = () => {
 	if (isNew.value) return getDefaultEventData()
 
 	const { calendarEvent: ev } = selectedEvent
-	const start = dayjs(ev.start)
+	// Timed events edit in the viewer's zone (saving re-zones them to it, see eventParams);
+	// all-day events keep their calendar date.
+	const start = ev.isAllDay ? dayjs(ev.start) : fromEventZone(ev.start, ev.time_zone)
 	const end = start.add(dayjs.duration(ev.duration))
 	const displayEnd = ev.isAllDay ? end.subtract(1, 'day') : end
 
@@ -41,8 +51,9 @@ const getEventData = () => {
 		endDate: displayEnd.format('YYYY-MM-DD'),
 		endTime: end.format('HH:mm'),
 		free_busy_status: ev.free_busy_status,
-		privacy: ev.privacy,
-		locations: ev.locations.length ? ev.locations.map((l) => l._name) : [''],
+		privacy: ev.privacy || 'Public',
+		locations: ev.locations.map((l) => l._name),
+		links: ev.links ? [...ev.links] : [],
 		alerts: ev.alerts?.map(parseAlert) ?? [],
 		description: ev.description || '',
 		participants: [...ev.participants],
@@ -50,6 +61,9 @@ const getEventData = () => {
 		addMeetLink: hasMeetLink(ev),
 	}
 }
+
+// How long an event runs when the end hasn't been set by hand.
+const DEFAULT_DURATION_MINUTES = 60
 
 const getDefaultEventData = () => {
 	const startTime = selectedEvent?.time
@@ -66,12 +80,13 @@ const getDefaultEventData = () => {
 		startDate: dayjs(selectedEvent.date).format('YYYY-MM-DD'),
 		startTime,
 		endDate: dayjs(selectedEvent.date).format('YYYY-MM-DD'),
-		endTime: dayjs(startTime, 'HH:mm').add(1, 'hour').format('HH:mm'),
-		locations: [''],
+		endTime: dayjs(startTime, 'HH:mm').add(DEFAULT_DURATION_MINUTES, 'minute').format('HH:mm'),
+		locations: [],
+		links: [],
 		alerts: [],
 		description: '',
 		free_busy_status: 'Busy',
-		privacy: '',
+		privacy: 'Public',
 		participants: [
 			{
 				email: user.data.name,
@@ -107,10 +122,7 @@ const duration = computed(() => {
 const startsAt = computed(() =>
 	dayjs(`${event.startDate}T${event.isAllDay ? '00:00' : event.startTime}`),
 )
-const endsAt = computed(() =>
-	dayjs(`${event.endDate}T${event.isAllDay ? '00:00' : event.endTime}`),
-)
-
+const endsAt = computed(() => dayjs(`${event.endDate}T${event.isAllDay ? '00:00' : event.endTime}`))
 const isDateTimeValid = computed(() => {
 	if (!event.startDate || !event.endDate) return false
 	if (!event.isAllDay && (!event.startTime || !event.endTime)) return false
@@ -127,10 +139,6 @@ const participants = computed(() =>
 	),
 )
 
-const userParticipant = computed(() =>
-	participants.value.find((p) => identities.data.some((id) => id.email === p.email)),
-)
-
 const eventParams = computed(() => {
 	const params: Record<string, any> = {
 		user: user.data.name,
@@ -139,12 +147,15 @@ const eventParams = computed(() => {
 		duration: duration.value,
 	}
 
-	if (selectedEvent.calendarEvent?.recurrence_id && !isUpdateInstance.value) {
-		params.start = selectedEvent.calendarEvent.master_start
-	}
-
 	if (event.title) params.title = event.title
 	if (dayjs?.tz) params.time_zone = dayjs.tz.guess()
+
+	if (selectedEvent.calendarEvent?.recurrence_id && !isUpdateInstance.value) {
+		// The master's start passes through unchanged, so it must keep the master's zone —
+		// pairing it with the browser's would silently shift the whole series.
+		params.start = selectedEvent.calendarEvent.master_start
+		params.time_zone = selectedEvent.calendarEvent.time_zone || params.time_zone
+	}
 	if (event.recurrence_rule && Object.keys(event.recurrence_rule).length)
 		params.recurrence_rule = event.recurrence_rule
 	if (event.privacy) params.privacy = event.privacy
@@ -152,14 +163,20 @@ const eventParams = computed(() => {
 	if (event.description) params.description = event.description
 	if (event.locations?.some((l) => l?.trim()))
 		params.locations = event.locations.filter((l) => l?.trim()).map((name) => ({ name }))
+	// Always carry existing links on updates — the JMAP update is a full replace,
+	// so omitting them would strip Meet links from the event.
+	if (event.links?.length) params.links = event.links
 	if (event.participants?.length) params.participants = event.participants
+	// No reminder set means the calendar's default one, not silence.
+	params.use_default_alerts = !event.alerts?.length
 	if (event.alerts?.length) {
 		params.alerts = event.alerts.map((a) => {
 			const base = { action: a.action, type: a.type }
 			if (a.type === 'AbsoluteTrigger')
 				return {
 					...base,
-					when: dayjs(`${a.date}T${a.time}`).format('YYYY-MM-DD[T]HH:mm:ss'),
+					// The date/time inputs are a wall clock in the user's zone; the API takes UTC.
+					when: fromWallClock(`${a.date}T${a.time}`),
 				}
 
 			return {
@@ -173,15 +190,17 @@ const eventParams = computed(() => {
 	return params
 })
 
-const patch = computed(() =>
-	Object.fromEntries(
+const patch = computed(() => {
+	const changed = Object.fromEntries(
 		[...new Set([...Object.keys(eventParams.value), ...Object.keys(originalParams)])]
-			.filter(
-				(k) => JSON.stringify(eventParams.value[k]) !== JSON.stringify(originalParams[k]),
-			)
+			.filter((k) => JSON.stringify(eventParams.value[k]) !== JSON.stringify(originalParams[k]))
 			.map((k) => [k, eventParams.value[k]]),
-	),
-)
+	)
+	// A changed start is a wall clock in the viewer's zone; without the zone alongside it the
+	// server would reinterpret those numbers in the event's stored zone.
+	if ('start' in changed && !('time_zone' in changed)) changed.time_zone = eventParams.value.time_zone
+	return changed
+})
 
 // --- Helpers ---
 
@@ -190,8 +209,8 @@ const parseAlert = (a: any) => {
 		return {
 			type: a.type,
 			action: a.action,
-			date: dayjs.utc(a.when).format('YYYY-MM-DD'),
-			time: dayjs.utc(a.when).format('HH:mm'),
+			date: inUserTimeZone(a.when).format('YYYY-MM-DD'),
+			time: inUserTimeZone(a.when).format('HH:mm'),
 		}
 
 	const d = dayjs.duration(a.offset).$d
@@ -210,23 +229,130 @@ const parseAlert = (a: any) => {
 }
 
 const hasParticipantsOtherThanUser = (participants: any[]) =>
-	participants?.some((p) => identities.data.every((i) => i.email !== p.email)) ?? false
+	participants?.some((p) => participantIdentities.data.every((i) => i.email !== p.email)) ?? false
 
 const hasMeetLink = (ev: any) =>
 	(ev?.links || []).some((link: any) => link?.href?.includes('/meet/')) ||
 	!!ev?.description?.includes('/meet/')
 
+// Prefer the sanitized same-origin path, but fall back to the raw URL so events
+// whose Meet link lives on another origin (e.g. created against a different site
+// URL) still get a Join affordance — the same link is already clickable in the
+// detail sidebar's description.
+const meetUrl = computed(() => {
+	const href =
+		event.links?.find((item: any) => item?.href?.includes('/meet/'))?.href ||
+		event.description?.match(/https?:\/\/\S+\/meet\/[a-zA-Z0-9-]+|\/meet\/[a-zA-Z0-9-]+/)?.[0]
+	if (!href) return ''
+	return getMeetUrl(href) || href.replace(/\W+$/, '')
+})
+
+const joinMeet = () => {
+	if (meetUrl.value) window.open(meetUrl.value, '_blank', 'noopener')
+}
+
+// Toggling Meet on an existing event isn't part of eventParams/patch, so it
+// must count as a pending change on its own (both for Save and for submit).
+const pendingMeetAttach = computed(
+	() => !isNew.value && event.addMeetLink && !hasMeetLink(selectedEvent?.calendarEvent),
+)
+
+const copyMeetLink = async () => {
+	await navigator.clipboard.writeText(new URL(meetUrl.value, window.location.origin).href)
+	toast.success(__('Frappe Meet link copied.'))
+}
+
+const meetLinkDisplay = computed(() =>
+	meetUrl.value
+		? new URL(meetUrl.value, window.location.origin).href.replace(/^https?:\/\//, '')
+		: '',
+)
+
 // --- Watchers ---
+
+// Moving the start drags the end along, keeping the gap the user set. A gap that
+// hasn't been set — or one the start has overtaken — falls back to the default.
+let previousStart = null
 
 watch(show, (val) => {
 	if (!val) return
 	Object.assign(event, getEventData())
+	// Reopening the same event leaves the start untouched, so the watcher below
+	// won't fire — seed the baseline here or the first edit has nothing to move from.
+	previousStart = { date: event.startDate, time: event.startTime }
 	originalParams = JSON.parse(JSON.stringify(eventParams.value))
 })
+
+watch(
+	() => [event.startDate, event.startTime],
+	([startDate, startTime]) => {
+		const previous = previousStart
+		previousStart = { date: startDate, time: startTime }
+
+		if (!previous?.date || !startDate) return
+		if (previous.date === startDate && previous.time === startTime) return
+
+		if (event.isAllDay) {
+			const days = dayjs(event.endDate).diff(dayjs(previous.date), 'day')
+			event.endDate = dayjs(startDate).add(Math.max(days, 0), 'day').format('YYYY-MM-DD')
+			return
+		}
+
+		const start = dayjs(`${startDate}T${startTime}`)
+		if (!start.isValid()) return
+
+		const gap = dayjs(`${event.endDate}T${event.endTime}`).diff(
+			dayjs(`${previous.date}T${previous.time}`),
+			'minute',
+		)
+		const end = start.add(gap > 0 ? gap : DEFAULT_DURATION_MINUTES, 'minute')
+		event.endDate = end.format('YYYY-MM-DD')
+		event.endTime = end.format('HH:mm')
+	},
+)
+
+watch(
+	() => [event.endDate, event.endTime],
+	([endDate, endTime]) => {
+		if (event.isAllDay || !endDate || !endTime) return
+		const end = dayjs(`${endDate}T${endTime}`)
+		if (!end.isValid() || end.isAfter(startsAt.value)) return
+		const start = end.subtract(DEFAULT_DURATION_MINUTES, 'minute')
+		event.startDate = start.format('YYYY-MM-DD')
+		event.startTime = start.format('HH:mm')
+	},
+)
 
 const showRepeatSettings = ref(false)
 watch(showRepeatSettings, (val) => {
 	if (!val && !event.recurrence_rule?.frequency) event.repeat = false
+})
+
+const locationsEl = ref<HTMLElement | null>(null)
+
+const addLocation = async () => {
+	event.locations.push('')
+	await nextTick()
+	const inputs = locationsEl.value?.querySelectorAll('input')
+	inputs?.[inputs.length - 1]?.focus()
+}
+
+// With a rule applied the row is an entry point to the settings — unchecking
+// only happens through Remove Repeat in the modal.
+const toggleRepeat = () => {
+	if (event.recurrence_rule?.frequency) {
+		showRepeatSettings.value = true
+		return
+	}
+	event.repeat = !event.repeat
+	if (event.repeat) showRepeatSettings.value = true
+	else event.recurrence_rule = {}
+}
+
+const repeatLabel = computed(() => {
+	if (!event.recurrence_rule?.frequency) return __('Repeat')
+	const message = getRepeatMessage(event.recurrence_rule)
+	return __('Repeats {0}', [message.charAt(0).toLowerCase() + message.slice(1)])
 })
 
 // --- Save logic ---
@@ -237,10 +363,11 @@ const handleSuccess = () => {
 }
 
 const createEvent = createResource({
-	url: 'suite.mail.doctype.calendar_event.calendar_event.add_calendar_event',
+	url: 'suite.calendar.doctype.calendar_event.calendar_event.add_calendar_event',
 	makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
 		account: store.accountId,
 		...eventParams.value,
+		draft: savingDraft.value,
 		send_scheduling_messages: sendEmail,
 	}),
 	onSuccess: handleSuccess,
@@ -257,7 +384,7 @@ const createMeetEvent = createResource({
 })
 
 const editEventInstance = createResource({
-	url: 'suite.mail.doctype.calendar_event.calendar_event.update_calendar_event_instance',
+	url: 'suite.calendar.doctype.calendar_event.calendar_event.update_calendar_event_instance',
 	makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
 		account: store.accountId,
 		master_id: selectedEvent.calendarEvent.master_id,
@@ -269,16 +396,22 @@ const editEventInstance = createResource({
 })
 
 const editEvent = createResource({
-	url: 'suite.mail.doctype.calendar_event.calendar_event.update_calendar_event',
+	url: 'suite.calendar.doctype.calendar_event.calendar_event.update_calendar_event',
 	makeParams: ({ sendEmail }: { sendEmail: boolean }) => ({
 		account: store.accountId,
 		// master_id is only set on recurring events; fall back to the event's own id
 		id: selectedEvent.calendarEvent.master_id || selectedEvent.calendarEvent.id,
 		uid: selectedEvent.calendarEvent.uid,
 		...eventParams.value,
+		draft: savingDraft.value,
 		send_scheduling_messages: sendEmail,
 	}),
 	onSuccess: handleSuccess,
+})
+
+const createMeetLink = createResource({
+	url: 'suite.meet.api.schedule.create_meet_link',
+	makeParams: () => ({ account: store.accountId, title: event.title }),
 })
 
 const isUpdateInstance = ref(false)
@@ -292,15 +425,101 @@ const submitEvent = (sendEmail: boolean) => {
 		: isInstance
 			? editEventInstance
 			: editEvent
-	const messages = isNew.value
-		? { loading: __('Creating event...'), success: __('Event created.') }
-		: { loading: __('Updating event...'), success: __('Event updated.') }
+	const messages = isDraft.value
+		? { loading: __('Sending event...'), success: __('Event sent.') }
+		: isNew.value
+			? { loading: __('Creating event...'), success: __('Event created.') }
+			: { loading: __('Updating event...'), success: __('Event updated.') }
 
-	toast.promise(resource.submit({ sendEmail }), {
+	// Attaching a Meet link to an existing event: mint the room first, then send the
+	// regular update with the link included (creation bundles this server-side).
+	const attachMeetLink = pendingMeetAttach.value
+	const submit = async () => {
+		// A failed update leaves the minted room in event.links only — reuse it on
+		// retry rather than creating an orphaned duplicate.
+		const alreadyMinted = (event.links || []).some((l: any) => l?.href?.includes('/meet/'))
+		if (attachMeetLink && !alreadyMinted) {
+			const { meeting_url } = await createMeetLink.submit()
+			event.links = [...(event.links || []), { href: meeting_url, content_type: 'text/html' }]
+		}
+		return resource.submit({ sendEmail })
+	}
+
+	toast.promise(submit(), {
 		...messages,
 		error: __('Action failed. Please try again in some time.'),
 	})
 	showNotifyParticipantsModal.value = false
+}
+
+// --- Leaving the modal ---
+//
+// Draft is not a button; it is what happens when you leave without sending,
+// the way mail's compose keeps what you typed. Cancel means "throw this away"
+// and asks first only if there is something to throw away. ✕, Escape and a
+// click outside mean "keep": a new event or a draft is saved as a draft with
+// a toast that can undo it. A published event cannot go back to being a
+// draft, so unsent edits there get the same question Cancel asks.
+
+const isDirty = computed(
+	() => Object.keys(patch.value).length > 0 || pendingMeetAttach.value,
+)
+
+const showDiscardModal = ref(false)
+
+const cancel = () => {
+	if (isDirty.value) showDiscardModal.value = true
+	else show.value = false
+}
+
+const discardChanges = () => {
+	showDiscardModal.value = false
+	show.value = false
+}
+
+const leave = () => {
+	if (!isDirty.value) {
+		show.value = false
+		return
+	}
+	if (isNew.value || isDraft.value) saveDraftAndLeave()
+	else showDiscardModal.value = true
+}
+
+const discardDraft = createResource({
+	url: 'suite.calendar.doctype.calendar_event.calendar_event.delete_calendar_events',
+	makeParams: ({ id }: { id: string }) => ({
+		account: store.accountId,
+		ids: [id],
+		send_scheduling_messages: false,
+	}),
+	onSuccess: () => {
+		toast.success(__('Draft discarded.'))
+		emit('reloadEvents')
+	},
+})
+
+const saveDraftAndLeave = async () => {
+	if (!isDateTimeValid.value) {
+		// Nothing the server would keep; the form's own validation says why.
+		showDiscardModal.value = true
+		return
+	}
+	savingDraft.value = true
+	try {
+		// The plain create/update: a draft has no Meet room and no per-instance edit.
+		const result = await (isNew.value ? createEvent : editEvent).submit({ sendEmail: false })
+		const id = isNew.value
+			? result
+			: selectedEvent.calendarEvent.master_id || selectedEvent.calendarEvent.id
+		toast.success(__('Draft saved.'), {
+			action: { label: __('Discard'), onClick: () => discardDraft.submit({ id }) },
+		})
+	} catch {
+		toast.error(__('Could not save the draft. Please try again.'))
+	} finally {
+		savingDraft.value = false
+	}
 }
 
 const showNotifyParticipantsModal = ref(false)
@@ -335,7 +554,7 @@ const shouldShowRecurringEventModal = computed(
 
 const addAlertOptions = computed(() => [
 	{
-		label: __('Relative to event'),
+		label: __('Relative to Event'),
 		onClick: () =>
 			event.alerts.push({
 				type: 'OffsetTrigger',
@@ -347,7 +566,7 @@ const addAlertOptions = computed(() => [
 			}),
 	},
 	{
-		label: __('On specific date'),
+		label: __('On Specific Date'),
 		onClick: () =>
 			event.alerts.push({
 				type: 'AbsoluteTrigger',
@@ -360,30 +579,45 @@ const addAlertOptions = computed(() => [
 
 // --- Dialog options ---
 
+const isSaving = computed(
+	() =>
+		createEvent.loading || editEvent.loading || editEventInstance.loading || createMeetEvent.loading,
+)
+
 const disableSave = computed(() => {
-	if (createEvent.loading || editEvent.loading || editEventInstance.loading) return true
-	if (createMeetEvent.loading) return true
+	if (isSaving.value) return true
 	if (!isDateTimeValid.value) return true
-	if (!isNew.value && !Object.keys(patch.value).length) return true
+	// Publishing a draft is a change in itself, even with nothing else edited.
+	if (isDraft.value) return false
+	if (!isNew.value && !Object.keys(patch.value).length && !pendingMeetAttach.value) return true
 	return false
 })
+
+// The primary says what it does: "Send" while there are invitations to send —
+// a new event or a draft with participants — and "Save" otherwise.
+// The primary says what it does: "Send" while there are invitations to send
+// (a new event or a draft with participants), "Save" otherwise. A new event
+// or a draft can also be kept as a draft — the split beside the primary, as
+// mail's compose has it; a published event cannot go back to being one, so
+// it gets a plain button.
+const primaryLabel = computed(() =>
+	(isNew.value || isDraft.value) && hasParticipantsOtherThanUser(event.participants)
+		? __('Send')
+		: __('Save'),
+)
+const canSaveDraft = computed(() => isNew.value || isDraft.value)
+const draftOptions = computed(() => [
+	{ label: __('Save as draft'), icon: 'lucide-file-pen-line', onClick: saveDraftAndLeave },
+])
 
 const handleSaveClick = () => {
 	if (shouldShowRecurringEventModal.value) showRecurringEventModal.value = true
 	else handleSave()
 }
 
-const dialogOptions = computed(() => ({
-	title: isNew.value ? __('Add Event') : __('Edit Event'),
-	size: '5xl',
-}))
-
-const RSVP_OPTIONS = [
-	{ label: __(' '), value: 'NEEDS-ACTION' },
-	{ label: __('Yes'), value: 'ACCEPTED' },
-	{ label: __('Maybe'), value: 'TENTATIVE' },
-	{ label: __('No'), value: 'DECLINED' },
-]
+const dialogTitle = computed(() =>
+	isNew.value ? __('Add Event') : isDraft.value ? __('Edit Draft') : __('Edit Event'),
+)
 
 const AVAILABILITY_OPTIONS = [
 	{ label: __('Free'), value: 'Free' },
@@ -397,195 +631,266 @@ const VISIBILITY_OPTIONS = [
 
 const showNotifyParticipantsOptions = computed(() => ({
 	title: __('Notify Participants'),
-	icon: { name: 'bell' },
+	icon: { name: 'lucide-bell' },
+	message:
+		isNew.value || isDraft.value
+			? __("Send an email to let attendees know they've been invited?")
+			: __('Send an email to let attendees know this event has been updated?'),
+}))
+
+const DISCARD_MODAL_OPTIONS = computed(() => ({
+	title: __('Discard changes?'),
+	icon: { name: 'lucide-trash-2' },
 	message: isNew.value
-		? __("Send an email to let attendees know they've been invited?")
-		: __('Send an email to let attendees know this event has been updated?'),
+		? __('This event has not been saved and will be lost.')
+		: __('Your unsaved edits to this event will be lost.'),
 }))
 
 const SHOW_RECURRING_EVENT_MODAL_OPTIONS = {
 	title: __('Update Recurring Event'),
-	icon: { name: 'repeat' },
+	icon: { name: 'lucide-repeat' },
 	message: __('Do you want to update just this instance, or all events in the series?'),
 }
 </script>
 
 <template>
-	<Dialog v-model="show" :options="dialogOptions">
-		<template #body-content>
-			<div class="grid max-h-[48rem] grid-cols-11 gap-6 overflow-y-auto">
-				<div class="col-span-7 space-y-4">
-					<h3 class="text-base-medium">{{ __('Event Details') }}</h3>
-					<!-- Title -->
-					<FormControl
-						v-model="event.title"
-						:label="__('Title')"
-						:placeholder="__('Meeting with Team')"
-					/>
+	<Dialog :open="show" size="4xl" bare @update:open="(open) => (open ? (show = true) : leave())">
+		<template #default>
+			<div class="flex max-h-[85vh] flex-col text-ink-gray-8">
+				<!-- header -->
+				<div class="flex items-center border-b px-6 py-4">
+					<span class="text-md font-semibold">{{ dialogTitle }}</span>
+					<Button variant="ghost" class="ml-auto" @click="leave">
+						<template #icon><X :size="18" class="icon text-ink-gray-5" /></template>
+					</Button>
+				</div>
 
-					<!-- Date and Time -->
-					<FormControl v-model="event.isAllDay" :label="__('All Day')" type="checkbox" />
-					<div class="flex space-x-4">
-						<FormControl
-							v-model="event.startDate"
-							type="date"
-							:label="__('Start Date')"
-							class="w-full"
+				<div class="flex min-h-0 flex-1">
+					<!-- left: event details -->
+					<div class="min-w-0 flex-1 overflow-y-auto px-6 py-5">
+						<!-- lead title -->
+						<input
+							v-model="event.title"
+							:autofocus="isNew"
+							:placeholder="__('Add title')"
+							class="w-full border-none bg-transparent p-0 pb-4 text-xl font-semibold tracking-tight text-ink-gray-8 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 						/>
-						<FormControl
-							v-if="!event.isAllDay"
-							v-model="event.startTime"
-							type="time"
-							:label="__('Start Time')"
-							class="w-full"
-						/>
-					</div>
-					<div class="flex space-x-4">
-						<FormControl
-							v-model="event.endDate"
-							type="date"
-							:label="__('End Date')"
-							class="w-full"
-						/>
-						<FormControl
-							v-if="!event.isAllDay"
-							v-model="event.endTime"
-							type="time"
-							:label="__('End Time')"
-							class="w-full"
-						/>
-					</div>
 
-					<!-- Repeat -->
-					<div class="flex items-center space-x-3">
-						<FormControl
-							v-model="event.repeat"
-							:label="
-								event.recurrence_rule?.frequency
-									? __('Repeat: {0}', [getRepeatMessage(event.recurrence_rule)])
-									: __('Repeat')
-							"
-							type="checkbox"
-							@update:model-value="
-								$event ? (showRepeatSettings = true) : (event.recurrence_rule = {})
-							"
-						/>
-						<span
-							v-if="event.recurrence_rule?.frequency"
-							class="text-ink-gray-4 cursor-pointer text-base hover:underline"
-							@click="showRepeatSettings = true"
-						>
-							{{ __('Edit') }}
-						</span>
-					</div>
+						<!-- date & time — one grouped card -->
+						<div class="rounded-7 border border-outline-gray-2">
+							<div class="flex items-center gap-3 border-b px-3.5 py-3">
+								<Clock :size="18" class="icon shrink-0 text-ink-gray-5" />
+								<span class="flex-1 text-base font-medium">
+									{{ __('Date & Time') }}
+								</span>
+								<FormControl
+									v-model="event.isAllDay"
+									:label="__('All Day')"
+									type="checkbox"
+									class="dark:[&_input:not(:checked)]:bg-surface-gray-2"
+								/>
+							</div>
+							<div class="flex gap-3 p-3.5">
+								<div class="min-w-0 flex-1 space-y-1.5">
+									<label class="block text-xs text-ink-gray-5">
+										{{ __('Starts') }}
+									</label>
+									<div class="flex gap-2">
+										<FormControl v-model="event.startDate" type="date" class="w-full" />
+										<FormControl
+											v-if="!event.isAllDay"
+											v-model="event.startTime"
+											type="time"
+											:interval="15"
+											format="h:mm A"
+											class="w-full"
+										/>
+									</div>
+								</div>
+								<div class="min-w-0 flex-1 space-y-1.5">
+									<label class="block text-xs text-ink-gray-5">
+										{{ __('Ends') }}
+									</label>
+									<div class="flex gap-2">
+										<FormControl v-model="event.endDate" type="date" class="w-full" />
+										<FormControl
+											v-if="!event.isAllDay"
+											v-model="event.endTime"
+											type="time"
+											:interval="15"
+											format="h:mm A"
+											class="w-full"
+										/>
+									</div>
+								</div>
+							</div>
+							<div class="px-3.5 pb-3.5">
+								<div
+									class="group -mx-1.5 flex cursor-pointer items-center gap-2 rounded-6 px-1.5 py-1.5 hover:bg-surface-gray-2"
+									@click="toggleRepeat"
+								>
+									<FormControl
+										v-model="event.repeat"
+										type="checkbox"
+										class="pointer-events-none dark:[&_input:not(:checked)]:bg-surface-gray-2"
+									/>
+									<span class="min-w-0 flex-1 truncate text-base text-ink-gray-8">
+										{{ repeatLabel }}
+									</span>
+								</div>
+							</div>
+						</div>
 
-					<!-- Locations -->
-					<div class="space-y-2">
-						<div v-for="(_, i) in event.locations" :key="i" class="flex space-x-2">
-							<FormControl
-								v-model="event.locations[i]"
-								:label="
-									i === 0
-										? event.locations.length > 1
-											? __('Locations')
-											: __('Location')
-										: ''
-								"
-								:placeholder="__('Meeting location {0}', [i + 1])"
-								class="w-full"
-							/>
-							<Button
-								v-if="
-									event.locations.length === i + 1 && event.locations.length < 3
-								"
-								icon="plus"
-								class="mt-auto"
-								@click="event.locations.push('')"
-							/>
-							<Button
-								v-else
-								icon="x"
-								class="mt-auto"
-								@click="event.locations.splice(i, 1)"
-							/>
+						<!-- meet link -->
+						<div class="mt-4 flex items-center gap-3 rounded-6 border border-outline-gray-2 px-3.5 py-3">
+							<template v-if="meetUrl">
+								<img :src="meetLogo" :alt="__('Frappe Meet')" class="size-7 shrink-0" />
+								<div class="min-w-0 flex-1">
+									<div class="text-sm font-medium text-ink-gray-8 mb-0.5">
+										{{ __('Frappe Meet') }}
+									</div>
+									<div class="truncate text-xs text-ink-gray-5">{{ meetLinkDisplay }}</div>
+								</div>
+								<Button variant="ghost" :title="__('Copy Frappe Meet link')" @click="copyMeetLink">
+									<template #icon><Copy :size="14" class="icon text-ink-gray-5" /></template>
+								</Button>
+								<Button :label="__('Join')" @click="joinMeet" />
+							</template>
+							<template v-else>
+								<img :src="meetLogo" :alt="__('Frappe Meet')" class="size-[18px] shrink-0" />
+								<span class="flex-1 text-base">{{ __('Add Frappe Meet video call') }}</span>
+								<Switch v-model="event.addMeetLink" />
+							</template>
+						</div>
+
+
+
+						<div class="mt-4 flex flex-col gap-4">
+							<!-- locations -->
+							<div class="flex gap-3">
+								<MapPin
+									:size="18"
+									class="icon shrink-0 text-ink-gray-5"
+									:class="event.locations?.length ? 'mt-7' : 'mt-2'"
+								/>
+								<div ref="locationsEl" class="min-w-0 flex-1 space-y-2">
+									<div v-for="(_, i) in event.locations" :key="i" class="flex gap-2">
+										<FormControl
+											v-model="event.locations[i]"
+											:label="
+												i === 0
+													? event.locations?.length > 1
+														? __('Locations')
+														: __('Location')
+													: ''
+											"
+											:placeholder="__('Meeting location {0}', [i + 1])"
+											class="w-full"
+										/>
+									<Button icon="lucide-x" class="mt-auto" @click="event.locations.splice(i, 1)" />
+									</div>
+									<Button
+										v-if="(event.locations?.length ?? 0) < 3"
+										:label="__('Add Location')"
+										@click="addLocation"
+									/>
+								</div>
+							</div>
+
+							<!-- alerts -->
+							<div class="flex gap-3">
+								<Bell
+									:size="18"
+									class="icon shrink-0 text-ink-gray-5"
+									:class="event.alerts?.length ? 'mt-7' : 'mt-2'"
+								/>
+								<div class="min-w-0 flex-1 space-y-2">
+									<EventAlertList v-model:alerts="event.alerts" />
+									<Dropdown
+										v-if="event.alerts?.length < 3"
+										:button="{ label: __('Add Alert') }"
+										:options="addAlertOptions"
+									/>
+								</div>
+							</div>
+
+							<!-- availability & visibility -->
+							<div class="flex gap-3">
+								<Briefcase :size="18" class="icon mt-7 shrink-0 text-ink-gray-5" />
+								<div class="flex min-w-0 flex-1 gap-3">
+									<FormControl
+										v-model="event.free_busy_status"
+										type="select"
+										:label="__('Availability')"
+										:options="AVAILABILITY_OPTIONS"
+										class="w-full"
+									/>
+									<FormControl
+										v-model="event.privacy"
+										type="select"
+										:label="__('Visibility')"
+										:options="VISIBILITY_OPTIONS"
+										class="w-full"
+									/>
+								</div>
+							</div>
+
+							<!-- description -->
+							<div class="flex gap-3">
+								<AlignLeft :size="18" class="icon mt-7 shrink-0 text-ink-gray-5" />
+								<FormControl
+									v-model="event.description"
+									:label="__('Description')"
+									type="textarea"
+									:placeholder="__('Add description')"
+									class="min-w-0 flex-1"
+								/>
+							</div>
 						</div>
 					</div>
 
-					<!-- Alerts -->
-					<div class="space-y-2">
-						<EventAlertList v-model:alerts="event.alerts" />
-						<Dropdown
-							v-if="event.alerts.length < 3"
-							:button="{ label: __('Add Alert') }"
-							:options="addAlertOptions"
+					<!-- right: guests rail -->
+					<div class="w-[300px] shrink-0 overflow-y-auto border-l px-5 py-5">
+						<div class="mb-3 flex items-baseline gap-2">
+							<Users :size="15" class="icon self-center text-ink-gray-5" />
+							<span class="text-base font-medium">{{ __('Participants') }}</span>
+							<span class="text-sm text-ink-gray-4">{{ participants.length }}</span>
+						</div>
+						<ParticipantSelector
+							v-model="event.participants"
+							:account="store.accountId"
+							:display-participants="participants"
+							label=""
 						/>
 					</div>
+				</div>
 
-					<!-- Availability and Privacy -->
-					<div class="flex space-x-4">
-						<FormControl
-							v-model="event.free_busy_status"
-							type="select"
-							:label="__('Availability')"
-							:options="AVAILABILITY_OPTIONS"
-							class="w-full"
+				<!-- footer -->
+				<div class="flex justify-end gap-2 border-t px-6 py-3.5">
+					<Button :label="__('Cancel')" variant="outline" @click="cancel" />
+					<!-- Split button, as mail's compose: one pill, the 1px gap shows the
+					     footer background as the divider. -->
+					<div class="flex items-center gap-px">
+						<Button
+							:label="primaryLabel"
+							variant="solid"
+							:disabled="disableSave"
+							class="min-w-16"
+							:class="canSaveDraft && '!rounded-r-none'"
+							@click="handleSaveClick"
 						/>
-						<FormControl
-							v-model="event.privacy"
-							type="select"
-							:label="__('Visibility')"
-							:options="VISIBILITY_OPTIONS"
-							class="w-full"
-						/>
+						<Dropdown v-if="canSaveDraft" :options="draftOptions">
+							<Button
+								variant="solid"
+								class="!rounded-l-none"
+								:disabled="isSaving || !isDateTimeValid"
+								:aria-label="__('More save options')"
+							>
+								<template #icon><ChevronDown class="h-4 w-4" /></template>
+							</Button>
+						</Dropdown>
 					</div>
-
-					<FormControl
-						v-if="isNew || hasMeetLink(selectedEvent?.calendarEvent)"
-						v-model="event.addMeetLink"
-						:label="__('Add Frappe Meet link')"
-						type="checkbox"
-						:disabled="!isNew && hasMeetLink(selectedEvent?.calendarEvent)"
-					/>
-
-					<!-- Description -->
-					<FormControl
-						v-model="event.description"
-						:label="__('Description')"
-						type="textarea"
-						:placeholder="__('Event description')"
-					/>
 				</div>
-				<div class="col-span-4 flex h-full flex-col space-y-4 border-l pl-6">
-					<!-- RSVP -->
-					<template v-if="showRSVP">
-						<h3 class="text-base-medium">{{ __('RSVP') }}</h3>
-						<FormControl
-							v-model="userParticipant.participation_status"
-							type="select"
-							:label="__('Are you attending?')"
-							:options="RSVP_OPTIONS"
-							class="w-full"
-						/>
-					</template>
-
-					<ParticipantSelector
-						v-model="event.participants"
-						:account="store.accountId"
-						:display-participants="participants"
-					/>
-				</div>
-			</div>
-		</template>
-		<template #actions="{ close }">
-			<div class="flex justify-end gap-2">
-				<Button :label="__('Cancel')" variant="outline" @click="close" />
-				<Button
-					:label="__('Save')"
-					variant="solid"
-					:disabled="disableSave"
-					class="w-16"
-					@click="handleSaveClick"
-				/>
 			</div>
 		</template>
 	</Dialog>
@@ -596,17 +901,27 @@ const SHOW_RECURRING_EVENT_MODAL_OPTIONS = {
 		:r-rule="event?.recurrence_rule"
 		@update-recurrence-rule="(val) => (event.recurrence_rule = val)"
 	/>
-	<Dialog v-model="showRecurringEventModal" :options="SHOW_RECURRING_EVENT_MODAL_OPTIONS">
+	<Dialog v-model:open="showDiscardModal" v-bind="DISCARD_MODAL_OPTIONS">
 		<template #actions>
 			<div class="flex justify-end space-x-2">
-				<Button @click="handleSaveRecurringEvent(false)">{{ __('Entire series') }}</Button>
+				<Button :label="__('Keep editing')" @click="showDiscardModal = false" />
+				<Button :label="__('Discard')" variant="solid" theme="red" @click="discardChanges" />
 			</div>
 		</template>
 	</Dialog>
-	<Dialog v-model="showNotifyParticipantsModal" :options="showNotifyParticipantsOptions">
+	<Dialog v-model:open="showRecurringEventModal" v-bind="SHOW_RECURRING_EVENT_MODAL_OPTIONS">
 		<template #actions>
 			<div class="flex justify-end space-x-2">
-				<Button variant="outline" @click="submitEvent(false)"> {{ __('Skip') }} </Button>
+				<Button @click="handleSaveRecurringEvent(false)">{{ __('Entire Series') }}</Button>
+			</div>
+		</template>
+	</Dialog>
+	<Dialog v-model:open="showNotifyParticipantsModal" v-bind="showNotifyParticipantsOptions">
+		<template #actions>
+			<div class="flex justify-end space-x-2">
+				<Button variant="outline" @click="submitEvent(false)">
+					{{ __('Skip') }}
+				</Button>
 				<Button variant="solid" @click="submitEvent(true)">
 					{{ __('Send Email') }}
 				</Button>

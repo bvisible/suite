@@ -169,6 +169,25 @@ export function createGeometry(colW, rowH, scroll, freeze = { rows: 0, cols: 0 }
     return c
   }
 
+  // Insertion boundary for a column drag: the index a dropped column would sit
+  // *before* (0..TOTAL_COLS), decided by which side of the hovered column's
+  // midpoint the cursor sits on. Ignores the y coordinate so it tracks anywhere.
+  function colInsertIndex(ex, canvasRect) {
+    const { x } = _logical(ex, 0, canvasRect)
+    const fc = freeze.cols || 0
+    const mainX = _mainX()
+    let c, cx
+    if (x < mainX) {
+      cx = ROW_HEADER_W; c = 0
+      while (c < fc && x >= cx + cw(c)) { cx += cw(c); c++ }
+      if (c >= fc) { c = fc; cx = mainX - scroll.x }
+    } else {
+      cx = mainX - scroll.x; c = fc
+      while (c < TOTAL_COLS - 1 && cx + cw(c) <= x) { cx += cw(c); c++ }
+    }
+    return x < cx + cw(c) / 2 ? c : c + 1
+  }
+
   function hitTestRowHeader(ex, ey, canvasRect) {
     const { x, y } = _logical(ex, ey, canvasRect)
     if (x >= ROW_HEADER_W || y < COL_HEADER_H) return null
@@ -213,6 +232,7 @@ export function createGeometry(colW, rowH, scroll, freeze = { rows: 0, cols: 0 }
     firstVisCol, firstVisRow, lastVisCol, lastVisRow,
     hitTest, clamp,
     hitTestColResize, hitTestColHeader, hitTestRowHeader, hitTestCorner,
+    colInsertIndex,
     setColWidth, hitTestRowResize, setRowHeight,
   }
 }

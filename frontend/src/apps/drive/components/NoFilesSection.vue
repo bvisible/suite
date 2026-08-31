@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col items-center m-auto gap-4" style="transform: translate(0, -88.5px)">
+  <div class="flex flex-col items-center text-center mx-auto mt-24 gap-4">
     <div class="flex flex-col items-center gap-2">
       <component v-if="icon" :is="icon" class="size-8 text-ink-gray-5" />
       <p class="text-base-medium text-ink-gray-7">
@@ -24,10 +24,6 @@ defineProps({
   description: {
     type: String,
     default: '',
-  },
-  button: {
-    type: Object,
-    required: false,
   },
 })
 </script>

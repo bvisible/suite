@@ -21,16 +21,45 @@
 							v-if="isHost || isCohost"
 							:options="pollMenuOptions"
 						>
-							<Button variant="ghost" icon="lucide-more-horizontal" class="text-ink-gray-6 hover:bg-surface-gray-2" />
+							<Button variant="ghost" icon="lucide-more-horizontal" />
 						</Dropdown>
 
-						<Button variant="ghost" class="text-ink-gray-6 hover:bg-surface-gray-2" @click="$emit('close')">
-							<lucide-x class="h-4 w-4 text-ink-gray-8" />
-						</Button>
+						<Button variant="ghost" icon="lucide-x" @click="$emit('close')" />
 					</div>
 				</div>
 
-				<div ref="listEl" class="flex-1 overflow-y-auto px-3 py-7" data-testid="chat-messages">
+				<div
+					v-if="pinnedMessage"
+					class="group mx-3 mb-2 flex shrink-0 items-center gap-2 rounded-[18px] bg-surface-gray-2 px-3 py-2.5"
+					role="button"
+					tabindex="0"
+					data-testid="pinned-message-banner"
+					@click="scrollToMessage(pinnedMessage.messageId)"
+					@keydown.enter.prevent="scrollToMessage(pinnedMessage.messageId)"
+					@keydown.space.prevent="scrollToMessage(pinnedMessage.messageId)"
+				>
+					<span class="lucide-pin size-3.5 shrink-0 text-ink-gray-5" aria-hidden="true" />
+					<div class="min-w-0 flex-1">
+						<div class="truncate text-[11px] tracking-[0.11px] text-ink-gray-5">
+							{{ pinnedMessage.user_name }}
+						</div>
+						<div class="mt-0.5 truncate text-sm tracking-[0.21px] text-ink-gray-8">
+							{{ pinnedMessage.message }}
+						</div>
+					</div>
+					<Button
+						v-if="canPin"
+						variant="ghost"
+						size="xs"
+						icon="lucide-pin-off"
+						class="!bg-surface-gray-1 !text-ink-gray-5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 hover:!bg-surface-gray-3 hover:!text-ink-gray-8"
+						label="Unpin"
+						tooltip="Unpin message"
+						@click.stop="emit('unpin')"
+					/>
+				</div>
+
+				<div ref="listEl" class="flex-1 overflow-y-auto px-3 py-7">
 					<div class="flex flex-col gap-5">
 						<template v-for="item in chatItems" :key="item.key">
 							<div
@@ -38,9 +67,10 @@
 								class="flex min-w-0 gap-2"
 								:class="item.poll.createdBy === userId ? 'justify-end' : 'justify-start'"
 							>
-								<Avatar
+								<MeetAvatar
 									v-if="item.poll.createdBy !== userId"
 									size="lg"
+									:image="avatarByUser[item.poll.createdBy]"
 									:label="item.poll.createdByName || item.poll.createdBy"
 									class="mt-6 shrink-0"
 								/>
@@ -64,9 +94,10 @@
 							class="flex min-w-0 gap-2"
 							:class="item.group.isOwn ? 'justify-end' : 'justify-start'"
 						>
-							<Avatar
+							<MeetAvatar
 								v-if="!item.group.isOwn"
 								size="lg"
+								:image="avatarByUser[item.group.user_id]"
 								:label="item.group.user_name"
 								class="mt-6 shrink-0"
 							/>
@@ -85,9 +116,24 @@
 									<div
 										v-for="message in item.group.messages"
 										:key="message.id"
-										class="max-w-full whitespace-pre-wrap rounded-[18px] px-3 py-2.5 text-sm leading-[1.15] tracking-[0.28px] text-ink-gray-8 [overflow-wrap:anywhere]"
-										:class="item.group.isOwn ? 'bg-surface-gray-3 text-right' : 'bg-surface-gray-2'"
+										class="group relative max-w-full whitespace-pre-wrap rounded-[18px] px-3 py-2.5 text-left text-p-sm tracking-[0.28px] text-ink-gray-8 [overflow-wrap:anywhere]"
+										:data-message-id="message.messageId"
+										:class="item.group.isOwn ? 'bg-surface-gray-3' : 'bg-surface-gray-2'"
 									>
+										<Button
+											v-if="canPin"
+											type="button"
+											variant="ghost"
+											size="xs"
+											:icon="isPinned(message) ? 'lucide-pin-off' : 'lucide-pin'"
+											:class="[
+												'absolute -top-2.5 -right-2.5 !rounded-full border border-outline-gray-2 !bg-surface-gray-1 !p-0 !text-ink-gray-5 shadow-sm hover:!bg-surface-gray-2 hover:!text-ink-gray-8',
+												isPinned(message) ? '!opacity-100' : 'opacity-0 group-hover:opacity-100',
+											]"
+											:label="isPinned(message) ? 'Unpin message' : 'Pin message'"
+											:tooltip="isPinned(message) ? 'Unpin message' : 'Pin message'"
+											@click="togglePin(message)"
+										/>
 										<template
 											v-for="(token, i) in tokenizeChatMessage(message.message)"
 											:key="i"
@@ -97,7 +143,7 @@
 												:href="token.url"
 												target="_blank"
 												rel="noopener noreferrer"
-												class="text-ink-blue-5 underline"
+												class="break-all text-ink-blue-5 underline"
 											>{{ token.text }}</a>
 											<span v-else>{{ token.text }}</span>
 										</template>
@@ -116,31 +162,56 @@
 				<form class="relative shrink-0 p-3" @submit.prevent="handleSend">
 					<template v-if="canSendMessages">
 						<div
-							class="flex cursor-text items-end gap-2 rounded-lg border border-outline-gray-2 bg-surface-gray-1 px-2.5 py-2 shadow-sm transition-colors focus-within:border-outline-gray-3"
-							data-testid="chat-input-wrapper"
+							class="chat-composer relative flex cursor-text items-center gap-2 rounded-6 border border-outline-gray-2 bg-surface-gray-1 px-2.5 py-1.5 shadow-sm transition-[border-color,box-shadow] focus-within:border-outline-gray-3 focus-within:shadow-[0_0_0_1px_var(--outline-gray-3)]"
 							@click="focusInput"
 						>
-							<Editor
-								ref="editorRef"
-								v-model="draft"
-								placeholder="Type a message"
-								:extensions="editorExtensions"
+							<div
+								v-if="emojiMenuActive"
+								class="absolute bottom-full left-0 z-50 mb-1 max-h-[220px] min-w-[12rem] overflow-y-auto rounded-6 border border-outline-gray-2 bg-surface-elevation-2 p-1 shadow-lg"
+								role="listbox"
+								aria-label="Emoji suggestions"
+								data-testid="chat-emoji-suggestions"
 							>
-								<template #default="{ editor }">
-									<EditorContent
-										:editor="editor"
-										class="chat-composer-editor min-w-0 flex-1 text-sm text-ink-gray-8 tracking-[0.28px]"
-										data-testid="chat-input"
-									/>
-								</template>
-							</Editor>
+								<button
+									v-for="(item, index) in emojiSuggestions"
+									:key="item.name"
+									type="button"
+									role="option"
+									class="flex w-full items-center gap-2 rounded-4 px-2 py-1.5 text-left text-sm"
+									:class="
+										index === emojiSelectedIndex
+											? 'bg-surface-gray-3'
+											: 'hover:bg-surface-gray-2'
+									"
+									:aria-selected="index === emojiSelectedIndex"
+									@mousedown.prevent="selectEmoji(item)"
+									@mouseenter="emojiSelectedIndex = index"
+								>
+									<span class="text-base leading-none">{{ item.emoji }}</span>
+									<span class="truncate text-ink-gray-4">{{ item.name }}</span>
+								</button>
+								<div
+									v-if="emojiSuggestions.length === 0"
+									class="px-2 py-1.5 text-sm text-ink-gray-4"
+								>
+									No results
+								</div>
+							</div>
+							<textarea
+								ref="inputEl"
+								v-model="draft"
+								rows="1"
+								placeholder="Type a message"
+								class="chat-composer-input min-w-0 flex-1 resize-none border-0 bg-transparent py-0 text-sm leading-5 text-ink-gray-8 tracking-[0.28px] shadow-none outline-none ring-0 placeholder:text-ink-gray-5 focus:border-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
+								@input="onInput"
+								@keydown="onKeydown"
+							/>
 							<Button
 								type="submit"
 								variant="subtle"
 								theme="gray"
-								class="!h-7 !w-7 shrink-0 !rounded-md p-0"
-								aria-label="Send message"
-								data-testid="chat-send"
+								class="!h-7 !w-7 shrink-0 !rounded-4 p-0"
+								label="Send message"
 							>
 								<template #icon>
 									<lucide-send class="h-4 w-4" />
@@ -148,7 +219,7 @@
 							</Button>
 						</div>
 					</template>
-					<div v-else class="m-2 rounded-lg border border-outline-gray-2 bg-surface-gray-2 py-3 text-center text-sm text-ink-gray-5">
+					<div v-else class="m-2 rounded-6 border border-outline-gray-2 bg-surface-gray-2 py-3 text-center text-sm text-ink-gray-5">
 						The host has restricted chat to hosts and co-hosts only.
 					</div>
 				</form>
@@ -162,9 +233,7 @@
 </template>
 
 <script setup lang="ts">
-import { Extension } from "@tiptap/core";
-import { Avatar, Button, Dropdown } from "frappe-ui";
-import { Editor, EditorContent, CommentKit } from "frappe-ui/editor";
+import { Button, Dropdown } from "frappe-ui";
 import {
 	computed,
 	inject,
@@ -175,54 +244,48 @@ import {
 	watch,
 } from "vue";
 import { tokenizeChatMessage } from "../utils/chatMessageTokens";
+import { buildChatTimeline } from "../utils/chatTimeline";
+import {
+	findColonQuery,
+	insertEmojiAtQuery,
+	rememberEmoji,
+	suggestEmojis,
+	type EmojiSuggestion,
+} from "../utils/emojiSuggest";
 import { usePollStore } from "../composables/usePollStore";
+import { pollKey } from "../composables/usePoll";
 import type { PollPayloadFE } from "../types";
 import CreatePollModal from "./CreatePollModal.vue";
+import MeetAvatar from "./MeetAvatar.vue";
 import PollMessageCard from "./PollMessageCard.vue";
 import LucideChartColumn from "~icons/lucide/chart-column";
 
 interface ChatMessage {
 	id: string | number;
+	messageId?: string;
 	user_id: string;
 	user_name: string;
 	message: string;
 	timestamp: string;
 }
 
-interface MessageGroup {
-	id: string | number;
-	user_id: string;
-	user_name: string;
-	timestamp: string;
-	isOwn: boolean;
-	messages: ChatMessage[];
-}
-
-type ChatItem = {
-	type: 'poll';
-	key: string;
-	poll: PollPayloadFE;
-	timestamp: string;
-} | {
-	type: 'message';
-	key: string;
-	group: MessageGroup;
-	timestamp: string;
-};
-
 const props = defineProps<{
 	open?: boolean;
 	userId?: string;
 	userName?: string;
+	avatarByUser?: Record<string, string | null | undefined>;
 	messages?: ChatMessage[];
 	isHost?: boolean;
 	isCohost?: boolean;
 	isGuest?: boolean;
 	hostOnlyChat?: boolean;
+	pinnedMessage?: ChatMessage | null;
 }>();
 
+const avatarByUser = computed(() => props.avatarByUser || {});
+
 const pollStore = usePollStore();
-const pollService = inject("poll") as any;
+const pollService = inject(pollKey);
 const showPollModal = ref(false);
 
 const activePolls = computed(() => pollStore.activePolls);
@@ -236,12 +299,12 @@ const pollMenuOptions = [
 	},
 ];
 
-const handlePollSubmit = (payload: {
+const handlePollSubmit = async (payload: {
 	question: string;
 	options: { text: string }[];
 }) => {
 	if (pollService) {
-		pollService.createPoll(payload.question, payload.options);
+		await pollService.createPoll(payload.question, payload.options);
 		showPollModal.value = false;
 	} else {
         console.error("ERROR: pollService is undefined! The inject failed.");
@@ -251,105 +314,55 @@ const handlePollSubmit = (payload: {
 const emit = defineEmits<{
 	close: [];
 	send: [text: string];
+	pin: [messageId: string];
+	unpin: [];
 }>();
 const listEl = ref<HTMLElement | null>(null);
-const editorRef = ref();
+const inputEl = ref<HTMLTextAreaElement | null>(null);
 const draft = ref("");
 
-const editorExtensions = computed(() => [
-	CommentKit.configure({
-		starterKit: { heading: false },
-		emoji: {},
-		mention: false,
-		tag: false,
-		image: false,
-		video: false,
-		table: false,
-		contentPaste: false,
-	}),
-	Extension.create({
-		name: "enterToSend",
-		addKeyboardShortcuts() {
-			return {
-				Enter: ({ editor }) => {
-					if (editor.view.dom.querySelector(".suggestion")) return false;
-					handleSend();
-					return true;
-				},
-			};
-		},
-	}),
-]);
+const emojiSuggestions = ref<EmojiSuggestion[]>([]);
+const emojiSelectedIndex = ref(0);
+const emojiQueryStart = ref<number | null>(null);
+/** True while a trailing `:query` is active at the caret (incl. empty query after `:`). */
+const emojiMenuActive = computed(() => emojiQueryStart.value !== null);
 
 const canSendMessages = computed(() => {
 	if (!props.hostOnlyChat) return true;
 	return props.isHost || props.isCohost;
 });
 
+const canPin = computed(() => props.isHost || props.isCohost);
+
+function isPinned(message: ChatMessage): boolean {
+	return Boolean(
+		props.pinnedMessage && props.pinnedMessage.messageId === message.messageId,
+	);
+}
+
+function togglePin(message: ChatMessage) {
+	if (!message.messageId) return;
+	if (isPinned(message)) emit("unpin");
+	else emit("pin", message.messageId);
+}
+
+function scrollToMessage(messageId?: string) {
+	if (!messageId) return;
+	const messageEl = listEl.value?.querySelector<HTMLElement>(
+		`[data-message-id="${messageId}"]`,
+	);
+	messageEl?.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
 onMounted(async () => {
 	await scrollToBottom();
 });
 
-const groupedMessages = computed<MessageGroup[]>(() => {
-	const msgs = props.messages;
-	if (!msgs || msgs.length === 0) return [];
+const chatItems = computed(() =>
+	buildChatTimeline(props.messages || [], activePolls.value, props.userId),
+);
 
-	const groups: MessageGroup[] = [];
-	let currentGroup: MessageGroup | null = null;
-
-	for (const message of msgs) {
-		const isOwn = message.user_id === props.userId;
-		const shouldStartNewGroup =
-			!currentGroup ||
-			currentGroup.user_id !== message.user_id ||
-			currentGroup.isOwn !== isOwn ||
-			(currentGroup.messages.length > 0 &&
-				Math.abs(
-					new Date(message.timestamp).getTime() -
-						new Date(currentGroup.messages[0].timestamp).getTime(),
-				) > 300000);
-
-		if (shouldStartNewGroup) {
-			currentGroup = {
-				id: message.id,
-				user_id: message.user_id,
-				user_name: message.user_name,
-				timestamp: message.timestamp,
-				isOwn,
-				messages: [message],
-			};
-			groups.push(currentGroup);
-		} else {
-			currentGroup.messages.push(message);
-		}
-	}
-
-	return groups;
-});
-
-const chatItems = computed<ChatItem[]>(() => {
-	const items: ChatItem[] = [];
-	for (const poll of activePolls.value) {
-		items.push({
-			type: 'poll',
-			key: `poll-${poll.pollId}`,
-			poll,
-			timestamp: poll.createdAt || '1970-01-01T00:00:00.000Z',
-		});
-	}
-	for (const group of groupedMessages.value) {
-		items.push({
-			type: 'message',
-			key: `msg-${group.id}`,
-			group,
-			timestamp: group.timestamp,
-		});
-	}
-	items.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
-	return items;
-});
-
-function time(ts) {
+function time(ts: string) {
 	try {
 		return new Date(ts).toLocaleTimeString([], {
 			hour: "2-digit",
@@ -366,24 +379,121 @@ function pollCreatorName(poll: PollPayloadFE) {
 	return poll.createdByName || poll.createdBy;
 }
 
+function syncEmojiMenu() {
+	const el = inputEl.value;
+	if (!el) {
+		closeEmojiMenu();
+		return;
+	}
+	const caret = el.selectionStart ?? draft.value.length;
+	const found = findColonQuery(draft.value, caret);
+	if (!found) {
+		closeEmojiMenu();
+		return;
+	}
+	emojiQueryStart.value = found.start;
+	emojiSuggestions.value = suggestEmojis(found.query);
+	emojiSelectedIndex.value = 0;
+}
+
+function closeEmojiMenu() {
+	emojiQueryStart.value = null;
+	emojiSuggestions.value = [];
+	emojiSelectedIndex.value = 0;
+}
+
+function selectEmoji(item: EmojiSuggestion) {
+	const el = inputEl.value;
+	if (!el || emojiQueryStart.value === null) return;
+	const caret = el.selectionStart ?? draft.value.length;
+	const { text, caret: nextCaret } = insertEmojiAtQuery(
+		draft.value,
+		caret,
+		emojiQueryStart.value,
+		item.emoji,
+	);
+	draft.value = text;
+	rememberEmoji(item);
+	closeEmojiMenu();
+	nextTick(() => {
+		el.focus();
+		el.setSelectionRange(nextCaret, nextCaret);
+		autosize();
+	});
+}
+
+function onInput() {
+	autosize();
+	syncEmojiMenu();
+}
+
+function onKeydown(event: KeyboardEvent) {
+	if (emojiMenuActive.value) {
+		if (event.key === "ArrowDown") {
+			event.preventDefault();
+			if (emojiSuggestions.value.length === 0) return;
+			emojiSelectedIndex.value =
+				(emojiSelectedIndex.value + 1) % emojiSuggestions.value.length;
+			return;
+		}
+		if (event.key === "ArrowUp") {
+			event.preventDefault();
+			if (emojiSuggestions.value.length === 0) return;
+			emojiSelectedIndex.value =
+				(emojiSelectedIndex.value - 1 + emojiSuggestions.value.length) %
+				emojiSuggestions.value.length;
+			return;
+		}
+		if (event.key === "Escape") {
+			event.preventDefault();
+			closeEmojiMenu();
+			return;
+		}
+		if (
+			(event.key === "Enter" || event.key === "Tab") &&
+			!event.shiftKey &&
+			emojiSuggestions.value.length > 0
+		) {
+			event.preventDefault();
+			selectEmoji(emojiSuggestions.value[emojiSelectedIndex.value]);
+			return;
+		}
+	}
+
+	if (event.key === "Enter" && !event.shiftKey) {
+		event.preventDefault();
+		handleSend();
+	}
+}
+
 function handleSend() {
-	const editor = editorRef.value?.editor;
-	if (!editor) return;
-	const text = editor.getText().trim();
+	const text = draft.value.trim();
 	if (!canSendMessages.value) return;
 	if (!text) return;
 	emit("send", text);
 	draft.value = "";
-	nextTick(() => editor.commands.focus());
+	closeEmojiMenu();
+	nextTick(() => {
+		autosize();
+		focusInput();
+	});
 }
 
 function focusInput() {
-	editorRef.value?.editor?.commands.focus("end");
+	inputEl.value?.focus();
+}
+
+function autosize() {
+	const el = inputEl.value;
+	if (!el) return;
+	el.style.height = "auto";
+	el.style.height = `${Math.min(el.scrollHeight, 88)}px`;
 }
 
 async function scrollToBottom() {
 	await nextTick();
 	const el = listEl.value;
+	if (!el) return;
 	el.scrollTop = el.scrollHeight;
 }
 
@@ -391,23 +501,23 @@ watch([chatItems], scrollToBottom, { deep: true });
 </script>
 
 <style scoped>
-:deep(.chat-composer-editor) {
-	min-height: 20px;
-	max-height: 48px;
-	overflow-y: auto;
-	background: transparent;
-	caret-color: var(--ink-gray-8);
-}
-
-:deep(.chat-composer-editor p) {
+.chat-composer-input {
+	min-height: 1.375rem;
+	max-height: 88px;
+	padding: 0;
 	margin: 0;
+	overflow-y: auto;
+	caret-color: var(--ink-gray-8);
+	/* Kill UA / form focus chrome; the wrapper owns focus affordance. */
+	outline: none !important;
+	box-shadow: none !important;
+	-webkit-appearance: none;
+	appearance: none;
 }
 
-:deep(.chat-composer-editor p.is-editor-empty::before) {
-	color: var(--ink-gray-5);
-}
-
-:deep(.chat-composer-editor.ProseMirror-focused) {
-	outline: none;
+.chat-composer-input:focus,
+.chat-composer-input:focus-visible {
+	outline: none !important;
+	box-shadow: none !important;
 }
 </style>

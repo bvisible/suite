@@ -49,8 +49,8 @@ export interface MailAccountRequest extends DocType {
   is_expired: 0 | 1;
   /** Account: Data */
   account: string;
-  /** Domain: Data */
-  domain_name: string;
+  /** Aliases: Small Text */
+  aliases?: string;
   /** Send Invite: Check */
   send_invite: 0 | 1;
   /** IP Address: Data */
@@ -145,12 +145,6 @@ export interface MailSettings extends DocType {
   exchange_export_timeout: number;
   /** Mail Exchange Import Timeout: Int */
   exchange_import_timeout: number;
-  /** Fetch Lock Timeout: Int */
-  fetch_lock_timeout: number;
-  /** Lock Acquire Timeout: Int */
-  lock_acquire_timeout: number;
-  /** Lock Timeout: Int */
-  lock_timeout: number;
   /** Scan Message Timeout: Int */
   scan_message_timeout: number;
   /** Server Deployment Timeout: Int */

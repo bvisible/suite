@@ -1,29 +1,32 @@
 <template>
 	<div class="sm:bg-surface-gray-1 min-h-screen py-4 sm:py-12">
 		<div
-			class="bg-surface-base mx-auto max-w-full space-y-6 rounded-md border p-4 sm:w-[75rem] sm:space-y-8 sm:p-12"
+			class="bg-surface-base mx-auto max-w-full space-y-6 rounded-4 border p-4 sm:w-[75rem] sm:space-y-8 sm:p-12"
 		>
 			<template v-if="mime.data">
 				<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-					<h1 class="text-xl !font-medium">{{ __('MIME Message') }}</h1>
+					<h1 class="text-lg !font-medium">{{ __('MIME Message') }}</h1>
 					<Button
 						:label="__('Copy to Clipboard')"
 						size="md"
 						@click="copyToClipBoard(message)"
 					/>
 				</div>
-				<div class="rounded-md border">
+				<div class="rounded-4 border">
 					<div class="border-b px-4 py-4 sm:px-6">
 						<h2>{{ __('Message Information') }}</h2>
 					</div>
 					<div
 						v-for="[key, value] of Object.entries(mime.data)"
 						:key="key"
-						class="even:bg-surface-gray-1 flex flex-col gap-1 px-4 py-4 text-base last:rounded-b sm:flex-row sm:items-center sm:px-6"
+						class="even:bg-surface-gray-1 flex flex-col gap-1 px-4 py-4 text-base last:rounded-b-4 sm:flex-row sm:items-center sm:px-6"
 					>
 						<div class="text-ink-gray-5 w-full sm:w-1/4">{{ value.label }}</div>
 						<div class="flex w-full items-center break-words sm:w-3/4">
-							{{ value.value }}
+							<Tooltip v-if="value.description" :text="value.description">
+								<span>{{ value.value }}</span>
+							</Tooltip>
+							<template v-else>{{ value.value }}</template>
 						</div>
 					</div>
 				</div>
@@ -35,7 +38,7 @@
 			</template>
 
 			<div v-else-if="mime.error" class="space-y-4 text-center">
-				<h1 class="text-3xl !font-medium text-red-500">{{ __('Error') }}</h1>
+				<h1 class="text-2xl !font-medium text-red-500">{{ __('Error') }}</h1>
 				<div class="text-ink-gray-5" v-html="mime.error.messages[0]" />
 				<Button :label="__('Return to Home')" size="md" @click="$router.push({ name: 'mail-root-shortcut' })" />
 			</div>
@@ -46,7 +49,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { Button, createResource } from 'frappe-ui'
+import { Button, Tooltip, createResource } from 'frappe-ui'
 
 import { copyToClipBoard } from '@/apps/mail/utils'
 
@@ -56,6 +59,7 @@ const message = ref('')
 interface MimeField {
 	label: string
 	value: string
+	description?: string
 }
 
 interface Mime {

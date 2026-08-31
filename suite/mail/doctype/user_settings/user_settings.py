@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 import json
+from datetime import UTC, datetime
 from functools import cached_property
 from uuid import uuid7
 
@@ -14,146 +15,130 @@ from suite.mail.doctype.jmap_account.jmap_account import sync_jmap_accounts
 from suite.mail.jmap import get_jmap_session_manager
 from suite.mail.jmap.connection import JMAPConnection, JMAPConnectionInfo
 from suite.mail.utils import get_config
-from suite.mail.utils.dt import timestamp_to_datetime
-from suite.mail.utils.user import is_system_manager
+from suite.mail.utils.dt import normalize_utc_z
+from suite.utils.permissions import OwnerFromUser
 
 
-class UserSettings(Document):
-	# begin: auto-generated types
-	# This code is auto-generated. Do not modify anything in this block.
+class UserSettings(OwnerFromUser, Document):
+    # begin: auto-generated types
+    # This code is auto-generated. Do not modify anything in this block.
 
-	from typing import TYPE_CHECKING
+    from typing import TYPE_CHECKING
 
-	if TYPE_CHECKING:
-		from frappe.types import DF
+    if TYPE_CHECKING:
+        from frappe.types import DF
 
-		app_password: DF.Password | None
-		backup_email: DF.Data | None
-		color_scheme: DF.Literal["System Default", "Light Mode", "Dark Mode"]
-		group_messages_by: DF.Literal["None", "Day", "Month"]
-		show_reading_pane: DF.Check
-		skip_schedule_fetch_changes: DF.Check
-		user: DF.Link
-		username: DF.Data | None
-	# end: auto-generated types
+        app_password: DF.Password | None
+        backup_email: DF.Data | None
+        disable_push_subscriptions: DF.Check
+        group_messages_by: DF.Literal["None", "Day", "Month"]
+        show_reading_pane: DF.Check
+        undo_send_period: DF.Literal["5", "10", "20", "30"]
+        user: DF.Link
+        username: DF.Data | None
+    # end: auto-generated types
 
-	@property
-	def server_url(self) -> str | None:
-		"""Returns the server URL from the configuration."""
+    @property
+    def server_url(self) -> str | None:
+        """Returns the server URL from the configuration."""
 
-		config = get_config()
-		return config.get("server_url")
+        config = get_config()
+        return config.get("server_url")
 
-	@cached_property
-	def session(self) -> dict:
-		"""Returns the JMAP session for the user."""
+    @cached_property
+    def session(self) -> dict:
+        """Returns the JMAP session for the user."""
 
-		return get_jmap_session_manager(self.user).get_session() or {}
+        return get_jmap_session_manager(self.user).get_session() or {}
 
-	@property
-	def session_state(self) -> str | None:
-		"""Returns the state of the JMAP session for the user."""
+    @property
+    def session_state(self) -> str | None:
+        """Returns the state of the JMAP session for the user."""
 
-		return self.session.get("state")
+        return self.session.get("state")
 
-	@property
-	def session_last_update(self) -> str | None:
-		"""Returns the last update timestamp of the JMAP session for the user in the user's timezone."""
+    @property
+    def session_last_update(self) -> str | None:
+        """Returns the last update timestamp of the JMAP session for the user, in UTC ``...Z``."""
 
-		timestamp = self.session.get("timestamp")
-		if timestamp:
-			return timestamp_to_datetime(timestamp, as_str=True)
+        timestamp = self.session.get("timestamp")
+        if timestamp:
+            return normalize_utc_z(datetime.fromtimestamp(timestamp, tz=UTC))
 
-	@property
-	def jmap_session(self) -> str:
-		"""Returns the JMAP session for the user as a JSON string."""
+    @property
+    def jmap_session(self) -> str:
+        """Returns the JMAP session for the user as a JSON string."""
 
-		return json.dumps(self.session, indent=4)
+        return json.dumps(self.session, indent=4)
 
-	@property
-	def connection(self) -> JMAPConnection | None:
-		"""Returns a JMAP connection for the user if the username and app password are set, otherwise returns None."""
+    @property
+    def connection(self) -> JMAPConnection | None:
+        """Returns a JMAP connection for the user if the username and app password are set, otherwise returns None."""
 
-		if self.username and self.get_password("app_password"):
-			server_url = get_config("server_url")
+        if self.username and self.get_password("app_password"):
+            server_url, verify_ssl = get_config(("server_url", "verify_ssl"))
 
-			try:
-				return JMAPConnection(
-					JMAPConnectionInfo(server_url, self.username, self.get_password("app_password"))
-				)
-			except Exception:
-				pass
+            try:
+                return JMAPConnection(
+                    JMAPConnectionInfo(
+                        server_url,
+                        self.username,
+                        self.get_password("app_password"),
+                        verify_ssl=bool(verify_ssl),
+                    )
+                )
+            except Exception:
+                pass
 
-	def autoname(self) -> None:
-		self.name = str(uuid7())
+    def autoname(self) -> None:
+        self.name = str(uuid7())
 
-	def validate(self) -> None:
-		if not self.username or frappe.flags.in_migrate:
-			return
+    def validate(self) -> None:
+        if not self.username or frappe.flags.in_migrate:
+            return
 
-		self.validate_jmap_settings()
+        self.validate_jmap_settings()
 
-	def on_update(self) -> None:
-		if connection := self.connection:
-			sync_jmap_accounts(self.user, connection.accounts)
+    def on_update(self) -> None:
+        if connection := self.connection:
+            sync_jmap_accounts(self.user, connection.accounts)
 
-	def validate_jmap_settings(self) -> None:
-		"""Validate the JMAP settings by connecting to the JMAP server."""
+    def validate_jmap_settings(self) -> None:
+        """Validate the JMAP settings by connecting to the JMAP server."""
 
-		if not self.username or self.flags.skip_jmap_validation:
-			return
+        if not self.username or self.flags.skip_jmap_validation:
+            return
 
-		if not self.get_password("app_password"):
-			frappe.throw(_("App Password is required to validate JMAP settings."))
+        if not self.get_password("app_password"):
+            frappe.throw(_("App Password is required to validate JMAP settings."))
 
-		if not self.connection:
-			frappe.throw(
-				_(
-					"Unable to connect to the JMAP server with the provided username and app password. Please check your settings."
-				)
-			)
+        if not self.connection:
+            frappe.throw(
+                _(
+                    "Unable to connect to the JMAP server with the provided username and app password. Please check your settings."
+                )
+            )
 
-	@frappe.whitelist()
-	def clear_jmap_session(self) -> None:
-		"""Clears the JMAP session for the user."""
+    @frappe.whitelist()
+    def clear_jmap_session(self) -> None:
+        """Clears the JMAP session for the user."""
 
-		get_jmap_session_manager(self.user).clear_session()
+        get_jmap_session_manager(self.user).clear_session()
 
-	@frappe.whitelist()
-	def show_app_password(self) -> str:
-		"""Returns the app password of the user."""
+    @frappe.whitelist()
+    def show_app_password(self) -> str:
+        """Returns the app password of the user."""
 
-		frappe.only_for("Administrator")
-		return self.get_password("app_password")
+        frappe.only_for("Administrator")
+        return self.get_password("app_password")
 
-	def _db_set(
-		self,
-		update_modified: bool = True,
-		commit: bool = False,
-		notify: bool = False,
-		**kwargs,
-	) -> None:
-		"""Updates the document with the given key-value pairs."""
+    def _db_set(
+        self,
+        update_modified: bool = True,
+        commit: bool = False,
+        notify: bool = False,
+        **kwargs,
+    ) -> None:
+        """Updates the document with the given key-value pairs."""
 
-		self.db_set(kwargs, update_modified=update_modified, notify=notify, commit=commit)
-
-
-def get_permission_query_condition(user: str | None = None) -> str:
-	user = user or frappe.session.user
-
-	if is_system_manager(user):
-		return ""
-
-	return f"(`tabUser Settings`.user = '{user}')"
-
-
-def has_permission(doc: Document, ptype: str, user: str | None = None) -> bool:
-	if doc.doctype != "User Settings":
-		return False
-
-	user = user or frappe.session.user
-
-	if is_system_manager(user):
-		return True
-
-	return doc.user == user
+        self.db_set(kwargs, update_modified=update_modified, notify=notify, commit=commit)

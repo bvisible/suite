@@ -6,22 +6,14 @@
  "engine": "InnoDB",
  "field_order": [
   "email",
-  "team",
   "status",
-  "accepted_on",
-  "as_guest"
+  "accepted_on"
  ],
  "fields": [
   {
    "fieldname": "email",
    "fieldtype": "Data",
    "label": "Email"
-  },
-  {
-   "fieldname": "team",
-   "fieldtype": "Link",
-   "label": "Team",
-   "options": "Drive Team"
   },
   {
    "fieldname": "status",
@@ -33,12 +25,6 @@
    "fieldname": "accepted_on",
    "fieldtype": "Datetime",
    "label": "Accepted On"
-  },
-  {
-   "default": "0",
-   "fieldname": "as_guest",
-   "fieldtype": "Check",
-   "label": "As Guest"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -69,7 +55,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Drive User",
+   "role": "Suite User",
    "share": 1
   }
  ],

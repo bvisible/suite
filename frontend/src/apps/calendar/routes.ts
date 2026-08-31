@@ -12,16 +12,6 @@ import '@/apps/calendar/router'
  * child '' is the app index). Route names are namespaced `calendar-*` to avoid
  * collisions in the single suite router.
  *
- * Name mapping from the standalone app:
- *   Month          -> calendar-month
- *   Week           -> calendar-week
- *   Day            -> calendar-day
- *   RootShortcut   -> calendar-root-shortcut
- *   AccountShortcut-> calendar-account-shortcut
- *   MonthShortcut  -> calendar-month-shortcut
- *   WeekShortcut   -> calendar-week-shortcut
- *   DayShortcut    -> calendar-day-shortcut
- *
  * The shortcut routes resolve to their full account-scoped equivalents in the
  * calendar guard once the active accountId is known (see ./router.ts). They use
  * a no-op render component since the guard always redirects them.

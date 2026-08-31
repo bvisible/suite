@@ -1,8 +1,8 @@
-import { computed, ref, watch, nextTick } from 'vue'
+import { computed, ref, watch, nextTick, onScopeDispose } from 'vue'
 import { debounce } from 'lodash'
 import { call } from 'frappe-ui'
 
-import { presentationDoc, unsyncedPresentationRecord, inReadonlyMode } from '@/apps/slides/stores/presentation'
+import { presentationDoc, inReadonlyMode } from '@/apps/slides/stores/presentation'
 import { slides } from '@/apps/slides/stores/slide'
 import { focusElementId } from '@/apps/slides/stores/element'
 import { dirty, isSaving } from '@/apps/slides/stores/saving'
@@ -10,10 +10,12 @@ import { captureDOM } from '@/apps/slides/utils/domToWebp'
 import { getAttachmentUrl } from '@/apps/slides/utils/mediaUploads'
 
 const DEBOUNCE_MS = 5000
+const MAX_CAPTURE_ATTEMPTS = 3
 
 export const useThumbnailCapture = (thumbnailCapture, hasOngoingInteraction) => {
 	const pendingKey = ref('')
 	const busy = ref(false)
+	const failedAttempts = ref(0)
 
 	const slideKey = computed(() => getSlideKey())
 
@@ -33,6 +35,7 @@ export const useThumbnailCapture = (thumbnailCapture, hasOngoingInteraction) => 
 
 	const markPending = (key) => {
 		pendingKey.value = key
+		failedAttempts.value = 0
 		schedule()
 	}
 
@@ -40,7 +43,7 @@ export const useThumbnailCapture = (thumbnailCapture, hasOngoingInteraction) => 
 		if (inReadonlyMode.value || !presentationDoc.value?.name || !slides.value.length) {
 			return false
 		}
-		if (unsyncedPresentationRecord.value.deleted) return false
+		if (!thumbnailCapture.value?.isConnected) return false
 		if (!navigator.onLine || dirty.value || isSaving.value) return false
 		if (hasOngoingInteraction.value || focusElementId.value != null) return false
 		return true
@@ -66,7 +69,12 @@ export const useThumbnailCapture = (thumbnailCapture, hasOngoingInteraction) => 
 			await apply(url)
 			clear(key)
 		} catch (error) {
-			console.warn('Could not generate presentation thumbnail', error)
+			failedAttempts.value++
+			// give up until the slide changes again
+			if (failedAttempts.value >= MAX_CAPTURE_ATTEMPTS) {
+				console.warn('Could not generate presentation thumbnail', error)
+				clear(key)
+			}
 		} finally {
 			busy.value = false
 			retryIfPending()
@@ -96,11 +104,6 @@ export const useThumbnailCapture = (thumbnailCapture, hasOngoingInteraction) => 
 	const apply = async (thumbnail) => {
 		await evictThumbnailCache(thumbnail)
 		presentationDoc.value.thumbnail = thumbnail
-		unsyncedPresentationRecord.value = {
-			...unsyncedPresentationRecord.value,
-			name: presentationName(),
-			thumbnail,
-		}
 	}
 
 	const isStale = (key) => {
@@ -120,7 +123,8 @@ export const useThumbnailCapture = (thumbnailCapture, hasOngoingInteraction) => 
 	}
 
 	const onSlideChange = (key, oldKey) => {
-		if (!key || !oldKey) return
+		if (!key) return
+		if (!oldKey && presentationDoc.value?.thumbnail) return
 
 		markPending(key)
 	}
@@ -138,7 +142,9 @@ export const useThumbnailCapture = (thumbnailCapture, hasOngoingInteraction) => 
 		cancel()
 	}
 
-	watch(slideKey, onSlideChange)
+	watch(slideKey, onSlideChange, { immediate: true })
+
+	onScopeDispose(reset)
 
 	return {
 		cancel,

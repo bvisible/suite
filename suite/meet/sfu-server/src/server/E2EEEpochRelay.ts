@@ -1,4 +1,5 @@
 import type { Server, Socket } from 'socket.io';
+import type { Telemetry } from '../telemetry/Telemetry';
 import type {
 	ClientToServerEvents,
 	E2eeEpochEnvelope,
@@ -14,7 +15,7 @@ import {
 	type PersistedE2eePendingCommitRequest,
 } from './E2eeCoordinatorPersistence';
 import type { E2eeRosterStore } from './E2eeRosterStore';
-import { checkSocketRateLimits } from './handlers/utils';
+import { checkSocketRateLimits, getRoomId } from './handlers/utils';
 
 type TypedSocket = Socket<
 	ClientToServerEvents,
@@ -105,6 +106,8 @@ export class E2EEEpochRelay {
 		participantToSender: Map<string, Map<string, number>>,
 		private readonly persistence: E2eeCoordinatorPersistence = new InMemoryE2eeCoordinatorPersistence(),
 		private readonly rateLimiter: RateLimiter | null = null,
+		private readonly telemetry: Telemetry | null = null,
+		private readonly bypassRateLimits = false,
 	) {
 		this.io = io;
 		this.fullAccessSockets = fullAccessSockets;
@@ -118,6 +121,10 @@ export class E2EEEpochRelay {
 	setup(socket: Socket): void {
 		socket.on('e2ee:epoch', (payload: E2eeEpochPayload) => {
 			if (!this.isWithinRateLimit(socket)) return;
+			this.telemetry?.recordE2EEEvent(
+				typeof payload?.type === 'string' ? payload.type : 'unknown',
+				'received',
+			);
 			void this.handle(socket, payload);
 		});
 	}
@@ -127,11 +134,14 @@ export class E2EEEpochRelay {
 		const allowed = checkSocketRateLimits(
 			socket,
 			this.rateLimiter,
+			`e2ee-epoch:${getRoomId(socket)}`,
 			E2EE_EPOCH_USER_LIMIT,
 			E2EE_EPOCH_IP_LIMIT,
 			E2EE_EPOCH_RATE_WINDOW_MS,
+			this.bypassRateLimits,
 		);
 		if (!allowed) {
+			this.telemetry?.recordE2EEEvent('unknown', 'rate_limited');
 			socket.emit('sfu_error', {
 				error: 'Too many encrypted epoch messages. Please try again later.',
 				code: 'RATE_LIMITED',
@@ -139,18 +149,6 @@ export class E2EEEpochRelay {
 			});
 		}
 		return allowed;
-	}
-
-	requestKeyPackages(
-		roomId: string,
-		epochNumber: number,
-		reason: 'enable' | 'join' | 'reconnect',
-	): void {
-		this.emitToFullAccessParticipants(roomId, {
-			type: 'key-package-request',
-			epochNumber,
-			reason,
-		});
 	}
 
 	requestKeyPackageFromParticipant(
@@ -187,9 +185,9 @@ export class E2EEEpochRelay {
 			const socket = this.io.sockets.sockets.get(socketId) as
 				| TypedSocket
 				| undefined;
-			if (!socket?.participantId || socket.senderId === excludedSenderId)
-				continue;
-			this.emitToTarget(roomId, socket.participantId, {
+			const peerId = socket?.peerId ?? socket?.participantId;
+			if (!peerId || socket?.senderId === excludedSenderId) continue;
+			this.emitToTarget(roomId, peerId, {
 				type: 'key-package-request',
 				epochNumber,
 				reason,
@@ -319,7 +317,7 @@ export class E2EEEpochRelay {
 			await this.hydrate();
 			if (socket.scope !== 'full') return;
 			const roomId = socket.roomId;
-			const fromParticipantId = socket.participantId;
+			const fromParticipantId = socket.peerId ?? socket.participantId;
 			const fromSenderId = socket.senderId;
 			loggers.socketHandler.debug(
 				'[DEBUG-e2ee] SFU: epoch envelope received %o',
@@ -1379,7 +1377,7 @@ export class E2EEEpochRelay {
 	private async getCommitterDebugState(
 		roomId: string,
 		excludeSenderIds: number[],
-	): Promise<Record<string, unknown>> {
+	) {
 		const rosterEntries = (await this.roster?.list(roomId)) ?? [];
 		const fullAccessSocketIds = Array.from(
 			this.fullAccessSockets.get(roomId) ?? [],
@@ -1477,10 +1475,8 @@ export class E2EEEpochRelay {
 		if (!socketsInRoom) return null;
 
 		for (const socketId of socketsInRoom) {
-			const socket = this.io.sockets.sockets.get(socketId) as
-				| TypedSocket
-				| undefined;
-			if (socket && socket.participantId === participantId) {
+			const socket = this.io.sockets.sockets.get(socketId);
+			if (socket && (socket.peerId ?? socket.participantId) === participantId) {
 				return socket;
 			}
 		}
@@ -1562,8 +1558,7 @@ export class E2EEEpochRelay {
 		for (const socketId of socketIds) {
 			const socket = this.io.sockets.sockets.get(socketId);
 			if (socket) {
-				// biome-ignore lint/suspicious/noExplicitAny: typed-socket emit with narrowed payload
-				(socket as any).emit('e2ee:epoch', data);
+				socket.emit('e2ee:epoch', data);
 			}
 		}
 	}

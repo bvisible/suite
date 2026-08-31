@@ -5,28 +5,28 @@ import frappe
 from frappe import _
 
 from suite.mail.jmap import get_push_subscription_service
-from suite.mail.utils import log_error
+from suite.mail.utils import log_mail_error
 
 
 def execute() -> None:
-	if not frappe.utils.get_url().startswith("https://"):
-		return
+    if not frappe.utils.get_url().startswith("https://"):
+        return
 
-	for user in frappe.db.get_all("User Settings", {"username": ["!=", ""]}, pluck="user"):
-		try:
-			service = get_push_subscription_service(user, ignore_permissions=True)
+    for user in frappe.db.get_all("User Settings", {"username": ["!=", ""]}, pluck="user"):
+        try:
+            service = get_push_subscription_service(user, ignore_permissions=True)
 
-			subscriptions = service.get()
-			if ids := [s["id"] for s in subscriptions]:
-				service.delete(ids)
+            subscriptions = service.get()
+            if ids := [s["id"] for s in subscriptions]:
+                service.delete(ids)
 
-			ps = frappe.new_doc("Push Subscription")
-			ps.user = user
-			ps.insert(ignore_permissions=True)
-		except Exception as e:
-			log_error(
-				_("Push Subscription Creation Failed"),
-				_("Failed to create push subscription for user {0}: {1}").format(user, str(e)),
-			)
+            ps = frappe.new_doc("Push Subscription")
+            ps.user = user
+            ps.insert(ignore_permissions=True)
+        except Exception as e:
+            log_mail_error(
+                _("Push Subscription Creation Failed"),
+                _("Failed to create push subscription for user {0}: {1}").format(user, str(e)),
+            )
 
-		time.sleep(0.1)
+        time.sleep(0.1)

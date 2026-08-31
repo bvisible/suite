@@ -1,6 +1,6 @@
 {
  "actions": [],
- "creation": "2026-06-22 12:00:00",
+ "creation": "2026-07-30 13:33:53.747641",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -24,6 +24,7 @@
    "fieldname": "email",
    "fieldtype": "Data",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Email or Domain",
    "no_copy": 1,
    "reqd": 1,
@@ -31,7 +32,7 @@
    "set_only_once": 1
   },
   {
-   "default": "Reject",
+   "default": "Spam",
    "description": "Accepted lets the sender's mail reach the inbox (used by screening). Spam files incoming mail into the Spam (Junk) folder. Reject discards incoming mail from the sender silently.",
    "fieldname": "action",
    "fieldtype": "Select",
@@ -40,10 +41,11 @@
    "label": "Action",
    "no_copy": 1,
    "options": "Spam\nReject\nAccepted",
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
-   "description": "The shared JMAP account this screened email belongs to. The screened list is the same for everyone with access to the account.",
+   "description": "The shared JMAP account this screened email belongs to. The screened list is the same for everyone with access to the account. Leave empty to make the rule global: it applies to every account, unless the account screens the same email or domain itself. Only a System Manager can manage global rules.",
    "fieldname": "account",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -51,7 +53,6 @@
    "label": "Account",
    "no_copy": 1,
    "options": "JMAP Account",
-   "reqd": 1,
    "search_index": 1,
    "set_only_once": 1
   }
@@ -59,7 +60,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-06-30 09:33:32.977548",
+ "modified": "2026-08-31 09:39:19.658055",
  "modified_by": "Administrator",
  "module": "Mail",
  "name": "Screened Email Address",
@@ -78,10 +79,16 @@
    "write": 1
   },
   {
+   "delete": 1,
+   "read": 1,
+   "role": "Suite Admin",
+   "write": 1
+  },
+  {
    "create": 1,
    "delete": 1,
    "read": 1,
-   "role": "All",
+   "role": "Suite User",
    "write": 1
   }
  ],
@@ -89,5 +96,6 @@
  "rows_threshold_for_grid_search": 20,
  "sort_field": "creation",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

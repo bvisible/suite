@@ -12,7 +12,7 @@ def execute():
         fields=["name", "file_url"],
     )
     for f in files:
-        new_url = NEW_PREFIX + f["file_url"][len(OLD_PREFIX):]
+        new_url = NEW_PREFIX + f["file_url"][len(OLD_PREFIX) :]
         frappe.db.set_value("File", f["name"], "file_url", new_url, update_modified=False)
 
     if files:

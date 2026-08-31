@@ -12,10 +12,11 @@
 
 <script setup>
 import GenericPage from '@/apps/drive/components/GenericPage.vue'
-import { watch, computed } from 'vue'
+import { watch, computed, onUnmounted } from 'vue'
 import { createResource } from 'frappe-ui'
 import { COMMON_OPTIONS } from '@/apps/drive/resources/files'
-import { setBreadCrumbs, prettyData, setCache, updateURLSlug } from '@/apps/drive/utils/files'
+import { prettyData, setCache, updateURLSlug } from '@/apps/drive/utils/files'
+import { setCrumbEntity, clearCrumbEntity } from '@/apps/drive/data/breadcrumbs'
 import { setCurrentFolder } from '@/apps/drive/data/currentFolder'
 import router from '@/apps/drive/router'
 import LucideFolderClosed from '~icons/lucide/folder-closed'
@@ -39,14 +40,16 @@ const getFolderContents = createResource({
   }),
   cache: ['folder', props.entityName],
 })
+getFolderContents.paginated = true
 setCache(getFolderContents, ['folder', props.entityName])
 
 const onSuccess = (entity) => {
   if (router.currentRoute.value.params.entityName !== entity.name) return
   document.title = 'Folder - ' + entity.file_name
-  setBreadCrumbs(entity)
+  setCrumbEntity(entity)
   updateURLSlug(entity.file_name)
 }
+onUnmounted(() => clearCrumbEntity(props.entityName))
 
 const entityName = computed(() => props.entityName)
 /** Permissions + metadata for the folder in the URL — not global state. */

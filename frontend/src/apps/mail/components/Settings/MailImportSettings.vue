@@ -60,7 +60,7 @@ import { computed, inject, onMounted, reactive, ref, watch } from 'vue'
 import { Button, ErrorMessage, FormControl, createResource } from 'frappe-ui'
 
 import { raiseToast } from '@/apps/mail/utils'
-import { useChunkedUpload } from '@/apps/mail/utils/useChunkedUpload'
+import { useChunkedUpload } from '@/utils/useChunkedUpload'
 import { userStore } from '@/apps/mail/stores/user'
 
 const { accountId, mailboxes } = userStore()

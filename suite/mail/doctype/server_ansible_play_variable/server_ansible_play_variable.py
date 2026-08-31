@@ -7,4 +7,4 @@ from frappe.model.document import Document
 
 
 class ServerAnsiblePlayVariable(Document):
-	pass
+    pass

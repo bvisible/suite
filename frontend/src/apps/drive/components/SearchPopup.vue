@@ -1,6 +1,6 @@
 <template>
-  <Dialog v-model:open="open" size="xl" position="top">
-    <template #body>
+  <Dialog v-model:open="open" size="xl" position="top" bare>
+    <template #default>
       <div class="flex px-4 py-3 gap-1 items-center border-b">
         <LucideSearch class="w-4 mr-1 h-auto" name="search" />
         <input
@@ -20,7 +20,7 @@
         <div
           v-for="entity in searchResults.data"
           :key="entity.name"
-          class="grid grid-flow-col grid-cols-8 gap-2 w-full items-center rounded px-2 py-2 text-base cursor-pointer hover:bg-surface-gray-2"
+          class="grid grid-flow-col grid-cols-8 gap-2 w-full items-center rounded-4 px-2 py-2 text-base cursor-pointer hover:bg-surface-gray-2"
           @click="openEntity(entity), (open = false)"
         >
           <div class="flex items-center gap-2 w-full col-span-6">
@@ -52,21 +52,21 @@
         <span class="mb-1 px-4.5 text-base text-ink-gray-5">Jump to</span>
         <div class="px-2.5">
           <div
-            class="flex w-full min-w-0 items-center rounded px-2 py-2 text-base-medium text-ink-gray-7 hover:bg-surface-gray-2"
+            class="flex w-full min-w-0 items-center rounded-4 px-2 py-2 text-base-medium text-ink-gray-7 hover:bg-surface-gray-2"
             @click="$router.push({ name: 'drive-Home' }), emitter.emit('showSearchPopup', false)"
           >
             <LucideHome class="mr-2 size-4 text-ink-gray-7" />
             Home
           </div>
           <div
-            class="flex w-full min-w-0 items-center rounded px-2 py-2 text-base-medium text-ink-gray-7 hover:bg-surface-gray-2"
+            class="flex w-full min-w-0 items-center rounded-4 px-2 py-2 text-base-medium text-ink-gray-7 hover:bg-surface-gray-2"
             @click="$router.push({ name: 'drive-Recents' }), emitter.emit('showSearchPopup', false)"
           >
             <LucideClock class="mr-2 size-4 text-ink-gray-7" />
             Recents
           </div>
           <div
-            class="flex w-full min-w-0 items-center rounded px-2 py-2 text-base-medium text-ink-gray-7 hover:bg-surface-gray-2"
+            class="flex w-full min-w-0 items-center rounded-4 px-2 py-2 text-base-medium text-ink-gray-7 hover:bg-surface-gray-2"
             @click="$router.push({ name: 'drive-Favourites' }), emitter.emit('showSearchPopup', false)"
           >
             <LucideStar class="mr-2 size-4 text-ink-gray-7" />
@@ -76,14 +76,14 @@
         <span class="mt-3 mb-1 px-4.5 text-base text-ink-gray-5">Actions</span>
         <div class="px-2.5">
           <div
-            class="flex w-full min-w-0 items-center rounded px-2 py-2 text-base-medium text-ink-gray-7 hover:bg-surface-gray-2"
+            class="flex w-full min-w-0 items-center rounded-4 px-2 py-2 text-base-medium text-ink-gray-7 hover:bg-surface-gray-2"
             @click="emitter.emit('uploadFile'), emitter.emit('showSearchPopup', false)"
           >
             <LucideFilePlus2 class="stroke-[1.35] mr-2 size-4 text-ink-gray-7" />
             Upload File
           </div>
           <div
-            class="flex w-full min-w-0 items-center rounded px-2 py-2 text-base-medium text-ink-gray-7 hover:bg-surface-gray-2"
+            class="flex w-full min-w-0 items-center rounded-4 px-2 py-2 text-base-medium text-ink-gray-7 hover:bg-surface-gray-2"
             @click="emitter.emit('uploadFolder'), emitter.emit('showSearchPopup', false)"
           >
             <LucideFolderPlus class="stroke-[1.35] mr-2 size-4 text-ink-gray-7" />
@@ -97,15 +97,13 @@
 <script setup>
 import { Dialog, Avatar, createResource } from 'frappe-ui'
 import { getIconUrl, openEntity } from '@/apps/drive/utils/files'
-import { ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { onScopeDispose, ref, watch } from 'vue'
 
 import LucideFilePlus2 from '~icons/lucide/file-plus-2'
 import LucideFolderPlus from '~icons/lucide/folder-plus'
 import LucideStar from '~icons/lucide/star'
 
 const search = ref('')
-const route = useRoute()
 
 const open = defineModel()
 
@@ -113,17 +111,31 @@ const searchResults = createResource({
   auto: false,
   method: 'POST',
   url: 'suite.drive.api.files.search',
+  // Typing fires this on every keystroke, and the endpoint resolves access one
+  // row at a time - a wide query is the most expensive call in Drive. Wait for
+  // a pause first, as the list resources do. Short enough to still feel
+  // immediate; long enough to coalesce a normal typing burst.
+  debounce: 180,
 })
 
 watch(search, (val) => {
   if (val.length >= 3) {
     searchResults.submit({
       query: val,
-      team: route.params.team,
     })
   } else {
+    // Drop anything still pending, or it lands after the reset and repopulates
+    // the list for a query the user has already backspaced away.
+    searchResults.submit.cancel()
+    searchResults.abort()
     searchResults.reset()
   }
+})
+
+// Do not leave queued or in-flight work behind when the dialog closes.
+onScopeDispose(() => {
+  searchResults.submit.cancel()
+  searchResults.abort()
 })
 </script>
 

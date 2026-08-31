@@ -12,4 +12,6 @@ const toast = (obj) => {
     type,
   })
 }
+// passthrough: sonner's loading→success/error toast, updated in place by id
+toast.promise = fToast.promise
 export { toast }

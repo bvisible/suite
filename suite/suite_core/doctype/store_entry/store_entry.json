@@ -1,0 +1,98 @@
+{
+ "actions": [],
+ "creation": "2026-07-22 11:53:34.095923",
+ "description": "Read-only browser for the on-disk data store and blob store.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "store",
+  "namespace",
+  "column_break_meta",
+  "entity",
+  "key",
+  "size",
+  "value_section",
+  "value"
+ ],
+ "fields": [
+  {
+   "default": "Data Store",
+   "fieldname": "store",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Store",
+   "options": "Data Store\nBlob Store\nSearch Store",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "description": "Relative store path, e.g. mail/.",
+   "fieldname": "namespace",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Namespace",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_meta",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Data/search store only: the entity (index) a key belongs to.",
+   "fieldname": "entity",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Entity",
+   "read_only": 1
+  },
+  {
+   "fieldname": "key",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Key",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "size",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Size (bytes)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "value_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "value",
+   "fieldtype": "Code",
+   "label": "Value",
+   "options": "JSON",
+   "read_only": 1
+  }
+ ],
+ "is_virtual": 1,
+ "links": [],
+ "modified": "2026-07-22 12:05:19.223879",
+ "modified_by": "Administrator",
+ "module": "Suite Core",
+ "name": "Store Entry",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
