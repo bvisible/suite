@@ -1,3 +1,20 @@
+####//// Neoffice — hoisting + build-script allow-list for pnpm 11.
+#
+# `shamefullyHoist` — upstream develops this frontend with yarn, whose flat
+# node_modules lets a file import a package that is only a TRANSITIVE dependency.
+# pnpm is strict and does not, so the build failed on prosemirror-state, -model,
+# -view, -commands and -schema-list, all reached through @tiptap/* rather than
+# declared. It only ever worked on a workstation carrying a stale node_modules at
+# the repo root (679 packages from an old `yarn install`) that happened to satisfy
+# them — exactly the machine-dependency the CI build exists to remove. Hoisting
+# reproduces yarn's layout so the same source builds under both.
+# Packages imported DIRECTLY still belong in package.json: see
+# @tiptap/extension-ordered-list, which was missing outright.
+#
+# Note both settings live here rather than in .npmrc: pnpm 11 stopped reading
+# `shamefully-hoist` and `onlyBuiltDependencies` from .npmrc / package.json.
+shamefullyHoist: true
+
 allowBuilds:
   '@firebase/util': false
   '@parcel/watcher': true

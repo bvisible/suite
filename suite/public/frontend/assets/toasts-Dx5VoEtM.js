@@ -1,0 +1,1 @@
+import{B as e}from"./runtime-core.esm-bundler-CaODJcyn.js";import{t}from"./toast-B42daacX.js";var n=n=>{if(typeof n==`string`)return t.success(n);let{title:r,buttons:i,icon:a,duration:o,type:s}=n;t.create({message:r,action:i?.[0],icon:a&&e(a,{class:`text-ink-base`}),duration:o||5,type:s})};n.promise=t.promise;export{n as t};

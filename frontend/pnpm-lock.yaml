@@ -74,6 +74,9 @@ importers:
       '@tiptap/extension-list-item':
         specifier: ^3.26.0
         version: 3.30.5(@tiptap/extension-list@3.30.5(@tiptap/core@3.30.5(@tiptap/pm@3.30.5))(@tiptap/pm@3.30.5))
+      '@tiptap/extension-ordered-list':
+        specifier: ^3.26.0
+        version: 3.30.5(@tiptap/extension-list@3.30.5(@tiptap/core@3.30.5(@tiptap/pm@3.30.5))(@tiptap/pm@3.30.5))
       '@tiptap/extension-paragraph':
         specifier: ^3.26.0
         version: 3.30.5(@tiptap/core@3.30.5(@tiptap/pm@3.30.5))

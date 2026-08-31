@@ -1,1 +1,0 @@
-import{t as e}from"./toast-CcP6SBO9.js";import{a as t,n,o as r,r as i,t as a}from"./setupTheme-CKXCsbCr.js";var o=()=>(n(),{dataTheme:a,themeMode:t,switchTheme:i,cycleTheme:()=>{let n=r(t.value);i(n),e.success(__(`Appearance updated to {0}.`,[__(n===`automatic`?`Automatic`:n)]))}});export{o as t};
