@@ -86,28 +86,31 @@ def get_country_info():
 	return frappe.cache().hget("ip_country_map", ip, generator=_get_country_info)
 
 
-def assign_drive_role_and_create_settings(user, method: str) -> None:
-	"""Assign the "Drive User" role, settings and a personal team to a new User."""
+def assign_drive_role(user, method: str | None = None) -> None:
+	"""Assign the "Drive User" role to a new User.
+
+	Runs on `before_insert` (not `after_insert`) so the role is present by the
+	time Frappe's `User.validate` runs: `check_roles_added` would otherwise warn
+	"Newly created user X has no roles enabled", and `set_system_user` would
+	demote the user to a Website User for having no desk-access role.
+
+	#//// Neoffice — `desk_access=False`. The Role default is 1, and a desk-access
+	#//// role re-promotes a frontend signup to System User. Upstream calls
+	#//// assign_role() without this argument; keep it through the next merge.
+	"""
+	from suite.suite_core.roles import assign_role
+
+	assign_role(user, "Drive User", desk_access=False)
+
+
+def create_drive_settings_and_team(user, method: str | None = None) -> None:
+	"""Create Drive Settings and a personal team for a newly created User."""
 	from suite.drive.api.product import create_team
 
-	role_name = "Drive User"
 	user_name = user.name
 
 	if not user_name or user_name in ("Guest", "Administrator"):
 		return
-
-	if not frappe.db.exists("Role", role_name):
-		# //// Neoffice: force desk_access=0. The Role doctype defaults desk_access
-		# to 1, and assigning a desk-access role to a user re-promotes them to
-		# System User — that is exactly how frontend signups silently became
-		# system users. This role must never carry desk access. ////
-		frappe.get_doc(
-			{"doctype": "Role", "role_name": role_name, "desk_access": 0}
-		).insert(ignore_permissions=True)
-
-	user_doc = frappe.get_doc("User", user_name)
-	user_doc.append("roles", {"role": role_name})
-	user_doc.save(ignore_permissions=True)
 
 	frappe.get_doc({"doctype": "Drive Settings", "user": user.email}).insert(ignore_permissions=True)
 

@@ -223,9 +223,26 @@ doc_events = {
 		"on_trash": ["suite.drive.api.integration.presentation"],
 	},
 	"User": {
-		"after_insert": [
-			"suite.drive.utils.users.assign_drive_role_and_create_settings",
+		#//// Neoffice — les rôles passent en `before_insert`.
+		#////
+		#//// Les deux hooks rechargeaient l'utilisateur qui venait d'être inséré,
+		#//// lui ajoutaient un rôle et le RE-SAUVAIENT. Avec les quatre hooks de
+		#//// cette chaîne, cela faisait plusieurs sauvegardes successives du même
+		#//// document, et l'inscription publique mourait sur
+		#//// « TimestampMismatchError » — HTTP 417, « Oups ! Quelque chose s'est
+		#//// mal passé. » à l'écran, aucun compte créé. Plus personne ne pouvait
+		#//// ouvrir de compte sur la boutique (mesuré le 31.08.2026).
+		#////
+		#//// En `before_insert`, le rôle fait partie du document que Frappe
+		#//// valide : pas de rechargement, pas de seconde sauvegarde. C'est aussi
+		#//// ce qu'upstream a fait le 20.07.2026 (6fee67513) — s'aligner
+		#//// maintenant allègera le rattrapage à venir.
+		"before_insert": [
+			"suite.drive.utils.users.assign_drive_role",
 			"suite.meet.utils.user.assign_meet_role",
+		],
+		"after_insert": [
+			"suite.drive.utils.users.create_drive_settings_and_team",
 			"suite.mail.events.create_user_settings",
 			# //// Neoffice: auto-provision the Stalwart mailbox (mail + calendar)
 			# for new desk users so both work out of the box on deploy. ////

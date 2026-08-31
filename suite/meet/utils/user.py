@@ -34,24 +34,19 @@ def unique_users(user_list: list) -> list[dict]:
 	return unique_list
 
 
-def assign_meet_role(user: User, method: str) -> None:
-	"""Assign the "Meet User" role to a newly created User."""
-	role_name = "Meet User"
-	user_name = user.name
+def assign_meet_role(user: User, method: str | None = None) -> None:
+	"""Assign the "Meet User" role to a new User.
 
-	if not user_name or user_name in ("Guest", "Administrator"):
-		return
+	Runs on `before_insert`, like its Drive counterpart: the role belongs to the
+	document Frappe is about to validate, and no second `User.save` is needed.
 
-	if not frappe.db.exists("Role", role_name):
-		# //// Neoffice: force desk_access=0 — the Role default is 1, and a
-		# desk-access role re-promotes frontend signups to System User. ////
-		frappe.get_doc(
-			{"doctype": "Role", "role_name": role_name, "desk_access": 0}
-		).insert(ignore_permissions=True)
+	#//// Neoffice — `desk_access=False`. The Role default is 1, and a desk-access
+	#//// role re-promotes a frontend signup to System User. Upstream calls
+	#//// assign_role() without this argument; keep it through the next merge.
+	"""
+	from suite.suite_core.roles import assign_role
 
-	user_doc = frappe.get_doc("User", user_name)
-	user_doc.append("roles", {"role": role_name})
-	user_doc.save(ignore_permissions=True)
+	assign_role(user, "Meet User", desk_access=False)
 
 
 def is_guest_user(user_id: str) -> bool:
