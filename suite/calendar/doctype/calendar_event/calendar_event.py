@@ -664,10 +664,15 @@ def format_calendar_event(account: str, calendar_map: dict, event: dict) -> dict
             }
         )
 
-    locations = [{"uid": uid, "_name": l.get("name")} for uid, l in event.get("locations", {}).items()]
+    #//// Neoffice — `or {}` on both: JMAP returns these keys as explicit NULL on an
+    #//// event that has none, so a `.get` default never applies and `.items()`
+    #//// raises. Same defect as shareWith in calendar.py::format_calendar, and it
+    #//// bites here as soon as events carry locations — which the ICS subscription
+    #//// import does (neoffice_theme.calendar_connectors).
+    locations = [{"uid": uid, "_name": l.get("name")} for uid, l in (event.get("locations") or {}).items()]
     links = [
         {"uid": uid, "href": l.get("href"), "content_type": l.get("contentType")}
-        for uid, l in event.get("links", {}).items()
+        for uid, l in (event.get("links") or {}).items()
     ]
     alerts = [
         {

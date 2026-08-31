@@ -361,7 +361,15 @@ def format_calendar(account: str, calendar: dict) -> dict:
     """Formats calendar data for display."""
 
     share_with = []
-    for pid, r in calendar.get("shareWith", {}).items():
+    #//// Neoffice — `or {}`, not a `.get` default. A calendar that is not shared
+    #//// comes back with shareWith explicitly NULL, not absent, so the default
+    #//// never applies and `.items()` raises on None — taking fetch_calendars down
+    #//// for that account. It only surfaced once we started requesting shareWith
+    #//// by name (see GET_PROPERTIES in the JMAP calendar service); upstream never
+    #//// asks for it, so the key is simply missing there and the bug stays hidden.
+    #//// Same shape as the `myRights` line below, which upstream already writes
+    #//// this way.
+    for pid, r in (calendar.get("shareWith") or {}).items():
         share_with.append(
             {
                 "principal_id": pid,
