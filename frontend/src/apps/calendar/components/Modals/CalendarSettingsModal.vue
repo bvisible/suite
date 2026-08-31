@@ -169,7 +169,7 @@ const calId = computed(() => (calendar?.name || '').split('|').pop())
 
 // Full calendar record (all fields needed to re-save via update_calendar).
 const detail = createResource({
-	url: 'suite.mail.doctype.calendar.calendar.get_calendar',
+	url: 'suite.calendar.doctype.calendar.calendar.get_calendar',
 	makeParams: () => ({ account, id: calId.value }),
 	onSuccess: (cal: any) => {
 		name.value = cal._name
@@ -184,13 +184,13 @@ const detail = createResource({
 })
 
 const principals = createResource({
-	url: 'suite.mail.doctype.calendar.calendar.get_shareable_principals',
+	url: 'suite.calendar.doctype.calendar.calendar.get_shareable_principals',
 	makeParams: () => ({ account }),
 })
 const colleagues = computed(() => principals.data || [])
 
 const caldav = createResource({
-	url: 'suite.mail.doctype.calendar.calendar.get_caldav_url',
+	url: 'suite.calendar.doctype.calendar.calendar.get_caldav_url',
 	makeParams: () => ({ account, id: calId.value }),
 })
 // The one-click link embeds the token; fall back to the plain URL if the
@@ -219,13 +219,13 @@ function copyCaldav() {
 }
 
 const updateRes = createResource({
-	url: 'suite.mail.doctype.calendar.calendar.update_calendar',
+	url: 'suite.calendar.doctype.calendar.calendar.update_calendar',
 })
 const shareRes = createResource({
-	url: 'suite.mail.doctype.calendar.calendar.share_calendar',
+	url: 'suite.calendar.doctype.calendar.calendar.share_calendar',
 })
 const deleteRes = createResource({
-	url: 'suite.mail.doctype.calendar.calendar.delete_calendars',
+	url: 'suite.calendar.doctype.calendar.calendar.delete_calendars',
 	makeParams: () => ({ account, ids: [calId.value] }),
 	onSuccess: () => {
 		raiseToast(__('Calendar deleted.'))

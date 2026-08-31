@@ -153,7 +153,7 @@ watch(show, (open) => {
 })
 
 const createCalendar = createResource({
-	url: 'suite.mail.doctype.calendar.calendar.add_calendar',
+	url: 'suite.calendar.doctype.calendar.calendar.add_calendar',
 	makeParams: () => ({ account, name: name.value.trim(), color: color.value }),
 	onSuccess: () => {
 		raiseToast(__('Calendar “{0}” created.', [name.value.trim()]))

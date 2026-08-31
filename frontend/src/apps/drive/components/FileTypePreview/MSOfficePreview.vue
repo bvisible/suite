@@ -1,11 +1,33 @@
 <template>
-  <!-- //// Neoffice: when the on-prem Collabora (WOPI) backend is available, Office
-       files open straight in the collaborative editor (read-only iframe when
-       the user lacks write access). The upstream Microsoft-viewer flow stays
-       as fallback when Collabora is off/unreachable. //// -->
+  <!-- //// Neoffice — when the on-prem Collabora (WOPI) backend is available, Office
+       files open straight in the collaborative editor (read-only iframe when the
+       user lacks write access).
+       Upstream's Microsoft viewer stays as the fallback, but ONLY on an instance
+       that has no Collabora at all: it ships the document to
+       view.officeapps.live.com. When WOPI is enabled here, a document must never
+       leave for Microsoft just because coolwsd is still waking up — it is stopped
+       after 15 idle minutes, and a cold start can outrun the 20 s probe. We keep
+       waiting instead, and offer a download if it truly never comes up. //// -->
   <CollaboraEditor v-if="collabora === true" :preview-entity="previewEntity" @error="collabora = false" />
-  <div v-else-if="collabora === null" class="w-full h-full flex items-center justify-center">
+  <div v-else-if="collabora === null" class="w-full h-full flex flex-col items-center justify-center gap-3">
     <LucideLoaderCircle class="size-7 animate-spin text-ink-gray-6" />
+    <span v-if="waking" class="text-p-sm text-ink-gray-6">{{ __('Starting the editor…') }}</span>
+  </div>
+  <!-- //// Neoffice — WOPI is on but Collabora never answered: say so and offer the
+       file, rather than routing it to an external service behind the user's back. -->
+  <div
+    v-else-if="wopiEnabled"
+    class="max-w-[450px] h-fit self-center p-10 bg-surface-base rounded-4 text-2xl-medium text-center shadow-xl flex flex-col justify-center items-center gap-4"
+  >
+    <LucideAlertCircle class="size-10" />
+    <span class="text-ink-gray-8">{{ __('The editor is unavailable') }}</span>
+    <span class="text-p-base text-center text-ink-gray-7">
+      {{ __('The document editor did not start. Your document has not left this server.') }}
+    </span>
+    <div class="flex flex-col gap-2 w-full">
+      <Button class="w-full" variant="subtle" @click="retry">{{ __('Try again') }}</Button>
+      <Button class="w-full" variant="solid" @click="download">{{ __('Download') }}</Button>
+    </div>
   </div>
   <iframe
     v-else-if="warned && jwt_token"
@@ -49,18 +71,51 @@ const props = defineProps({
   previewEntity: Object,
 })
 
-// //// Neoffice: null = probing, true = Collabora available, false = MS viewer fallback ////
+//// Neoffice — null = probing, true = Collabora available, false = not available.
+//// `wopiEnabled` says whether this instance is SUPPOSED to have Collabora, which
+//// is what decides between "keep waiting / offer a download" and upstream's
+//// Microsoft viewer. A cold coolwsd is retried a few times before giving up:
+//// the daemon is stopped after 15 idle minutes, so the first document opened in
+//// a while routinely lands mid-start.
 const collabora = ref(null)
+const wopiEnabled = ref(false)
+const waking = ref(false)
+const MAX_PROBES = 6
+const PROBE_DELAY_MS = 2500
+let probes = 0
+
 const canEdit = createResource({
   url: 'suite.drive.wopi.editor.can_edit_file',
   onSuccess(data) {
-    collabora.value = !!data?.can_edit
+    wopiEnabled.value = !!data?.wopi_enabled
+    if (data?.can_edit) {
+      collabora.value = true
+      return
+    }
+    if (data?.retryable && probes < MAX_PROBES) {
+      probes += 1
+      waking.value = true
+      setTimeout(probe, PROBE_DELAY_MS)
+      return
+    }
+    collabora.value = false
   },
   onError() {
     collabora.value = false
   },
 })
-onMounted(() => canEdit.submit({ file_id: props.previewEntity.name }))
+
+function probe() {
+  canEdit.submit({ file_id: props.previewEntity.name })
+}
+
+function retry() {
+  probes = 0
+  collabora.value = null
+  probe()
+}
+
+onMounted(probe)
 
 const warned = ref(false)
 watch(warned, async () => {

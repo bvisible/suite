@@ -34,12 +34,28 @@ def can_edit_file(file_id: str) -> dict:
 
     status = check_collabora_status()
     if status.get("status") != "ok":
+        #//// Neoffice — tell the caller WHETHER COLLABORA IS SUPPOSED TO BE THERE.
+        #////
+        #//// The frontend falls back to Microsoft's Office viewer when it cannot
+        #//// edit, which ships the document to view.officeapps.live.com. That is
+        #//// acceptable when this instance has no Collabora at all; it is NOT when
+        #//// Collabora is deployed and merely waking up: coolwsd is stopped after
+        #//// 15 idle minutes (lifecycle.stop_if_idle), and a cold start under swap
+        #//// pressure can outrun COLLABORA_START_TIMEOUT_SECONDS. Measured on osiris
+        #//// 31.08.2026: the first click after two idle weeks offered to send the
+        #//// document to Microsoft. On a client instance that would happen several
+        #//// times a day, on their documents. Same intent as 850e41c0c.
+        #////
+        #//// `wopi_enabled` lets the caller keep waiting instead of leaving the
+        #//// site; `retryable` says the daemon is on its way up.
         return {
             "can_edit": False,
             "reason": status.get("message", _("Collabora server not available")),
+            "wopi_enabled": status.get("status") != "disabled",
+            "retryable": status.get("status") != "disabled",
         }
 
-    return {"can_edit": True, "reason": None}
+    return {"can_edit": True, "reason": None, "wopi_enabled": True, "retryable": False}
 
 
 @frappe.whitelist()

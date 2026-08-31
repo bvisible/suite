@@ -93,7 +93,7 @@ const calendarOptions = computed(() =>
 )
 
 const principals = createResource({
-	url: 'suite.mail.doctype.calendar.calendar.get_shareable_principals',
+	url: 'suite.calendar.doctype.calendar.calendar.get_shareable_principals',
 	makeParams: () => ({ account }),
 })
 
@@ -101,7 +101,7 @@ const colleagues = computed(() => principals.data || [])
 
 // Current sharing of the selected calendar, to pre-fill the levels.
 const calendarDetail = createResource({
-	url: 'suite.mail.doctype.calendar.calendar.get_calendar',
+	url: 'suite.calendar.doctype.calendar.calendar.get_calendar',
 	makeParams: () => ({ account, id: (calendarId.value || '').split('|').pop() }),
 	onSuccess: (cal: any) => {
 		for (const p of colleagues.value) levels[p.id] = 'none'
@@ -124,7 +124,7 @@ watch([calendarId, colleagues], () => {
 })
 
 const saveShare = createResource({
-	url: 'suite.mail.doctype.calendar.calendar.share_calendar',
+	url: 'suite.calendar.doctype.calendar.calendar.share_calendar',
 	makeParams: () => ({
 		account,
 		id: (calendarId.value || '').split('|').pop(),
