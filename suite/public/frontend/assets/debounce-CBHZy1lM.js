@@ -1,0 +1,1 @@
+function e(e,t,n){let r,i=function(...i){let a=this,o=function(){r=void 0,n||e.apply(a,i)},s=n&&!r;clearTimeout(r),r=window.setTimeout(o,t),s&&e.apply(a,i)};return i.cancel=()=>{clearTimeout(r),r=void 0},i}export{e as t};

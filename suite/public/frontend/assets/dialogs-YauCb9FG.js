@@ -1,0 +1,1 @@
+import{gn as e,vn as t}from"./runtime-core.esm-bundler-CaODJcyn.js";var n=t([]);function r(t){let r=e({key:`dialog-`+n.value.length,modelValue:!1,options:t});return r.remove=()=>{n.value=n.value.filter(e=>e.key!==r.key)},n.value.push(r),setTimeout(()=>{r.modelValue=!0},0),r}function i(){return n}function a(){n.value=[]}export{r as n,i as r,a as t};

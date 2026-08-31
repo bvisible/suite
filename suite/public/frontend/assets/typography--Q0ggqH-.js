@@ -1,0 +1,1 @@
+var e=1.2,t=1.5;function n(t){let n=Number(t)||1.5;return Math.round(n/e*100)/100}function r(n){let r=Number(n);return!r||r<=0?t:Math.round(r*e*1e3)/1e3}function i(e){let n=Number(e);return n>0?n:t}function a(t){return Math.round(240*(Number(t)||1.5)/e)}function o(e){return Math.round((parseFloat(String(e))||0)*15)}export{a,r as i,i as n,n as o,o as r,t};

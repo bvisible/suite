@@ -5,30 +5,55 @@
   data-theme="{{ desk_theme.lower() if desk_theme else 'light' }}"
 >
   <head>
+    <script>
+      if (document.documentElement.dataset.theme === 'automatic') {
+        document.documentElement.dataset.theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+      }
+    </script>
     <meta charset="UTF-8" />
     <title>Frappe Suite</title>
     <link rel="icon" type="image/svg+xml" href="/assets/suite/frontend/assets/suite-BK0H7omO.svg" />
+    <!-- viewport-fit=cover: draw edge-to-edge in iOS standalone — required for the
+         env(safe-area-inset-*) paddings to be non-zero at all.
+
+         interactive-widget=resizes-content: the on-screen keyboard shrinks the layout viewport
+         instead of leaving it full-height and sliding the visible part around underneath. Without
+         it a full-screen pane runs on under the keyboard, and iOS pans the whole page to reveal a
+         focused field — the compose sheet jumping on every focus change. -->
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, user-scalable=no"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content"
     />
-    <script type="module" crossorigin src="/assets/suite/frontend/assets/index-D7rZ7y2i.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/rolldown-runtime-aKtaBQYM.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/vue.runtime.esm-bundler-DwZq-8QY.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/pinia-x1rPZ1th.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/config-DgUKouBw.js">
+    <!-- Status-bar/browser-chrome color; kept in sync with the active scheme at
+         runtime (see mail's MailLayout) so the bar never sits white over a dark app. -->
+    <meta
+      name="theme-color"
+      content="{{ '#171717' if desk_theme and desk_theme.lower() == 'dark' else '#ffffff' }}"
+    />
+    <!-- No manifest / standalone metas here on purpose: this shell is shared by
+         all seven apps, so anything installable in <head> makes drive, calendar,
+         ... add to the home screen as Frappe Mail. Mail injects its own set on
+         entering /mail (see router/index.ts setPwaTags). -->
+    <script type="module" crossorigin src="/assets/suite/frontend/assets/index-BGhXjxzU.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/runtime-core.esm-bundler-CaODJcyn.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/runtime-dom.esm-bundler-CngAXjEY.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/pinia-BoM1sIFu.js">
     <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/_plugin-vue_export-helper-BDNMzG2s.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/pageMeta-ChWjEece.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/debounce-BBu4h0MQ.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/dist-DVAuVsb9.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/resources-Dz8QPgYK.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/frappeRequest-DuQ_My8u.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/session-Cqj865AW.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/vue-router-B05I9yXf.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/preload-helper-Bitfz_qk.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/registry-2OgtgkqK.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/router-D1HxSR6y.js">
-    <link rel="stylesheet" crossorigin href="/assets/suite/frontend/assets/index-yT8RsdSa.css">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/preload-helper-z1L8cojz.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/debounce-BcU4KGyI.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/request-BQ_15w-o.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/config-BnDYwH6g.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/resources-BNFZ3SHw.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/session-DgDcMotU.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/vue-router-D3mAW-Fv.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/registry-ffe7lyNB.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/router-BjGSnOO5.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/translation-3RQ0-Kro.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/purify.es-OytT0Smj.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/toast-CcP6SBO9.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/frappeRequest-41I_R4gd.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/config-BAe_qhuW.js">
+    <link rel="stylesheet" crossorigin href="/assets/suite/frontend/assets/index-BQ58_DyY.css">
   </head>
   <body>
     <div id="app" class="h-screen"></div>

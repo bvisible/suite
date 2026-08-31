@@ -1,0 +1,1 @@
+function e(e,t){let n=Symbol.for(`frappe-ui.${e}`),r=globalThis;return n in r||(r[n]=t()),r[n]}var t=e(`config`,()=>({}));function n(e,n){t[e]=n}function r(e){return t[e]??null}export{n,e as r,r as t};

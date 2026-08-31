@@ -1,0 +1,1 @@
+import{On as e,mt as t,v as n}from"./runtime-core.esm-bundler-CaODJcyn.js";import{t as r}from"./Skeleton-GYXVkk-I.js";var i={__name:`FilePreviewSkeleton`,setup(i){return(i,a)=>(t(),n(e(r),{class:`w-full max-w-3xl h-[70vh] rounded-6 self-center`}))}};export{i as t};

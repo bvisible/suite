@@ -1,1 +1,0 @@
-import{i as e,n as t,r as n,t as r}from"./Dialog-CRltixbx.js";var i=r;i.Title=t,i.Description=n,i.Close=e;export{i as t};

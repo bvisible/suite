@@ -1,0 +1,1 @@
+import{pn as e}from"./runtime-core.esm-bundler-CaODJcyn.js";import{t}from"./emitter-I4JosRyw.js";function n(n,r){t.on(n,r),e(()=>t.off(n,r))}export{n as t};

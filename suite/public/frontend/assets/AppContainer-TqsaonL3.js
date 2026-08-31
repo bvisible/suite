@@ -1,0 +1,1 @@
+import{Ht as e,St as t,k as n,mt as r,v as i}from"./runtime-core.esm-bundler-CaODJcyn.js";import{a}from"./vue-router-D3mAW-Fv.js";import{t as o}from"./root-DEXbKGhq.js";var s=n({__name:`AppContainer`,setup(n){let s=a(),c=o();return e(()=>s.meta.appId,e=>c.setActiveApp(e??null),{immediate:!0}),(e,n)=>{let a=t(`router-view`);return r(),i(a)}}});export{s as default};

@@ -1,0 +1,7 @@
+allowBuilds:
+  '@firebase/util': false
+  '@parcel/watcher': true
+  canvas: false
+  core-js: false
+  protobufjs: false
+  vue-demi: true

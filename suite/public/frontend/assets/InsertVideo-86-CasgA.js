@@ -1,0 +1,1 @@
+import{$n as e,k as t,xt as n,z as r}from"./runtime-core.esm-bundler-CaODJcyn.js";var i=t({__name:`InsertVideo`,props:{editor:{}},setup(t){let i=t;function a(){i.editor.chain().focus().selectAndUploadVideo().run()}return(t,i)=>n(t.$slots,`default`,e(r({onClick:a})))}});export{i as default};

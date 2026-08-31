@@ -28,7 +28,7 @@ import ShortcutsDialog from '@/apps/drive/components/ShortcutsDialog.vue'
 import Sidebar from '@/apps/drive/components/Sidebar.vue'
 import { getRootSection } from '@/apps/drive/data/breadcrumbs'
 import emitter from '@/apps/drive/emitter'
-import { getTeams, storageBar } from '@/apps/drive/resources/files'
+import { storageBar } from '@/apps/drive/resources/files'
 import { notifCount } from '@/apps/drive/resources/permissions'
 import { base2BlockSize, formatSize } from '@/apps/drive/utils/format'
 
@@ -36,7 +36,6 @@ const router = useRouter()
 const failed = ref(false)
 
 notifCount.fetch()
-getTeams.fetch()
 storageBar.fetch()
 
 const showSettings = ref(false)
@@ -87,18 +86,12 @@ const contextNav = computed(() => {
       ],
     },
   ]
-  const teams = getTeams.data || {}
-  if (Object.keys(teams).length > 0) {
-    sections.push({
-      label: __('Teams'),
-      items: Object.values(teams).map((team) => ({
-        label: team.title,
-        icon: 'lucide-building',
-        route: `/drive/t/${team.name}/`,
-        active: rootName === 'drive-Team',
-      })),
-    })
-  }
+  //// Neoffice — the "Teams" section is gone with the teams themselves. Upstream's
+  //// de-teaming (4df6ee65a / f3cf5206c, merged 31.08.2026) dropped Drive Team,
+  //// Drive Team Member and the getTeams resource: storage is now one private
+  //// folder per user under a single site root, and sharing goes through Drive
+  //// Permission rows rather than team membership. Nothing replaces this section —
+  //// the shared files it used to reach are under "Everyone" and "Shared".
   sections.push({
     label: __('Views'),
     items: [

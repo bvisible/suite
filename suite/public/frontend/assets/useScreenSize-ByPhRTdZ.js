@@ -1,0 +1,1 @@
+import{vn as e}from"./runtime-core.esm-bundler-CaODJcyn.js";var t=e(window.innerWidth<640),n=()=>({isMobile:t});export{n as t};

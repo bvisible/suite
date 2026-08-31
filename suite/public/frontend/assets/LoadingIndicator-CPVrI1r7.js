@@ -1,1 +1,0 @@
-import{Lt as e,O as t,b as n,q as r,v as i}from"./vue.runtime.esm-bundler-DwZq-8QY.js";import{t as a}from"./Spinner-Co-q8kR9.js";var o=t({__name:`LoadingIndicator`,props:{scale:{default:100}},setup(t){let o=t,s=i(()=>o.scale===100?void 0:{scale:`${o.scale}%`});return(t,i)=>(r(),n(a,{style:e(s.value)},null,8,[`style`]))}});export{o as t};
