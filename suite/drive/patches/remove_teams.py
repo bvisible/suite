@@ -121,7 +121,14 @@ def _collapse_teams():
         members = [m for m in members if frappe.db.exists("User", m.user)]
         owned = bool(team.owner) and frappe.db.exists("User", team.owner)
 
-        if team.personal and owned and not frappe.db.get_value("Drive Settings", team.owner, "user_folder"):
+        #//// Neoffice — same lookup-by-field as in _to_user_folder below: addressing
+        #//// Drive Settings by `team.owner` misses any row whose User has been renamed,
+        #//// which would send an owner who already has a user folder down the shared
+        #//// folder path instead.
+        _settings = frappe.db.get_value(
+            "Drive Settings", {"user": team.owner}, ["name", "user_folder"], as_dict=True
+        )
+        if team.personal and owned and not (_settings and _settings.user_folder):
             _to_user_folder(home, team)
             _grant_members(home, members)
             continue
@@ -232,11 +239,28 @@ def _to_user_folder(home, team):
     )
     grant_owner_access(home, team.owner)
 
-    if not frappe.db.exists("Drive Settings", team.owner):
-        frappe.get_doc({"doctype": "Drive Settings", "user": team.owner}).insert(ignore_permissions=True)
+    #//// Neoffice — look the row up by its `user` FIELD, not by its name.
+    #////
+    #//// Drive Settings autonames `field:user`, so upstream assumes name == user and
+    #//// addresses the row by `team.owner` throughout. That assumption breaks as soon
+    #//// as a User has been renamed: the Drive Settings row keeps the name it was
+    #//// created under while `user` follows the new address. The table carries a
+    #//// UNIQUE key on the `user` column, so `exists("Drive Settings", team.owner)`
+    #//// finds nothing, the insert below fires anyway and dies on
+    #//// `Duplicate entry '<email>' for key 'user'` — taking the whole migration with
+    #//// it. Measured on the osiris copy, 31.08.2026: 3 rows out of 257 had
+    #//// name != user, and remove_teams aborted on the first one.
+    #////
+    #//// Worth sending upstream: the same shortcut is taken wherever this patch
+    #//// addresses Drive Settings by owner.
+    settings_name = frappe.db.get_value("Drive Settings", {"user": team.owner}, "name")
+    if not settings_name:
+        settings_name = frappe.get_doc(
+            {"doctype": "Drive Settings", "user": team.owner}
+        ).insert(ignore_permissions=True).name
     frappe.db.set_value(
         "Drive Settings",
-        team.owner,
+        settings_name,
         {"user_folder": home, "quota": team.quota or 0},
         update_modified=False,
     )
