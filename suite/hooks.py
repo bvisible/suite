@@ -71,6 +71,16 @@ website_route_rules = [
 
 home_page = "suite"
 
+#//// Neoffice — Frappe v15 compatibility, added hooks (no upstream equivalent).
+#//// Upstream writes response headers through `frappe.local.response_headers`,
+#//// which v16 creates per request and merges into the response. v15 has neither
+#//// half, so every write raised AttributeError and /suite and /drive answered
+#//// HTTP 500 to every visitor. These two hooks reproduce both halves at the same
+#//// points v16 uses. Drop them, and suite/suite_core/v15_response_headers.py,
+#//// when the fleet moves to v16.
+before_request = ["suite.suite_core.v15_response_headers.create"]
+after_request = ["suite.suite_core.v15_response_headers.apply"]
+
 # mail — website redirects
 website_redirects = [
     # //// Neoffice — there must be NO "/" -> "/suite" redirect here. Upstream
