@@ -11,7 +11,12 @@ import wrapt
 from bs4 import BeautifulSoup
 from frappe import _
 from frappe.types.filter import FilterTuple
-from MySQLdb import OperationalError
+#//// Neoffice — upstream imports OperationalError from MySQLdb (mysqlclient), a package
+#//// frappe does not depend on: frappe drives MariaDB with PyMySQL, so a bench without
+#//// mysqlclient cannot even import this module (`bench install-app suite` died in the CI),
+#//// and where it is installed the isinstance() check below never matches the exception
+#//// frappe actually raises (pymysql.err.OperationalError). Import the real one.
+from pymysql.err import OperationalError
 
 INVISIBLE_CHARS = (
     # Control chars, but not the whitespace ones (\u0009-\u000D): deleting a newline runs
