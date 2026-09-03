@@ -22,6 +22,7 @@ jobs:
     uses: bvisible/neoffice-ci/.github/workflows/frappe-app-ci.yml@main
     with:
       app: suite
+      install_apps: erpnext   # the tests reach Global Defaults (an erpnext DocType)
       skip_build: true   # SPA commit-the-build: assets committed, never built on instances
       test_args: ${{ inputs.test_args || '' }}
     # inherit: CI_REPORT_SECRET (deps are public forks: no read token needed)
