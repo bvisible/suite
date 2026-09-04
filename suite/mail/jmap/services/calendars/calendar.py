@@ -71,11 +71,14 @@ class CalendarService(CalendarsService):
         results = []
         if ids:
             for batch in self.create_batches(ids, self.max_objects_in_get):
+                #//// Neoffice — ask for GET_PROPERTIES (upstream sends none, so JMAP answers
+                #//// with a default subset that omits shareWith and isVisible). See above.
                 response = self._get(batch, properties=self.GET_PROPERTIES)
 
                 if method_responses := response.get("methodResponses"):
                     results.extend(method_responses[0][1].get("list", []))
         else:
+            #//// Neoffice — same explicit property list as the batched branch above.
             response = self._get(properties=self.GET_PROPERTIES)
             if method_responses := response.get("methodResponses"):
                 results.extend(method_responses[0][1].get("list", []))

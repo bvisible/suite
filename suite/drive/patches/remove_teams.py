@@ -262,6 +262,8 @@ def _to_user_folder(home, team):
         ).insert(ignore_permissions=True).name
     frappe.db.set_value(
         "Drive Settings",
+        #//// Neoffice — the row's own name, resolved by its `user` field above; upstream
+        #//// passes team.owner, which misses any row whose User was renamed.
         settings_name,
         {"user_folder": home, "quota": team.quota or 0},
         update_modified=False,

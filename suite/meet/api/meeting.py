@@ -17,6 +17,9 @@ from frappe.rate_limiter import rate_limit
 from suite.meet import guest_access
 from suite.meet.api.recording import get_active_recording_state
 from suite.meet.doctype.meet_room.meet_room import MeetRoom
+#//// Neoffice — get_tenant added to the import: the fleet shares ONE central SFU
+#//// and every instance reports the same site, so the token carries a tenant claim
+#//// instead (see _generate_sfu_token below and sfu_config.get_tenant()).
 from suite.meet.utils.sfu_config import get_sfu_config, get_tenant
 from suite.meet.utils.user import (
     get_user_info,

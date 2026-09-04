@@ -21,6 +21,9 @@ from suite.utils.rate_limiter import dynamic_rate_limit
 
 
 @frappe.whitelist()
+#//// Neoffice — widened return. Upstream hands the SPA only {name, _name};
+#//// our sidebar needs colour, visibility and rights, and every calendar rather
+#//// than the first page. Full reason in the docstring below.
 def get_calendars(account: str) -> list[dict]:
     """Returns the account's calendars with the display + permission info the UI needs.
 
@@ -33,6 +36,8 @@ def get_calendars(account: str) -> list[dict]:
     """
 
     ensure_default_alerts(account)
+    #//// Neoffice — the field list and `limit=100` are ours; upstream keeps only
+    #//// {name, _name} and the default page size. Reason in the docstring above.
     fields = (
         "name",
         "_name",

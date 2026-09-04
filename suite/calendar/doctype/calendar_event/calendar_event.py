@@ -674,6 +674,8 @@ def format_calendar_event(account: str, calendar_map: dict, event: dict) -> dict
     locations = [{"uid": uid, "_name": l.get("name")} for uid, l in (event.get("locations") or {}).items()]
     links = [
         {"uid": uid, "href": l.get("href"), "content_type": l.get("contentType")}
+        #//// Neoffice — `or {}`, same JMAP NULL defect as `locations` just above:
+        #//// the key comes back as an explicit NULL, so the `.get` default never applies.
         for uid, l in (event.get("links") or {}).items()
     ]
     alerts = [
