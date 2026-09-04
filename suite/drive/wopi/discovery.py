@@ -14,6 +14,8 @@ from xml.etree import ElementTree
 import frappe
 import requests
 from frappe import _
+
+#//// Neoffice — rate limiting for the two endpoints that may start coolwsd.
 from frappe.rate_limiter import rate_limit
 
 from .lifecycle import (
@@ -86,9 +88,9 @@ def get_discovery_xml(start_if_down: bool = False) -> ElementTree.Element | None
     a cache hit we verify the TCP socket — the cached URLs point at
     /browser/<id>/cool.html which 404s the second the daemon is down.
 
-    With ``start_if_down`` false the call is read-only: it reports the daemon as
-    unavailable rather than starting it, and does not stamp the activity key that
-    keeps the idle watchdog off.
+    ``start_if_down`` (//// Neoffice) gates the wake-up: false makes the call
+    read-only — it reports the daemon as unavailable rather than starting it, and
+    does not stamp the activity key that keeps the idle watchdog off.
     """
     if not is_wopi_enabled():
         return None
@@ -96,6 +98,7 @@ def get_discovery_xml(start_if_down: bool = False) -> ElementTree.Element | None
     cached = frappe.cache().get_value(DISCOVERY_CACHE_KEY)
     if cached and _can_connect_socket():
         # Hot path: stamp activity so the idle watchdog backs off.
+        #//// Neoffice — parse first, decide whether to stamp activity after (below).
         try:
             xml = ElementTree.fromstring(cached)
         except ElementTree.ParseError:
@@ -169,6 +172,7 @@ def is_file_supported(filename: str, start_if_down: bool = False) -> bool:
         return False
 
     extension = filename.rsplit(".", 1)[-1].lower()
+    #//// Neoffice — `start_if_down` passed on; see get_discovery_xml.
     return get_editor_url_for_extension(extension, start_if_down=start_if_down) is not None
 
 
@@ -241,7 +245,8 @@ def get_editor_config(file_id: str) -> dict:
 def collabora_status(start_if_down: bool = False) -> dict:
     """Report whether the Collabora server is reachable and configured.
 
-    ``start_if_down`` is for the editor-open path only (see get_discovery_xml).
+    ``start_if_down`` (//// Neoffice) is for the editor-open path only — see
+    get_discovery_xml.
     """
     settings = get_wopi_settings()
 
@@ -253,6 +258,7 @@ def collabora_status(start_if_down: bool = False) -> dict:
         }
 
     collabora_url = get_collabora_url()
+    #//// Neoffice — only the editor-open path passes True; see get_discovery_xml.
     discovery = get_discovery_xml(start_if_down=start_if_down)
 
     if discovery is None:

@@ -6,6 +6,9 @@ from __future__ import annotations
 import jwt
 import frappe
 from frappe import _
+#//// Neoffice — `timezone` for the aware expiry below; the rest of this block
+#//// (the default lifetime, and the helper that refuses to hand out a secret it
+#//// could not persist) is new. See the commit and the notes on each.
 from datetime import datetime, timedelta, timezone
 
 # Lifetime of a WOPI access token, in hours, when WOPI Settings says nothing.
@@ -73,13 +76,16 @@ def _read_jwt_secret(settings) -> str | None:
         #//// and Collabora answered "Invalid WOPI token". Returning None instead
         #//// makes get_wopi_secret() say what is actually wrong.
         if not _persist_jwt_secret(settings, secret):
+            #//// Neoffice — say what is wrong instead of returning a private value.
             frappe.log_error(
                 "WOPI: JWT secret unreadable and not re-mintable",
+                #//// Neoffice — new message: the READ failed and so did the write.
                 "The stored WOPI JWT secret could not be decrypted with this site's encryption "
                 "key, and this request could not write a replacement (read-only transaction). "
                 "Run `bench --site <site> migrate` to provision one.",
             )
             return None
+        #//// Neoffice — reached only when the write above actually landed.
         frappe.log_error(
             "WOPI: JWT secret re-minted",
             "The stored WOPI JWT secret could not be decrypted with this site's encryption "
@@ -124,6 +130,7 @@ def get_wopi_secret() -> str:
     settings = get_wopi_settings()
     secret = settings.get("jwt_secret")
     if not secret:
+        #//// Neoffice — was: mint a random one and try to save it. See above.
         frappe.throw(
             _(
                 "The WOPI signing secret is missing from WOPI Settings. "
@@ -165,6 +172,7 @@ def generate_wopi_token(file_id: str, user: str = None, can_write: bool = True) 
         "user_id": user,
         "can_write": can_write,
         "exp": expiry,
+        #//// Neoffice — the same aware instant as `expiry`, so the two agree.
         "iat": now,
     }
 

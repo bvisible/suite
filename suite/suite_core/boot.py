@@ -83,6 +83,7 @@ def after_install():
     _run("drive.after_install", drive_after_install)
     _run("mail.after_install", mail_after_install)
     _run("calendar.after_install", calendar_after_install)
+    #//// Neoffice — last: it re-asserts values the fixtures have just written.
     _run("neoffice.run", neoffice_run)
 
 
@@ -95,6 +96,7 @@ def after_migrate():
     from suite.suite_core.neoffice import run as neoffice_run
 
     _run("mail.after_migrate", mail_after_migrate)
+    #//// Neoffice — last: it re-asserts values the fixtures have just written.
     _run("neoffice.run", neoffice_run)
 
 

@@ -323,6 +323,7 @@ def _deny_general_read(entity):
 def get_user_folder(user=None):
     """The user's private folder under the root; created on first use."""
     user = user or frappe.session.user
+    #//// Neoffice — by the `user` FIELD from here down, never by the row's name.
     settings_of = {"user": user}
     name = frappe.db.get_value("Drive Settings", settings_of, "user_folder")
     if name:
@@ -330,12 +331,14 @@ def get_user_folder(user=None):
         if folder:
             return folder
 
+    #//// Neoffice — by field (see above): after a rename the row keeps the old name.
     if not frappe.db.exists("Drive Settings", settings_of):
         try:
             frappe.get_doc({"doctype": "Drive Settings", "user": user}).insert(ignore_permissions=True)
         except frappe.DuplicateEntryError:
             pass
 
+    #//// Neoffice — by field (see above).
     name = frappe.db.get_value("Drive Settings", settings_of, "user_folder", for_update=True)
     if name:
         folder = frappe.db.get_value("File", name, ["name", "file_url"], as_dict=1)
@@ -355,6 +358,8 @@ def get_user_folder(user=None):
     )
     grant_owner_access(folder.name, user)
 
+    #//// Neoffice — by field, and the duplicate is caught here now too: this insert
+    #//// is the one that used to raise, after the orphan folder above had been made.
     if not frappe.db.exists("Drive Settings", settings_of):
         try:
             frappe.get_doc({"doctype": "Drive Settings", "user": user}).insert(ignore_permissions=True)

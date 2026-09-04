@@ -8,11 +8,15 @@ import shutil
 
 import frappe
 from frappe import _
+
+#//// Neoffice — rate limiting for can_edit_file, which may start coolwsd.
 from frappe.rate_limiter import rate_limit
 
 from suite.drive.utils import create_drive_file, get_file_type, get_user_folder
 from suite.drive.utils.files import FileManager, get_s3_key, get_s3_url
 
+#//// Neoffice — collabora_status replaces the whitelisted check_collabora_status:
+#//// the endpoint is read-only now, this callable is what may wake the daemon.
 from .discovery import EDITOR_PROBE_RATE, collabora_status, is_file_supported
 
 OFFICE_MIME_TYPES = {
@@ -34,6 +38,7 @@ OFFICE_MIME_TYPES = {
 @rate_limit(limit=EDITOR_PROBE_RATE["limit"], seconds=EDITOR_PROBE_RATE["seconds"])
 def can_edit_file(file_id: str) -> dict:
     """Check if a file can be edited with Collabora."""
+    #//// Neoffice — read access required; see the block above the decorators.
     from suite.drive.api.permissions import user_has_permission
 
     if not frappe.db.exists("File", file_id) or not user_has_permission(file_id, "read"):
@@ -46,6 +51,7 @@ def can_edit_file(file_id: str) -> dict:
     if not is_file_supported(file_name, start_if_down=True):
         return {"can_edit": False, "reason": _("File type not supported")}
 
+    #//// Neoffice — the editor pre-flight is allowed to wake coolwsd.
     status = collabora_status(start_if_down=True)
     if status.get("status") != "ok":
         #//// Neoffice — tell the caller WHETHER COLLABORA IS SUPPOSED TO BE THERE.

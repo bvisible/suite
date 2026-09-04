@@ -130,6 +130,7 @@ def check_file_info(file_id: str):
     require_token_permission(file, token_data, "read")
 
     user_id = token_data.get("user_id", "anonymous")
+    #//// Neoffice — the token's `can_write` AND the live permission, not either one.
     can_write = bool(token_data.get("can_write", False)) and check_token_permission(
         file, token_data, "write"
     )
@@ -173,6 +174,7 @@ def check_file_info(file_id: str):
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 def get_file(file_id: str):
     """WOPI GetFile endpoint — GET /wopi/files/{file_id}/contents."""
+    #//// Neoffice — the token data is kept: the read is re-authorised below.
     token_data = validate_access_token(file_id)
 
     file = get_wopi_file(file_id)
