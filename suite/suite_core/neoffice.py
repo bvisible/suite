@@ -57,6 +57,37 @@ def ensure_wopi_secret() -> bool:
     return True
 
 
+def drop_orphan_role_assignments(role_name: str) -> int:
+    """Delete this role's ``Has Role`` rows whose User no longer exists.
+
+    Frappe's ``Role.update_user_type_on_change()`` — the half that actually
+    demotes the accounts a desk role already promoted — loops over the holders and
+    calls ``frappe.get_doc("User", name)`` on each. One row pointing at a deleted
+    account raises DoesNotExistError there and takes the whole migration down with
+    it; osiris carried two on 04.09.2026 ("reg-comptable@yopmail.com",
+    "qa-debug@yopmail.com"), enough to abort `bench migrate` on that instance.
+
+    The rows are unreachable by construction: ``Has Role`` is a child table of
+    User, so a row whose parent is gone can never be read through its parent
+    again. Scoped to this one role on purpose — cleaning "every orphan child row"
+    is a different, much larger decision.
+    """
+    holders = set(
+        frappe.get_all("Has Role", filters={"parenttype": "User", "role": role_name}, pluck="parent")
+    )
+    orphans = sorted(user for user in holders if not frappe.db.exists("User", user))
+    if not orphans:
+        return 0
+
+    frappe.db.delete("Has Role", {"parenttype": "User", "role": role_name, "parent": ("in", orphans)})
+    frappe.log_error(
+        f"Suite: removed {len(orphans)} orphan {role_name} assignment(s)",
+        "These `Has Role` rows named users that no longer exist, which makes "
+        "Frappe's own user_type re-evaluation raise DoesNotExistError:\n" + "\n".join(orphans),
+    )
+    return len(orphans)
+
+
 def ensure_portal_role_has_no_desk_access(role_name: str = PORTAL_ROLE) -> bool:
     """Hold "Suite User" at ``desk_access = 0``, whatever the last merge left.
 
@@ -78,9 +109,23 @@ def ensure_portal_role_has_no_desk_access(role_name: str = PORTAL_ROLE) -> bool:
     if not frappe.db.get_value("Role", role_name, "desk_access"):
         return False
 
+    drop_orphan_role_assignments(role_name)
+
     role = frappe.get_doc("Role", role_name)
     role.desk_access = 0
-    role.save(ignore_permissions=True)
+    try:
+        role.save(ignore_permissions=True)
+    except Exception:
+        # The value matters more than the cascade, and this runs inside a migration:
+        # write it directly so the role is right even when Frappe's own holder
+        # re-evaluation cannot run, and say loudly what did not happen.
+        frappe.db.set_value("Role", role_name, "desk_access", 0, update_modified=False)
+        frappe.log_error(
+            f"Suite: could not re-evaluate the holders of {role_name}",
+            f"desk_access was written directly, so {role_name} is correct, but "
+            "Role.on_update() failed. Accounts this role already promoted to System "
+            "User keep that type until something saves them.\n\n" + frappe.get_traceback(),
+        )
     frappe.db.commit()
     frappe.log_error(
         f"Suite: reset desk_access on role {role_name}",

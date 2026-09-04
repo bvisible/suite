@@ -7,9 +7,11 @@ from frappe.tests import IntegrationTestCase
 
 from suite.suite_core.neoffice import (
     PORTAL_ROLE,
+    drop_orphan_role_assignments,
     ensure_portal_role_has_no_desk_access,
     ensure_wopi_secret,
 )
+from suite.tests.utils import ensure_user
 
 
 class TestPortalRoleKeepsNoDeskAccess(IntegrationTestCase):
@@ -33,7 +35,56 @@ class TestPortalRoleKeepsNoDeskAccess(IntegrationTestCase):
 
         self.assertIs(ensure_portal_role_has_no_desk_access(role.name), False, "idempotent")
 
+    def test_an_orphan_assignment_does_not_abort_the_repair(self):
+        """Role.on_update() does get_doc("User", …) on every holder and raises
+        DoesNotExistError on the first row naming a deleted account. One such row is
+        enough to take a whole `bench migrate` down — osiris carried two."""
+        role = frappe.get_doc({"doctype": "Role", "role_name": f"Neoffice Test {frappe.generate_hash(6)}"})
+        role.desk_access = 1
+        role.insert(ignore_permissions=True)
+        self.addCleanup(self._drop_role, role.name)
+
+        ghost = f"deleted-{frappe.generate_hash(6)}@example.com"
+        frappe.get_doc(
+            {
+                "doctype": "Has Role",
+                "parenttype": "User",
+                "parentfield": "roles",
+                "parent": ghost,
+                "role": role.name,
+            }
+        ).insert(ignore_permissions=True)
+        frappe.db.commit()
+        self.assertFalse(frappe.db.exists("User", ghost))
+
+        self.assertIs(ensure_portal_role_has_no_desk_access(role.name), True)
+        self.assertEqual(frappe.db.get_value("Role", role.name, "desk_access"), 0)
+        self.assertEqual(
+            frappe.get_all("Has Role", filters={"parenttype": "User", "role": role.name}, pluck="parent"),
+            [],
+            "the unreachable row must be gone, not merely stepped over",
+        )
+
+    def test_dropping_orphans_leaves_the_live_assignments_alone(self):
+        role = frappe.get_doc({"doctype": "Role", "role_name": f"Neoffice Test {frappe.generate_hash(6)}"})
+        role.insert(ignore_permissions=True)
+        self.addCleanup(self._drop_role, role.name)
+
+        live = f"neoffice-role-{frappe.generate_hash(6)}@example.com"
+        ensure_user(live)
+        user = frappe.get_doc("User", live)
+        user.append("roles", {"role": role.name})
+        user.save(ignore_permissions=True)
+        frappe.db.commit()
+
+        self.assertEqual(drop_orphan_role_assignments(role.name), 0)
+        self.assertEqual(
+            frappe.get_all("Has Role", filters={"parenttype": "User", "role": role.name}, pluck="parent"),
+            [live],
+        )
+
     def _drop_role(self, name: str) -> None:
+        frappe.db.delete("Has Role", {"parenttype": "User", "role": name})
         frappe.delete_doc("Role", name, force=True, ignore_permissions=True, delete_permanently=True)
         frappe.db.commit()
 
