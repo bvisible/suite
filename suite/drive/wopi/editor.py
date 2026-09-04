@@ -100,8 +100,26 @@ def create_office_file(file_type: str, title: str, parent: str = None) -> dict:
     #//// have raised, it would have silently shifted every argument by one and
     #//// created files named after a team id.
     if parent:
-        if not frappe.db.exists("File", parent):
-            frappe.throw(_("Parent folder not found"))
+        #//// Neoffice — `parent` comes from the caller and was checked for EXISTENCE
+        #//// only, while create_drive_file below inserts with ignore_permissions=True:
+        #//// any signed-in user could drop a file into anybody else's folder just by
+        #//// passing its id. Same guard as every other "create in this folder" entry
+        #//// point — sheets.api.create_sheet, slides create_presentation,
+        #//// writer.api.docs.create_document. The is_folder check is ours too: a
+        #//// File id that is not a folder would have been accepted as a parent and
+        #//// produced an entry nothing can list.
+        from suite.drive.api.permissions import user_has_permission
+
+        parent_doc = frappe.db.get_value("File", parent, ["name", "is_folder"], as_dict=True)
+        if not parent_doc:
+            frappe.throw(_("Parent folder not found"), frappe.DoesNotExistError)
+        if not parent_doc.is_folder:
+            frappe.throw(_("The parent must be a folder"), frappe.ValidationError)
+        if not user_has_permission(parent, "upload"):
+            frappe.throw(
+                _("Cannot access folder due to insufficient permissions"),
+                frappe.PermissionError,
+            )
     else:
         parent = get_user_folder()["name"]
 
