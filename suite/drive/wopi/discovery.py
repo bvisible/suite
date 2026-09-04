@@ -14,6 +14,7 @@ from xml.etree import ElementTree
 import frappe
 import requests
 from frappe import _
+from frappe.rate_limiter import rate_limit
 
 from .lifecycle import (
     _can_connect_socket,
@@ -24,6 +25,14 @@ from .token import generate_wopi_token, get_wopi_settings
 
 # Cache discovery XML (revalidated against the live socket on every hit)
 DISCOVERY_CACHE_KEY = "collabora_discovery_xml"
+
+#//// Neoffice — budget for the endpoints that may run `systemctl start coolwsd`.
+#//// One editor open costs one call to get_editor_config and, while the daemon is
+#//// cold, up to MAX_PROBES (6) calls to can_edit_file — MSOfficePreview.vue polls
+#//// every 2.5 s and the user can press "Try again" once more. EDITOR_PROBE_RATE is
+#//// sized for that budget; EDITOR_OPEN_RATE is the one-call-per-document path.
+EDITOR_OPEN_RATE = {"limit": 10, "seconds": 60}
+EDITOR_PROBE_RATE = {"limit": 20, "seconds": 60}
 
 EXTENSION_MIME_TYPES = {
     "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -61,13 +70,25 @@ def is_wopi_enabled() -> bool:
     return bool(settings.get("enabled", False))
 
 
-def get_discovery_xml() -> ElementTree.Element | None:
+#//// Neoffice — `start_if_down` gates the side effect; it used to be unconditional.
+#//// Every caller of this function, including the status probe that was reachable
+#//// WITHOUT A SESSION, ran `sudo -n systemctl start coolwsd` and then blocked in a
+#//// web worker for up to COLLABORA_START_TIMEOUT_SECONDS (20 s) waiting for the
+#//// daemon: a handful of parallel requests was enough to hold every worker of the
+#//// site. Waking the daemon now belongs to the paths that carry real editing intent
+#//// (editor.can_edit_file, get_editor_config), and those are rate limited. Default
+#//// False so a new caller has to ASK for the side effect instead of inheriting it.
+def get_discovery_xml(start_if_down: bool = False) -> ElementTree.Element | None:
     """Fetch and parse Collabora discovery XML (endpoint: /hosting/discovery).
 
     Lazy-start contract: this function is the only entry point for the
     discovery XML, so the on-demand lifecycle of coolwsd hangs on it. Even on
     a cache hit we verify the TCP socket — the cached URLs point at
     /browser/<id>/cool.html which 404s the second the daemon is down.
+
+    With ``start_if_down`` false the call is read-only: it reports the daemon as
+    unavailable rather than starting it, and does not stamp the activity key that
+    keeps the idle watchdog off.
     """
     if not is_wopi_enabled():
         return None
@@ -76,13 +97,27 @@ def get_discovery_xml() -> ElementTree.Element | None:
     if cached and _can_connect_socket():
         # Hot path: stamp activity so the idle watchdog backs off.
         try:
-            _record_activity()
-            return ElementTree.fromstring(cached)
+            xml = ElementTree.fromstring(cached)
         except ElementTree.ParseError:
-            pass
+            xml = None
+        if xml is not None:
+            #//// Neoffice — only a caller that would have STARTED the daemon may keep
+            #//// it alive. A read-only status probe must not extend the idle window of
+            #//// a ~400 MB daemon nobody is editing with.
+            if start_if_down:
+                _record_activity()
+            return xml
 
-    # Cold path: either no cache or coolwsd is down. Wake it and refresh.
-    if not ensure_collabora_running():
+    # Cold path: either no cache or coolwsd is down.
+    #//// Neoffice — what a read-only caller may NOT do is `systemctl start coolwsd`.
+    #//// Fetching the discovery XML from a daemon that is already listening is fine,
+    #//// and it has to stay allowed: the cache is a Redis key, so it is empty after
+    #//// every flush and every deploy, and refusing to read a running daemon would
+    #//// report "Collabora unreachable" on an instance where it is plainly up.
+    if start_if_down:
+        if not ensure_collabora_running():
+            return None
+    elif not _can_connect_socket():
         return None
 
     url = f"{get_collabora_url()}/hosting/discovery"
@@ -100,9 +135,10 @@ def get_discovery_xml() -> ElementTree.Element | None:
         return None
 
 
-def get_editor_url_for_extension(extension: str) -> str | None:
+#//// Neoffice — `start_if_down` threaded through: see get_discovery_xml above.
+def get_editor_url_for_extension(extension: str, start_if_down: bool = False) -> str | None:
     """Get the Collabora editor URL template for a file extension."""
-    discovery = get_discovery_xml()
+    discovery = get_discovery_xml(start_if_down=start_if_down)
     if discovery is None:
         return None
 
@@ -126,16 +162,23 @@ def get_editor_url_for_extension(extension: str) -> str | None:
     return None
 
 
-def is_file_supported(filename: str) -> bool:
+#//// Neoffice — `start_if_down` threaded through: see get_discovery_xml above.
+def is_file_supported(filename: str, start_if_down: bool = False) -> bool:
     """Check if a file type is supported by Collabora."""
     if not filename or "." not in filename:
         return False
 
     extension = filename.rsplit(".", 1)[-1].lower()
-    return get_editor_url_for_extension(extension) is not None
+    return get_editor_url_for_extension(extension, start_if_down=start_if_down) is not None
 
 
+#//// Neoffice — rate limited: this is the editor-open path, so it is one of the two
+#//// endpoints allowed to run `systemctl start coolwsd`. One call per document open,
+#//// so EDITOR_OPEN_RATE (10/min) leaves ample headroom for a human and none for a
+#//// loop. `allow_guest` is kept — a publicly shared Drive document opens without a
+#//// session — and the read/write permission check below is what gates it.
 @frappe.whitelist(allow_guest=True)
+@rate_limit(limit=EDITOR_OPEN_RATE["limit"], seconds=EDITOR_OPEN_RATE["seconds"])
 def get_editor_config(file_id: str) -> dict:
     """Build the editor configuration (URL + WOPI token) for a File."""
     if not is_wopi_enabled():
@@ -159,7 +202,9 @@ def get_editor_config(file_id: str) -> dict:
 
     extension = file_name.rsplit(".", 1)[-1]
 
-    editor_url = get_editor_url_for_extension(extension)
+    #//// Neoffice — the one call that may wake coolwsd: the user has asked for the
+    #//// editor and holds read access on the document.
+    editor_url = get_editor_url_for_extension(extension, start_if_down=True)
     if not editor_url:
         frappe.throw(_("File type not supported: {0}").format(extension))
 
@@ -186,12 +231,17 @@ def get_editor_config(file_id: str) -> dict:
     }
 
 
-@frappe.whitelist(allow_guest=True)
-def check_collabora_status() -> dict:
-    """Check if the Collabora server is reachable and configured.
+#//// Neoffice — split in two. `collabora_status()` is the callable; the whitelisted
+#//// wrapper below is READ-ONLY and no longer answers guests. What it was: an
+#//// `allow_guest=True` endpoint whose documented side effect was to wake coolwsd,
+#//// with no rate limit — i.e. anyone on the internet could hold a web worker for
+#//// 20 s per request and keep a ~400 MB daemon running for free on every instance
+#//// of the fleet. It also handed back `server_url`, which is infrastructure detail
+#//// an anonymous caller has no business reading.
+def collabora_status(start_if_down: bool = False) -> dict:
+    """Report whether the Collabora server is reachable and configured.
 
-    Side-effect: wakes coolwsd if the idle watchdog stopped it, so the daemon
-    is warming up by the time the user clicks Edit.
+    ``start_if_down`` is for the editor-open path only (see get_discovery_xml).
     """
     settings = get_wopi_settings()
 
@@ -203,7 +253,7 @@ def check_collabora_status() -> dict:
         }
 
     collabora_url = get_collabora_url()
-    discovery = get_discovery_xml()
+    discovery = get_discovery_xml(start_if_down=start_if_down)
 
     if discovery is None:
         return {
@@ -227,3 +277,11 @@ def check_collabora_status() -> dict:
         "server_url": collabora_url,
         "supported_formats": sorted(formats),
     }
+
+
+#//// Neoffice — see collabora_status above: signed-in only, and read-only. Starting
+#//// the daemon belongs to the editor-open path, never to a status check.
+@frappe.whitelist()
+def check_collabora_status() -> dict:
+    """Report the Collabora server status without touching the daemon."""
+    return collabora_status(start_if_down=False)

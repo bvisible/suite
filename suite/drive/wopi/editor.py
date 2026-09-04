@@ -8,11 +8,12 @@ import shutil
 
 import frappe
 from frappe import _
+from frappe.rate_limiter import rate_limit
 
 from suite.drive.utils import create_drive_file, get_file_type, get_user_folder
 from suite.drive.utils.files import FileManager, get_s3_key, get_s3_url
 
-from .discovery import check_collabora_status, is_file_supported
+from .discovery import EDITOR_PROBE_RATE, collabora_status, is_file_supported
 
 OFFICE_MIME_TYPES = {
     "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -21,18 +22,31 @@ OFFICE_MIME_TYPES = {
 }
 
 
+#//// Neoffice — rate limited, and it now requires read access on the document.
+#//// This is the editor pre-flight the Drive preview calls, so it is one of the two
+#//// endpoints allowed to wake coolwsd (see discovery.get_discovery_xml); without a
+#//// limit it was a free "hold a web worker for 20 s" primitive. The read check
+#//// closes the smaller half of the same hole: the reply used to tell any signed-in
+#//// user whether an arbitrary File id existed and whether it was an Office document.
+#//// An unreadable id answers exactly like a missing one, so the difference leaks
+#//// nothing either.
 @frappe.whitelist()
+@rate_limit(limit=EDITOR_PROBE_RATE["limit"], seconds=EDITOR_PROBE_RATE["seconds"])
 def can_edit_file(file_id: str) -> dict:
     """Check if a file can be edited with Collabora."""
-    if not frappe.db.exists("File", file_id):
+    from suite.drive.api.permissions import user_has_permission
+
+    if not frappe.db.exists("File", file_id) or not user_has_permission(file_id, "read"):
         return {"can_edit": False, "reason": _("File not found")}
 
     file_name = frappe.db.get_value("File", file_id, "file_name") or ""
 
-    if not is_file_supported(file_name):
+    #//// Neoffice — `start_if_down=True`: the user has opened an Office document and
+    #//// is waiting on the answer, so this is the moment to wake the daemon.
+    if not is_file_supported(file_name, start_if_down=True):
         return {"can_edit": False, "reason": _("File type not supported")}
 
-    status = check_collabora_status()
+    status = collabora_status(start_if_down=True)
     if status.get("status") != "ok":
         #//// Neoffice — tell the caller WHETHER COLLABORA IS SUPPOSED TO BE THERE.
         #////
@@ -61,7 +75,8 @@ def can_edit_file(file_id: str) -> dict:
 @frappe.whitelist()
 def get_supported_extensions() -> list:
     """Get the list of file extensions supported by Collabora."""
-    status = check_collabora_status()
+    #//// Neoffice — read-only: listing the formats is not a reason to boot a daemon.
+    status = collabora_status(start_if_down=False)
     return status.get("supported_formats", [])
 
 
