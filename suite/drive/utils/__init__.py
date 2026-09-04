@@ -310,22 +310,33 @@ def _deny_general_read(entity):
     ).insert(ignore_permissions=True)
 
 
+#//// Neoffice — every lookup below addressed Drive Settings BY NAME. The doctype
+#//// autonames `field:user`, so the name equals the user only until that User is
+#//// renamed: Frappe cascades a rename into the `user` LINK field but leaves the
+#//// record itself named after the old address. From then on all four lookups missed,
+#//// the function built a SECOND private folder for a user who already had one, and
+#//// then died on DuplicateEntryError at the insert at the end — the unique index on
+#//// `user` was the only thing that ever noticed, and only after the orphan folder had
+#//// been created and shared. Filtering on the `user` FIELD is right whatever the row
+#//// is called, and the last insert now catches the duplicate exactly as the first one
+#//// already did (a concurrent request can still win the race).
 def get_user_folder(user=None):
     """The user's private folder under the root; created on first use."""
     user = user or frappe.session.user
-    name = frappe.db.get_value("Drive Settings", user, "user_folder")
+    settings_of = {"user": user}
+    name = frappe.db.get_value("Drive Settings", settings_of, "user_folder")
     if name:
         folder = frappe.db.get_value("File", name, ["name", "file_url"], as_dict=1)
         if folder:
             return folder
 
-    if not frappe.db.exists("Drive Settings", user):
+    if not frappe.db.exists("Drive Settings", settings_of):
         try:
             frappe.get_doc({"doctype": "Drive Settings", "user": user}).insert(ignore_permissions=True)
         except frappe.DuplicateEntryError:
             pass
 
-    name = frappe.db.get_value("Drive Settings", user, "user_folder", for_update=True)
+    name = frappe.db.get_value("Drive Settings", settings_of, "user_folder", for_update=True)
     if name:
         folder = frappe.db.get_value("File", name, ["name", "file_url"], as_dict=1)
         if folder:
@@ -344,9 +355,12 @@ def get_user_folder(user=None):
     )
     grant_owner_access(folder.name, user)
 
-    if not frappe.db.exists("Drive Settings", user):
-        frappe.get_doc({"doctype": "Drive Settings", "user": user}).insert(ignore_permissions=True)
-    frappe.db.set_value("Drive Settings", user, "user_folder", folder.name, update_modified=False)
+    if not frappe.db.exists("Drive Settings", settings_of):
+        try:
+            frappe.get_doc({"doctype": "Drive Settings", "user": user}).insert(ignore_permissions=True)
+        except frappe.DuplicateEntryError:
+            pass
+    frappe.db.set_value("Drive Settings", settings_of, "user_folder", folder.name, update_modified=False)
     return frappe._dict(name=folder.name, file_url=folder.file_url)
 
 
