@@ -5,7 +5,37 @@ from __future__ import annotations
 import frappe
 from frappe.tests import IntegrationTestCase
 
-from suite.suite_core.neoffice import ensure_wopi_secret
+from suite.suite_core.neoffice import (
+    PORTAL_ROLE,
+    ensure_portal_role_has_no_desk_access,
+    ensure_wopi_secret,
+)
+
+
+class TestPortalRoleKeepsNoDeskAccess(IntegrationTestCase):
+    """`suite/fixtures/role.json` states desk_access=0 on the signup role; a merge
+    that restores upstream's 1 promotes every shop customer to System User."""
+
+    def test_the_shipped_role_carries_no_desk_access(self):
+        self.assertEqual(frappe.db.get_value("Role", PORTAL_ROLE, "desk_access"), 0)
+        self.assertIs(ensure_portal_role_has_no_desk_access(), False, "must be a no-op")
+
+    def test_a_role_that_came_back_with_desk_access_is_put_back(self):
+        role = frappe.get_doc({"doctype": "Role", "role_name": f"Neoffice Test {frappe.generate_hash(6)}"})
+        role.desk_access = 1
+        role.insert(ignore_permissions=True)
+        # ensure_portal_role_has_no_desk_access() commits, so this is undone by hand.
+        self.addCleanup(self._drop_role, role.name)
+        frappe.db.commit()
+
+        self.assertIs(ensure_portal_role_has_no_desk_access(role.name), True)
+        self.assertEqual(frappe.db.get_value("Role", role.name, "desk_access"), 0)
+
+        self.assertIs(ensure_portal_role_has_no_desk_access(role.name), False, "idempotent")
+
+    def _drop_role(self, name: str) -> None:
+        frappe.delete_doc("Role", name, force=True, ignore_permissions=True, delete_permanently=True)
+        frappe.db.commit()
 
 
 class TestWopiSecretIsProvisionedOnce(IntegrationTestCase):
