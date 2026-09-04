@@ -6,7 +6,38 @@ from __future__ import annotations
 import jwt
 import frappe
 from frappe import _
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
+# Lifetime of a WOPI access token, in hours, when WOPI Settings says nothing.
+#
+# `access_token_ttl` is an absolute expiry instant in milliseconds since the
+# epoch, not a duration (Microsoft's WOPI spec, which Collabora implements). The
+# spec suggests 10 hours; Collabora warns the user 15 minutes before expiry and
+# refuses to save afterwards, and reloading the document mints a fresh token.
+#
+# We ship 4 hours instead. The token freezes `file_id` and `can_write` at the
+# moment the editor opened, so its lifetime is the window in which a leaked or
+# stale token still works. Four hours covers an editing session end to end while
+# more than halving that window; the endpoints re-check the live permission on
+# every read and write anyway (see endpoints.py), so the TTL is a session knob,
+# not the authorisation boundary. Raise `jwt_expiry_hours` in WOPI Settings on an
+# instance where people genuinely keep one document open all day.
+DEFAULT_JWT_EXPIRY_HOURS = 4
+
+
+def _persist_jwt_secret(settings, secret: str) -> bool:
+    """Write the signing secret back to WOPI Settings. True if it landed.
+
+    A GET request runs in a read-only transaction, so this can legitimately
+    fail; the caller must then NOT hand out the value, because nothing else
+    would ever agree on it.
+    """
+    try:
+        settings.db_set("jwt_secret", secret)
+        frappe.db.commit()
+        return True
+    except Exception:
+        return False
 
 
 def _read_jwt_secret(settings) -> str | None:
@@ -35,19 +66,26 @@ def _read_jwt_secret(settings) -> str | None:
         return settings.get_password("jwt_secret")
     except Exception:
         secret = frappe.generate_hash(length=32)
-        try:
-            settings.db_set("jwt_secret", secret)
-            frappe.db.commit()
+        #//// Neoffice — a re-minted secret is only usable if it was WRITTEN. The
+        #//// previous version swallowed the failure and returned the in-memory value
+        #//// anyway, so a read-only request handed out a secret nobody else would
+        #//// ever see: the token it signed could not be verified by the next request
+        #//// and Collabora answered "Invalid WOPI token". Returning None instead
+        #//// makes get_wopi_secret() say what is actually wrong.
+        if not _persist_jwt_secret(settings, secret):
             frappe.log_error(
-                "WOPI: JWT secret re-minted",
+                "WOPI: JWT secret unreadable and not re-mintable",
                 "The stored WOPI JWT secret could not be decrypted with this site's encryption "
-                "key (usual cause: the site was restored from another site's backup). A new "
-                "secret was generated and saved so Collabora keeps working.",
+                "key, and this request could not write a replacement (read-only transaction). "
+                "Run `bench --site <site> migrate` to provision one.",
             )
-        except Exception:
-            # Read-only transaction (a GET request) — use the value in memory and
-            # let a later write persist it, rather than falling back to Microsoft.
-            pass
+            return None
+        frappe.log_error(
+            "WOPI: JWT secret re-minted",
+            "The stored WOPI JWT secret could not be decrypted with this site's encryption "
+            "key (usual cause: the site was restored from another site's backup). A new "
+            "secret was generated and saved so Collabora keeps working.",
+        )
         return secret
 
 
@@ -61,34 +99,37 @@ def get_wopi_settings():
             "enabled": False,
             "collabora_server_url": None,
             "jwt_secret": None,
-            "jwt_expiry_hours": 10,
+            #//// Neoffice — see DEFAULT_JWT_EXPIRY_HOURS above (was a bare 10).
+            "jwt_expiry_hours": DEFAULT_JWT_EXPIRY_HOURS,
         }
 
     return {
         "enabled": settings.enabled,
         "collabora_server_url": settings.collabora_server_url,
         "jwt_secret": _read_jwt_secret(settings),
-        "jwt_expiry_hours": settings.jwt_expiry_hours or 10,
+        #//// Neoffice — see DEFAULT_JWT_EXPIRY_HOURS above (was a bare 10).
+        "jwt_expiry_hours": settings.jwt_expiry_hours or DEFAULT_JWT_EXPIRY_HOURS,
     }
 
 
+#//// Neoffice — this function no longer invents a secret. It used to generate one
+#//// per call and try to save it inside `except Exception: pass`; on a read-only
+#//// request (every WOPI GET) the write failed silently and each call returned a
+#//// DIFFERENT random secret, so a token signed by one request could never be
+#//// verified by the next — the "Invalid WOPI token" nobody could reproduce. The
+#//// secret has exactly one source of truth now: WOPI Settings, provisioned once by
+#//// suite.suite_core.neoffice.ensure_wopi_secret() at install and at every migrate.
 def get_wopi_secret() -> str:
-    """Get JWT secret from WOPI Settings."""
+    """Return the JWT signing secret from WOPI Settings, or say why it is missing."""
     settings = get_wopi_settings()
     secret = settings.get("jwt_secret")
     if not secret:
-        # Persist it. A secret generated per call differs on every call, so a
-        # token signed by one request could never be verified by the next.
-        secret = frappe.generate_hash(length=32)
-        try:
-            doc = frappe.get_single("WOPI Settings")
-            doc.db_set("jwt_secret", secret)
-            frappe.db.commit()
-        except Exception:
-            pass
-        frappe.log_error(
-            "WOPI JWT Secret Missing",
-            "No JWT secret was configured in WOPI Settings; one was generated and saved.",
+        frappe.throw(
+            _(
+                "The WOPI signing secret is missing from WOPI Settings. "
+                "Run a site migration to provision it, or set the JWT Secret manually."
+            ),
+            frappe.ValidationError,
         )
     return secret
 
@@ -109,15 +150,22 @@ def generate_wopi_token(file_id: str, user: str = None, can_write: bool = True) 
         user = frappe.session.user
 
     settings = get_wopi_settings()
-    expiry_hours = settings.get("jwt_expiry_hours", 10)
-    expiry = datetime.utcnow() + timedelta(hours=expiry_hours)
+    expiry_hours = settings.get("jwt_expiry_hours", DEFAULT_JWT_EXPIRY_HOURS)
+    #//// Neoffice — datetime.utcnow() returns a NAIVE datetime. PyJWT read it as UTC
+    #//// for `exp`, but `expiry.timestamp()` below reads a naive value as LOCAL time:
+    #//// on a UTC+2 server the access_token_ttl we handed Collabora was two hours
+    #//// EARLIER than the moment the token really expired, so Collabora warned about
+    #//// and then refused a session that was still perfectly valid. The two now agree.
+    #//// utcnow() is also deprecated since Python 3.12.
+    now = datetime.now(timezone.utc)
+    expiry = now + timedelta(hours=expiry_hours)
 
     payload = {
         "file_id": file_id,
         "user_id": user,
         "can_write": can_write,
         "exp": expiry,
-        "iat": datetime.utcnow(),
+        "iat": now,
     }
 
     token = jwt.encode(payload, get_wopi_secret(), algorithm="HS256")

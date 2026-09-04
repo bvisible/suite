@@ -75,18 +75,27 @@ def after_install():
     from suite.drive.install import after_install as drive_after_install
     from suite.drive.install import ensure_custom_fields
     from suite.mail.install import after_install as mail_after_install
+    #//// Neoffice — see suite/suite_core/neoffice.py: the fork decisions that a
+    #//// fixture states but does not keep. Run last, once every app has installed.
+    from suite.suite_core.neoffice import run as neoffice_run
 
     _run("drive.ensure_custom_fields", ensure_custom_fields)
     _run("drive.after_install", drive_after_install)
     _run("mail.after_install", mail_after_install)
     _run("calendar.after_install", calendar_after_install)
+    _run("neoffice.run", neoffice_run)
 
 
 def after_migrate():
     """Run every former app's after_migrate handler, in order."""
     from suite.mail.install import after_migrate as mail_after_migrate
+    #//// Neoffice — see suite/suite_core/neoffice.py. Every migrate, because that is
+    #//// the only moment guaranteed to run after an upstream merge has re-synced the
+    #//// fixtures that keep resetting these values.
+    from suite.suite_core.neoffice import run as neoffice_run
 
     _run("mail.after_migrate", mail_after_migrate)
+    _run("neoffice.run", neoffice_run)
 
 
 def after_app_install(app_name=None):
