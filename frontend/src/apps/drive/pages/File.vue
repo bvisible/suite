@@ -12,6 +12,9 @@
         :draggable="false"
         class="flex-grow w-full relative"
         :class="
+          // //// Neoffice — the padding/centering moved from `class` to this `:class`:
+          // //// an Office file opens in the Collabora editor, which must be full-bleed;
+          // //// every other preview keeps upstream's padded, centered frame.
           isOfficeBinary(file.data)
             ? 'flex'
             : 'px-10 py-5 flex justify-center align-center items-center'

@@ -49,12 +49,17 @@
       </div>
     </div>
 
+      <!-- //// Neoffice — one indent level deeper and an extra </div>: the page is now
+           //// split into the cockpit rail and a content column (see the top of the
+           //// template), so the dialog closes the column, not the page. //// -->
       <SuiteSettingsDialog />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+//// Neoffice — ref and useRouter added for the Office-file tiles below
+//// (createOfficeFile navigates to the new document once Drive has created it).
 import { h, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Avatar, Dropdown } from 'frappe-ui'
@@ -75,6 +80,7 @@ import { useRootStore } from '@/stores/root'
 import { setupTheme } from '@/utils/setupTheme'
 
 const apps = SUITE_APPS
+//// Neoffice — used by createOfficeFile and by the cockpit rail's navigate prop.
 const router = useRouter()
 
 const { workspaceName, workspaceLogo } = useWorkspace()

@@ -9,6 +9,11 @@
  * Logos are the apps' own brand marks, vendored under src/assets/app-logos/ and
  * imported so Vite fingerprints them into the shared shell bundle.
  */
+//// Neoffice — upstream's six per-app logo imports are gone (calendar, drive, mail,
+//// meet, sheets, slides, writer): the tiles now take their icons from the shared
+//// animated apps_v2 set served by neoffice_theme (the ICON constant below), so the
+//// launcher matches the rest of Neoffice. Only suiteLogo stays, as the hub's own
+//// mark. The vendored files under src/assets/app-logos/ are untouched.
 import suiteLogo from '@/assets/app-logos/suite.svg'
 import { jmapUser, systemUser } from '@/boot/session'
 

@@ -1,5 +1,8 @@
 import type { RouteLocationNormalized, Router } from 'vue-router'
 
+//// Neoffice — added for the on-demand mailbox provisioning in the guard below
+//// (a desk user must always end up with a calendar). Upstream just bounces to
+//// the no-account page.
 import { frappeRequest } from 'frappe-ui'
 
 import suiteRouter from '@/router'

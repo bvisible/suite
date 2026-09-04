@@ -25,6 +25,8 @@
       <Dropdown v-else-if="defaultActions" :options="defaultActions" align="end" :button="{
         variant: 'ghost',
         icon: LucideMoreHorizontal,
+        // //// Neoffice — __() wrap. Upstream hardcodes English labels; the fleet ships
+        // //// French, and only a translated string reaches suite/locale/fr.po.
         label: __('Entity actions'),
       }" />
       <Dropdown v-if="
@@ -37,6 +39,7 @@
       " :button="{
           variant: 'solid',
           id: 'create-button',
+          // //// Neoffice — __() wrap, same reason as 'Entity actions' above.
           label: __('Create'),
           iconLeft: h(LucidePlus, { class: 'size-4' }),
         }" :options="newEntityOptions" align="end" />
@@ -105,6 +108,8 @@ import LucideInfo from '~icons/lucide/info'
 import LucideFileUp from '~icons/lucide/file-up'
 import LucideFolderUp from '~icons/lucide/folder-up'
 import LucideFilePlus2 from '~icons/lucide/file-plus-2'
+//// Neoffice — icons for the Word / Excel / PowerPoint entries added to the
+//// Create menu below (Collabora-backed Office files).
 import LucideFileText from '~icons/lucide/file-text'
 import LucideFileSpreadsheet from '~icons/lucide/file-spreadsheet'
 import LucidePresentation from '~icons/lucide/presentation'
@@ -342,9 +347,13 @@ const button = computed(() => possibleButtons.find((k) => k.route == route.name)
 
 const newEntityOptions = computed(() => [
   {
+    // //// Neoffice — every label in this menu goes through __(). Upstream hardcodes
+    // //// English; the fleet ships French and only __() strings reach suite/locale/fr.po.
+    // //// The Word / Excel / PowerPoint entries below are ours as well.
     group: __('Create'),
     options: dynamicList([
       {
+        // //// Neoffice — __() wrap (see the group above).
         label: __('Document'),
         icon: LucideFilePlus2,
         onClick: () => newExternal('Document'),
@@ -373,17 +382,20 @@ const newEntityOptions = computed(() => [
         cond: isPrivate.value && apps.data?.find?.((k) => k.name === 'slides'),
       },
       {
+        // //// Neoffice — __() wrap (see the group above).
         label: __('Spreadsheet'),
         icon: LucideSheet,
         onClick: () => newExternal('Spreadsheet'),
         cond: isPrivate.value && apps.data?.find?.((k) => k.name === 'sheets'),
       },
       {
+        // //// Neoffice — __() wrap (see the group above).
         label: __('Folder'),
         icon: LucideFolderPlus,
         onClick: () => openListDialog('f'),
       },
       {
+        // //// Neoffice — __() wrap (see the group above).
         label: __('Link'),
         icon: LucideLink,
         onClick: () => openListDialog('l'),
@@ -391,14 +403,17 @@ const newEntityOptions = computed(() => [
     ]),
   },
   {
+    // //// Neoffice — __() wrap (see the Create group above).
     group: __('Upload'),
     options: [
       {
+        // //// Neoffice — __() wrap (see the Create group above).
         label: __('Upload File'),
         icon: LucideFileUp,
         onClick: () => emitter.emit('uploadFile'),
       },
       {
+        // //// Neoffice — __() wrap (see the Create group above).
         label: __('Upload Folder'),
         icon: LucideFolderUp,
         onClick: () => emitter.emit('uploadFolder'),

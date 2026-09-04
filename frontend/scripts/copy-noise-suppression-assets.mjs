@@ -39,6 +39,8 @@ const dest = path.join(
 )
 
 if (!fs.existsSync(source)) {
+  //// Neoffice — the message now names both candidate directories, because there
+  //// are two of them (frontend/node_modules and the app root) since the fix above.
   console.error(
     `[copy-noise-suppression-assets] Source missing: ${source}\n` +
       `Looked in:\n  ${candidates.join('\n  ')}\n` +

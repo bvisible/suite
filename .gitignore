@@ -22,6 +22,11 @@ yarn-error.log
 /frontend/dist-recorder/
 /suite/public/noise-suppression/
 
+#//// Neoffice — removed just above: upstream also ignored `/suite/**/www/*.html`
+#//// (with sheets.html / event_rsvp.html exceptions) and `/suite/www/service-worker.js`.
+#//// Same reason as the block at the top of this file: the fleet ships the built
+#//// entrypoints, so suite.html and the slides service worker stay tracked.
+
 # Migrated Node sidecar build output (sfu-server / collab-server also carry own .gitignore)
 /suite/meet/sfu-server/dist/
 

@@ -1,3 +1,8 @@
+//// Neoffice — BUILD OUTPUT committed on purpose (upstream ignores it).
+//// Emitted by the frontend Vite build (workbox + src/apps/slides/*); the fleet's
+//// instances never run a frontend build, so the artifact is tracked. Source lives
+//// in frontend/ — never edit this file, and take upstream's at a merge: it is
+//// regenerated. Listed in NEOFFICE_FORK_MARKERS.md.
 (function() {
 	//#region node_modules/.pnpm/workbox-core@7.4.1/node_modules/workbox-core/_version.js
 	try {

@@ -516,6 +516,13 @@ const NOTIFY_MODAL_OPTIONS = {
 <template>
 	<div class="flex h-screen min-h-0 w-full min-w-0 flex-col">
 		<div class="flex min-h-0 min-w-0 flex-1">
+			<!-- //// Neoffice — AppSidebar replaced by our NeoCockpitSidebar wrapper: same
+			     //// left rail as every other Neoffice surface, plus the per-calendar gear
+			     //// (rename, colour, share, CalDAV, delete) upstream has no UI for. It relays
+			     //// every AppSidebar prop through. The two handlers below are ours too:
+			     //// @update:visible-calendars now PERSISTS the choice (see
+			     //// toggleCalendarVisibility in the script) instead of only splicing a local
+			     //// array, and @reload lets the gear dialog refresh the list. //// -->
 			<NeoCockpitSidebar
 				:calendars="coloredCalendars"
 				:visible-calendars

@@ -29,6 +29,10 @@
       <Button class="w-full" variant="solid" @click="download">{{ __('Download') }}</Button>
     </div>
   </div>
+  <!-- //// Neoffice — v-if became v-else-if: this Microsoft viewer is now the LAST
+       //// branch, reached only on an instance with no Collabora at all (see the
+       //// WOPI branches above). A document must never leave for
+       //// view.officeapps.live.com just because coolwsd is still starting. //// -->
   <iframe
     v-else-if="warned && jwt_token"
     :src="'https://view.officeapps.live.com/op/embed.aspx?src=' + srcUrl"
@@ -63,6 +67,8 @@
   </div>
 </template>
 <script setup>
+//// Neoffice — createResource / onMounted / CollaboraEditor / the spinner icon are
+//// ours: they drive the WOPI probe and the on-prem editor added above.
 import { Button, createResource } from 'frappe-ui'
 import { computed, onMounted, ref, watch } from 'vue'
 import CollaboraEditor from '@/apps/drive/components/FileTypePreview/CollaboraEditor.vue'
