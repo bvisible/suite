@@ -61,7 +61,7 @@ correct base. It arrived through `42afbc164 merge: rattrapage upstream
 | | unmarked hunks (`fork_markers.py check`) |
 |---|---|
 | before this pass | **613** |
-| after | **6** — 3 covered by this file, 3 unreachable (listed below) |
+| after | **5** — 3 unreachable Vue hunks + the 2 build artifacts a rebuild strips (all listed below); the 3 not-commentable files are covered by this file |
 
 `//// ` marker lines in the tree (excluding `suite/public/`): **1677**, in
 **622** files.
@@ -178,13 +178,23 @@ frontend build** (no node, and a deploy window is not the time to find out).
 | `suite/public/frontend/assets/**` | 448 | Vite build of `frontend/` |
 | `suite/public/frontend/pwa/**` | 42 | PWA manifest + icons |
 | `suite/public/frontend/*` | 3 | entry chunks |
-| `suite/www/suite.html` | 1 | Vite entrypoint — carries a header marker |
-| `suite/www/service-worker.js` | 1 | workbox + `src/apps/slides/*` — carries a header marker |
+| `suite/www/suite.html` | 1 | Vite entrypoint |
+| `suite/www/service-worker.js` | 1 | workbox + `src/apps/slides/*` |
 
 **Never edit an artifact — mark the source.** At a merge, take upstream's
-version of every one of them and rebuild: `yarn --cwd frontend build`. The two
-files that carry an in-file marker lose it on a rebuild; re-add it (the CI's
-Sonnet pass does this automatically on the next push).
+version of every one of them and rebuild: `yarn --cwd frontend build`.
+
+> ⚠️ **An in-file marker on these two does not survive.** It was tried on
+> 2026-09-04 (commit `a3167c59a`, a header comment at the top of each) and the
+> very next `build-frontend` run wiped both — the bot regenerates the files and
+> commits them (`7df194807 [skip-build] frontend artifacts for a2e3d98e`). Do
+> not put it back: an artifact is not a place to write anything. These two are
+> therefore documented **here only**, and `fork_markers.py check` reports them
+> as unmarked for as long as they are neither skipped nor manifest-matched. The
+> durable fix belongs upstream of us, in
+> `bvisible/neoffice-ci/scripts/fork_markers.py`: add `service-worker.js` to
+> `SKIP_FILES` and `/www/` built entrypoints to the built-asset pattern, the way
+> `sw.js` and `registerSW.js` already are.
 
 Also regenerated, never hand-edited:
 
