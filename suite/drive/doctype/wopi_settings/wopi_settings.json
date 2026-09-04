@@ -45,7 +45,7 @@
    "description": "Secret key for JWT token signing (minimum 32 characters). Leave empty to auto-generate."
   },
   {
-   "default": "10",
+   "default": "4",
    "fieldname": "jwt_expiry_hours",
    "fieldtype": "Int",
    "label": "JWT Expiry (Hours)",

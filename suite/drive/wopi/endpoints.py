@@ -51,6 +51,33 @@ def get_wopi_file(file_id: str):
     return file
 
 
+#//// Neoffice — added: the token is not the permission.
+#////
+#//// generate_wopi_token() freezes `file_id` and `can_write` at the instant the
+#//// editor opened and signs them for jwt_expiry_hours. Nothing here re-read the
+#//// Drive permissions afterwards, so unsharing a document — or revoking a
+#//// collaborator's write access, or moving the file — changed nothing for anyone
+#//// who already had the editor open, or who kept the token: they went on reading
+#//// and SAVING for the whole life of the token. Revocation has to be immediate to
+#//// mean anything, so every read and every write re-checks the live permission of
+#//// the user the token names. The token remains what authenticates the caller
+#//// (Collabora holds no session); it is no longer what authorises the operation.
+def check_token_permission(file, token_data: dict, ptype: str) -> bool:
+    """True if the token's user still holds `ptype` on `file` right now."""
+    from suite.drive.api.permissions import user_has_permission
+
+    # WOPI requests carry no session: `frappe.session.user` is Guest here, so the
+    # user must be taken from the token and passed explicitly.
+    user = token_data.get("user_id") or "Guest"
+    return bool(user_has_permission(file, ptype, user=user))
+
+
+def require_token_permission(file, token_data: dict, ptype: str) -> None:
+    """Refuse the WOPI operation if the token's user lost `ptype` on `file`."""
+    if not check_token_permission(file, token_data, ptype):
+        frappe.throw(_("You don't have permission to access this file"), frappe.PermissionError)
+
+
 def read_file_content(file) -> bytes:
     """Read the file bytes through FileManager (handles local disk and S3)."""
     buf = FileManager().get_file(file)
@@ -96,8 +123,16 @@ def check_file_info(file_id: str):
 
     file = get_wopi_file(file_id)
 
+    #//// Neoffice — see check_token_permission above. Collabora asks this first and
+    #//// builds its whole UI from the answer, so re-deciding `UserCanWrite` here is
+    #//// what turns a revoked share into a read-only editor rather than into a save
+    #//// that fails minutes later on a document the user believed was theirs.
+    require_token_permission(file, token_data, "read")
+
     user_id = token_data.get("user_id", "anonymous")
-    can_write = token_data.get("can_write", False)
+    can_write = bool(token_data.get("can_write", False)) and check_token_permission(
+        file, token_data, "write"
+    )
 
     user_name = user_id
     if user_id and user_id != "Guest" and frappe.db.exists("User", user_id):
@@ -138,9 +173,13 @@ def check_file_info(file_id: str):
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 def get_file(file_id: str):
     """WOPI GetFile endpoint — GET /wopi/files/{file_id}/contents."""
-    validate_access_token(file_id)
+    token_data = validate_access_token(file_id)
 
     file = get_wopi_file(file_id)
+    #//// Neoffice — see check_token_permission above: a token outlives the share it
+    #//// was minted under, so the read is re-authorised against the live permission.
+    require_token_permission(file, token_data, "read")
+
     content = read_file_content(file)
 
     file_name = file.file_name or ""
@@ -162,6 +201,11 @@ def put_file(file_id: str):
         frappe.throw(_("Write permission denied"), frappe.PermissionError)
 
     file = get_wopi_file(file_id)
+
+    #//// Neoffice — see check_token_permission above. `can_write` in the token says
+    #//// what was true when the editor opened, up to jwt_expiry_hours ago; this says
+    #//// what is true now, and it is the one that decides whether bytes land.
+    require_token_permission(file, token_data, "write")
 
     # Verify lock
     wopi_lock = frappe.request.headers.get("X-WOPI-Lock", "")

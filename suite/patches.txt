@@ -117,3 +117,11 @@ suite.drive.patches.webdav_property_index
 #//// portal accounts into System Users. This patch is the backstop that proves
 #//// they did not.
 suite.suite_core.patches.keep_portal_accounts_off_the_desk
+#//// Neoffice — added patch (no upstream equivalent): WOPI Settings kept the 10 h
+#//// token lifetime the port shipped with. A WOPI token freezes `file_id` and
+#//// `can_write` for its whole life, so that was a ten-hour window in which a leaked
+#//// or stale token still worked. suite/drive/wopi/token.py now defaults to 4 h and
+#//// explains why; this moves the sites that still hold the old default onto it. Only
+#//// when the value IS the old default: an instance that deliberately set 10 keeps it,
+#//// and a patch runs once, so a later choice of 10 is never undone.
+execute:frappe.db.set_single_value("WOPI Settings", "jwt_expiry_hours", 4) if frappe.db.exists("DocType", "WOPI Settings") and frappe.db.get_single_value("WOPI Settings", "jwt_expiry_hours") == 10 else None
