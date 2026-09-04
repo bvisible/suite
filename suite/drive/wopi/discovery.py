@@ -29,12 +29,18 @@ from .token import generate_wopi_token, get_wopi_settings
 DISCOVERY_CACHE_KEY = "collabora_discovery_xml"
 
 #//// Neoffice — budget for the endpoints that may run `systemctl start coolwsd`.
-#//// One editor open costs one call to get_editor_config and, while the daemon is
-#//// cold, up to MAX_PROBES (6) calls to can_edit_file — MSOfficePreview.vue polls
-#//// every 2.5 s and the user can press "Try again" once more. EDITOR_PROBE_RATE is
-#//// sized for that budget; EDITOR_OPEN_RATE is the one-call-per-document path.
-EDITOR_OPEN_RATE = {"limit": 10, "seconds": 60}
-EDITOR_PROBE_RATE = {"limit": 20, "seconds": 60}
+#////
+#//// Keyed on `file_id`, so the identity frappe.rate_limiter counts is
+#//// "<ip>:<document>" and not the bare IP: a whole office sits behind one public
+#//// address, and a per-IP budget would be spent by whoever opened a document
+#//// first. Per document it stays generous for people — opening the same file 20
+#//// times a minute is not something anybody does — while a loop hammering one
+#//// document, which is the cheap way to hold web workers on a cold daemon, runs
+#//// out immediately. Sized above what the UI itself spends: MSOfficePreview.vue
+#//// polls can_edit_file up to MAX_PROBES (6) times at 2.5 s while coolwsd warms
+#//// up, and "Try again" buys one more round, so 12 on the same document is a
+#//// normal cold start.
+EDITOR_RATE = {"key": "file_id", "limit": 20, "seconds": 60}
 
 EXTENSION_MIME_TYPES = {
     "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -176,13 +182,13 @@ def is_file_supported(filename: str, start_if_down: bool = False) -> bool:
     return get_editor_url_for_extension(extension, start_if_down=start_if_down) is not None
 
 
-#//// Neoffice — rate limited: this is the editor-open path, so it is one of the two
-#//// endpoints allowed to run `systemctl start coolwsd`. One call per document open,
-#//// so EDITOR_OPEN_RATE (10/min) leaves ample headroom for a human and none for a
-#//// loop. `allow_guest` is kept — a publicly shared Drive document opens without a
-#//// session — and the read/write permission check below is what gates it.
+#//// Neoffice — rate limited (EDITOR_RATE): this is the editor-open path, so it is
+#//// one of the two endpoints allowed to run `systemctl start coolwsd`. It costs one
+#//// call per document open, which leaves the budget almost entirely to spare for a
+#//// person and none of it for a loop. `allow_guest` is kept — a publicly shared
+#//// Drive document opens without a session — and the read check below gates it.
 @frappe.whitelist(allow_guest=True)
-@rate_limit(limit=EDITOR_OPEN_RATE["limit"], seconds=EDITOR_OPEN_RATE["seconds"])
+@rate_limit(key=EDITOR_RATE["key"], limit=EDITOR_RATE["limit"], seconds=EDITOR_RATE["seconds"])
 def get_editor_config(file_id: str) -> dict:
     """Build the editor configuration (URL + WOPI token) for a File."""
     if not is_wopi_enabled():

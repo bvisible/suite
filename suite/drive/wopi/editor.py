@@ -17,7 +17,7 @@ from suite.drive.utils.files import FileManager, get_s3_key, get_s3_url
 
 #//// Neoffice — collabora_status replaces the whitelisted check_collabora_status:
 #//// the endpoint is read-only now, this callable is what may wake the daemon.
-from .discovery import EDITOR_PROBE_RATE, collabora_status, is_file_supported
+from .discovery import EDITOR_RATE, collabora_status, is_file_supported
 
 OFFICE_MIME_TYPES = {
     "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -35,7 +35,7 @@ OFFICE_MIME_TYPES = {
 #//// An unreadable id answers exactly like a missing one, so the difference leaks
 #//// nothing either.
 @frappe.whitelist()
-@rate_limit(limit=EDITOR_PROBE_RATE["limit"], seconds=EDITOR_PROBE_RATE["seconds"])
+@rate_limit(key=EDITOR_RATE["key"], limit=EDITOR_RATE["limit"], seconds=EDITOR_RATE["seconds"])
 def can_edit_file(file_id: str) -> dict:
     """Check if a file can be edited with Collabora."""
     #//// Neoffice — read access required; see the block above the decorators.
