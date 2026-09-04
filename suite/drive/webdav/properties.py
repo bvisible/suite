@@ -5,6 +5,8 @@ the body's SHA-256; legacy rows fall back to name+size+mtime, which is
 byte-stable because every content mutation either writes content_hash or
 creates a new entity.
 """
+#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 from datetime import UTC, datetime

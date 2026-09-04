@@ -3,6 +3,8 @@
 """``clean_text`` and ``convert_html_to_text`` produce the one-line strings previews are made of.
 One line is the point here, unlike ``suite.mail.utils.html_to_text``, which keeps a body's shape
 for the text/plain part. What a preview must not do is take a message's words apart."""
+#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 import unittest

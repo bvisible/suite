@@ -3,6 +3,8 @@
 This module must not import other webdav modules (everything imports it).
 The tiny <D:error> bodies are built by hand so no XML library is needed here.
 """
+#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 from contextlib import contextmanager

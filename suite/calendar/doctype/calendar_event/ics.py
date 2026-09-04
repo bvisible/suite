@@ -7,6 +7,8 @@ Reuses the JSCalendar -> VEVENT conversion from Calendar Exchange so invites and
 export feature stay in sync. The only extra work here is wrapping the components in a
 VCALENDAR with the right iTIP METHOD (REQUEST for invites/updates, CANCEL for removals).
 """
+#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 from datetime import UTC, datetime

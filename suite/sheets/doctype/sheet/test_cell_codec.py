@@ -6,6 +6,8 @@ Parity with the frontend packer (frontend/src/utils/sheet-codec.js) matters:
 AI Assist reads cell values out of a payload the browser wrote, so the column
 labelling and row offsets must agree exactly.
 """
+#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 import unittest

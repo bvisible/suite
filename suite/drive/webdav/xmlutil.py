@@ -3,6 +3,8 @@
 Namespace URIs are contractual, prefixes are not: we always emit DAV: as `D`
 but accept any prefix from clients.
 """
+#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 from http.client import responses as HTTP_REASONS

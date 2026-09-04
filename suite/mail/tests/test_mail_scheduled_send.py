@@ -20,6 +20,8 @@ displayed, sent) plus retry counts. A real delivery failure can't be
 provoked reliably against the test server, so the failure sieve is covered at the helper level
 and retry/dismiss against delivered (final) submissions.
 """
+#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 from datetime import datetime

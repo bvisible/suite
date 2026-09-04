@@ -11,6 +11,8 @@ fails loudly instead of half-completing.
 Imports are performed lazily inside each dispatcher so that importing
 ``suite.hooks`` never eagerly pulls in every module's heavy dependencies.
 """
+#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 import frappe

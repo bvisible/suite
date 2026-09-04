@@ -7,6 +7,8 @@ frontend applies it to the grid. Phase 1 understands two action types:
   * ``setCell`` — write a formula/value into one cell (A1 notation)
   * ``answer``  — read-only text response, no mutation
 """
+#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 import re

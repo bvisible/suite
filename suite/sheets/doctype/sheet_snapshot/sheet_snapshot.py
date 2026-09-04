@@ -7,6 +7,8 @@ of reconstructing past state and to anchor user-facing restore points.
 Lifecycle is owned by the versioning module (`suite.sheets.versioning`),
 not by Desk forms — the controller is intentionally minimal.
 """
+#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 import frappe

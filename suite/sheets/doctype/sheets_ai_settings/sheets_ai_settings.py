@@ -7,6 +7,8 @@ happens in-app via the ``get_ai_settings`` / ``save_ai_settings`` endpoints
 reads the cleartext with ``self.get_password("api_key")`` only when calling
 the Anthropic API.
 """
+#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 import frappe

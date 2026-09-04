@@ -10,6 +10,8 @@ mail. Each email carries an .ics (iTIP REQUEST/CANCEL) plus signed HTTP RSVP lin
 Entry point: `notify_participants(account, action, ...)`, enqueued from the Calendar Event
 API after the event is written to JMAP.
 """
+#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 import re

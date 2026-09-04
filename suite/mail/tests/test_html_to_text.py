@@ -6,6 +6,8 @@ reader. Line breaks survive, paragraphs stay apart, lists keep their markers, qu
 ``>``, links keep their destinations, and nothing a browser hides leaks into view. Under
 ``flowed`` the lines that were only broken to fit say so, and the ones whose breaks mean
 something do not."""
+#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 import unittest

@@ -6,6 +6,8 @@ Drive Permission rows in one query, and composes each child in Python with the
 exact nearest-wins semantics of dribble_access: a child's own rows decide
 first, then the state inherited at the parent, then deny.
 """
+#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 import frappe

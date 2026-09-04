@@ -13,6 +13,8 @@ invite email was delivered), so after the organizer's copy is updated a backgrou
 propagates the response to those copies too — otherwise everyone but the organizer keeps
 seeing the stale status.
 """
+#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 import base64

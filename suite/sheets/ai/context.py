@@ -11,6 +11,8 @@ The cell map handed in is the flat ``{cellId: rawValue}`` form stored under
 ``decoded["sheet"]["sheets"][sheetName]`` — values are raw primitives, and a
 formula is just a string beginning with ``=``.
 """
+#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 import re

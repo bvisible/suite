@@ -9,6 +9,8 @@ site. Two deliberately distinct uses:
   rule — a token counts as submitted wherever it appears, negated or not
   (the reading Apache mod_dav uses and litmus expects).
 """
+#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 import re
