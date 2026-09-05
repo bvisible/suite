@@ -33,6 +33,7 @@ def file_permission_criterion(user=None, table=None):
         )
     )
     if SYSTEM_USER_ROLE in roles:
+        # //// Neoffice — v15 compat: _doctypes_with_read takes no user arg here (14deec32 "fix(drive): File hook works on Frappe v15 (get_doctypes_with_read signature)"), see block marker below
         criterion |= file.attached_to_doctype.isin(_doctypes_with_read(user) or [""])
     return criterion
 
