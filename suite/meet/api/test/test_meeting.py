@@ -148,6 +148,9 @@ class IntegrationTestMeetingApi(IntegrationTestCase):
                 "user_id",
                 "meeting_id",
                 "site",
+                # //// Neoffice — the fleet shares one central SFU, so the token carries
+                # //// a tenant claim (see _generate_sfu_token); upstream's exact set lacks it.
+                "tenant",
                 "scope",
                 "exp",
                 "iat",
