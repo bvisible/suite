@@ -228,7 +228,11 @@ class IntegrationTestRecordingReliability(IntegrationTestCase):
         invalid = (
             datetime.now(),
             datetime(2000, 1, 1, tzinfo=UTC),
-            recording.max_ends_at.replace(tzinfo=UTC) + timedelta(seconds=1),
+            # //// Neoffice — stored datetimes are site-local, not UTC: convert with the
+            # //// same helper the code uses (as line ~412 already does). `.replace(tzinfo=UTC)`
+            # //// only equals it on a site whose time zone is UTC, and fell inside the window
+            # //// on the CI runner ("ValidationError not raised", #200).
+            _system_datetime_as_utc(recording.max_ends_at) + timedelta(seconds=1),
         )
         for accepted_at in invalid:
             with self.subTest(accepted_at=accepted_at), self.assertRaises(frappe.ValidationError):
