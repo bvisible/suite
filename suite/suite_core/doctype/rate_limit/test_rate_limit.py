@@ -120,7 +120,18 @@ class IntegrationTestRateLimit(IntegrationTestCase):
     @staticmethod
     def _counter_key(path: str, seconds: int = 60) -> bytes:
         # Mirrors the key frappe.rate_limiter.rate_limit builds for an IP-based limit.
-        return frappe.cache.make_key(f"rl:{path}:{PROBE_IP}") + f":{seconds}".encode()
+        key = frappe.cache.make_key(f"rl:{path}:{PROBE_IP}")
+        # //// Neoffice — v16 keys the counter by endpoint and appends the window
+        # //// (`rl:<endpoint>:<ip>:<seconds>`, signature carries `endpoint`); v15 keys it
+        # //// by form_dict.cmd with no window suffix. dynamic_rate_limit publishes the
+        # //// method path as cmd on v15, so only the suffix differs. Drop at v16.
+        import inspect
+
+        from frappe.rate_limiter import rate_limit
+
+        if "endpoint" in inspect.signature(rate_limit).parameters:
+            key += f":{seconds}".encode()
+        return key
 
     def _counter(self, path: str) -> int:
         value = frappe.cache.get(self._counter_key(path))
