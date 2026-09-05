@@ -33,8 +33,22 @@ def file_permission_criterion(user=None, table=None):
         )
     )
     if SYSTEM_USER_ROLE in roles:
-        criterion |= file.attached_to_doctype.isin(get_doctypes_with_read(user) or [""])
+        criterion |= file.attached_to_doctype.isin(_doctypes_with_read(user) or [""])
     return criterion
+
+
+# //// Neoffice — v15 compat. Upstream calls get_doctypes_with_read(user) (v16 signature);
+# //// on Frappe v15 the function takes no argument and answers for the session user, so
+# //// every File listing by a non-admin died in "takes 0 positional arguments but 1 was
+# //// given" (the reportview of /app/file, frappe.client.get_list("File")). Drop at v16.
+def _doctypes_with_read(user):
+    try:
+        return get_doctypes_with_read(user)
+    except TypeError:
+        if user != frappe.session.user:
+            # v15 can only answer for the session user: fall back to the safe side
+            return None
+        return get_doctypes_with_read()
 
 
 def filter_file(user=None):
