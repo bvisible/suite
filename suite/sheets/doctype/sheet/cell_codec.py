@@ -6,8 +6,8 @@ becomes ``{rows: {"0": [v, v, ...]}}``. Server code that needs the actual cell
 values back — currently only AI Assist context-building — goes through here so
 it transparently understands both the compact (v2) and legacy shapes.
 """
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 PACK_VERSION = 2

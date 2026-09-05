@@ -1,5 +1,5 @@
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 from suite.drive.api.permissions import get_user_access_for_user
 from suite.drive.utils import GENERAL_USER, generate_upward_path

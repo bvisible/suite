@@ -1,5 +1,5 @@
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 import os
 import re
@@ -13,11 +13,11 @@ import wrapt
 from bs4 import BeautifulSoup
 from frappe import _
 from frappe.types.filter import FilterTuple
-#//// Neoffice — upstream imports OperationalError from MySQLdb (mysqlclient), a package
-#//// frappe does not depend on: frappe drives MariaDB with PyMySQL, so a bench without
-#//// mysqlclient cannot even import this module (`bench install-app suite` died in the CI),
-#//// and where it is installed the isinstance() check below never matches the exception
-#//// frappe actually raises (pymysql.err.OperationalError). Import the real one.
+# //// Neoffice — upstream imports OperationalError from MySQLdb (mysqlclient), a package
+# //// frappe does not depend on: frappe drives MariaDB with PyMySQL, so a bench without
+# //// mysqlclient cannot even import this module (`bench install-app suite` died in the CI),
+# //// and where it is installed the isinstance() check below never matches the exception
+# //// frappe actually raises (pymysql.err.OperationalError). Import the real one.
 from pymysql.err import OperationalError
 
 INVISIBLE_CHARS = (

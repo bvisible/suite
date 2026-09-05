@@ -1,4 +1,4 @@
-#//// Neoffice — added file (no upstream equivalent).
+# //// Neoffice — added file (no upstream equivalent).
 """Decisions this fork re-asserts at every install and every migrate.
 
 A fixture states a value; it does not keep it, and neither does a patch (it runs

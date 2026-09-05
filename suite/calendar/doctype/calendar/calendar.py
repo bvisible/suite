@@ -1,8 +1,8 @@
 # Copyright (c) 2025, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 import json
 from typing import Literal
@@ -363,14 +363,14 @@ def format_calendar(account: str, calendar: dict) -> dict:
     """Formats calendar data for display."""
 
     share_with = []
-    #//// Neoffice — `or {}`, not a `.get` default. A calendar that is not shared
-    #//// comes back with shareWith explicitly NULL, not absent, so the default
-    #//// never applies and `.items()` raises on None — taking fetch_calendars down
-    #//// for that account. It only surfaced once we started requesting shareWith
-    #//// by name (see GET_PROPERTIES in the JMAP calendar service); upstream never
-    #//// asks for it, so the key is simply missing there and the bug stays hidden.
-    #//// Same shape as the `myRights` line below, which upstream already writes
-    #//// this way.
+    # //// Neoffice — `or {}`, not a `.get` default. A calendar that is not shared
+    # //// comes back with shareWith explicitly NULL, not absent, so the default
+    # //// never applies and `.items()` raises on None — taking fetch_calendars down
+    # //// for that account. It only surfaced once we started requesting shareWith
+    # //// by name (see GET_PROPERTIES in the JMAP calendar service); upstream never
+    # //// asks for it, so the key is simply missing there and the bug stays hidden.
+    # //// Same shape as the `myRights` line below, which upstream already writes
+    # //// this way.
     for pid, r in (calendar.get("shareWith") or {}).items():
         share_with.append(
             {

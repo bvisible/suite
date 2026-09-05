@@ -6,9 +6,9 @@ from __future__ import annotations
 import jwt
 import frappe
 from frappe import _
-#//// Neoffice — `timezone` for the aware expiry below; the rest of this block
-#//// (the default lifetime, and the helper that refuses to hand out a secret it
-#//// could not persist) is new. See the commit and the notes on each.
+# //// Neoffice — `timezone` for the aware expiry below; the rest of this block
+# //// (the default lifetime, and the helper that refuses to hand out a secret it
+# //// could not persist) is new. See the commit and the notes on each.
 from datetime import datetime, timedelta, timezone
 
 # Lifetime of a WOPI access token, in hours, when WOPI Settings says nothing.
@@ -69,23 +69,23 @@ def _read_jwt_secret(settings) -> str | None:
         return settings.get_password("jwt_secret")
     except Exception:
         secret = frappe.generate_hash(length=32)
-        #//// Neoffice — a re-minted secret is only usable if it was WRITTEN. The
-        #//// previous version swallowed the failure and returned the in-memory value
-        #//// anyway, so a read-only request handed out a secret nobody else would
-        #//// ever see: the token it signed could not be verified by the next request
-        #//// and Collabora answered "Invalid WOPI token". Returning None instead
-        #//// makes get_wopi_secret() say what is actually wrong.
+        # //// Neoffice — a re-minted secret is only usable if it was WRITTEN. The
+        # //// previous version swallowed the failure and returned the in-memory value
+        # //// anyway, so a read-only request handed out a secret nobody else would
+        # //// ever see: the token it signed could not be verified by the next request
+        # //// and Collabora answered "Invalid WOPI token". Returning None instead
+        # //// makes get_wopi_secret() say what is actually wrong.
         if not _persist_jwt_secret(settings, secret):
-            #//// Neoffice — say what is wrong instead of returning a private value.
+            # //// Neoffice — say what is wrong instead of returning a private value.
             frappe.log_error(
                 "WOPI: JWT secret unreadable and not re-mintable",
-                #//// Neoffice — new message: the READ failed and so did the write.
+                # //// Neoffice — new message: the READ failed and so did the write.
                 "The stored WOPI JWT secret could not be decrypted with this site's encryption "
                 "key, and this request could not write a replacement (read-only transaction). "
                 "Run `bench --site <site> migrate` to provision one.",
             )
             return None
-        #//// Neoffice — reached only when the write above actually landed.
+        # //// Neoffice — reached only when the write above actually landed.
         frappe.log_error(
             "WOPI: JWT secret re-minted",
             "The stored WOPI JWT secret could not be decrypted with this site's encryption "
@@ -105,7 +105,7 @@ def get_wopi_settings():
             "enabled": False,
             "collabora_server_url": None,
             "jwt_secret": None,
-            #//// Neoffice — see DEFAULT_JWT_EXPIRY_HOURS above (was a bare 10).
+            # //// Neoffice — see DEFAULT_JWT_EXPIRY_HOURS above (was a bare 10).
             "jwt_expiry_hours": DEFAULT_JWT_EXPIRY_HOURS,
         }
 
@@ -113,24 +113,24 @@ def get_wopi_settings():
         "enabled": settings.enabled,
         "collabora_server_url": settings.collabora_server_url,
         "jwt_secret": _read_jwt_secret(settings),
-        #//// Neoffice — see DEFAULT_JWT_EXPIRY_HOURS above (was a bare 10).
+        # //// Neoffice — see DEFAULT_JWT_EXPIRY_HOURS above (was a bare 10).
         "jwt_expiry_hours": settings.jwt_expiry_hours or DEFAULT_JWT_EXPIRY_HOURS,
     }
 
 
-#//// Neoffice — this function no longer invents a secret. It used to generate one
-#//// per call and try to save it inside `except Exception: pass`; on a read-only
-#//// request (every WOPI GET) the write failed silently and each call returned a
-#//// DIFFERENT random secret, so a token signed by one request could never be
-#//// verified by the next — the "Invalid WOPI token" nobody could reproduce. The
-#//// secret has exactly one source of truth now: WOPI Settings, provisioned once by
-#//// suite.suite_core.neoffice.ensure_wopi_secret() at install and at every migrate.
+# //// Neoffice — this function no longer invents a secret. It used to generate one
+# //// per call and try to save it inside `except Exception: pass`; on a read-only
+# //// request (every WOPI GET) the write failed silently and each call returned a
+# //// DIFFERENT random secret, so a token signed by one request could never be
+# //// verified by the next — the "Invalid WOPI token" nobody could reproduce. The
+# //// secret has exactly one source of truth now: WOPI Settings, provisioned once by
+# //// suite.suite_core.neoffice.ensure_wopi_secret() at install and at every migrate.
 def get_wopi_secret() -> str:
     """Return the JWT signing secret from WOPI Settings, or say why it is missing."""
     settings = get_wopi_settings()
     secret = settings.get("jwt_secret")
     if not secret:
-        #//// Neoffice — was: mint a random one and try to save it. See above.
+        # //// Neoffice — was: mint a random one and try to save it. See above.
         frappe.throw(
             _(
                 "The WOPI signing secret is missing from WOPI Settings. "
@@ -158,12 +158,12 @@ def generate_wopi_token(file_id: str, user: str = None, can_write: bool = True) 
 
     settings = get_wopi_settings()
     expiry_hours = settings.get("jwt_expiry_hours", DEFAULT_JWT_EXPIRY_HOURS)
-    #//// Neoffice — datetime.utcnow() returns a NAIVE datetime. PyJWT read it as UTC
-    #//// for `exp`, but `expiry.timestamp()` below reads a naive value as LOCAL time:
-    #//// on a UTC+2 server the access_token_ttl we handed Collabora was two hours
-    #//// EARLIER than the moment the token really expired, so Collabora warned about
-    #//// and then refused a session that was still perfectly valid. The two now agree.
-    #//// utcnow() is also deprecated since Python 3.12.
+    # //// Neoffice — datetime.utcnow() returns a NAIVE datetime. PyJWT read it as UTC
+    # //// for `exp`, but `expiry.timestamp()` below reads a naive value as LOCAL time:
+    # //// on a UTC+2 server the access_token_ttl we handed Collabora was two hours
+    # //// EARLIER than the moment the token really expired, so Collabora warned about
+    # //// and then refused a session that was still perfectly valid. The two now agree.
+    # //// utcnow() is also deprecated since Python 3.12.
     now = datetime.now(timezone.utc)
     expiry = now + timedelta(hours=expiry_hours)
 
@@ -172,7 +172,7 @@ def generate_wopi_token(file_id: str, user: str = None, can_write: bool = True) 
         "user_id": user,
         "can_write": can_write,
         "exp": expiry,
-        #//// Neoffice — the same aware instant as `expiry`, so the two agree.
+        # //// Neoffice — the same aware instant as `expiry`, so the two agree.
         "iat": now,
     }
 

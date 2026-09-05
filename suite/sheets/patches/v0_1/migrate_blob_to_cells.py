@@ -6,8 +6,8 @@ empty), it's skipped. The legacy `sheets_data` blob is preserved on the
 parent doc as a rollback artifact; cut-over code in the v2 API reads from
 the new cells, not the blob.
 """
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 import json

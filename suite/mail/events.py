@@ -1,5 +1,5 @@
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 from typing import Any
 
@@ -35,11 +35,11 @@ def create_user_settings(doc: Document, method: str | None = None) -> None:
 def provision_mail_account(doc: Document, method: str | None = None) -> None:
     """after_insert(User) → auto-create the user's Stalwart mailbox (async)."""
 
-    #//// Neoffice — re-indented to spaces (was tabs); whitespace only, see 3c5320395.
+    # //// Neoffice — re-indented to spaces (was tabs); whitespace only, see 3c5320395.
     if not _should_provision_mail(doc):
         return
 
-    #//// Neoffice — re-indented to spaces (was tabs); whitespace only.
+    # //// Neoffice — re-indented to spaces (was tabs); whitespace only.
     frappe.enqueue(
         "suite.mail.events._provision_mail_account_now",
         queue="short",
@@ -50,7 +50,7 @@ def provision_mail_account(doc: Document, method: str | None = None) -> None:
     )
 
 
-#//// Neoffice — re-indented to spaces (was tabs); whitespace only.
+# //// Neoffice — re-indented to spaces (was tabs); whitespace only.
 def _should_provision_mail(doc: Document) -> bool:
     """Only active desk (System User) accounts with a real e-mail, on a
     Stalwart-enabled instance, not already provisioned. Website (client) signups
@@ -155,23 +155,23 @@ def ensure_personal_mail_account() -> bool:
     if frappe.db.get_value("User Settings", {"user": user}, "username"):
         return True
 
-    #//// Neoffice — re-indented to spaces (was tabs); whitespace only.
+    # //// Neoffice — re-indented to spaces (was tabs); whitespace only.
     doc = frappe.get_doc("User", user)
     if not _should_provision_mail(doc):
         return False
 
-    #//// Neoffice — re-indented to spaces (was tabs); whitespace only.
+    # //// Neoffice — re-indented to spaces (was tabs); whitespace only.
     try:
         _provision_mail_account_now(user)
     except Exception:
         frappe.log_error("On-demand mail provision failed", f"user={user}")
         return False
 
-    #//// Neoffice — re-indented to spaces (was tabs); whitespace only.
+    # //// Neoffice — re-indented to spaces (was tabs); whitespace only.
     return bool(frappe.db.get_value("User Settings", {"user": user}, "username"))
 
 
-#//// Neoffice — re-indented to spaces (was tabs); whitespace only.
+# //// Neoffice — re-indented to spaces (was tabs); whitespace only.
 @frappe.whitelist()
 def provision_existing_mail_accounts() -> dict:
     """Backfill: provision a mailbox for every eligible desk user that has none.

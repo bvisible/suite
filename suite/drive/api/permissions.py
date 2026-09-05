@@ -1,5 +1,5 @@
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 import frappe
 from frappe.model.document import Document
@@ -7,7 +7,7 @@ from frappe.model.document import Document
 from suite.drive.utils import (
     APP_FOLDERS,
     FILE_FIELDS,
-    FILE_FIELDS_SQL,  #//// Neoffice (v15 pypika guard — see drive/utils/__init__.py)
+    FILE_FIELDS_SQL,  # //// Neoffice (v15 pypika guard — see drive/utils/__init__.py)
     FRAMEWORK_FOLDERS,
     GENERAL_USER,
     GROUP_PREFIX,
@@ -120,8 +120,8 @@ def get_entity_with_permissions(entity_name: str | None = None):
         entity = frappe.get_all(
             "File",
             filters={"name": entity_name, "status": STATUS_ACTIVE},
-            #//// Neoffice (v15) — FILE_FIELDS carries a pypika Coalesce that v15's
-            #//// get_all cannot compile; the string-only variant coalesces below.
+            # //// Neoffice (v15) — FILE_FIELDS carries a pypika Coalesce that v15's
+            # //// get_all cannot compile; the string-only variant coalesces below.
             fields=FILE_FIELDS_SQL,
             limit=1,
         )
@@ -135,8 +135,8 @@ def get_entity_with_permissions(entity_name: str | None = None):
         ]
         frappe.throw("We couldn't find what you're looking for.", frappe.PageDoesNotExistError)
     entity = entity[0]
-    #//// Neoffice (v15) — coalesce in Python what FILE_FIELDS' pypika Coalesce
-    #//// would have done in SQL, since FILE_FIELDS_SQL is used above.
+    # //// Neoffice (v15) — coalesce in Python what FILE_FIELDS' pypika Coalesce
+    # //// would have done in SQL, since FILE_FIELDS_SQL is used above.
     entity["modified"] = entity.get("file_modified") or entity.get("modified")
 
     user_access = get_user_access(entity)

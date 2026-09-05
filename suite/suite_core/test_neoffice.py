@@ -1,5 +1,5 @@
-#//// Neoffice — added file (no upstream equivalent): pins suite_core/neoffice.py,
-#//// the fork decisions re-asserted at every migrate.
+# //// Neoffice — added file (no upstream equivalent): pins suite_core/neoffice.py,
+# //// the fork decisions re-asserted at every migrate.
 from __future__ import annotations
 
 import frappe

@@ -9,8 +9,8 @@ file with SHA-256 computed on the way (constant memory under the
 streaming_request_paths hook), and `X-OC-Mtime` is honored so rclone's
 nextcloud vendor round-trips modification times.
 """
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 import glob

@@ -8,8 +8,8 @@ the source's rolled-up size. Blob duplication is server-side on S3. Everything
 runs in the request transaction — on storage failure the created blobs are
 best-effort removed and the DB insert rolls back with the request.
 """
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 from pathlib import Path

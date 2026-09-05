@@ -6,12 +6,12 @@ authors = [
 description = "Frappe Suite — Drive, Slides, Writer, Sheets, Meet, Mail, Calendar in one app."
 readme = "README.md"
 version = "0.0.1"
-#//// Neoffice — upstream pins ">=3.14,<3.15"; the fleet runs Frappe v15 on Python
-#//// 3.12, and that pin alone makes `pip install -e apps/suite` refuse to install.
-#//// It is a declaration, not a real floor: the 643 Python files of upstream all
-#//// compile on 3.12, and the only 3.14-only API actually imported (uuid.uuid7,
-#//// 34 files) is grafted in suite/__init__.py. Restore upstream's pin the day the
-#//// fleet moves to 3.14.
+# //// Neoffice — upstream pins ">=3.14,<3.15"; the fleet runs Frappe v15 on Python
+# //// 3.12, and that pin alone makes `pip install -e apps/suite` refuse to install.
+# //// It is a declaration, not a real floor: the 643 Python files of upstream all
+# //// compile on 3.12, and the only 3.14-only API actually imported (uuid.uuid7,
+# //// 34 files) is grafted in suite/__init__.py. Restore upstream's pin the day the
+# //// fleet moves to 3.14.
 requires-python = ">=3.12"
 dependencies = [
     # drive

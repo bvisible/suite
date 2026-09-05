@@ -6,8 +6,8 @@ Both Allow and the DAV compliance class reflect the admin's method allow-list
 — advertising lock support while LOCK is blocked would make clients attempt
 locks and fail instead of degrading gracefully.
 """
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 import frappe

@@ -9,12 +9,12 @@ __pycache__/
 node_modules
 yarn-error.log
 
-#//// Neoffice — the built SPA output IS committed here, where upstream ignores it.
-#//// Fleet instances never run a frontend build: they have no node, and a merge
-#//// window is not the moment to discover that. `bench build --app suite` on the
-#//// instance only rebuilds the desk bundles (public/dist), which stay ignored.
-#//// So public/frontend, www/*.html and the service worker are tracked on purpose
-#//// — do NOT restore upstream's ignore rules for them at the next merge.
+# //// Neoffice — the built SPA output IS committed here, where upstream ignores it.
+# //// Fleet instances never run a frontend build: they have no node, and a merge
+# //// window is not the moment to discover that. `bench build --app suite` on the
+# //// instance only rebuilds the desk bundles (public/dist), which stay ignored.
+# //// So public/frontend, www/*.html and the service worker are tracked on purpose
+# //// — do NOT restore upstream's ignore rules for them at the next merge.
 /suite/**/public/dist/
 # Not SPA output: copied verbatim from node_modules by the frontend prebuild
 # (~17 MB of DTLN weights) and by the recorder build. Both are build inputs the
@@ -22,10 +22,10 @@ yarn-error.log
 /frontend/dist-recorder/
 /suite/public/noise-suppression/
 
-#//// Neoffice — removed just above: upstream also ignored `/suite/**/www/*.html`
-#//// (with sheets.html / event_rsvp.html exceptions) and `/suite/www/service-worker.js`.
-#//// Same reason as the block at the top of this file: the fleet ships the built
-#//// entrypoints, so suite.html and the slides service worker stay tracked.
+# //// Neoffice — removed just above: upstream also ignored `/suite/**/www/*.html`
+# //// (with sheets.html / event_rsvp.html exceptions) and `/suite/www/service-worker.js`.
+# //// Same reason as the block at the top of this file: the fleet ships the built
+# //// entrypoints, so suite.html and the slides service worker stay tracked.
 
 # Migrated Node sidecar build output (sfu-server / collab-server also carry own .gitignore)
 /suite/meet/sfu-server/dist/

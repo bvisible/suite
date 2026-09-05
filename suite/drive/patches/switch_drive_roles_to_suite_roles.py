@@ -1,5 +1,5 @@
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 from collections import defaultdict
 
@@ -25,9 +25,9 @@ def execute() -> None:
     themselves are left in place; deleting a role cascades through core.
     """
 
-    #//// Neoffice — only "Suite User" is forced to desk_access=0; "Suite Admin"
-    #//// keeps desk access, it is an administrator role. See
-    #//// suite/utils/user.py::assign_suite_role for the full reasoning.
+    # //// Neoffice — only "Suite User" is forced to desk_access=0; "Suite Admin"
+    # //// keeps desk access, it is an administrator role. See
+    # //// suite/utils/user.py::assign_suite_role for the full reasoning.
     for suite_role in set(ROLE_MAP.values()):
         if not frappe.db.exists("Role", suite_role):
             desk_access = 0 if suite_role == "Suite User" else 1

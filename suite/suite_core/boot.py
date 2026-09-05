@@ -11,8 +11,8 @@ fails loudly instead of half-completing.
 Imports are performed lazily inside each dispatcher so that importing
 ``suite.hooks`` never eagerly pulls in every module's heavy dependencies.
 """
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 import frappe
@@ -75,28 +75,28 @@ def after_install():
     from suite.drive.install import after_install as drive_after_install
     from suite.drive.install import ensure_custom_fields
     from suite.mail.install import after_install as mail_after_install
-    #//// Neoffice — see suite/suite_core/neoffice.py: the fork decisions that a
-    #//// fixture states but does not keep. Run last, once every app has installed.
+    # //// Neoffice — see suite/suite_core/neoffice.py: the fork decisions that a
+    # //// fixture states but does not keep. Run last, once every app has installed.
     from suite.suite_core.neoffice import run as neoffice_run
 
     _run("drive.ensure_custom_fields", ensure_custom_fields)
     _run("drive.after_install", drive_after_install)
     _run("mail.after_install", mail_after_install)
     _run("calendar.after_install", calendar_after_install)
-    #//// Neoffice — last: it re-asserts values the fixtures have just written.
+    # //// Neoffice — last: it re-asserts values the fixtures have just written.
     _run("neoffice.run", neoffice_run)
 
 
 def after_migrate():
     """Run every former app's after_migrate handler, in order."""
     from suite.mail.install import after_migrate as mail_after_migrate
-    #//// Neoffice — see suite/suite_core/neoffice.py. Every migrate, because that is
-    #//// the only moment guaranteed to run after an upstream merge has re-synced the
-    #//// fixtures that keep resetting these values.
+    # //// Neoffice — see suite/suite_core/neoffice.py. Every migrate, because that is
+    # //// the only moment guaranteed to run after an upstream merge has re-synced the
+    # //// fixtures that keep resetting these values.
     from suite.suite_core.neoffice import run as neoffice_run
 
     _run("mail.after_migrate", mail_after_migrate)
-    #//// Neoffice — last: it re-asserts values the fixtures have just written.
+    # //// Neoffice — last: it re-asserts values the fixtures have just written.
     _run("neoffice.run", neoffice_run)
 
 

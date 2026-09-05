@@ -1,5 +1,5 @@
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 from . import __version__ as app_version
 
@@ -377,14 +377,14 @@ extend_bootinfo = "suite.suite_core.boot.extend_bootinfo"
 
 # drive — custom upload + after_request middleware (single definers)
 after_file_upload = "suite.drive.overrides.file.after_file_upload"
-#//// Neoffice — Frappe v15 compatibility. Upstream writes response headers through
-#//// `frappe.local.response_headers`, which v16 creates per request and merges into
-#//// the response; v15 has neither half, so every write raised AttributeError and
-#//// /suite and /drive answered HTTP 500 to every visitor. `create` makes the object
-#//// (before_request) and `apply` merges it (after_request) — the same two points
-#//// v16 uses. ORDER MATTERS: create must run before any handler writes a header,
-#//// and apply last, once they all have. Drop both entries, and
-#//// suite/suite_core/v15_response_headers.py, when the fleet moves to v16.
+# //// Neoffice — Frappe v15 compatibility. Upstream writes response headers through
+# //// `frappe.local.response_headers`, which v16 creates per request and merges into
+# //// the response; v15 has neither half, so every write raised AttributeError and
+# //// /suite and /drive answered HTTP 500 to every visitor. `create` makes the object
+# //// (before_request) and `apply` merges it (after_request) — the same two points
+# //// v16 uses. ORDER MATTERS: create must run before any handler writes a header,
+# //// and apply last, once they all have. Drop both entries, and
+# //// suite/suite_core/v15_response_headers.py, when the fleet moves to v16.
 after_request = [
     "suite.drive.api.product.after_request",
     "suite.suite_core.v15_response_headers.apply",
@@ -392,8 +392,8 @@ after_request = [
 
 # drive — WebDAV protocol dispatcher (list hook, additive; answers all verbs under /dav)
 before_request = [
-    #//// Neoffice — see the v15 note on after_request above; this one has to come
-    #//// first, the WebDAV dispatcher below already writes a header.
+    # //// Neoffice — see the v15 note on after_request above; this one has to come
+    # //// first, the WebDAV dispatcher below already writes a header.
     "suite.suite_core.v15_response_headers.create",
     "suite.drive.webdav.dispatch.handle_before_request",
 ]

@@ -5,8 +5,8 @@
 Stalwart >= 0.16.17 rejects epoch seconds for the RFC 4865 HOLDUNTIL parameter
 ("Invalid parameter: HOLDUNTIL"); it must be an RFC 3339 UTC date-time.
 """
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 import unittest

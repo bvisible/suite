@@ -1,6 +1,6 @@
-#//// Neoffice — added file (no upstream equivalent). The WOPI/Collabora port is
-#//// ours and so are the defects fixed on 2026-09-04; each test below pins one of
-#//// them, so a later merge that drops a guard fails here instead of in production.
+# //// Neoffice — added file (no upstream equivalent). The WOPI/Collabora port is
+# //// ours and so are the defects fixed on 2026-09-04; each test below pins one of
+# //// them, so a later merge that drops a guard fails here instead of in production.
 from __future__ import annotations
 
 import os

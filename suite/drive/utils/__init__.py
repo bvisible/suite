@@ -1,5 +1,5 @@
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 import os
 from datetime import datetime
@@ -166,13 +166,13 @@ FILE_FIELDS = [
     "attached_to_name",
 ]
 
-#//// Neoffice — string-only variant of FILE_FIELDS, for `frappe.get_all` call sites.
-#//// FILE_FIELDS carries a pypika expression (the fn.Coalesce above). Frappe v16's
-#//// get_all accepts those inside `fields`; v15's does not — it raises rather than
-#//// compiling them, which took out the SPA's file view. Query-builder call sites
-#//// (`query.select(*FILE_FIELDS)`) are fine and must keep using FILE_FIELDS.
-#//// Callers of this variant coalesce file_modified/modified in Python themselves.
-#//// Drop this the day the fleet moves to Frappe v16.
+# //// Neoffice — string-only variant of FILE_FIELDS, for `frappe.get_all` call sites.
+# //// FILE_FIELDS carries a pypika expression (the fn.Coalesce above). Frappe v16's
+# //// get_all accepts those inside `fields`; v15's does not — it raises rather than
+# //// compiling them, which took out the SPA's file view. Query-builder call sites
+# //// (`query.select(*FILE_FIELDS)`) are fine and must keep using FILE_FIELDS.
+# //// Callers of this variant coalesce file_modified/modified in Python themselves.
+# //// Drop this the day the fleet moves to Frappe v16.
 FILE_FIELDS_SQL = [f for f in FILE_FIELDS if isinstance(f, str)] + ["file_modified", "modified"]
 
 
@@ -310,20 +310,20 @@ def _deny_general_read(entity):
     ).insert(ignore_permissions=True)
 
 
-#//// Neoffice — every lookup below addressed Drive Settings BY NAME. The doctype
-#//// autonames `field:user`, so the name equals the user only until that User is
-#//// renamed: Frappe cascades a rename into the `user` LINK field but leaves the
-#//// record itself named after the old address. From then on all four lookups missed,
-#//// the function built a SECOND private folder for a user who already had one, and
-#//// then died on DuplicateEntryError at the insert at the end — the unique index on
-#//// `user` was the only thing that ever noticed, and only after the orphan folder had
-#//// been created and shared. Filtering on the `user` FIELD is right whatever the row
-#//// is called, and the last insert now catches the duplicate exactly as the first one
-#//// already did (a concurrent request can still win the race).
+# //// Neoffice — every lookup below addressed Drive Settings BY NAME. The doctype
+# //// autonames `field:user`, so the name equals the user only until that User is
+# //// renamed: Frappe cascades a rename into the `user` LINK field but leaves the
+# //// record itself named after the old address. From then on all four lookups missed,
+# //// the function built a SECOND private folder for a user who already had one, and
+# //// then died on DuplicateEntryError at the insert at the end — the unique index on
+# //// `user` was the only thing that ever noticed, and only after the orphan folder had
+# //// been created and shared. Filtering on the `user` FIELD is right whatever the row
+# //// is called, and the last insert now catches the duplicate exactly as the first one
+# //// already did (a concurrent request can still win the race).
 def get_user_folder(user=None):
     """The user's private folder under the root; created on first use."""
     user = user or frappe.session.user
-    #//// Neoffice — by the `user` FIELD from here down, never by the row's name.
+    # //// Neoffice — by the `user` FIELD from here down, never by the row's name.
     settings_of = {"user": user}
     name = frappe.db.get_value("Drive Settings", settings_of, "user_folder")
     if name:
@@ -331,14 +331,14 @@ def get_user_folder(user=None):
         if folder:
             return folder
 
-    #//// Neoffice — by field (see above): after a rename the row keeps the old name.
+    # //// Neoffice — by field (see above): after a rename the row keeps the old name.
     if not frappe.db.exists("Drive Settings", settings_of):
         try:
             frappe.get_doc({"doctype": "Drive Settings", "user": user}).insert(ignore_permissions=True)
         except frappe.DuplicateEntryError:
             pass
 
-    #//// Neoffice — by field (see above).
+    # //// Neoffice — by field (see above).
     name = frappe.db.get_value("Drive Settings", settings_of, "user_folder", for_update=True)
     if name:
         folder = frappe.db.get_value("File", name, ["name", "file_url"], as_dict=1)
@@ -358,8 +358,8 @@ def get_user_folder(user=None):
     )
     grant_owner_access(folder.name, user)
 
-    #//// Neoffice — by field, and the duplicate is caught here now too: this insert
-    #//// is the one that used to raise, after the orphan folder above had been made.
+    # //// Neoffice — by field, and the duplicate is caught here now too: this insert
+    # //// is the one that used to raise, after the orphan folder above had been made.
     if not frappe.db.exists("Drive Settings", settings_of):
         try:
             frappe.get_doc({"doctype": "Drive Settings", "user": user}).insert(ignore_permissions=True)

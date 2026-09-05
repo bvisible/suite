@@ -51,17 +51,17 @@ def get_wopi_file(file_id: str):
     return file
 
 
-#//// Neoffice — added: the token is not the permission.
-#////
-#//// generate_wopi_token() freezes `file_id` and `can_write` at the instant the
-#//// editor opened and signs them for jwt_expiry_hours. Nothing here re-read the
-#//// Drive permissions afterwards, so unsharing a document — or revoking a
-#//// collaborator's write access, or moving the file — changed nothing for anyone
-#//// who already had the editor open, or who kept the token: they went on reading
-#//// and SAVING for the whole life of the token. Revocation has to be immediate to
-#//// mean anything, so every read and every write re-checks the live permission of
-#//// the user the token names. The token remains what authenticates the caller
-#//// (Collabora holds no session); it is no longer what authorises the operation.
+# //// Neoffice — added: the token is not the permission.
+# ////
+# //// generate_wopi_token() freezes `file_id` and `can_write` at the instant the
+# //// editor opened and signs them for jwt_expiry_hours. Nothing here re-read the
+# //// Drive permissions afterwards, so unsharing a document — or revoking a
+# //// collaborator's write access, or moving the file — changed nothing for anyone
+# //// who already had the editor open, or who kept the token: they went on reading
+# //// and SAVING for the whole life of the token. Revocation has to be immediate to
+# //// mean anything, so every read and every write re-checks the live permission of
+# //// the user the token names. The token remains what authenticates the caller
+# //// (Collabora holds no session); it is no longer what authorises the operation.
 def check_token_permission(file, token_data: dict, ptype: str) -> bool:
     """True if the token's user still holds `ptype` on `file` right now."""
     from suite.drive.api.permissions import user_has_permission
@@ -89,8 +89,8 @@ def write_file_content(file, content: bytes) -> None:
     manager = FileManager()
     key = storage_key(file.file_url)
     if manager.s3_enabled:
-        #//// Neoffice — one bucket for the site since the de-teaming (4df6ee65a):
-        #//// FileManager.get_bucket(team) is gone, the bucket is now an attribute.
+        # //// Neoffice — one bucket for the site since the de-teaming (4df6ee65a):
+        # //// FileManager.get_bucket(team) is gone, the bucket is now an attribute.
         manager.conn.put_object(Bucket=manager.bucket, Key=key, Body=content)
     else:
         path = manager.site_folder / key
@@ -123,14 +123,14 @@ def check_file_info(file_id: str):
 
     file = get_wopi_file(file_id)
 
-    #//// Neoffice — see check_token_permission above. Collabora asks this first and
-    #//// builds its whole UI from the answer, so re-deciding `UserCanWrite` here is
-    #//// what turns a revoked share into a read-only editor rather than into a save
-    #//// that fails minutes later on a document the user believed was theirs.
+    # //// Neoffice — see check_token_permission above. Collabora asks this first and
+    # //// builds its whole UI from the answer, so re-deciding `UserCanWrite` here is
+    # //// what turns a revoked share into a read-only editor rather than into a save
+    # //// that fails minutes later on a document the user believed was theirs.
     require_token_permission(file, token_data, "read")
 
     user_id = token_data.get("user_id", "anonymous")
-    #//// Neoffice — the token's `can_write` AND the live permission, not either one.
+    # //// Neoffice — the token's `can_write` AND the live permission, not either one.
     can_write = bool(token_data.get("can_write", False)) and check_token_permission(
         file, token_data, "write"
     )
@@ -174,12 +174,12 @@ def check_file_info(file_id: str):
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 def get_file(file_id: str):
     """WOPI GetFile endpoint — GET /wopi/files/{file_id}/contents."""
-    #//// Neoffice — the token data is kept: the read is re-authorised below.
+    # //// Neoffice — the token data is kept: the read is re-authorised below.
     token_data = validate_access_token(file_id)
 
     file = get_wopi_file(file_id)
-    #//// Neoffice — see check_token_permission above: a token outlives the share it
-    #//// was minted under, so the read is re-authorised against the live permission.
+    # //// Neoffice — see check_token_permission above: a token outlives the share it
+    # //// was minted under, so the read is re-authorised against the live permission.
     require_token_permission(file, token_data, "read")
 
     content = read_file_content(file)
@@ -204,9 +204,9 @@ def put_file(file_id: str):
 
     file = get_wopi_file(file_id)
 
-    #//// Neoffice — see check_token_permission above. `can_write` in the token says
-    #//// what was true when the editor opened, up to jwt_expiry_hours ago; this says
-    #//// what is true now, and it is the one that decides whether bytes land.
+    # //// Neoffice — see check_token_permission above. `can_write` in the token says
+    # //// what was true when the editor opened, up to jwt_expiry_hours ago; this says
+    # //// what is true now, and it is the one that decides whether bytes land.
     require_token_permission(file, token_data, "write")
 
     # Verify lock

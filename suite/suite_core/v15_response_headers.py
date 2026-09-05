@@ -1,4 +1,4 @@
-#//// Neoffice — added file (no upstream equivalent).
+# //// Neoffice — added file (no upstream equivalent).
 """Provide `frappe.local.response_headers` on Frappe v15.
 
 Upstream writes response headers through `frappe.local.response_headers`, a

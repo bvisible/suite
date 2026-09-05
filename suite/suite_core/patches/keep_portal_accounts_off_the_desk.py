@@ -1,4 +1,4 @@
-#//// Neoffice — added file (no upstream equivalent).
+# //// Neoffice — added file (no upstream equivalent).
 """Backstop the role consolidation so portal accounts keep out of the desk.
 
 Upstream's 8b911806e consolidated Drive's "Drive User"/"Drive Admin" onto the

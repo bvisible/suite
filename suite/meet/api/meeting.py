@@ -1,8 +1,8 @@
 # Copyright (c) 2025, Frappe and contributors
 # For license information, please see license.txt
 
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 import base64
 import binascii
@@ -17,9 +17,9 @@ from frappe.rate_limiter import rate_limit
 from suite.meet import guest_access
 from suite.meet.api.recording import get_active_recording_state
 from suite.meet.doctype.meet_room.meet_room import MeetRoom
-#//// Neoffice — get_tenant added to the import: the fleet shares ONE central SFU
-#//// and every instance reports the same site, so the token carries a tenant claim
-#//// instead (see _generate_sfu_token below and sfu_config.get_tenant()).
+# //// Neoffice — get_tenant added to the import: the fleet shares ONE central SFU
+# //// and every instance reports the same site, so the token carries a tenant claim
+# //// instead (see _generate_sfu_token below and sfu_config.get_tenant()).
 from suite.meet.utils.sfu_config import get_sfu_config, get_tenant
 from suite.meet.utils.user import (
     get_user_info,
@@ -73,11 +73,11 @@ def _generate_sfu_token(
         "user_id": user_id,
         "meeting_id": meeting_id,
         "site": getattr(frappe.local, "site", None),
-        #//// Neoffice — tenant claim. The fleet shares ONE central SFU (neoservice)
-        #//// across every instance, and every instance reports the same `site`
-        #//// ("prod.local"), so `site` cannot isolate them. The SFU prefixes room
-        #//// names with this claim instead; without it two customers dialing the same
-        #//// room name land in the same call. See sfu_config.get_tenant().
+        # //// Neoffice — tenant claim. The fleet shares ONE central SFU (neoservice)
+        # //// across every instance, and every instance reports the same `site`
+        # //// ("prod.local"), so `site` cannot isolate them. The SFU prefixes room
+        # //// names with this claim instead; without it two customers dialing the same
+        # //// room name land in the same call. See sfu_config.get_tenant().
         "tenant": get_tenant(),
         "scope": scope,
         "exp": now + expires_in,

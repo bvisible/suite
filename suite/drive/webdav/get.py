@@ -6,8 +6,8 @@ Windows mini-redirector mishandles auth on cross-host redirects, so presigned
 302s are behind the drive_webdav_s3_redirect site flag for lenient-client
 deployments. Collections redirect browsers into the Drive SPA.
 """
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 import frappe

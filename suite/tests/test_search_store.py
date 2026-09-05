@@ -4,8 +4,8 @@
 the index once so its own count still describes what it fetched, the deprecated
 ``search_phrase_prefix`` still searches for a phrase rather than quietly becoming the looser search
 that replaced it, and a store that merges on upsert sees the document it is about to replace."""
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 import unittest

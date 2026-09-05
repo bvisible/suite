@@ -1,5 +1,5 @@
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 import os
 import shutil
@@ -31,14 +31,14 @@ def execute() -> None:
         shutil.rmtree(old_path, ignore_errors=True)
         return
 
-    #//// Neoffice — shutil.move, not os.rename.
-    #////
-    #//// os.rename cannot cross filesystems, and on this fleet it always does: the
-    #//// site's `private` and `public` are symlinks onto a separate data volume
-    #//// (/mnt/neoffice), while the site directory itself lives on the system disk.
-    #//// The move therefore died on `OSError: [Errno 18] Invalid cross-device link`
-    #//// and took the whole migration with it (measured on osiris, 31.08.2026).
-    #//// shutil.move falls back to copy+unlink when the two ends are on different
-    #//// devices, and is a plain rename when they are not — so it costs nothing on a
-    #//// single-volume host. Both blob-store patches carry the same shortcut.
+    # //// Neoffice — shutil.move, not os.rename.
+    # ////
+    # //// os.rename cannot cross filesystems, and on this fleet it always does: the
+    # //// site's `private` and `public` are symlinks onto a separate data volume
+    # //// (/mnt/neoffice), while the site directory itself lives on the system disk.
+    # //// The move therefore died on `OSError: [Errno 18] Invalid cross-device link`
+    # //// and took the whole migration with it (measured on osiris, 31.08.2026).
+    # //// shutil.move falls back to copy+unlink when the two ends are on different
+    # //// devices, and is a plain rename when they are not — so it costs nothing on a
+    # //// single-volume host. Both blob-store patches carry the same shortcut.
     shutil.move(old_path, new_path)

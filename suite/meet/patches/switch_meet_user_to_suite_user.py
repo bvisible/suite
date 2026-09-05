@@ -1,5 +1,5 @@
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 import frappe
 from frappe.utils import now
@@ -19,12 +19,12 @@ def execute() -> None:
     """
 
     if not frappe.db.exists("Role", NEW_ROLE):
-        #//// Neoffice — "Suite User" is created with desk_access=0 here, where
-        #//// upstream hardcodes 1. `User.set_system_user` keys `user_type` off
-        #//// whether any assigned role carries desk access, so a desk-access
-        #//// "Suite User" turns every portal account on the site into a System
-        #//// User with access to /app. See suite/utils/user.py::assign_suite_role
-        #//// and the desk_access=0 fixture in suite/fixtures/role.json.
+        # //// Neoffice — "Suite User" is created with desk_access=0 here, where
+        # //// upstream hardcodes 1. `User.set_system_user` keys `user_type` off
+        # //// whether any assigned role carries desk access, so a desk-access
+        # //// "Suite User" turns every portal account on the site into a System
+        # //// User with access to /app. See suite/utils/user.py::assign_suite_role
+        # //// and the desk_access=0 fixture in suite/fixtures/role.json.
         frappe.get_doc({"doctype": "Role", "role_name": NEW_ROLE, "desk_access": 0}).insert(
             ignore_permissions=True
         )

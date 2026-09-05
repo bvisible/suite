@@ -5,8 +5,8 @@ leaves the DAV namespace either way. MOVE reuses Drive's own move/rename
 controllers, pre-trashing an Overwrite:T target so their auto-rename collision
 handling never fires and exact WebDAV naming survives.
 """
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 from pathlib import Path

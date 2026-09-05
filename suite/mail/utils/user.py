@@ -1,5 +1,5 @@
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 from typing import Literal
 
@@ -64,10 +64,10 @@ def get_jmap_configured_users() -> list[str]:
 def is_jmap_configured(user: str, raise_exception: bool = False) -> bool:
     """Returns True if the user has JMAP settings configured else False."""
 
-    #//// Neoffice (v15) — `["!=", None]` renders as `!= NULL`, which SQL
-    #//// never matches: on Frappe v15 this filter silently found nothing and
-    #//// every mail/JMAP lookup failed. The "is set" idiom works on v15 and
-    #//// v16 alike. Drop the note (not the idiom) once the fleet is on v16.
+    # //// Neoffice (v15) — `["!=", None]` renders as `!= NULL`, which SQL
+    # //// never matches: on Frappe v15 this filter silently found nothing and
+    # //// every mail/JMAP lookup failed. The "is set" idiom works on v15 and
+    # //// v16 alike. Drop the note (not the idiom) once the fleet is on v16.
     if frappe.db.exists("User Settings", {"user": user, "username": ["is", "set"]}):
         return True
 

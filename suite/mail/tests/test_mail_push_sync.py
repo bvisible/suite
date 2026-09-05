@@ -3,8 +3,8 @@
 """How the push-sync path reacts when the JMAP server cannot answer an ``Email/changes`` call:
 method-level errors surface as exceptions instead of flowing downstream as fake changes results,
 and the stored sync state is never advanced on failure."""
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 import unittest

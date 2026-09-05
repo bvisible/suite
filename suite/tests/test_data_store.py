@@ -3,8 +3,8 @@
 """``DataStore.set_many``'s newness contract: storing a batch reports which of it the store did not
 already hold, decided inside the transaction that writes it — so of two writers racing to store the
 same key, exactly one is told it was theirs to store."""
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
 import shutil

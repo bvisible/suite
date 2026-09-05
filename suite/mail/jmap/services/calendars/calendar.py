@@ -1,5 +1,5 @@
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 from typing import ClassVar
 
@@ -42,14 +42,14 @@ class CalendarService(CalendarsService):
 
         return result
 
-    #//// Neoffice — request the properties explicitly, where upstream sends none.
-    #//// JMAP returns a default subset when no properties are asked for, and that
-    #//// subset excludes shareWith AND isVisible/includeInAvailability — yet
-    #//// format_calendar() in the Calendar doctype reads all three. Without this
-    #//// the sidebar never saw who a calendar was shared with, nor the persisted
-    #//// show/hide state: the read-back was blind. Keep in sync with
-    #//// format_calendar and with our share_calendar/set_calendar_visibility
-    #//// endpoints (suite/calendar/doctype/calendar/calendar.py).
+    # //// Neoffice — request the properties explicitly, where upstream sends none.
+    # //// JMAP returns a default subset when no properties are asked for, and that
+    # //// subset excludes shareWith AND isVisible/includeInAvailability — yet
+    # //// format_calendar() in the Calendar doctype reads all three. Without this
+    # //// the sidebar never saw who a calendar was shared with, nor the persisted
+    # //// show/hide state: the read-back was blind. Keep in sync with
+    # //// format_calendar and with our share_calendar/set_calendar_visibility
+    # //// endpoints (suite/calendar/doctype/calendar/calendar.py).
     GET_PROPERTIES: ClassVar[list[str]] = [
         "id",
         "name",
@@ -71,14 +71,14 @@ class CalendarService(CalendarsService):
         results = []
         if ids:
             for batch in self.create_batches(ids, self.max_objects_in_get):
-                #//// Neoffice — ask for GET_PROPERTIES (upstream sends none, so JMAP answers
-                #//// with a default subset that omits shareWith and isVisible). See above.
+                # //// Neoffice — ask for GET_PROPERTIES (upstream sends none, so JMAP answers
+                # //// with a default subset that omits shareWith and isVisible). See above.
                 response = self._get(batch, properties=self.GET_PROPERTIES)
 
                 if method_responses := response.get("methodResponses"):
                     results.extend(method_responses[0][1].get("list", []))
         else:
-            #//// Neoffice — same explicit property list as the batched branch above.
+            # //// Neoffice — same explicit property list as the batched branch above.
             response = self._get(properties=self.GET_PROPERTIES)
             if method_responses := response.get("methodResponses"):
                 results.extend(method_responses[0][1].get("list", []))
@@ -116,14 +116,14 @@ class CalendarService(CalendarsService):
 
         return result
 
-    #//// Neoffice — added methods (no upstream equivalent). Both are partial
-    #//// JMAP Calendar/set updates: the protocol merges, so unspecified properties
-    #//// are left untouched and there is no need to resend name/color/etc.
-    #////
-    #//// set_visibility persists the sidebar show/hide toggle across reloads —
-    #//// upstream toggles it in client state only. set_sharing is the write path
-    #//// for shareWith: upstream reads the map (format_calendar) but has never
-    #//// wired a way to write it, so sharing could not be exposed in the SPA.
+    # //// Neoffice — added methods (no upstream equivalent). Both are partial
+    # //// JMAP Calendar/set updates: the protocol merges, so unspecified properties
+    # //// are left untouched and there is no need to resend name/color/etc.
+    # ////
+    # //// set_visibility persists the sidebar show/hide toggle across reloads —
+    # //// upstream toggles it in client state only. set_sharing is the write path
+    # //// for shareWith: upstream reads the map (format_calendar) but has never
+    # //// wired a way to write it, so sharing could not be exposed in the SPA.
     def set_visibility(self, id: str, visible: bool) -> dict:
         result = {"updated": [], "notUpdated": {}}
         response = self._update({id: {"isVisible": bool(visible)}})

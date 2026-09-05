@@ -2,8 +2,8 @@
 # For license information, please see license.txt
 
 
-#//// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
-#//// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 from uuid import uuid7
 
@@ -524,14 +524,14 @@ def create_user(
     user.email = email
     user.owner = email
     user.send_welcome_email = 0
-    #//// Neoffice — pin the type explicitly. `frappe.new_doc("User")` defaults
-    #//// user_type to "System User", and this path runs for the PUBLIC signup and
-    #//// member flows: e20b2ac06 was written because frontend signups were silently
-    #//// landing as system users. validate() recomputes the type from the roles'
-    #//// desk access, so the binding lock is desk_access=0 on "Suite User"
-    #//// (suite/fixtures/role.json) — this line is the belt to that pair of braces,
-    #//// and the place a reader looks first. Note `roles` here can carry
-    #//// "Suite Admin" for an admin request; that promotion is deliberate.
+    # //// Neoffice — pin the type explicitly. `frappe.new_doc("User")` defaults
+    # //// user_type to "System User", and this path runs for the PUBLIC signup and
+    # //// member flows: e20b2ac06 was written because frontend signups were silently
+    # //// landing as system users. validate() recomputes the type from the roles'
+    # //// desk access, so the binding lock is desk_access=0 on "Suite User"
+    # //// (suite/fixtures/role.json) — this line is the belt to that pair of braces,
+    # //// and the place a reader looks first. Note `roles` here can carry
+    # //// "Suite Admin" for an admin request; that promotion is deliberate.
     user.user_type = "Website User"
     if roles:
         user.append_roles(*roles)

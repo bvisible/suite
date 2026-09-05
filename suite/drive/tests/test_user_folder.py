@@ -1,6 +1,6 @@
-#//// Neoffice — added file (no upstream equivalent). get_user_folder() is upstream
-#//// code; it addressed `Drive Settings` by name, which stops being the user's
-#//// address the moment that User is renamed. This pins the fix.
+# //// Neoffice — added file (no upstream equivalent). get_user_folder() is upstream
+# //// code; it addressed `Drive Settings` by name, which stops being the user's
+# //// address the moment that User is renamed. This pins the fix.
 from __future__ import annotations
 
 import shutil
