@@ -34,20 +34,24 @@ import frappe
 
 
 def _has_native_support() -> bool:
+    # //// Neoffice — see the block marker above: added file, v15 response_headers shim (470740fd7 "style(fork): ruff format")
     """True when the framework manages response_headers itself (v16+)."""
     return hasattr(frappe.local, "response_headers")
 
 
 def create() -> None:
+    # //// Neoffice — see the block marker above: added file, v15 response_headers shim (470740fd7 "style(fork): ruff format")
     """before_request: give the request an empty Headers to write into."""
     if _has_native_support():
         return
     from werkzeug.datastructures import Headers
 
+    # //// Neoffice — see the block marker above: added file, v15 response_headers shim (470740fd7 "style(fork): ruff format")
     frappe.local.response_headers = Headers()
 
 
 def apply(response=None, request=None) -> None:
+    # //// Neoffice — see the block marker above: added file, v15 response_headers shim (470740fd7 "style(fork): ruff format")
     """after_request: copy what the request wrote onto the outgoing response.
 
     `extend` rather than `set`: a header may legitimately appear more than once,
@@ -57,5 +61,6 @@ def apply(response=None, request=None) -> None:
     if not headers or response is None:
         return
 
+    # //// Neoffice — see the block marker above: added file, v15 response_headers shim (470740fd7 "style(fork): ruff format")
     for key, value in headers.items():
         response.headers[key] = value

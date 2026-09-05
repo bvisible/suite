@@ -485,6 +485,7 @@ def get_caldav_url(account: str, id: str) -> dict:
 
     user = get_user_for_jmap_account(account)
     settings_name = frappe.db.get_value("User Settings", {"user": user}, "name") if user else None
+    # //// Neoffice — see the block marker above: CalDAV username lookup (470740fd7 "style(fork): ruff format")
     username = (
         frappe.db.get_value("User Settings", settings_name, "username") if settings_name else ""
     ) or ""

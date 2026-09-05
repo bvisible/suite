@@ -31,6 +31,7 @@ def execute() -> None:
     for suite_role in set(ROLE_MAP.values()):
         if not frappe.db.exists("Role", suite_role):
             desk_access = 0 if suite_role == "Suite User" else 1
+            # //// Neoffice — see the block marker above: desk_access on role insert (470740fd7 "style(fork): ruff format")
             frappe.get_doc({"doctype": "Role", "role_name": suite_role, "desk_access": desk_access}).insert(
                 ignore_permissions=True
             )

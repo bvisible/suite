@@ -11,6 +11,7 @@ from suite.mail.utils import is_stalwart_configured
 
 
 def execute():
+    # //// Neoffice — see the block marker below: async enqueue, not inline (470740fd7 "style(fork): ruff format")
     """Enqueue (NOT inline) a mailbox provisioning job per eligible user.
 
     //// Neoffice: provisioning calls stalwart-cli (a multi-second subprocess)
@@ -22,6 +23,7 @@ def execute():
     if not is_stalwart_configured(raise_exception=False):
         return
 
+    # //// Neoffice — see the block marker above: async enqueue, not inline (470740fd7 "style(fork): ruff format")
     users = frappe.get_all(
         "User",
         filters={"enabled": 1, "user_type": "System User", "name": ["not in", ["Administrator", "Guest"]]},

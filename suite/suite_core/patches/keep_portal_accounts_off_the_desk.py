@@ -38,12 +38,14 @@ import frappe
 
 
 def execute() -> None:
+    # //// Neoffice — see the block marker above: added file, backstop patch (470740fd7 "style(fork): ruff format")
     _enforce_role_desk_access()
     _strip_admin_role_from_portal_accounts()
     _report_inconsistent_accounts()
 
 
 def _enforce_role_desk_access() -> None:
+    # //// Neoffice — see the block marker above: added file, backstop patch (470740fd7 "style(fork): ruff format")
     """Re-assert desk access on the two Suite roles, whatever the patches left.
 
     ``sync_fixtures()`` runs after post_model_sync patches and would do this
@@ -65,6 +67,7 @@ def _enforce_role_desk_access() -> None:
 
 
 def _strip_admin_role_from_portal_accounts() -> None:
+    # //// Neoffice — see the block marker above: added file, backstop patch (470740fd7 "style(fork): ruff format")
     """Drop "Suite Admin" from accounts that are still Website Users.
 
     ``rename_mail_admin_to_suite_admin`` renames the Role, which cascades to every
@@ -93,6 +96,7 @@ def _strip_admin_role_from_portal_accounts() -> None:
 
 
 def _report_inconsistent_accounts() -> None:
+    # //// Neoffice — see the block marker above: added file, backstop patch (470740fd7 "style(fork): ruff format")
     """Log any account left holding a desk role while typed as a Website User.
 
     Such an account is a promotion waiting to happen: ``set_system_user`` recomputes

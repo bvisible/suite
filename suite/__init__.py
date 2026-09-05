@@ -16,6 +16,7 @@ import uuid as _uuid
 
 if not hasattr(_uuid, "uuid7"):
 
+    # //// Neoffice — see the block marker above: uuid7 backport (470740fd7 "style(fork): ruff format")
     def _uuid7() -> _uuid.UUID:
         # Layout per RFC 9562: 48-bit unix-ms timestamp | ver(7) | 12 rand bits
         # | variant(0b10) | 62 rand bits.
@@ -44,6 +45,7 @@ import types as _types
 
 
 def _graft_deprecation_dumpster() -> None:
+    # //// Neoffice — see the block marker above: v16 deprecation_dumpster shim (470740fd7 "style(fork): ruff format")
     """`frappe.deprecation_dumpster` landed in v16; suite.store.search_store imports it
     at module level, so its absence takes the module down at import time — and with it
     every search in Mail. The real one routes through Frappe's deprecation machinery;
@@ -52,8 +54,10 @@ def _graft_deprecation_dumpster() -> None:
         return
     import warnings as _warnings
 
+    # //// Neoffice — see the block marker above: v16 deprecation_dumpster shim (470740fd7 "style(fork): ruff format")
     module = _types.ModuleType("frappe.deprecation_dumpster")
 
+    # //// Neoffice — see the block marker above: v16 deprecation_dumpster shim (470740fd7 "style(fork): ruff format")
     def deprecation_warning(marked: str = "", graduation: str = "", msg: str = "", **kwargs) -> None:
         _warnings.warn(
             f"[deprecated since {marked}, removed in {graduation}] {msg}",
@@ -61,11 +65,13 @@ def _graft_deprecation_dumpster() -> None:
             stacklevel=2,
         )
 
+    # //// Neoffice — see the block marker above: v16 deprecation_dumpster shim (470740fd7 "style(fork): ruff format")
     module.deprecation_warning = deprecation_warning
     _sys.modules["frappe.deprecation_dumpster"] = module
 
 
 def _graft_get_safe_file_name() -> None:
+    # //// Neoffice — see the block marker above: v16 get_safe_file_name shim (470740fd7 "style(fork): ruff format")
     """`frappe.core.doctype.file.utils.get_safe_file_name` landed in v16; suite.mail.api.mail
     imports it inside upload_file() to build the temp path of an upload. Without it, every
     attachment upload raises ImportError. It guards a path built from a client-supplied
