@@ -37,7 +37,11 @@ class MarkOnboarded(AccountTestBase):
     def setUp(self):
         super().setUp()
         self.engine = self.enterContext(
-            mock.patch("frappe.desk.page.setup_wizard.setup_wizard.complete_app_setup")
+            # //// Neoffice — create=True: complete_app_setup is a v16 symbol; on Frappe v15
+            # //// the module has no such attribute and mock.patch refused to install the
+            # //// double, killing both tests at setUp. The code under test imports the name
+            # //// lazily from the module, so the created attribute is what it calls.
+            mock.patch("frappe.desk.page.setup_wizard.setup_wizard.complete_app_setup", create=True)
         )
         self.suite_wizard = self.enterContext(
             mock.patch("suite.api.account.uses_suite_setup_wizard", return_value=True)
