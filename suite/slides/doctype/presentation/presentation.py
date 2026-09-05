@@ -482,7 +482,11 @@ def get_updated_json(presentation: str, elements: list[dict]):
 
     for element in elements:
         if element.get("type") in ["image", "video"] and element.get("src"):
-            file_url = element["src"].replace(frappe.local.site_name, "")
+            # //// Neoffice — frappe.local.site_name is a v16 attribute (init() there
+            # //// sets it to the site); on v15 only frappe.local.site exists, and this
+            # //// line raised AttributeError for every pasted image or video. Drop at v16.
+            site_name = getattr(frappe.local, "site_name", None) or frappe.local.site
+            file_url = element["src"].replace(site_name, "")
             name = get_attachment(presentation, file_url)
             element["attachmentName"] = name
         attach_poster(presentation, element)
