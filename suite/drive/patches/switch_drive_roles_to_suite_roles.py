@@ -31,9 +31,9 @@ def execute() -> None:
     for suite_role in set(ROLE_MAP.values()):
         if not frappe.db.exists("Role", suite_role):
             desk_access = 0 if suite_role == "Suite User" else 1
-            frappe.get_doc(
-                {"doctype": "Role", "role_name": suite_role, "desk_access": desk_access}
-            ).insert(ignore_permissions=True)
+            frappe.get_doc({"doctype": "Role", "role_name": suite_role, "desk_access": desk_access}).insert(
+                ignore_permissions=True
+            )
 
     users_by_drive_role = {}
     for drive_role in ROLE_MAP:

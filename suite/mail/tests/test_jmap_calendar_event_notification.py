@@ -8,6 +8,7 @@ silently drops ``event``/``eventPatch`` from every notification. The service the
 or not. These tests pin that forwarding, since a regression is invisible in the response shape:
 the call still succeeds, the fields just stop arriving.
 """
+
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations

@@ -28,6 +28,7 @@ landed — until they are retried or dismissed, or the server expunges the submi
 (how long finalized submissions are kept is the server's policy alone); the same goes for
 every other concluded row.
 """
+
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations

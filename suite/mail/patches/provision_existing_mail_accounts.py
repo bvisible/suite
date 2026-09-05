@@ -11,32 +11,32 @@ from suite.mail.utils import is_stalwart_configured
 
 
 def execute():
-	"""Enqueue (NOT inline) a mailbox provisioning job per eligible user.
+    """Enqueue (NOT inline) a mailbox provisioning job per eligible user.
 
-	//// Neoffice: provisioning calls stalwart-cli (a multi-second subprocess)
-	per user; doing that inline inside `bench migrate` holds the migrate
-	transaction long enough to hit 'Lock wait timeout'. Enqueue instead so
-	migrate returns immediately and the worker provisions in the background. ////
-	"""
+    //// Neoffice: provisioning calls stalwart-cli (a multi-second subprocess)
+    per user; doing that inline inside `bench migrate` holds the migrate
+    transaction long enough to hit 'Lock wait timeout'. Enqueue instead so
+    migrate returns immediately and the worker provisions in the background. ////
+    """
 
-	if not is_stalwart_configured(raise_exception=False):
-		return
+    if not is_stalwart_configured(raise_exception=False):
+        return
 
-	users = frappe.get_all(
-		"User",
-		filters={"enabled": 1, "user_type": "System User", "name": ["not in", ["Administrator", "Guest"]]},
-		pluck="name",
-	)
-	for name in users:
-		try:
-			doc = frappe.get_doc("User", name)
-			if _should_provision_mail(doc):
-				frappe.enqueue(
-					"suite.mail.events._provision_mail_account_now",
-					queue="long",
-					job_id=f"provision-mail-{name}",
-					deduplicate=True,
-					user=name,
-				)
-		except Exception:
-			frappe.log_error("Mail backfill enqueue failed", f"user={name}")
+    users = frappe.get_all(
+        "User",
+        filters={"enabled": 1, "user_type": "System User", "name": ["not in", ["Administrator", "Guest"]]},
+        pluck="name",
+    )
+    for name in users:
+        try:
+            doc = frappe.get_doc("User", name)
+            if _should_provision_mail(doc):
+                frappe.enqueue(
+                    "suite.mail.events._provision_mail_account_now",
+                    queue="long",
+                    job_id=f"provision-mail-{name}",
+                    deduplicate=True,
+                    user=name,
+                )
+        except Exception:
+            frappe.log_error("Mail backfill enqueue failed", f"user={name}")

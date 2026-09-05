@@ -15,6 +15,7 @@ template can't honour ("sum where status is paid", "top 5", "group by"), return
 None so the model handles it rather than silently doing the wrong thing. Only
 formula functions the engine actually implements are emitted.
 """
+
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations

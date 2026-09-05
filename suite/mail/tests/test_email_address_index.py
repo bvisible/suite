@@ -4,6 +4,7 @@
 quotes clients wrap them in, only syntactically valid addresses ever reach the index, every sighting
 of an address adds to the count that separates otherwise equal matches, and suggestions come back
 ordered by how well the query matches a name or address rather than in index order."""
+
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations

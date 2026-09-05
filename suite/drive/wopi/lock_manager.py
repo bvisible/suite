@@ -3,6 +3,7 @@
 WOPI lock management to prevent editing conflicts.
 Uses Redis cache for distributed locking.
 """
+
 from __future__ import annotations
 import frappe
 from datetime import datetime

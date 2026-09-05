@@ -432,6 +432,7 @@ def has_permission(doc: Document, ptype: str, user: str | None = None) -> bool:
 # //// a ready-to-paste CalDAV subscription per calendar, so these four stay.
 # //// Drop each one the day upstream ships an equivalent.
 
+
 # //// Neoffice: sharing write-path + colleague lookup. The doctype/JMAP already
 # READ shareWith (format_calendar), but there was no way to WRITE it and no way
 # to list who you could share with — so the SPA could never expose sharing. ////
@@ -484,7 +485,9 @@ def get_caldav_url(account: str, id: str) -> dict:
 
     user = get_user_for_jmap_account(account)
     settings_name = frappe.db.get_value("User Settings", {"user": user}, "name") if user else None
-    username = (frappe.db.get_value("User Settings", settings_name, "username") if settings_name else "") or ""
+    username = (
+        frappe.db.get_value("User Settings", settings_name, "username") if settings_name else ""
+    ) or ""
     host = frappe.utils.get_url().rstrip("/")
 
     # Stalwart's per-calendar DAV path uses an internal name (e.g. "default",
@@ -552,5 +555,3 @@ def get_shareable_principals(account: str) -> list[dict]:
         email = p.get("email") or p.get("name")
         people.append({"id": p["id"], "name": p.get("name") or email, "email": email})
     return people
-
-

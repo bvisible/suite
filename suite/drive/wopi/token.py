@@ -2,10 +2,12 @@
 """
 JWT token management for WOPI authentication.
 """
+
 from __future__ import annotations
 import jwt
 import frappe
 from frappe import _
+
 # //// Neoffice — `timezone` for the aware expiry below; the rest of this block
 # //// (the default lifetime, and the helper that refuses to hand out a secret it
 # //// could not persist) is new. See the commit and the notes on each.

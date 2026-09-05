@@ -10,6 +10,7 @@ after the fixtures have synced.
 Each function returns True when it actually changed something, so a caller (or a
 test) can tell "already right" from "just repaired".
 """
+
 from __future__ import annotations
 
 import frappe

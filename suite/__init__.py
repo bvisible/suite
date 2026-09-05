@@ -1,6 +1,7 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
 __version__ = "0.0.1"
 
 # //// Neoffice: Python 3.12 compatibility ////
@@ -15,18 +16,18 @@ import uuid as _uuid
 
 if not hasattr(_uuid, "uuid7"):
 
-	def _uuid7() -> _uuid.UUID:
-		# Layout per RFC 9562: 48-bit unix-ms timestamp | ver(7) | 12 rand bits
-		# | variant(0b10) | 62 rand bits.
-		ts_ms = _time.time_ns() // 1_000_000
-		value = (ts_ms & 0xFFFFFFFFFFFF) << 80
-		value |= 0x7 << 76
-		value |= _secrets.randbits(12) << 64
-		value |= 0b10 << 62
-		value |= _secrets.randbits(62)
-		return _uuid.UUID(int=value)
+    def _uuid7() -> _uuid.UUID:
+        # Layout per RFC 9562: 48-bit unix-ms timestamp | ver(7) | 12 rand bits
+        # | variant(0b10) | 62 rand bits.
+        ts_ms = _time.time_ns() // 1_000_000
+        value = (ts_ms & 0xFFFFFFFFFFFF) << 80
+        value |= 0x7 << 76
+        value |= _secrets.randbits(12) << 64
+        value |= 0b10 << 62
+        value |= _secrets.randbits(62)
+        return _uuid.UUID(int=value)
 
-	_uuid.uuid7 = _uuid7
+    _uuid.uuid7 = _uuid7
 # //// end Neoffice ////
 
 
@@ -43,50 +44,50 @@ import types as _types
 
 
 def _graft_deprecation_dumpster() -> None:
-	"""`frappe.deprecation_dumpster` landed in v16; suite.store.search_store imports it
-	at module level, so its absence takes the module down at import time — and with it
-	every search in Mail. The real one routes through Frappe's deprecation machinery;
-	all we owe the caller is a warning that does not raise."""
-	if "frappe.deprecation_dumpster" in _sys.modules:
-		return
-	import warnings as _warnings
+    """`frappe.deprecation_dumpster` landed in v16; suite.store.search_store imports it
+    at module level, so its absence takes the module down at import time — and with it
+    every search in Mail. The real one routes through Frappe's deprecation machinery;
+    all we owe the caller is a warning that does not raise."""
+    if "frappe.deprecation_dumpster" in _sys.modules:
+        return
+    import warnings as _warnings
 
-	module = _types.ModuleType("frappe.deprecation_dumpster")
+    module = _types.ModuleType("frappe.deprecation_dumpster")
 
-	def deprecation_warning(marked: str = "", graduation: str = "", msg: str = "", **kwargs) -> None:
-		_warnings.warn(
-			f"[deprecated since {marked}, removed in {graduation}] {msg}",
-			DeprecationWarning,
-			stacklevel=2,
-		)
+    def deprecation_warning(marked: str = "", graduation: str = "", msg: str = "", **kwargs) -> None:
+        _warnings.warn(
+            f"[deprecated since {marked}, removed in {graduation}] {msg}",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
-	module.deprecation_warning = deprecation_warning
-	_sys.modules["frappe.deprecation_dumpster"] = module
+    module.deprecation_warning = deprecation_warning
+    _sys.modules["frappe.deprecation_dumpster"] = module
 
 
 def _graft_get_safe_file_name() -> None:
-	"""`frappe.core.doctype.file.utils.get_safe_file_name` landed in v16; suite.mail.api.mail
-	imports it inside upload_file() to build the temp path of an upload. Without it, every
-	attachment upload raises ImportError. It guards a path built from a client-supplied
-	name, so the fallback stays strict: basename only, and nothing outside a safe alphabet."""
-	try:
-		from frappe.core.doctype.file import utils as _file_utils
-	except Exception:
-		return
-	if hasattr(_file_utils, "get_safe_file_name"):
-		return
+    """`frappe.core.doctype.file.utils.get_safe_file_name` landed in v16; suite.mail.api.mail
+    imports it inside upload_file() to build the temp path of an upload. Without it, every
+    attachment upload raises ImportError. It guards a path built from a client-supplied
+    name, so the fallback stays strict: basename only, and nothing outside a safe alphabet."""
+    try:
+        from frappe.core.doctype.file import utils as _file_utils
+    except Exception:
+        return
+    if hasattr(_file_utils, "get_safe_file_name"):
+        return
 
-	import os as _os
-	import re as _re
+    import os as _os
+    import re as _re
 
-	def get_safe_file_name(filename: str) -> str:
-		# Take the basename under both separators: a Windows client sends backslashes,
-		# and os.path.basename ignores those on POSIX.
-		name = _os.path.basename(str(filename or "").replace("\\", "/").split("/")[-1])
-		name = _re.sub(r"[^A-Za-z0-9._-]", "_", name).lstrip(".")
-		return name or "file"
+    def get_safe_file_name(filename: str) -> str:
+        # Take the basename under both separators: a Windows client sends backslashes,
+        # and os.path.basename ignores those on POSIX.
+        name = _os.path.basename(str(filename or "").replace("\\", "/").split("/")[-1])
+        name = _re.sub(r"[^A-Za-z0-9._-]", "_", name).lstrip(".")
+        return name or "file"
 
-	_file_utils.get_safe_file_name = get_safe_file_name
+    _file_utils.get_safe_file_name = get_safe_file_name
 
 
 _graft_deprecation_dumpster()

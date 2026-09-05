@@ -3,6 +3,7 @@
 Deletion is allowed only for unpinned snapshots — pinned/named ones are
 user-curated and survive nightly rollup.
 """
+
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations

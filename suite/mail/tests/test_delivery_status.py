@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 """The delivery-status parser's contract: a `message/delivery-status` part splits into the
 report's own fields and one entry per recipient, with the RFC 3464 type prefixes stripped."""
+
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations

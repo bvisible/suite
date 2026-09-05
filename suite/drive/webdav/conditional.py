@@ -3,6 +3,7 @@
 evaluate_preconditions guards every mutating verb; is_not_modified backs the
 manual 304 handling on the S3 GET path (werkzeug's send_file covers local).
 """
+
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations

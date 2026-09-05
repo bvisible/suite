@@ -257,9 +257,11 @@ def _to_user_folder(home, team):
     # //// addresses Drive Settings by owner.
     settings_name = frappe.db.get_value("Drive Settings", {"user": team.owner}, "name")
     if not settings_name:
-        settings_name = frappe.get_doc(
-            {"doctype": "Drive Settings", "user": team.owner}
-        ).insert(ignore_permissions=True).name
+        settings_name = (
+            frappe.get_doc({"doctype": "Drive Settings", "user": team.owner})
+            .insert(ignore_permissions=True)
+            .name
+        )
     frappe.db.set_value(
         "Drive Settings",
         # //// Neoffice — the row's own name, resolved by its `user` field above; upstream

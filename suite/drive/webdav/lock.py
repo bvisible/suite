@@ -5,6 +5,7 @@ UNLOCK, and RFC 4918 §7.3 replaced lock-null resources with "create an empty
 resource, then lock it" — so LOCK on an unmapped URL creates a real zero-byte
 file. Refresh is an empty-body LOCK carrying the token in If.
 """
+
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations

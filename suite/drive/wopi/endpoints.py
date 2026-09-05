@@ -131,9 +131,7 @@ def check_file_info(file_id: str):
 
     user_id = token_data.get("user_id", "anonymous")
     # //// Neoffice — the token's `can_write` AND the live permission, not either one.
-    can_write = bool(token_data.get("can_write", False)) and check_token_permission(
-        file, token_data, "write"
-    )
+    can_write = bool(token_data.get("can_write", False)) and check_token_permission(file, token_data, "write")
 
     user_name = user_id
     if user_id and user_id != "Guest" and frappe.db.exists("User", user_id):

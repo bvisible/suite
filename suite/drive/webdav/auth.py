@@ -9,6 +9,7 @@ takes. Passwords are verified with frappe's own check_password; a short-lived
 HMAC cache skips the deliberately-slow hash verification that clients would
 otherwise trigger on every single request.
 """
+
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations

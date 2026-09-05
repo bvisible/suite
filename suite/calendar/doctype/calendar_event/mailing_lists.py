@@ -17,6 +17,7 @@ also ends up with a distinct participant uid, which is what gives them individua
 Membership is resolved once, when the invitation is sent. Someone added to the list afterwards will
 receive later mail to the list but not this event, so participants are re-expanded on every update.
 """
+
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations

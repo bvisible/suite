@@ -6,6 +6,7 @@ before every read) plus an hourly sweep. A lock is satisfied only when its
 token is submitted in the If header AND the session user is the lock's owner:
 a leaked token grants nothing.
 """
+
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations

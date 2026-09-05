@@ -4,6 +4,7 @@ Depth infinity is refused with the RFC 4918 §9.1 propfind-finite-depth
 precondition (Apache's default too) — an unbounded walk over the adjacency
 list with permission fanout is a DoS vector, and no target client uses it.
 """
+
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations

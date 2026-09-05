@@ -13,6 +13,7 @@ import wrapt
 from bs4 import BeautifulSoup
 from frappe import _
 from frappe.types.filter import FilterTuple
+
 # //// Neoffice — upstream imports OperationalError from MySQLdb (mysqlclient), a package
 # //// frappe does not depend on: frappe drives MariaDB with PyMySQL, so a bench without
 # //// mysqlclient cannot even import this module (`bench install-app suite` died in the CI),

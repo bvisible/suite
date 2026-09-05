@@ -13,6 +13,7 @@ Documents written before this change remain plain JSON strings; the decoder
 falls back to returning the input unchanged in that case, so existing sheets
 keep working and migrate lazily on their next save.
 """
+
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
