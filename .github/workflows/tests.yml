@@ -5,8 +5,11 @@ name: Tests
 # Nightly + PR + on demand — not on push: the upstream CI and the build bot
 # already run there, a second run per bot commit would only add noise.
 on:
-  # nightly paused on 2026-09-03 until #200 is treated (known red: every night mailed a failure);
-  # run on demand or on a PR meanwhile, and put the cron back when the issue closes.
+  # nightly back on 2026-09-06: #200 closed on a green run of version-15, once the
+  # deferred-annotation defect it depended on was fixed in the frappe fork (#244).
+  # It had been paused on 2026-09-03 while the suite was red.
+  schedule:
+    - cron: "3 5 * * *"
   pull_request:
   workflow_dispatch:
     inputs:
