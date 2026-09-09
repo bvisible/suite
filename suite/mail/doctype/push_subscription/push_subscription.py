@@ -281,6 +281,27 @@ def renew_push_subscription(user: str, id: str) -> None:
             frappe.throw(_(response["description"]), title=title)
 
 
+# //// Neoffice — added (no upstream equivalent): see renew_expiring_push_subscriptions below.
+#: Accounts the mail server refuses to authenticate, remembered for a day.
+_AUTH_REFUSED_KEY = "push_subscription_auth_refused"
+_AUTH_REFUSED_TTL = 24 * 60 * 60
+
+
+def _is_unauthorized(exc: Exception) -> bool:
+    """Did the mail server refuse to authenticate this account?
+
+    //// Neoffice — suite raises requests.exceptions.HTTPError with the response
+    //// attached (mail/jmap/connection.py::raise_for_status), so the status is
+    //// readable; the message is checked too, because the exception travels through
+    //// a caching wrapper that can hand back a bare copy.
+    """
+    response = getattr(exc, "response", None)
+    if response is not None and getattr(response, "status_code", None) == 401:
+        return True
+    return "status 401" in str(exc)
+
+
+
 def renew_expiring_push_subscriptions() -> None:
     """Renews soon-to-expire push subscriptions for all JMAP configured users.
 
@@ -295,9 +316,23 @@ def renew_expiring_push_subscriptions() -> None:
 
     cutoff = get_utc_now() + timedelta(days=RENEW_THRESHOLD_DAYS)
 
+    # //// Neoffice — accounts the mail server refuses are remembered for a day.
+    # //// Upstream logs every failure of this loop, per user, on every run — and the
+    # //// run is scheduled. An account with no working mailbox answers 401 every
+    # //// time, so it wrote the same line forever: measured on our dev instance,
+    # //// this loop and the calendar bridge together made 1 361 Error Log rows a day,
+    # //// all saying the same thing, and they buried everything else. A refusal to
+    # //// authenticate is a STATE, not an event; the day of expiry is what brings a
+    # //// repaired account back on its own. Every other failure keeps upstream's
+    # //// per-user message.
+    refused = set(frappe.cache.get_value(_AUTH_REFUSED_KEY) or [])
+    newly_refused = []
+
     for user in get_jmap_configured_users():
         if is_push_subscription_disabled(user):
             continue
+        if user in refused:
+            continue  # //// Neoffice — said once, a day ago
 
         try:
             service = get_push_subscription_service(user, ignore_permissions=True)
@@ -319,10 +354,28 @@ def renew_expiring_push_subscriptions() -> None:
                     _("Failed to renew push subscriptions for user {0}:<br>{1}").format(user, errors),
                 )
         except Exception as e:
+            # //// Neoffice — a 401 is the mailbox refusing this account, not a
+            # //// failure of the renewal: it is remembered below and said once.
+            if _is_unauthorized(e):
+                newly_refused.append(user)
+                continue
             log_mail_error(
                 _("Push Subscription Renewal Failed"),
                 _("Failed to renew push subscriptions for user {0}: {1}").format(user, str(e)),
             )
+
+    # //// Neoffice — one line for the whole set, then silence until it expires.
+    if newly_refused:
+        frappe.cache.set_value(
+            _AUTH_REFUSED_KEY, sorted(refused | set(newly_refused)), expires_in_sec=_AUTH_REFUSED_TTL
+        )
+        log_mail_error(
+            _("Push subscriptions: the mail server refuses these accounts"),
+            _("Cannot authenticate for {0} account(s); they are skipped for 24 h and tried again "
+              "after that.").format(len(newly_refused))
+            + "<br>"
+            + "<br>".join(newly_refused[:50]),
+        )
 
 
 @frappe.whitelist()
