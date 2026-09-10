@@ -525,7 +525,7 @@ const actionItems = computed(() => {
         isEnabled: (e) => e.file_type !== 'Link' && !isVirtual(e),
       },
       {
-        label: __('Open'),
+        label: __('Open', null, 'Action'),
         icon: LucideExternalLink,
         action: ([entity]) => openEntity(entity),
         isEnabled: (e) => e.file_type === 'Link',

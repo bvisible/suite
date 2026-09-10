@@ -1,3 +1,4 @@
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
@@ -6,19 +7,20 @@ msgstr ""
 "PO-Revision-Date: 2026-04-22 01:21\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: French\n"
+"Language: fr_FR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.16.0\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Crowdin-Project: frappe\n"
-"X-Crowdin-Project-ID: 639578\n"
-"X-Crowdin-Language: fr\n"
+"Generated-By: Babel 2.16.0\n"
 "X-Crowdin-File: /[frappe.drive] develop/drive/locale/main.pot\n"
 "X-Crowdin-File-ID: 110\n"
-"Language: fr_FR\n"
+"X-Crowdin-Language: fr\n"
+"X-Crowdin-Project: frappe\n"
+"X-Crowdin-Project-ID: 639578\n"
 
-#. Description of the 'Access Level' (Int) field in DocType 'Drive Team Member'
+#. Description of the 'Access Level' (Int) field in DocType 'Drive Team
+#. Member'
 #: drive/drive/doctype/drive_team_member/drive_team_member.json
 msgid "0 for Guest, 1 for User, 2 for Manager"
 msgstr ""
@@ -43,7 +45,8 @@ msgstr ""
 msgid "Accepted"
 msgstr ""
 
-#. Label of the accepted_on (Datetime) field in DocType 'Drive User Invitation'
+#. Label of the accepted_on (Datetime) field in DocType 'Drive User
+#. Invitation'
 #: drive/drive/doctype/drive_user_invitation/drive_user_invitation.json
 msgid "Accepted On"
 msgstr ""
@@ -114,7 +117,9 @@ msgstr "Par"
 #. Description of the 'Meta Value' (Data) field in DocType 'Drive Entity
 #. Activity Log'
 #: drive/drive/doctype/drive_entity_activity_log/drive_entity_activity_log.json
-msgid "Can contain whatever meta value needed for the access log. Ex: Used to store access level 1,2,3 etc on a DriveDocShare"
+msgid ""
+"Can contain whatever meta value needed for the access log. Ex: Used to store"
+" access level 1,2,3 etc on a DriveDocShare"
 msgstr ""
 
 #: frontend/src/components/InfoPopup.vue:77
@@ -166,7 +171,8 @@ msgstr "Contenu"
 msgid "Copy Link"
 msgstr "Copier le lien"
 
-#. Label of the core_section (Section Break) field in DocType 'Account Request'
+#. Label of the core_section (Section Break) field in DocType 'Account
+#. Request'
 #: drive/drive/doctype/account_request/account_request.json
 msgid "Core"
 msgstr "Cœur"
@@ -546,7 +552,8 @@ msgstr ""
 msgid "Last Accessed"
 msgstr ""
 
-#. Label of the last_interaction (Datetime) field in DocType 'Drive Entity Log'
+#. Label of the last_interaction (Datetime) field in DocType 'Drive Entity
+#. Log'
 #: drive/drive/doctype/drive_entity_log/drive_entity_log.json
 msgid "Last Interaction"
 msgstr ""
@@ -562,7 +569,8 @@ msgstr "Nom de Famille"
 #. Description of the 'Do not mimic folder/file structure' (Check) field in
 #. DocType 'Drive Disk Settings'
 #: drive/drive/doctype/drive_disk_settings/drive_disk_settings.json
-msgid "Legacy option.\n"
+msgid ""
+"Legacy option.\n"
 "<br>\n"
 "<br>\n"
 "By default, Drive stores files the way you see it. If this option is checked, the files are store flatly, with randomized names.\n"
@@ -700,7 +708,10 @@ msgstr ""
 msgid "Only applies if S3 is turned on."
 msgstr ""
 
+# released: this app means the verb and claims Open:Action; the bare msgid
+# belongs to the nine apps that mean the state (#335)
 #: frontend/src/components/GenericPage.vue:310
+#, fuzzy
 msgid "Open"
 msgstr "Ouvrir"
 
@@ -777,7 +788,8 @@ msgstr ""
 msgid "Public"
 msgstr ""
 
-#. Description of the 'Updates' (Table) field in DocType 'Drive Desktop Client'
+#. Description of the 'Updates' (Table) field in DocType 'Drive Desktop
+#. Client'
 #: drive/drive/doctype/drive_desktop_client/drive_desktop_client.json
 msgid "Queue for all the un-applied changes in the desktop."
 msgstr ""
@@ -885,7 +897,8 @@ msgstr "Partagé"
 msgid "Show Info"
 msgstr ""
 
-#. Label of the signature_version (Data) field in DocType 'Drive Disk Settings'
+#. Label of the signature_version (Data) field in DocType 'Drive Disk
+#. Settings'
 #: drive/drive/doctype/drive_disk_settings/drive_disk_settings.json
 msgid "Signature Version"
 msgstr ""
@@ -1067,7 +1080,8 @@ msgstr "Charger"
 #. Description of the 'Preview size' (Int) field in DocType 'Drive Disk
 #. Settings'
 #: drive/drive/doctype/drive_disk_settings/drive_disk_settings.json
-msgid "Used to configure maximum file sizes of in-browser previews (in megabytes)."
+msgid ""
+"Used to configure maximum file sizes of in-browser previews (in megabytes)."
 msgstr ""
 
 #. Label of the user (Link) field in DocType 'Drive Desktop Client'
@@ -1172,7 +1186,8 @@ msgstr "articles"
 msgid "move"
 msgstr "bouge toi"
 
-#. Option for the 'Team Prefix' (Select) field in DocType 'Drive Disk Settings'
+#. Option for the 'Team Prefix' (Select) field in DocType 'Drive Disk
+#. Settings'
 #: drive/drive/doctype/drive_disk_settings/drive_disk_settings.json
 msgid "none"
 msgstr "aucun"
@@ -1215,12 +1230,14 @@ msgstr ""
 msgid "share_remove"
 msgstr ""
 
-#. Option for the 'Team Prefix' (Select) field in DocType 'Drive Disk Settings'
+#. Option for the 'Team Prefix' (Select) field in DocType 'Drive Disk
+#. Settings'
 #: drive/drive/doctype/drive_disk_settings/drive_disk_settings.json
 msgid "team_id"
 msgstr ""
 
-#. Option for the 'Team Prefix' (Select) field in DocType 'Drive Disk Settings'
+#. Option for the 'Team Prefix' (Select) field in DocType 'Drive Disk
+#. Settings'
 #: drive/drive/doctype/drive_disk_settings/drive_disk_settings.json
 msgid "team_name"
 msgstr ""
@@ -1230,3 +1247,6 @@ msgstr ""
 msgid "upload"
 msgstr "télécharger"
 
+msgctxt "Action"
+msgid "Open"
+msgstr "Ouvrir"
