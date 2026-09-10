@@ -525,6 +525,7 @@ const actionItems = computed(() => {
         isEnabled: (e) => e.file_type !== 'Link' && !isVirtual(e),
       },
       {
+        //// Neoffice — scoped to 'Action' context so this button doesn't share the bare `Open` msgid other installed apps use for a status (46b836d7a "fix(i18n): `Open` is a button here, a status everywhere else")
         label: __('Open', null, 'Action'),
         icon: LucideExternalLink,
         action: ([entity]) => openEntity(entity),
