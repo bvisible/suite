@@ -158,8 +158,13 @@ class IntegrationTestRecordingCallbackSecurity(IntegrationTestCase):
             recorder_failed,
         ):
             with self.subTest(callback=callback.__name__):
+                # tuple(): what this asserts is "POST and nothing else", not the
+                # container frappe happens to keep it in. Our fork stores a tuple
+                # (v16 parity), upstream v15 a list, and comparing the container
+                # made eight of these fail against upstream for a reason that has
+                # nothing to do with HTTP methods (neoffice-maintenance#263).
                 self.assertEqual(
-                    frappe.allowed_http_methods_for_whitelisted_func[callback],
+                    tuple(frappe.allowed_http_methods_for_whitelisted_func[callback]),
                     ("POST",),
                 )
 
