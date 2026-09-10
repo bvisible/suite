@@ -364,8 +364,10 @@ class IntegrationTestMeetingApi(IntegrationTestCase):
         self.assertEqual(resumed["guest_name"], "Stable Guest")
 
     def test_approved_guest_connection_details_is_post_only(self):
+        # tuple(): "POST and nothing else" is the claim; the container frappe keeps
+        # it in is not. Our fork stores a tuple (v16 parity), upstream v15 a list.
         self.assertEqual(
-            frappe.allowed_http_methods_for_whitelisted_func[get_approved_guest_connection_details],
+            tuple(frappe.allowed_http_methods_for_whitelisted_func[get_approved_guest_connection_details]),
             ("POST",),
         )
 
