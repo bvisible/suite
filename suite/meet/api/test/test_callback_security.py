@@ -164,6 +164,10 @@ class IntegrationTestRecordingCallbackSecurity(IntegrationTestCase):
                 # made eight of these fail against upstream for a reason that has
                 # nothing to do with HTTP methods (neoffice-maintenance#263).
                 self.assertEqual(
+                    # //// Neoffice — tuple(): compare "POST and nothing else", not the
+                    # container frappe keeps it in (our fork stores a tuple for v16
+                    # parity, upstream v15 a list) (f9da46ee9 "test(meet): assert
+                    # POST-and-nothing-else, not the container frappe keeps it in")
                     tuple(frappe.allowed_http_methods_for_whitelisted_func[callback]),
                     ("POST",),
                 )

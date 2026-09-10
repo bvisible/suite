@@ -367,6 +367,10 @@ class IntegrationTestMeetingApi(IntegrationTestCase):
         # tuple(): "POST and nothing else" is the claim; the container frappe keeps
         # it in is not. Our fork stores a tuple (v16 parity), upstream v15 a list.
         self.assertEqual(
+            # //// Neoffice — tuple(): compare "POST and nothing else", not the
+            # container frappe keeps it in (our fork stores a tuple for v16 parity,
+            # upstream v15 a list) (0ce2488c9 "test(meet): the same POST-only claim,
+            # in the other file that made it")
             tuple(frappe.allowed_http_methods_for_whitelisted_func[get_approved_guest_connection_details]),
             ("POST",),
         )
