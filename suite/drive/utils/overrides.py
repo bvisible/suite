@@ -52,13 +52,45 @@ def _doctypes_with_read(user):
         return get_doctypes_with_read()
 
 
+# //// Neoffice — added: render the criterion to SQL HERE, not in the framework.
+# //// `permission_query_conditions` hooks are joined with `" and ".join(...)`, so a
+# //// hook that returns a pypika term instead of a string kills the join:
+# //// "sequence item 1: expected str instance, ComplexCriterion found". Frappe v16
+# //// learned to render it (0ae2243ad6, 2026-06-30) and we backported that into our
+# //// v15 fork -- but the backport sits in `frappe/model/db_query.py`, a chokepoint
+# //// every app's every list query goes through, and `filter_file` is the ONLY hook
+# //// of this app that returns a term (the fifteen others return strings). A
+# //// divergence in our own app costs less than one in the framework, and this way
+# //// the app works on an unpatched v15 too (neoffice-maintenance#263).
+# ////
+# //// Same rendering as the backport: values are collected through a parameter
+# //// wrapper and inlined with `frappe.db.escape` -- the driver's escaping -- rather
+# //// than pypika's bare quote-doubling, which is unsafe on MariaDB where backslash
+# //// is itself an escape character.
+def render_permission_criterion(criterion) -> str:
+    """A pypika permission criterion as a namespaced SQL string."""
+    from frappe.query_builder.terms import NamedParameterWrapper
+
+    quote_char = "`" if frappe.db.db_type == "mariadb" else '"'
+    param_wrapper = NamedParameterWrapper()
+    sql = criterion.get_sql(with_namespace=True, quote_char=quote_char, param_wrapper=param_wrapper)
+    for key, value in param_wrapper.get_parameters().items():
+        sql = sql.replace(f"%({key})s", frappe.db.escape(value))
+    return sql
+
+
 def filter_file(user=None):
     """Replaces the framework's File query conditions (skipped because of the
     `ignore_file_permissions` hook). Conservative: owner, direct Drive grants,
     public files, DocShares, and readable attachments — folder-inherited access
     needs Drive's recursive path traversal, impractical in SQL, so it's left to
     `has_permission`."""
-    return file_permission_criterion(user)
+    criterion = file_permission_criterion(user)
+    # None = no restriction (Administrator, Suite Admin). The framework skips a
+    # falsy condition, and "" says it the way every other hook here says it.
+    if criterion is None:
+        return ""
+    return render_permission_criterion(criterion)
 
 
 def common_filters(func):
