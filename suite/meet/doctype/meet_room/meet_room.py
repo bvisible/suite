@@ -524,7 +524,12 @@ def get_permission_query_conditions(user: str | None = None) -> str:
         return ""
 
     escaped_user = frappe.db.escape(user)
-    return f"""
+    # //// Neoffice — wrapped in parentheses. The framework concatenates this into a
+    # //// larger WHERE with `and`, and AND binds tighter than OR: unwrapped, the
+    # //// `OR EXISTS (...)` branch escaped the AND and the conditions meant to narrow
+    # //// the query stopped narrowing it. Every other string hook of this app already
+    # //// wraps its own return; this one did not.
+    return f"""(
 		`tabMeet Room`.`owner` = {escaped_user}
 		OR EXISTS (
 			SELECT 1
@@ -534,7 +539,7 @@ def get_permission_query_conditions(user: str | None = None) -> str:
 				AND cohost.parentfield = 'co_hosts'
 				AND cohost.user = {escaped_user}
 		)
-	"""
+	)"""
 
 
 def has_permission(doc: MeetRoom, ptype: str = "read", user: str | None = None) -> bool:

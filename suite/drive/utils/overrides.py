@@ -76,7 +76,13 @@ def render_permission_criterion(criterion) -> str:
     sql = criterion.get_sql(with_namespace=True, quote_char=quote_char, param_wrapper=param_wrapper)
     for key, value in param_wrapper.get_parameters().items():
         sql = sql.replace(f"%({key})s", frappe.db.escape(value))
-    return sql
+    # //// Neoffice — parenthesised, always. The framework concatenates this into a
+    # //// larger WHERE with `and` (db_query.build_match_conditions: `conditions +=
+    # //// " and " + doctype_conditions`), and AND binds tighter than OR in SQL. An
+    # //// unwrapped OR chain therefore lets its branches escape the AND, and the
+    # //// conditions meant to narrow the query stop narrowing it. Every string hook
+    # //// of this app already wraps its own; this one must too.
+    return f"({sql})"
 
 
 def filter_file(user=None):
