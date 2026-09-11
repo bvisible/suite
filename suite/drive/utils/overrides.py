@@ -91,6 +91,7 @@ def filter_file(user=None):
     public files, DocShares, and readable attachments — folder-inherited access
     needs Drive's recursive path traversal, impractical in SQL, so it's left to
     `has_permission`."""
+    # //// Neoffice — see the block marker above: renders the criterion here now
     criterion = file_permission_criterion(user)
     # None = no restriction (Administrator, Suite Admin). The framework skips a
     # falsy condition, and "" says it the way every other hook here says it.
