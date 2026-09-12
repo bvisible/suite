@@ -96,25 +96,30 @@ def notify_share(entity_name, docperm_name):
 
     # //// Neoffice — translated, one sentence per kind so the French agrees, and a name even
     # //// when the grant came from a session without one: upstream built an English f-string
-    # //// that could read « None shared … » (#363).
-    author_full_name = frappe.db.get_value("User", {"name": docshare.owner}, ["full_name"]) or _("Someone")
-    entity_type = "document" if entity.file_type == "Document" else "folder" if entity.is_folder else "file"
-    link = get_link(entity)
-    message = {
-        "folder": _('{0} shared a folder with you: "{1}"'),
-        "file": _('{0} shared a file with you: "{1}"'),
-        "document": _('{0} shared a document with you: "{1}"'),
-    }[entity_type].format(author_full_name, entity.file_name)
-    if not frappe.db.exists("User", docshare.user):
-        key = frappe.get_value("Drive User Invitation", {"email": docshare.user})
-        link = frappe.utils.get_url(
-            f"/api/method/suite.drive.api.product.accept_invite?key={key}&redirect={link}"
-        )
-    else:
-        create_notification(docshare.owner, docshare.user, "Share", entity, message)
-        # //// Neoffice — absolute: a mail client cannot open « /drive/d/<id>/ » (#363).
-        link = frappe.utils.get_url(link)
-    send_share_email(docshare.user, message, link, entity_type)
+    # //// that could read « None shared … » (#363). Everything below runs in the RECIPIENT's
+    # //// language: this is a background job, whose frappe.local.lang is not theirs — the
+    # //// first test on osiris sent the translated e-mail in English.
+    from frappe.translate import get_user_lang, print_language
+
+    with print_language(get_user_lang(docshare.user)):
+        author_full_name = frappe.db.get_value("User", {"name": docshare.owner}, ["full_name"]) or _("Someone")
+        entity_type = "document" if entity.file_type == "Document" else "folder" if entity.is_folder else "file"
+        link = get_link(entity)
+        message = {
+            "folder": _('{0} shared a folder with you: "{1}"'),
+            "file": _('{0} shared a file with you: "{1}"'),
+            "document": _('{0} shared a document with you: "{1}"'),
+        }[entity_type].format(author_full_name, entity.file_name)
+        if not frappe.db.exists("User", docshare.user):
+            key = frappe.get_value("Drive User Invitation", {"email": docshare.user})
+            link = frappe.utils.get_url(
+                f"/api/method/suite.drive.api.product.accept_invite?key={key}&redirect={link}"
+            )
+        else:
+            create_notification(docshare.owner, docshare.user, "Share", entity, message)
+            # //// Neoffice — absolute: a mail client cannot open « /drive/d/<id>/ » (#363).
+            link = frappe.utils.get_url(link)
+        send_share_email(docshare.user, message, link, entity_type)
 
 
 def create_notification(from_user: str, to_user: str, type: str, entity: str, message: str | None = None):
