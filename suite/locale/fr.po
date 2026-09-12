@@ -21996,3 +21996,51 @@ msgstr "{0}–{1} sur {2}"
 msgid "— No message body —"
 msgstr "— Aucun corps du message —"
 
+
+#: suite/drive/api/notifications.py
+msgid "Someone"
+msgstr "Quelqu’un"
+
+#: suite/drive/api/notifications.py
+msgid "{0} shared a folder with you: \"{1}\""
+msgstr "{0} a partagé un dossier avec vous : \"{1}\""
+
+#: suite/drive/api/notifications.py
+msgid "{0} shared a file with you: \"{1}\""
+msgstr "{0} a partagé un fichier avec vous : \"{1}\""
+
+#: suite/drive/api/notifications.py
+msgid "{0} shared a document with you: \"{1}\""
+msgstr "{0} a partagé un document avec vous : \"{1}\""
+
+#: suite/drive/api/notifications.py
+msgid "A folder was shared with you"
+msgstr "Un dossier a été partagé avec vous"
+
+#: suite/drive/api/notifications.py
+msgid "A file was shared with you"
+msgstr "Un fichier a été partagé avec vous"
+
+#: suite/drive/api/notifications.py
+msgid "A document was shared with you"
+msgstr "Un document a été partagé avec vous"
+
+#: suite/drive/api/notifications.py
+msgid "Open the folder"
+msgstr "Ouvrir le dossier"
+
+#: suite/drive/api/notifications.py
+msgid "Open the file"
+msgstr "Ouvrir le fichier"
+
+#: suite/drive/api/notifications.py
+msgid "Open the document"
+msgstr "Ouvrir le document"
+
+#: suite/templates/emails/drive_share.html
+msgid "If you didn’t request this, feel free to ignore this email."
+msgstr "Si vous n’êtes pas à l’origine de cette demande, vous pouvez ignorer cet e-mail."
+
+#: suite/templates/emails/drive_share.html
+msgid "You received this email because this item was shared with you in Drive."
+msgstr "Vous recevez cet e-mail parce que cet élément a été partagé avec vous dans Drive."

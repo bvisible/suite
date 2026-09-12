@@ -2,6 +2,7 @@
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 import frappe
+from frappe import _  # //// Neoffice — share e-mail and notification translated (#363).
 from frappe.model.document import Document
 from pypika import Order
 
@@ -93,10 +94,17 @@ def notify_share(entity_name, docperm_name):
     entity = frappe.get_doc("File", entity_name)
     docshare = frappe.get_doc("Drive Permission", docperm_name)
 
-    author_full_name = frappe.db.get_value("User", {"name": docshare.owner}, ["full_name"])
+    # //// Neoffice — translated, one sentence per kind so the French agrees, and a name even
+    # //// when the grant came from a session without one: upstream built an English f-string
+    # //// that could read « None shared … » (#363).
+    author_full_name = frappe.db.get_value("User", {"name": docshare.owner}, ["full_name"]) or _("Someone")
     entity_type = "document" if entity.file_type == "Document" else "folder" if entity.is_folder else "file"
     link = get_link(entity)
-    message = f'{author_full_name} shared a {entity_type} with you: "{entity.file_name}"'
+    message = {
+        "folder": _('{0} shared a folder with you: "{1}"'),
+        "file": _('{0} shared a file with you: "{1}"'),
+        "document": _('{0} shared a document with you: "{1}"'),
+    }[entity_type].format(author_full_name, entity.file_name)
     if not frappe.db.exists("User", docshare.user):
         key = frappe.get_value("Drive User Invitation", {"email": docshare.user})
         link = frappe.utils.get_url(
@@ -104,6 +112,8 @@ def notify_share(entity_name, docperm_name):
         )
     else:
         create_notification(docshare.owner, docshare.user, "Share", entity, message)
+        # //// Neoffice — absolute: a mail client cannot open « /drive/d/<id>/ » (#363).
+        link = frappe.utils.get_url(link)
     send_share_email(docshare.user, message, link, entity_type)
 
 
@@ -147,15 +157,28 @@ def drive_logo_inline_images():
 
 
 def send_share_email(to, message, link, type_):
+    # //// Neoffice — subject and button translated; upstream sent « Frappe Drive - Folder
+    # //// Shared » and « Open folder » in English to every recipient (#363).
+    subject = {
+        "folder": _("A folder was shared with you"),
+        "file": _("A file was shared with you"),
+        "document": _("A document was shared with you"),
+    }.get(type_) or _("A file was shared with you")
+    button = {
+        "folder": _("Open the folder"),
+        "file": _("Open the file"),
+        "document": _("Open the document"),
+    }.get(type_) or _("Open the file")
     try:
         frappe.sendmail(
             recipients=to,
-            subject=f"Frappe Drive - {type_.capitalize()} Shared",
+            subject=subject,
             template="drive_share",
             args={
                 "message": message,
                 "type": type_,
                 "link": link,
+                "button": button,
             },
             inline_images=drive_logo_inline_images(),
         )

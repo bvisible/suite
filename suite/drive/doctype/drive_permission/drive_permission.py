@@ -17,6 +17,14 @@ class DrivePermission(Document):
         # historical grants would mail everyone about folders they already had.
         if frappe.flags.in_install or frappe.flags.in_migrate or frappe.flags.in_patch:
             return
+        # //// Neoffice — an owner's own grant is not a share. grant_owner_access() stores
+        # //// ownership as a Drive Permission row, so the private folder get_user_folder()
+        # //// makes for every NEW account (portal customers included, through
+        # //// create_drive_settings) mailed its owner « Frappe Drive - Folder Shared » about a
+        # //// folder nobody shared (#363, osiris 2026-09-11). create_drive_file() sets the
+        # //// folder's owner before that grant is written, so the test below holds.
+        if self.user and frappe.db.get_value("File", self.entity, "owner") == self.user:
+            return
         # Only individual users get notified — "" (anyone with the link),
         # $GENERAL (site users) and $GROUP: rows are not email addresses.
         if self.user and self.user != GENERAL_USER and not self.user.startswith(GROUP_PREFIX):
