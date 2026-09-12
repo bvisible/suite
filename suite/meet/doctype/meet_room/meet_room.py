@@ -539,7 +539,7 @@ def get_permission_query_conditions(user: str | None = None) -> str:
 				AND cohost.parentfield = 'co_hosts'
 				AND cohost.user = {escaped_user}
 		)
-	)"""
+	)"""  # //// Neoffice — closes the parenthesis opened on `return f"""(` (see the marker above).
 
 
 def has_permission(doc: MeetRoom, ptype: str = "read", user: str | None = None) -> bool:

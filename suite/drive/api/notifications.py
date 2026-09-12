@@ -177,13 +177,13 @@ def send_share_email(to, message, link, type_):
     try:
         frappe.sendmail(
             recipients=to,
-            subject=subject,
+            subject=subject,  # //// Neoffice — translated above (#363).
             template="drive_share",
             args={
                 "message": message,
                 "type": type_,
                 "link": link,
-                "button": button,
+                "button": button,  # //// Neoffice — translated label for the template (#363).
             },
             inline_images=drive_logo_inline_images(),
         )
