@@ -48,11 +48,11 @@
             </div>
           </div>
         </div>
-        <Button v-if="delayedLoading" :loading="true" label="Loading..." />
+        <Button v-if="delayedLoading" :loading="true" :label="__('Loading...')" /><!-- //// Neoffice — translated (upstream: plain English) -->
         <div data-testid="drive-filter">
           <Dropdown :options="filterOptions" :disabled align="end">
             <template #trigger="{ open }">
-              <Button :active="open" :disabled icon="lucide-filter" tooltip="Filter" />
+              <Button :active="open" :disabled icon="lucide-filter" :tooltip="__('Filter')" /><!-- //// Neoffice — translated (upstream: plain English) -->
             </template>
           </Dropdown>
         </div>

@@ -1,9 +1,9 @@
 <template>
-  <div v-if="!preview.data" class="text-sm text-center py-5">Loading...</div>
+  <div v-if="!preview.data" class="text-sm text-center py-5">{{ __('Loading...') }}<!-- //// Neoffice — every text of this dialog is translated (upstream: plain English) --></div>
   <div v-else class="text-base text-ink-gray-8">
     <template v-if="preview.data.length">
       <div class="pb-2">
-        You're adding {{ preview.data.length }} {{ preview.data.length == 1 ? 'item' : 'items' }}:
+        {{ preview.data.length == 1 ? __("You're adding {0} item:", [1]) : __("You're adding {0} items:", [preview.data.length]) }}<!-- //// Neoffice — translated, singular and plural -->
       </div>
       <div class="h-64 overflow-auto">
         <Tree :nodes="tree" node-key="label">
@@ -24,10 +24,10 @@
       </div>
       <div class="font-semibold">
         <Alert type="info" class="mt-8">
-          If you already have files, make sure you have a backup.
+          {{ __('If you already have files, make sure you have a backup.') }}<!-- //// Neoffice — translated, and the Confirm label below -->
         </Alert>
         <Button
-          label="Confirm"
+          :label="__('Confirm')"
           class="w-full mt-8"
           variant="solid"
           :disabled="!preview.data?.length"
@@ -39,7 +39,7 @@
         />
       </div>
     </template>
-    <div v-else class="text-center">No new files are available.</div>
+    <div v-else class="text-center">{{ __('No new files are available.') }}<!-- //// Neoffice — translated (upstream: plain English) --></div>
   </div>
 </template>
 <script setup>
@@ -104,13 +104,13 @@ preview.submit()
 const syncFromDisk = createResource({
   url: 'suite.drive.api.scripts.sync_from_disk',
   beforeSubmit: () => {
-    toast('Starting syncing.', {
+    toast(__('Starting syncing.'), { //// Neoffice — translated (upstream: plain English)
       icon: LucideFolderSync,
       description: "We'll give you an update when it's done.",
     })
   },
   onSuccess: (d) => {
-    toast.success('Successfully synced', {
+    toast.success(__('Successfully synced'), { //// Neoffice — translated (upstream: plain English)
       icon: LucideCloudCheck,
       description: d.length
         ? `Added ${d.length} item${d.length > 1 ? 's' : ''}`
@@ -119,7 +119,7 @@ const syncFromDisk = createResource({
     emitter.emit('refresh')
   },
   onError: () => {
-    toast.error('There was an error.', {
+    toast.error(__('There was an error.'), { //// Neoffice — translated (upstream: plain English)
       icon: LucideCloudAlert,
       description: 'Is there an issue with your configuration?',
     })

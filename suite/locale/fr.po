@@ -22044,3 +22044,54 @@ msgstr "Si vous n’êtes pas à l’origine de cette demande, vous pouvez ignor
 #: suite/templates/emails/drive_share.html
 msgid "You received this email because this item was shared with you in Drive."
 msgstr "Vous recevez cet e-mail parce que cet élément a été partagé avec vous dans Drive."
+
+# //// Neoffice — added: Drive texts upstream left as plain English literals (now wrapped in __()),
+# //// and the Open action context of 46b836d7a, which sat in suite/drive/locale/fr.po (never compiled).
+#: frontend/src/apps/drive/pages/Personal.vue
+msgid "No files yet"
+msgstr "Aucun fichier pour le moment"
+
+#: frontend/src/apps/drive/pages/Personal.vue
+msgid "Upload to get started!"
+msgstr "Importez un fichier pour commencer !"
+
+#: frontend/src/apps/drive/pages/Personal.vue
+msgid "No shared files"
+msgstr "Aucun fichier partagé"
+
+#: frontend/src/apps/drive/pages/Personal.vue
+msgid "You can share files easily on Drive - try it out!"
+msgstr "Vous pouvez partager des fichiers facilement sur Drive - essayez !"
+
+#: frontend/src/apps/drive/components/SyncBreakdown.vue
+msgid "You're adding {0} item:"
+msgstr "Vous ajoutez {0} élément :"
+
+#: frontend/src/apps/drive/components/SyncBreakdown.vue
+msgid "You're adding {0} items:"
+msgstr "Vous ajoutez {0} éléments :"
+
+#: frontend/src/apps/drive/components/SyncBreakdown.vue
+msgid "If you already have files, make sure you have a backup."
+msgstr "Si vous avez déjà des fichiers, assurez-vous d’avoir une sauvegarde."
+
+#: frontend/src/apps/drive/components/SyncBreakdown.vue
+msgid "No new files are available."
+msgstr "Aucun nouveau fichier n’est disponible."
+
+#: frontend/src/apps/drive/components/SyncBreakdown.vue
+msgid "Starting syncing."
+msgstr "Démarrage de la synchronisation."
+
+#: frontend/src/apps/drive/components/SyncBreakdown.vue
+msgid "Successfully synced"
+msgstr "Synchronisation réussie"
+
+#: frontend/src/apps/drive/components/SyncBreakdown.vue
+msgid "There was an error."
+msgstr "Une erreur est survenue."
+
+#: frontend/src/apps/drive/components/GenericPage.vue
+msgctxt "Action"
+msgid "Open"
+msgstr "Ouvrir"
