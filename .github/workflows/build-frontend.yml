@@ -16,6 +16,9 @@
 name: build-frontend
 
 on:
+  # //// Neoffice — by hand too: a build that failed for a reason unrelated to its source
+  # //// (the 10.09 push race below) could only be relaunched by pushing again.
+  workflow_dispatch:
   push:
     # version-15 is what the fleet deploys from. The two wildcards let a branch be
     # validated on a real instance BEFORE it lands there — testing a commit-the-build
@@ -109,4 +112,13 @@ jobs:
             exit 0
           fi
           git commit --no-verify -m "[skip-build] frontend artifacts for ${GITHUB_SHA::8}"
-          git push
+          # //// Neoffice — rebase and retry. A plain push lost the 10.09 build: another commit
+          # //// (the marker bot's) landed on the branch while this job compiled, the push was
+          # //// refused as non-fast-forward, and no build ran again for that source, so the
+          # //// fleet kept a frontend older than its code. A newer frontend push cancels this
+          # //// run (concurrency above): whatever landed meanwhile did not touch the frontend.
+          for attempt in 1 2 3; do
+            if git push; then exit 0; fi
+            git pull --rebase origin "${GITHUB_REF_NAME}" || { git rebase --abort; exit 1; }
+          done
+          exit 1
