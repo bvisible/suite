@@ -71,7 +71,12 @@ website_route_rules = [
     {"from_route": "/wopi/files/<file_id>/contents", "to_route": "wopi_handler"},
 ]
 
-home_page = "suite"
+# //// Neoffice — upstream (8ac14ee9e) makes the Suite launcher the website home page.
+# //// A home_page hook outranks Website Settings for visitors, so a site without a
+# //// Website Profile of its own served the "Frappe Suite" shell at its root instead
+# //// of its public home page. Same failure as the "/" redirect below. The launcher
+# //// stays reachable at /suite, the desk at /app.
+# home_page = "suite"
 
 # mail — website redirects
 website_redirects = [
