@@ -102,8 +102,13 @@ def notify_share(entity_name, docperm_name):
     from frappe.translate import get_user_lang, print_language
 
     with print_language(get_user_lang(docshare.user)):
-        author_full_name = frappe.db.get_value("User", {"name": docshare.owner}, ["full_name"]) or _("Someone")
-        entity_type = "document" if entity.file_type == "Document" else "folder" if entity.is_folder else "file"
+        # //// Neoffice — still the #363 block above: the e-mail's author and entity type.
+        author_full_name = frappe.db.get_value("User", {"name": docshare.owner}, ["full_name"]) or _(
+            "Someone"
+        )
+        entity_type = (
+            "document" if entity.file_type == "Document" else "folder" if entity.is_folder else "file"
+        )
         link = get_link(entity)
         message = {
             "folder": _('{0} shared a folder with you: "{1}"'),

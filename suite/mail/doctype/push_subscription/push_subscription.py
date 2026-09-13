@@ -301,7 +301,6 @@ def _is_unauthorized(exc: Exception) -> bool:
     return "status 401" in str(exc)
 
 
-
 def renew_expiring_push_subscriptions() -> None:
     """Renews soon-to-expire push subscriptions for all JMAP configured users.
 
@@ -371,8 +370,11 @@ def renew_expiring_push_subscriptions() -> None:
         )
         log_mail_error(
             _("Push subscriptions: the mail server refuses these accounts"),
-            _("Cannot authenticate for {0} account(s); they are skipped for 24 h and tried again "
-              "after that.").format(len(newly_refused))
+            # //// Neoffice — the message of the block above: the refused accounts, said once per set.
+            _(
+                "Cannot authenticate for {0} account(s); they are skipped for 24 h and tried again "
+                "after that."
+            ).format(len(newly_refused))
             + "<br>"
             + "<br>".join(newly_refused[:50]),
         )

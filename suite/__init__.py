@@ -15,7 +15,6 @@ import time as _time
 import uuid as _uuid
 
 if not hasattr(_uuid, "uuid7"):
-
     # //// Neoffice — see the block marker above: uuid7 backport (470740fd7 "style(fork): ruff format")
     def _uuid7() -> _uuid.UUID:
         # Layout per RFC 9562: 48-bit unix-ms timestamp | ver(7) | 12 rand bits
