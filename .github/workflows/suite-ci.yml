@@ -1,8 +1,12 @@
 name: Suite CI
 
 on:
-  schedule:
-    - cron: "17 22 * * *"
+  # //// Neoffice — nightly schedule removed (14.09.2026). This workflow runs `bench init`
+  # //// without a branch, so it tests suite against frappe `develop`, not the version-15
+  # //// our fleet runs: on the same commit it failed on the framework while our own CI
+  # //// (tests.yml, bench on OUR frappe fork) passed 996 tests. A red every night that
+  # //// says nothing about our code teaches everyone to ignore CI. Kept on
+  # //// workflow_dispatch for a deliberate look at upstream (neoffice-maintenance#404).
   push:
     branches:
       - develop
