@@ -163,6 +163,10 @@ blank Word / Excel / PowerPoint file from the launcher or the Drive Create menu.
 No upstream equivalent — upstream has no Office editing. Not generated: do not
 try to rebuild them.
 
+| Binary | Why |
+|---|---|
+| `suite/templates/files/*` | The three blank OOXML documents described above (`f20a6f284`). The heading names only the first one with its directory; this table lets the check match all three (neoffice-maintenance#414). |
+
 ---
 
 ### Build outputs committed on purpose
