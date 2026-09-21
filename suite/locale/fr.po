@@ -12316,7 +12316,7 @@ msgstr "Mise à jour binaire Y.Doc opaque encodée en base64. Écrite et lue exc
 #: suite/public/frontend/assets/GenericPage-DckS4HFf.js:1
 #: suite/public/frontend/assets/calendarAlert-GNcJWEGa.js:1
 msgid "Open"
-msgstr "Ouvrir"
+msgstr "Ouvert"
 
 #: frontend/src/apps/mail/pages/OutboxView.vue:475
 #: suite/public/frontend/assets/OutboxView-V_l-MNBP.js:1
