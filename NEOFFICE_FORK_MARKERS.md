@@ -279,3 +279,9 @@ into an `after_migrate` hook, which would be the durable fix).
 there must ship with its module — a listed patch whose `.py` is missing kills
 `bench migrate` on the whole fleet (see `neoffice-devops/CLAUDE.md` §6).
 Re-check that after the merge.
+
+---
+
+## Auto-marked (fork-markers workflow)
+
+- `suite/slides/doctype/presentation/presentation.json` — removed the `{"read": 1, "role": "Guest"}` permission row from `permissions` — Presentation shipped no published/unpublished field, so the `Guest: read` grant let anyone reach every presentation over plain HTTP with no session; note that on a site where a `Custom DocPerm` already exists for this doctype, that table's rows must also be cleared by hand since they replace the JSON's permissions at runtime (82dabfd08 "fix(slides): a presentation was readable by anyone, with no account at all")
