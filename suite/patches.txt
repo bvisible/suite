@@ -125,3 +125,4 @@ suite.suite_core.patches.keep_portal_accounts_off_the_desk
 # //// when the value IS the old default: an instance that deliberately set 10 keeps it,
 # //// and a patch runs once, so a later choice of 10 is never undone.
 execute:frappe.db.set_single_value("WOPI Settings", "jwt_expiry_hours", 4) if frappe.db.exists("DocType", "WOPI Settings") and frappe.db.get_single_value("WOPI Settings", "jwt_expiry_hours") == 10 else None
+suite.patches.v1_0.presentations_are_not_public

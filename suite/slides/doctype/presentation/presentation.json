@@ -111,10 +111,6 @@
    "role": "All",
    "select": 1,
    "write": 1
-  },
-  {
-   "read": 1,
-   "role": "Guest"
   }
  ],
  "row_format": "Dynamic",
