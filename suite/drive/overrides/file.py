@@ -72,6 +72,20 @@ class File(FrappeFile):
                 "Rename Drive files from the Drive interface, not the File form.",
                 frappe.ValidationError,
             )
+        # //// Neoffice — frappe moves a file between /files and /private/files when is_private
+        # //// changes (File.handle_is_private_changed, called from File.validate), but this override
+        # //// never reaches frappe's validate for an existing File. Marking a framework attachment
+        # //// private flipped the flag and left the file at its /files/ URL, still served to anyone
+        # //// by the web server. Only the flat layout frappe writes is moved: Drive's own blobs live
+        # //// in folders or in S3, are private already, and are moved by Drive itself.
+        if (
+            not self.is_new()
+            and not self.is_folder
+            and not self._not_in_disk()
+            and self.has_value_changed("is_private")
+            and (self.file_url or "").rsplit("/", 1)[0] in ("/files", "/private/files")
+        ):
+            self.handle_is_private_changed()
 
     def _validate_content_link(self):
         """`content_doctype`/`content_docname` are the sole permission delegation
@@ -155,7 +169,13 @@ class File(FrappeFile):
             frappe.delete_doc(self.content_doctype, self.content_docname, ignore_permissions=True)
 
     def on_rollback(self):
-        if not self.flags.file_created or not self.file_url:
+        # //// Neoffice — upstream returned here for every framework File, so frappe's own
+        # //// rollback never ran: a file written in a transaction that was then rolled back stayed
+        # //// on disk with no record, and a rolled-back content change or is_private move was never
+        # //// undone. Drive's own files keep the cleanup below.
+        if not self.flags.file_created:
+            return super().on_rollback()
+        if not self.file_url:
             return
         path = Path(get_files_path(self.file_url, private=True))
         if not path.exists():
