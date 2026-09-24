@@ -6330,7 +6330,7 @@ msgstr "Entité"
 #. Label of a Link field in DocType 'Drive Entity Log'
 #: suite/drive/doctype/drive_entity_log/drive_entity_log.json
 msgid "Entity Name"
-msgstr "Nom de l&#39;entité"
+msgstr "Nom de l'entité"
 
 #. Label of a Data field in DocType 'Drive Notification'
 #: suite/drive/doctype/drive_notification/drive_notification.json
@@ -19044,7 +19044,7 @@ msgstr "La date de fin doit être postérieure à la date de début."
 #. Label of a Link field in DocType 'Drive Notification'
 #: suite/drive/doctype/drive_notification/drive_notification.json
 msgid "To User"
-msgstr "À l&#39;utilisateur"
+msgstr "À l'utilisateur"
 
 #: suite/public/frontend/assets/DomainsView-CQElgA1G.js:1
 msgid "To add a domain, you must already own it. If you don't have one, purchase one and return here."
