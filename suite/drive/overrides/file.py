@@ -76,10 +76,12 @@ class File(FrappeFile):
             and not self._not_in_disk()
             and not self.attached_to_doctype
             and not self.is_private
+            # //// Neoffice — see the block marker above: framework files exempted (885538063 "fix(drive): public framework files can be renamed under the File override (wiki webp conversion)")
             and not in_public_framework_folder
         ):
             frappe.throw("Drive files must be private.", frappe.ValidationError)
         # file_name is coupled to the blob path; only rename()/move() may change it.
+        # //// Neoffice — see the block marker above: framework renames exempted (885538063 "fix(drive): public framework files can be renamed under the File override (wiki webp conversion)")
         if (
             not self.is_new()
             and self.has_value_changed("file_name")
