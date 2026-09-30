@@ -359,8 +359,14 @@ def sweep_sidecars(sidecars=None, trashed=None):
     still on File. Idempotent either way: anything already at the destination is
     skipped and the originals are left alone.
     """
-    sidecars = sidecars or _team_prefixes()
-    trashed = trashed or _trashed_by_team()
+    # //// Neoffice — `or` read an empty snapshot as "not given". A site with no trashed
+    # //// blobs enqueues trashed={}, which is falsy, so the job re-derived it from
+    # //// File.team, a column drop_team_doctypes has already dropped, and died on
+    # //// "Unknown column 'team'" before moving one thumbnail (seen on a hub upgrade,
+    # //// 30.09). Only None means "derive it": {} is a real snapshot that travelled with
+    # //// the job. Drop this marker if upstream fixes the truthiness test.
+    sidecars = _team_prefixes() if sidecars is None else sidecars
+    trashed = _trashed_by_team() if trashed is None else trashed
     if not sidecars:
         print("Drive: no old prefixes to sweep")
         return
