@@ -104,6 +104,8 @@ class TestStorageHelpers(unittest.TestCase):
             with self.assertRaises(frappe.ValidationError):
                 manager.get_local_path("/private/files/../../invalid.txt")
 
+    # //// Neoffice — added tests: pin get_local_path's mapping of frappe's /files/ URL to
+    # //// public/files (see the marker in drive/utils/files.py) and the root check it keeps.
     def test_local_path_maps_framework_urls_to_their_folder(self):
         with TemporaryDirectory() as site_folder:
             manager = object.__new__(FileManager)
