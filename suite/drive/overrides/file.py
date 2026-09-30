@@ -55,6 +55,18 @@ class File(FrappeFile):
             and not self._not_in_disk()
         ):
             self.manager.get_local_path(self.file_url)
+        # //// Neoffice — upstream applied the two Drive blob rules below to every File, including
+        # //// a loose public upload that after_file_upload adopted into the uploader's folder with
+        # //// its /files/ URL and is_private=0. Any later save of such a file then failed: the
+        # //// wiki's webp conversion (it points file_url and file_name at the new .webp) was refused
+        # //// as "Drive files must be private", then as a File-form rename. Drive never stores a
+        # //// blob under the public /files/ folder, so a file there is frappe's, not Drive's: it
+        # //// keeps frappe's rules and both checks skip it. Only a file that was already there
+        # //// qualifies, so rewriting a Drive blob's file_url cannot get it past them.
+        before = self.get_doc_before_save()
+        in_public_framework_folder = all(
+            str(url or "").startswith("/files/") for url in (self.file_url, before and before.file_url)
+        )
         # Blob-backed Drive files must be private: they're served only through
         # Drive's permission layer, never the public /files/ path. Folders, links
         # and content-doctype files have no on-disk blob, and adopted framework
@@ -64,10 +76,16 @@ class File(FrappeFile):
             and not self._not_in_disk()
             and not self.attached_to_doctype
             and not self.is_private
+            and not in_public_framework_folder
         ):
             frappe.throw("Drive files must be private.", frappe.ValidationError)
         # file_name is coupled to the blob path; only rename()/move() may change it.
-        if not self.is_new() and self.has_value_changed("file_name") and not self.flags.drive_disk_rename:
+        if (
+            not self.is_new()
+            and self.has_value_changed("file_name")
+            and not self.flags.drive_disk_rename
+            and not in_public_framework_folder
+        ):
             frappe.throw(
                 "Rename Drive files from the Drive interface, not the File form.",
                 frappe.ValidationError,

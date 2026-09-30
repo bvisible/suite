@@ -207,7 +207,16 @@ class FileManager:
         return buf
 
     def get_local_path(self, file_url):
-        path = (self.site_folder / storage_key(file_url)).resolve()
+        key = storage_key(file_url)
+        # //// Neoffice — upstream only resolved URLs and keys that already name their folder
+        # //// (`private/files/…`, `public/files/…`). frappe's public URL `/files/x` has no
+        # //// `public/` segment, so it resolved to `<site>/files/x`, outside both roots, and was
+        # //// rejected: renaming a public framework file (the wiki's webp conversion of an
+        # //// uploaded image) failed in File.validate. Map `files/…` to `public/files/…` the
+        # //// way frappe does; the root check below still refuses anything outside the roots.
+        if key.startswith("files/"):
+            key = "public/" + key
+        path = (self.site_folder / key).resolve()
         roots = [
             (self.site_folder / "private" / "files").resolve(),
             (self.site_folder / "public" / "files").resolve(),
