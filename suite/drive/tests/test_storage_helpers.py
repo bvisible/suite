@@ -104,6 +104,44 @@ class TestStorageHelpers(unittest.TestCase):
             with self.assertRaises(frappe.ValidationError):
                 manager.get_local_path("/private/files/../../invalid.txt")
 
+    # //// Neoffice — added tests: pin get_local_path's mapping of frappe's /files/ URL to
+    # //// public/files (see the marker in drive/utils/files.py) and the root check it keeps.
+    def test_local_path_maps_framework_urls_to_their_folder(self):
+        with TemporaryDirectory() as site_folder:
+            manager = object.__new__(FileManager)
+            manager.site_folder = Path(site_folder)
+            public = (manager.site_folder / "public" / "files").resolve()
+            private = (manager.site_folder / "private" / "files").resolve()
+            for url, expected in [
+                # frappe's public URL has no `public/` segment
+                ("/files/image.webp", public / "image.webp"),
+                ("/private/files/image.webp", private / "image.webp"),
+                # URLs and keys that already name the folder stay as they are
+                ("public/files/image.webp", public / "image.webp"),
+                ("/public/files/image.webp", public / "image.webp"),
+                ("private/files/folder/image.webp", private / "folder" / "image.webp"),
+            ]:
+                with self.subTest(url=url):
+                    self.assertEqual(manager.get_local_path(url), expected)
+
+    def test_local_path_rejects_framework_urls_that_leave_the_roots(self):
+        with TemporaryDirectory() as site_folder:
+            manager = object.__new__(FileManager)
+            manager.site_folder = Path(site_folder)
+            (manager.site_folder / "public" / "files").mkdir(parents=True)
+            (manager.site_folder / "outside").symlink_to("/etc")
+            (manager.site_folder / "public" / "files" / "link").symlink_to(manager.site_folder / "outside")
+            for url in [
+                "/files/../../invalid.txt",
+                "/files/../site_config.json",
+                "files/../../invalid.txt",
+                "/files/link/passwd",
+                "site_config.json",
+                "/etc/passwd",
+            ]:
+                with self.subTest(url=url), self.assertRaises(frappe.ValidationError):
+                    manager.get_local_path(url)
+
     def test_get_s3_key_strips_disk_prefix(self):
         self.assertEqual(get_s3_key("/private/files/a/b.png"), "a/b.png")
         self.assertEqual(get_s3_key("/files/a/b.png"), "a/b.png")
