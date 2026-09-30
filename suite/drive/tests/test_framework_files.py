@@ -4,9 +4,12 @@
 from __future__ import annotations
 
 import os
+from io import BytesIO
 
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_files_path
+from PIL import Image
 
 
 class TestFrameworkFilesUnderDrive(IntegrationTestCase):
@@ -55,3 +58,38 @@ class TestFrameworkFilesUnderDrive(IntegrationTestCase):
         self.assertTrue(os.path.isfile(path))
         frappe.db.rollback()
         self.assertFalse(os.path.exists(path))
+
+    def test_a_public_image_converted_to_webp_keeps_its_new_url(self):
+        # The wiki's webp conversion: a public upload's blob is replaced by a
+        # sibling .webp, then file_url and file_name are pointed at it and saved.
+        png = BytesIO()
+        Image.new("RGB", (4, 4), "red").save(png, "PNG")
+        doc = self._file(
+            is_private=0,
+            file_name=f"framework-file-{frappe.generate_hash(length=6)}.png",
+            content=png.getvalue(),
+        )
+        self.assertTrue(doc.file_url.startswith("/files/"), doc.file_url)
+
+        webp_name = f"framework-file-{frappe.generate_hash(length=6)}.webp"
+        with Image.open(doc.get_full_path()) as image:
+            image.save(get_files_path(webp_name), "WEBP")
+        self.addCleanup(
+            lambda: os.path.exists(get_files_path(webp_name)) and os.remove(get_files_path(webp_name))
+        )
+        os.remove(doc.get_full_path())
+        doc.file_url = f"/files/{webp_name}"
+        doc.file_name = webp_name
+        doc.save(ignore_permissions=True)
+
+        doc.reload()
+        self.assertEqual(doc.file_url, f"/files/{webp_name}")
+        self.assertTrue(os.path.isfile(get_files_path(webp_name)))
+
+    def test_rewriting_a_private_url_to_the_public_folder_stays_refused(self):
+        doc = self._file(is_private=1)
+        self.assertTrue(doc.file_url.startswith("/private/files/"), doc.file_url)
+        doc.is_private = 0
+        doc.file_url = f"/files/{doc.file_name}"
+        with self.assertRaises(frappe.ValidationError):
+            doc.save(ignore_permissions=True)
