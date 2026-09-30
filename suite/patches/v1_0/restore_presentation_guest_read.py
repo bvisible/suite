@@ -26,30 +26,30 @@ import frappe
 
 
 def execute():
-	if not frappe.db.exists("DocType", "Presentation"):
-		return
-	if frappe.db.exists("Custom DocPerm", {"parent": "Presentation", "role": "Guest"}):
-		return
-	if not frappe.db.exists("Custom DocPerm", {"parent": "Presentation"}):
-		#: No Custom rows at all: the doctype's own permissions are what frappe
-		#: reads, and the JSON carries the Guest row again. Nothing to repair.
-		return
+    if not frappe.db.exists("DocType", "Presentation"):
+        return
+    if frappe.db.exists("Custom DocPerm", {"parent": "Presentation", "role": "Guest"}):
+        return
+    if not frappe.db.exists("Custom DocPerm", {"parent": "Presentation"}):
+        #: No Custom rows at all: the doctype's own permissions are what frappe
+        #: reads, and the JSON carries the Guest row again. Nothing to repair.
+        return
 
-	frappe.get_doc(
-		{
-			"doctype": "Custom DocPerm",
-			"parent": "Presentation",
-			"parenttype": "DocType",
-			"parentfield": "permissions",
-			"role": "Guest",
-			"read": 1,
-			"email": 1,
-			"export": 1,
-			"print": 1,
-			"report": 1,
-			"share": 1,
-			"permlevel": 0,
-		}
-	).insert(ignore_permissions=True)
-	frappe.clear_cache(doctype="Presentation")
-	print("restore_presentation_guest_read: public sharing of a presentation works again")
+    frappe.get_doc(
+        {
+            "doctype": "Custom DocPerm",
+            "parent": "Presentation",
+            "parenttype": "DocType",
+            "parentfield": "permissions",
+            "role": "Guest",
+            "read": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "report": 1,
+            "share": 1,
+            "permlevel": 0,
+        }
+    ).insert(ignore_permissions=True)
+    frappe.clear_cache(doctype="Presentation")
+    print("restore_presentation_guest_read: public sharing of a presentation works again")

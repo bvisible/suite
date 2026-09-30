@@ -20,7 +20,13 @@ class TestFrameworkFilesUnderDrive(IntegrationTestCase):
     def _file(self, is_private, **values):
         name = f"framework-file-{frappe.generate_hash(length=6)}.txt"
         return frappe.get_doc(
-            {"doctype": "File", "file_name": name, "content": name.encode(), "is_private": is_private, **values}
+            {
+                "doctype": "File",
+                "file_name": name,
+                "content": name.encode(),
+                "is_private": is_private,
+                **values,
+            }
         ).insert(ignore_permissions=True)
 
     def test_marking_a_file_private_moves_it_out_of_the_public_folder(self):
@@ -33,7 +39,9 @@ class TestFrameworkFilesUnderDrive(IntegrationTestCase):
         self.assertFalse(os.path.exists(public_path))
 
     def test_making_an_attachment_public_moves_it_to_the_public_folder(self):
-        todo = frappe.get_doc({"doctype": "ToDo", "description": "framework file"}).insert(ignore_permissions=True)
+        todo = frappe.get_doc({"doctype": "ToDo", "description": "framework file"}).insert(
+            ignore_permissions=True
+        )
         doc = self._file(is_private=1, attached_to_doctype="ToDo", attached_to_name=todo.name)
         private_path = doc.get_full_path()
         doc.is_private = 0
