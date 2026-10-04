@@ -11973,13 +11973,15 @@ msgstr "Nombre de notifications"
 msgid "Notify Participants"
 msgstr "Notifier les participants"
 
+# //// Neoffice — was "Nombre" (a count). Every use here is an identifier (the phone number of a contact), and the bare
+# //// key is shared by the whole site: frappe's Contact phone, telephony and the other apps mean "numéro".
 #. Label of a Data field in DocType 'Contact Card Phone'
 #: frontend/src/apps/mail/components/Modals/AddContactPhoneModal.vue:5
 #: frontend/src/apps/mail/pages/ContactView.vue:388
 #: suite/mail/doctype/contact_card_phone/contact_card_phone.json
 #: suite/public/frontend/assets/ContactView-KuHGBzRM.js:1
 msgid "Number"
-msgstr "Nombre"
+msgstr "Numéro"
 
 #. Description of the 'Total Cached Contact Cards' (Int) field in DocType 'JMAP
 #. Account'
@@ -16866,10 +16868,12 @@ msgstr "Feuille de calcul"
 msgid "Sqlite"
 msgstr "Sqlite"
 
+# //// Neoffice — was "Préparer" (the verb to stage), but the only use is the noun label of the DKIM key rotation card
+# //// (Stage / Created At / Next Transition). As the bare key it replaced « Étape » on the pipeline, booking and connection screens.
 #: frontend/src/apps/mail/pages/dashboard/DkimSignatureView.vue:25
 #: suite/public/frontend/assets/DkimSignatureView-BkSvpllx.js:1
 msgid "Stage"
-msgstr "Préparer"
+msgstr "Étape"
 
 #: suite/mail/doctype/contacts_exchange/contacts_exchange.py:666
 msgid "Staged {0} of {1} contact(s)."
@@ -17260,10 +17264,23 @@ msgstr "La clé de réservation de stockage doit être une chaîne non vide"
 msgid "Storage reservation owner must be a nonempty string"
 msgstr "Le propriétaire de la réservation de stockage doit être une chaîne non vide"
 
+# //// Neoffice — the bare key now carries the commonest sense (the shop: webshop's tab, button group and labels). The storage
+# //// sense of this app's two DocType labels lives in the contexts below, anchored in suite/i18n_anchors.py so that
+# //// `update-po-files` keeps them. Caveat: frappe's tab.js looks a Tab Break label up WITHOUT the DocType context.
 #. Label of a Tab Break field in DocType 'Mail Cluster Store'
 #. Label of a Select field in DocType 'Store Entry'
 #: suite/mail/doctype/mail_cluster_store/mail_cluster_store.json
 #: suite/suite_core/doctype/store_entry/store_entry.json
+msgid "Store"
+msgstr "Boutique"
+
+# //// Neoffice — Tab Break label of Mail Cluster Store: storage (see the bare entry above).
+msgctxt "Mail Cluster Store"
+msgid "Store"
+msgstr "Stockage"
+
+# //// Neoffice — Select field label of Store Entry: storage (see the bare entry above).
+msgctxt "Store Entry"
 msgid "Store"
 msgstr "Stockage"
 
@@ -21325,11 +21342,13 @@ msgstr "jalon"
 msgid "min"
 msgstr "min"
 
+# //// Neoffice — was "bouge toi" (a joke rendering of an icon name). Here it is an option of Action Type, next to
+# //// créer / renommer / modifier / supprimer, hence the infinitive; as the bare key it also showed on the webmail filter action.
 #. Option for the 'Action Type' (Select) field in DocType 'Drive Entity
 #. Activity Log'
 #: suite/drive/doctype/drive_entity_activity_log/drive_entity_activity_log.json
 msgid "move"
-msgstr "bouge toi"
+msgstr "déplacer"
 
 #: frontend/src/shell/InviteStep.vue:10
 #: suite/public/frontend/assets/InviteStep-7vVbX84X.js:1
