@@ -22122,3 +22122,63 @@ msgstr "Une erreur est survenue."
 msgctxt "Action"
 msgid "Open"
 msgstr "Ouvrir"
+
+# //// Neoffice — Drive's NoFilesSection renders __(title) / __(description) from props (apps/drive/components/NoFilesSection.vue), so the empty-state text is translated at run time but the catalogue had no entry for it: the screen showed English.
+msgid "No recent files"
+msgstr "Aucun fichier récent"
+
+# //// Neoffice — Drive's NoFilesSection renders __(title) / __(description) from props (apps/drive/components/NoFilesSection.vue), so the empty-state text is translated at run time but the catalogue had no entry for it: the screen showed English.
+msgid "Try opening something to see it here."
+msgstr "Ouvrez un élément pour le voir apparaître ici."
+
+# //// Neoffice — Drive's NoFilesSection renders __(title) / __(description) from props (apps/drive/components/NoFilesSection.vue), so the empty-state text is translated at run time but the catalogue had no entry for it: the screen showed English.
+msgid "Trash is empty"
+msgstr "La corbeille est vide"
+
+# //// Neoffice — Drive's NoFilesSection renders __(title) / __(description) from props (apps/drive/components/NoFilesSection.vue), so the empty-state text is translated at run time but the catalogue had no entry for it: the screen showed English.
+msgid "Trashed files will show up here - you can restore them."
+msgstr "Les fichiers supprimés apparaîtront ici : vous pouvez les restaurer."
+
+# //// Neoffice — Drive's NoFilesSection renders __(title) / __(description) from props (apps/drive/components/NoFilesSection.vue), so the empty-state text is translated at run time but the catalogue had no entry for it: the screen showed English.
+msgid "Add files to this folder."
+msgstr "Ajoutez des fichiers à ce dossier."
+
+# //// Neoffice — Drive's NoFilesSection renders __(title) / __(description) from props (apps/drive/components/NoFilesSection.vue), so the empty-state text is translated at run time but the catalogue had no entry for it: the screen showed English.
+msgid "No favourites yet"
+msgstr "Aucun favori pour le moment"
+
+# //// Neoffice — Drive's NoFilesSection renders __(title) / __(description) from props (apps/drive/components/NoFilesSection.vue), so the empty-state text is translated at run time but the catalogue had no entry for it: the screen showed English.
+msgid "You can save your favourites here."
+msgstr "Vous pouvez enregistrer vos favoris ici."
+
+# //// Neoffice — Drive's NoFilesSection renders __(title) / __(description) from props (apps/drive/components/NoFilesSection.vue), so the empty-state text is translated at run time but the catalogue had no entry for it: the screen showed English.
+msgid "No documents yet"
+msgstr "Aucun document pour le moment"
+
+# //// Neoffice — Drive's NoFilesSection renders __(title) / __(description) from props (apps/drive/components/NoFilesSection.vue), so the empty-state text is translated at run time but the catalogue had no entry for it: the screen showed English.
+msgid "Use Writer to create documents."
+msgstr "Créez des documents avec Writer."
+
+# //// Neoffice — Drive's NoFilesSection renders __(title) / __(description) from props (apps/drive/components/NoFilesSection.vue), so the empty-state text is translated at run time but the catalogue had no entry for it: the screen showed English.
+msgid "Files attached to documents will show up here."
+msgstr "Les fichiers joints aux documents apparaîtront ici."
+
+# //// Neoffice — Drive's NoFilesSection renders __(title) / __(description) from props (apps/drive/components/NoFilesSection.vue), so the empty-state text is translated at run time but the catalogue had no entry for it: the screen showed English.
+msgid "No presentations yet"
+msgstr "Aucune présentation pour le moment"
+
+# //// Neoffice — Drive's NoFilesSection renders __(title) / __(description) from props (apps/drive/components/NoFilesSection.vue), so the empty-state text is translated at run time but the catalogue had no entry for it: the screen showed English.
+msgid "Create presentations using Slides."
+msgstr "Créez des présentations avec Diapositives."
+
+# //// Neoffice — Drive's NoFilesSection renders __(title) / __(description) from props (apps/drive/components/NoFilesSection.vue), so the empty-state text is translated at run time but the catalogue had no entry for it: the screen showed English.
+msgid "Updates about your files will show up here."
+msgstr "Les nouveautés concernant vos fichiers apparaîtront ici."
+
+# //// Neoffice — Drive's NoFilesSection renders __(title) / __(description) from props (apps/drive/components/NoFilesSection.vue), so the empty-state text is translated at run time but the catalogue had no entry for it: the screen showed English.
+msgid "Nothing found - try something else?"
+msgstr "Aucun résultat. Essayez autre chose ?"
+
+# //// Neoffice — NewCalendarModal.vue wraps the word in __() (toast « External calendar added — synced ») but the catalogue had no entry.
+msgid "synced"
+msgstr "synchronisé"
