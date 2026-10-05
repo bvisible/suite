@@ -46,12 +46,15 @@ def can_edit_file(file_id: str) -> dict:
 
     file_name = frappe.db.get_value("File", file_id, "file_name") or ""
 
-    # //// Neoffice — `start_if_down=True`: the user has opened an Office document and
-    # //// is waiting on the answer, so this is the moment to wake the daemon.
-    if not is_file_supported(file_name, start_if_down=True):
-        return {"can_edit": False, "reason": _("File type not supported")}
-
-    # //// Neoffice — the editor pre-flight is allowed to wake coolwsd.
+    # //// Neoffice — the server first, the file type second. The type is read from the
+    # //// discovery the RUNNING server publishes: asked first, while coolwsd was still
+    # //// waking up, it answered "File type not supported" with no `retryable`, so the
+    # //// preview gave up and offered Microsoft's viewer, and the waiting branch below
+    # //// never ran in the very case it was written for. Measured on osiris 05.10.2026:
+    # //// an .xlsx opened from Drive, coolwsd ready 24 s after its start, the probe gave
+    # //// up at 20 s. It also woke the daemon twice per click.
+    # //// `start_if_down=True`: the user has opened an Office document and is waiting on
+    # //// the answer, so this is the moment to wake the daemon.
     status = collabora_status(start_if_down=True)
     if status.get("status") != "ok":
         # //// Neoffice — tell the caller WHETHER COLLABORA IS SUPPOSED TO BE THERE.
@@ -73,6 +76,17 @@ def can_edit_file(file_id: str) -> dict:
             "reason": status.get("message", _("Collabora server not available")),
             "wopi_enabled": status.get("status") != "disabled",
             "retryable": status.get("status") != "disabled",
+        }
+
+    # //// Neoffice — `start_if_down=False`: the status check above has just woken the
+    # //// daemon and cached its discovery; this reads it without a second start. Collabora
+    # //// is there, it just does not edit this type: no waiting, and no Microsoft either.
+    if not is_file_supported(file_name, start_if_down=False):
+        return {
+            "can_edit": False,
+            "reason": _("File type not supported"),
+            "wopi_enabled": True,
+            "retryable": False,
         }
 
     return {"can_edit": True, "reason": None, "wopi_enabled": True, "retryable": False}

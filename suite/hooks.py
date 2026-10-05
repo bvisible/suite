@@ -321,6 +321,12 @@ user_invitation = {
 # Suite's onboarding replaces the built-in desk setup wizard
 setup_wizard_url = "/suite/setup"
 
+# //// Neoffice — added: `bench clear-cache` (every deploy, every translation compile)
+# //// deletes every Redis key of the site except these. The idle watchdog then read the
+# //// erased stamp of the last Collabora use as "never used" and stopped a daemon that
+# //// someone had just started (suite/drive/wopi/lifecycle.py, stop_if_idle).
+persistent_cache_keys = ["collabora:last_activity"]
+
 # ============================================================================
 # Scheduled Tasks (per-frequency lists combined; cron keys de-duplicated)
 # ============================================================================

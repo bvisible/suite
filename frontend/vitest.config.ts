@@ -25,6 +25,8 @@ export default defineConfig({
 			"~icons/lucide/monitor-cog": path.resolve(__dirname, "src/test/icon-stub.ts"),
 			"~icons/lucide/star": path.resolve(__dirname, "src/test/icon-stub.ts"),
 			"~icons/lucide/trash": path.resolve(__dirname, "src/test/icon-stub.ts"),
+			//// Neoffice — the Office preview's spinner (MSOfficePreview.test.ts).
+			"~icons/lucide/loader-circle": path.resolve(__dirname, "src/test/icon-stub.ts"),
 		},
 	},
 	test: {

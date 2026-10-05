@@ -190,6 +190,13 @@ def ensure_running(timeout: int = COLLABORA_START_TIMEOUT_SECONDS) -> bool:
         _record_activity()
         return True
 
+    # //// Neoffice — stamp the activity BEFORE the start, not only once the daemon answers.
+    # //// A cold start takes 20-30 s under swap pressure (24 s on osiris, 05.10.2026), and
+    # //// a stop_if_idle tick landing in that window found the unit active, no connection
+    # //// yet and no fresh stamp, so it stopped the daemon the user was waiting for. When
+    # //// the start outran the timeout, nothing stamped at all: the next tick stopped a
+    # //// daemon that had become ready seconds later, before the preview could retry.
+    _record_activity()
     ok, output = _systemctl("start", timeout=timeout)
     if not ok:
         frappe.log_error(
