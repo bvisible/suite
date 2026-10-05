@@ -844,9 +844,11 @@ msgstr "Ajouter une adresse e-mail"
 msgid "Add Event"
 msgstr "Ajouter un événement"
 
+# //// Neoffice — the French screen showed the upstream product name « Frappe Meet »; Neoffice only says « Meet ».
+# //// Drop this when the English source itself stops naming the upstream product.
 #: frontend/src/apps/calendar/components/Modals/EventModal.vue:761
 msgid "Add Frappe Meet video call"
-msgstr "Ajouter un appel vidéo Frappe Meet"
+msgstr "Ajouter un appel vidéo Meet"
 
 #: frontend/src/apps/mail/components/Modals/AddGroupModal.vue:5
 #: frontend/src/apps/mail/components/Modals/AddGroupModal.vue:8
@@ -3683,11 +3685,13 @@ msgstr "Copier"
 msgid "Copy Code"
 msgstr "Copier le code"
 
+# //// Neoffice — the French screen showed the upstream product name « Frappe Meet »; Neoffice only says « Meet ».
+# //// Drop this when the English source itself stops naming the upstream product.
 #: frontend/src/apps/calendar/components/EventDetailSidebar.vue:505
 #: frontend/src/apps/calendar/components/Modals/EventModal.vue:754
 #: suite/public/frontend/assets/useChunkedUpload-DoN5Mbh0.js:1
 msgid "Copy Frappe Meet link"
-msgstr "Copier le lien Frappe Meet"
+msgstr "Copier le lien Meet"
 
 #: frontend/src/apps/drive/components/GenericPage.vue:540
 #: frontend/src/apps/drive/components/Navbar.vue:236
@@ -7594,6 +7598,8 @@ msgstr "Frappe Calendar"
 msgid "Frappe Mail - Verification Code"
 msgstr "Frappe Mail - Code de vérification"
 
+# //// Neoffice — the French screen showed the upstream product name « Frappe Meet »; Neoffice only says « Meet ».
+# //// Drop this when the English source itself stops naming the upstream product.
 #: frontend/src/apps/calendar/components/EventDetailSidebar.vue:496
 #: frontend/src/apps/calendar/components/EventDetailSidebar.vue:499
 #: frontend/src/apps/calendar/components/Modals/EventModal.vue:747
@@ -7601,13 +7607,15 @@ msgstr "Frappe Mail - Code de vérification"
 #: frontend/src/apps/calendar/components/Modals/EventModal.vue:760
 #: suite/public/frontend/assets/useChunkedUpload-DoN5Mbh0.js:1
 msgid "Frappe Meet"
-msgstr "Frappe Meet"
+msgstr "Meet"
 
+# //// Neoffice — the French screen showed the upstream product name « Frappe Meet »; Neoffice only says « Meet ».
+# //// Drop this when the English source itself stops naming the upstream product.
 #: frontend/src/apps/calendar/components/EventDetailSidebar.vue:253
 #: frontend/src/apps/calendar/components/Modals/EventModal.vue:262
 #: suite/public/frontend/assets/useChunkedUpload-DoN5Mbh0.js:1
 msgid "Frappe Meet link copied."
-msgstr "Lien Frappe Meet copié."
+msgstr "Lien Meet copié."
 
 #: frontend/src/shell/SetupView.vue:17
 msgid "Frappe Suite logo"
