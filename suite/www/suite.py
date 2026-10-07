@@ -8,6 +8,9 @@ import frappe
 from suite import __version__
 from suite.api.account import get_onboarding_state, get_workspace
 
+# //// Neoffice — the reader's catalog, carried by the page's boot (see get_boot).
+from suite.drive.api.product import get_translations as reader_translations
+
 no_cache = 1
 
 
@@ -75,5 +78,13 @@ def get_boot():
             # `bench set-config disable_slides_service_worker 1` unregisters the worker
             # on every slides visit, no deploy needed
             "disable_slides_service_worker": bool(frappe.conf.get("disable_slides_service_worker")),
+            # //// Neoffice — the reader's catalog, on window.translatedMessages before any script runs.
+            # //// Upstream left it to the route modules of Drive, Calendar, Mail and Writer, fetched after the
+            # //// first paint: a tab opened on Meet, Slides, Sheets or the launcher had none, and Drive or
+            # //// Calendar read English until the answer came back (over 8 s on a new profile,
+            # //// maintenance#1194). The Neoffice cockpit translates through the same window.__, so its menu
+            # //// was English there too. This is the catalog those modules fetch; they skip their fetch once
+            # //// it is here. About 1.4 MB gzipped in French, as Raven's boot already carries.
+            "translatedMessages": reader_translations(),
         }
     )

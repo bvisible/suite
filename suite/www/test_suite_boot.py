@@ -23,6 +23,10 @@ class SuiteBoot(unittest.TestCase):
                 return_value={"is_onboarded": True, "can_onboard": True},
             )
         )
+        # //// Neoffice — get_boot carries the reader's catalog: stubbed, the real one reads the site.
+        self.reader_translations = self.enterContext(
+            mock.patch("suite.www.suite.reader_translations", return_value={"Favorites": "Favoris"})
+        )
         self.get_workspace = self.enterContext(
             mock.patch(
                 "suite.www.suite.get_workspace",
@@ -54,3 +58,14 @@ class SuiteBoot(unittest.TestCase):
         self.assertEqual(boot["suite_workspace_logo"], "")
         self.get_onboarding_state.assert_not_called()
         self.get_workspace.assert_not_called()
+
+    # //// Neoffice — added tests: the page's boot carries the reader's catalog, so every route of the SPA
+    # //// and the Neoffice cockpit read French from the first paint (maintenance#1194). A guest gets it too:
+    # //// a shared link or a meeting room is read in the site's language.
+    def test_the_boot_carries_the_readers_catalog(self):
+        self.assertEqual(www.get_boot()["translatedMessages"], {"Favorites": "Favoris"})
+
+    def test_a_guest_boot_carries_the_sites_catalog(self):
+        self.frappe.session.user = "Guest"
+        self.assertEqual(www.get_boot()["translatedMessages"], {"Favorites": "Favoris"})
+        self.reader_translations.assert_called_once_with()
