@@ -71,10 +71,20 @@ class Defaults(_ListSheetsBase):
         self.assertFalse(res["sheets"][1]["is_owner"])
 
     def test_count_uses_aggregate_with_same_filters(self):
+        # //// Neoffice — upstream's newer Frappe: the dict form (see _count_field).
+        self.frappe.__version__ = "17.0.0"
         self.call(search="foo", owner_filter="mine")
         kw = self.count_kwargs()
         # Frappe 17 dict field syntax — string "count(...)" fields are rejected.
         self.assertEqual(kw["fields"], [{"COUNT": "*", "as": "total"}])
+        self.assertEqual(kw["filters"], self.rows_kwargs()["filters"])
+
+    # //// Neoffice — added test: on Frappe v15, the fleet's, the count is a string field (_count_field).
+    def test_count_on_frappe_v15_is_a_string_field(self):
+        self.frappe.__version__ = "15.89.0"
+        self.call(search="foo", owner_filter="mine")
+        kw = self.count_kwargs()
+        self.assertEqual(kw["fields"], ["count(name) as total"])
         self.assertEqual(kw["filters"], self.rows_kwargs()["filters"])
 
 

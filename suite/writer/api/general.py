@@ -24,6 +24,10 @@ def get_document_list(
     start: int = 0,
     limit: int = 20,
 ):
+    # //// Neoffice — start and limit arrive as text from the query string. Frappe v16 casts them to the
+    # //// annotated int; v15 does not, and `limit + 1` below died in a TypeError, so Writer's list showed
+    # //// « Uh oh! There was an error fetching the documents ». Drop once the fleet is past Frappe v15.
+    start, limit = frappe.utils.cint(start), frappe.utils.cint(limit)
     user = frappe.session.user
 
     recently_opened = frappe.qb.from_(Recents).select(Recents.entity_name).where(Recents.user == user)

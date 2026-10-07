@@ -3,6 +3,9 @@
 from __future__ import annotations
 import json
 
+# //// Neoffice — re reads Frappe's major version in _count_field.
+import re
+
 import frappe
 
 from suite.sheets.doctype.sheet.cell_codec import cell_map as unpack_cell_map
@@ -346,11 +349,23 @@ def list_sheets(
     total = frappe.get_list(
         "Sheet",
         filters=filters,
-        fields=[{"COUNT": "*", "as": "total"}],
+        # //// Neoffice — the count field in the form this Frappe reads (see _count_field).
+        fields=[_count_field()],
     )[0]["total"]
     # `now` shares the naive server-local frame of `modified`, so the client
     # can bucket rows by recency without mixing server and client clocks.
     return {"sheets": rows, "total": total, "now": str(frappe.utils.now())}
+
+
+# //// Neoffice — added function. Frappe v15 reads only string fields: the dict form died in
+# //// sanitize_fields on « 'dict' object has no attribute 'lower' », and Sheets' list showed « Couldn't
+# //// load sheets » on the whole fleet. Upstream's newer Frappe reads only the dict form. Drop the string
+# //// branch once the fleet is past Frappe v15.
+def _count_field():
+    major = re.match(r"\d+", str(getattr(frappe, "__version__", "")))
+    if major and int(major.group()) > 15:
+        return {"COUNT": "*", "as": "total"}
+    return "count(name) as total"
 
 
 @frappe.whitelist()
