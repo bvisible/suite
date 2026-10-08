@@ -20,12 +20,16 @@ export function base2BlockSize(bytes) {
 export function formatDate(date) {
   if (!date) return ''
   const dateObj = new Date(date)
-  const formattedDate = new Intl.DateTimeFormat('en-US', {
+  //// Neoffice — the account's language (<html lang>, set by www/suite.py) in place of upstream's 'en-US', so a French
+  //// account reads 08/10/26, 14:30 and not 10/08/26, 02:30 PM (maintenance#1321).
+  const lang = document.documentElement.lang || 'en-US'
+  const formattedDate = new Intl.DateTimeFormat(lang, {
     month: '2-digit',
     day: '2-digit',
     year: '2-digit',
   }).format(dateObj)
-  const formattedTime = new Intl.DateTimeFormat('en-US', {
+  //// Neoffice — the account's language, see above (maintenance#1321).
+  const formattedTime = new Intl.DateTimeFormat(lang, {
     hour: '2-digit',
     minute: '2-digit',
   }).format(dateObj)

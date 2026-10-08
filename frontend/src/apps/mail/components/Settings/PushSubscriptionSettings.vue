@@ -108,7 +108,8 @@ const rows = computed(() =>
 		id: sub.id,
 		device_client_id: sub.device_client_id,
 		types: formatTypes(sub.types),
-		expires: sub.expires ? dayjs(sub.expires).format('D MMM YYYY, h:mm A') : '—',
+		//// Neoffice — `lll`, in the reader's language (maintenance#1321).
+		expires: sub.expires ? dayjs(sub.expires).format('lll') : '—',
 	})),
 )
 

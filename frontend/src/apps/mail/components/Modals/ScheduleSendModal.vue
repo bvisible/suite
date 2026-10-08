@@ -31,6 +31,8 @@ import { Dialog, ErrorMessage, FormControl } from 'frappe-ui'
 
 import dayjs from '@/apps/mail/utils/dayjs'
 import { fromLocalInput, inUserTimeZone, userTimeZone } from '@/apps/mail/utils/datetime'
+// //// Neoffice — the reader's clock (maintenance#1321).
+import { clockTime } from '@/neoffice/clock'
 
 const show = defineModel<boolean>()
 
@@ -75,7 +77,8 @@ const presets = computed(() => {
 		const at = time.minute(0).second(0)
 		return {
 			label,
-			display: at.format('ddd, MMM D, h:mm A'),
+			//// Neoffice — « jeu. 8 oct., 13:00 » on a 24-hour locale; English keeps upstream's pattern (maintenance#1321).
+			display: clockTime(at, 'ddd, MMM D, h:mm A', 'ddd D MMM, LT'),
 			value: fromLocalInput(at.format('YYYY-MM-DDTHH:mm')),
 		}
 	})

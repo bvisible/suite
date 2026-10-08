@@ -84,7 +84,8 @@ export const getRepeatMessage = (recurrenceRule: RecurrenceRule) => {
     // date survives instead of shifting a day in zones east of UTC.
     return __('{0} until {1}', [
       fullMessage,
-      dayjs(recurrenceRule.until.replace(/Z$/, '')).format('MMM DD, YYYY'),
+      // //// Neoffice — `ll`, in the reader's language (maintenance#1321); upstream: 'MMM DD, YYYY'.
+      dayjs(recurrenceRule.until.replace(/Z$/, '')).format('ll'),
     ])
   if (recurrenceRule?.count)
     return __('{0}, {1} times', [fullMessage, recurrenceRule.count])

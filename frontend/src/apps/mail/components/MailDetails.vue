@@ -55,7 +55,6 @@ const divertedReplyTo = computed(() => {
 })
 
 
-const formattedDate = computed(() =>
-	dayjs(mail.received_at).format('ddd, MMM D, YYYY · h:mm A'),
-)
+//// Neoffice — dayjs' `llll`, in the reader's language (maintenance#1321); upstream: 'ddd, MMM D, YYYY · h:mm A'.
+const formattedDate = computed(() => dayjs(mail.received_at).format('llll'))
 </script>

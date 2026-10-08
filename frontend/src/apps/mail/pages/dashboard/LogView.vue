@@ -69,7 +69,8 @@ const log = createResource({
 })
 
 const data = computed(() => log.data as LogData)
-const formatDate = (value?: string) => formatDateTime(value, 'MMM D YYYY, h:mm:ss A') || '—'
+//// Neoffice — dayjs' localized format, in the reader's language (maintenance#1321); upstream wrote a US pattern.
+const formatDate = (value?: string) => formatDateTime(value, 'll LTS') || '—'
 
 // Mirrors the colours the server's TracingLevel enum assigns to each level.
 const LEVEL_THEMES: Record<string, 'red' | 'amber' | 'green' | 'blue' | 'violet'> = {

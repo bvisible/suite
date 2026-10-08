@@ -24,6 +24,8 @@ import meetLogo from '@/assets/app-logos/meet.png'
 import { getMeetUrl, getReorderedParticipants, isUrl } from '@/apps/calendar/utils'
 import { fromEventZone, inUserTimeZone } from '@/apps/calendar/utils/datetime'
 import { eventLastDay, isAllDayEvent } from '@/apps/calendar/utils/eventTime'
+// //// Neoffice — the reader's clock (maintenance#1321).
+import { clockTime } from '@/neoffice/clock'
 import { getRepeatMessage } from '@/apps/calendar/utils/format'
 import { userStore } from '@/apps/calendar/stores/user'
 import EventParticipantList from '@/apps/calendar/components/EventParticipantList.vue'
@@ -115,9 +117,11 @@ const dateLabel = computed(() => {
 	}
 
 	const isSameDay = start.isSame(end, 'day')
+	//// Neoffice — the reader's clock (maintenance#1321): `LT` on a 24-hour locale, upstream's pattern in English.
 	if (isSameDay)
-		return `${start.format('h:mm a')} - ${end.format('h:mm a')} · ${start.format(dateFormat)}`
-	return `${start.format(`${dateFormat}, h:mm a`)} - ${end.format(`${dateFormat}, h:mm a`)}`
+		return `${clockTime(start)} - ${clockTime(end)} · ${start.format(dateFormat)}`
+	const span = (day: typeof start) => clockTime(day, `${dateFormat}, h:mm a`, `${dateFormat}, LT`)
+	return `${span(start)} - ${span(end)}`
 })
 
 // --- Participants ---
@@ -176,7 +180,8 @@ const participantEmails = computed(() =>
 // --- Alerts ---
 
 const formatAlert = (a: any) => {
-	if (a.type === 'AbsoluteTrigger') return inUserTimeZone(a.when).format('D MMM, h:mm a')
+	//// Neoffice — the reader's clock (maintenance#1321): `LT` on a 24-hour locale, upstream's pattern in English.
+	if (a.type === 'AbsoluteTrigger') return clockTime(inUserTimeZone(a.when), 'D MMM, h:mm a', 'D MMM, LT')
 
 	const d = dayjs.duration(a.offset).$d
 	const units = {

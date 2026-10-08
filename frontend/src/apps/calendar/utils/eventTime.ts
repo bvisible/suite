@@ -1,4 +1,6 @@
 import dayjs from '@/apps/calendar/utils/dayjs'
+// //// Neoffice — clock times in the reader's language (maintenance#1321): `LT` on a 24-hour locale.
+import { clockTime, usesMeridiem } from '@/neoffice/clock'
 
 /**
  * Turning an event's timing into the sentence a reader wants. The one rule behind every
@@ -120,6 +122,8 @@ const dayRangeLabel = (first: Dayjs, last: Dayjs, now: Dayjs) => {
 
 /** `3:00 – 4:00 pm`, keeping the first meridiem only when the span crosses one. */
 const timeRangeLabel = (start: Dayjs, end: Dayjs) => {
+	//// Neoffice — a 24-hour locale reads `15:00 – 16:00`: no meridiem to share (maintenance#1321).
+	if (!usesMeridiem(start)) return end.isSame(start) ? clockTime(start) : `${clockTime(start)} – ${clockTime(end)}`
 	if (end.isSame(start)) return start.format('h:mm a')
 	const sharesMeridiem = start.format('a') === end.format('a')
 	return `${start.format(sharesMeridiem ? 'h:mm' : 'h:mm a')} – ${end.format('h:mm a')}`
@@ -163,14 +167,16 @@ export const formatEventWhen = (
 	// A genuine span carries a time at each end, so both dates spell themselves out in full and
 	// the `·` separator — which reads as "on this day, at this time" — goes.
 	if (eventLastDay(start, duration)) {
-		const from = `${dayLabel(start, now)}, ${start.format('h:mm a')}`
-		return `${from} – ${dayLabel(end, now)}, ${end.format('h:mm a')}`
+		//// Neoffice — clockTime: the reader's clock (maintenance#1321).
+		const from = `${dayLabel(start, now)}, ${clockTime(start)}`
+		return `${from} – ${dayLabel(end, now)}, ${clockTime(end)}`
 	}
 
 	// An overnight stays one day's entry, with the second day named after the closing time.
 	// Never compacted: the inline `Tue` sets the register, and `Monday · … Tue` mixes two.
 	if (isOvernight(start, end)) {
-		const times = `${start.format('h:mm a')} – ${end.format('h:mm a ddd')}`
+		//// Neoffice — clockTime: the reader's clock (maintenance#1321).
+		const times = `${clockTime(start)} – ${clockTime(end, 'h:mm a ddd', 'LT ddd')}`
 		return `${dayLabel(start, now)} · ${times} · ${lengthLabel(start, end)}`
 	}
 

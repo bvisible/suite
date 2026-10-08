@@ -25,7 +25,8 @@ export const userTimeZone = (): string => {
 export const inUserTimeZone = (value: string) => dayjs.utc(value).tz(userTimeZone())
 
 /** Formats a UTC timestamp from an API for display in the user's zone. */
-export const formatDateTime = (value?: string | null, format = 'MMM D YYYY, h:mm A'): string =>
+//// Neoffice — dayjs' localized format, in the reader's language (maintenance#1321); upstream wrote US patterns.
+export const formatDateTime = (value?: string | null, format = 'lll'): string =>
 	value ? inUserTimeZone(value).format(format) : ''
 
 /**

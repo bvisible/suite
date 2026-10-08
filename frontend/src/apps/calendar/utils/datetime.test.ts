@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import dayjs from '@/apps/calendar/utils/dayjs'
+// //// Neoffice — the French locale, for the French date test (maintenance#1321).
+import 'dayjs/esm/locale/fr'
 
 vi.mock('@/apps/calendar/stores/user', () => ({
 	userStore: () => ({ userResource: { data: { time_zone: 'Asia/Karachi' } } }),
@@ -21,7 +23,19 @@ describe('calendar datetime helpers', () => {
 
 	it('renders a UTC timestamp in the user zone', async () => {
 		const { formatDateTime } = await load()
-		expect(formatDateTime('2026-07-28T09:02:30Z')).toBe('Jul 28 2026, 2:32 PM')
+		// //// Neoffice — dayjs' localized `lll` in place of upstream's US pattern (maintenance#1321).
+		expect(formatDateTime('2026-07-28T09:02:30Z')).toBe('Jul 28, 2026 2:32 PM')
+	})
+
+	// //// Neoffice — a French account reads its dates the French way (maintenance#1321).
+	it('renders it in French for a French account', async () => {
+		const { formatDateTime } = await load()
+		dayjs.locale('fr')
+		try {
+			expect(formatDateTime('2026-07-28T09:02:30Z')).toBe('28 juil. 2026 14:32')
+		} finally {
+			dayjs.locale('en')
+		}
 	})
 
 	it('reads an alert wall clock back as UTC', async () => {

@@ -90,7 +90,8 @@ const operationDetails = computed(() => {
 		mailExchange.data?.operation === 'Import'
 			? mailExchange.data?.import_format
 			: mailExchange.data?.export_format
-	return `${format.toUpperCase()} · ${formatSystemDateTime(mailExchange.data?.started_at, 'MMM D, YYYY [at] h:mm A')}`
+	//// Neoffice — dayjs' localized format, in the reader's language (maintenance#1321); upstream wrote a US pattern.
+	return `${format.toUpperCase()} · ${formatSystemDateTime(mailExchange.data?.started_at, 'lll')}`
 })
 
 const attachment = createResource({

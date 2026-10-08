@@ -122,7 +122,7 @@
 							:label="__('Start')"
 							type="time"
 							:interval="15"
-							format="h:mm A"
+							:format="timeInputFormat"
 						/>
 						<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 						<FormControl
@@ -130,7 +130,7 @@
 							:label="__('End')"
 							type="time"
 							:interval="15"
-							format="h:mm A"
+							:format="timeInputFormat"
 						/>
 					</div>
 					<ParticipantSelector
@@ -171,6 +171,8 @@ import { useRouter } from "vue-router";
 
 import { userStore as useCalendarUserStore } from "@/apps/calendar/stores/user";
 import dayjs from "@/apps/calendar/utils/dayjs";
+// //// Neoffice — the reader's clock in the time inputs (maintenance#1321).
+import { usesMeridiem } from "@/neoffice/clock";
 import ParticipantSelector from "@/apps/calendar/components/ParticipantSelector.vue";
 import {
 	adjustScheduleEndTime,
@@ -195,6 +197,8 @@ interface CalendarParticipant {
 }
 
 const router = useRouter();
+//// Neoffice — `HH:mm` on a 24-hour locale; upstream wrote `h:mm A` for every reader (maintenance#1321).
+const timeInputFormat = usesMeridiem(dayjs()) ? "h:mm A" : "HH:mm";
 const connectionState = useConnectionState();
 const calendarStore = useCalendarUserStore();
 const meetingCode = ref("");

@@ -53,13 +53,15 @@ const titles = (entries: { title: string }[]) => entries.map((e) => e.title)
 describe('statusSummary', () => {
 	it('names the release time of a scheduled send', async () => {
 		const { statusSummary } = await load()
-		expect(statusSummary(details({ status: 'scheduled' }))).toMatch(/^Sends Aug 31 2026, 8:00 AM \(/)
+		// //// Neoffice — dayjs' localized `lll` (maintenance#1321).
+		expect(statusSummary(details({ status: 'scheduled' }))).toMatch(/^Sends Aug 31, 2026 8:00 AM \(/)
 	})
 
 	it('names the next attempt while retrying, or the fact that the server keeps trying', async () => {
 		const { statusSummary } = await load()
 		const retrying = details({ status: 'retrying', next_retry: '2026-08-31T08:42:00Z' })
-		expect(statusSummary(retrying)).toMatch(/^Next attempt Aug 31 2026, 8:42 AM \(/)
+		// //// Neoffice — dayjs' localized `lll` (maintenance#1321).
+		expect(statusSummary(retrying)).toMatch(/^Next attempt Aug 31, 2026 8:42 AM \(/)
 		expect(statusSummary(details({ status: 'retrying' }))).toBe('The mail server will keep trying')
 	})
 
@@ -92,7 +94,8 @@ describe('statusSummary', () => {
 
 	it('names the release a cancelled send was meant to have', async () => {
 		const { statusSummary } = await load()
-		expect(statusSummary(details({ status: 'cancelled' }))).toBe('Was scheduled for Aug 31 2026, 8:00 AM')
+		// //// Neoffice — dayjs' localized `lll` (maintenance#1321).
+		expect(statusSummary(details({ status: 'cancelled' }))).toBe('Was scheduled for Aug 31, 2026 8:00 AM')
 	})
 })
 

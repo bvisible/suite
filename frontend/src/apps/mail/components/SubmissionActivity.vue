@@ -18,7 +18,8 @@
 						class="text-ink-gray-5 order-first text-xs sm:order-last sm:w-28 sm:shrink-0 sm:text-right"
 						:title="formatDateTime(entry.time)"
 					>
-						{{ formatDateTime(entry.time, 'MMM D, h:mm A') }}
+						<!-- //// Neoffice — dayjs' localized format, in the reader's language (maintenance#1321); upstream wrote a US pattern. -->
+						{{ formatDateTime(entry.time, 'lll') }}
 					</span>
 					<span class="text-ink-gray-9 min-w-0 flex-1 text-base">{{ entry.title }}</span>
 				</div>

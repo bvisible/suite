@@ -15,13 +15,15 @@
 				>
 					<InformationField :label="__('Name')" :value="contact.doc.full_name" />
 					<InformationField :label="__('Kind')" :value="capitalize(contact.doc.kind)" />
+					<!-- //// Neoffice — dayjs' `lll`, in the reader's language (maintenance#1321). -->
 					<InformationField
 						:label="__('Created On')"
-						:value="dayjs(contact.doc.created_at).format('MMM D YYYY, h:mm A')"
+						:value="dayjs(contact.doc.created_at).format('lll')"
 					/>
+					<!-- //// Neoffice — `lll`, see above (maintenance#1321). -->
 					<InformationField
 						:label="__('Updated On')"
-						:value="dayjs(contact.doc.updated_at).format('MMM D YYYY, h:mm A')"
+						:value="dayjs(contact.doc.updated_at).format('lll')"
 					/>
 				</DashboardCard>
 

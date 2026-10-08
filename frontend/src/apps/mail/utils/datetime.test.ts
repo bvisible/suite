@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import dayjs from '@/apps/mail/utils/dayjs'
+// //// Neoffice — the French locale, for the French date test (maintenance#1321).
+import 'dayjs/esm/locale/fr'
 
 vi.mock('@/apps/mail/stores/user', () => ({
 	userStore: () => ({
@@ -25,7 +27,19 @@ describe('mail datetime helpers', () => {
 
 	it('renders a UTC timestamp in the user zone', async () => {
 		const { formatDateTime } = await load()
-		expect(formatDateTime('2026-07-28T09:02:30Z')).toBe('Jul 28 2026, 2:32 PM')
+		// //// Neoffice — dayjs' localized `lll` in place of upstream's US pattern (maintenance#1321).
+		expect(formatDateTime('2026-07-28T09:02:30Z')).toBe('Jul 28, 2026 2:32 PM')
+	})
+
+	// //// Neoffice — a French account reads its dates the French way (maintenance#1321).
+	it('renders it in French for a French account', async () => {
+		const { formatDateTime } = await load()
+		dayjs.locale('fr')
+		try {
+			expect(formatDateTime('2026-07-28T09:02:30Z')).toBe('28 juil. 2026 14:32')
+		} finally {
+			dayjs.locale('en')
+		}
 	})
 
 	it('fills a datetime-local input in the user zone', async () => {
@@ -56,7 +70,8 @@ describe('mail datetime helpers', () => {
 	it('renders a naive system-zone DB timestamp in the user zone', async () => {
 		const { formatSystemDateTime } = await load()
 		// 09:02:30 EDT (system) = 13:02:30Z = 18:32:30 in Asia/Kolkata (browser).
-		expect(formatSystemDateTime('2026-07-28 09:02:30')).toBe('Jul 28 2026, 6:32 PM')
+		// //// Neoffice — dayjs' localized `lll` (maintenance#1321).
+		expect(formatSystemDateTime('2026-07-28 09:02:30')).toBe('Jul 28, 2026 6:32 PM')
 	})
 
 	it('turns a picked day into UTC bounds in the user zone', async () => {

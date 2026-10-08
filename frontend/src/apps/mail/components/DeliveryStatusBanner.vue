@@ -87,7 +87,8 @@ const recipientLine = (recipient: DsnRecipient) => {
 		if (recipient.will_retry_until)
 			return __('Delivery to {0} has been delayed. The server will keep trying until {1}.', [
 				recipient.email,
-				dayjs?.(recipient.will_retry_until).format?.('MMM D, YYYY, h:mm A') ||
+				//// Neoffice — dayjs' localized format, in the reader's language (maintenance#1321); upstream wrote a US pattern.
+				dayjs?.(recipient.will_retry_until).format?.('lll') ||
 					recipient.will_retry_until,
 			])
 		return __('Delivery to {0} has been delayed. The server will keep trying.', [

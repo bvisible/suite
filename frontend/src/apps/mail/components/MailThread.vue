@@ -1478,10 +1478,13 @@ const getBodyContent = (mail: Mail) => {
 	return `<div style="white-space: pre-wrap">${text ? plainTextToHtml(text) : '&nbsp;'}</div>`
 }
 
+//// Neoffice — the quote and forward headers in the writer's language, with dayjs' `llll` date (maintenance#1321):
+//// upstream wrote « On 08 Oct 2026 at 2:30 PM, … wrote: » in English for every account. Whole-line msgids, so that
+//// « From » or « To » never take the catalogue's generic translation of a date range.
 const getQuotedContent = (mail: Mail) =>
 	`
 		<div class="frappe_mail_quote">
-			On ${dayjs(mail.received_at).format('DD MMM YYYY [at] h:mm A')}, ${mail.from_email} wrote:
+			${/* //// Neoffice — translated whole, dayjs' llll (maintenance#1321) */ __('On {0}, {1} wrote:', [dayjs(mail.received_at).format('llll'), mail.from_email])}
 			<blockquote style="margin-left: 8px">
 				${getBodyContent(mail)}
 			</blockquote>
@@ -1492,17 +1495,18 @@ const getQuotedContent = (mail: Mail) =>
 // lives in html_body, visible and editable in the composer, with the signature
 // inserted above it (see useComposeMail's prefilledBody). Only the original's
 // body needs to stay out of the editor (see getForwardedBody).
+//// Neoffice — translated, see getQuotedContent above (maintenance#1321).
 const getForwardHeader = (mail: Mail) => {
 	const recipients = getGroupedRecipients(mail.recipients, true, true)
 	return `
 		<div>
 			<br><br>
-			---------- Forwarded message ---------<br>
-			From: ${mail.from_name} &lt;${mail.from_email}&gt;<br>
-			Date: ${dayjs(mail.received_at).format('ddd, MMM D, YYYY [at] h:mm A')}<br>
-			Subject: ${mail.subject || ''}<br>
-			To: ${recipients.to}<br>
-			${recipients.cc ? `Cc: ${recipients.cc}<br>` : ''}
+			---------- ${/* //// Neoffice — translated, whole lines (maintenance#1321) */ __('Forwarded message')} ---------<br>
+			${__('From: {0}', [`${mail.from_name} &lt;${mail.from_email}&gt;`])}<br>
+			${__('Date: {0}', [dayjs(mail.received_at).format('llll')])}<br>
+			${__('Subject: {0}', [mail.subject || ''])}<br>
+			${__('To: {0}', [recipients.to])}<br>
+			${recipients.cc ? `${__('Cc: {0}', [recipients.cc])}<br>` : ''}
 		</div>
 	`
 }

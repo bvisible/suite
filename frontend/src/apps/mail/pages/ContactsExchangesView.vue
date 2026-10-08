@@ -114,7 +114,8 @@ const contactsExchanges = useList({
 	transform: (data) =>
 		data.map((row) => ({
 			...row,
-			started_at: row.started_at ? formatSystemDateTime(row.started_at, 'MMM D, YYYY h:mm A') : '-',
+			//// Neoffice — dayjs' localized format, in the reader's language (maintenance#1321); upstream wrote a US pattern.
+			started_at: row.started_at ? formatSystemDateTime(row.started_at, 'lll') : '-',
 		})),
 })
 

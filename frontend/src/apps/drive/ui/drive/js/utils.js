@@ -104,20 +104,11 @@ export const prettyData = (entities) => {
 export const formatDate = (date) => {
   if (!date) return ''
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
-  const locale = navigator.language || 'en-US'
+  //// Neoffice — dayjs' `L` and `LT`, in the account's language (maintenance#1321). Upstream wrote the date as
+  //// MM/DD/YY for everyone and picked the clock from the browser's language, not the account's.
 
   const d = dayjs(date).tz(timeZone)
-
-  const formattedDate = d.format('MM/DD/YY')
-
-  let formattedTime
-  if (locale === 'en-US') {
-    formattedTime = d.format('hh:mm A')
-  } else {
-    formattedTime = d.format('HH:mm')
-  }
-
-  return `${formattedDate}, ${formattedTime}`
+  return `${d.format('L')}, ${d.format('LT')}`
 }
 
 

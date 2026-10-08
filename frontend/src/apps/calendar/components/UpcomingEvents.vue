@@ -60,6 +60,8 @@
 <script setup lang="ts">
 import dayjs from '@/apps/calendar/utils/dayjs'
 import { isAllDayEvent } from '@/apps/calendar/utils/eventTime'
+// //// Neoffice — the reader's clock (maintenance#1321).
+import { clockTime, usesMeridiem } from '@/neoffice/clock'
 
 // frappe-ui's calendar renders events without a color as green; falling back to
 // the same hex keeps the strip consistent with the calendar app.
@@ -90,6 +92,8 @@ const formatEventTime = (event: any) => {
 
 	const start = dayjs(event.start)
 	const end = start.add(dayjs.duration(event.duration || 'PT0S'))
+	//// Neoffice — the reader's clock (maintenance#1321): `LT` on a 24-hour locale, upstream's pattern in English.
+	if (!usesMeridiem(start)) return `${clockTime(start)} – ${clockTime(end)}`
 	const sameMeridiem = start.format('A') === end.format('A')
 	return `${start.format(sameMeridiem ? 'h:mm' : 'h:mm A')} – ${end.format('h:mm A')}`
 }

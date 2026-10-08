@@ -7,6 +7,8 @@ import meetLogo from '@/assets/app-logos/meet.png'
 import { getMeetUrl, getReorderedParticipants } from '@/apps/calendar/utils'
 import { fromEventZone, fromWallClock, inUserTimeZone } from '@/apps/calendar/utils/datetime'
 import { getRepeatMessage } from '@/apps/calendar/utils/format'
+// //// Neoffice — the reader's clock in the time inputs (maintenance#1321).
+import { usesMeridiem } from '@/neoffice/clock'
 import { userStore } from '@/apps/calendar/stores/user'
 import EventAlertList from '@/apps/calendar/components/EventAlertList.vue'
 import ParticipantSelector from '@/apps/calendar/components/ParticipantSelector.vue'
@@ -18,6 +20,8 @@ const emit = defineEmits(['reloadEvents'])
 
 const user = inject('$user')
 const dayjs = inject('$dayjs')
+//// Neoffice — `HH:mm` on a 24-hour locale; upstream wrote `h:mm A` for every reader (maintenance#1321).
+const timeInputFormat = usesMeridiem(dayjs()) ? 'h:mm A' : 'HH:mm'
 const store = userStore()
 const { participantIdentities } = store
 
@@ -698,12 +702,13 @@ const SHOW_RECURRING_EVENT_MODAL_OPTIONS = {
 									</label>
 									<div class="flex gap-2">
 										<FormControl v-model="event.startDate" type="date" class="w-full" />
+										<!-- //// Neoffice — :format, the reader's clock (maintenance#1321). -->
 										<FormControl
 											v-if="!event.isAllDay"
 											v-model="event.startTime"
 											type="time"
 											:interval="15"
-											format="h:mm A"
+											:format="timeInputFormat"
 											class="w-full"
 										/>
 									</div>
@@ -714,12 +719,13 @@ const SHOW_RECURRING_EVENT_MODAL_OPTIONS = {
 									</label>
 									<div class="flex gap-2">
 										<FormControl v-model="event.endDate" type="date" class="w-full" />
+										<!-- //// Neoffice — :format, the reader's clock (maintenance#1321). -->
 										<FormControl
 											v-if="!event.isAllDay"
 											v-model="event.endTime"
 											type="time"
 											:interval="15"
-											format="h:mm A"
+											:format="timeInputFormat"
 											class="w-full"
 										/>
 									</div>

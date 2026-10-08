@@ -3,6 +3,8 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { translate } from '@/boot/translation'
 import dayjs from '@/apps/calendar/utils/dayjs'
 import { eventLastDay, formatEventWhen, isAllDayEvent } from '@/apps/calendar/utils/eventTime'
+// //// Neoffice — the French locale, for the 24-hour clock tests at the end of this file (maintenance#1321).
+import 'dayjs/esm/locale/fr'
 
 // The formatter calls the global `__()` the translation boot installs at app start.
 beforeAll(() => {
@@ -155,5 +157,32 @@ describe('formatEventWhen', () => {
 			)
 			expect(compact('2027-01-09T15:00:00', 'PT1H')).toBe('Sat, 9 Jan 2027 · 3:00 – 4:00 pm · 1 hr')
 		})
+	})
+})
+
+// //// Neoffice — a French account reads the 24-hour clock (maintenance#1321): upstream's `h:mm a` patterns wrote
+// //// « 3:00 – 4:00 pm » beside French day and month names.
+describe('formatEventWhen in French', () => {
+	const fr = (start: string, duration?: string, options = {}) => {
+		dayjs.locale('fr')
+		try {
+			return formatEventWhen(dayjs(start), duration, { now: dayjs('2026-08-13T09:00:00'), ...options })
+		} finally {
+			dayjs.locale('en')
+		}
+	}
+
+	it('reads a range on the 24-hour clock', () => {
+		expect(fr('2026-08-17T15:00:00', 'PT1H')).toBe('lun., 17 août · 15:00 – 16:00 · 1 hr')
+		expect(fr('2026-08-17T11:00:00', 'PT2H')).toBe('lun., 17 août · 11:00 – 13:00 · 2 hr')
+	})
+
+	it('reads an overnight and a span on the 24-hour clock', () => {
+		expect(fr('2026-08-17T23:00:00', 'PT3H')).toBe('lun., 17 août · 23:00 – 02:00 mar. · 3 hr')
+		expect(fr('2026-08-31T09:00:00', 'PT56H')).toBe('lun., 31 août, 09:00 – mer., 2 sept., 17:00')
+	})
+
+	it('reads a single time on the 24-hour clock', () => {
+		expect(fr('2026-08-17T15:00:00')).toBe('lun., 17 août · 15:00')
 	})
 })

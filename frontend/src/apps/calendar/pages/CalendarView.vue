@@ -549,6 +549,7 @@ const NOTIFY_MODAL_OPTIONS = {
 				@select-event="toggleEventDetail"
 			/>
 			<div class="min-h-0 min-w-0 flex-1 p-4">
+				<!-- //// Neoffice — :config, the grid on the reader's clock (maintenance#1321). -->
 				<Calendar
 					ref="calendar"
 					:events="visibleEvents"
