@@ -45,9 +45,21 @@ export const CALENDAR_REWRITES: Record<string, Rewrite[]> = {
       find: `:label="dayFullDayEvents.length - 4 + ' more'"`,
       replace: `:label="__('{0} more', [String(dayFullDayEvents.length - 4)])"`,
     },
+    // the label of the all-day row, a bare text node
+    { find: /(inline-flex items-center"\s*>)\s*All day\s*(<\/div>)/, replace: "$1{{ __('All day') }}$2" },
   ],
   'CalendarWeekly.vue': [
     { find: `:label="hiddenCount(col) + ' more'"`, replace: `:label="__('{0} more', [String(hiddenCount(col))])"` },
+    // the label of the all-day row, a bare text node
+    { find: /(inline-flex items-center"\s*>)\s*All day\s*(<\/div>)/, replace: "$1{{ __('All day') }}$2" },
+  ],
+  'CalendarMonthly.vue': [
+    // the first of a month names it: « 1 oct. » in French, « Oct 1 » in English (upstream wrote « Oct 1 » for all)
+    {
+      find: 'return `${shortMonth(date)} 1`',
+      replace:
+        "return date.toLocaleDateString((typeof document !== 'undefined' && document.documentElement.lang) || 'en-US', { day: 'numeric', month: 'short' })",
+    },
   ],
 }
 

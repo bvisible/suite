@@ -23,6 +23,7 @@ describe("frappe-ui's calendar in the reader's language", () => {
       const { code, missing } = rewriteCalendarFile(file, fs.readFileSync(path.join(calendarDir, file), 'utf8'))
       expect(missing, file).toBeUndefined()
       expect(code, file).not.toMatch(/toLocaleDateString\('en-US'|label="Today"|label: 'Day'|return 'All day'|\+ ' more'/)
+      expect(code, file).not.toMatch(/>\s*All day\s*<|\$\{shortMonth\(date\)\} 1/)
     }
   })
 
