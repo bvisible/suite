@@ -24306,3 +24306,23 @@ msgstr "{0} a une connexion Internet faible."
 #: suite/public/frontend/assets/AvatarGroup-DuVnQHTa.js:1
 msgid "{0}, {1} and {2}"
 msgstr "{0}, {1} et {2}"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:136
+#: suite/public/frontend/assets/Meeting-B9hK1VjG.js:209
+msgid "Critical connection"
+msgstr "Connexion critique"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:134
+#: suite/public/frontend/assets/Meeting-B9hK1VjG.js:209
+msgid "Good connection"
+msgstr "Bonne connexion"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:135
+#: suite/public/frontend/assets/Meeting-B9hK1VjG.js:209
+msgid "Poor connection"
+msgstr "Connexion faible"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:137
+#: suite/public/frontend/assets/Meeting-B9hK1VjG.js:209
+msgid "Unknown connection"
+msgstr "Connexion inconnue"
