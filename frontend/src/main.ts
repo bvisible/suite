@@ -8,8 +8,13 @@ import App from '@/App.vue'
 import router from '@/router'
 import { configureFrappeUI } from '@/boot/config'
 import { translationPlugin } from '@/boot/translation'
+// //// Neoffice — dates in the reader's language (boot/dateLocale.ts, #1316).
+import { setDateLocale } from '@/boot/dateLocale'
 import { userResource, getSessionUser } from '@/boot/session'
 import { initSentry } from '@/boot/sentry'
+
+// //// Neoffice — before anything formats a date: dayjs reads English until told otherwise (#1316).
+setDateLocale()
 
 // One frappe-ui resource/session configuration for the whole suite.
 configureFrappeUI()

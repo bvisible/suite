@@ -120,7 +120,9 @@ const formatMeetingTime = (event: CalendarEvent) => {
 
 	const start = dayjs(event.start)
 	const end = start.add(dayjs.duration(event.duration || 'PT0S'))
-	return `${start.format('h:mma')} - ${end.format('h:mma')}`
+	// //// Neoffice — the reader's clock ("LT": 14:30 in French, 2:30 PM in English) instead of a fixed
+	// //// US "h:mma", which read "2:30pm" in every language (#1316).
+	return `${start.format('LT')} - ${end.format('LT')}`
 }
 
 const eventParticipants = (event: CalendarEvent) => {
