@@ -18,3 +18,5 @@ def _i18n_anchors():
     """Never called. See the module docstring."""
     _("Store", context="Store Entry")
     _("Store", context="Mail Cluster Store")
+    # The tab title of the setup page: the router passes it to __() at run time (frontend/src/router/index.ts).
+    _("Set up Neoffice")

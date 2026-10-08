@@ -1,7 +1,8 @@
 <template>
 	<Dialog v-model:open="showDialog">
 		<template #title>
-			<h2 class="text-lg-bold">{{ __('Install Frappe Mail') }}</h2>
+			<!-- //// Neoffice — Neoffice's names in place of upstream's Frappe brands (#1316). -->
+			<h2 class="text-lg-bold">{{ __('Install Mail') }}</h2>
 		</template>
 		<template #default>
 			<p>{{ __('Get the app on your device for easy access & a better experience!') }}</p>
@@ -25,8 +26,9 @@
 			class="bg-surface-blue-2 fixed inset-x-2 bottom-4 z-[60] flex flex-col gap-3 rounded-4 py-5 drop-shadow-xl"
 		>
 			<div class="mb-1 flex flex-row items-center justify-between px-3 text-center">
+				<!-- //// Neoffice — Neoffice's names in place of upstream's Frappe brands (#1316). -->
 				<span class="text-base-bold">
-					{{ __('Install Frappe Mail') }}
+					{{ __('Install Mail') }}
 				</span>
 				<span class="inline-flex items-baseline">
 					<FeatherIcon

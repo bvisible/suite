@@ -36,7 +36,8 @@ const ROUTE_TO_VIEW = { 'calendar-month': 'Month', 'calendar-week': 'Week', 'cal
 const routeNameForView = (view) => VIEW_TO_ROUTE[view as keyof typeof VIEW_TO_ROUTE]
 const viewForRouteName = (name) => ROUTE_TO_VIEW[name as keyof typeof ROUTE_TO_VIEW]
 
-usePageMeta(() => ({ title: calendarRef.value?.currentMonthYear || __('Frappe Calendar') }))
+// //// Neoffice — Neoffice's names in place of upstream's Frappe brands (#1316).
+usePageMeta(() => ({ title: calendarRef.value?.currentMonthYear || __('Calendar') }))
 
 watch(
 	() => [

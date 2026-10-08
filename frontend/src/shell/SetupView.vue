@@ -11,10 +11,11 @@
       <div class="sr-only" aria-live="polite">{{ current.title }}</div>
       <div class="flex items-center justify-between">
         <div v-if="step === 'welcome'" class="size-10 shrink-0" aria-hidden="true" />
+        <!-- //// Neoffice — Neoffice's names in place of upstream's Frappe brands (#1316). -->
         <img
           v-else
           :src="suiteLogo"
-          :alt="__('Frappe Suite logo')"
+          :alt="__('Neoffice logo')"
           class="size-10 shrink-0 object-contain"
           draggable="false"
         />
@@ -205,7 +206,8 @@ onUnmounted(() => {
 })
 
 const copy: Record<Step, { title: string; subtitle: string }> = {
-  welcome: { title: __('Welcome to Frappe Suite'), subtitle: __('Everything your team needs, all in one place.') },
+  // //// Neoffice — Neoffice's names in place of upstream's Frappe brands (#1316).
+  welcome: { title: __('Welcome to Neoffice'), subtitle: __('Everything your team needs, all in one place.') },
   workspace: { title: __('Set up your workspace'), subtitle: __('Make it yours with a name and logo.') },
   invite: { title: __("Let's invite your team"), subtitle: __('Add teammates and explore Suite together.') },
   ready: { title: __("You're all set!"), subtitle: __('Your workspace is ready. Time to dive in.') },

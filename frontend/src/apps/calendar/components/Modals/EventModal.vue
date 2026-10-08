@@ -259,7 +259,8 @@ const pendingMeetAttach = computed(
 
 const copyMeetLink = async () => {
 	await navigator.clipboard.writeText(new URL(meetUrl.value, window.location.origin).href)
-	toast.success(__('Frappe Meet link copied.'))
+	// //// Neoffice — Neoffice's names in place of upstream's Frappe brands (#1316).
+	toast.success(__('Meet link copied.'))
 }
 
 const meetLinkDisplay = computed(() =>
@@ -744,21 +745,25 @@ const SHOW_RECURRING_EVENT_MODAL_OPTIONS = {
 						<!-- meet link -->
 						<div class="mt-4 flex items-center gap-3 rounded-6 border border-outline-gray-2 px-3.5 py-3">
 							<template v-if="meetUrl">
-								<img :src="meetLogo" :alt="__('Frappe Meet')" class="size-7 shrink-0" />
+								<!-- //// Neoffice — Neoffice's names in place of upstream's Frappe brands (#1316). -->
+								<img :src="meetLogo" :alt="__('Meet')" class="size-7 shrink-0" />
 								<div class="min-w-0 flex-1">
+									<!-- //// Neoffice — Neoffice's names in place of upstream's Frappe brands (#1316). -->
 									<div class="text-sm font-medium text-ink-gray-8 mb-0.5">
-										{{ __('Frappe Meet') }}
+										{{ __('Meet') }}
 									</div>
 									<div class="truncate text-xs text-ink-gray-5">{{ meetLinkDisplay }}</div>
 								</div>
-								<Button variant="ghost" :title="__('Copy Frappe Meet link')" @click="copyMeetLink">
+								<!-- //// Neoffice — Neoffice's names in place of upstream's Frappe brands (#1316). -->
+								<Button variant="ghost" :title="__('Copy Meet link')" @click="copyMeetLink">
 									<template #icon><Copy :size="14" class="icon text-ink-gray-5" /></template>
 								</Button>
 								<Button :label="__('Join')" @click="joinMeet" />
 							</template>
 							<template v-else>
-								<img :src="meetLogo" :alt="__('Frappe Meet')" class="size-[18px] shrink-0" />
-								<span class="flex-1 text-base">{{ __('Add Frappe Meet video call') }}</span>
+								<!-- //// Neoffice — Neoffice's names in place of upstream's Frappe brands (#1316). -->
+								<img :src="meetLogo" :alt="__('Meet')" class="size-[18px] shrink-0" />
+								<span class="flex-1 text-base">{{ __('Add a Meet video call') }}</span>
 								<Switch v-model="event.addMeetLink" />
 							</template>
 						</div>

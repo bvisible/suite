@@ -250,7 +250,8 @@ const meetLinkDisplay = computed(() =>
 
 const copyMeetLink = async () => {
 	await navigator.clipboard.writeText(new URL(meetUrl.value, window.location.origin).href)
-	toast.success(__('Frappe Meet link copied.'))
+	// //// Neoffice — Neoffice's names in place of upstream's Frappe brands (#1316).
+	toast.success(__('Meet link copied.'))
 }
 
 const joinMeet = () => {
@@ -493,16 +494,19 @@ const openUrl = (location: string) => {
 				<!-- Meet link -->
 				<template v-if="meetUrl">
 					<div class="flex items-center gap-2.5 px-4.5 py-2">
-						<img :src="meetLogo" :alt="__('Frappe Meet')" class="size-7 shrink-0" />
+						<!-- //// Neoffice — Neoffice's names in place of upstream's Frappe brands (#1316). -->
+						<img :src="meetLogo" :alt="__('Meet')" class="size-7 shrink-0" />
 						<div class="min-w-0 flex-1">
+							<!-- //// Neoffice — Neoffice's names in place of upstream's Frappe brands (#1316). -->
 							<div class="text-ink-gray-8 text-sm font-medium">
-								{{ __('Frappe Meet') }}
+								{{ __('Meet') }}
 							</div>
 							<div class="text-ink-gray-5 truncate text-xs">{{ meetLinkDisplay }}</div>
 						</div>
+						<!-- //// Neoffice — Neoffice's names in place of upstream's Frappe brands (#1316). -->
 						<button
 							class="text-ink-gray-5 hover:text-ink-gray-7 shrink-0"
-							:title="__('Copy Frappe Meet link')"
+							:title="__('Copy Meet link')"
 							@click="copyMeetLink"
 						>
 							<Copy class="icon size-4" />

@@ -72,20 +72,23 @@ const routes: RouteRecordRaw[] = [
     path: '/suite',
     name: 'suite-launcher',
     component: () => import('@/shell/LauncherView.vue'),
-    meta: { isShell: true, title: 'Frappe Suite', favicon: SUITE_FAVICON },
+    // //// Neoffice — Neoffice's name in the tab, not upstream's « Frappe Suite » (#1316).
+    meta: { isShell: true, title: 'Neoffice', favicon: SUITE_FAVICON },
   },
   {
     path: '/suite/setup',
     name: 'suite-setup',
     component: () => import('@/shell/SetupView.vue'),
-    meta: { isShell: true, title: 'Set up Frappe Suite', favicon: SUITE_FAVICON },
+    // //// Neoffice — Neoffice's name in the tab; « Set up Neoffice » is anchored for translation in suite/i18n_anchors.py (#1316).
+    meta: { isShell: true, title: 'Set up Neoffice', favicon: SUITE_FAVICON },
   },
   ...placeholderGroups,
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
     component: () => import('@/shell/NotFoundView.vue'),
-    meta: { title: 'Frappe Suite', favicon: SUITE_FAVICON },
+    // //// Neoffice — Neoffice's name in the tab, not upstream's « Frappe Suite » (#1316).
+    meta: { title: 'Neoffice', favicon: SUITE_FAVICON },
   },
 ]
 
