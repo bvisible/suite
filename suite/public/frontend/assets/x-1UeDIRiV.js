@@ -1,0 +1,1 @@
+import{t as e}from"./createLucideIcon-DzuAF9dp.js";var t=e=>!e.hour(13).minute(0).format(`LT`).includes(`13`),n=(e,n=`h:mm a`,r=`LT`)=>e.format(t(e)?n:r),r=e(`x`,[[`path`,{d:`M18 6 6 18`,key:`1bl5f8`}],[`path`,{d:`m6 6 12 12`,key:`d8bk6v`}]]);export{n,t as r,r as t};
