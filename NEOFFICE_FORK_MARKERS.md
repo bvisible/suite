@@ -75,7 +75,7 @@ correct base. It arrived through `42afbc164 merge: rattrapage upstream
 | `suite/calendar` | ~10 | sharing, per-calendar settings, visibility persistence, CalDAV link, degenerate-event guard, JMAP NULL guards |
 | `suite/mail` | ~8 | mailbox auto-provisioning (`events.py`, +164), JMAP property list, v15 `["is","set"]` filter idiom |
 | `suite/meet` | 2 | tenant claim for the shared central SFU |
-| `frontend/src` | ~24 | NeoCockpit chrome, apps_v2 icons, external/`createsOffice` launcher tiles, Collabora preview, `__()` wraps |
+| `frontend/src` | ~24 | NeoCockpit chrome, the brand's Streamline icons (served by neoffice_theme, `src/neoffice/appIcons.ts`), external/`createsOffice` launcher tiles, Collabora preview, `__()` wraps |
 | build / packaging | 6 | `pyproject.toml` Python pin, `pnpm-workspace.yaml`, `vite.config.ts`, `.gitignore`, `copy-noise-suppression-assets.mjs` |
 | `suite/hooks.py`, `suite/patches.txt` | 2 | route rules, hooks, our patches |
 

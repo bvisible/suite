@@ -29,6 +29,13 @@ html.theme-switching * {
   scrollbar-width: thin;
 }
 
+/* //// Neoffice — the brand's app icons (Streamline duotone, served by neoffice_theme) draw their outline black:
+   in the dark theme it turns white and the hue is turned back so the clay stays clay, as on the desk
+   (neoffice-theme.css), whose stylesheet a Suite page may not load. */
+:root[data-theme='dark'] img[src*='/icons/streamline/'] {
+  filter: invert(1) hue-rotate(180deg);
+}
+
 body {
   margin: 0;
 }
