@@ -33,6 +33,8 @@ vi.mock('@/apps/drive/utils/files', () => ({
   updateURLSlug: mocks.updateURLSlug,
   isWriterDocument: () => false,
   hasHostedContent: () => false,
+  // //// Neoffice — File.vue's office-binary guard (45f09cf6d) imports this too; without it the mock threw.
+  isOfficeBinary: () => false,
 }))
 
 vi.mock('@/apps/drive/components/Navbar.vue', () => ({
