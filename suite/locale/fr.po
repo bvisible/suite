@@ -41,7 +41,7 @@ msgstr " le {0}"
 
 #: suite/public/frontend/assets/InviteStep-7vVbX84X.js:1
 msgid "\"{0}\" doesn't look like a valid email address."
-msgstr ""
+msgstr "« {0} » ne semble pas être une adresse e-mail valide."
 
 #: suite/mail/api/mail.py:795
 msgid "'Fail'"
@@ -61,7 +61,7 @@ msgstr "(Sans objet)"
 
 #: suite/public/frontend/assets/lib-CyQZVWLJ.js:207
 msgid "),em:r("
-msgstr ""
+msgstr "),em:r("
 
 #: frontend/src/apps/mail/components/MailThread.vue:375
 msgid ". You won't receive new messages from this source until you unblock them."
@@ -156,7 +156,7 @@ msgstr "3. Consultez les journaux SpamAssassin pour détecter d'éventuelles ten
 
 #: suite/public/frontend/assets/yjs-DZNEnbh3.js:4
 msgid ";Ts[Es]===!0&&console.error("
-msgstr ""
+msgstr ";Ts[Es]===!0&&console.error("
 
 #: suite/suite_core/doctype/store_entry/store_entry.py:342
 msgid "<binary blob: {0} bytes>"
@@ -2758,7 +2758,7 @@ msgid ""
 "4. Restore the backup, then follow the post-restore steps in the migration guide.\n"
 "\n"
 "The same steps apply to sites hosted on Frappe Cloud. See {1} for the full commands."
-msgstr ""
+msgstr "Impossible d'installer Frappe Suite, car les applications autonomes suivantes sont installées sur ce site : {0}. Frappe Suite les inclut déjà.\n\nPour migrer ce site vers Frappe Suite :\n1. Faites une sauvegarde du site, fichiers compris.\n2. Désinstallez les applications autonomes listées ci-dessus. Leurs données sur le site seront supprimées, c'est pourquoi la sauvegarde passe en premier.\n3. Installez Frappe Suite.\n4. Restaurez la sauvegarde, puis suivez les étapes à effectuer après la restauration décrites dans le guide de migration.\n\nLes mêmes étapes s'appliquent aux sites hébergés sur Frappe Cloud. Consultez {1} pour les commandes complètes."
 
 #: suite/calendar/doctype/calendar_event/calendar_event.py:295
 msgid "Cannot mark an existing event as draft."
@@ -12403,7 +12403,7 @@ msgstr "Facultatif. Laisser vide si le client s'authentifie sans secret."
 #. Description of the 'Metadata' (JSON) field in DocType 'Contacts Exchange'
 #: suite/mail/doctype/contacts_exchange/contacts_exchange.json
 msgid "Optional. Target address book to import contacts into. Example: <code>{\"addressBookIds\": {\"a\": True}}</code>"
-msgstr ""
+msgstr "Facultatif. Carnet d'adresses cible dans lequel importer les contacts. Exemple : <code>{\"addressBookIds\": {\"a\": True}}</code>"
 
 #. Description of the 'Metadata' (JSON) field in DocType 'Calendar Exchange'
 #: suite/calendar/doctype/calendar_exchange/calendar_exchange.json
@@ -17319,7 +17319,7 @@ msgid ""
 "Store files by id under one prefix instead of mirroring the folder tree.\n"
 "S3 has no rename, so mirroring makes moving a folder copy and delete every object beneath it. Flat keeps moves and renames database-only.\n"
 "Recommended for S3; leave off for local disk."
-msgstr ""
+msgstr "Stocker les fichiers par identifiant sous un seul préfixe au lieu de reproduire l'arborescence des dossiers.\nS3 ne propose pas de renommage : reproduire l'arborescence oblige, pour déplacer un dossier, à copier puis supprimer chaque objet qu'il contient. Avec le stockage plat, déplacer ou renommer ne touche que la base de données.\nRecommandé pour S3 ; à laisser désactivé pour un disque local."
 
 #. Label of a Int field in DocType 'Sheet Collab State'
 #. Label of a Int field in DocType 'Sheet Snapshot'
@@ -20992,7 +20992,7 @@ msgstr "toujours"
 #: frontend/src/apps/mail/components/InstallPrompt.vue:51
 #: suite/public/frontend/assets/MailLayout-VRO3RUiH.js:1
 msgid "and then \"Add to Home Screen\""
-msgstr ""
+msgstr "puis « Sur l'écran d'accueil »"
 
 #. Option for the 'Match If' (Select) field in DocType 'Mailbox Settings'
 #: suite/mail/doctype/mailbox_settings/mailbox_settings.json
@@ -21050,7 +21050,7 @@ msgstr "pont"
 #. Option for the 'Failure Code' (Select) field in DocType 'Meet Recording'
 #: suite/meet/doctype/meet_recording/meet_recording.json
 msgid "capture_failed"
-msgstr ""
+msgstr "Échec de la capture"
 
 #: suite/mail/doctype/contacts_exchange/contacts_exchange.py:566
 msgid "cards.json must contain a list of contact cards."
@@ -21146,7 +21146,7 @@ msgstr "brouillons"
 #. Option for the 'End Reason' (Select) field in DocType 'Meet Recording'
 #: suite/meet/doctype/meet_recording/meet_recording.json
 msgid "duration_limit"
-msgstr ""
+msgstr "Limite de durée atteinte"
 
 #: frontend/src/apps/calendar/components/Modals/NewCalendarModal.vue:44
 msgid "e.g. Holidays, Team, Personal"
@@ -21217,7 +21217,7 @@ msgstr "de"
 #. Option for the 'Failure Code' (Select) field in DocType 'Meet Recording'
 #: suite/meet/doctype/meet_recording/meet_recording.json
 msgid "grant_delivery_failed"
-msgstr ""
+msgstr "Échec de la transmission de l'autorisation d'accès"
 
 #. Option for the 'Network Mode' (Select) field in DocType 'Server Deployment
 #. Service'
@@ -21228,7 +21228,7 @@ msgstr "hôte"
 #. Option for the 'End Reason' (Select) field in DocType 'Meet Recording'
 #: suite/meet/doctype/meet_recording/meet_recording.json
 msgid "host_stop"
-msgstr ""
+msgstr "Arrêté par l'hôte"
 
 #: frontend/src/apps/calendar/components/EventDetailSidebar.vue:185
 #: suite/public/frontend/assets/useChunkedUpload-DoN5Mbh0.js:1
@@ -21273,7 +21273,7 @@ msgstr "boîte de réception"
 #. Option for the 'Depth' (Select) field in DocType 'Drive DAV Lock'
 #: suite/drive/doctype/drive_dav_lock/drive_dav_lock.json
 msgid "infinity"
-msgstr ""
+msgstr "infinity"
 
 #. Option for the 'Disposition' (Select) field in DocType 'Mail Message Part'
 #: suite/mail/doctype/mail_message_part/mail_message_part.json
@@ -21283,12 +21283,12 @@ msgstr "intégré"
 #. Option for the 'End Reason' (Select) field in DocType 'Meet Recording'
 #: suite/meet/doctype/meet_recording/meet_recording.json
 msgid "interruption_timeout"
-msgstr ""
+msgstr "Délai d'interruption dépassé"
 
 #. Option for the 'Failure Code' (Select) field in DocType 'Meet Recording'
 #: suite/meet/doctype/meet_recording/meet_recording.json
 msgid "invalid_proof_key"
-msgstr ""
+msgstr "Clé de preuve invalide"
 
 #. Option for the 'Format' (Select) field in DocType 'Calendar Exchange'
 #. Option for the 'Format' (Select) field in DocType 'Contacts Exchange'
@@ -21446,27 +21446,27 @@ msgstr "personne"
 #. Option for the 'Failure Code' (Select) field in DocType 'Meet Recording'
 #: suite/meet/doctype/meet_recording/meet_recording.json
 msgid "processing_failed"
-msgstr ""
+msgstr "Échec du traitement"
 
 #. Option for the 'Failure Code' (Select) field in DocType 'Meet Recording'
 #: suite/meet/doctype/meet_recording/meet_recording.json
 msgid "quota_exhausted"
-msgstr ""
+msgstr "Quota épuisé"
 
 #. Option for the 'End Reason' (Select) field in DocType 'Meet Recording'
 #: suite/meet/doctype/meet_recording/meet_recording.json
 msgid "quota_limit"
-msgstr ""
+msgstr "Limite de quota atteinte"
 
 #. Option for the 'Failure Code' (Select) field in DocType 'Meet Recording'
 #: suite/meet/doctype/meet_recording/meet_recording.json
 msgid "recorder_rejected"
-msgstr ""
+msgstr "Refusé par l'enregistreur"
 
 #. Option for the 'Failure Code' (Select) field in DocType 'Meet Recording'
 #: suite/meet/doctype/meet_recording/meet_recording.json
 msgid "recorder_unavailable"
-msgstr ""
+msgstr "Enregistreur indisponible"
 
 #. Option for the 'Action Type' (Select) field in DocType 'Drive Entity
 #. Activity Log'
@@ -21498,7 +21498,7 @@ msgstr "restreint"
 #. Option for the 'End Reason' (Select) field in DocType 'Meet Recording'
 #: suite/meet/doctype/meet_recording/meet_recording.json
 msgid "room_empty"
-msgstr ""
+msgstr "Salle vide"
 
 #: frontend/src/apps/drive/components/DriveToolBar.vue:8
 #: suite/public/frontend/assets/GenericPage-DckS4HFf.js:1
@@ -21523,7 +21523,7 @@ msgstr "envoyés"
 #. Option for the 'End Reason' (Select) field in DocType 'Meet Recording'
 #: suite/meet/doctype/meet_recording/meet_recording.json
 msgid "service_shutdown"
-msgstr ""
+msgstr "Arrêt du service"
 
 #. Option for the 'Action Type' (Select) field in DocType 'Drive Entity
 #. Activity Log'
@@ -21551,12 +21551,12 @@ msgstr "simulcast"
 #. Option for the 'Failure Code' (Select) field in DocType 'Meet Recording'
 #: suite/meet/doctype/meet_recording/meet_recording.json
 msgid "startup_timeout"
-msgstr ""
+msgstr "Délai de démarrage dépassé"
 
 #. Option for the 'Failure Code' (Select) field in DocType 'Meet Recording'
 #: suite/meet/doctype/meet_recording/meet_recording.json
 msgid "storage_unavailable"
-msgstr ""
+msgstr "Stockage indisponible"
 
 #: frontend/src/apps/mail/components/MailDetails.vue:40
 msgid "subject"
@@ -22182,3 +22182,2127 @@ msgstr "Aucun résultat. Essayez autre chose ?"
 # //// Neoffice — NewCalendarModal.vue wraps the word in __() (toast « External calendar added — synced ») but the catalogue had no entry.
 msgid "synced"
 msgstr "synchronisé"
+
+#: frontend/src/apps/meet/components/PeopleParticipantTile.vue:19
+msgid "(You)"
+msgstr "(Vous)"
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:41
+#: frontend/src/apps/meet/pages/AudioTest.vue:72
+#: frontend/src/apps/meet/pages/AudioTest.vue:103
+#: frontend/src/apps/meet/pages/AudioTest.vue:134
+#: frontend/src/apps/meet/pages/AudioTest.vue:165
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "({0}s, {1}% volume)"
+msgstr "({0} s, volume à {1} %)"
+
+#: frontend/src/apps/meet/components/AvatarGroup.vue:156
+#: suite/public/frontend/assets/AvatarGroup-DuVnQHTa.js:1
+msgid "1 other in the meeting"
+msgstr "1 autre personne dans la réunion"
+
+#: frontend/src/apps/meet/components/PollMessageCard.vue:49
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "1 vote"
+msgstr "1 vote"
+
+#: frontend/src/apps/meet/composables/useChat.ts:140
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "[Unencrypted message blocked]"
+msgstr "[Message non chiffré bloqué]"
+
+#: frontend/src/apps/mail/utils/submissionActivity.ts:162
+#: suite/public/frontend/assets/SubmissionDetailsView-C0trK4_L.js:1
+msgid "Accepted for {0}"
+msgstr "Accepté pour {0}"
+
+#: frontend/src/apps/meet/data/backgroundEffects.ts:154
+#: suite/public/frontend/assets/backgroundEffects-GQgzqJUs.js:1
+msgid "Add Custom"
+msgstr "Ajouter une image"
+
+#: frontend/src/apps/meet/components/CreatePollModal.vue:49
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Add Option"
+msgstr "Ajouter une option"
+
+#: frontend/src/apps/meet/components/settings/BackgroundSettingsTab.vue:351
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Added custom background: {0}"
+msgstr "Arrière-plan personnalisé ajouté : {0}"
+
+#: frontend/src/apps/meet/components/JoinRequestNotifications.vue:55
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Admit"
+msgstr "Admettre"
+
+#: frontend/src/apps/meet/components/PeopleWaitingSection.vue:13
+msgid "Admit all"
+msgstr "Tout admettre"
+
+#: frontend/src/apps/meet/components/settings/DeviceSettingsTab.vue:33
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Allow camera access"
+msgstr "Autoriser l'accès à la caméra"
+
+#: frontend/src/apps/meet/components/settings/DeviceSettingsTab.vue:39
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Allow camera access to select a camera"
+msgstr "Autorisez l'accès à la caméra pour en choisir une"
+
+#: frontend/src/apps/meet/components/settings/MeetingAccessSettingsTab.vue:11
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Allow Guests"
+msgstr "Autoriser les invités"
+
+#: frontend/src/apps/meet/components/settings/DeviceSettingsTab.vue:74
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Allow microphone access"
+msgstr "Autoriser l'accès au micro"
+
+#: frontend/src/apps/meet/components/settings/DeviceSettingsTab.vue:80
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Allow microphone access to select a microphone"
+msgstr "Autorisez l'accès au microphone pour en choisir un"
+
+#: frontend/src/apps/meet/components/settings/MeetingAccessSettingsTab.vue:12
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Allow non-registered users to join this meeting"
+msgstr "Autoriser les utilisateurs sans compte à rejoindre cette réunion"
+
+#: frontend/src/apps/meet/utils/recordingPresentation.ts:8
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "An administrator needs to enable recording for Meet."
+msgstr "Un administrateur doit activer l'enregistrement pour Meet."
+
+#: frontend/src/apps/meet/utils/error.ts:15
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "An unknown error occurred"
+msgstr "Une erreur inconnue s'est produite"
+
+#: frontend/src/apps/meet/composables/useGuestRealtime.ts:88
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Approved guest identity does not match the stored session"
+msgstr "L'identité de l'invité approuvé ne correspond pas à la session enregistrée"
+
+#: frontend/src/composables/useAppSwitcher.ts:11
+msgid "Apps"
+msgstr "Applications"
+
+#: frontend/src/apps/meet/components/KickParticipantDialog.vue:12
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Are you sure you want to remove"
+msgstr "Voulez-vous vraiment retirer"
+
+#: frontend/src/apps/meet/components/CreatePollModal.vue:11
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Ask your audience something..."
+msgstr "Posez une question aux participants..."
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:231
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Audio concealed"
+msgstr "Audio masqué"
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:9
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "Audio Notification Test"
+msgstr "Test des notifications audio"
+
+#: frontend/src/apps/meet/components/settings/BackgroundSettingsTab.vue:34
+#: frontend/src/apps/meet/components/settings/BackgroundSettingsTab.vue:41
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Auto framing off"
+msgstr "Cadrage automatique désactivé"
+
+#: frontend/src/apps/meet/components/settings/BackgroundSettingsTab.vue:34
+#: frontend/src/apps/meet/components/settings/BackgroundSettingsTab.vue:41
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Auto framing on"
+msgstr "Cadrage automatique activé"
+
+#: frontend/src/apps/meet/components/settings/LayoutSettingsTab.vue:11
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Auto-hide header and controls"
+msgstr "Masquer automatiquement l'en-tête et les commandes"
+
+#: frontend/src/apps/meet/components/settings/LayoutSettingsTab.vue:12
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Automatically hide the header and toolbar after 10 seconds of inactivity"
+msgstr "Masquer automatiquement l'en-tête et la barre d'outils après 10 secondes d'inactivité"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:52
+msgid "Available upload"
+msgstr "Envoi disponible"
+
+#: frontend/src/apps/meet/pages/Meeting.vue:66
+msgid "Back to Meet"
+msgstr "Retour à Meet"
+
+#: frontend/src/apps/meet/composables/useBackgroundEffects.ts:740
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Background blur failed due to WebGL error. Blur effects have been disabled."
+msgstr "Échec du flou d'arrière-plan en raison d'une erreur WebGL. Les effets de flou ont été désactivés."
+
+#: frontend/src/apps/meet/composables/useBackgroundEffects.ts:729
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Background blur requires WebGL but it's not available on this device. Blur effects have been disabled."
+msgstr "Le flou d'arrière-plan nécessite WebGL, qui n'est pas disponible sur cet appareil. Les effets de flou ont été désactivés."
+
+#: frontend/src/apps/meet/components/KickParticipantDialog.vue:17
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Ban from this meeting?"
+msgstr "Bannir de cette réunion ?"
+
+#: frontend/src/apps/meet/data/backgroundEffects.ts:96
+#: suite/public/frontend/assets/backgroundEffects-GQgzqJUs.js:1
+msgid "Beach"
+msgstr "Plage"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:223
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Bitrate"
+msgstr "Débit"
+
+#: frontend/src/apps/meet/data/backgroundEffects.ts:145
+#: suite/public/frontend/assets/backgroundEffects-GQgzqJUs.js:1
+msgid "Blur"
+msgstr "Flou"
+
+#: frontend/src/apps/meet/components/settings/DeviceSettingsTab.vue:17
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Camera"
+msgstr "Caméra"
+
+#: frontend/src/apps/meet/composables/useMediaControls.ts:1266
+#: frontend/src/apps/meet/composables/useMediaControls.ts:1315
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Camera access denied. Enable in browser settings."
+msgstr "Accès à la caméra refusé. Activez-le dans les paramètres du navigateur."
+
+#: frontend/src/apps/meet/components/settings/DeviceSettingsTab.vue:23
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Camera access required"
+msgstr "Accès à la caméra requis"
+
+#: frontend/src/apps/meet/components/PeopleParticipantTile.vue:53
+msgid "Camera off"
+msgstr "Caméra coupée"
+
+#: frontend/src/apps/meet/components/PeopleParticipantTile.vue:53
+msgid "Camera on"
+msgstr "Caméra allumée"
+
+#: frontend/src/apps/meet/composables/useMediaControls.ts:990
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Camera stopped and could not be restarted. Check browser permissions and devices."
+msgstr "La caméra s'est arrêtée et n'a pas pu être redémarrée. Vérifiez les autorisations du navigateur et les appareils."
+
+#: frontend/src/apps/meet/utils/media/DeviceManager.ts:70
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Camera {0}"
+msgstr "Caméra {0}"
+
+#: suite/drive/wopi/editor.py:155
+msgid "Cannot access folder due to insufficient permissions"
+msgstr "Impossible d'accéder au dossier en raison de permissions insuffisantes"
+
+#: suite/mail/doctype/push_subscription/push_subscription.py:374
+msgid "Cannot authenticate for {0} account(s); they are skipped for 24 h and tried again after that."
+msgstr "Impossible de s'authentifier pour {0} compte(s) ; ils sont ignorés pendant 24 h, puis réessayés."
+
+#: frontend/src/apps/meet/composables/useMeetingHandlers.ts:187
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Cannot remove this participant while disconnected. Reconnect and try again."
+msgstr "Impossible de retirer ce participant tant que la connexion est interrompue. Reconnectez-vous et réessayez."
+
+#: frontend/src/apps/meet/components/ChatPanel.vue:18
+#: frontend/src/apps/meet/components/MeetingToolbar.vue:327
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Chat"
+msgstr "Chat"
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:115
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "Chat Message"
+msgstr "Message de chat"
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:203
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "Check browser console for any AudioContext errors"
+msgstr "Consultez la console du navigateur pour repérer d'éventuelles erreurs AudioContext"
+
+#: frontend/src/apps/meet/utils/recordingPresentation.ts:31
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Check the room settings and try again."
+msgstr "Vérifiez les paramètres de la salle, puis réessayez."
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:199
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "Click individual buttons to test each notification"
+msgstr "Cliquez sur chaque bouton pour tester la notification correspondante"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:221
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Codec"
+msgstr "Codec"
+
+#: frontend/src/apps/meet/components/settings/AudioSettingsTab.vue:5
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Configure your audio and microphone settings"
+msgstr "Configurez vos paramètres audio et de microphone"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:128
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Connected"
+msgstr "Connecté"
+
+#: frontend/src/apps/meet/pages/Meeting.vue:861
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Connecting…"
+msgstr "Connexion en cours…"
+
+#: frontend/src/apps/meet/components/settings/MeetingAccessSettingsTab.vue:4
+#: frontend/src/apps/meet/components/settings/SettingsDialog.vue:126
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Controls"
+msgstr "Contrôles"
+
+#: frontend/src/apps/meet/components/settings/E2EESettingsSection.vue:56
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Converts this meeting to E2EE for extra privacy. Only participants can access the meeting content."
+msgstr "Convertit cette réunion en E2EE pour une confidentialité renforcée. Seuls les participants peuvent accéder au contenu de la réunion."
+
+#: frontend/src/apps/meet/components/ClickToCopyField.vue:24
+msgid "copied"
+msgstr "copié"
+
+#: frontend/src/apps/meet/components/ClickToCopyField.vue:48
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Copied to clipboard!"
+msgstr "Copié dans le presse-papiers !"
+
+#: frontend/src/apps/meet/components/ClickToCopyField.vue:24
+msgid "copy"
+msgstr "copier"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:22
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:23
+msgid "Copy diagnostics"
+msgstr "Copier le diagnostic"
+
+#: frontend/src/apps/meet/pages/Home.vue:322
+#: frontend/src/apps/meet/pages/Meeting.vue:28
+#: suite/public/frontend/assets/Home-BKZqBSzy.js:1
+msgid "Copy link"
+msgstr "Copier le lien"
+
+#: frontend/src/apps/meet/composables/useSFUConnection.ts:951
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Could not activate co-host permissions"
+msgstr "Impossible d'activer les permissions de co-hôte"
+
+#: frontend/src/apps/meet/pages/Meeting.vue:384
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Could not copy meeting link"
+msgstr "Impossible de copier le lien de la réunion"
+
+#: frontend/src/apps/meet/composables/useMediaControls.ts:1316
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Could not enable camera"
+msgstr "Impossible d'activer la caméra"
+
+#: frontend/src/apps/meet/pages/Meeting.vue:488
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Could not join encrypted meeting"
+msgstr "Impossible de rejoindre la réunion chiffrée"
+
+#: frontend/src/apps/meet/pages/Home.vue:352
+#: suite/public/frontend/assets/Home-BKZqBSzy.js:1
+msgid "Could not load Calendar account."
+msgstr "Impossible de charger le compte de calendrier."
+
+#: frontend/src/apps/meet/pages/Meeting.vue:430
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Could not manage recording"
+msgstr "Impossible de gérer l'enregistrement"
+
+#: frontend/src/apps/meet/composables/useRTCStats.ts:308
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Could not read WebRTC statistics"
+msgstr "Impossible de lire les statistiques WebRTC"
+
+#: frontend/src/apps/meet/composables/useMeetingHandlers.ts:211
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Could not remove this participant. Please try again."
+msgstr "Impossible de retirer ce participant. Veuillez réessayer."
+
+#: frontend/src/apps/meet/pages/Meeting.vue:513
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Could not set up encryption for this meeting. Please leave and try again."
+msgstr "Impossible de configurer le chiffrement de cette réunion. Veuillez quitter la réunion et réessayer."
+
+#: frontend/src/apps/meet/pages/Meeting.vue:449
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Could not start recording"
+msgstr "Impossible de démarrer l'enregistrement"
+
+#: frontend/src/apps/meet/pages/Meeting.vue:440
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Could not stop recording"
+msgstr "Impossible d'arrêter l'enregistrement"
+
+#: frontend/src/apps/meet/composables/useSFUConnection.ts:794
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Could not verify your guest admission. Please try again."
+msgstr "Impossible de vérifier votre admission en tant qu'invité. Veuillez réessayer."
+
+#: frontend/src/apps/meet/composables/useSFUConnection.ts:846
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Could not verify your guest session. Please reconnect."
+msgstr "Impossible de vérifier votre session d'invité. Veuillez vous reconnecter."
+
+#: frontend/src/apps/meet/components/CreatePollModal.vue:3
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Create a Poll"
+msgstr "Créer un sondage"
+
+#: frontend/src/apps/meet/components/ChatPanel.vue:304
+#: frontend/src/apps/meet/components/CreatePollModal.vue:76
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Create Poll"
+msgstr "Créer un sondage"
+
+#: frontend/src/apps/meet/pages/Home.vue:312
+#: suite/public/frontend/assets/Home-BKZqBSzy.js:1
+msgid "Creating meeting..."
+msgstr "Création de la réunion..."
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:41
+#: frontend/src/apps/meet/pages/AudioTest.vue:72
+#: frontend/src/apps/meet/pages/AudioTest.vue:103
+#: frontend/src/apps/meet/pages/AudioTest.vue:134
+#: frontend/src/apps/meet/pages/AudioTest.vue:165
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "Current:"
+msgstr "Actuel :"
+
+#: frontend/src/apps/meet/components/settings/BackgroundSettingsTab.vue:369
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Custom background removed"
+msgstr "Arrière-plan personnalisé supprimé"
+
+#: frontend/src/apps/meet/components/settings/NotificationSettingsTab.vue:5
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Customize notification sounds for meeting events"
+msgstr "Personnaliser les sons de notification des événements de la réunion"
+
+#: frontend/src/apps/meet/components/settings/LayoutSettingsTab.vue:5
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Customize the meeting interface layout"
+msgstr "Personnaliser la disposition de l'interface de la réunion"
+
+#: frontend/src/apps/meet/pages/Home.vue:118
+#: suite/public/frontend/assets/Home-BKZqBSzy.js:1
+msgid "Date"
+msgstr "Date"
+
+#: frontend/src/apps/mail/utils/submissionActivity.ts:147
+#: suite/public/frontend/assets/SubmissionDetailsView-C0trK4_L.js:1
+msgid "Deferred for {0}"
+msgstr "Différé pour {0}"
+
+#: frontend/src/apps/mail/utils/submissionActivity.ts:87
+#: suite/public/frontend/assets/SubmissionDetailsView-C0trK4_L.js:1
+msgid "Delivered to all {0} recipients"
+msgstr "Livré à tous les {0} destinataires"
+
+#: frontend/src/apps/mail/utils/submissionActivity.ts:86
+#: suite/public/frontend/assets/SubmissionDetailsView-C0trK4_L.js:1
+msgid "Delivered to all {0} recipients, read by {1}"
+msgstr "Livré à tous les {0} destinataires, lu par {1}"
+
+#: frontend/src/apps/mail/utils/submissionActivity.ts:164
+#: suite/public/frontend/assets/SubmissionDetailsView-C0trK4_L.js:1
+msgid "Delivered to {0}"
+msgstr "Livré à {0}"
+
+#: frontend/src/apps/mail/utils/submissionActivity.ts:102
+#: suite/public/frontend/assets/SubmissionDetailsView-C0trK4_L.js:1
+msgid "Delivery cancelled"
+msgstr "Livraison annulée"
+
+#: frontend/src/apps/mail/utils/submissionActivity.ts:84
+#: suite/public/frontend/assets/SubmissionDetailsView-C0trK4_L.js:1
+msgid "Delivery confirmed"
+msgstr "Livraison confirmée"
+
+#: frontend/src/apps/mail/utils/submissionActivity.ts:157
+#: suite/public/frontend/assets/SubmissionDetailsView-C0trK4_L.js:1
+msgid "Delivery failed for {0}"
+msgstr "Échec de la livraison à {0}"
+
+#: frontend/src/apps/mail/utils/submissionActivity.ts:164
+#: suite/public/frontend/assets/SubmissionDetailsView-C0trK4_L.js:1
+msgid "Delivery report received"
+msgstr "Rapport de livraison reçu"
+
+#: suite/public/frontend/assets/MailThread-Cl1zC5Hu.js:20
+msgid "Delivery to {0} has been delayed. The server will keep trying until {1}."
+msgstr "La livraison à {0} a été retardée. Le serveur continuera d'essayer jusqu'au {1}."
+
+#: suite/public/frontend/assets/MailThread-Cl1zC5Hu.js:20
+msgid "Delivery to {0} has been delayed. The server will keep trying."
+msgstr "La livraison à {0} a été retardée. Le serveur continuera d'essayer."
+
+#: frontend/src/apps/meet/components/settings/DeviceSettingsTab.vue:4
+#: frontend/src/apps/meet/components/settings/SettingsDialog.vue:142
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Devices"
+msgstr "Appareils"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:128
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Disconnected"
+msgstr "Déconnecté"
+
+#: frontend/src/apps/meet/components/JoinRequestNotifications.vue:35
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Dismiss request"
+msgstr "Ignorer la demande"
+
+#: frontend/src/apps/meet/utils/recordingPresentation.ts:19
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Drive storage is unavailable"
+msgstr "Le stockage Drive est indisponible"
+
+#: frontend/src/apps/meet/components/settings/E2EESettingsSection.vue:123
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "E2EE requires encoded media transform support."
+msgstr "Le chiffrement E2EE nécessite la prise en charge de la transformation des médias encodés."
+
+#: frontend/src/apps/meet/components/settings/E2EESettingsSection.vue:53
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "E2EE requires encoded media transform support. Update your browser to enable it."
+msgstr "Le chiffrement E2EE nécessite la prise en charge de la transformation des médias encodés. Mettez à jour votre navigateur pour l'activer."
+
+#: frontend/src/apps/meet/data/backgroundEffects.ts:112
+#: suite/public/frontend/assets/backgroundEffects-GQgzqJUs.js:1
+msgid "Earth & Moon"
+msgstr "Terre et Lune"
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:201
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "Edit frequencies/timing in"
+msgstr "Modifiez les fréquences et les durées dans"
+
+#: frontend/src/apps/meet/components/ChatPanel.vue:177
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Emoji suggestions"
+msgstr "Suggestions d'émojis"
+
+#: frontend/src/apps/meet/components/settings/NotificationSettingsTab.vue:11
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Enable notification sounds"
+msgstr "Activer les sons de notification"
+
+#: frontend/src/apps/meet/components/settings/BackgroundSettingsTab.vue:157
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Enabling background effects may slow down your computer, especially on older devices."
+msgstr "L'activation des effets d'arrière-plan peut ralentir votre ordinateur, surtout sur les appareils plus anciens."
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:64
+msgid "Encoding strategy"
+msgstr "Stratégie d'encodage"
+
+#: frontend/src/apps/meet/composables/useChat.ts:261
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Encrypted chat is not ready yet. Wait for encryption to finish, then try again."
+msgstr "La discussion chiffrée n'est pas encore prête. Attendez la fin du chiffrement, puis réessayez."
+
+#: frontend/src/apps/meet/utils/recordingPresentation.ts:13
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Encrypted meetings can't be recorded"
+msgstr "Les réunions chiffrées ne peuvent pas être enregistrées"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:65
+msgid "Encryption"
+msgstr "Chiffrement"
+
+#: frontend/src/apps/meet/components/MeetingInfoPopover.vue:29
+msgid "Encryption fingerprint"
+msgstr "Empreinte de chiffrement"
+
+#: frontend/src/apps/meet/components/MeetingToolbar.vue:108
+msgid "End Call"
+msgstr "Mettre fin à l'appel"
+
+#: frontend/src/apps/meet/pages/Meeting.vue:146
+msgid "End-to-end encrypted"
+msgstr "Chiffré de bout en bout"
+
+#: frontend/src/apps/meet/components/settings/E2EESettingsSection.vue:3
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "End-to-end encryption"
+msgstr "Chiffrement de bout en bout"
+
+#: frontend/src/apps/meet/components/MeetingToolbar.vue:308
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Enter full screen"
+msgstr "Passer en plein écran"
+
+#: frontend/src/apps/meet/components/RejectionOverlay.vue:10
+msgid "Entry denied"
+msgstr "Entrée refusée"
+
+#: frontend/src/apps/calendar/utils/format.ts:73
+#: suite/public/frontend/assets/EventParticipantList-D-Z-eC_k.js:1
+msgid "Every {0} {1}"
+msgstr "Chaque {0} {1}"
+
+#: frontend/src/apps/meet/components/ParticipantTile.vue:42
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Everyone else can see what you are presenting"
+msgstr "Les autres participants peuvent voir ce que vous présentez"
+
+#: frontend/src/apps/meet/components/RecordingPreflightDialog.vue:61
+msgid "Everyone in the meeting will see a recording notice. The video will be saved privately to the room owner's Drive."
+msgstr "Tous les participants de la réunion verront un avis d'enregistrement. La vidéo sera sauvegardée de manière privée dans le Drive du propriétaire de la salle."
+
+#: frontend/src/apps/meet/components/MeetingInfoPopover.vue:33
+msgid "Everyone in this meeting should see the same fingerprint"
+msgstr "Tous les participants de cette réunion doivent voir la même empreinte"
+
+#: frontend/src/apps/meet/components/MeetingToolbar.vue:308
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Exit full screen"
+msgstr "Quitter le plein écran"
+
+#: frontend/src/apps/meet/composables/useMediaControls.ts:1267
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Failed to access camera"
+msgstr "Échec de l'accès à la caméra"
+
+#: frontend/src/apps/meet/components/settings/BackgroundSettingsTab.vue:358
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Failed to add custom background image"
+msgstr "Échec de l'ajout de l'image d'arrière-plan personnalisée"
+
+#: frontend/src/apps/meet/composables/useBackgroundEffects.ts:1118
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Failed to apply background effects. Using original video."
+msgstr "Échec de l'application des effets d'arrière-plan. Utilisation de la vidéo d'origine."
+
+#: frontend/src/apps/meet/composables/useNoiseCancellation.ts:185
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Failed to apply noise cancellation"
+msgstr "Échec de l'activation de la suppression du bruit"
+
+#: frontend/src/apps/meet/composables/useMeetingPreviewPresence.ts:162
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Failed to connect to SFU"
+msgstr "Échec de la connexion au SFU"
+
+#: frontend/src/apps/meet/pages/Home.vue:244
+#: suite/public/frontend/assets/Home-BKZqBSzy.js:1
+msgid "Failed to create meeting. Please try again."
+msgstr "Échec de la création de la réunion. Veuillez réessayer."
+
+#: frontend/src/apps/meet/composables/usePoll.ts:354
+#: frontend/src/apps/meet/composables/usePoll.ts:359
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Failed to create poll"
+msgstr "Échec de la création du sondage"
+
+#: frontend/src/apps/meet/components/settings/E2EESettingsSection.vue:153
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Failed to enable E2EE for this meeting"
+msgstr "Échec de l'activation du chiffrement de bout en bout (E2EE) pour cette réunion"
+
+#: frontend/src/apps/meet/composables/useMeetingPreviewPresence.ts:154
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Failed to fetch participants"
+msgstr "Échec de la récupération des participants"
+
+#: frontend/src/apps/meet/composables/useMeetingPreviewPresence.ts:63
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Failed to fetch presence token"
+msgstr "Échec de la récupération du jeton de présence"
+
+#: frontend/src/apps/meet/composables/useMeetingPreviewPresence.ts:56
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Failed to get presence token"
+msgstr "Échec de l'obtention du jeton de présence"
+
+#: frontend/src/apps/meet/composables/useNoiseCancellation.ts:97
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Failed to initialize noise cancellation"
+msgstr "Échec de l'initialisation de la suppression du bruit"
+
+#: frontend/src/apps/meet/composables/useSFUConnection.ts:898
+#: frontend/src/apps/meet/composables/useSFUConnection.ts:904
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Failed to join meeting after approval"
+msgstr "Impossible de rejoindre la réunion après l'approbation"
+
+#: frontend/src/apps/meet/components/MeetingPreview.vue:264
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Failed to join meeting as guest."
+msgstr "Impossible de rejoindre la réunion en tant qu'invité."
+
+#: frontend/src/apps/meet/composables/useBackgroundEffects.ts:299
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Failed to load the background effects model. Please try again."
+msgstr "Échec du chargement du modèle d'effets d'arrière-plan. Veuillez réessayer."
+
+#: frontend/src/apps/meet/composables/useChat.ts:321
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Failed to pin message"
+msgstr "Échec de l'épinglage du message"
+
+#: frontend/src/apps/meet/composables/useMeetingHandlers.ts:248
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Failed to promote user to co-host"
+msgstr "Échec de la promotion de l'utilisateur au rang de co-hôte"
+
+#: frontend/src/apps/meet/components/settings/BackgroundSettingsTab.vue:373
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Failed to remove custom background"
+msgstr "Échec de la suppression de l'arrière-plan personnalisé"
+
+#: frontend/src/apps/meet/pages/Home.vue:370
+#: suite/public/frontend/assets/Home-BKZqBSzy.js:1
+msgid "Failed to schedule meeting. Please try again."
+msgstr "Échec de la programmation de la réunion. Veuillez réessayer."
+
+#: frontend/src/apps/meet/composables/useChat.ts:296
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Failed to send message"
+msgstr "Échec de l'envoi du message"
+
+#: frontend/src/apps/meet/composables/useMediaControls.ts:1567
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Failed to start screen sharing"
+msgstr "Échec du démarrage du partage d'écran"
+
+#: frontend/src/apps/meet/composables/usePoll.ts:378
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Failed to submit vote"
+msgstr "Échec de l'envoi du vote"
+
+#: frontend/src/apps/meet/composables/useMediaControls.ts:488
+#: frontend/src/apps/meet/composables/useMediaControls.ts:566
+#: frontend/src/apps/meet/composables/useMediaControls.ts:1405
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Failed to toggle camera"
+msgstr "Impossible d'activer ou de couper la caméra"
+
+#: frontend/src/apps/meet/composables/useMediaControls.ts:494
+#: frontend/src/apps/meet/composables/useMediaControls.ts:1217
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Failed to toggle microphone"
+msgstr "Impossible d'activer ou de couper le micro"
+
+#: frontend/src/apps/meet/components/settings/MeetingAccessSettingsTab.vue:120
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Failed to update meeting settings"
+msgstr "Échec de la mise à jour des paramètres de la réunion"
+
+#: frontend/src/apps/meet/composables/useBackgroundEffects.ts:1096
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Failed to update the selected background image. Reverting to original."
+msgstr "Échec de la mise à jour de l'image d'arrière-plan sélectionnée. Retour à la vidéo d'origine."
+
+#: frontend/src/apps/meet/utils/customImages.ts:166
+#: suite/public/frontend/assets/backgroundEffects-GQgzqJUs.js:1
+msgid "File too large. Maximum size is 5MB."
+msgstr "Fichier trop volumineux. La taille maximale est de 5 Mo."
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:226
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Frames processed / dropped"
+msgstr "Images traitées / perdues"
+
+#: frontend/src/apps/meet/components/settings/BackgroundSettingsTab.vue:60
+#: frontend/src/apps/meet/components/settings/BackgroundSettingsTab.vue:69
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Framing locked"
+msgstr "Cadrage verrouillé"
+
+#: frontend/src/apps/meet/components/settings/BackgroundSettingsTab.vue:61
+#: frontend/src/apps/meet/components/settings/BackgroundSettingsTab.vue:69
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Framing unlocked"
+msgstr "Cadrage déverrouillé"
+
+#: frontend/src/apps/meet/components/KickParticipantDialog.vue:12
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "from the meeting?"
+msgstr "de la réunion ?"
+
+#: frontend/src/apps/mail/utils/submissionActivity.ts:158
+#: suite/public/frontend/assets/SubmissionDetailsView-C0trK4_L.js:1
+msgid "Gave up after {0} retries"
+msgstr "Abandon après avoir réessayé {0} fois"
+
+#: frontend/src/apps/meet/components/RejectionOverlay.vue:28
+msgid "Go home"
+msgstr "Retour à l'accueil"
+
+#: frontend/src/apps/meet/composables/useGuestRealtime.ts:84
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Guest is not admitted to this meeting"
+msgstr "L'invité n'est pas admis à cette réunion"
+
+#: frontend/src/apps/meet/composables/useGuestRealtime.ts:165
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Guest realtime subscription failed: {0}"
+msgstr "Échec de l'abonnement en temps réel de l'invité : {0}"
+
+#: frontend/src/apps/meet/composables/useSFUConnection.ts:1001
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Guest session not found. Please try joining again."
+msgstr "Session d'invité introuvable. Veuillez réessayer de rejoindre la réunion."
+
+#: frontend/src/apps/meet/composables/useMeetingHandlers.ts:210
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Guest was banned but could not be disconnected. Use Remove to retry the live removal."
+msgstr "L'invité a été banni, mais n'a pas pu être déconnecté. Utilisez Retirer pour relancer son retrait de la réunion en cours."
+
+#: frontend/src/apps/meet/components/PollMessageCard.vue:50
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Guests can't vote in polls"
+msgstr "Les invités ne peuvent pas voter aux sondages"
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:146
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "Hand Raised"
+msgstr "Main levée"
+
+#: frontend/src/apps/meet/pages/Home.vue:14
+#: suite/public/frontend/assets/Home-BKZqBSzy.js:1
+msgid "Hey there,"
+msgstr "Bonjour,"
+
+#: frontend/src/apps/meet/pages/Home.vue:14
+#: suite/public/frontend/assets/Home-BKZqBSzy.js:1
+msgid "Hey {0},"
+msgstr "Bonjour {0},"
+
+#: frontend/src/apps/meet/components/MeetingToolbar.vue:290
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Hide stats for nerds"
+msgstr "Masquer les statistiques techniques"
+
+#: frontend/src/apps/meet/components/settings/AudioSettingsTab.vue:19
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Hold spacebar to unmute your microphone"
+msgstr "Maintenez la barre d'espace pour réactiver votre micro"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:62
+msgid "ICE route"
+msgstr "Route ICE"
+
+#: frontend/src/apps/meet/pages/Home.vue:33
+#: suite/public/frontend/assets/Home-BKZqBSzy.js:1
+msgid "Instant meet"
+msgstr "Réunion instantanée"
+
+#: frontend/src/apps/meet/components/settings/SettingsDialog.vue:165
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Interface"
+msgstr "Interface"
+
+#: frontend/src/apps/meet/composables/useMeetingHandlers.ts:100
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Invalid guest join response"
+msgstr "Réponse invalide à la demande de participation de l'invité"
+
+#: frontend/src/apps/meet/composables/useGuestRealtime.ts:146
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Invalid guest subscription acknowledgement"
+msgstr "Accusé de réception d'abonnement de l'invité invalide"
+
+#: frontend/src/apps/meet/composables/useGuestRealtime.ts:153
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Invalid guest subscription status"
+msgstr "Statut d'abonnement de l'invité invalide"
+
+#: frontend/src/apps/meet/utils/customImages.ts:239
+#: suite/public/frontend/assets/backgroundEffects-GQgzqJUs.js:1
+msgid "Invalid image file"
+msgstr "Fichier image invalide"
+
+#: frontend/src/apps/meet/composables/useSFUConnection.ts:1099
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Invalid meeting join response"
+msgstr "Réponse invalide à la demande de participation à la réunion"
+
+#: frontend/src/apps/meet/composables/useMeetingPreviewPresence.ts:74
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Invalid token data"
+msgstr "Données de jeton invalides"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:47
+msgid "Jitter"
+msgstr "Gigue"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:230
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Jitter buffer"
+msgstr "Tampon de gigue"
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:84
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "Join Request"
+msgstr "Demande de participation"
+
+#: frontend/src/apps/meet/pages/Home.vue:72
+#: suite/public/frontend/assets/Home-BKZqBSzy.js:1
+msgid "Join with code"
+msgstr "Rejoindre avec un code"
+
+#: frontend/src/apps/meet/pages/Home.vue:84
+#: suite/public/frontend/assets/Home-BKZqBSzy.js:1
+msgid "Join with meeting code"
+msgstr "Rejoindre avec un code de réunion"
+
+#: frontend/src/apps/meet/pages/Meeting.vue:494
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Joining encrypted meeting"
+msgstr "Connexion à la réunion chiffrée"
+
+#: frontend/src/apps/meet/components/settings/BackgroundSettingsTab.vue:5
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Keep yourself framed and customize your video background"
+msgstr "Gardez un bon cadrage et personnalisez l'arrière-plan de votre vidéo"
+
+#: frontend/src/apps/meet/components/settings/LayoutSettingsTab.vue:4
+#: frontend/src/apps/meet/components/settings/SettingsDialog.vue:176
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Layout"
+msgstr "Mise en page"
+
+#: frontend/src/apps/meet/components/LobbyOverlay.vue:28
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Leave"
+msgstr "Quitter"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:53
+msgid "Lifecycle"
+msgstr "Cycle de vie"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:217
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "live"
+msgstr "en direct"
+
+#: frontend/src/apps/meet/components/settings/DeviceSettingsTab.vue:12
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Loading devices..."
+msgstr "Chargement des appareils..."
+
+#: frontend/src/apps/meet/components/settings/BackgroundSettingsTab.vue:24
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Loading preview..."
+msgstr "Chargement de l'aperçu..."
+
+#: frontend/src/apps/meet/components/PeopleParticipantTile.vue:159
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Lower Hand"
+msgstr "Baisser la main"
+
+#: frontend/src/apps/meet/components/settings/MeetingAccessSettingsTab.vue:5
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Manage join rules, chat, and security for this meeting."
+msgstr "Gérez les règles d'accès, la discussion et la sécurité de cette réunion."
+
+#: frontend/src/apps/mail/utils/participants.ts:121
+#: suite/public/frontend/assets/MailThread-Cl1zC5Hu.js:4
+msgid "me"
+msgstr "moi"
+
+#: frontend/src/apps/meet/components/settings/SettingsDialog.vue:138
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Media"
+msgstr "Médias"
+
+#: frontend/src/apps/meet/composables/useMediaControls.ts:1156
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Media access denied. Enable permissions in browser settings."
+msgstr "Accès à la caméra et au micro refusé. Activez les autorisations dans les paramètres du navigateur."
+
+#: frontend/src/apps/meet/composables/useMediaControls.ts:1157
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Media access failed. You can join without media."
+msgstr "Échec de l'accès à la caméra et au micro. Vous pouvez rejoindre sans caméra ni micro."
+
+#: frontend/src/apps/meet/components/MeetingHeader.vue:19
+#: frontend/src/apps/meet/components/settings/SettingsDialog.vue:122
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Meeting"
+msgstr "Réunion"
+
+#: frontend/src/apps/meet/components/MeetingToolbar.vue:14
+#: frontend/src/apps/meet/composables/useKeyboardShortcuts.ts:21
+#: frontend/src/apps/meet/composables/useKeyboardShortcuts.ts:31
+#: frontend/src/apps/meet/composables/useKeyboardShortcuts.ts:41
+#: suite/public/frontend/assets/device-BCTZPjuw.js:1
+msgid "Meeting controls"
+msgstr "Commandes de la réunion"
+
+#: frontend/src/apps/meet/pages/Home.vue:318
+#: suite/public/frontend/assets/Home-BKZqBSzy.js:1
+msgid "Meeting created successfully!"
+msgstr "Réunion créée avec succès !"
+
+#: frontend/src/apps/meet/components/MeetingInfoPopover.vue:19
+msgid "Meeting ID"
+msgstr "Identifiant de réunion"
+
+#: frontend/src/apps/meet/components/MeetingInfoPopover.vue:11
+#: frontend/src/apps/meet/components/MeetingInfoPopover.vue:75
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Meeting information"
+msgstr "Informations sur la réunion"
+
+#: frontend/src/apps/meet/components/MeetingInfoPopover.vue:74
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Meeting information - This is an end-to-end encrypted call"
+msgstr "Informations sur la réunion - Cet appel est chiffré de bout en bout"
+
+#: frontend/src/apps/meet/components/settings/E2EESettingsSection.vue:148
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Meeting is now end-to-end encrypted."
+msgstr "La réunion est désormais chiffrée de bout en bout."
+
+#: frontend/src/apps/meet/pages/Meeting.vue:381
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Meeting link copied"
+msgstr "Lien de la réunion copié"
+
+#: frontend/src/apps/meet/pages/Meeting.vue:54
+msgid "Meeting moved to another device"
+msgstr "Réunion transférée vers un autre appareil"
+
+#: frontend/src/apps/meet/pages/Home.vue:302
+#: suite/public/frontend/assets/Home-BKZqBSzy.js:1
+msgid "Meeting scheduled."
+msgstr "Réunion programmée."
+
+#: frontend/src/apps/meet/components/MeetingToolbar.vue:119
+msgid "Meeting side panels"
+msgstr "Panneaux latéraux de la réunion"
+
+#: frontend/src/apps/meet/components/MeetingInfoPopover.vue:24
+msgid "Meeting URL"
+msgstr "URL de la réunion"
+
+#: frontend/src/apps/meet/composables/useSFUConnection.ts:673
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Mic muted automatically in large meetings."
+msgstr "Micro coupé automatiquement dans les grandes réunions."
+
+#: frontend/src/apps/meet/components/settings/DeviceSettingsTab.vue:52
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Microphone"
+msgstr "Micro"
+
+#: frontend/src/apps/meet/components/settings/DeviceSettingsTab.vue:58
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Microphone access required"
+msgstr "Accès au micro requis"
+
+#: frontend/src/apps/meet/components/PeopleParticipantTile.vue:63
+msgid "Microphone off"
+msgstr "Micro coupé"
+
+#: frontend/src/apps/meet/components/PeopleParticipantTile.vue:63
+msgid "Microphone on"
+msgstr "Micro activé"
+
+#: frontend/src/apps/meet/composables/useMediaControls.ts:1014
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Microphone stopped and could not be restarted. Check browser permissions and devices."
+msgstr "Le microphone s'est arrêté et n'a pas pu être relancé. Vérifiez les autorisations du navigateur et les appareils."
+
+#: frontend/src/apps/meet/utils/media/DeviceManager.ts:79
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Microphone {0}"
+msgstr "Micro {0}"
+
+#: frontend/src/apps/meet/components/MeetingToolbar.vue:92
+#: frontend/src/apps/meet/components/MeetingToolbar.vue:93
+msgid "More options"
+msgstr "Plus d'options"
+
+#: frontend/src/apps/meet/data/backgroundEffects.ts:104
+#: suite/public/frontend/assets/backgroundEffects-GQgzqJUs.js:1
+msgid "Mountains"
+msgstr "Montagnes"
+
+#: frontend/src/apps/meet/components/PeopleParticipantTile.vue:152
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Mute"
+msgstr "Muet"
+
+#: frontend/src/apps/meet/components/ParticipantTile.vue:133
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Mute participant"
+msgstr "Couper le micro du participant"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:217
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "muted"
+msgstr "coupé"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:63
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:64
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:137
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:151
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:159
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:164
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:216
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:221
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:222
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:226
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:227
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:228
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:229
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:231
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "n/a"
+msgstr "n/d"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:229
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "NACK / PLI / FIR"
+msgstr "NACK / PLI / FIR"
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:116
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "New chat message received"
+msgstr "Nouveau message de chat reçu"
+
+#: frontend/src/apps/mail/utils/submissionActivity.ts:129
+#: suite/public/frontend/assets/SubmissionDetailsView-C0trK4_L.js:1
+msgid "Next attempt"
+msgstr "Prochaine tentative"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:80
+msgid "No active incoming streams"
+msgstr "Aucun flux entrant actif"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:73
+msgid "No active outgoing streams"
+msgstr "Aucun flux sortant actif"
+
+#: frontend/src/apps/mail/utils/submissionActivity.ts:162
+#: suite/public/frontend/assets/SubmissionDetailsView-C0trK4_L.js:1
+msgid "No delivery report yet"
+msgstr "Aucun rapport de livraison pour l'instant"
+
+#: frontend/src/apps/meet/components/ChatPanel.vue:162
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "No messages yet"
+msgstr "Aucun message pour le moment"
+
+#: frontend/src/apps/meet/components/PeoplePanel.vue:79
+msgid "No other participants"
+msgstr "Aucun autre participant"
+
+#: frontend/src/apps/meet/components/PeoplePanel.vue:79
+msgid "No participants found"
+msgstr "Aucun participant trouvé"
+
+#: frontend/src/apps/meet/components/ChatPanel.vue:203
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "No results"
+msgstr "Aucun résultat"
+
+#: frontend/src/apps/meet/components/settings/AudioSettingsTab.vue:11
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Noise Cancellation"
+msgstr "Suppression du bruit"
+
+#: frontend/src/apps/meet/composables/useMediaControls.ts:1667
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Noise cancellation unavailable: {0}. Falling back to raw microphone."
+msgstr "Suppression du bruit indisponible : {0}. Utilisation du microphone sans traitement."
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:142
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Not active"
+msgstr "Non actif"
+
+#: frontend/src/apps/meet/composables/usePoll.ts:326
+#: frontend/src/apps/meet/composables/usePoll.ts:366
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Not connected to meeting server"
+msgstr "Non connecté au serveur de réunion"
+
+#: frontend/src/apps/meet/components/CreatePollModal.vue:29
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Option {0}"
+msgstr "Option {0}"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:224
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Packet loss / jitter"
+msgstr "Perte de paquets / gigue"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:48
+msgid "Packet loss in"
+msgstr "Perte de paquets entrants"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:49
+msgid "Packet loss out"
+msgstr "Perte de paquets sortants"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:217
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "paused"
+msgstr "en pause"
+
+#: frontend/src/apps/meet/components/settings/MeetingAccessSettingsTab.vue:23
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "People wait in the lobby until a host or co-host admits them"
+msgstr "Les personnes patientent dans la salle d'attente jusqu'à ce qu'un hôte ou un co-hôte les admette"
+
+#: frontend/src/apps/meet/components/settings/BackgroundSettingsTab.vue:157
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Performance Warning:"
+msgstr "Avertissement sur les performances :"
+
+#: frontend/src/apps/meet/components/ChatPanel.vue:136
+#: frontend/src/apps/meet/components/ChatPanel.vue:137
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Pin message"
+msgstr "Épingler le message"
+
+#: frontend/src/apps/meet/components/ParticipantTile.vue:119
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Pin participant"
+msgstr "Épingler le participant"
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:184
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "Play All Notifications (Sequential)"
+msgstr "Jouer toutes les notifications (en séquence)"
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:130
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "Play Chat Sound"
+msgstr "Jouer le son du chat"
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:161
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "Play Hand Raise Sound"
+msgstr "Jouer le son de la main levée"
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:37
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "Play Join Sound"
+msgstr "Jouer le son d'arrivée"
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:68
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "Play Leave Sound"
+msgstr "Jouer le son de départ"
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:99
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "Play Request Sound"
+msgstr "Jouer le son de demande"
+
+#: frontend/src/apps/meet/components/settings/NotificationSettingsTab.vue:12
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Play sounds for all meeting events"
+msgstr "Jouer des sons pour tous les événements de la réunion"
+
+#: frontend/src/apps/meet/pages/Home.vue:379
+#: suite/public/frontend/assets/Home-BKZqBSzy.js:1
+msgid "Please enter a meeting code"
+msgstr "Veuillez saisir un code de réunion"
+
+#: frontend/src/apps/meet/pages/Home.vue:386
+#: suite/public/frontend/assets/Home-BKZqBSzy.js:1
+msgid "Please enter a valid meeting code (format: xxxx-xxxx-xxxx)"
+msgstr "Veuillez saisir un code de réunion valide (format : xxxx-xxxx-xxxx)"
+
+#: frontend/src/apps/meet/composables/usePoll.ts:351
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Poll created!"
+msgstr "Sondage créé !"
+
+#: frontend/src/apps/meet/components/CreatePollModal.vue:58
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Polls are temporary and will be deleted once everyone leaves the meeting."
+msgstr "Les sondages sont temporaires et seront supprimés dès que tout le monde aura quitté la réunion."
+
+#: frontend/src/apps/meet/components/PeopleParticipantTile.vue:166
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Promote to Co-host"
+msgstr "Promouvoir en co-hôte"
+
+#: suite/mail/doctype/push_subscription/push_subscription.py:372
+msgid "Push subscriptions: the mail server refuses these accounts"
+msgstr "Abonnements push : le serveur de messagerie refuse ces comptes"
+
+#: frontend/src/apps/meet/components/settings/AudioSettingsTab.vue:18
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Push to Talk"
+msgstr "Appuyer pour parler"
+
+#: frontend/src/apps/meet/composables/useKeyboardShortcuts.ts:40
+#: suite/public/frontend/assets/device-BCTZPjuw.js:1
+msgid "Push to talk"
+msgstr "Appuyer pour parler"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:227
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Quality limitation"
+msgstr "Limitation de la qualité"
+
+#: frontend/src/apps/meet/components/CreatePollModal.vue:13
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Question"
+msgstr "Question"
+
+#: frontend/src/apps/mail/utils/submissionActivity.ts:142
+#: suite/public/frontend/assets/SubmissionDetailsView-C0trK4_L.js:1
+msgid "Queued for {0}"
+msgstr "En file d'attente pour {0}"
+
+#: frontend/src/apps/meet/components/MeetingToolbar.vue:60
+msgid "Raise Hand"
+msgstr "Lever la main"
+
+#: frontend/src/apps/meet/components/ParticipantTile.vue:82
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Reaction {0} from {1}"
+msgstr "Réaction {0} de {1}"
+
+#: frontend/src/apps/meet/components/MeetingToolbar.vue:76
+msgid "Reactions"
+msgstr "Réactions"
+
+#: frontend/src/apps/mail/utils/useThreadActions.ts:573
+#: suite/public/frontend/assets/AllInboxesView-BjKEOe90.js:1
+#: suite/public/frontend/assets/MailboxView-BLIfqSRD.js:1
+msgid "read"
+msgstr "lire"
+
+#: frontend/src/apps/mail/utils/submissionActivity.ts:166
+#: suite/public/frontend/assets/SubmissionDetailsView-C0trK4_L.js:1
+msgid "Read by {0}"
+msgstr "Lu par {0}"
+
+#: frontend/src/apps/mail/utils/submissionActivity.ts:166
+#: suite/public/frontend/assets/SubmissionDetailsView-C0trK4_L.js:1
+msgid "Read receipt received"
+msgstr "Accusé de lecture reçu"
+
+#: frontend/src/apps/meet/components/MeetingPreview.vue:54
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Ready to join?"
+msgstr "Prêt à rejoindre ?"
+
+#: frontend/src/apps/meet/components/RecordingIndicator.vue:57
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "REC {0}"
+msgstr "REC {0}"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:61
+msgid "Receive transport"
+msgstr "Transport de réception"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:77
+msgid "Receiving"
+msgstr "Réception"
+
+#: frontend/src/apps/meet/utils/recordingPresentation.ts:25
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Recorder service is unavailable"
+msgstr "Le service d'enregistrement est indisponible"
+
+#: frontend/src/apps/meet/composables/useRecording.ts:126
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Recording capacity is unavailable"
+msgstr "La capacité d'enregistrement est indisponible"
+
+#: frontend/src/apps/meet/composables/useRecording.ts:167
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Recording could not start"
+msgstr "L'enregistrement n'a pas pu démarrer"
+
+#: frontend/src/apps/meet/composables/useRecording.ts:140
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Recording could not start and is stopping"
+msgstr "L'enregistrement n'a pas pu démarrer et s'arrête"
+
+#: frontend/src/apps/meet/components/RecordingIndicator.vue:36
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Recording interrupted"
+msgstr "Enregistrement interrompu"
+
+#: frontend/src/apps/meet/components/RecordingIndicator.vue:43
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Recording interrupted - {0}s"
+msgstr "Enregistrement interrompu - {0} s"
+
+#: frontend/src/apps/meet/utils/recordingPresentation.ts:7
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Recording is disabled"
+msgstr "L'enregistrement est désactivé"
+
+#: frontend/src/apps/meet/composables/useRecording.ts:137
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Recording is starting"
+msgstr "L'enregistrement démarre"
+
+#: frontend/src/apps/meet/composables/useRecording.ts:156
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Recording is stopping"
+msgstr "L'enregistrement s'arrête"
+
+#: frontend/src/apps/meet/utils/recordingPresentation.ts:30
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Recording is unavailable"
+msgstr "L'enregistrement est indisponible"
+
+#: frontend/src/apps/meet/composables/useRecording.ts:141
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Recording started"
+msgstr "Enregistrement démarré"
+
+#: frontend/src/apps/meet/composables/useRecording.ts:183
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Recording was interrupted and is trying to recover"
+msgstr "L'enregistrement a été interrompu et tente de reprendre"
+
+#: frontend/src/apps/meet/components/RecordingPreflightDialog.vue:70
+msgid "Recording will stop when its available storage budget is reached."
+msgstr "L'enregistrement s'arrêtera lorsque l'espace de stockage disponible sera épuisé."
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:66
+msgid "Recoveries"
+msgstr "Rétablissements"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:84
+msgid "Recovery history"
+msgstr "Historique des rétablissements"
+
+#: frontend/src/apps/meet/components/settings/AudioSettingsTab.vue:12
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Reduce background noise from your microphone"
+msgstr "Réduire le bruit de fond de votre microphone"
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:202
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "Refresh page after code changes to test updates"
+msgstr "Actualisez la page après une modification du code pour tester les changements"
+
+#: frontend/src/apps/mail/utils/submissionActivity.ts:110
+#: suite/public/frontend/assets/SubmissionDetailsView-C0trK4_L.js:1
+msgid "Release to the mail server"
+msgstr "Remise au serveur de messagerie"
+
+#: frontend/src/apps/mail/utils/submissionActivity.ts:119
+#: suite/public/frontend/assets/SubmissionDetailsView-C0trK4_L.js:1
+msgid "Released to the mail server"
+msgstr "Remis au serveur de messagerie"
+
+#: frontend/src/apps/meet/components/KickParticipantDialog.vue:5
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Remove Participant"
+msgstr "Retirer le participant"
+
+#: frontend/src/apps/meet/components/ParticipantTile.vue:146
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Remove participant"
+msgstr "Retirer le participant"
+
+#: frontend/src/apps/meet/components/MeetingToolbar.vue:299
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Report an issue"
+msgstr "Signaler un problème"
+
+#: frontend/src/apps/meet/components/settings/MeetingAccessSettingsTab.vue:22
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Require host approval"
+msgstr "Exiger l'approbation de l'hôte"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:222
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Resolution / FPS"
+msgstr "Résolution / FPS"
+
+#: frontend/src/apps/meet/components/settings/MeetingAccessSettingsTab.vue:34
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Restrict chat so only hosts and co-hosts can send messages"
+msgstr "Restreindre la discussion pour que seuls les hôtes et co-hôtes puissent envoyer des messages"
+
+#: frontend/src/apps/meet/pages/Home.vue:46
+#: suite/public/frontend/assets/Home-BKZqBSzy.js:1
+msgid "Restricted meet"
+msgstr "Réunion restreinte"
+
+#: frontend/src/apps/mail/utils/submissionActivity.ts:149
+#: suite/public/frontend/assets/SubmissionDetailsView-C0trK4_L.js:1
+msgid "Retried {0} times, the server will keep trying"
+msgstr "Réessayé {0} fois, le serveur continuera d'essayer"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:46
+msgid "Round-trip time"
+msgstr "Temps aller-retour"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:225
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "RTT"
+msgstr "RTT"
+
+#: frontend/src/apps/meet/data/backgroundEffects.ts:120
+#: suite/public/frontend/assets/backgroundEffects-GQgzqJUs.js:1
+msgid "Saturn"
+msgstr "Saturne"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:228
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Scalability mode"
+msgstr "Mode de scalabilité"
+
+#: frontend/src/apps/meet/pages/Home.vue:59
+#: frontend/src/apps/meet/pages/Home.vue:111
+#: suite/public/frontend/assets/Home-BKZqBSzy.js:1
+msgid "Schedule meet"
+msgstr "Programmer une réunion"
+
+#: frontend/src/apps/meet/components/UpcomingMeetings.vue:226
+#: suite/public/frontend/assets/Home-BKZqBSzy.js:1
+msgid "Scheduled Meeting"
+msgstr "Réunion programmée"
+
+#: frontend/src/apps/meet/pages/Home.vue:369
+#: suite/public/frontend/assets/Home-BKZqBSzy.js:1
+msgid "Scheduling meeting..."
+msgstr "Programmation de la réunion..."
+
+#: frontend/src/apps/meet/components/PeoplePanel.vue:32
+msgid "Search people"
+msgstr "Rechercher des personnes"
+
+#: frontend/src/apps/meet/components/settings/DeviceSettingsTab.vue:98
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Select speaker"
+msgstr "Sélectionner un haut-parleur"
+
+#: frontend/src/apps/meet/components/settings/DeviceSettingsTab.vue:5
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Select your preferred camera, microphone, and speaker"
+msgstr "Sélectionnez votre caméra, votre microphone et votre haut-parleur préférés"
+
+#: frontend/src/apps/meet/components/ChatPanel.vue:222
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Send message"
+msgstr "Envoyer le message"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:60
+msgid "Send transport"
+msgstr "Transport d'envoi"
+
+#: frontend/src/apps/meet/components/ReactionPicker.vue:23
+msgid "Send {0} reaction"
+msgstr "Envoyer la réaction {0}"
+
+#: suite/public/frontend/assets/MailboxView-BLIfqSRD.js:1
+msgid "sender"
+msgstr "l'expéditeur"
+
+#: frontend/src/apps/meet/pages/Home.vue:345
+#: frontend/src/apps/meet/pages/Home.vue:359
+#: suite/public/frontend/assets/Home-BKZqBSzy.js:1
+msgid "Set up Calendar before scheduling a Meet."
+msgstr "Configurez votre calendrier avant de programmer une réunion."
+
+#: frontend/src/apps/meet/components/MeetingToolbar.vue:153
+msgid "Show Chat"
+msgstr "Afficher la discussion"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:28
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:29
+msgid "Show less"
+msgstr "Afficher moins"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:28
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:29
+msgid "Show more"
+msgstr "Afficher plus"
+
+#: frontend/src/apps/meet/components/MeetingToolbar.vue:136
+msgid "Show Participants"
+msgstr "Afficher les participants"
+
+#: frontend/src/apps/meet/pages/Meeting.vue:38
+msgid "Sign In"
+msgstr "Se connecter"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:59
+msgid "Signaling"
+msgstr "Signalisation"
+
+#: frontend/src/apps/meet/data/backgroundEffects.ts:138
+#: suite/public/frontend/assets/backgroundEffects-GQgzqJUs.js:1
+msgid "Slight Blur"
+msgstr "Flou léger"
+
+#: frontend/src/apps/meet/composables/useSFUConnection.ts:660
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Some media could not be started. Trying to restore your connection."
+msgstr "Certains médias n'ont pas pu démarrer. Tentative de rétablissement de votre connexion."
+
+#: frontend/src/apps/meet/composables/useMediaControls.ts:226
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Someone is already sharing their screen. Starting yours may result in multiple active screen shares."
+msgstr "Quelqu'un partage déjà son écran. Démarrer le vôtre peut entraîner plusieurs partages d'écran actifs."
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:23
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "Someone joins the meeting"
+msgstr "Quelqu'un rejoint la réunion"
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:54
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "Someone leaves the meeting"
+msgstr "Quelqu'un quitte la réunion"
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:147
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "Someone raises their hand"
+msgstr "Quelqu'un lève la main"
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:85
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "Someone requests to join"
+msgstr "Quelqu'un demande à rejoindre"
+
+#: frontend/src/apps/meet/components/settings/DeviceSettingsTab.vue:93
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Speaker"
+msgstr "Haut-parleur"
+
+#: frontend/src/apps/meet/utils/media/DeviceManager.ts:88
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Speaker {0}"
+msgstr "Haut-parleur {0}"
+
+#: frontend/src/apps/meet/pages/Home.vue:18
+#: suite/public/frontend/assets/Home-BKZqBSzy.js:1
+msgid "Start an open meeting, create a restricted meeting, or join with a code."
+msgstr "Démarrez une réunion ouverte, créez une réunion restreinte ou rejoignez-en une avec un code."
+
+#: frontend/src/apps/meet/components/MeetingToolbar.vue:276
+#: frontend/src/apps/meet/components/RecordingPreflightDialog.vue:24
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Start recording"
+msgstr "Démarrer l'enregistrement"
+
+#: frontend/src/apps/meet/components/RecordingPreflightDialog.vue:53
+msgid "Start recording?"
+msgstr "Démarrer l'enregistrement ?"
+
+#: frontend/src/apps/meet/composables/useMediaControls.ts:225
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Start Screen Share Anyway?"
+msgstr "Démarrer le partage d'écran quand même ?"
+
+#: frontend/src/apps/meet/components/MeetingToolbar.vue:270
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Starting recording..."
+msgstr "Démarrage de l'enregistrement..."
+
+#: frontend/src/apps/meet/components/MeetingToolbar.vue:290
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:5
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:16
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Stats for nerds"
+msgstr "Statistiques techniques"
+
+#: frontend/src/apps/meet/components/MeetingToolbar.vue:275
+#: frontend/src/apps/meet/components/RecordingIndicator.vue:61
+#: frontend/src/apps/meet/components/RecordingStopDialog.vue:19
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Stop recording"
+msgstr "Arrêter l'enregistrement"
+
+#: frontend/src/apps/meet/components/RecordingStopDialog.vue:3
+msgid "Stop recording?"
+msgstr "Arrêter l'enregistrement ?"
+
+#: frontend/src/apps/meet/components/RecordingPreflightDialog.vue:69
+msgid "Storage may end the recording early"
+msgstr "Le stockage peut écourter l'enregistrement"
+
+#: frontend/src/apps/meet/components/MeetingPreview.vue:101
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Switch here"
+msgstr "Basculer ici"
+
+#: frontend/src/apps/meet/composables/useSFUConnection.ts:247
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Switch to this device"
+msgstr "Basculer vers cet appareil"
+
+#: frontend/src/apps/meet/composables/useSFUConnection.ts:242
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Switch to this device?"
+msgstr "Basculer vers cet appareil ?"
+
+#: frontend/src/apps/meet/pages/Home.vue:115
+#: suite/public/frontend/assets/Home-BKZqBSzy.js:1
+msgid "Team meeting"
+msgstr "Réunion d'équipe"
+
+#: frontend/src/apps/meet/components/settings/DeviceSettingsTab.vue:115
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Test"
+msgstr "Tester"
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:188
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "Test all sounds in sequence with 1-second delays"
+msgstr "Testez tous les sons à la suite, avec 1 seconde d'intervalle"
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:10
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "Test and tune the meeting notification sounds"
+msgstr "Testez et ajustez les sons de notification des réunions"
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:196
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "Testing Tips:"
+msgstr "Conseils de test :"
+
+#: frontend/src/apps/calendar/routes.ts:93 frontend/src/apps/mail/routes.ts:456
+#: frontend/src/apps/writer/routes.ts:52 frontend/src/boot/translation.ts:8
+#: frontend/src/env.d.ts:31
+msgid "text"
+msgstr "Texte"
+
+#: frontend/src/apps/meet/components/ChatPanel.vue:232
+#: frontend/src/apps/meet/composables/useChat.ts:240
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "The host has restricted chat to hosts and co-hosts only."
+msgstr "L'hôte a réservé la discussion aux hôtes et aux co-hôtes."
+
+#: frontend/src/apps/meet/components/RejectionOverlay.vue:15
+msgid "The meeting host has denied your request to join this meeting."
+msgstr "L'hôte a refusé votre demande de participation à cette réunion."
+
+#: frontend/src/apps/meet/components/LobbyOverlay.vue:15
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "The meeting host will let you in soon."
+msgstr "L'hôte de la réunion va bientôt vous laisser entrer."
+
+#: frontend/src/apps/mail/utils/submissionActivity.ts:103
+#: suite/public/frontend/assets/SubmissionDetailsView-C0trK4_L.js:1
+msgid "The message itself was deleted afterwards"
+msgstr "Le message lui-même a été supprimé par la suite"
+
+#: suite/drive/wopi/editor.py:152
+msgid "The parent must be a folder"
+msgstr "L'élément parent doit être un dossier"
+
+#: frontend/src/apps/meet/components/RecordingStopDialog.vue:7
+msgid "The recording will stop and the video will be saved privately to the room owner's Drive."
+msgstr "L'enregistrement va s'arrêter et la vidéo sera enregistrée en privé dans le Drive du propriétaire de la salle."
+
+#: frontend/src/apps/meet/utils/recordingPresentation.ts:20
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "The room owner needs enough available Drive storage for a recording."
+msgstr "Le propriétaire de la salle doit disposer d'un espace de stockage Drive suffisant pour un enregistrement."
+
+#: frontend/src/apps/mail/utils/submissionActivity.ts:150
+#: suite/public/frontend/assets/SubmissionDetailsView-C0trK4_L.js:1
+msgid "The server will keep trying"
+msgstr "Le serveur continuera d'essayer"
+
+#: suite/drive/wopi/token.py:137
+msgid "The WOPI signing secret is missing from WOPI Settings. Run a site migration to provision it, or set the JWT Secret manually."
+msgstr "Le secret de signature WOPI est absent des paramètres WOPI. Exécutez une migration du site pour le générer, ou définissez manuellement le secret JWT."
+
+#: frontend/src/apps/meet/components/MeetingInfoPopover.vue:14
+msgid "This is an end-to-end encrypted call"
+msgstr "Cet appel est chiffré de bout en bout"
+
+#: frontend/src/apps/meet/components/RecordingIndicator.vue:61
+#: frontend/src/apps/meet/composables/useRecording.ts:180
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "This meeting is being recorded"
+msgstr "Cette réunion est en cours d'enregistrement"
+
+#: frontend/src/apps/meet/composables/useSFUConnection.ts:561
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "This meeting requires E2EE, but your browser does not support encoded insertable streams."
+msgstr "Cette réunion exige le chiffrement de bout en bout (E2EE), mais votre navigateur ne prend pas en charge les flux insérables encodés (encoded insertable streams)."
+
+#: frontend/src/apps/meet/components/ParticipantTile.vue:276
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "This participant"
+msgstr "Ce participant"
+
+#: frontend/src/apps/meet/components/ParticipantTile.vue:160
+#: frontend/src/apps/meet/components/PeopleParticipantTile.vue:92
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "this participant"
+msgstr "ce participant"
+
+#: frontend/src/apps/meet/components/MeetingToolbar.vue:23
+#: frontend/src/apps/meet/components/PreviewToolbar.vue:20
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Toggle Audio ({0})"
+msgstr "Activer ou couper le micro ({0})"
+
+#: frontend/src/apps/meet/composables/useKeyboardShortcuts.ts:30
+#: suite/public/frontend/assets/device-BCTZPjuw.js:1
+msgid "Toggle camera"
+msgstr "Activer/désactiver la caméra"
+
+#: frontend/src/apps/meet/composables/useKeyboardShortcuts.ts:20
+#: suite/public/frontend/assets/device-BCTZPjuw.js:1
+msgid "Toggle microphone"
+msgstr "Activer/désactiver le micro"
+
+#: frontend/src/apps/meet/components/MeetingToolbar.vue:48
+msgid "Toggle Screen Share"
+msgstr "Activer ou arrêter le partage d'écran"
+
+#: frontend/src/apps/meet/components/MeetingToolbar.vue:35
+#: frontend/src/apps/meet/components/PreviewToolbar.vue:31
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Toggle Video ({0})"
+msgstr "Activer ou couper la caméra ({0})"
+
+#: frontend/src/apps/meet/pages/Meeting.vue:80
+msgid "Try Again"
+msgstr "Réessayer"
+
+#: frontend/src/apps/meet/utils/recordingPresentation.ts:26
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Try again shortly or contact your administrator."
+msgstr "Réessayez dans un instant ou contactez votre administrateur."
+
+#: frontend/src/apps/meet/utils/recordingPresentation.ts:14
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Turn off end-to-end encryption before enabling recording."
+msgstr "Désactivez le chiffrement de bout en bout avant d'activer l'enregistrement."
+
+#: frontend/src/apps/meet/components/settings/BackgroundSettingsTab.vue:58
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Turn on auto framing to lock it"
+msgstr "Activez le cadrage automatique pour le verrouiller"
+
+#: frontend/src/apps/meet/components/ChatPanel.vue:211
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Type a message"
+msgstr "Saisissez un message"
+
+#: frontend/src/apps/meet/components/MeetingLayout.vue:146
+#: frontend/src/apps/meet/components/MeetingLayout.vue:418
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Unknown"
+msgstr "Inconnu"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:137
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "unknown"
+msgstr "inconnu"
+
+#: frontend/src/apps/meet/components/ChatPanel.vue:58
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Unpin"
+msgstr "Désépingler"
+
+#: frontend/src/apps/meet/components/ChatPanel.vue:59
+#: frontend/src/apps/meet/components/ChatPanel.vue:136
+#: frontend/src/apps/meet/components/ChatPanel.vue:137
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Unpin message"
+msgstr "Désépingler le message"
+
+#: frontend/src/apps/meet/components/ParticipantTile.vue:119
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Unpin participant"
+msgstr "Désépingler le participant"
+
+#: frontend/src/apps/meet/utils/customImages.ts:161
+#: suite/public/frontend/assets/backgroundEffects-GQgzqJUs.js:1
+msgid "Unsupported file type. Please use JPG, PNG, or WebP."
+msgstr "Type de fichier non pris en charge. Veuillez utiliser JPG, PNG ou WebP."
+
+#: frontend/src/apps/meet/components/UpcomingMeetings.vue:191
+#: suite/public/frontend/assets/Home-BKZqBSzy.js:1
+msgid "Upcoming meetings"
+msgstr "Réunions à venir"
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:200
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "Use \"Play All\" to compare sounds in sequence"
+msgstr "Utilisez « Tout lire » pour comparer les sons à la suite"
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:22
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "User Joined"
+msgstr "Arrivée d'un utilisateur"
+
+#: frontend/src/apps/meet/pages/AudioTest.vue:53
+#: suite/public/frontend/assets/AudioTest-fNn2vil0.js:1
+msgid "User Left"
+msgstr "Départ d'un utilisateur"
+
+#: frontend/src/apps/meet/composables/useMeetingHandlers.ts:242
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "User promoted to co-host"
+msgstr "Utilisateur promu co-hôte"
+
+#: suite/mail/doctype/dns_record/dns_record_list.js:19
+msgid "Verify DNS Records"
+msgstr "Vérifier les enregistrements DNS"
+
+#: frontend/src/apps/meet/components/settings/SettingsDialog.vue:156
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Video"
+msgstr "Vidéo"
+
+#: frontend/src/apps/meet/components/settings/BackgroundSettingsTab.vue:4
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Video effects"
+msgstr "Effets vidéo"
+
+#: frontend/src/apps/meet/pages/MeetLayout.vue:25
+#: suite/public/frontend/assets/MeetLayout-plfVyGya.js:1
+msgid "View shortcuts"
+msgstr "Afficher les raccourcis"
+
+#: frontend/src/apps/meet/pages/Meeting.vue:532
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Waiting for someone already in the encrypted meeting to let you in."
+msgstr "En attente qu'une personne déjà présente dans la réunion chiffrée vous laisse entrer."
+
+#: frontend/src/apps/mail/utils/submissionActivity.ts:142
+#: suite/public/frontend/assets/SubmissionDetailsView-C0trK4_L.js:1
+msgid "Waiting for the first attempt"
+msgstr "En attente de la première tentative"
+
+#: frontend/src/apps/meet/pages/Meeting.vue:491
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Waiting for the host to join"
+msgstr "En attente de l'arrivée de l'hôte"
+
+#: frontend/src/apps/meet/components/LobbyOverlay.vue:10
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Waiting to be admitted"
+msgstr "En attente d'admission"
+
+#: frontend/src/apps/meet/components/PeopleWaitingSection.vue:5
+msgid "Waiting to join"
+msgstr "En attente d'admission"
+
+#: frontend/src/apps/meet/components/JoinRequestNotifications.vue:25
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "wants to join the meeting"
+msgstr "souhaite rejoindre la réunion"
+
+#: frontend/src/apps/meet/composables/useSFUConnection.ts:398
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "We couldn't restore your meeting connection. Try joining again."
+msgstr "Nous n'avons pas pu rétablir votre connexion à la réunion. Essayez de la rejoindre à nouveau."
+
+#: frontend/src/apps/meet/composables/useBackgroundEffects.ts:160
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "WebGL is not available. Background blur effects will be disabled."
+msgstr "WebGL n'est pas disponible. Les effets de flou d'arrière-plan seront désactivés."
+
+#: frontend/src/apps/meet/composables/useSFUConnection.ts:947
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "You are now a co-host"
+msgstr "Vous êtes maintenant co-hôte"
+
+#: frontend/src/apps/meet/components/ParticipantTile.vue:35
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "You are sharing your screen"
+msgstr "Vous partagez votre écran"
+
+#: frontend/src/apps/meet/components/MeetingPreview.vue:72
+#: frontend/src/apps/meet/components/MeetingPreview.vue:246
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "You can’t join this meeting."
+msgstr "Vous ne pouvez pas rejoindre cette réunion."
+
+#: frontend/src/apps/meet/composables/useSFUConnection.ts:830
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "You have been banned from this meeting"
+msgstr "Vous avez été banni de cette réunion"
+
+#: frontend/src/apps/meet/composables/useSFUConnection.ts:496
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "You have been banned from this meeting by the host"
+msgstr "Vous avez été banni de cette réunion par l'hôte"
+
+#: frontend/src/apps/meet/composables/useSFUConnection.ts:499
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "You have been removed from the meeting by the host"
+msgstr "Vous avez été retiré de la réunion par l'hôte"
+
+#: frontend/src/apps/meet/components/AvatarGroup.vue:61
+#: suite/public/frontend/assets/AvatarGroup-DuVnQHTa.js:1
+msgid "You'll be the first to join this meeting"
+msgstr "Vous serez la première personne à rejoindre cette réunion"
+
+#: frontend/src/apps/meet/pages/Meeting.vue:527
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "You'll join automatically when the host arrives."
+msgstr "Vous rejoindrez automatiquement la réunion à l'arrivée de l'hôte."
+
+#: frontend/src/apps/meet/composables/useSFUConnection.ts:243
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "You're already in this meeting on another device. Continuing will move the meeting here."
+msgstr "Vous participez déjà à cette réunion sur un autre appareil. Si vous continuez, la réunion sera transférée ici."
+
+#: frontend/src/apps/meet/pages/Meeting.vue:58
+msgid "Your audio and video have stopped here because you joined from another device."
+msgstr "Votre audio et votre vidéo se sont arrêtés ici, car vous avez rejoint la réunion depuis un autre appareil."
+
+#: frontend/src/apps/meet/composables/useSFUConnection.ts:831
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Your guest session has expired"
+msgstr "Votre session d'invité a expiré"
+
+#: frontend/src/apps/meet/components/ParticipantTile.vue:281
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Your internet connection is unstable. Video and audio might lag or drop."
+msgstr "Votre connexion Internet est instable. La vidéo et l'audio peuvent saccader ou se couper."
+
+#: frontend/src/apps/meet/components/ParticipantTile.vue:287
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "Your internet connection is weak. You might notice some lag."
+msgstr "Votre connexion Internet est faible. Vous pourriez constater des ralentissements."
+
+#: frontend/src/apps/meet/composables/useSFUConnection.ts:829
+#: frontend/src/apps/meet/composables/useSFUConnection.ts:918
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Your join request was denied by the meeting host"
+msgstr "Votre demande de participation a été refusée par l'hôte de la réunion"
+
+#: frontend/src/apps/meet/components/MeetingPreview.vue:82
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "Your name"
+msgstr "Votre nom"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:231
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "{0} / {1} samples"
+msgstr "{0} / {1} échantillons"
+
+#: frontend/src/apps/meet/components/AvatarGroup.vue:164
+#: suite/public/frontend/assets/AvatarGroup-DuVnQHTa.js:1
+msgid "{0} and 1 other are in the meeting"
+msgstr "{0} et 1 autre personne sont dans la réunion"
+
+#: frontend/src/apps/meet/components/AvatarGroup.vue:165
+#: suite/public/frontend/assets/AvatarGroup-DuVnQHTa.js:1
+msgid "{0} and 1 other is in the meeting"
+msgstr "{0} et 1 autre personne sont dans la réunion"
+
+#: frontend/src/apps/meet/components/AvatarGroup.vue:136
+#: frontend/src/apps/meet/composables/useLayout.ts:358
+#: frontend/src/apps/meet/composables/useLayout.ts:360
+#: suite/public/frontend/assets/AvatarGroup-DuVnQHTa.js:1
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "{0} and {1}"
+msgstr "{0} et {1}"
+
+#: frontend/src/apps/meet/composables/useLayout.ts:355
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "{0} and {1} more"
+msgstr "{0} et {1} de plus"
+
+#: frontend/src/apps/meet/components/AvatarGroup.vue:160
+#: suite/public/frontend/assets/AvatarGroup-DuVnQHTa.js:1
+msgid "{0} and {1} others are in the meeting"
+msgstr "{0} et {1} autres personnes sont dans la réunion"
+
+#: frontend/src/apps/meet/components/AvatarGroup.vue:161
+#: suite/public/frontend/assets/AvatarGroup-DuVnQHTa.js:1
+msgid "{0} and {1} others is in the meeting"
+msgstr "{0} et {1} autres personnes sont dans la réunion"
+
+#: frontend/src/apps/meet/components/AvatarGroup.vue:150
+#: suite/public/frontend/assets/AvatarGroup-DuVnQHTa.js:1
+msgid "{0} are in the meeting"
+msgstr "{0} sont dans la réunion"
+
+#: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:17
+msgid "{0} connection"
+msgstr "Connexion : {0}"
+
+#: suite/public/frontend/assets/SubmissionDetailsView-C0trK4_L.js:1
+msgid "{0} delivery reports, {1} read receipts"
+msgstr "{0} rapports de livraison, {1} accusés de lecture"
+
+#: frontend/src/apps/meet/components/ParticipantTile.vue:93
+#: frontend/src/apps/meet/components/PeopleParticipantTile.vue:43
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "{0} has raised their hand"
+msgstr "{0} a levé la main"
+
+#: frontend/src/apps/meet/components/AvatarGroup.vue:151
+#: suite/public/frontend/assets/AvatarGroup-DuVnQHTa.js:1
+msgid "{0} is in the meeting"
+msgstr "{0} est dans la réunion"
+
+#: frontend/src/apps/meet/composables/useSFUConnection.ts:322
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "{0} joined the meeting"
+msgstr "{0} a rejoint la réunion"
+
+#: frontend/src/apps/meet/composables/useSFUConnection.ts:352
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "{0} left the meeting"
+msgstr "{0} a quitté la réunion"
+
+#: frontend/src/apps/meet/components/AvatarGroup.vue:155
+#: suite/public/frontend/assets/AvatarGroup-DuVnQHTa.js:1
+msgid "{0} others in the meeting"
+msgstr "{0} autres personnes dans la réunion"
+
+#: frontend/src/apps/mail/utils/submissionActivity.ts:120
+#: suite/public/frontend/assets/SubmissionDetailsView-C0trK4_L.js:1
+msgid "{0} priority"
+msgstr "Priorité {0}"
+
+#: frontend/src/apps/meet/pages/Meeting.vue:995
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:209
+msgid "{0} started a poll"
+msgstr "{0} a lancé un sondage"
+
+#: frontend/src/apps/meet/components/PollMessageCard.vue:41
+#: frontend/src/apps/meet/components/PollMessageCard.vue:49
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "{0} votes"
+msgstr "{0} votes"
+
+#: frontend/src/apps/meet/components/ParticipantTile.vue:282
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "{0}'s internet connection is unstable."
+msgstr "{0} a une connexion Internet instable."
+
+#: frontend/src/apps/meet/components/ParticipantTile.vue:288
+#: suite/public/frontend/assets/Meeting-CrcLJK69.js:2
+msgid "{0}'s internet connection is weak."
+msgstr "{0} a une connexion Internet faible."
+
+#: frontend/src/apps/meet/components/AvatarGroup.vue:139
+#: suite/public/frontend/assets/AvatarGroup-DuVnQHTa.js:1
+msgid "{0}, {1} and {2}"
+msgstr "{0}, {1} et {2}"
