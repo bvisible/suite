@@ -24371,3 +24371,42 @@ msgstr "Configurer Neoffice"
 #: suite/public/frontend/assets/SetupView-B8WPcQpE.js:1
 msgid "Welcome to Neoffice"
 msgstr "Bienvenue sur Neoffice"
+
+#: frontend/src/apps/mail/components/MailThread.vue:1509
+#: suite/public/frontend/assets/MailThread-phWgKQU4.js:346
+msgid "Cc: {0}"
+msgstr "Cc : {0}"
+
+#: frontend/src/apps/mail/components/MailThread.vue:1506
+#: suite/public/frontend/assets/MailThread-phWgKQU4.js:343
+msgid "Date: {0}"
+msgstr "Date : {0}"
+
+#: frontend/src/apps/mail/components/MailThread.vue:1504
+#: suite/public/frontend/assets/MailThread-phWgKQU4.js:341
+msgid "Forwarded message"
+msgstr "Message transféré"
+
+#: frontend/src/apps/mail/components/MailThread.vue:1505
+#: suite/public/frontend/assets/MailThread-phWgKQU4.js:342
+msgid "From: {0}"
+msgstr "De : {0}"
+
+#: frontend/src/apps/mail/components/MailThread.vue:1487
+#: suite/public/frontend/assets/MailThread-phWgKQU4.js:333
+msgid "On {0}, {1} wrote:"
+msgstr "Le {0}, {1} a écrit :"
+
+#: frontend/src/apps/mail/components/MailThread.vue:1507
+#: suite/public/frontend/assets/MailThread-phWgKQU4.js:344
+msgid "Subject: {0}"
+msgstr "Objet : {0}"
+
+#: frontend/src/apps/mail/components/MailThread.vue:1508
+#: suite/public/frontend/assets/MailThread-phWgKQU4.js:345
+msgid "To: {0}"
+msgstr "À : {0}"
+
+#: frontend/neoffice-calendar-i18n.ts:46 suite/i18n_anchors.py:25
+msgid "{0} more"
+msgstr "{0} de plus"
