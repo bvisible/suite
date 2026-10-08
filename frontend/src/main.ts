@@ -7,7 +7,7 @@ import { spritePlugin } from 'frappe-ui/experimental'
 import App from '@/App.vue'
 import router from '@/router'
 import { configureFrappeUI } from '@/boot/config'
-import { translationPlugin, loadTranslations } from '@/boot/translation' //// Neoffice — loadTranslations (#1316)
+import { translationPlugin } from '@/boot/translation'
 import { userResource, getSessionUser } from '@/boot/session'
 import { initSentry } from '@/boot/sentry'
 
@@ -16,10 +16,6 @@ configureFrappeUI()
 if (getSessionUser()) {
   userResource.fetch()
 }
-
-//// Neoffice — the user's translations before the first render, for every app of the suite (#1316): Meet, Sheets
-//// and Slides never loaded them, and a French account saw them in English.
-await loadTranslations()
 
 const app = createApp(App)
 
