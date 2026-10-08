@@ -69,3 +69,12 @@ class SuiteBoot(unittest.TestCase):
         self.frappe.session.user = "Guest"
         self.assertEqual(www.get_boot()["translatedMessages"], {"Favorites": "Favoris"})
         self.reader_translations.assert_called_once_with()
+
+    # //// Neoffice — added tests: the calendar's week starts on the site's first day of the week, which the
+    # //// page's boot carries (window.first_day_of_the_week, read by frontend/neoffice-calendar-i18n.ts, #1346).
+    def test_the_boot_carries_the_sites_first_day_of_the_week(self):
+        self.frappe.get_system_settings.side_effect = lambda key: "Monday" if key == "first_day_of_the_week" else 0
+        self.assertEqual(www.get_boot()["first_day_of_the_week"], "Monday")
+
+    def test_a_site_that_names_none_keeps_sunday(self):
+        self.assertEqual(www.get_boot()["first_day_of_the_week"], "Sunday")

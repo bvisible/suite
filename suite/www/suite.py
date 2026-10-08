@@ -89,5 +89,10 @@ def get_boot():
             # //// was English there too. This is the catalog those modules fetch; they skip their fetch once
             # //// it is here. About 1.4 MB gzipped in French, as Raven's boot already carries.
             "translatedMessages": reader_translations(),
+            # //// Neoffice — the site's first day of the week (System Settings, Monday in Switzerland), on
+            # //// window.first_day_of_the_week: the Calendar's grid starts its weeks on it, as the desk's calendars
+            # //// do (frontend/neoffice-calendar-i18n.ts, maintenance#1346). frappe-ui's grid assumed Sunday,
+            # //// which stays the answer for a site that names none.
+            "first_day_of_the_week": frappe.get_system_settings("first_day_of_the_week") or "Sunday",
         }
     )
