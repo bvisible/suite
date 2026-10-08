@@ -96,6 +96,11 @@ describe("The brand's app icons", () => {
     expect(meetLogo).not.toMatch(/apps_v2/)
   })
 
+  it("label the launcher's tiles in the reader's language, as the cockpit does (Calendrier, Messagerie)", () => {
+    const launcher = fs.readFileSync(path.join(root, 'src/shell/LauncherView.vue'), 'utf8')
+    expect(launcher).toMatch(/:label="creating === app\.id \? __\('Creating…'\) : __\(app\.name\)"/)
+  })
+
   it('turn white in the dark theme, the clay staying clay', () => {
     const css = fs.readFileSync(path.join(root, 'src/index.css'), 'utf8')
     expect(css).toMatch(/\[data-theme='dark'\] img\[src\*='\/icons\/streamline\/'\][^{]*\{\s*filter: invert\(1\) hue-rotate\(180deg\);/)

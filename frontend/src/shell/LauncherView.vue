@@ -33,14 +33,15 @@
                creates a blank Office file in Drive and opens it in Collabora, in place of
                the native Writer/Sheets/Slides editors. Upstream's LauncherTile already
                renders a RouterLink, an <a> or a <button> depending on which of to/href is
-               set, so the three cases share one component. //// -->
+               set, so the three cases share one component. The label goes through __():
+               Calendar and Mail read Calendrier and Messagerie, as on the cockpit's tiles. //// -->
           <LauncherTile
             v-for="app in apps"
             :key="app.id"
             :to="app.external || app.createsOffice ? undefined : app.prefix"
             :href="app.external || undefined"
             :logo="app.logo"
-            :label="creating === app.id ? __('Creating…') : app.name"
+            :label="creating === app.id ? __('Creating…') : __(app.name)"
             @click="app.createsOffice && createOfficeFile(app)"
           />
 
