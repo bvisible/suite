@@ -29,8 +29,8 @@
 									<LucideZap class="size-6 text-ink-gray-8" />
 								</div>
 							</div>
-							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
-							<span class="text-sm-medium w-full truncate text-center text-ink-gray-8 tracking-[0.21px]">{{ __('Instant meet') }}</span>
+							<!-- //// Neoffice — i18n: text a person reads goes through __(), and the label wraps to two lines where upstream cut it to one: French runs longer ("Programmer une réunion" read "Programmer une réuni…") (#1316) -->
+							<span class="text-sm-medium w-full line-clamp-2 text-center text-ink-gray-8 tracking-[0.21px]">{{ __('Instant meet') }}</span>
 						</button>
 
 						<button
@@ -42,8 +42,8 @@
 									<LucideLock class="size-6 text-ink-gray-8" />
 								</div>
 							</div>
-							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
-							<span class="text-sm-medium w-full truncate text-center text-ink-gray-8 tracking-[0.21px]">{{ __('Restricted meet') }}</span>
+							<!-- //// Neoffice — i18n: text a person reads goes through __(), and the label wraps to two lines where upstream cut it to one: French runs longer ("Programmer une réunion" read "Programmer une réuni…") (#1316) -->
+							<span class="text-sm-medium w-full line-clamp-2 text-center text-ink-gray-8 tracking-[0.21px]">{{ __('Restricted meet') }}</span>
 						</button>
 
 						<button
@@ -55,8 +55,8 @@
 									<LucideCalendarPlus class="size-6 text-ink-gray-8" />
 								</div>
 							</div>
-							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
-							<span class="text-sm-medium w-full truncate text-center text-ink-gray-8 tracking-[0.21px]">{{ __('Schedule meet') }}</span>
+							<!-- //// Neoffice — i18n: text a person reads goes through __(), and the label wraps to two lines where upstream cut it to one: French runs longer ("Programmer une réunion" read "Programmer une réuni…") (#1316) -->
+							<span class="text-sm-medium w-full line-clamp-2 text-center text-ink-gray-8 tracking-[0.21px]">{{ __('Schedule meet') }}</span>
 						</button>
 
 						<button
@@ -68,8 +68,8 @@
 									<LucideLink class="size-6 text-ink-gray-8" />
 								</div>
 							</div>
-							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
-							<span class="text-sm-medium w-full truncate text-center text-ink-gray-8 tracking-[0.21px]">{{ __('Join with code') }}</span>
+							<!-- //// Neoffice — i18n: text a person reads goes through __(), and the label wraps to two lines where upstream cut it to one: French runs longer ("Programmer une réunion" read "Programmer une réuni…") (#1316) -->
+							<span class="text-sm-medium w-full line-clamp-2 text-center text-ink-gray-8 tracking-[0.21px]">{{ __('Join with code') }}</span>
 						</button>
 					</div>
 

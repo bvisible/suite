@@ -14,7 +14,8 @@
 				<div class="min-w-0">
 					<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 					<h2 class="truncate text-sm-medium tracking-[0.21px] text-ink-gray-8">{{ __('Stats for nerds') }}</h2>
-					<p class="text-xs capitalize text-ink-gray-5">{{ __('{0} connection', [snapshot.quality]) }}</p>
+					<!-- //// Neoffice — i18n: a whole translated sentence per quality (qualityLabel below), no `capitalize` (it would read "Bonne Connexion") (#1316) -->
+					<p class="text-xs text-ink-gray-5">{{ qualityLabel }}</p>
 				</div>
 			</div>
 			<div class="flex items-center gap-1">
@@ -123,6 +124,19 @@ const qualityDot = computed(() => ({
 	"bg-red-400": snapshot.value.quality === "critical",
 	"bg-gray-500": snapshot.value.quality === "unknown",
 }));
+
+// //// Neoffice — i18n: upstream put the raw quality ("good", "poor", "critical", "unknown") into
+// //// "{0} connection", so the header stayed English under any translation. One sentence per value
+// //// reads naturally in every language; the old sentence stays for a value this list does not know (#1316).
+const qualityLabel = computed(
+	() =>
+		({
+			good: __("Good connection"),
+			poor: __("Poor connection"),
+			critical: __("Critical connection"),
+			unknown: __("Unknown connection"),
+		})[snapshot.value.quality] ?? __("{0} connection", [snapshot.value.quality]),
+);
 
 // //// Neoffice — i18n: text a person reads goes through __() (#1316)
 const connectionStatus = computed(() => snapshot.value.signalingConnected ? __('Connected') : __('Disconnected'));
