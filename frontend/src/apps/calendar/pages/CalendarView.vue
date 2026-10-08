@@ -17,6 +17,8 @@ import EventDetailSidebar from '@/apps/calendar/components/EventDetailSidebar.vu
 //// prop through, and falls back to a bare AppSidebar if the chrome fails to mount.
 import NeoCockpitSidebar from '@/apps/calendar/components/NeoCockpitSidebar.vue'
 import EventModal from '@/apps/calendar/components/Modals/EventModal.vue'
+// //// Neoffice — the reader's clock (maintenance#1321).
+import { usesMeridiem } from '@/neoffice/clock'
 
 const dayjs = inject('$dayjs')
 
@@ -28,6 +30,8 @@ const route = useRoute()
 const router = useRouter()
 
 const calendarRef = useTemplateRef('calendar')
+//// Neoffice — the grid's hours on the reader's clock: frappe-ui draws `3 pm` unless told `24h` (maintenance#1321).
+const calendarConfig = { isEditMode: true, timeFormat: usesMeridiem(dayjs()) ? '12h' : '24h' }
 
 // Calendar's `activeView` is 'Month' | 'Week' | 'Day'; the suite router uses
 // namespaced names 'calendar-month' | 'calendar-week' | 'calendar-day'.
@@ -314,6 +318,12 @@ const headerTitle = (title: string) => {
 	if (range?.view !== 'Week') return splitYear(title)
 	const start = dayjs(range.startDate)
 	const end = dayjs(range.endDate)
+	//// Neoffice — the day before the month on a 24-hour locale (« 5 – 11 oct. », « 28 sept. – 4 oct. »), as
+	//// French, German and Italian write a week; English keeps upstream's « Oct 5 – 11 » (maintenance#1321).
+	if (!usesMeridiem(start)) {
+		const from = start.format(end.isSame(start, 'month') ? 'D' : 'D MMM')
+		return { label: `${from} – ${end.format('D MMM')}`, year: end.format('YYYY') }
+	}
 	const endLabel = end.isSame(start, 'month') ? end.format('D') : end.format('MMM D')
 	return { label: `${start.format('MMM D')} – ${endLabel}`, year: end.format('YYYY') }
 }
@@ -542,7 +552,7 @@ const NOTIFY_MODAL_OPTIONS = {
 				<Calendar
 					ref="calendar"
 					:events="visibleEvents"
-					:config="{ isEditMode: true }"
+					:config="calendarConfig"
 					:on-click="({ calendarEvent }) => toggleEventDetail(calendarEvent)"
 					:on-dbl-click="(event) => handleOpenEvent(event)"
 					:on-cell-click="(event) => handleOpenEvent(event)"

@@ -20,3 +20,6 @@ def _i18n_anchors():
     _("Store", context="Mail Cluster Store")
     # The tab title of the setup page: the router passes it to __() at run time (frontend/src/router/index.ts).
     _("Set up Neoffice")
+    # frappe-ui's calendar grid, which frontend/neoffice-calendar-i18n.ts passes through __() at build time: the
+    # extractor never reads node_modules (maintenance#1321).
+    _("{0} more")
