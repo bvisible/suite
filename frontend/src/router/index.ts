@@ -59,7 +59,8 @@ const placeholderGroups: RouteRecordRaw[] = SUITE_APPS.map((app) => ({
   path: `${app.prefix}/:pathMatch(.*)*`,
   name: `${app.id}-placeholder`,
   component: () => import('@/shell/AppContainer.vue'),
-  meta: { appId: app.id, title: `Frappe ${app.name}`, favicon: app.logo },
+  // //// Neoffice — the tab reads the app's name, not upstream's « Frappe <App> » brand; setDocumentTitle translates it.
+  meta: { appId: app.id, title: app.name, favicon: app.logo },
 }))
 
 const routes: RouteRecordRaw[] = [
@@ -140,7 +141,8 @@ async function ensureAppRoutesLoaded(appId: string): Promise<void> {
   router.addRoute({
     path: app.prefix,
     component: () => import('@/shell/AppContainer.vue'),
-    meta: { appId, title: `Frappe ${app.name}`, favicon: app.logo },
+    // //// Neoffice — the tab reads the app's name, not upstream's « Frappe <App> » brand; setDocumentTitle translates it.
+    meta: { appId, title: app.name, favicon: app.logo },
     children: mod.routes,
   })
 
@@ -201,7 +203,8 @@ export function setDocumentTitle(
   if (view && view === from.matched.at(-1)) return
 
   if (to.meta.title) {
-    document.title = to.meta.title
+    // //// Neoffice — in the reader's language (« Calendrier »), now that the title is the bare app name.
+    document.title = __(String(to.meta.title))
   }
 }
 

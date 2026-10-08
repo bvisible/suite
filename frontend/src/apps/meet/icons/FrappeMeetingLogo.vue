@@ -1,22 +1,10 @@
+<!-- //// Neoffice — rewritten: Neoffice's Meet icon (the apps_v2 set neoffice_theme serves) instead of upstream's orange Frappe Meet mark, in the meeting header and the Meet sidebar. The component keeps its name, so every upstream use of it shows ours. -->
+<script setup lang="ts">
+// Served by neoffice_theme at run time: a bound src, so the build does not try to bundle it.
+const icon = '/assets/neoffice_theme/icons/apps_v2/meet.svg'
+</script>
+
 <template>
-	<svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-		<g clip-path="url(#clip0_3116_183)">
-			<rect width="44" height="44" rx="12.375" fill="#E54E17" />
-			<path
-				d="M10.8827 13.9404H15.7594H22.4329H25.6402C27.5732 13.9404 29.1402 15.5074 29.1402 17.4404V26.5164C29.1402 28.4449 27.5802 30.01 25.6518 30.0164L15.9216 30.0485C13.9839 30.0549 12.4098 28.4858 12.4101 26.5481L12.4111 19.3594"
-				stroke="white"
-				stroke-width="3.12"
-			/>
-			<path
-				d="M30.2061 21.3134L37.0107 16.2817V28.1573L30.1909 22.91C29.6643 22.5049 29.6719 21.7084 30.2061 21.3134Z"
-				fill="white"
-			/>
-			<rect x="35.8462" y="8.28711" width="5.89751" height="26.7686" fill="#E54E17" />
-		</g>
-		<defs>
-			<clipPath id="clip0_3116_183">
-				<rect width="44" height="44" rx="12.375" fill="white" />
-			</clipPath>
-		</defs>
-	</svg>
+	<!-- //// Neoffice — the Meet icon of neoffice_theme, see the header of this file. -->
+	<img :src="icon" alt="" aria-hidden="true" class="object-contain" draggable="false" />
 </template>

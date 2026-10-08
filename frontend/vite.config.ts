@@ -5,6 +5,8 @@ import vue from '@vitejs/plugin-vue'
 import frappeui from 'frappe-ui/vite'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
+// //// Neoffice — Neoffice's app icons in place of upstream's brand marks (neoffice-app-logos.ts).
+import { neofficeAppLogos } from './neoffice-app-logos'
 
 // Local frappe-ui work: when the submodule is checked out, bare `frappe-ui`
 // imports resolve to its source instead of the pinned package, so edits show up
@@ -80,6 +82,8 @@ export default defineConfig(({ mode }) => ({
   // ../suite/public/frontend -> exposed as /assets/suite/frontend).
   base: mode === 'production' ? '/assets/suite/frontend/' : '/',
   plugins: [
+    // //// Neoffice — Neoffice's app icons (neoffice-app-logos.ts).
+    neofficeAppLogos(),
     // Noise-suppression worklet lives under suite/public/noise-suppression
     // (see scripts/copy-noise-suppression-assets.mjs + src/shims/...).
     // Do not reintroduce @workadventure/noise-suppression/vite — that path
