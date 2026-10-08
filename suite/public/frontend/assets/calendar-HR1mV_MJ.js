@@ -1,0 +1,1 @@
+var e=`/assets/neoffice_theme/icons/apps_v2/calendar.svg`;export{e as t};
