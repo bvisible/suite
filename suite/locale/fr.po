@@ -24326,3 +24326,48 @@ msgstr "Connexion faible"
 #: suite/public/frontend/assets/Meeting-B9hK1VjG.js:209
 msgid "Unknown connection"
 msgstr "Connexion inconnue"
+
+#: frontend/src/apps/calendar/components/Modals/EventModal.vue:766
+msgid "Add a Meet video call"
+msgstr "Ajouter un appel vidéo Meet"
+
+#: frontend/src/apps/calendar/components/EventDetailSidebar.vue:509
+#: frontend/src/apps/calendar/components/Modals/EventModal.vue:758
+#: suite/public/frontend/assets/useChunkedUpload-C2EDpt89.js:1
+msgid "Copy Meet link"
+msgstr "Copier le lien Meet"
+
+#: frontend/src/apps/mail/components/InstallPrompt.vue:5
+#: frontend/src/apps/mail/components/InstallPrompt.vue:31
+#: suite/public/frontend/assets/MailLayout-DggxsXG1.js:1
+msgid "Install Mail"
+msgstr "Installer Mail"
+
+#: frontend/src/apps/calendar/components/EventDetailSidebar.vue:498
+#: frontend/src/apps/calendar/components/EventDetailSidebar.vue:502
+#: frontend/src/apps/calendar/components/Modals/EventModal.vue:749
+#: frontend/src/apps/calendar/components/Modals/EventModal.vue:753
+#: frontend/src/apps/calendar/components/Modals/EventModal.vue:765
+#: suite/public/frontend/assets/useChunkedUpload-C2EDpt89.js:1
+msgid "Meet"
+msgstr "Meet"
+
+#: frontend/src/apps/calendar/components/EventDetailSidebar.vue:254
+#: frontend/src/apps/calendar/components/Modals/EventModal.vue:263
+#: suite/public/frontend/assets/CalendarView-BG6mqCse.js:2
+#: suite/public/frontend/assets/useChunkedUpload-C2EDpt89.js:1
+msgid "Meet link copied."
+msgstr "Lien Meet copié."
+
+#: frontend/src/shell/SetupView.vue:18
+msgid "Neoffice logo"
+msgstr "Logo Neoffice"
+
+#: suite/i18n_anchors.py:22
+msgid "Set up Neoffice"
+msgstr "Configurer Neoffice"
+
+#: frontend/src/shell/SetupView.vue:210
+#: suite/public/frontend/assets/SetupView-B8WPcQpE.js:1
+msgid "Welcome to Neoffice"
+msgstr "Bienvenue sur Neoffice"
