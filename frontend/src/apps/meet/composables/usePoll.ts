@@ -322,7 +322,8 @@ export function usePoll(deps: {
 
 	const createPoll = async (question: string, options: { text: string }[]) => {
 		if (!sfuClient.isConnected()) {
-			toast.error("Not connected to meeting server");
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			toast.error(__("Not connected to meeting server"));
 			return;
 		}
 
@@ -346,19 +347,23 @@ export function usePoll(deps: {
 					if (!decrypted) return;
 					pollStore.addPoll(decrypted);
 				}
-				toast.success("Poll created!");
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				toast.success(__("Poll created!"));
 			} else {
-				toast.error(response?.error || "Failed to create poll");
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				toast.error(response?.error || __("Failed to create poll"));
 			}
 		} catch (error) {
 			console.error("Failed to create poll:", error);
-			toast.error(getErrorMessage(error) || "Failed to create poll");
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			toast.error(getErrorMessage(error) || __("Failed to create poll"));
 		}
 	};
 
 	const submitVote = async (pollId: string, optionId: string) => {
 		if (!sfuClient.isConnected()) {
-			toast.error("Not connected to meeting server");
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			toast.error(__("Not connected to meeting server"));
 			return;
 		}
 
@@ -369,7 +374,8 @@ export function usePoll(deps: {
 			);
 
 			if (!response.success) {
-				throw new Error(response.error ?? "Failed to submit vote");
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				throw new Error(response.error ?? __("Failed to submit vote"));
 			}
 
 			pollStore.markPollAsVoted(pollId);

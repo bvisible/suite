@@ -51,21 +51,14 @@
 				class="text-base text-ink-gray-7"
 				:class="alignment === 'center' ? 'mt-4' : ''"
 			>
-				<span v-if="displayedParticipants.length > 0">
-					{{ formattedNames }}
-				</span>
-				<span v-if="extraCount > 0">
-					{{ displayedParticipants.length > 0 ? ' and ' : '' }}{{ extraCount }} other{{ extraCount > 1 ? 's' : '' }}
-				</span>
-				<span v-if="displayedParticipants.length > 0">
-					{{ displayedParticipants.length > 1 ? ' are' : ' is' }}
-				</span>
-				in the meeting
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				{{ presenceText }}
 			</div>
 		</div>
 		<div v-else-if="!loading && showText" class="flex h-10 items-center">
 			<p class="text-base text-ink-gray-7">
-				You'll be the first to join this meeting
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				{{ __("You'll be the first to join this meeting") }}
 			</p>
 		</div>
 	</div>
@@ -139,9 +132,36 @@ const formattedNames = computed((): string => {
 	if (participantLength === 0) return "";
 	if (extraCount.value > 0) return names.join(", ");
 	if (participantLength === 1) return names[0];
-	if (participantLength === 2) return `${names[0]} and ${names[1]}`;
+	// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+	if (participantLength === 2) return __("{0} and {1}", [names[0], names[1]]);
 	if (participantLength === 3)
-		return `${names[0]}, ${names[1]} and ${names[2]}`;
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		return __("{0}, {1} and {2}", [names[0], names[1], names[2]]);
 	return names.join(", ");
+});
+// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+
+const presenceText = computed((): string => {
+	const shown = displayedParticipants.value.length;
+	const extra = extraCount.value;
+	const names = formattedNames.value;
+	if (extra === 0) {
+		return shown > 1
+			? __("{0} are in the meeting", [names])
+			: __("{0} is in the meeting", [names]);
+	}
+	if (shown === 0) {
+		return extra > 1
+			? __("{0} others in the meeting", [extra])
+			: __("1 other in the meeting");
+	}
+	if (extra > 1) {
+		return shown > 1
+			? __("{0} and {1} others are in the meeting", [names, extra])
+			: __("{0} and {1} others is in the meeting", [names, extra]);
+	}
+	return shown > 1
+		? __("{0} and 1 other are in the meeting", [names])
+		: __("{0} and 1 other is in the meeting", [names]);
 });
 </script>

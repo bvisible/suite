@@ -15,7 +15,8 @@
 				<span class="truncate text-sm text-ink-gray-8 tracking-[0.28px]">
 					{{ participant.user_name }}
 				</span>
-				<span v-if="isCurrentUser" class="text-xs text-ink-gray-5">(You)</span>
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				<span v-if="isCurrentUser" class="text-xs text-ink-gray-5">{{ __('(You)') }}</span>
 			</div>
 		</div>
 
@@ -24,37 +25,42 @@
 				v-if="isHost"
 				class="rounded-full bg-surface-gray-4 px-1.5 py-px text-xs text-ink-gray-6 tracking-[0.24px]"
 			>
-				Host
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				{{ __('Host') }}
 			</span>
 			<span
 				v-if="participant.is_guest"
 				class="rounded-full bg-surface-gray-4 px-1.5 py-px text-xs text-ink-gray-6 tracking-[0.24px]"
 			>
-				Guest
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				{{ __('Guest') }}
 			</span>
 		</div>
 
 		<div class="flex flex-shrink-0 items-center gap-1">
 			<!-- Raised Hand Indicator -->
-			<div v-if="isHandRaised" class="flex items-center justify-center p-1.5 rounded-6" :title="`${participant.user_name || participant.user_id} has raised their hand`">
+			<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+			<div v-if="isHandRaised" class="flex items-center justify-center p-1.5 rounded-6" :title="__('{0} has raised their hand', [participant.user_name || participant.user_id])">
 				<div class="rounded-full bg-amber-500 p-0.5">
 					<lucide-hand class="w-3.5 h-3.5 text-ink-gray-9" />
 				</div>
 			</div>
 
 			<!-- Video Status -->
+			<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 			<span
 				class="flex items-center justify-center p-1.5 text-ink-gray-6"
-				:title="participant.video_enabled ? 'Camera on' : 'Camera off'"
+				:title="participant.video_enabled ? __('Camera on') : __('Camera off')"
 			>
 				<MeetCameraIcon v-if="participant.video_enabled" class="size-4" />
 				<MeetCameraOffIcon v-else class="size-4" />
 			</span>
 
 			<!-- Audio Status -->
+			<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 			<span
 				class="flex items-center justify-center p-1.5 text-ink-gray-6"
-				:title="participant.audio_enabled ? 'Microphone on' : 'Microphone off'"
+				:title="participant.audio_enabled ? __('Microphone on') : __('Microphone off')"
 			>
 				<MeetMicIcon v-if="participant.audio_enabled" class="size-4" />
 				<MeetMicOffIcon v-else class="size-4" />
@@ -64,9 +70,10 @@
 			<div v-if="canControlParticipant" class="relative">
 				<Dropdown :options="hostOptions">
 					<template #default>
+						<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 						<button
 							class="flex items-center justify-center rounded-6 p-1.5 text-ink-gray-6 hover:bg-surface-gray-3"
-							:aria-label="`Actions for ${participant.user_name || participant.user_id}`"
+							:aria-label="__('Actions for {0}', [participant.user_name || participant.user_id])"
 							:data-testid="`people-participant-actions-${participant.user_id}`"
 						>
 							<lucide-more-horizontal class="w-4 h-4" />
@@ -79,9 +86,10 @@
 	</div>
 
 	<!-- Kick Confirmation Dialog -->
+	<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 	<KickParticipantDialog
 		v-model="showKickDialog"
-		:participant-name="participant.user_name || 'this participant'"
+		:participant-name="participant.user_name || __('this participant')"
 		:can-ban="participant.is_guest === true"
 		@confirm="handleKickConfirm"
 	/>
@@ -140,25 +148,29 @@ const hostOptions = computed(() => {
 	return [
         {
             icon: "lucide-mic-off",
-            label: "Mute",
+            // //// Neoffice — i18n: text a person reads goes through __() (#1316)
+            label: __('Mute'),
 			condition: () => !!props.participant.audio_enabled,
 			onClick: () => emit("muteParticipant", props.participant.user_id),
 		},
 		{
             icon: "lucide-hand",
-			label: "Lower Hand",
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			label: __('Lower Hand'),
 			condition: () => isHandRaised.value,
 			onClick: () => emit("lowerHand", props.participant.user_id),
 		},
 		{
 			icon: "lucide-user-shield",
-			label: "Promote to Co-host",
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			label: __('Promote to Co-host'),
 			condition: () => props.canPromoteToCohost,
 			onClick: () => emit("promoteToCohost", props.participant.user_id),
 		},
 		{
             icon: "lucide-user-x",
-            label: "Remove",
+            // //// Neoffice — i18n: text a person reads goes through __() (#1316)
+            label: __('Remove'),
 			onClick: () => {
 				showKickDialog.value = true;
 			},

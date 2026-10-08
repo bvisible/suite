@@ -80,10 +80,12 @@ export async function getApprovedGuestConnectionDetails(
 		}),
 	);
 	if (response?.status !== "joined" || !response.auth_token) {
-		throw new Error("Guest is not admitted to this meeting");
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		throw new Error(__("Guest is not admitted to this meeting"));
 	}
 	if (response.guest_id && response.guest_id !== session.guestId) {
-		throw new Error("Approved guest identity does not match the stored session");
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		throw new Error(__("Approved guest identity does not match the stored session"));
 	}
 	return response;
 }
@@ -140,13 +142,15 @@ export function createGuestRealtimeLifecycle({
 
 	const handleAcknowledgement = (value: unknown) => {
 		if (!isUnknownRecord(value) || typeof value.ok !== "boolean") {
-			onError(new Error("Invalid guest subscription acknowledgement"));
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			onError(new Error(__("Invalid guest subscription acknowledgement")));
 			return;
 		}
 		const status = normalizeStatus(value.status);
 		if (value.ok) {
 			if (!status || status === "rejected" || status === "banned" || status === "expired") {
-				onError(new Error("Invalid guest subscription status"));
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				onError(new Error(__("Invalid guest subscription status")));
 				return;
 			}
 			if (subscribedSession) void onActiveStatus(status, subscribedSession);
@@ -157,7 +161,8 @@ export function createGuestRealtimeLifecycle({
 			return;
 		}
 		const reason = typeof value.error === "string" ? value.error : "invalid_request";
-		onError(new Error(`Guest realtime subscription failed: ${reason}`));
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		onError(new Error(__("Guest realtime subscription failed: {0}", [reason])));
 	};
 
 	const subscribe = () => {

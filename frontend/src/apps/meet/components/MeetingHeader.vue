@@ -15,7 +15,8 @@ const crumbs = computed(() => [
 		route: "/meet",
 	},
 	{
-		label: props.meetingTitle || props.meetingId || "Meeting",
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		label: props.meetingTitle || props.meetingId || __("Meeting"),
 	},
 ]);
 </script>

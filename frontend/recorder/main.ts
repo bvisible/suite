@@ -11,6 +11,7 @@ import { useReactionStore } from "../src/apps/meet/composables/useReactionStore"
 import RecorderRenderer from "./RecorderRenderer.vue";
 import { RecorderRendererBridge } from "./rendererBridge";
 import { RecorderSocketController } from "./RecorderSocketController";
+import { translationPlugin } from "../src/boot/translation"; //// Neoffice — Meet components call __() (#1316)
 
 const bridge = new RecorderRendererBridge();
 await bridge.initialize();
@@ -79,4 +80,6 @@ const app = createApp({
 		return () => h(RecorderRenderer, { startedAt: config.startedAt, interruption: controller.interruption.value, messages: messages.value, meetingContext, videoManager: controller.videoManager, onPlaybackFailure: (reason: string) => controller.reportPlaybackFailure(reason), onScreenAttachment: (consumerId: string, attachment: Promise<void>) => { const pending = pendingScreenAttachments.get(consumerId); const settle = (error?: unknown) => { if (!pending || pendingScreenAttachments.get(consumerId) !== pending) return; pendingScreenAttachments.delete(consumerId); error ? pending.reject(error instanceof Error ? error : new Error("Screen attachment failed")) : pending.resolve(); }; void attachment.then(() => settle(), settle); } });
 	},
 });
-app.use(pinia).mount("#app");
+//// Neoffice — MeetingLayout and ParticipantTile call __() since #1316: without the plugin the recorder
+//// threw `_ctx.__ is not a function`. No translations are loaded here; the labels stay in English.
+app.use(pinia).use(translationPlugin).mount("#app");

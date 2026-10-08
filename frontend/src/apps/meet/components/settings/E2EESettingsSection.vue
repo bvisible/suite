@@ -1,5 +1,6 @@
+<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 <template>
-	<SettingsRow title="End-to-end encryption" :description="e2eeDescription">
+	<SettingsRow :title="__('End-to-end encryption')" :description="e2eeDescription">
 		<Switch
 			v-model="e2eeEnabled"
 			:disabled="isToggleDisabled"
@@ -48,9 +49,11 @@ let detailsLoaded = false;
 
 const e2eeDescription = computed(() => {
 	if (isE2EEMediaSupported.value === false) {
-		return "E2EE requires encoded media transform support. Update your browser to enable it.";
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		return __('E2EE requires encoded media transform support. Update your browser to enable it.');
 	}
-	return "Converts this meeting to E2EE for extra privacy. Only participants can access the meeting content.";
+	// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+	return __('Converts this meeting to E2EE for extra privacy. Only participants can access the meeting content.');
 });
 
 const isToggleDisabled = computed(
@@ -116,7 +119,8 @@ watch(e2eeEnabled, async (val, oldVal) => {
 	if (getE2EETransformCapability() === "none") {
 		e2eeEnabled.value = false;
 		isE2EEMediaSupported.value = false;
-		toast.error("E2EE requires encoded media transform support.");
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		toast.error(__('E2EE requires encoded media transform support.'));
 		return;
 	}
 
@@ -140,11 +144,13 @@ watch(e2eeEnabled, async (val, oldVal) => {
 		);
 
 		await props.meetingDoc.reload();
-		toast.success("Meeting is now end-to-end encrypted.");
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		toast.success(__('Meeting is now end-to-end encrypted.'));
 	} catch (error) {
 		console.error("Failed to enable E2EE:", error);
 		e2eeEnabled.value = false;
-		toast.error("Failed to enable E2EE for this meeting");
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		toast.error(__('Failed to enable E2EE for this meeting'));
 	} finally {
 		isConvertingToE2EE.value = false;
 	}

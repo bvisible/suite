@@ -221,9 +221,12 @@ export function useMediaControls(deps: MediaControlsDeps): MediaControlsAPI {
 	const confirmScreenShareOverride = () =>
 		new Promise<boolean>((resolve) => {
 			dialog.confirm({
-				title: "Start Screen Share Anyway?",
-				message:
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				title: __("Start Screen Share Anyway?"),
+				message: __(
 					"Someone is already sharing their screen. Starting yours may result in multiple active screen shares.",
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				),
 				onConfirm: () => resolve(true),
 				onCancel: () => resolve(false),
 			});
@@ -481,12 +484,14 @@ export function useMediaControls(deps: MediaControlsDeps): MediaControlsAPI {
 		onCameraDisabled: () => {
 			mediaState.isCameraOn = false;
 			setCameraEnabled(false);
-			toast.error("Failed to toggle camera");
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			toast.error(__("Failed to toggle camera"));
 		},
 		onMicrophoneDisabled: () => {
 			mediaState.isMicOn = false;
 			setMicEnabled(false);
-			toast.error("Failed to toggle microphone");
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			toast.error(__("Failed to toggle microphone"));
 		},
 		getSelectedDeviceId: (type) =>
 			type === "camera" ? selectedCameraId.value : selectedMicId.value,
@@ -557,7 +562,8 @@ export function useMediaControls(deps: MediaControlsDeps): MediaControlsAPI {
 		updateLocalPreview(null);
 		mediaState.isCameraOn = false;
 		setCameraEnabled(false);
-		toast.error("Failed to toggle camera");
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		toast.error(__("Failed to toggle camera"));
 		throw error;
 	};
 
@@ -980,7 +986,10 @@ export function useMediaControls(deps: MediaControlsDeps): MediaControlsAPI {
 			mediaState.isCameraOn = false;
 			setCameraEnabled(false);
 			toast.error(
-				"Camera stopped and could not be restarted. Check browser permissions and devices.",
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				__(
+					"Camera stopped and could not be restarted. Check browser permissions and devices.",
+				),
 			);
 		} else {
 			try {
@@ -1001,7 +1010,10 @@ export function useMediaControls(deps: MediaControlsDeps): MediaControlsAPI {
 			mediaState.isMicOn = false;
 			setMicEnabled(false);
 			toast.error(
-				"Microphone stopped and could not be restarted. Check browser permissions and devices.",
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				__(
+					"Microphone stopped and could not be restarted. Check browser permissions and devices.",
+				),
 			);
 		}
 		signalMediaDisabled(kind);
@@ -1140,8 +1152,9 @@ export function useMediaControls(deps: MediaControlsDeps): MediaControlsAPI {
 				(error as Error).name === "PermissionDeniedError";
 			toast.warning(
 				isPermissionError
-					? "Media access denied. Enable permissions in browser settings."
-					: "Media access failed. You can join without media.",
+					// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+					? __("Media access denied. Enable permissions in browser settings.")
+					: __("Media access failed. You can join without media."),
 			);
 		}
 	};
@@ -1200,7 +1213,8 @@ export function useMediaControls(deps: MediaControlsDeps): MediaControlsAPI {
 		} catch (error) {
 			if (isCameraLifecycleAbort(error)) return;
 			console.error("Failed to toggle microphone:", error);
-			toast.error("Failed to toggle microphone");
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			toast.error(__("Failed to toggle microphone"));
 		}
 	};
 	const toggleMicrophone = () =>
@@ -1248,8 +1262,9 @@ export function useMediaControls(deps: MediaControlsDeps): MediaControlsAPI {
 							(err as Error).name === "PermissionDeniedError";
 						toast.error(
 							isPermissionError
-								? "Camera access denied. Enable in browser settings."
-								: "Failed to access camera",
+								// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+								? __("Camera access denied. Enable in browser settings.")
+								: __("Failed to access camera"),
 						);
 						return;
 					}
@@ -1296,8 +1311,9 @@ export function useMediaControls(deps: MediaControlsDeps): MediaControlsAPI {
 								(err as Error).name === "PermissionDeniedError";
 							toast.error(
 								isPermissionError
-									? "Camera access denied. Enable in browser settings."
-									: "Could not enable camera",
+									// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+									? __("Camera access denied. Enable in browser settings.")
+									: __("Could not enable camera"),
 							);
 							return;
 						}
@@ -1385,7 +1401,8 @@ export function useMediaControls(deps: MediaControlsDeps): MediaControlsAPI {
 				cleanupBackgroundSession();
 			}
 			console.error("Failed to toggle camera:", error);
-			toast.error("Failed to toggle camera");
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			toast.error(__("Failed to toggle camera"));
 			throw error;
 		}
 	};
@@ -1546,7 +1563,8 @@ export function useMediaControls(deps: MediaControlsDeps): MediaControlsAPI {
 				console.log("User cancelled screen share");
 			} else {
 				console.error("Screen share failed:", error);
-				toast.error("Failed to start screen sharing");
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				toast.error(__("Failed to start screen sharing"));
 			}
 		}
 	};
@@ -1645,7 +1663,10 @@ export function useMediaControls(deps: MediaControlsDeps): MediaControlsAPI {
 	watch(noiseCancellation.error, (message) => {
 		if (message) {
 			toast.warning(
-				`Noise cancellation unavailable: ${message}. Falling back to raw microphone.`,
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				__("Noise cancellation unavailable: {0}. Falling back to raw microphone.", [
+					message,
+				]),
 			);
 		}
 	});

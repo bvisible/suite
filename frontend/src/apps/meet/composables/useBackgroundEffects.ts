@@ -156,7 +156,8 @@ export function useBackgroundEffects({
 			manager?.dispose();
 			console.warn("WebGL initialization failed:", error);
 			toast.warning(
-				"WebGL is not available. Background blur effects will be disabled.",
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				__("WebGL is not available. Background blur effects will be disabled."),
 			);
 			webglManager = null;
 		}
@@ -294,7 +295,8 @@ export function useBackgroundEffects({
 			console.error("Failed to load MediaPipe Selfie Segmentation model:", err);
 			error.value = "Failed to load background effects model";
 			toast.error(
-				"Failed to load the background effects model. Please try again.",
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				__("Failed to load the background effects model. Please try again."),
 			);
 			throw err;
 		}
@@ -723,7 +725,10 @@ export function useBackgroundEffects({
 								error.code === "WEBGL_UNAVAILABLE"
 							) {
 								toast.error(
-									"Background blur requires WebGL but it's not available on this device. Blur effects have been disabled.",
+									// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+									__(
+										"Background blur requires WebGL but it's not available on this device. Blur effects have been disabled.",
+									),
 								);
 								settings.backgroundBlurEnabled = false;
 							} else if (
@@ -731,7 +736,10 @@ export function useBackgroundEffects({
 								error.code === "WEBGL_BLUR_FAILED"
 							) {
 								toast.error(
-									"Background blur failed due to WebGL error. Blur effects have been disabled.",
+									// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+									__(
+										"Background blur failed due to WebGL error. Blur effects have been disabled.",
+									),
 								);
 								settings.backgroundBlurEnabled = false;
 							} else {
@@ -1084,7 +1092,10 @@ export function useBackgroundEffects({
 						if (isDisposed || signal?.aborted) throw error;
 						console.error("Failed to update background image:", error);
 						toast.error(
-							"Failed to update the selected background image. Reverting to original.",
+							// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+							__(
+								"Failed to update the selected background image. Reverting to original.",
+							),
 						);
 						settings.backgroundImageEnabled = false;
 						settings.selectedBackgroundImage = null;
@@ -1103,7 +1114,8 @@ export function useBackgroundEffects({
 			}
 			console.error("Background effects processing error:", err);
 			error.value = err instanceof Error ? err.message : "Unknown error";
-			toast.error("Failed to apply background effects. Using original video.");
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			toast.error(__("Failed to apply background effects. Using original video."));
 			await haltProcessing({ disposeWebGL: true });
 			await resetSegmentationState();
 			return {

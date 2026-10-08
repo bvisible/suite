@@ -1,13 +1,15 @@
+<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 <template>
 	<AppSettingsHeader
-		title="Controls"
-		description="Manage join rules, chat, and security for this meeting."
+		:title="__('Controls')"
+		:description="__('Manage join rules, chat, and security for this meeting.')"
 	/>
 	<AppSettingsBody>
 			<div>
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 				<SettingsRow
-					title="Allow Guests"
-					description="Allow non-registered users to join this meeting"
+					:title="__('Allow Guests')"
+					:description="__('Allow non-registered users to join this meeting')"
 				>
 					<Switch
 						v-model="allowGuest"
@@ -15,9 +17,10 @@
 					/>
 				</SettingsRow>
 
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 				<SettingsRow
-					title="Require host approval"
-					description="People wait in the lobby until a host or co-host admits them"
+					:title="__('Require host approval')"
+					:description="__('People wait in the lobby until a host or co-host admits them')"
 				>
 					<Switch
 						v-model="requireHostApproval"
@@ -25,9 +28,10 @@
 					/>
 				</SettingsRow>
 
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 				<SettingsRow
-					title="Host Only Chat"
-					description="Restrict chat so only hosts and co-hosts can send messages"
+					:title="__('Host Only Chat')"
+					:description="__('Restrict chat so only hosts and co-hosts can send messages')"
 				>
 					<Switch
 						v-model="hostOnlyChat"
@@ -112,7 +116,8 @@ const saveSettings = debounce(async () => {
 		await meetingDoc.reload();
 	} catch (error) {
 		console.error("Failed to update meeting settings:", error);
-		toast.error("Failed to update meeting settings");
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		toast.error(__('Failed to update meeting settings'));
 
 		if (meetingDoc.doc?.host_only_chat !== undefined) {
 			hostOnlyChat.value = !!meetingDoc.doc.host_only_chat;

@@ -1,36 +1,42 @@
+<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 <template>
 	<AppSettingsHeader
-		title="Devices"
-		description="Select your preferred camera, microphone, and speaker"
+		:title="__('Devices')"
+		:description="__('Select your preferred camera, microphone, and speaker')"
 	/>
 	<AppSettingsBody>
+		<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 		<LoadingText
 			v-if="isLoadingDevices"
 			class="mx-auto w-max my-32"
-			:text="'Loading devices...'"
+			:text="__('Loading devices...')"
 		/>
 		<div v-else class="space-y-6">
 			<div class="space-y-1.5">
-				<label class="block text-base text-ink-gray-5">Camera</label>
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				<label class="block text-base text-ink-gray-5">{{ __('Camera') }}</label>
 				<div class="flex items-center gap-2">
 					<div class="relative w-full">
+						<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 						<FormControl class="device-select" type="combobox" trigger="button" v-model="selectedCameraIdLocal"
 							:options="hasVideoPermission ? cameraSelectOptions : []" :disabled="!hasVideoPermission"
-							placeholder="Camera access required">
+							:placeholder="__('Camera access required')">
 							<template #prefix>
 								<lucide-camera class="mr-2 h-4 w-4 text-ink-gray-7" />
 							</template>
 						</FormControl>
+						<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 						<button
 							v-if="!hasVideoPermission"
 							type="button"
 							class="absolute inset-0 cursor-pointer rounded-4 bg-transparent focus-visible:focus-ring disabled:cursor-wait"
-							aria-label="Allow camera access"
+							:aria-label="__('Allow camera access')"
 							:disabled="isRequestingVideoPermission"
 							@click="requestPermission('video')"
 						/>
 					</div>
-					<Tooltip v-if="!hasVideoPermission" text="Allow camera access to select a camera">
+					<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+					<Tooltip v-if="!hasVideoPermission" :text="__('Allow camera access to select a camera')">
 						<Button
 							variant="ghost"
 							icon="lucide-alert-triangle"
@@ -42,12 +48,14 @@
 			</div>
 
 			<div class="space-y-1.5">
-				<label class="block text-base text-ink-gray-5">Microphone</label>
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				<label class="block text-base text-ink-gray-5">{{ __('Microphone') }}</label>
 				<div class="flex items-center gap-2">
 					<div class="relative w-full">
+						<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 						<FormControl class="device-select" type="combobox" trigger="button" v-model="selectedMicIdLocal"
 							:options="hasAudioPermission ? micSelectOptions : []" :disabled="!hasAudioPermission"
-							placeholder="Microphone access required">
+							:placeholder="__('Microphone access required')">
 							<template #prefix>
 								<lucide-mic class="mr-2 h-4 w-4 text-ink-gray-7" />
 							</template>
@@ -58,16 +66,18 @@
 								<span class="lucide-chevron-down size-4 shrink-0 text-ink-gray-4" />
 							</template>
 						</FormControl>
+						<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 						<button
 							v-if="!hasAudioPermission"
 							type="button"
 							class="absolute inset-0 cursor-pointer rounded-4 bg-transparent focus-visible:focus-ring disabled:cursor-wait"
-							aria-label="Allow microphone access"
+							:aria-label="__('Allow microphone access')"
 							:disabled="isRequestingAudioPermission"
 							@click="requestPermission('audio')"
 						/>
 					</div>
-					<Tooltip v-if="!hasAudioPermission" text="Allow microphone access to select a microphone">
+					<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+					<Tooltip v-if="!hasAudioPermission" :text="__('Allow microphone access to select a microphone')">
 						<Button
 							variant="ghost"
 							icon="lucide-alert-triangle"
@@ -79,11 +89,13 @@
 			</div>
 
 			<div class="space-y-1.5">
-				<label class="block text-base text-ink-gray-5">Speaker</label>
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				<label class="block text-base text-ink-gray-5">{{ __('Speaker') }}</label>
 				<div class="flex">
+					<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 					<FormControl :class="['w-full', selectedSpeakerIdLocal && '!rounded-r-none']"
 						type="combobox" trigger="button" v-model="selectedSpeakerIdLocal"
-						:options="speakerSelectOptions" placeholder="Select speaker">
+						:options="speakerSelectOptions" :placeholder="__('Select speaker')">
 						<template #prefix>
 							<lucide-speaker class="mr-2 h-4 w-4 text-ink-gray-7" />
 						</template>
@@ -99,7 +111,8 @@
 						:loading="isTestingAudio"
 						icon-left="lucide-volume-2"
 					>
-						Test
+						<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+						{{ __('Test') }}
 					</Button>
 				</div>
 			</div>

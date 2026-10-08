@@ -20,7 +20,8 @@
 			class="absolute right-2 top-2 rounded-1 border border-outline-gray-2 bg-surface-gray-1 px-2 py-1 text-xs text-ink-gray-7 hover:bg-surface-gray-3"
 			@click="copyTextContentToClipboard"
 		>
-			{{ copied ? "copied" : "copy" }}
+			<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+			{{ copied ? __("copied") : __("copy") }}
 		</button>
 	</div>
 </template>
@@ -43,7 +44,8 @@ function copyTextContentToClipboard() {
 		setTimeout(() => {
 			copied.value = false;
 		}, 4000);
-		toast.success("Copied to clipboard!");
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		toast.success(__("Copied to clipboard!"));
 	});
 }
 </script>

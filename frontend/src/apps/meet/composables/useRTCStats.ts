@@ -304,7 +304,8 @@ export function useRTCStats(active: Ref<boolean>) {
 			snapshot.value = next;
 			error.value = null;
 		} catch (pollError) {
-			error.value = pollError instanceof Error ? pollError.message : "Could not read WebRTC statistics";
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			error.value = pollError instanceof Error ? pollError.message : __("Could not read WebRTC statistics");
 		} finally {
 			isPolling.value = false;
 		}

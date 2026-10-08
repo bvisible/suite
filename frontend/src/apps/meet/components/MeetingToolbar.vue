@@ -7,18 +7,20 @@
 			class="grid h-full w-full grid-cols-[1fr_auto_1fr] items-end px-4 transition-transform duration-500 ease-in-out pb-2"
 			:class="isVisible ? 'translate-y-0' : 'translate-y-full'"
 		>
+			<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 			<div
 				class="col-start-2 flex items-center gap-1.5 pointer-events-auto transition-all duration-500 px-2 py-1"
 				role="toolbar"
-				aria-label="Meeting controls"
+				:aria-label="__('Meeting controls')"
 				@mouseenter="onMouseEnter"
 				@mouseleave="onMouseLeave"
 			>
 				<!-- Microphone -->
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 				<ToolbarButton
 					:variant="isMicOn ? 'default' : 'muted'"
 					:show-tooltip="isVisible"
-					:title="`Toggle Audio (${$platform === 'mac' ? '⌘+D' : 'Ctrl+D'})`"
+					:title="__('Toggle Audio ({0})', [$platform === 'mac' ? '⌘+D' : 'Ctrl+D'])"
 					@click="$emit('toggle-microphone')"
 				>
 					<MeetMicIcon v-if="isMicOn" />
@@ -26,10 +28,11 @@
 				</ToolbarButton>
 
 				<!-- Camera -->
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 				<ToolbarButton
 					:variant="isCameraOn ? 'default' : 'muted'"
 					:show-tooltip="isVisible"
-					:title="`Toggle Video (${$platform === 'mac' ? '⌘+E' : 'Ctrl+E'})`"
+					:title="__('Toggle Video ({0})', [$platform === 'mac' ? '⌘+E' : 'Ctrl+E'])"
 					@click="$emit('toggle-camera')"
 				>
 					<MeetCameraIcon v-if="isCameraOn" />
@@ -37,11 +40,12 @@
 				</ToolbarButton>
 
 				<!-- Screen Share -->
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 				<ToolbarButton
 					v-if="canScreenShare()"
 					:variant="isScreenSharing ? 'muted' : 'default'"
 					:show-tooltip="isVisible"
-					title="Toggle Screen Share"
+					:title="__('Toggle Screen Share')"
 					@click="$emit('toggle-screen-share')"
 				>
 					<MeetPresentPauseIcon v-if="isScreenSharing" />
@@ -49,10 +53,11 @@
 				</ToolbarButton>
 
 				<!-- Raise Hand -->
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 				<ToolbarButton
 					:variant="isHandRaised ? 'muted' : 'default'"
 					:show-tooltip="isVisible"
-					title="Raise Hand"
+					:title="__('Raise Hand')"
 					@click="$emit('toggle-raise-hand')"
 				>
 					<MeetHandIcon />
@@ -65,9 +70,10 @@
 					@update:open="updateReactionPickerOpen"
 				>
 					<template #trigger>
+						<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 						<ToolbarButton
 							:show-tooltip="isVisible"
-							title="Reactions"
+							:title="__('Reactions')"
 							@click="() => {}"
 						>
 							<MeetSmileIcon />
@@ -79,11 +85,12 @@
 				<div class="relative">
 					<Dropdown :options="moreOptions">
 						<template #default>
+							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 							<Button
 								size="lg"
 								variant="ghost"
-								label="More options"
-								:tooltip="isVisible ? 'More options' : undefined"
+								:label="__('More options')"
+								:tooltip="isVisible ? __('More options') : undefined"
 							>
 								<template #icon>
 									<MeetSettingsIcon />
@@ -94,20 +101,22 @@
 				</div>
 
 				<!-- End Call -->
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 				<ToolbarButton
 					variant="active"
 					:show-tooltip="isVisible"
-					title="End Call"
+					:title="__('End Call')"
 					@click="$emit('end-call')"
 				>
 					<MeetPhoneOffIcon class="text-ink-red-6 size-5" />
 				</ToolbarButton>
 			</div>
 
+			<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 			<div
 				class="col-start-3 flex items-center justify-self-end gap-1.5 pointer-events-auto transition-all duration-500 px-2 py-1"
 				role="group"
-				aria-label="Meeting side panels"
+				:aria-label="__('Meeting side panels')"
 				@mouseenter="onMouseEnter"
 				@mouseleave="onMouseLeave"
 			>
@@ -118,12 +127,13 @@
 				/>
 
 				<!-- People -->
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 				<ToolbarButton
 					v-if="!isMobile"
 					:active="isPeopleOpen"
 					:show-tooltip="isVisible"
 					variant="default"
-					title="Show Participants"
+					:title="__('Show Participants')"
 					@click="$emit('toggle-people')"
 				>
 					<MeetPeopleIcon />
@@ -134,12 +144,13 @@
 				</ToolbarButton>
 
 				<!-- Chat -->
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 				<ToolbarButton
 					v-if="!isMobile"
 					:active="isChatOpen"
 					:show-tooltip="isVisible"
 					variant="default"
-					title="Show Chat"
+					:title="__('Show Chat')"
 					@click="$emit('toggle-chat')"
 				>
 					<MeetChatIcon />
@@ -255,12 +266,14 @@ const moreOptions = computed(() => [
 						? "lucide-circle-stop"
 						: "lucide-disc",
 					label: props.recordingStatus === "Pending"
-						? "Starting recording..."
+						// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+						? __("Starting recording...")
 						: ["Recording", "Interrupted", "Stopping"].includes(
 						props.recordingStatus || "",
 					)
-						? "Stop recording"
-						: "Start recording",
+						// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+						? __("Stop recording")
+						: __("Start recording"),
 					disabled:
 						props.recordingLoading ||
 						["Pending", "Stopping"].includes(props.recordingStatus || ""),
@@ -273,7 +286,8 @@ const moreOptions = computed(() => [
 		: []),
 	{
 		icon: "lucide-activity",
-		label: props.statsVisible ? "Hide stats for nerds" : "Stats for nerds",
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		label: props.statsVisible ? __("Hide stats for nerds") : __("Stats for nerds"),
 		onClick: () => {
 			emit("toggle-stats");
 			resetHideTimer();
@@ -281,7 +295,8 @@ const moreOptions = computed(() => [
 	},
 	{
 		icon: LucideBug,
-		label: "Report an issue",
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		label: __("Report an issue"),
 		onClick: () => {
 			emit("report-problem");
 			resetHideTimer(true);
@@ -289,7 +304,8 @@ const moreOptions = computed(() => [
 	},
 	{
 		icon: props.isFullscreen ? "lucide-minimize" : "lucide-maximize",
-		label: props.isFullscreen ? "Exit full screen" : "Enter full screen",
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		label: props.isFullscreen ? __("Exit full screen") : __("Enter full screen"),
 		onClick: () => {
 			emit("toggle-fullscreen");
 			resetHideTimer();
@@ -299,14 +315,16 @@ const moreOptions = computed(() => [
 		? [
 				{
 					icon: "lucide-users",
-					label: "People",
+					// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+					label: __("People"),
 					onClick: () => {
 						emit("toggle-people");
 					},
 				},
 				{
 					icon: "lucide-message-square",
-					label: "Chat",
+					// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+					label: __("Chat"),
 					onClick: () => {
 						emit("toggle-chat");
 					},
@@ -315,7 +333,8 @@ const moreOptions = computed(() => [
 		: []),
 	{
 		icon: "lucide-settings",
-		label: "Settings",
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		label: __("Settings"),
 		onClick: () => {
 			showSettingsDialog.value = true;
 			resetHideTimer();

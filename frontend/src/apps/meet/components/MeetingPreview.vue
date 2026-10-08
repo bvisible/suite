@@ -50,7 +50,8 @@
 					</p>
 
 					<h2 class="mb-7 text-3xl-semibold text-ink-gray-9">
-						Ready to join?
+						<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+						{{ __('Ready to join?') }}
 					</h2>
 
 					<AvatarGroup
@@ -67,17 +68,19 @@
 						v-if="terminalGuestSession"
 						class="mt-7 rounded-6 border border-outline-gray-2 bg-surface-gray-1 p-4"
 					>
-						<p class="text-sm text-ink-gray-7">You can’t join this meeting.</p>
+						<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+						<p class="text-sm text-ink-gray-7">{{ __('You can’t join this meeting.') }}</p>
 					</div>
 
 					<form v-else class="mt-7 space-y-3" @submit.prevent="handleJoin">
+						<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 						<FormControl
 							v-if="isGuest"
 							ref="guestNameInputRef"
 							v-model="guestName"
 							type="text"
-							label="Your name"
-							placeholder="John Doe"
+							:label="__('Your name')"
+							:placeholder="__('John Doe')"
 							:maxlength="50"
 							autocomplete="off"
 						/>
@@ -94,7 +97,8 @@
 							<template #prefix>
 								<lucide-video class="h-5 w-5" />
 							</template>
-							{{ isCurrentUserPresent ? "Switch here" : "Join Meeting" }}
+							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+							{{ isCurrentUserPresent ? __("Switch here") : __("Join Meeting") }}
 						</Button>
 					</form>
 				</div>
@@ -190,7 +194,8 @@ const previewName = computed(() => {
 	if (isGuest.value && guestName.value.trim()) {
 		return guestName.value.trim();
 	}
-	return props.currentUserName || props.userInitials || "You";
+	// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+	return props.currentUserName || props.userInitials || __("You");
 });
 
 const previewParticipant = computed<Participant>(() => ({
@@ -237,7 +242,8 @@ const handleJoin = async () => {
 			clearRetryableGuestSession(props.meetingId);
 		} else if (storedSession?.status === "banned") {
 			terminalGuestSession.value = storedSession;
-			toast.error("You can’t join this meeting.");
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			toast.error(__("You can’t join this meeting."));
 			return;
 		}
 		if (!guestName.value.trim()) {
@@ -254,7 +260,8 @@ const handleJoin = async () => {
 		} catch (error) {
 			console.error("Failed to join as guest:", error);
 			const errorMessage =
-				getErrorMessage(error) || "Failed to join meeting as guest.";
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				getErrorMessage(error) || __("Failed to join meeting as guest.");
 			toast.error(errorMessage);
 		}
 	} else {

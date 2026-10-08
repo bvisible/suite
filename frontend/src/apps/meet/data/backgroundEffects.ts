@@ -91,22 +91,34 @@ export const customBackgroundImages: Ref<BackgroundImage[]> = ref([]);
 export const availableBackgroundImages: BackgroundImage[] = [
 	{
 		name: "beach",
-		label: "Beach",
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		get label() {
+			return __("Beach");
+		},
 		url: "/assets/suite/meet/frontend/backgrounds/beach.webp",
 	},
 	{
 		name: "mountains",
-		label: "Mountains",
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		get label() {
+			return __("Mountains");
+		},
 		url: "/assets/suite/meet/frontend/backgrounds/mountains.webp",
 	},
 	{
 		name: "space",
-		label: "Earth & Moon",
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		get label() {
+			return __("Earth & Moon");
+		},
 		url: "/assets/suite/meet/frontend/backgrounds/earth-and-moon.webp",
 	},
 	{
 		name: "saturn",
-		label: "Saturn",
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		get label() {
+			return __("Saturn");
+		},
 		url: "/assets/suite/meet/frontend/backgrounds/saturn.webp",
 	},
 ];
@@ -115,19 +127,22 @@ export const availableBackgroundImages: BackgroundImage[] = [
 export const allBackgroundOptions = computed(() => [
 	{
 		name: "none",
-		label: "None",
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		label: __("None"),
 		url: null,
 		type: "none" as const,
 	},
 	{
 		name: "blur-low",
-		label: "Slight Blur",
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		label: __("Slight Blur"),
 		url: null,
 		type: "blur" as const,
 	},
 	{
 		name: "blur-high",
-		label: "Blur",
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		label: __("Blur"),
 		url: null,
 		type: "blur" as const,
 	},
@@ -135,7 +150,8 @@ export const allBackgroundOptions = computed(() => [
 	...customBackgroundImages.value,
 	{
 		name: "add-custom",
-		label: "Add Custom",
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		label: __("Add Custom"),
 		url: null,
 		isAddButton: true,
 	},

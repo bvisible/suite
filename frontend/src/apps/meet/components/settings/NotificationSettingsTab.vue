@@ -1,13 +1,15 @@
+<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 <template>
 	<AppSettingsHeader
-		title="Notifications"
-		description="Customize notification sounds for meeting events"
+		:title="__('Notifications')"
+		:description="__('Customize notification sounds for meeting events')"
 	/>
 	<AppSettingsBody>
 		<div class="space-y-6">
+			<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 			<SettingsRow
-				title="Enable notification sounds"
-				description="Play sounds for all meeting events"
+				:title="__('Enable notification sounds')"
+				:description="__('Play sounds for all meeting events')"
 			>
 				<Switch v-model="notificationChimesEnabledLocal" />
 			</SettingsRow>

@@ -93,7 +93,8 @@ export function useNoiseCancellation(): UseNoiseCancellationReturn {
 				error.value =
 					err instanceof Error
 						? err.message
-						: "Failed to initialize noise cancellation";
+						// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+						: __("Failed to initialize noise cancellation");
 				return null;
 			} finally {
 				preloadPromise = null;
@@ -180,7 +181,8 @@ export function useNoiseCancellation(): UseNoiseCancellationReturn {
 			error.value =
 				err instanceof Error
 					? err.message
-					: "Failed to apply noise cancellation";
+					// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+					: __("Failed to apply noise cancellation");
 			isProcessing.value = false;
 			stopProcessing();
 			return { stream: inputStream, cleanup: () => {} };

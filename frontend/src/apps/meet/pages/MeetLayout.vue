@@ -21,8 +21,9 @@ provide("showShortcutsDialog", showShortcutsDialog);
 
 useKeyboardShortcut({
 	combo: "Shift+Slash",
-	description: "View shortcuts",
-	group: "General",
+	// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+	description: __("View shortcuts"),
+	group: __("General"),
 	allowInDialog: true,
 	handler: () => (showShortcutsDialog.value = true),
 });

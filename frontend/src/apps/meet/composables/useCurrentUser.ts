@@ -34,7 +34,8 @@ export function useCurrentUser(): CurrentUser {
 
 	const userInitials = computed(() => {
 		const name =
-			currentUser.value?.full_name || currentUser.value?.name || "You";
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			currentUser.value?.full_name || currentUser.value?.name || __("You");
 		return getInitials(name);
 	});
 

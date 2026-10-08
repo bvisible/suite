@@ -1,18 +1,22 @@
+<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 <template>
-	<Dialog v-model:open="open" title="Stop recording?" size="sm">
+	<Dialog v-model:open="open" :title="__('Stop recording?')" size="sm">
 		<template #default>
 			<p class="text-base text-ink-gray-7">
-				The recording will stop and the video will be saved privately to the room owner's Drive.
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				{{ __("The recording will stop and the video will be saved privately to the room owner's Drive.") }}
 			</p>
 		</template>
 		<template #actions>
 			<div class="flex w-full justify-end gap-2">
-				<Button variant="subtle" :disabled="loading" @click="open = false">Cancel</Button>
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				<Button variant="subtle" :disabled="loading" @click="open = false">{{ __('Cancel') }}</Button>
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 				<Button
 					variant="solid"
 					theme="red"
 					icon-left="lucide-circle-stop"
-					label="Stop recording"
+					:label="__('Stop recording')"
 					:loading="loading"
 					@click="emit('confirm')"
 				/>

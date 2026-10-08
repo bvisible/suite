@@ -157,11 +157,13 @@ export function validateImageFile(file: File): boolean {
 	const ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 	if (!ALLOWED_TYPES.includes(file.type)) {
-		throw new Error("Unsupported file type. Please use JPG, PNG, or WebP.");
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		throw new Error(__("Unsupported file type. Please use JPG, PNG, or WebP."));
 	}
 
 	if (file.size > MAX_SIZE) {
-		throw new Error("File too large. Maximum size is 5MB.");
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		throw new Error(__("File too large. Maximum size is 5MB."));
 	}
 
 	return true;
@@ -233,7 +235,8 @@ export function getImageMetadata(file: File): Promise<ImageMetadata> {
 		};
 		img.onerror = () => {
 			URL.revokeObjectURL(img.src);
-			reject(new Error("Invalid image file"));
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			reject(new Error(__("Invalid image file")));
 		};
 		img.src = URL.createObjectURL(file);
 	});

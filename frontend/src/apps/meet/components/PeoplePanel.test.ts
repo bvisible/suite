@@ -25,6 +25,7 @@ vi.mock("./PeopleWaitingSection.vue", () => ({
 }));
 
 import PeoplePanel from "./PeoplePanel.vue";
+import { translationPlugin } from "@/boot/translation"; //// Neoffice — templates call __() (#1316)
 
 const participant = {
 	user_id: "member@example.com",
@@ -47,6 +48,7 @@ function promotionPermission(
 		creatorUserId: "host@example.com",
 		coHosts,
 	});
+	app.use(translationPlugin); //// Neoffice — templates call __() (#1316)
 	app.mount(root);
 
 	const value = root

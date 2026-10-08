@@ -14,9 +14,10 @@
 				class="pointer-events-auto mx-auto flex items-center gap-1.5 transition-all duration-300"
 			>
 				<!-- Microphone -->
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 				<ToolbarButton
 					:variant="isMicOn ? 'default' : 'muted'"
-					:title="`Toggle Audio (${$platform === 'mac' ? '⌘+D' : 'Ctrl+D'})`"
+					:title="__('Toggle Audio ({0})', [$platform === 'mac' ? '⌘+D' : 'Ctrl+D'])"
 					@click="$emit('toggle-microphone')"
 				>
 					<MeetMicIcon v-if="isMicOn" />
@@ -24,9 +25,10 @@
 				</ToolbarButton>
 
 				<!-- Camera -->
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 				<ToolbarButton
 					:variant="isCameraOn ? 'default' : 'muted'"
-					:title="`Toggle Video (${$platform === 'mac' ? '⌘+E' : 'Ctrl+E'})`"
+					:title="__('Toggle Video ({0})', [$platform === 'mac' ? '⌘+E' : 'Ctrl+E'])"
 					@click="$emit('toggle-camera')"
 				>
 					<MeetCameraIcon v-if="isCameraOn" />
@@ -34,9 +36,10 @@
 				</ToolbarButton>
 
 				<!-- Settings -->
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 				<ToolbarButton
 					v-if="cameraPermissionGranted || microphonePermissionGranted"
-					title="Settings"
+					:title="__('Settings')"
 					@click="showSettingsDialog = true"
 				>
 					<MeetSettingsIcon />

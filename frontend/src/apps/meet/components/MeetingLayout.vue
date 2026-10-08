@@ -142,7 +142,8 @@ const setScreenShareVideoRef = inject<
 >("setScreenShareVideoRef");
 const getParticipantName =
 	inject<(participantId: string) => string>("getParticipantName") ||
-	(() => "Unknown");
+	// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+	(() => __("Unknown"));
 
 const { registerTile } = useTileAdaptiveStreaming();
 
@@ -291,7 +292,8 @@ const localParticipant = computed(() => {
 			: userIdRaw == null
 				? "local"
 				: String(userIdRaw);
-	const displayNameRaw = fullNameRaw || nameRaw || "You";
+	// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+	const displayNameRaw = fullNameRaw || nameRaw || __("You");
 	const user_name =
 		typeof displayNameRaw === "string"
 			? displayNameRaw
@@ -412,7 +414,8 @@ const floatingReactions = computed(() => {
 				: undefined) ||
 			(participant && "name" in participant ? participant.name : undefined) ||
 			participant?.user_id ||
-			"Unknown";
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			__("Unknown");
 		result.push({
 			userId,
 			userName,

@@ -34,6 +34,9 @@ def get_context(context):
     context.csrf_token = csrf_token
     context.desk_theme = get_desk_theme()
     context.title = "Frappe Suite"
+    # //// Neoffice — the page declares the user's language (index.html: <html lang>), not a hard-coded "en": a
+    # //// French account read lang="en" on every suite page (#1316).
+    context.lang = frappe.local.lang or "en"
     return context
 
 

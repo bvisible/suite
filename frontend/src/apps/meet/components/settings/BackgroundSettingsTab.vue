@@ -1,7 +1,8 @@
+<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 <template>
 	<AppSettingsHeader
-		title="Video effects"
-		description="Keep yourself framed and customize your video background"
+		:title="__('Video effects')"
+		:description="__('Keep yourself framed and customize your video background')"
 	/>
 	<AppSettingsBody>
 			<!-- Video Preview -->
@@ -19,7 +20,8 @@
 						<div v-if="isLoadingPreview" class="text-white text-center">
 							<lucide-loader class="mx-auto mb-2 w-8 h-8 animate-spin" />
 							<p class="text-sm">
-								Loading preview...
+								<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+								{{ __('Loading preview...') }}
 							</p>
 						</div>
 					</div>
@@ -27,14 +29,16 @@
 						class="absolute inset-x-0 bottom-0 flex items-end justify-end bg-gradient-to-t from-black/70 via-black/30 to-transparent p-3 pt-8"
 					>
 						<div class="flex items-center gap-2">
+							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 							<Tooltip
-								:text="autoFramingEnabledLocal ? 'Auto framing on' : 'Auto framing off'"
+								:text="autoFramingEnabledLocal ? __('Auto framing on') : __('Auto framing off')"
 							>
+								<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 								<Button
 									variant="outline"
 									theme="gray"
 									:aria-pressed="autoFramingEnabledLocal"
-									:aria-label="autoFramingEnabledLocal ? 'Auto framing on' : 'Auto framing off'"
+									:aria-label="autoFramingEnabledLocal ? __('Auto framing on') : __('Auto framing off')"
 									@click="autoFramingEnabledLocal = !autoFramingEnabledLocal"
 								>
 									<template #icon>
@@ -48,19 +52,21 @@
 									</template>
 								</Button>
 							</Tooltip>
+							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 							<Tooltip
 								:text="!autoFramingEnabledLocal
-									? 'Turn on auto framing to lock it'
+									? __('Turn on auto framing to lock it')
 									: autoFramingPausedLocal
-										? 'Framing locked'
-										: 'Framing unlocked'"
+										? __('Framing locked')
+										: __('Framing unlocked')"
 							>
+								<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 								<Button
 									variant="outline"
 									theme="gray"
 									:disabled="!autoFramingEnabledLocal"
 									:aria-pressed="autoFramingPausedLocal"
-									:aria-label="autoFramingPausedLocal ? 'Framing locked' : 'Framing unlocked'"
+									:aria-label="autoFramingPausedLocal ? __('Framing locked') : __('Framing unlocked')"
 									@click="autoFramingPausedLocal = !autoFramingPausedLocal"
 								>
 									<template #icon>
@@ -147,8 +153,8 @@
 					</div>
 					<div class="ml-3">
 						<p class="text-sm text-ink-amber-8">
-							<strong>Performance Warning:</strong> Enabling background effects may slow down your computer,
-							especially on older devices.
+							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+							<strong>{{ __('Performance Warning:') }}</strong> {{ __('Enabling background effects may slow down your computer, especially on older devices.') }}
 						</p>
 					</div>
 				</div>
@@ -341,13 +347,15 @@ async function handleFileSelect(event: Event) {
 	try {
 		const customImage = await addCustomBackgroundImage(file);
 		selectedBackgroundOption.value = customImage.name;
-		toast.success(`Added custom background: ${file.name}`);
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		toast.success(__('Added custom background: {0}', [file.name]));
 	} catch (error) {
 		console.error("Failed to add custom image:", error);
 		toast.error(
 			error instanceof Error
 				? error.message
-				: "Failed to add custom background image",
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				: __('Failed to add custom background image'),
 		);
 	}
 
@@ -357,10 +365,12 @@ async function handleFileSelect(event: Event) {
 async function handleDeleteCustomImage(imageId: string) {
 	try {
 		await removeCustomBackgroundImage(imageId);
-		toast.success("Custom background removed");
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		toast.success(__('Custom background removed'));
 	} catch (error) {
 		console.error("Failed to remove custom image:", error);
-		toast.error("Failed to remove custom background");
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		toast.error(__('Failed to remove custom background'));
 	}
 }
 

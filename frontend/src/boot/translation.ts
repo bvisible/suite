@@ -37,4 +37,26 @@ export const translationPlugin = {
   },
 }
 
+//// Neoffice — added: the suite loads the user's translations ONCE, before the first render, for every app.
+//// Upstream leaves it to each app's route module (see above): Meet, Sheets and Slides never did, so a French
+//// account saw them in English, the cockpit included, and the apps that did could paint their first screen in
+//// English before the answer came (neoffice-maintenance#1316). Same endpoint as Drive and Writer: the user's
+//// language, else the system's. It waits at most `timeoutMs` (the answer weighs ~1.5 MB compressed); a late
+//// answer still lands for whatever renders after it.
+export async function loadTranslations(timeoutMs = 2500): Promise<void> {
+  if (window.translatedMessages) return
+  const request = fetch('/api/method/suite.drive.api.product.get_translations', {
+    headers: { Accept: 'application/json' },
+    credentials: 'same-origin',
+  })
+    .then((response) => (response.ok ? response.json() : null))
+    .then((body) => {
+      if (body && body.message && typeof body.message === 'object' && !window.translatedMessages) {
+        window.translatedMessages = body.message
+      }
+    })
+    .catch(() => undefined) // untranslated UI still renders its source strings
+  await Promise.race([request, new Promise((resolve) => setTimeout(resolve, timeoutMs))])
+}
+
 export default translationPlugin

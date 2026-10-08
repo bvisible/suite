@@ -115,7 +115,8 @@ const isAllDayEvent = (event: CalendarEvent) => {
 }
 
 const formatMeetingTime = (event: CalendarEvent) => {
-	if (isAllDayEvent(event)) return 'All day'
+	// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+	if (isAllDayEvent(event)) return __('All day')
 
 	const start = dayjs(event.start)
 	const end = start.add(dayjs.duration(event.duration || 'PT0S'))
@@ -186,7 +187,8 @@ defineExpose({ reload })
 
 <template>
 	<div v-if="meetings.length" class="mt-10">
-		<h2 class="mb-3 text-base-medium text-ink-gray-8">Upcoming meetings</h2>
+		<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+		<h2 class="mb-3 text-base-medium text-ink-gray-8">{{ __('Upcoming meetings') }}</h2>
 		<div class="overflow-hidden rounded-7 border border-outline-gray-1 bg-surface-gray-1">
 			<button
 				v-for="(event, index) in meetings"
@@ -220,7 +222,8 @@ defineExpose({ reload })
 						<div
 							class="truncate text-sm-medium text-ink-gray-8"
 						>
-							{{ event.title || 'Scheduled Meeting' }}
+							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+							{{ event.title || __('Scheduled Meeting') }}
 						</div>
 						<div
 							class="mt-1.5 flex min-w-0 items-center gap-0.5 text-sm text-ink-gray-6"

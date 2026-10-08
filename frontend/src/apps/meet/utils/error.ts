@@ -11,5 +11,6 @@ export function getErrorMessage(error: unknown): string {
 		return error.messages[error.messages.length - 1];
 	}
 
-	return error.message || "An unknown error occurred";
+	// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+	return error.message || __("An unknown error occurred");
 }

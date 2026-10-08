@@ -1,13 +1,15 @@
+<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 <template>
 	<AppSettingsHeader
-		title="Layout"
-		description="Customize the meeting interface layout"
+		:title="__('Layout')"
+		:description="__('Customize the meeting interface layout')"
 	/>
 	<AppSettingsBody>
 		<div class="space-y-6">
+			<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 			<SettingsRow
-				title="Auto-hide header and controls"
-				description="Automatically hide the header and toolbar after 10 seconds of inactivity"
+				:title="__('Auto-hide header and controls')"
+				:description="__('Automatically hide the header and toolbar after 10 seconds of inactivity')"
 			>
 				<Switch v-model="autoHideToolbarLocal" />
 			</SettingsRow>

@@ -1,28 +1,32 @@
+<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 <template>
-    <Dialog v-model:open="isOpen" title="Create a Poll">
+    <Dialog v-model:open="isOpen" :title="__('Create a Poll')">
         <template #default>
             <div class="space-y-4">
                 <div>
+                    <!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
                     <FormControl
                         type="textarea"
                         v-model="question"
-                        placeholder="Ask your audience something..."
+                        :placeholder="__('Ask your audience something...')"
                         required
-                        label="Question"
+                        :label="__('Question')"
                     />
                 </div>
 
                 <div class="space-y-2">
-                    <label class="block text-sm font-medium text-ink-gray-7 mb-1">Options</label>
+                    <!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+                    <label class="block text-sm font-medium text-ink-gray-7 mb-1">{{ __('Options') }}</label>
                     <div 
                         v-for="(option, index) in options" 
                         :key="index" 
                         class="flex items-center gap-2"
                     >
+                        <!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
                         <FormControl
                             type="text"
                             v-model="option.text"
-                            :placeholder="`Option ${index + 1}`"
+                            :placeholder="__('Option {0}', [index + 1])"
                             class="flex-1"
                         />
                         <Button
@@ -41,7 +45,8 @@
                             @click="addOption"
                             icon-left="lucide-plus"
                         >
-                            Add Option
+                            <!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+                            {{ __('Add Option') }}
                         </Button>
                     </div>
                 </div>
@@ -49,7 +54,8 @@
                 <div class="rounded-4 border border-outline-gray-2 bg-surface-gray-1 p-4 text-sm flex gap-4">
                     <lucide-alert-triangle class="h-5 w-5 text-ink-gray-6"/>
                     <span class="text-ink-gray-8">
-                        Polls are temporary and will be deleted once everyone leaves the meeting.
+                        <!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+                        {{ __('Polls are temporary and will be deleted once everyone leaves the meeting.') }}
                     </span>
                 </div>
             </div>
@@ -58,14 +64,16 @@
         <template #actions>
             <div class="flex justify-end gap-2 w-full">
                 <Button variant="subtle" @click="closeModal">
-                    Cancel
+                    <!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+                    {{ __('Cancel') }}
                 </Button>
                 <Button 
                     variant="solid" 
                     :disabled="!isValid" 
                     @click="handleSubmit"
                 >
-                    Create Poll
+                    <!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+                    {{ __('Create Poll') }}
                 </Button>
             </div>
         </template>

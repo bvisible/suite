@@ -1,19 +1,22 @@
+<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 <template>
 	<AppSettingsHeader
-		title="Audio"
-		description="Configure your audio and microphone settings"
+		:title="__('Audio')"
+		:description="__('Configure your audio and microphone settings')"
 	/>
 	<AppSettingsBody>
 		<div>
+			<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 			<SettingsRow
-				title="Noise Cancellation"
-				description="Reduce background noise from your microphone"
+				:title="__('Noise Cancellation')"
+				:description="__('Reduce background noise from your microphone')"
 			>
 				<Switch v-model="noiseCancellationEnabledLocal" />
 			</SettingsRow>
+			<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 			<SettingsRow
-				title="Push to Talk"
-				description="Hold spacebar to unmute your microphone"
+				:title="__('Push to Talk')"
+				:description="__('Hold spacebar to unmute your microphone')"
 			>
 				<Switch v-model="pushToTalkEnabledLocal" />
 			</SettingsRow>

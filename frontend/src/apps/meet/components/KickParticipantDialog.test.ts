@@ -32,6 +32,7 @@ vi.mock("frappe-ui", async () => {
 });
 
 import KickParticipantDialog from "./KickParticipantDialog.vue";
+import { translationPlugin } from "@/boot/translation"; //// Neoffice — templates call __() (#1316)
 
 function render(canBan: boolean) {
 	const root = document.createElement("div");
@@ -53,6 +54,7 @@ function render(canBan: boolean) {
 			},
 		}),
 	);
+	app.use(translationPlugin); //// Neoffice — templates call __() (#1316)
 	app.mount(root);
 	return { app, confirm, open, root };
 }

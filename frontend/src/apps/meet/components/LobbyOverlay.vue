@@ -6,11 +6,13 @@
 			</div>
 
 			<h2 class="text-2xl-semibold text-ink-gray-9">
-				Waiting to be admitted
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				{{ __('Waiting to be admitted') }}
 			</h2>
 
 			<p class="text-ink-gray-6 text-base">
-				The meeting host will let you in soon.
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				{{ __('The meeting host will let you in soon.') }}
 			</p>
 
 			<div class="flex flex-col gap-3">
@@ -22,7 +24,8 @@
 					<template #prefix>
 						<lucide-x class="w-4 h-4" />
 					</template>
-					Leave
+					<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+					{{ __('Leave') }}
 				</Button>
 			</div>
 		</div>

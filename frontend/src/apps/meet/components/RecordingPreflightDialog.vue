@@ -12,14 +12,16 @@ const open = defineModel<boolean>("open", { default: false });
 
 const actions = computed(() => {
 	const close = {
-		label: props.preflight?.eligible ? "Cancel" : "Close",
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		label: props.preflight?.eligible ? __('Cancel') : __('Close'),
 		variant: "subtle" as const,
 		onClick: ({ close }: { close: () => void }) => close(),
 	};
 	if (!props.preflight?.eligible) return [close];
 	return [
 		{
-			label: "Start recording",
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			label: __('Start recording'),
 			variant: "solid" as const,
 			theme: "red" as const,
 			onClick: async ({ close }: { close: () => void }) => {
@@ -44,25 +46,28 @@ const unavailable = computed(() =>
 
 </script>
 
+<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 <template>
 	<Dialog
 		v-model:open="open"
-		title="Start recording?"
+		:title="__('Start recording?')"
 		theme="red"
 		size="md"
 		:actions="actions"
 	>
 		<div v-if="preflight" class="space-y-4">
 			<p class="text-p-base text-ink-gray-7">
-				Everyone in the meeting will see a recording notice. The video will be saved privately to the room owner's Drive.
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				{{ __("Everyone in the meeting will see a recording notice. The video will be saved privately to the room owner's Drive.") }}
 			</p>
 
 			<Alert v-if="unavailable" theme="red" :title="unavailable.title" :description="unavailable.message" />
+			<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 			<Alert
 				v-else-if="limitedByStorage"
 				theme="amber"
-				title="Storage may end the recording early"
-				description="Recording will stop when its available storage budget is reached."
+				:title="__('Storage may end the recording early')"
+				:description="__('Recording will stop when its available storage budget is reached.')"
 			/>
 		</div>
 	</Dialog>

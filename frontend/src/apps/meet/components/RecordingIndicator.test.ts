@@ -1,6 +1,7 @@
 import { createApp } from "vue";
 import { describe, expect, it, vi } from "vitest";
 import RecordingIndicator from "./RecordingIndicator.vue";
+import { translationPlugin } from "@/boot/translation"; //// Neoffice — templates call __() (#1316)
 
 const recording = {
 	name: "recording",
@@ -14,6 +15,7 @@ describe("RecordingIndicator", () => {
 		const root = document.createElement("div");
 		const click = vi.fn();
 		const app = createApp(RecordingIndicator, { recording, canStop: false, onClick: click });
+		app.use(translationPlugin); //// Neoffice — templates call __() (#1316)
 		app.mount(root);
 
 		const button = root.querySelector("button") as HTMLButtonElement;
@@ -27,6 +29,7 @@ describe("RecordingIndicator", () => {
 		const root = document.createElement("div");
 		const click = vi.fn();
 		const app = createApp(RecordingIndicator, { recording, canStop: true, onClick: click });
+		app.use(translationPlugin); //// Neoffice — templates call __() (#1316)
 		app.mount(root);
 
 		const button = root.querySelector("button") as HTMLButtonElement;

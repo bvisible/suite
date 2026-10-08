@@ -1,6 +1,7 @@
 <!DOCTYPE html>
+<!-- //// Neoffice — lang comes from the page context (www/suite.py), the user's language, not a fixed "en" (#1316). -->
 <html
-  lang="en"
+  lang="{{ lang or 'en' }}"
   data-theme-mode="{{ desk_theme.lower() if desk_theme else 'light' }}"
   data-theme="{{ desk_theme.lower() if desk_theme else 'light' }}"
 >

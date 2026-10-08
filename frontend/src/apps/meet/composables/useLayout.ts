@@ -350,10 +350,16 @@ export function useLayout(
 		const names = hidden.map((p) => p.user_name || p.user_id);
 		const shown = names.slice(0, 8);
 		const remaining = names.length - shown.length;
-		if (remaining > 0) return `${shown.join(", ")} and ${remaining} more`;
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		if (remaining > 0)
+			return __("{0} and {1} more", [shown.join(", "), remaining]);
 		if (shown.length === 1) return shown[0];
-		if (shown.length === 2) return `${shown[0]} and ${shown[1]}`;
-		return `${shown.slice(0, -1).join(", ")} and ${shown[shown.length - 1]}`;
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		if (shown.length === 2) return __("{0} and {1}", [shown[0], shown[1]]);
+		return __("{0} and {1}", [
+			shown.slice(0, -1).join(", "),
+			shown[shown.length - 1],
+		]);
 	});
 
 	return {

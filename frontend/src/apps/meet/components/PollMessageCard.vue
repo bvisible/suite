@@ -37,15 +37,17 @@
 						<lucide-circle-check-big v-if="hasVoted && localVotedOption === option.id" class="w-3 h-3 shrink-0" />
 					</span>
 					<template v-if="hasVoted">
-						<span class="text-xs text-ink-gray-6 font-medium shrink-0">{{ option.votes }} votes &bull; {{ getPercentage(option.votes) }}%</span>
+						<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+						<span class="text-xs text-ink-gray-6 font-medium shrink-0">{{ __('{0} votes', [option.votes]) }} &bull; {{ getPercentage(option.votes) }}%</span>
 					</template>
 				</div>
 			</button>
 		</div>
 
 		<div class="text-sm text-ink-gray-6">
-			{{ totalVotes }} {{ totalVotes === 1 ? 'vote' : 'votes' }}
-			<span v-if="isGuest">&bull; Guests can't vote in polls</span>
+			<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+			{{ totalVotes === 1 ? __('1 vote') : __('{0} votes', [totalVotes]) }}
+			<span v-if="isGuest">&bull; {{ __("Guests can't vote in polls") }}</span>
 		</div>
 	</div>
 </template>

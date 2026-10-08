@@ -6,11 +6,13 @@
 			</div>
 
 			<h2 class="text-2xl-semibold text-ink-gray-9">
-				Entry denied
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				{{ __('Entry denied') }}
 			</h2>
 
 			<p class="text-ink-gray-6 text-base">
-				The meeting host has denied your request to join this meeting.
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				{{ __('The meeting host has denied your request to join this meeting.') }}
 			</p>
 
 			<div class="flex flex-col gap-3">
@@ -22,7 +24,8 @@
 					<template #prefix>
 						<lucide-home class="w-4 h-4" />
 					</template>
-					Go home
+					<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+					{{ __('Go home') }}
 				</Button>
 			</div>
 		</div>

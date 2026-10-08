@@ -238,11 +238,14 @@ export function useSFUConnection(deps: {
 	const confirmParticipantConnectionSwitch = () =>
 		new Promise<boolean>((resolve) => {
 			dialog.confirm({
-				title: "Switch to this device?",
-				message:
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				title: __("Switch to this device?"),
+				message: __(
 					"You're already in this meeting on another device. Continuing will move the meeting here.",
-				confirmLabel: "Switch to this device",
-				cancelLabel: "Cancel",
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				),
+				confirmLabel: __("Switch to this device"),
+				cancelLabel: __("Cancel"),
 				onConfirm: () => resolve(true),
 				onCancel: () => resolve(false),
 			});
@@ -315,7 +318,8 @@ export function useSFUConnection(deps: {
 			() => import("~icons/lucide/user"),
 		);
 
-		toast(`${participantName} joined the meeting`, {
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		toast(__("{0} joined the meeting", [participantName]), {
 			icon: participant.avatar
 				? h("img", {
 						src: participant.avatar as string,
@@ -344,7 +348,8 @@ export function useSFUConnection(deps: {
 			() => import("~icons/lucide/user"),
 		);
 
-		toast(`${participantName} left the meeting`, {
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		toast(__("{0} left the meeting", [participantName]), {
 			icon: participant?.avatar
 				? h("img", {
 						src: participant.avatar as string,
@@ -389,8 +394,10 @@ export function useSFUConnection(deps: {
 			onLifecycleStateChange: (state) => {
 				participantConnectionState.setLifecycleState(state);
 				if (state === "failed") {
-					connectionState.connectionError =
-						"We couldn't restore your meeting connection. Try joining again.";
+					// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+					connectionState.connectionError = __(
+						"We couldn't restore your meeting connection. Try joining again.",
+					);
 				}
 			},
 			onParticipantJoined: handleParticipantJoined,
@@ -485,9 +492,11 @@ export function useSFUConnection(deps: {
 				if (data.banned) {
 					preserveGuestSessionOnEnd = true;
 					markGuestSessionStatus("banned");
-					toast.error("You have been banned from this meeting by the host");
+					// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+					toast.error(__("You have been banned from this meeting by the host"));
 				} else {
-					toast.error("You have been removed from the meeting by the host");
+					// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+					toast.error(__("You have been removed from the meeting by the host"));
 				}
 				onHostKickedYou();
 			},
@@ -548,7 +557,10 @@ export function useSFUConnection(deps: {
 						!sfuClient.isInsertableStreamsSupported()
 					) {
 						throw new Error(
-							"This meeting requires E2EE, but your browser does not support encoded insertable streams.",
+							// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+							__(
+								"This meeting requires E2EE, but your browser does not support encoded insertable streams.",
+							),
 						);
 					}
 					const userData: JoinUserData = guestName
@@ -644,7 +656,8 @@ export function useSFUConnection(deps: {
 										: undefined,
 								});
 								toast.error(
-									"Some media could not be started. Trying to restore your connection.",
+									// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+									__("Some media could not be started. Trying to restore your connection."),
 								);
 								throw new Error("Initial media publication recovery exhausted");
 							}
@@ -656,7 +669,8 @@ export function useSFUConnection(deps: {
 				const MicOffIcon = defineAsyncComponent(
 					() => import("~icons/lucide/mic-off"),
 				);
-				toast("Mic muted automatically in large meetings.", {
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				toast(__("Mic muted automatically in large meetings."), {
 					duration: 5000,
 					icon: h(MicOffIcon),
 				});
@@ -776,7 +790,8 @@ export function useSFUConnection(deps: {
 			} catch (error) {
 				console.error("Error connecting admitted guest:", error);
 				connectionState.connectionError = getErrorMessage(error);
-				toast.error("Could not verify your guest admission. Please try again.");
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				toast.error(__("Could not verify your guest admission. Please try again."));
 			} finally {
 				joiningInProgress.value = false;
 				approvedGuestConnectionPromise = null;
@@ -810,9 +825,10 @@ export function useSFUConnection(deps: {
 	) => {
 		markGuestSessionStatus(status);
 		const messages = {
-			rejected: "Your join request was denied by the meeting host",
-			banned: "You have been banned from this meeting",
-			expired: "Your guest session has expired",
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			rejected: __("Your join request was denied by the meeting host"),
+			banned: __("You have been banned from this meeting"),
+			expired: __("Your guest session has expired"),
 		};
 		toast.error(messages[status]);
 	};
@@ -826,7 +842,8 @@ export function useSFUConnection(deps: {
 		onError: (error) => {
 			console.error("Guest realtime subscription failed:", error);
 			connectionState.connectionError = error.message;
-			toast.error("Could not verify your guest session. Please reconnect.");
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			toast.error(__("Could not verify your guest session. Please reconnect."));
 		},
 	});
 	guestRealtime.start();
@@ -877,12 +894,14 @@ export function useSFUConnection(deps: {
 				} else {
 					console.error("Failed to get SFU connection:", sfuResult);
 					lobbyStore.isJoinRequestRejected = true;
-					toast.error("Failed to join meeting after approval");
+					// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+					toast.error(__("Failed to join meeting after approval"));
 				}
 			} catch (error) {
 				console.error("Error after approval:", error);
 				connectionState.connectionError = getErrorMessage(error);
-				toast.error("Failed to join meeting after approval");
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				toast.error(__("Failed to join meeting after approval"));
 			}
 		}
 	};
@@ -895,7 +914,8 @@ export function useSFUConnection(deps: {
 			lobbyStore.isJoinRequestRejected = true;
 			lobbyStore.isWaitingForApproval = false;
 
-			toast.error("Your join request was denied by the meeting host");
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			toast.error(__("Your join request was denied by the meeting host"));
 		}
 	};
 
@@ -923,10 +943,12 @@ export function useSFUConnection(deps: {
 				sfuClient.refreshToken({ forceNewRequest: true }),
 				onCohostPromoted?.(),
 			]);
-			toast.success("You are now a co-host");
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			toast.success(__("You are now a co-host"));
 		} catch (error) {
 			console.error("Failed to activate co-host permissions:", error);
-			toast.error("Could not activate co-host permissions");
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			toast.error(__("Could not activate co-host permissions"));
 		}
 	};
 
@@ -975,8 +997,10 @@ export function useSFUConnection(deps: {
 		guestName: string,
 	) => {
 		if (!guestName || !joinResult?.guest_id || !joinResult.guest_session_token) {
-			connectionState.connectionError =
-				"Guest session not found. Please try joining again.";
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			connectionState.connectionError = __(
+				"Guest session not found. Please try joining again.",
+			);
 			return;
 		}
 
@@ -1071,7 +1095,8 @@ export function useSFUConnection(deps: {
 			connectionState.guestSfuPort = null;
 
 			const joinResult = normalizeJoinPayload(await joinMeetingAPI.fetch());
-			if (!joinResult) throw new Error("Invalid meeting join response");
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			if (!joinResult) throw new Error(__("Invalid meeting join response"));
 
 			if (joinResult.status === "waiting_for_approval") {
 				lobbyStore.isWaitingForApproval = true;

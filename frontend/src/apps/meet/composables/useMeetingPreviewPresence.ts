@@ -52,13 +52,15 @@ export function useMeetingPreviewPresence(meetingId: string) {
 			if (data.auth_token || data.sfu_url) {
 				connectToSFU(data);
 			} else {
-				error.value = data.error || "Failed to get presence token";
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				error.value = data.error || __("Failed to get presence token");
 			}
 		},
 		onError(err: FrappeRequestError) {
 			error.value = err.messages?.length
 				? err.messages[err.messages.length - 1]
-				: "Failed to fetch presence token";
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				: __("Failed to fetch presence token");
 		},
 	});
 
@@ -68,7 +70,8 @@ export function useMeetingPreviewPresence(meetingId: string) {
 
 	const connectToSFU = (tokenData: PresenceTokenResponse) => {
 		if (!tokenData.sfu_url || !tokenData.auth_token) {
-			error.value = "Invalid token data";
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			error.value = __("Invalid token data");
 			return;
 		}
 
@@ -147,14 +150,16 @@ export function useMeetingPreviewPresence(meetingId: string) {
 							is_guest: p.info.is_guest || false,
 						}));
 					} else {
-						error.value = response.error || "Failed to fetch participants";
+						// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+						error.value = response.error || __("Failed to fetch participants");
 					}
 				},
 			);
 		});
 
 		currentSocket.on("connect_error", (err: Error) => {
-			error.value = err.message || "Failed to connect to SFU";
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			error.value = err.message || __("Failed to connect to SFU");
 		});
 
 		currentSocket.on("participant_joined", (data: ParticipantJoinedEvent) => {

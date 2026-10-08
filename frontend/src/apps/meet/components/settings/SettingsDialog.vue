@@ -4,7 +4,8 @@
 		v-model:tab="activeTabValue"
 		size="5xl"
 	>
-		<template #title>Settings</template>
+		<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+		<template #title>{{ __('Settings') }}</template>
 		<SettingsSidebar>
 			<SettingsNavGroup
 				v-for="group in tabs"
@@ -117,10 +118,12 @@ const tabs = computed((): TabGroup[] => {
 		!props.isPreview
 	) {
 		allTabs.push({
-			label: "Meeting",
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			label: __('Meeting'),
 			items: [
 				{
-					label: "Controls",
+					// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+					label: __('Controls'),
 					value: "meeting-access",
 					icon: h(LucideUser),
 					component: markRaw(MeetingAccessSettingsTab),
@@ -131,22 +134,26 @@ const tabs = computed((): TabGroup[] => {
 
 	allTabs.push(
 		{
-			label: "Media",
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			label: __('Media'),
 			items: [
 				{
-					label: "Devices",
+					// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+					label: __('Devices'),
 					value: "devices",
 					icon: h(LucideMonitorSmartphone),
 					component: markRaw(DeviceSettingsTab),
 				},
 				{
-					label: "Audio",
+					// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+					label: __('Audio'),
 					value: "audio",
 					icon: h(LucideAudioLines),
 					component: markRaw(AudioSettingsTab),
 				},
 				{
-					label: "Video",
+					// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+					label: __('Video'),
 					value: "background",
 					icon: h(LucideCamera),
 					component: markRaw(BackgroundSettingsTab),
@@ -154,16 +161,19 @@ const tabs = computed((): TabGroup[] => {
 			],
 		},
 		{
-			label: "Interface",
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			label: __('Interface'),
 			items: [
 				{
-					label: "Notifications",
+					// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+					label: __('Notifications'),
 					value: "notifications",
 					icon: h(LucideBell),
 					component: markRaw(NotificationSettingsTab),
 				},
 				{
-					label: "Layout",
+					// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+					label: __('Layout'),
 					value: "layout",
 					icon: h(LucideLayoutDashboard),
 					condition: () => !props.isPreview,

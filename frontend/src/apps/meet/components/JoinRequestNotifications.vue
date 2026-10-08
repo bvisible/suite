@@ -21,16 +21,18 @@
 									<span class="font-semibold text-ink-gray-9">
 										{{ request.user_name || request.user_id }}
 									</span>
-									wants to join the meeting
+									<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+									{{ __('wants to join the meeting') }}
 								</p>
 							</div>
 						</div>
 
+						<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 						<Button
 							variant="ghost"
 							theme="gray"
 							size="sm"
-							tooltip="Dismiss request"
+							:tooltip="__('Dismiss request')"
 							@click="forceHide(request.user_id)"
 							class="-mr-1 -mt-1 ml-4"
 						>
@@ -49,7 +51,8 @@
 							<template #prefix>
 								<lucide-check class="w-3 h-3 mr-1" />
 							</template>
-							Admit
+							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+							{{ __('Admit') }}
 						</Button>
 						<Button
 							size="sm"
@@ -59,7 +62,8 @@
 							<template #prefix>
 								<lucide-x class="w-3 h-3 mr-1" />
 							</template>
-							Deny
+							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+							{{ __('Deny') }}
 						</Button>
 					</div>
 				</div>

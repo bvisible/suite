@@ -1,14 +1,16 @@
 <template>
 	<div v-if="lobbyUsers.length > 0" class="">
 		<div class="px-3 py-2 text-xs-medium text-ink-gray-5 tracking-wide bg-surface-gray-1 flex items-center justify-between">
-			<span>Waiting to join</span>
+			<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+			<span>{{ __('Waiting to join') }}</span>
 			<Button
 				variant="ghost"
 				size="sm"
 				@click="$emit('approve-all')"
 				class="text-xs-medium "
 			>
-				Admit all
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				{{ __('Admit all') }}
 			</Button>
 		</div>
 		<div
@@ -18,17 +20,20 @@
 			:data-testid="`waiting-user-${lobbyUser.userId}`"
 		>
 			<div class="flex min-w-0 items-center gap-3">
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 				<MeetAvatar
 					size="lg"
 					:image="lobbyUser.avatar"
-					:label="lobbyUser.name || lobbyUser.userId || 'Guest'"
+					:label="lobbyUser.name || lobbyUser.userId || __('Guest')"
 				/>
 				<div class="flex items-center gap-2">
 					<div class="text-sm-medium text-ink-gray-8 truncate max-w-40">
-						{{ lobbyUser.name || lobbyUser.userId || 'Guest' }}
+						<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+						{{ lobbyUser.name || lobbyUser.userId || __('Guest') }}
 					</div>
 					<Badge v-if="lobbyUser.isGuest" size="sm">
-						Guest
+						<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+						{{ __('Guest') }}
 					</Badge>
 				</div>
 			</div>

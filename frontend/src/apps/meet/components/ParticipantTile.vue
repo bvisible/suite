@@ -31,13 +31,15 @@
 				v-if="showScreenShareCopy"
 				class="text-white text-lg-medium mb-1"
 			>
-				You are sharing your screen
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				{{ __('You are sharing your screen') }}
 			</div>
 			<div
 				v-if="showScreenShareCopy"
 				class="text-white text-sm-medium"
 			>
-				Everyone else can see what you are presenting
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				{{ __('Everyone else can see what you are presenting') }}
 			</div>
 		</div>
 
@@ -72,21 +74,23 @@
 		</NamePill>
 
 		<!-- Reaction -->
+		<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 		<div
 			v-if="showReaction && currentReaction"
 			class="absolute top-1 px-2 py-1 rounded-4 text-2xl pointer-events-none animate-pop"
 			:class="{ 'left-2': !isHandRaised, 'left-10': isHandRaised }"
-			:aria-label="`Reaction ${currentReaction.emoji} from ${resolvedDisplayName}`"
+			:aria-label="__('Reaction {0} from {1}', [currentReaction.emoji, resolvedDisplayName])"
 			role="img"
 		>
 			<span class="text-3xl">{{ currentReaction.emoji }}</span>
 		</div>
 
 		<!-- Raised Hand -->
+		<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 		<div
 			v-if="showRaisedHand && isHandRaised"
 			class="absolute top-2 left-2 px-2 py-1 rounded-full !bg-[#e54e17] text-white pointer-events-none flex items-center justify-center"
-			:aria-label="`${resolvedDisplayName} has raised their hand`"
+			:aria-label="__('{0} has raised their hand', [resolvedDisplayName])"
 		>
 			<lucide-hand class="w-4 h-4" :class="{ wave: isAnimating }" />
 		</div>
@@ -105,13 +109,14 @@
 			class="absolute bottom-2 right-2 flex items-center gap-0.5 rounded-full bg-gray-700 p-0.5 text-white opacity-0 group-hover:opacity-70 hover:!opacity-100 transition-opacity ring-1 ring-gray-800"
 			@click.stop
 		>
+			<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 			<Button
 				v-if="canShowPinButton"
 				variant="ghost"
 				size="xs"
 				class="!rounded-full !text-white hover:!bg-gray-600"
 				:class="{ '!bg-gray-600': isPinned }"
-				:tooltip="isTileHovered ? (isPinned ? 'Unpin participant' : 'Pin participant') : undefined"
+				:tooltip="isTileHovered ? (isPinned ? __('Unpin participant') : __('Pin participant')) : undefined"
 				@click="togglePin"
 			>
 				<template #icon>
@@ -119,24 +124,26 @@
 					<lucide-pin v-else class="w-3.5 h-3.5" />
 				</template>
 			</Button>
+			<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 			<Button
 				v-if="canShowHostControls && isAudioEnabled"
 				variant="ghost"
 				size="xs"
 				class="!rounded-full !text-white hover:!bg-gray-600"
-				:tooltip="isTileHovered ? 'Mute participant' : undefined"
+				:tooltip="isTileHovered ? __('Mute participant') : undefined"
 				@click="handleMute"
 			>
 				<template #icon>
 					<lucide-mic-off class="w-3.5 h-3.5" />
 				</template>
 			</Button>
+			<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 			<Button
 				v-if="canShowHostControls"
 				variant="ghost"
 				size="xs"
 				class="!rounded-full !text-white hover:!bg-gray-600"
-				:tooltip="isTileHovered ? 'Remove participant' : undefined"
+				:tooltip="isTileHovered ? __('Remove participant') : undefined"
 				@click="showKickDialog = true"
 			>
 				<template #icon>
@@ -146,10 +153,11 @@
 		</div>
 
 		<!-- Kick Confirmation Dialog -->
+		<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 		<KickParticipantDialog
 			v-if="canShowHostControls"
 			v-model="showKickDialog"
-			:participant-name="resolvedDisplayName || 'this participant'"
+			:participant-name="resolvedDisplayName || __('this participant')"
 			:can-ban="participant.is_guest === true"
 			@confirm="handleKick"
 		/>
@@ -245,7 +253,8 @@ const resolvedDisplayName = computed(() => {
 	return (
 		props.displayName ||
 		props.participant.user_name ||
-		(props.participant.is_guest ? "Guest" : "")
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		(props.participant.is_guest ? __('Guest') : "")
 	);
 });
 
@@ -263,17 +272,20 @@ const showNetworkIndicator = computed(() => {
 const networkQualityMessage = computed(() => {
 	const quality = computedNetworkQuality.value;
 	const isLocal = props.isLocal;
-	const name = resolvedDisplayName.value || "This participant";
+	// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+	const name = resolvedDisplayName.value || __('This participant');
 
 	if (quality === "critical") {
 		return isLocal
-			? "Your internet connection is unstable. Video and audio might lag or drop."
-			: `${name}'s internet connection is unstable.`;
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			? __('Your internet connection is unstable. Video and audio might lag or drop.')
+			: __("{0}'s internet connection is unstable.", [name]);
 	}
 	if (quality === "poor") {
 		return isLocal
-			? "Your internet connection is weak. You might notice some lag."
-			: `${name}'s internet connection is weak.`;
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			? __('Your internet connection is weak. You might notice some lag.')
+			: __("{0}'s internet connection is weak.", [name]);
 	}
 	return "";
 });

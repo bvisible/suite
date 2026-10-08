@@ -14,7 +14,8 @@
 			>
 				<div class="flex items-center justify-between gap-3 px-4 py-5 shrink-0">
 					<div class="min-w-0 truncate text-sm-medium text-ink-gray-8 tracking-[0.21px]">
-						People
+						<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+						{{ __('People') }}
 					</div>
 					<Button
 						variant="ghost"
@@ -24,10 +25,11 @@
 				</div>
 
 				<div class="px-2 pb-2 shrink-0">
+					<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 					<FormControl
 						v-model="searchQuery"
 						type="text"
-						placeholder="Search people"
+						:placeholder="__('Search people')"
 						autocomplete="off"
 						data-testid="people-search"
 					>
@@ -73,7 +75,8 @@
 						v-if="allVisibleParticipants.length === 0 && filteredLobbyUsers.length === 0"
 						class="text-ink-gray-5 text-sm text-center mt-8 px-4"
 					>
-						{{ searchQuery ? "No participants found" : "No other participants" }}
+						<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+						{{ searchQuery ? __('No participants found') : __('No other participants') }}
 					</div>
 				</div>
 			</div>
@@ -264,10 +267,12 @@ const allVisibleParticipants = computed(() => {
 
 const currentUserData = computed<Participant>(() => ({
 	user_id: props.currentUser?.user_id || "",
-	user_name: props.currentUser?.full_name || props.currentUser?.name || "You",
+	// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+	user_name: props.currentUser?.full_name || props.currentUser?.name || __('You'),
 	avatar: props.currentUser?.avatar || "",
 	initials: getInitials(
-		props.currentUser?.full_name || props.currentUser?.name || "You",
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		props.currentUser?.full_name || props.currentUser?.name || __('You'),
 	),
 	audio_enabled: props.isMicOn,
 	video_enabled: props.isCameraOn,

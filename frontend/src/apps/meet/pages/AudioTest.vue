@@ -5,8 +5,9 @@
 		<div class="max-w-2xl mx-auto">
 			<div class="bg-white rounded-6 shadow-lg p-8">
 				<div class="text-center mb-8">
-					<h1 class="text-4xl-bold text-gray-900 mb-2">Audio Notification Test</h1>
-					<p class="text-gray-600">Test and tune the meeting notification sounds</p>
+					<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+					<h1 class="text-4xl-bold text-gray-900 mb-2">{{ __('Audio Notification Test') }}</h1>
+					<p class="text-gray-600">{{ __('Test and tune the meeting notification sounds') }}</p>
 				</div>
 
 				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -17,8 +18,9 @@
 								<lucide-user-plus class="w-5 h-5 text-green-600" />
 							</div>
 							<div>
-								<h3 class="font-semibold text-green-900">User Joined</h3>
-								<p class="text-sm text-green-700">Someone joins the meeting</p>
+								<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+								<h3 class="font-semibold text-green-900">{{ __('User Joined') }}</h3>
+								<p class="text-sm text-green-700">{{ __('Someone joins the meeting') }}</p>
 							</div>
 						</div>
 						<Button
@@ -31,10 +33,12 @@
 							<template #prefix>
 								<lucide-play class="w-4 h-4" />
 							</template>
-							Play Join Sound
+							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+							{{ __('Play Join Sound') }}
 						</Button>
 						<div class="mt-3 text-xs text-green-600">
-							<strong>Current:</strong> C4 → G4 → E5 → C5 (0.5s, 20% volume)
+							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+							<strong>{{ __('Current:') }}</strong> C4 → G4 → E5 → C5 {{ __('({0}s, {1}% volume)', [0.5, 20]) }}
 						</div>
 					</div>
 
@@ -45,8 +49,9 @@
 								<lucide-user-minus class="w-5 h-5 text-red-600" />
 							</div>
 							<div>
-								<h3 class="font-semibold text-red-900">User Left</h3>
-								<p class="text-sm text-red-700">Someone leaves the meeting</p>
+								<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+								<h3 class="font-semibold text-red-900">{{ __('User Left') }}</h3>
+								<p class="text-sm text-red-700">{{ __('Someone leaves the meeting') }}</p>
 							</div>
 						</div>
 						<Button
@@ -59,10 +64,12 @@
 							<template #prefix>
 								<lucide-play class="w-4 h-4" />
 							</template>
-							Play Leave Sound
+							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+							{{ __('Play Leave Sound') }}
 						</Button>
 						<div class="mt-3 text-xs text-red-600">
-							<strong>Current:</strong> G4 → E4 → C4 (0.4s, 20% volume)
+							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+							<strong>{{ __('Current:') }}</strong> G4 → E4 → C4 {{ __('({0}s, {1}% volume)', [0.4, 20]) }}
 						</div>
 					</div>
 
@@ -73,8 +80,9 @@
 								<lucide-user-check class="w-5 h-5 text-blue-600" />
 							</div>
 							<div>
-								<h3 class="font-semibold text-blue-900">Join Request</h3>
-								<p class="text-sm text-blue-700">Someone requests to join</p>
+								<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+								<h3 class="font-semibold text-blue-900">{{ __('Join Request') }}</h3>
+								<p class="text-sm text-blue-700">{{ __('Someone requests to join') }}</p>
 							</div>
 						</div>
 						<Button
@@ -87,10 +95,12 @@
 							<template #prefix>
 								<lucide-play class="w-4 h-4" />
 							</template>
-							Play Request Sound
+							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+							{{ __('Play Request Sound') }}
 						</Button>
 						<div class="mt-3 text-xs text-blue-600">
-							<strong>Current:</strong> F4 → A4 → F4 → C5 (0.6s, 25% volume)
+							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+							<strong>{{ __('Current:') }}</strong> F4 → A4 → F4 → C5 {{ __('({0}s, {1}% volume)', [0.6, 25]) }}
 						</div>
 					</div>
 
@@ -101,8 +111,9 @@
 								<lucide-message-circle class="w-5 h-5 text-purple-600" />
 							</div>
 							<div>
-								<h3 class="font-semibold text-purple-900">Chat Message</h3>
-								<p class="text-sm text-purple-700">New chat message received</p>
+								<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+								<h3 class="font-semibold text-purple-900">{{ __('Chat Message') }}</h3>
+								<p class="text-sm text-purple-700">{{ __('New chat message received') }}</p>
 							</div>
 						</div>
 						<Button
@@ -115,10 +126,12 @@
 							<template #prefix>
 								<lucide-play class="w-4 h-4" />
 							</template>
-							Play Chat Sound
+							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+							{{ __('Play Chat Sound') }}
 						</Button>
 						<div class="mt-3 text-xs text-purple-600">
-							<strong>Current:</strong> E4 → G4 (0.25s, 20% volume)
+							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+							<strong>{{ __('Current:') }}</strong> E4 → G4 {{ __('({0}s, {1}% volume)', [0.25, 20]) }}
 						</div>
 					</div>
 
@@ -129,8 +142,9 @@
 								<lucide-hand class="w-5 h-5 text-orange-600" />
 							</div>
 							<div>
-								<h3 class="font-semibold text-orange-900">Hand Raised</h3>
-								<p class="text-sm text-orange-700">Someone raises their hand</p>
+								<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+								<h3 class="font-semibold text-orange-900">{{ __('Hand Raised') }}</h3>
+								<p class="text-sm text-orange-700">{{ __('Someone raises their hand') }}</p>
 							</div>
 						</div>
 						<Button
@@ -143,10 +157,12 @@
 							<template #prefix>
 								<lucide-play class="w-4 h-4" />
 							</template>
-							Play Hand Raise Sound
+							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+							{{ __('Play Hand Raise Sound') }}
 						</Button>
 						<div class="mt-3 text-xs text-orange-600">
-							<strong>Current:</strong> C5 → E5 → G5 (0.5s, 20% volume)
+							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+							<strong>{{ __('Current:') }}</strong> C5 → E5 → G5 {{ __('({0}s, {1}% volume)', [0.5, 20]) }}
 						</div>
 					</div>
 				</div>
@@ -164,23 +180,27 @@
 							<template #prefix>
 								<lucide-play-circle class="w-5 h-5" />
 							</template>
-							Play All Notifications (Sequential)
+							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+							{{ __('Play All Notifications (Sequential)') }}
 						</Button>
 						<p class="text-sm text-gray-500">
-							Test all sounds in sequence with 1-second delays
+							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+							{{ __('Test all sounds in sequence with 1-second delays') }}
 						</p>
 					</div>
 				</div>
 
 				<!-- Instructions -->
 				<div class="mt-6 p-4 bg-gray-50 rounded-6">
-					<h4 class="font-semibold text-gray-900 mb-2">Testing Tips:</h4>
+					<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+					<h4 class="font-semibold text-gray-900 mb-2">{{ __('Testing Tips:') }}</h4>
 					<ul class="text-sm text-gray-600 space-y-1">
-						<li>• Click individual buttons to test each notification</li>
-						<li>• Use "Play All" to compare sounds in sequence</li>
-						<li>• Edit frequencies/timing in <code class="bg-gray-200 px-1 rounded-4">audioNotifications.ts</code></li>
-						<li>• Refresh page after code changes to test updates</li>
-						<li>• Check browser console for any AudioContext errors</li>
+						<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+						<li>• {{ __('Click individual buttons to test each notification') }}</li>
+						<li>• {{ __('Use "Play All" to compare sounds in sequence') }}</li>
+						<li>• {{ __('Edit frequencies/timing in') }} <code class="bg-gray-200 px-1 rounded-4">audioNotifications.ts</code></li>
+						<li>• {{ __('Refresh page after code changes to test updates') }}</li>
+						<li>• {{ __('Check browser console for any AudioContext errors') }}</li>
 					</ul>
 				</div>
 			</div>

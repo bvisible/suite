@@ -66,7 +66,8 @@ class DeviceManager {
 				.filter((device) => device.kind === "videoinput")
 				.map((device, index) => ({
 					deviceId: device.deviceId,
-					label: device.label || `Camera ${index + 1}`,
+					// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+					label: device.label || __("Camera {0}", [index + 1]),
 					groupId: device.groupId,
 				}));
 
@@ -74,7 +75,8 @@ class DeviceManager {
 				.filter((device) => device.kind === "audioinput")
 				.map((device, index) => ({
 					deviceId: device.deviceId,
-					label: device.label || `Microphone ${index + 1}`,
+					// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+					label: device.label || __("Microphone {0}", [index + 1]),
 					groupId: device.groupId,
 				}));
 
@@ -82,7 +84,8 @@ class DeviceManager {
 				.filter((device) => device.kind === "audiooutput")
 				.map((device) => ({
 					deviceId: device.deviceId,
-					label: device.label || `Speaker ${this.speakers.length + 1}`,
+					// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+					label: device.label || __("Speaker {0}", [this.speakers.length + 1]),
 					groupId: device.groupId,
 				}));
 		} catch (error) {

@@ -20,11 +20,12 @@
 						:can-stop="isCurrentUserHost || isCurrentUserCohost"
 						@click="handleRecordingAction"
 					/>
+					<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 					<Button
 						v-if="showPreview"
 						size="sm"
 						icon-left="lucide-link-2"
-						label="Copy link"
+						:label="__('Copy link')"
 						@click="copyMeetingLink"
 					/>
 					<Button
@@ -33,7 +34,8 @@
 						size="sm"
 						@click="redirectToLogin"
 					>
-						Sign In
+						<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+						{{ __('Sign In') }}
 					</Button>
 				</template>
 			</MeetingHeader>
@@ -48,17 +50,20 @@
 					<span class="lucide-monitor-smartphone block size-6" aria-hidden="true" />
 				</div>
 				<h1 class="mt-4 text-2xl-semibold text-ink-gray-9">
-					Meeting moved to another device
+					<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+					{{ __('Meeting moved to another device') }}
 				</h1>
 				<p class="mt-2 text-p-base text-ink-gray-6">
-					Your audio and video have stopped here because you joined from another device.
+					<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+					{{ __('Your audio and video have stopped here because you joined from another device.') }}
 				</p>
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 				<Button
 					class="mt-6"
 					variant="solid"
 					theme="gray"
 					icon-left="lucide-arrow-left"
-					label="Back to Meet"
+					:label="__('Back to Meet')"
 					@click="router.push('/meet')"
 				/>
 			</div>
@@ -71,12 +76,14 @@
 					<lucide-alert-circle class="w-12 h-12 mx-auto" />
 				</div>
 				<p class="text-lg mb-4">{{ connectionState.connectionError }}</p>
-				<Button @click="resetToPreview" variant="outline" theme="red">Try Again</Button>
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				<Button @click="resetToPreview" variant="outline" theme="red">{{ __('Try Again') }}</Button>
 			</div>
 		</div>
 
 		<template v-else>
 			<!-- Preview mode -->
+			<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 			<MeetingPreview
 				v-if="showPreview"
 				:meetingId="meetingId"
@@ -91,7 +98,7 @@
 				:currentUserName="
 					currentUser.currentUser.value?.full_name ||
 					currentUser.currentUser.value?.name ||
-					'You'
+					__('You')
 				"
 				:guestAuthToken="connectionState.guestAuthToken"
 				:isWaitingForApproval="lobbyStore.isWaitingForApproval"
@@ -135,7 +142,8 @@
 									<template #prefix>
 										<span class="lucide-lock size-3.5" aria-hidden="true" />
 									</template>
-									End-to-end encrypted
+									<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+									{{ __('End-to-end encrypted') }}
 								</Badge>
 							</div>
 							<MeetingLayout v-else @open-people-panel="togglePeople" />
@@ -162,6 +170,7 @@
 						:style="{ width: isMobile ? '100%' : '24rem' }"
 					>
 							<!-- Chat Panel -->
+							<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 							<ChatPanel
 								v-if="activePanel === 'chat'"
 								:open="true"
@@ -171,7 +180,7 @@
 								:user-name="
 									(currentUser.currentUser.value?.full_name as string) ||
 									(currentUser.currentUser.value?.name as string) ||
-									'You'
+									__('You')
 								"
 								:isHost="isCurrentUserHost"
 								:isCohost="isCurrentUserCohost"
@@ -368,9 +377,11 @@ function redirectToLogin() {
 async function copyMeetingLink() {
 	try {
 		await navigator.clipboard.writeText(window.location.href);
-		toast.success("Meeting link copied");
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		toast.success(__("Meeting link copied"));
 	} catch {
-		toast.error("Could not copy meeting link");
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		toast.error(__("Could not copy meeting link"));
 	}
 }
 
@@ -415,7 +426,8 @@ async function handleRecordingAction() {
 		recordingPreflight.value = await recording.getPreflight();
 		recordingDialogOpen.value = true;
 	} catch (error) {
-		toast.error(error instanceof Error ? error.message : "Could not manage recording");
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		toast.error(error instanceof Error ? error.message : __("Could not manage recording"));
 	}
 }
 
@@ -424,7 +436,8 @@ async function confirmRecordingStop() {
 		await recording.stop();
 		recordingStopDialogOpen.value = false;
 	} catch (error) {
-		toast.error(error instanceof Error ? error.message : "Could not stop recording");
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		toast.error(error instanceof Error ? error.message : __("Could not stop recording"));
 	}
 }
 
@@ -432,7 +445,8 @@ async function confirmRecordingStart() {
 	try {
 		await recording.start();
 	} catch (error) {
-		toast.error(error instanceof Error ? error.message : "Could not start recording");
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		toast.error(error instanceof Error ? error.message : __("Could not start recording"));
 		throw error;
 	}
 }
@@ -470,11 +484,14 @@ const e2eeJoinStatus = ref<"pending" | "failed" | "">("");
 const e2eeJoinReason = ref("");
 const e2eeState = useE2EEState();
 const e2eeJoinTitle = computed(() => {
-	if (e2eeJoinStatus.value === "failed") return "Could not join encrypted meeting";
+	// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+	if (e2eeJoinStatus.value === "failed") return __("Could not join encrypted meeting");
 	if (e2eeJoinReason.value === "waiting-for-host") {
-		return "Waiting for the host to join";
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		return __("Waiting for the host to join");
 	}
-	return "Joining encrypted meeting";
+	// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+	return __("Joining encrypted meeting");
 });
 
 function handleE2EEJoinStatus(event: Event): void {
@@ -492,7 +509,8 @@ function handleE2EEJoinStatus(event: Event): void {
 		e2eeJoinReason.value = detail.reason || "";
 		e2eeJoinPendingMessage.value =
 			detail.message ||
-			"Could not set up encryption for this meeting. Please leave and try again.";
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			__("Could not set up encryption for this meeting. Please leave and try again.");
 		return;
 	}
 	e2eeJoinStatus.value = "";
@@ -505,11 +523,13 @@ function getE2EEJoinPendingMessage(detail: {
 	message?: string;
 }): string {
 	if (detail.reason === "waiting-for-host") {
-		return "You'll join automatically when the host arrives.";
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		return __("You'll join automatically when the host arrives.");
 	}
 	return (
 		detail.message ||
-		"Waiting for someone already in the encrypted meeting to let you in."
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		__("Waiting for someone already in the encrypted meeting to let you in.")
 	);
 }
 
@@ -837,7 +857,8 @@ watch(
 			) {
 				return;
 			}
-			toast.loading("Connecting…", {
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			toast.loading(__("Connecting…"), {
 				id: CONNECTING_TOAST_ID,
 				duration: Number.POSITIVE_INFINITY,
 			});
@@ -970,7 +991,8 @@ const showMeetingNotification = (notification: {
 							"span",
 							{ class: "block truncate text-p-base font-medium text-ink-base" },
 							notification.type === "poll"
-								? `${notification.fromName} started a poll`
+								// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+								? __("{0} started a poll", [notification.fromName])
 								: notification.fromName,
 						),
 						h(

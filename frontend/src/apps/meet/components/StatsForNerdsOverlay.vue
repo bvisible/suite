@@ -1,7 +1,8 @@
+<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 <template>
 	<section
 		class="absolute right-2 top-2.5 z-[55] flex max-h-[calc(100%-1.25rem)] w-[calc(100%-1rem)] max-w-[380px] flex-col overflow-hidden rounded-[10px] border border-outline-gray-2 bg-surface-gray-1 text-ink-gray-8 shadow-xl"
-		aria-label="Stats for nerds"
+		:aria-label="__('Stats for nerds')"
 		data-testid="stats-for-nerds"
 	>
 		<header class="flex shrink-0 items-center justify-between gap-3 p-4">
@@ -11,24 +12,28 @@
 					:class="qualityDot"
 				/>
 				<div class="min-w-0">
-					<h2 class="truncate text-sm-medium tracking-[0.21px] text-ink-gray-8">Stats for nerds</h2>
-					<p class="text-xs capitalize text-ink-gray-5">{{ snapshot.quality }} connection</p>
+					<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+					<h2 class="truncate text-sm-medium tracking-[0.21px] text-ink-gray-8">{{ __('Stats for nerds') }}</h2>
+					<p class="text-xs capitalize text-ink-gray-5">{{ __('{0} connection', [snapshot.quality]) }}</p>
 				</div>
 			</div>
 			<div class="flex items-center gap-1">
-				<Tooltip text="Copy diagnostics">
-					<button class="rounded-4 p-1.5 text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8" aria-label="Copy diagnostics" @click="copyDiagnostics">
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				<Tooltip :text="__('Copy diagnostics')">
+					<button class="rounded-4 p-1.5 text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8" :aria-label="__('Copy diagnostics')" @click="copyDiagnostics">
 						<LucideCopy class="size-4" />
 					</button>
 				</Tooltip>
-				<Tooltip :text="expanded ? 'Show less' : 'Show more'">
-					<button class="rounded-4 p-1.5 text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8" :aria-label="expanded ? 'Show less' : 'Show more'" @click="expanded = !expanded">
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				<Tooltip :text="expanded ? __('Show less') : __('Show more')">
+					<button class="rounded-4 p-1.5 text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8" :aria-label="expanded ? __('Show less') : __('Show more')" @click="expanded = !expanded">
 						<LucideChevronUp v-if="expanded" class="size-4" />
 						<LucideChevronDown v-else class="size-4" />
 					</button>
 				</Tooltip>
-				<Tooltip text="Close">
-					<button class="rounded-4 p-1.5 text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8" aria-label="Close" @click="close">
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				<Tooltip :text="__('Close')">
+					<button class="rounded-4 p-1.5 text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8" :aria-label="__('Close')" @click="close">
 						<LucideX class="size-4" />
 					</button>
 				</Tooltip>
@@ -37,39 +42,46 @@
 
 		<div class="overflow-y-auto px-4 pb-4 text-xs">
 			<div class="grid grid-cols-2 gap-x-5 gap-y-2">
-				<StatValue label="Round-trip time" :value="formatMs(snapshot.rtt)" />
-				<StatValue label="Jitter" :value="formatMs(snapshot.jitter)" />
-				<StatValue label="Packet loss in" :value="formatPercent(snapshot.inboundPacketLoss)" />
-				<StatValue label="Packet loss out" :value="formatPercent(snapshot.outboundPacketLoss)" />
-				<StatValue label="Download" :value="formatBitrate(snapshot.downloadBitrate)" />
-				<StatValue label="Upload" :value="formatBitrate(snapshot.uploadBitrate)" />
-				<StatValue label="Available upload" :value="formatBitrate(snapshot.availableOutgoingBitrate)" />
-				<StatValue label="Lifecycle" :value="humanize(participantConnectionState.lifecycleState)" />
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				<StatValue :label="__('Round-trip time')" :value="formatMs(snapshot.rtt)" />
+				<StatValue :label="__('Jitter')" :value="formatMs(snapshot.jitter)" />
+				<StatValue :label="__('Packet loss in')" :value="formatPercent(snapshot.inboundPacketLoss)" />
+				<StatValue :label="__('Packet loss out')" :value="formatPercent(snapshot.outboundPacketLoss)" />
+				<StatValue :label="__('Download')" :value="formatBitrate(snapshot.downloadBitrate)" />
+				<StatValue :label="__('Upload')" :value="formatBitrate(snapshot.uploadBitrate)" />
+				<StatValue :label="__('Available upload')" :value="formatBitrate(snapshot.availableOutgoingBitrate)" />
+				<StatValue :label="__('Lifecycle')" :value="humanize(participantConnectionState.lifecycleState)" />
 			</div>
 
 			<template v-if="expanded">
-				<StatsSection title="Connection">
-					<StatsRow label="Signaling" :value="connectionStatus" />
-					<StatsRow label="Send transport" :value="transportStates.send" />
-					<StatsRow label="Receive transport" :value="transportStates.receive" />
-					<StatsRow label="ICE route" :value="iceRoute" />
-					<StatsRow label="Protocol" :value="snapshot.protocol?.toUpperCase() || 'n/a'" />
-					<StatsRow label="Encoding strategy" :value="connectionState.codecStrategy?.toUpperCase() || 'n/a'" />
-					<StatsRow label="Encryption" :value="encryptionStatus" />
-					<StatsRow label="Recoveries" :value="String(recoveryCount)" />
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				<StatsSection :title="__('Connection')">
+					<StatsRow :label="__('Signaling')" :value="connectionStatus" />
+					<StatsRow :label="__('Send transport')" :value="transportStates.send" />
+					<StatsRow :label="__('Receive transport')" :value="transportStates.receive" />
+					<StatsRow :label="__('ICE route')" :value="iceRoute" />
+					<StatsRow :label="__('Protocol')" :value="snapshot.protocol?.toUpperCase() || __('n/a')" />
+					<StatsRow :label="__('Encoding strategy')" :value="connectionState.codecStrategy?.toUpperCase() || __('n/a')" />
+					<StatsRow :label="__('Encryption')" :value="encryptionStatus" />
+					<StatsRow :label="__('Recoveries')" :value="String(recoveryCount)" />
 				</StatsSection>
 
-				<StatsSection title="Sending" :badge="String(sendStreams.length)">
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				<StatsSection :title="__('Sending')" :badge="String(sendStreams.length)">
 					<StreamStats v-for="stream in sendStreams" :key="stream.id" :stream="stream" />
-					<p v-if="!sendStreams.length" class="py-2 text-ink-gray-5">No active outgoing streams</p>
+					<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+					<p v-if="!sendStreams.length" class="py-2 text-ink-gray-5">{{ __('No active outgoing streams') }}</p>
 				</StatsSection>
 
-				<StatsSection title="Receiving" :badge="String(receiveStreams.length)">
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				<StatsSection :title="__('Receiving')" :badge="String(receiveStreams.length)">
 					<StreamStats v-for="stream in receiveStreams" :key="stream.id" :stream="stream" />
-					<p v-if="!receiveStreams.length" class="py-2 text-ink-gray-5">No active incoming streams</p>
+					<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+					<p v-if="!receiveStreams.length" class="py-2 text-ink-gray-5">{{ __('No active incoming streams') }}</p>
 				</StatsSection>
 
-				<StatsSection v-if="participantConnectionState.recoveryTimeline.length" title="Recovery history">
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				<StatsSection v-if="participantConnectionState.recoveryTimeline.length" :title="__('Recovery history')">
 					<div v-for="entry in recentRecoveryTimeline" :key="`${entry.at}-${entry.state}`" class="border-b border-outline-gray-2 py-2 last:border-0">
 						<div class="flex justify-between gap-3">
 							<span class="capitalize text-ink-gray-7">{{ humanize(entry.state) }}</span>
@@ -112,7 +124,8 @@ const qualityDot = computed(() => ({
 	"bg-gray-500": snapshot.value.quality === "unknown",
 }));
 
-const connectionStatus = computed(() => snapshot.value.signalingConnected ? "Connected" : "Disconnected");
+// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+const connectionStatus = computed(() => snapshot.value.signalingConnected ? __('Connected') : __('Disconnected'));
 const transportStates = computed(() => ({
 	send: humanize(snapshot.value.sendTransportState),
 	receive: humanize(snapshot.value.receiveTransportState),
@@ -120,11 +133,13 @@ const transportStates = computed(() => ({
 const iceRoute = computed(() => {
 	const local = snapshot.value.localCandidateType;
 	const remote = snapshot.value.remoteCandidateType;
-	return local || remote ? `${local || "unknown"} → ${remote || "unknown"}` : "n/a";
+	// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+	return local || remote ? `${local || __('unknown')} → ${remote || __('unknown')}` : __('n/a');
 });
 const recoveryCount = computed(() => participantConnectionState.recoveryTimeline.filter((entry) => entry.state !== "healthy").length);
 const recentRecoveryTimeline = computed(() => participantConnectionState.recoveryTimeline.slice(-8).reverse());
-const encryptionStatus = computed(() => e2eeState.isContextReady.value ? "Active" : "Not active");
+// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+const encryptionStatus = computed(() => e2eeState.isContextReady.value ? __('Active') : __('Not active'));
 
 function close() {
 	active.value = false;
@@ -132,18 +147,21 @@ function close() {
 }
 
 function formatBitrate(value?: number) {
-	if (value === undefined || !Number.isFinite(value)) return "n/a";
+	// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+	if (value === undefined || !Number.isFinite(value)) return __('n/a');
 	if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(2)} Mbps`;
 	if (value >= 1_000) return `${Math.round(value / 1_000)} kbps`;
 	return `${Math.round(value)} bps`;
 }
 
 function formatMs(value?: number) {
-	return value === undefined || !Number.isFinite(value) ? "n/a" : `${Math.round(value)} ms`;
+	// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+	return value === undefined || !Number.isFinite(value) ? __('n/a') : `${Math.round(value)} ms`;
 }
 
 function formatPercent(value?: number) {
-	return value === undefined || !Number.isFinite(value) ? "n/a" : `${value.toFixed(1)}%`;
+	// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+	return value === undefined || !Number.isFinite(value) ? __('n/a') : `${value.toFixed(1)}%`;
 }
 
 function humanize(value: string) {
@@ -194,21 +212,23 @@ const StreamStats = defineComponent({
 	props: { stream: { type: Object as () => RTCStreamStats, required: true } },
 	setup: (props) => () => {
 		const stream = props.stream;
-		const resolution = stream.width && stream.height ? `${Math.round(stream.width)}×${Math.round(stream.height)}` : "n/a";
-		const status = stream.paused ? "paused" : stream.muted ? "muted" : "live";
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		const resolution = stream.width && stream.height ? `${Math.round(stream.width)}×${Math.round(stream.height)}` : __('n/a');
+		const status = stream.paused ? __('paused') : stream.muted ? __('muted') : __('live');
 		const rows = [
-			["Status", status],
-			["Codec", stream.codec || "n/a"],
-			["Resolution / FPS", `${resolution} · ${stream.fps === undefined ? "n/a" : Math.round(stream.fps)} fps`],
-			["Bitrate", formatBitrate(stream.bitrate)],
-			["Packet loss / jitter", `${formatPercent(stream.packetLoss)} · ${formatMs(stream.jitter)}`],
-			["RTT", formatMs(stream.rtt)],
-			["Frames processed / dropped", `${stream.framesProcessed ?? "n/a"} / ${stream.framesDropped ?? "n/a"}`],
-			["Quality limitation", stream.qualityLimitation || "n/a"],
-			["Scalability mode", stream.scalabilityMode || "n/a"],
-			["NACK / PLI / FIR", `${stream.nackCount ?? "n/a"} / ${stream.pliCount ?? "n/a"} / ${stream.firCount ?? "n/a"}`],
-			["Jitter buffer", formatMs(stream.jitterBufferDelay)],
-			["Audio concealed", stream.concealedSamples === undefined ? "n/a" : `${stream.concealedSamples} / ${stream.totalSamples ?? "n/a"} samples`],
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			[__('Status'), status],
+			[__('Codec'), stream.codec || __('n/a')],
+			[__('Resolution / FPS'), `${resolution} · ${stream.fps === undefined ? __('n/a') : Math.round(stream.fps)} fps`],
+			[__('Bitrate'), formatBitrate(stream.bitrate)],
+			[__('Packet loss / jitter'), `${formatPercent(stream.packetLoss)} · ${formatMs(stream.jitter)}`],
+			[__('RTT'), formatMs(stream.rtt)],
+			[__('Frames processed / dropped'), `${stream.framesProcessed ?? __('n/a')} / ${stream.framesDropped ?? __('n/a')}`],
+			[__('Quality limitation'), stream.qualityLimitation || __('n/a')],
+			[__('Scalability mode'), stream.scalabilityMode || __('n/a')],
+			[__('NACK / PLI / FIR'), `${stream.nackCount ?? __('n/a')} / ${stream.pliCount ?? __('n/a')} / ${stream.firCount ?? __('n/a')}`],
+			[__('Jitter buffer'), formatMs(stream.jitterBufferDelay)],
+			[__('Audio concealed'), stream.concealedSamples === undefined ? __('n/a') : __('{0} / {1} samples', [stream.concealedSamples, stream.totalSamples ?? __('n/a')])],
 		];
 		return h("article", { class: "border-b border-outline-gray-2 py-2 last:border-0" }, [
 			h("div", { class: "mb-1.5 flex items-center justify-between gap-3" }, [

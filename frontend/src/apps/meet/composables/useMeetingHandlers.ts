@@ -96,7 +96,8 @@ export function useMeetingHandlers(deps: MeetingHandlersDeps) {
 	}) => {
 		const normalizedJoinResult = normalizeJoinPayload(joinResult);
 		if (!normalizedJoinResult) {
-			deps.connectionState.connectionError = "Invalid guest join response";
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			deps.connectionState.connectionError = __("Invalid guest join response");
 			return;
 		}
 		const guestId =
@@ -182,7 +183,8 @@ export function useMeetingHandlers(deps: MeetingHandlersDeps) {
 			const shouldBan = ban && participantId.startsWith("guest_");
 			const manager = deps.sfuConnection.sfuManager.value;
 			if (!manager) {
-				toast.error("Cannot remove this participant while disconnected. Reconnect and try again.");
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				toast.error(__("Cannot remove this participant while disconnected. Reconnect and try again."));
 				return;
 			}
 			if (shouldBan) {
@@ -204,8 +206,9 @@ export function useMeetingHandlers(deps: MeetingHandlersDeps) {
 			console.error("Failed to kick participant:", error);
 			toast.error(
 				backendBanRecorded
-					? "Guest was banned but could not be disconnected. Use Remove to retry the live removal."
-					: "Could not remove this participant. Please try again.",
+					// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+					? __("Guest was banned but could not be disconnected. Use Remove to retry the live removal.")
+					: __("Could not remove this participant. Please try again."),
 			);
 		}
 	};
@@ -235,12 +238,14 @@ export function useMeetingHandlers(deps: MeetingHandlersDeps) {
 				isUnknownRecord(response) &&
 				typeof response.meeting_id === "string"
 			) {
-				toast.success("User promoted to co-host");
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				toast.success(__("User promoted to co-host"));
 				await deps.meetingDoc.reload();
 			}
 		} catch (error) {
 			console.error("Failed to promote participant:", error);
-			toast.error("Failed to promote user to co-host");
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			toast.error(__("Failed to promote user to co-host"));
 		}
 	};
 

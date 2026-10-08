@@ -122,7 +122,8 @@ export function useRecording(meetingId: string) {
 		if (result.status === "Rejected") {
 			setState(null);
 			requestId.value = null;
-			toast.error("Recording capacity is unavailable");
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			toast.error(__("Recording capacity is unavailable"));
 			return result;
 		}
 		setState({
@@ -132,10 +133,12 @@ export function useRecording(meetingId: string) {
 		});
 		if (result.status === "Recording") await loadState();
 		if (!["Pending", "Starting"].includes(result.status)) requestId.value = null;
-		if (["Pending", "Starting"].includes(result.status)) toast.info("Recording is starting");
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		if (["Pending", "Starting"].includes(result.status)) toast.info(__("Recording is starting"));
 		else if (result.status === "Stopping")
-			toast.error("Recording could not start and is stopping");
-		else toast.success("Recording started");
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			toast.error(__("Recording could not start and is stopping"));
+		else toast.success(__("Recording started"));
 		return result;
 	}
 
@@ -149,7 +152,8 @@ export function useRecording(meetingId: string) {
 			});
 			await loadState();
 		}
-		toast.info("Recording is stopping");
+		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+		toast.info(__("Recording is stopping"));
 		return result;
 	}
 
@@ -159,7 +163,8 @@ export function useRecording(meetingId: string) {
 			const wasPending = ["Pending", "Starting"].includes(state.value?.status || "");
 			setState(null);
 			requestId.value = null;
-			if (wasPending) toast.error("Recording could not start");
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			if (wasPending) toast.error(__("Recording could not start"));
 			return;
 		}
 		if (
@@ -171,9 +176,11 @@ export function useRecording(meetingId: string) {
 		const previous = state.value?.status;
 		setState(event.recording);
 		if (event.recording.status === "Recording" && previous !== "Recording")
-			toast.info("This meeting is being recorded");
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			toast.info(__("This meeting is being recorded"));
 		if (event.recording.status === "Interrupted")
-			toast.error("Recording was interrupted and is trying to recover");
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			toast.error(__("Recording was interrupted and is trying to recover"));
 	}
 
 	function syncState(recording: RecordingState | null) {

@@ -44,7 +44,8 @@ function selectTheme(theme: string) {
 const appsMenuOption = useAppSwitcher("meet");
 
 const userName = computed(
-	() => userResource.data?.full_name || userResource.data?.name || "User",
+	// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+	() => userResource.data?.full_name || userResource.data?.name || __("User"),
 );
 
 const settingsItems = computed(() => [
@@ -55,27 +56,32 @@ const settingsItems = computed(() => [
 			appsMenuOption.value,
 			{
 				icon: LucideKeyboard,
-				label: "Shortcuts",
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				label: __("Shortcuts"),
 				onClick: () => {
 					showShortcutsDialog.value = true;
 				},
 			},
 			{
 				icon: LucideSunMoon,
-				label: "Theme",
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				label: __("Theme"),
 				submenu: [
 					{
-						label: "Light",
+						// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+						label: __("Light"),
 						icon: themeMode.value === "light" ? LucideCheck : LucideSun,
 						onClick: () => selectTheme("Light"),
 					},
 					{
-						label: "Dark",
+						// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+						label: __("Dark"),
 						icon: themeMode.value === "dark" ? LucideCheck : LucideMoon,
 						onClick: () => selectTheme("Dark"),
 					},
 					{
-						label: "Automatic",
+						// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+						label: __("Automatic"),
 						icon: themeMode.value === "automatic" ? LucideCheck : LucideMonitor,
 						onClick: () => selectTheme("Automatic"),
 					},
@@ -89,7 +95,8 @@ const settingsItems = computed(() => [
 		options: [
 			{
 				icon: "lucide-log-out",
-				label: "Log out",
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				label: __("Log out"),
 				onClick: () => sessionStore.logout.submit(),
 			},
 		],
@@ -115,13 +122,15 @@ const showShortcutsDialog = inject(
 		/>
 		<div class="flex-1 px-2">
 			<SidebarSection>
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 				<SidebarItem
-					label="Home"
+					:label="__('Home')"
 					to="/meet"
 					:icon="LucideHome"
 					:active="route.name === 'meet-home'"
 				/>
-				<SidebarItem label="Calendar" to="/calendar" :icon="LucideCalendar" />
+				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+				<SidebarItem :label="__('Calendar')" to="/calendar" :icon="LucideCalendar" />
 			</SidebarSection>
 		</div>
 		<div class="p-2">

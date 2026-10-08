@@ -32,7 +32,8 @@ export default defineConfig({
 	test: {
 		environment: "jsdom",
 		include: ["src/**/*.test.{js,ts}", "recorder/**/*.test.{js,ts}"],
-		setupFiles: ["fake-indexeddb/auto"],
+		//// Neoffice — the global __() for code under test (#1316).
+		setupFiles: ["fake-indexeddb/auto", "./src/test/translation-setup.ts"],
 		retry: process.env.CI ? 2 : 0,
 		silent: true,
 		coverage: {

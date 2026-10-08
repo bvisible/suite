@@ -13,13 +13,14 @@
 				data-testid="reaction-picker"
 			>
 				<div class="grid grid-cols-7 gap-2">
+					<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 					<button
 						v-for="emoji in reactionEmojis"
 						:key="emoji"
 						type="button"
 						@click="handleReactionSelect(emoji)"
 						class="mx-auto flex items-center justify-center size-9 rounded-6 bg-surface-gray-2 hover:bg-surface-gray-3 transition-colors text-lg"
-						:aria-label="`Send ${emoji} reaction`"
+						:aria-label="__('Send {0} reaction', [emoji])"
 						:data-testid="`reaction-${emoji}`"
 					>
 						{{ emoji }}

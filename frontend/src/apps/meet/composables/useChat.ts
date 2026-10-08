@@ -136,7 +136,8 @@ export function useChat(deps: {
 			}
 		}
 		if (isE2EERequired(sfuClient)) {
-			return "[Unencrypted message blocked]";
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			return __("[Unencrypted message blocked]");
 		}
 		return raw;
 	}
@@ -235,7 +236,8 @@ export function useChat(deps: {
 
 		sfuClient.on("sfu_error", (value: unknown) => {
 			if (isUnknownRecord(value) && value.code === "HOST_ONLY_CHAT") {
-				toast.error("The host has restricted chat to hosts and co-hosts only.");
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				toast.error(__("The host has restricted chat to hosts and co-hosts only."));
 				chatStore.hostOnlyChat = true;
 			}
 		});
@@ -255,7 +257,10 @@ export function useChat(deps: {
 					const key = await getChatKey();
 					if (!key) {
 						toast.error(
-							"Encrypted chat is not ready yet. Wait for encryption to finish, then try again.",
+							// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+							__(
+								"Encrypted chat is not ready yet. Wait for encryption to finish, then try again.",
+							),
 						);
 						return;
 					}
@@ -287,7 +292,8 @@ export function useChat(deps: {
 			chatStore.addMessage(message);
 		} catch (error) {
 			console.error("Failed to send chat message:", error);
-			toast.error("Failed to send message");
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			toast.error(__("Failed to send message"));
 		}
 	};
 
@@ -311,7 +317,8 @@ export function useChat(deps: {
 			}
 		} catch (error) {
 			console.error("Failed to pin chat message:", error);
-			toast.error("Failed to pin message");
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			toast.error(__("Failed to pin message"));
 		}
 	};
 
