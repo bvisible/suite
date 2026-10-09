@@ -24410,3 +24410,23 @@ msgstr "À : {0}"
 #: frontend/neoffice-calendar-i18n.ts:46 suite/i18n_anchors.py:25
 msgid "{0} more"
 msgstr "{0} de plus"
+
+#: suite/calendar/local.py:125
+msgid "Calendar account {0} does not belong to the user {1}."
+msgstr "Le compte d'agenda {0} n'appartient pas à l'utilisateur {1}."
+
+#: suite/calendar/local.py:111
+msgid "Calendar account {0} does not exist."
+msgstr "Le compte d'agenda {0} n'existe pas."
+
+#: suite/calendar/local.py:611 suite/calendar/local.py:631
+msgid "Sharing needs a mail account."
+msgstr "Le partage nécessite une boîte de messagerie."
+
+#: suite/calendar/local.py:645
+msgid "The default calendar stays."
+msgstr "Le calendrier par défaut ne peut pas être supprimé."
+
+#: suite/calendar/local.py:486
+msgid "{0} needs a mail account."
+msgstr "{0} nécessite une boîte de messagerie."

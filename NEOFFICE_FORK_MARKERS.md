@@ -130,6 +130,17 @@ documents to `view.officeapps.live.com`. Ported from the standalone Neoffice
 
 At a merge: keep the file whole. Nothing upstream collides with it.
 
+#### `suite/calendar/doctype/local_calendar_account/local_calendar_account.json`
+#### `suite/calendar/doctype/local_calendar/local_calendar.json`
+#### `suite/calendar/doctype/local_calendar_event/local_calendar_event.json`
+**Entirely ours — three new DocTypes, no upstream equivalent** (maintenance#1387).
+They keep the calendar of a desk user who has no mailbox, where upstream keeps every
+calendar on the mail server: the account of that user, its calendars and its events, as
+JMAP objects in a `data` JSON field, with the span of an event in UTC for the period
+queries. Only `suite/calendar/local.py` reads or writes them, after checking the owner;
+no role but System Manager has a permission on them. Each JSON's `description` carries
+the marker. A merge leaves them alone: nothing upstream has these paths.
+
 #### `suite/fixtures/role.json`
 Ours, one field on one row (`e20b2ac06 fix(security): frontend signups must stay
 Website Users`):

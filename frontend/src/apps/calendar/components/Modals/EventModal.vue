@@ -536,9 +536,11 @@ const handleSave = () => {
 		return
 	}
 
+	//// Neoffice — a calendar kept in Neoffice sends no invitation: nothing to ask (maintenance#1387).
 	const needsEmail =
-		hasParticipantsOtherThanUser(selectedEvent?.calendarEvent?.participants) ||
-		hasParticipantsOtherThanUser(event.participants)
+		!store.isLocal &&
+		(hasParticipantsOtherThanUser(selectedEvent?.calendarEvent?.participants) ||
+			hasParticipantsOtherThanUser(event.participants))
 	if (needsEmail) showNotifyParticipantsModal.value = true
 	else submitEvent(false)
 }
@@ -606,7 +608,8 @@ const disableSave = computed(() => {
 // mail's compose has it; a published event cannot go back to being one, so
 // it gets a plain button.
 const primaryLabel = computed(() =>
-	(isNew.value || isDraft.value) && hasParticipantsOtherThanUser(event.participants)
+	//// Neoffice — nothing is sent from a calendar kept in Neoffice: it saves (maintenance#1387).
+	(isNew.value || isDraft.value) && !store.isLocal && hasParticipantsOtherThanUser(event.participants)
 		? __('Send')
 		: __('Save'),
 )

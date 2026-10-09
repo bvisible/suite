@@ -350,7 +350,8 @@ const confirmDelete = (submit: (sendEmail: boolean) => Promise<any>, recurring: 
 	}
 
 	// A draft never sent its invitations, so there is no one to tell it is gone.
-	if (isOrganizer.value && hasParticipantsOtherThanUser.value && !calendarEvent.isDraft) {
+	//// Neoffice — a calendar kept in Neoffice e-mails no cancellation (maintenance#1387).
+	if (!store.isLocal && isOrganizer.value && hasParticipantsOtherThanUser.value && !calendarEvent.isDraft) {
 		pendingDelete.value = run
 		showNotifyModal.value = true
 	} else {
@@ -595,8 +596,9 @@ const openUrl = (location: string) => {
 						>
 					</div>
 					<!-- -my keeps the 28px ghost button from inflating the row. -->
+					<!-- //// Neoffice — writing to the participants opens the mail app: not without a mailbox (maintenance#1387). -->
 					<Button
-						v-if="participantEmails.length"
+						v-if="participantEmails.length && !store.isLocal"
 						variant="ghost"
 						class="-my-1.5 shrink-0"
 						:tooltip="__('Email participants')"

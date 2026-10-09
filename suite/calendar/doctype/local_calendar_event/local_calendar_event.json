@@ -1,0 +1,85 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2026-10-09 20:30:00.000000",
+ "description": "//// Neoffice — added DocType (no upstream equivalent): an event of a Local Calendar Account, kept as the mail server would answer it (JMAP CalendarEvent object in `data`, series and their exceptions included), with the span it covers in UTC for the period queries (maintenance#1387).",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "account",
+  "uid",
+  "range_start",
+  "range_end",
+  "recurs",
+  "data"
+ ],
+ "fields": [
+  {
+   "fieldname": "account",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Account",
+   "options": "Local Calendar Account",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "uid",
+   "fieldtype": "Data",
+   "label": "UID",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "range_start",
+   "fieldtype": "Datetime",
+   "label": "Range Start (UTC)",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "description": "Empty for a series without an end.",
+   "fieldname": "range_end",
+   "fieldtype": "Datetime",
+   "label": "Range End (UTC)",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "recurs",
+   "fieldtype": "Check",
+   "label": "Recurs",
+   "read_only": 1
+  },
+  {
+   "fieldname": "data",
+   "fieldtype": "JSON",
+   "label": "Data",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-09 20:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Calendar",
+ "name": "Local Calendar Event",
+ "naming_rule": "By script",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager"
+  }
+ ],
+ "read_only": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

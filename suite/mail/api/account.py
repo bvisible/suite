@@ -1,6 +1,7 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
 import json
 from typing import Literal
 
@@ -256,6 +257,15 @@ def get_user_info() -> dict | None:
         account["on_mark_as_junk"] = settings["on_mark_as_junk"] if settings else "Junk Sender's Mail"
         account["enable_screening"] = bool(settings["enable_screening"]) if settings else False
         account["block_remote_images"] = bool(settings["block_remote_images"]) if settings else True
+
+    # //// Neoffice — a desk user without a mail account gets a calendar kept in Frappe (maintenance#1387,
+    # //// suite/calendar/local.py). Not in `accounts`: the mail app would take it for a mailbox.
+    # //// Made here only when no mailbox can be made: otherwise the calendar guard tries the mailbox first.
+    from suite.calendar.local import get_local_account, mailbox_possible
+
+    data.local_calendar_account = (
+        None if data.accounts else get_local_account(user, create=not mailbox_possible(user))
+    )
 
     data.user_image = data.user_image or get_avatar_url(user)
 

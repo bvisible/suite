@@ -46,6 +46,22 @@ msgstr ""
 msgid " on {0}"
 msgstr ""
 
+#: suite/calendar/local.py:125
+msgid "Calendar account {0} does not belong to the user {1}."
+msgstr ""
+
+#: suite/calendar/local.py:111
+msgid "Calendar account {0} does not exist."
+msgstr ""
+
+#: suite/calendar/local.py:611 suite/calendar/local.py:631
+msgid "Sharing needs a mail account."
+msgstr ""
+
+#: suite/calendar/local.py:645
+msgid "The default calendar stays."
+msgstr ""
+
 #: suite/public/frontend/assets/InviteStep-7vVbX84X.js:1
 msgid "\"{0}\" doesn't look like a valid email address."
 msgstr ""
@@ -24474,6 +24490,10 @@ msgstr ""
 
 #: suite/mail/api/scheduled.py:569
 msgid "{0} must be a UTC timestamp like 2026-01-31T09:30:00Z."
+msgstr ""
+
+#: suite/calendar/local.py:486
+msgid "{0} needs a mail account."
 msgstr ""
 
 #: frontend/src/apps/mail/components/MailThread.vue:791

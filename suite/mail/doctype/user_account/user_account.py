@@ -5,6 +5,7 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
 from uuid import uuid7
 
 import frappe
@@ -47,6 +48,13 @@ def get_user_for_jmap_account(
     role — for background jobs and unauthenticated flows (e.g. Guest RSVP requests) that
     act on an account they don't own.
     """
+
+    # //// Neoffice — a local calendar account (suite/calendar/local.py) belongs to one user, under the same
+    # //// rules (maintenance#1387): the Calendar doctypes' permission checks and counts go through here.
+    from suite.calendar.local import is_local_account, local_account_user
+
+    if is_local_account(account):
+        return local_account_user(account, allow_system_manager, raise_exception, ignore_permissions)
 
     if frappe.db.exists("JMAP Account", account):
         account_users = frappe.db.get_all("User Account", {"account": account}, pluck="user")
@@ -101,6 +109,13 @@ def is_jmap_account_belongs_to_user(
 
     user = user or frappe.session.user
     exists = bool(frappe.db.exists("User Account", {"user": user, "account": account}))
+
+    # //// Neoffice — a local calendar account belongs to its one user (maintenance#1387): Meet attaches its
+    # //// rooms to the events of such a calendar too (suite/meet/api/schedule.py).
+    from suite.calendar.local import is_local_account
+
+    if not exists and is_local_account(account):
+        exists = frappe.db.get_value("Local Calendar Account", account, "user") == user
 
     if raise_exception and not exists:
         frappe.throw(

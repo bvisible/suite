@@ -460,7 +460,9 @@ const handleUpdateRecurringEvent = (updateInstance: boolean) => {
 
 const handleUpdateEvent = () => {
 	// A draft has sent nothing, so there is no one to notify of a move.
-	if (hasParticipantsOtherThanUser.value && !eventToBeUpdated.isDraft) showNotifyModal.value = true
+	//// Neoffice — nor is there anyone to notify from a calendar kept in Neoffice (maintenance#1387).
+	if (!store.isLocal && hasParticipantsOtherThanUser.value && !eventToBeUpdated.isDraft)
+		showNotifyModal.value = true
 	else submitEvent(false)
 }
 

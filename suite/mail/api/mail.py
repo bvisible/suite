@@ -1,6 +1,7 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
 import hashlib
 import io
 import os
@@ -1124,6 +1125,13 @@ def get_email_suggestions(account: str, text: str, limit: int = 10) -> list[dict
     limit = cint(limit) or 10
     if not text:
         return []
+
+    # //// Neoffice — a local calendar account has neither a mail index nor an address book: its colleagues,
+    # //// the site's desk users, are who it invites (maintenance#1387, suite/calendar/local.py).
+    from suite.calendar.local import is_local_account, suggest_colleagues
+
+    if is_local_account(account):
+        return suggest_colleagues(text, limit)
 
     suggestions = get_email_address_index(account).search_email_addresses(text, limit=limit)
 

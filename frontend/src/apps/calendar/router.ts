@@ -50,7 +50,13 @@ function installCalendarGuard(r: Router) {
 		await store.userResource.promise
 		const user = store.userResource.data
 
-		store.resolveAccount(user?.accounts, to.params.accountId as string | undefined)
+		//// Neoffice — the calendar kept in Neoffice for a desk user without a mailbox (maintenance#1387) arrives
+		//// apart from the mail accounts.
+		store.resolveAccount(
+			user?.accounts,
+			to.params.accountId as string | undefined,
+			user?.local_calendar_account,
+		)
 		const accountId = store.accountId
 
 		// //// Neoffice: a desk user must ALWAYS have a calendar. If they arrive
@@ -80,10 +86,28 @@ function installCalendarGuard(r: Router) {
 				} catch (e) {
 					// fall through to the informational page
 				}
+				//// Neoffice — still no mailbox (none can be made here, or making it failed): the calendar kept in
+				//// Neoffice rather than the dead end (maintenance#1387). A portal user gets none and stays below.
+				try {
+					const local = await frappeRequest({ url: 'suite.calendar.local.ensure_local_calendar_account' })
+					if (local) {
+						store.resolveAccount([], undefined, local)
+						if (store.accountId) {
+							return to.meta.shortcut
+								? resolveShortcut(to.name, to.params, store.accountId)
+								: { name: 'calendar-month', params: { accountId: store.accountId } }
+						}
+					}
+				} catch (e) {
+					// the informational page
+				}
 				return { name: 'calendar-no-account' }
 			}
 			return undefined // already on no-account, stay
 		}
+
+		//// Neoffice — whoever has a calendar does not stay on the no-account page (a bookmark, a reload).
+		if (to.name === 'calendar-no-account') return { name: 'calendar-month', params: { accountId } }
 
 		// Expand shortcut routes to their full account-scoped equivalents. The
 		// query rides along — it carries the open event's deep link (?event=).

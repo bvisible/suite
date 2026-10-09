@@ -41,8 +41,8 @@
 					</div>
 				</div>
 
-				<!-- Sharing -->
-				<div>
+				<!-- Sharing. //// Neoffice — needs a mail account: hidden on a calendar kept in Neoffice (maintenance#1387). -->
+				<div v-if="!isLocal">
 					<label class="text-ink-gray-5 mb-2 block text-xs">{{ __('Sharing') }}</label>
 					<div
 						v-if="!colleagues.length"
@@ -72,8 +72,8 @@
 					</div>
 				</div>
 
-				<!-- CalDAV -->
-				<div>
+				<!-- CalDAV. //// Neoffice — the mail server serves it: hidden on a calendar kept in Neoffice (maintenance#1387). -->
+				<div v-if="!isLocal">
 					<label class="text-ink-gray-5 mb-2 block text-xs">{{ __('CalDAV link') }}</label>
 					<div class="flex items-center gap-2">
 						<input
@@ -147,8 +147,12 @@ import { computed, reactive, ref, watch } from 'vue'
 import { Avatar, Button, Dialog, FormControl, createResource } from 'frappe-ui'
 
 import { raiseToast } from '@/apps/calendar/utils'
+// //// Neoffice — whether the open calendar is kept in Neoffice, without a mailbox (maintenance#1387).
+import { userStore } from '@/apps/calendar/stores/user'
 
 const { account, calendar } = defineProps<{ account: string; calendar: any }>()
+// //// Neoffice — on a calendar kept in Neoffice, sharing and CalDAV stay hidden (maintenance#1387).
+const isLocal = computed(() => userStore().isLocal)
 const emit = defineEmits(['reload'])
 const show = defineModel<boolean>({ default: false })
 
@@ -213,9 +217,10 @@ watch(
 	async (open) => {
 		if (!open) return
 		copied.value = false
-		await principals.fetch()
+		// //// Neoffice — neither sharing nor CalDAV on a calendar kept in Neoffice: nothing to ask the server.
+		if (!isLocal.value) await principals.fetch()
 		detail.fetch()
-		caldav.fetch()
+		if (!isLocal.value) caldav.fetch()
 	},
 	{ immediate: true },
 )

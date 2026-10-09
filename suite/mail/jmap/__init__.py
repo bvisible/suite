@@ -1,6 +1,7 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
 from typing import Any
 
 import frappe
@@ -140,6 +141,13 @@ def get_calendar_event_service(
 ) -> CalendarEventService:
     """Returns an instance of CalendarEventService for handling calendar event-related operations for the specified account."""
 
+    # //// Neoffice — a desk user without a mailbox keeps a calendar in Frappe (maintenance#1387): the same
+    # //// service, on a connection that answers its JMAP calls locally (suite/calendar/local.py).
+    from suite.calendar.local import get_local_connection
+
+    if local := get_local_connection(account, ignore_permissions):
+        return CalendarEventService(account, local)
+
     user = get_user_for_jmap_account(account, raise_exception=True)
     connection = get_jmap_connection(user, ignore_permissions=ignore_permissions)
     return CalendarEventService(account, connection)
@@ -150,6 +158,13 @@ def get_calendar_service(
     ignore_permissions: bool = False,
 ) -> CalendarService:
     """Returns an instance of CalendarService for handling calendar-related operations for the specified account."""
+
+    # //// Neoffice — a desk user without a mailbox keeps a calendar in Frappe (maintenance#1387): the same
+    # //// service, on a connection that answers its JMAP calls locally (suite/calendar/local.py).
+    from suite.calendar.local import get_local_connection
+
+    if local := get_local_connection(account, ignore_permissions):
+        return CalendarService(account, local)
 
     user = get_user_for_jmap_account(account, raise_exception=True)
     connection = get_jmap_connection(user, ignore_permissions=ignore_permissions)
@@ -217,6 +232,13 @@ def get_participant_identity_service(
 ) -> ParticipantIdentityService:
     """Returns an instance of ParticipantIdentityService for handling participant identity-related operations for the specified account."""
 
+    # //// Neoffice — a desk user without a mailbox keeps a calendar in Frappe (maintenance#1387): the same
+    # //// service, on a connection that answers its JMAP calls locally (suite/calendar/local.py).
+    from suite.calendar.local import get_local_connection
+
+    if local := get_local_connection(account, ignore_permissions):
+        return ParticipantIdentityService(account, local)
+
     user = get_user_for_jmap_account(account, raise_exception=True)
     connection = get_jmap_connection(user, ignore_permissions=ignore_permissions)
     return ParticipantIdentityService(account, connection)
@@ -227,6 +249,13 @@ def get_principal_service(
     ignore_permissions: bool = False,
 ) -> PrincipalService:
     """Returns an instance of PrincipalService for handling principal-related operations for the specified account."""
+
+    # //// Neoffice — a local calendar account has no principals to share with: say so, as a mail server
+    # //// without the capability does (maintenance#1387, suite/calendar/local.py).
+    from suite.calendar.local import is_local_account
+
+    if is_local_account(account):
+        raise NotImplementedError("Sharing needs a mail account.")
 
     user = get_user_for_jmap_account(account, raise_exception=True)
     connection = get_jmap_connection(user, ignore_permissions=ignore_permissions)

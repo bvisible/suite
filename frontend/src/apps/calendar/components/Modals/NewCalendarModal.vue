@@ -15,8 +15,9 @@
 	<Dialog v-model="show" :title="__('Add a calendar')">
 		<template #default>
 			<div class="flex flex-col gap-4">
-				<!-- Mode selector -->
-				<div class="bg-surface-gray-2 flex rounded-lg p-0.5 text-sm">
+				<!-- Mode selector. //// Neoffice — an external calendar is aggregated by the mail server: a calendar
+				     kept in Neoffice only makes new ones (maintenance#1387). -->
+				<div v-if="!isLocal" class="bg-surface-gray-2 flex rounded-lg p-0.5 text-sm">
 					<button
 						type="button"
 						class="flex-1 rounded-md py-1.5 transition"
@@ -111,6 +112,9 @@ import { computed, nextTick, ref, watch } from 'vue'
 import { Button, Dialog, FormControl, createResource } from 'frappe-ui'
 
 import { raiseToast } from '@/apps/calendar/utils'
+// //// Neoffice — whether the open calendar is kept in Neoffice, without a mailbox (maintenance#1387).
+import { userStore } from '@/apps/calendar/stores/user'
+const isLocal = computed(() => userStore().isLocal)
 
 const { account } = defineProps<{ account: string }>()
 const emit = defineEmits(['created'])

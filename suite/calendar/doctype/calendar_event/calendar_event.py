@@ -5,6 +5,7 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
 import json
 from datetime import datetime
 from typing import Literal
@@ -24,6 +25,9 @@ from suite.calendar.doctype.calendar_event.invitations import (
     custom_event_invites_enabled,
 )
 from suite.calendar.doctype.calendar_event.mailing_lists import expand_mailing_list_participants
+
+# //// Neoffice — the local calendar of a desk user without a mailbox (maintenance#1387).
+from suite.calendar.local import is_local_account
 from suite.mail.doctype.user_account.user_account import get_user_for_jmap_account
 from suite.mail.jmap import get_calendar_event_service, get_jmap_connection
 from suite.mail.jmap.services.calendars.calendar_event import CalendarEventService
@@ -372,6 +376,9 @@ def add_calendar_event(
     send_scheduling_messages: bool = False,
 ) -> str:
     """Adds a calendar event for the given account and returns the event ID."""
+    # //// Neoffice — a local calendar sends no invitation: e-mailing participants needs a mail account
+    # //// (maintenance#1387, suite/calendar/local.py).
+    send_scheduling_messages = send_scheduling_messages and not is_local_account(account)
 
     uid = uuid7().hex
     creation_id = str(uuid7())
@@ -495,6 +502,9 @@ def update_calendar_event(
     send_scheduling_messages: bool = False,
 ) -> None:
     """Updates a calendar event for the given account and event ID."""
+    # //// Neoffice — a local calendar sends no invitation: e-mailing participants needs a mail account
+    # //// (maintenance#1387, suite/calendar/local.py).
+    send_scheduling_messages = send_scheduling_messages and not is_local_account(account)
 
     participants = expand_mailing_list_participants(participants)
     event = {
@@ -556,6 +566,9 @@ def update_calendar_event_instance(
     send_scheduling_messages: bool = False,
 ) -> None:
     """Updates a specific instance of a recurring calendar event based on its master ID and recurrence ID."""
+    # //// Neoffice — a local calendar sends no invitation: e-mailing participants needs a mail account
+    # //// (maintenance#1387, suite/calendar/local.py).
+    send_scheduling_messages = send_scheduling_messages and not is_local_account(account)
 
     if "participants" in patch:
         patch = patch | {"participants": expand_mailing_list_participants(patch["participants"])}
@@ -594,6 +607,9 @@ def update_calendar_event_instance(
 @dynamic_rate_limit()
 def delete_calendar_events(account: str, ids: list[str], send_scheduling_messages: bool = False) -> None:
     """Deletes a calendar event for the given account by its ID."""
+    # //// Neoffice — a local calendar sends no invitation: e-mailing participants needs a mail account
+    # //// (maintenance#1387, suite/calendar/local.py).
+    send_scheduling_messages = send_scheduling_messages and not is_local_account(account)
 
     service = get_calendar_event_service(account)
 
@@ -626,6 +642,9 @@ def delete_calendar_event_instance(
     account: str, master_id: str, recurrence_id: str, send_scheduling_messages: bool = False
 ) -> None:
     """Deletes a specific instance of a recurring calendar event based on its master ID and recurrence ID."""
+    # //// Neoffice — a local calendar sends no invitation: e-mailing participants needs a mail account
+    # //// (maintenance#1387, suite/calendar/local.py).
+    send_scheduling_messages = send_scheduling_messages and not is_local_account(account)
 
     service = get_calendar_event_service(account)
 
