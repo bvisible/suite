@@ -815,7 +815,18 @@ def send_event_alert_notification(user: str, alert: dict, ctx: dict | None = Non
         return
 
     try:
-        service = CalendarEventService(account, get_jmap_connection(user))
+        # //// Neoffice — the alerts of a calendar kept in Frappe come through here too (deliver_due_alerts,
+        # //// suite/calendar/local.py, maintenance#1387): the event is read there, from an account the user owns.
+        if is_local_account(account):
+            if frappe.db.get_value("Local Calendar Account", account, "user") != user:
+                logger.warning("calendar-alert-account-not-owned")
+                return
+            from suite.calendar.local import LocalJMAPConnection
+
+            connection = LocalJMAPConnection(account, user)
+        else:
+            connection = get_jmap_connection(user)
+        service = CalendarEventService(account, connection)
 
         events = service.get([event_id])
         if not events:

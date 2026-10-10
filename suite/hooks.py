@@ -365,7 +365,12 @@ scheduler_events = {
         "suite.mail.doctype.contacts_exchange.contacts_exchange.retry_stuck_contacts_exchanges",
     ],
     "cron": {
-        "* * * * *": ["suite.meet.api.recording.reconcile_pending_recordings"],
+        "* * * * *": [
+            "suite.meet.api.recording.reconcile_pending_recordings",
+            # //// Neoffice — the alerts of the calendars kept in Frappe, which no mail server pushes
+            # //// (maintenance#1387, suite/calendar/local.py).
+            "suite.calendar.local.deliver_due_alerts",
+        ],
         "*/5 * * * *": [
             # mail
             "suite.mail.doctype.server_job.server_job.retry_failed_jobs",

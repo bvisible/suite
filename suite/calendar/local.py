@@ -899,6 +899,127 @@ def event_set(connection: LocalJMAPConnection, arguments: dict) -> dict:
     return result
 
 
+# --- alerts -----------------------------------------------------------------------------------------------------
+
+# The mail server pushes an alert when it falls due (a CalendarAlert) and send_event_alert_notification shows it: the
+# socket of an open tab, then the device. A calendar kept here has no server to push it: every minute,
+# deliver_due_alerts (hooks.py) finds the alerts that fell due since the run before and hands each one, once, to that
+# same sender.
+ALERT_HORIZON = timedelta(days=8)  # how long before its event an alert may ring and still be found
+ALERT_GRACE = timedelta(minutes=2)  # a run that comes late still delivers what fell due before it
+
+
+def alerts_of(event: dict, calendars: dict[str, dict]) -> dict:
+    """The event's own alerts, or its calendar's defaults when it uses them."""
+
+    if not event.get("useDefaultAlerts"):
+        return event.get("alerts") or {}
+    key = "defaultAlertsWithoutTime" if event.get("showWithoutTime") else "defaultAlertsWithTime"
+    for calendar_id in event.get("calendarIds") or {}:
+        if defaults := (calendars.get(calendar_id) or {}).get(key):
+            return defaults
+    return {}
+
+
+def may_ring(event: dict) -> bool:
+    """Whether the event, or one of its occurrences changed alone, has alerts at all."""
+
+    changed = [patch or {} for patch in (event.get("recurrenceOverrides") or {}).values()]
+    return any(part.get("alerts") or part.get("useDefaultAlerts") for part in [event, *changed])
+
+
+def due_alerts(
+    event: dict, calendars: dict[str, dict], after: datetime, until: datetime, fallback_tz: str | None
+) -> list[tuple[str, str | None, datetime]]:
+    """(alert uid, recurrence id or None, when it rings) of each alert that rings in (after, until]: every
+    occurrence by its own alerts, those of an occurrence changed alone included."""
+
+    series = bool(event.get("recurrenceRule") or event.get("recurrenceOverrides"))
+    due: dict[tuple[str, str | None, datetime], None] = {}  # in order, each once
+    for instance in occurrences(event, after - ALERT_HORIZON, until + ALERT_HORIZON, fallback_tz):
+        begins = instance["_start_utc"]
+        for uid, alert in alerts_of(instance, calendars).items():
+            trigger = (alert or {}).get("trigger") or {}
+            if trigger.get("@type") == "AbsoluteTrigger":
+                # One moment for the whole series: it rings once.
+                rings = parse_utc(trigger["when"]) if trigger.get("when") else None
+                recurrence_id = None
+            else:
+                from_end = str(trigger.get("relativeTo") or "start").lower() == "end"
+                base = begins + parse_duration(instance.get("duration")) if from_end else begins
+                rings = base + parse_duration(trigger.get("offset"))
+                recurrence_id = instance["recurrenceId"] if series else None
+            if rings and after < rings <= until:
+                due[(uid, recurrence_id, rings)] = None
+    return list(due)
+
+
+def deliver_due_alerts(now: datetime | None = None) -> int:
+    """Every minute: the alerts of the calendars kept here that rang since the run before, each handed once to the
+    sender of the mail server's own alerts. An event that cannot be read is logged and left out, the others still
+    ring. Returns how many went out."""
+
+    from suite.calendar.doctype.calendar_event import calendar_event
+
+    now = now or datetime.now(UTC)
+    after = now - ALERT_GRACE
+    rows = frappe.get_all(
+        "Local Calendar Event",
+        filters=[["range_start", "<=", _naive_utc(now + ALERT_HORIZON)]],
+        or_filters=[["range_end", "is", "not set"], ["range_end", ">=", _naive_utc(now - ALERT_HORIZON)]],
+        fields=["name", "account", "data"],
+    )
+    accounts: dict[str, tuple[str | None, str, dict[str, dict]]] = {}
+    sent = 0
+    for row in rows:
+        try:
+            event = {**_loads(row.data), "id": row.name}
+            if not may_ring(event):
+                continue
+            if row.account not in accounts:
+                accounts[row.account] = _alert_context(row.account)
+            owner, zone, calendars = accounts[row.account]
+            due = due_alerts(event, calendars, after, now, zone) if owner else []
+        except Exception:
+            _log_unreadable_event(row.name)
+            continue
+        for uid, recurrence_id, rings in due:
+            # The moment is part of what rang: an event put off after its reminder rings again at its new time.
+            key = f"local-calendar-alert|{row.name}|{recurrence_id or ''}|{uid}|{rings:%Y%m%dT%H%M%S}"
+            if frappe.cache.get_value(key):
+                continue
+            frappe.cache.set_value(key, 1, expires_in_sec=3 * 24 * 60 * 60)
+            calendar_event.send_event_alert_notification(
+                owner, {"accountId": row.account, "calendarEventId": row.name, "recurrenceId": recurrence_id}
+            )
+            sent += 1
+    return sent
+
+
+def _alert_context(account: str) -> tuple[str | None, str, dict[str, dict]]:
+    """The account's user, the zone their events are read in, and their calendars (whose default alerts apply)."""
+
+    owner = frappe.db.get_value("Local Calendar Account", account, "user")
+    zone = (owner and frappe.db.get_value("User", owner, "time_zone")) or get_system_timezone()
+    calendars = {
+        calendar.name: _loads(calendar.data)
+        for calendar in frappe.get_all(
+            "Local Calendar", filters={"account": account}, fields=["name", "data"]
+        )
+    }
+    return owner, zone, calendars
+
+
+def _log_unreadable_event(name: str) -> None:
+    """Once a day per event: a broken one would otherwise write an error every minute."""
+
+    flag = f"local-calendar-alert-error|{name}"
+    if frappe.cache.get_value(flag):
+        return
+    frappe.cache.set_value(flag, 1, expires_in_sec=24 * 60 * 60)
+    frappe.log_error("Local calendar alert skipped an unreadable event", f"{name}\n{frappe.get_traceback()}")
+
+
 HANDLERS = {
     "Calendar/get": calendar_get,
     "Calendar/set": calendar_set,

@@ -315,3 +315,173 @@ class TestLocalCalendar(IntegrationTestCase):
         # A desk user, found by a piece of his address (the other test user loses his desk role in another test).
         found = get_email_suggestions(self.account, "local-calendar-desk")
         self.assertEqual([suggestion["email"] for suggestion in found], [DESK])
+
+    def test_an_alert_falls_due_and_rings_once(self):
+        from datetime import timedelta
+
+        from suite.calendar.doctype.calendar_event import calendar_event
+        from suite.calendar.local import deliver_due_alerts, parse_utc
+
+        id = calendar_event.add_calendar_event(
+            self.account,
+            title="Rendez-vous chez le notaire",
+            start="2026-11-03T14:00:00",  # 13:00 UTC in Zurich
+            duration="PT1H",
+            time_zone=ZURICH,
+            alerts=[
+                {"type": "OffsetTrigger", "relative_to": "Start", "offset": "-PT15M", "action": "Display"}
+            ],
+        )
+        due = parse_utc("2026-11-03T12:45:00Z")
+        with mock.patch.object(calendar_event, "send_event_alert_notification") as sent:
+            deliver_due_alerts(now=due - timedelta(minutes=5))
+            sent.assert_not_called()
+            deliver_due_alerts(now=due + timedelta(seconds=30))
+            deliver_due_alerts(now=due + timedelta(seconds=90))  # the next minute: it does not ring twice
+        sent.assert_called_once_with(
+            DESK, {"accountId": self.account, "calendarEventId": id, "recurrenceId": None}
+        )
+
+    def test_a_meeting_put_off_after_its_reminder_rings_again(self):
+        from suite.calendar.doctype.calendar_event import calendar_event
+        from suite.calendar.local import deliver_due_alerts, parse_utc
+
+        # The screen sends an alert back with its uid when the event is edited or dragged.
+        alerts = [
+            {
+                "uid": "reminder",
+                "type": "OffsetTrigger",
+                "relative_to": "Start",
+                "offset": "-PT15M",
+                "action": "Display",
+            }
+        ]
+        fields = {"title": "Réunion de chantier", "duration": "PT1H", "time_zone": ZURICH, "alerts": alerts}
+        id = calendar_event.add_calendar_event(self.account, start="2026-11-06T10:00:00", **fields)
+        with mock.patch.object(calendar_event, "send_event_alert_notification") as sent:
+            deliver_due_alerts(now=parse_utc("2026-11-06T08:45:30Z"))
+            calendar_event.update_calendar_event(self.account, id, start="2026-11-06T15:00:00", **fields)
+            deliver_due_alerts(now=parse_utc("2026-11-06T13:45:30Z"))
+        self.assertEqual(sent.call_count, 2)
+
+    def test_an_event_on_its_calendars_default_alerts_rings_too(self):
+        from datetime import timedelta
+
+        from suite.calendar.api import get_calendars
+        from suite.calendar.doctype.calendar_event import calendar_event
+        from suite.calendar.local import deliver_due_alerts, parse_utc
+
+        get_calendars(self.account)  # seeds the calendars' default alerts: 10 minutes before
+        id = calendar_event.add_calendar_event(
+            self.account,
+            title="Appel fournisseur",
+            start="2026-11-04T10:00:00",
+            duration="PT30M",
+            time_zone=ZURICH,
+            use_default_alerts=True,
+        )
+        with mock.patch.object(calendar_event, "send_event_alert_notification") as sent:
+            deliver_due_alerts(now=parse_utc("2026-11-04T08:50:00Z") + timedelta(seconds=20))
+        sent.assert_called_once_with(
+            DESK, {"accountId": self.account, "calendarEventId": id, "recurrenceId": None}
+        )
+
+    def test_the_alert_shows_the_local_event_to_its_owner(self):
+        from suite.calendar.doctype.calendar_event import calendar_event
+
+        id = calendar_event.add_calendar_event(
+            self.account, title="Inventaire", start="2026-11-05T08:00:00", duration="PT2H", time_zone=ZURICH
+        )
+        alert = {"accountId": self.account, "calendarEventId": id, "recurrenceId": None}
+        with mock.patch.object(frappe, "publish_realtime") as published:
+            calendar_event.send_event_alert_notification(DESK, alert)
+            calendar_event.send_event_alert_notification(OTHER, alert)  # not his account: nothing shown
+        # Only the alerts: an error written meanwhile publishes its own list update.
+        shown = [call for call in published.call_args_list if call.args[:1] == ("calendar_alert",)]
+        self.assertEqual(len(shown), 1)
+        self.assertEqual(shown[0].args[1]["title"], "Inventaire")
+        self.assertEqual(shown[0].kwargs["user"], DESK)
+
+    def test_an_occurrence_changed_alone_rings_by_its_own_reminder(self):
+        from suite.calendar.doctype.calendar_event import calendar_event
+        from suite.calendar.local import deliver_due_alerts, parse_utc
+
+        reminder = {"type": "OffsetTrigger", "relative_to": "Start", "offset": "-PT15M", "action": "Display"}
+        master = calendar_event.add_calendar_event(
+            self.account,
+            title="Point d'équipe",
+            start="2026-11-09T09:00:00",  # Mondays at 09:00 in Zurich, 08:00 UTC
+            duration="PT30M",
+            time_zone=ZURICH,
+            recurrence_rule={"@type": "RecurrenceRule", "frequency": "weekly", "count": 3},
+            alerts=[reminder],
+        )
+        # The second Monday is reminded an hour ahead instead.
+        calendar_event.update_calendar_event_instance(
+            self.account, master, "2026-11-16T09:00:00", {"alerts": [reminder | {"offset": "-PT1H"}]}
+        )
+        rang = []
+        with mock.patch.object(calendar_event, "send_event_alert_notification") as sent:
+            for moment in (
+                "2026-11-09T07:45:30Z",
+                "2026-11-16T07:00:30Z",
+                "2026-11-16T07:45:30Z",
+                "2026-11-23T07:45:30Z",
+            ):
+                sent.reset_mock()
+                deliver_due_alerts(now=parse_utc(moment))
+                rang += [(moment, call.args[1]["recurrenceId"]) for call in sent.call_args_list]
+        self.assertEqual(
+            rang,
+            [
+                ("2026-11-09T07:45:30Z", "2026-11-09T09:00:00"),
+                ("2026-11-16T07:00:30Z", "2026-11-16T09:00:00"),
+                ("2026-11-23T07:45:30Z", "2026-11-23T09:00:00"),
+            ],
+        )
+
+    def test_one_broken_event_does_not_keep_the_others_from_ringing(self):
+        from suite.calendar.doctype.calendar_event import calendar_event
+        from suite.calendar.local import deliver_due_alerts, parse_utc
+
+        def add(title):
+            reminder = {
+                "type": "OffsetTrigger",
+                "relative_to": "Start",
+                "offset": "-PT15M",
+                "action": "Display",
+            }
+            return calendar_event.add_calendar_event(
+                self.account,
+                title=title,
+                start="2026-11-10T10:00:00",
+                duration="PT1H",
+                time_zone=ZURICH,
+                alerts=[reminder],
+            )
+
+        def break_(id):
+            data = frappe.parse_json(frappe.db.get_value("Local Calendar Event", id, "data"))
+            for alert in data["alerts"].values():
+                alert["trigger"]["offset"] = "a quarter of an hour"
+            frappe.db.set_value("Local Calendar Event", id, "data", frappe.as_json(data))
+
+        # Read newest first: a broken event on each side of the sound one, whatever the order.
+        broken = [add("Abîmé avant")]
+        sound = add("Intact")
+        broken.append(add("Abîmé après"))
+        for id in broken:
+            break_(id)
+            self.addCleanup(frappe.db.delete, "Local Calendar Event", {"name": id})
+
+        def logged():
+            return frappe.db.count(
+                "Error Log", {"method": "Local calendar alert skipped an unreadable event"}
+            )
+
+        before = logged()
+        with mock.patch.object(calendar_event, "send_event_alert_notification") as sent:
+            deliver_due_alerts(now=parse_utc("2026-11-10T08:45:30Z"))
+            deliver_due_alerts(now=parse_utc("2026-11-10T08:46:30Z"))  # the next minute
+        self.assertEqual([call.args[1]["calendarEventId"] for call in sent.call_args_list], [sound])
+        self.assertEqual(logged() - before, 2)  # each broken event once, not once a minute
