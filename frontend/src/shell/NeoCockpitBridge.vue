@@ -162,3 +162,15 @@ onUnmounted(() => {
   }
 })
 </script>
+
+<style>
+/* //// Neoffice — on a phone the cockpit is a full-width bar above the page, not a rail beside it (maintenance#1387).
+   //// Every page mounts it beside its content, in a flex row (the calendar, its no-account page, Meet's home, the
+   //// /suite launcher): below md the bar took the row and left the page 0 to 32 px. The row the cockpit is mounted
+   //// in becomes a column there, for the pages of today and those to come. */
+@media (max-width: 767.98px) {
+  .flex:has(> .neocockpit-host) {
+    flex-direction: column;
+  }
+}
+</style>
