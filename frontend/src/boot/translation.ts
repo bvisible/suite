@@ -17,9 +17,17 @@ import type { App } from 'vue'
  * Until then `translate()` is an identity function, so untranslated UI still
  * renders the source string.
  */
-export function translate(message: string, replace?: Array<string | number>): string {
+//// Neoffice — the context, as frappe's own __() reads it: the catalogue keys it "msgid:context", and its
+//// translation comes first. Without it every __(text, replace, context) took the plain one: the verb "Open"
+//// (Action) read "Ouvert", the status (maintenance#1387).
+export function translate(
+  message: string,
+  replace?: Array<string | number> | null,
+  context?: string | null,
+): string {
   const messages = window.translatedMessages || {}
-  let translated = messages[message] || message
+  //// Neoffice — the context's translation first, see above.
+  let translated = (context && messages[`${message}:${context}`]) || messages[message] || message
 
   const hasPlaceholders = /{\d+}/.test(translated) && Array.isArray(replace)
   if (!hasPlaceholders) return translated

@@ -25,11 +25,13 @@ declare global {
     /** Frappe translation map (message -> translated); populated per-app. */
     translatedMessages?: Record<string, string>
     /** Global translate helper installed by the suite translation plugin. */
-    __?: (message: string, replace?: Array<string | number>) => string
+    //// Neoffice — and its context, as frappe's __() takes it (boot/translation.ts, maintenance#1387).
+    __?: (message: string, replace?: Array<string | number> | null, context?: string | null) => string
   }
 
   /** Bare `__('text')` available in templates via globalProperties. */
-  const __: (message: string, replace?: Array<string | number>) => string
+  //// Neoffice — and its context, as frappe's __() takes it (boot/translation.ts, maintenance#1387).
+  const __: (message: string, replace?: Array<string | number> | null, context?: string | null) => string
 
   /** Injected by Vite from sites/common_site_config.json. */
   const __SITE_NAME__: string
