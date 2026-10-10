@@ -346,6 +346,46 @@ class TestLocalCalendar(IntegrationTestCase):
             DESK, {"accountId": self.account, "calendarEventId": id, "recurrenceId": None}
         )
 
+    def test_a_late_run_still_rings_what_fell_due_since_the_last_one(self):
+        # The every-minute job waits in the queue behind the others on a busy site: on the hub (10.10) one run was
+        # skipped and the next came two minutes later. What fell due since the last run still rings.
+        from suite.calendar.doctype.calendar_event import calendar_event
+        from suite.calendar.local import deliver_due_alerts, parse_utc
+
+        reminder = {"type": "OffsetTrigger", "relative_to": "Start", "offset": "-PT15M", "action": "Display"}
+        id = calendar_event.add_calendar_event(
+            self.account,
+            title="Livraison",
+            start="2026-11-12T10:00:00",  # 09:00 UTC; the reminder at 08:45 UTC
+            duration="PT1H",
+            time_zone=ZURICH,
+            alerts=[reminder],
+        )
+        with mock.patch.object(calendar_event, "send_event_alert_notification") as sent:
+            deliver_due_alerts(now=parse_utc("2026-11-12T08:44:00Z"))  # the last run before it fell due
+            deliver_due_alerts(now=parse_utc("2026-11-12T08:52:00Z"))  # eight minutes later
+        sent.assert_called_once_with(
+            DESK, {"accountId": self.account, "calendarEventId": id, "recurrenceId": None}
+        )
+
+    def test_a_run_after_a_long_stop_does_not_ring_stale_reminders(self):
+        from suite.calendar.doctype.calendar_event import calendar_event
+        from suite.calendar.local import deliver_due_alerts, parse_utc
+
+        reminder = {"type": "OffsetTrigger", "relative_to": "Start", "offset": "-PT15M", "action": "Display"}
+        calendar_event.add_calendar_event(
+            self.account,
+            title="Inventaire du soir",
+            start="2026-11-13T10:00:00",  # the reminder at 08:45 UTC
+            duration="PT1H",
+            time_zone=ZURICH,
+            alerts=[reminder],
+        )
+        with mock.patch.object(calendar_event, "send_event_alert_notification") as sent:
+            deliver_due_alerts(now=parse_utc("2026-11-13T08:00:00Z"))  # the last run, then the site stops
+            deliver_due_alerts(now=parse_utc("2026-11-13T09:30:00Z"))  # 45 minutes too late to help
+        sent.assert_not_called()
+
     def test_a_meeting_put_off_after_its_reminder_rings_again(self):
         from suite.calendar.doctype.calendar_event import calendar_event
         from suite.calendar.local import deliver_due_alerts, parse_utc

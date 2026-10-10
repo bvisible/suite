@@ -919,7 +919,13 @@ def event_set(connection: LocalJMAPConnection, arguments: dict) -> dict:
 # deliver_due_alerts (hooks.py) finds the alerts that fell due since the run before and hands each one, once, to that
 # same sender.
 ALERT_HORIZON = timedelta(days=8)  # how long before its event an alert may ring and still be found
-ALERT_GRACE = timedelta(minutes=2)  # a run that comes late still delivers what fell due before it
+ALERT_GRACE = timedelta(minutes=2)  # how far back a run looks when no run went before it
+# A run carries on from where the last one stopped: the job waits in the queue behind the others on a busy site (on
+# the hub, 10.10, a run was skipped and the next came two minutes later). The mark is kept in the cache, not as a
+# global default (setting one clears the whole cache, every minute); a clear-cache loses it, and the next run then
+# looks back ALERT_GRACE, as the first one does. However long since the last run, an older reminder no longer rings.
+ALERT_CATCH_UP = timedelta(minutes=30)
+ALERT_MARK = "local-calendar-alerts-until"
 
 
 def alerts_of(event: dict, calendars: dict[str, dict]) -> dict:
@@ -975,7 +981,11 @@ def deliver_due_alerts(now: datetime | None = None) -> int:
     from suite.calendar.doctype.calendar_event import calendar_event
 
     now = now or datetime.now(UTC)
-    after = now - ALERT_GRACE
+    mark = frappe.cache.get_value(ALERT_MARK)
+    after = parse_utc(mark) if mark else now - ALERT_GRACE
+    if after >= now:  # a clock that went back
+        after = now - ALERT_GRACE
+    after = max(after, now - ALERT_CATCH_UP)
     rows = frappe.get_all(
         "Local Calendar Event",
         filters=[["range_start", "<=", _naive_utc(now + ALERT_HORIZON)]],
@@ -1006,6 +1016,7 @@ def deliver_due_alerts(now: datetime | None = None) -> int:
                 owner, {"accountId": row.account, "calendarEventId": row.name, "recurrenceId": recurrence_id}
             )
             sent += 1
+    frappe.cache.set_value(ALERT_MARK, now.isoformat())
     return sent
 
 
