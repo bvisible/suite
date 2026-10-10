@@ -1,0 +1,1 @@
+function e(e,t,n){let r=window.translatedMessages||{},i=n&&r[`${e}:${n}`]||r[e]||e;return/{\d+}/.test(i)&&Array.isArray(t)?i.replace(/{(\d+)}/g,(e,n)=>{let r=t[Number(n)];return r===void 0?e:String(r)}):i}var t={install(t){t.config.globalProperties.__=e,window.__=e}};export{t as n,e as t};
