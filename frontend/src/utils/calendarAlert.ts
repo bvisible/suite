@@ -17,7 +17,9 @@ export const showCalendarAlert = (alert: { title: string; body: string; path: st
 		icon: () => h('span', { class: 'lucide-bell size-4' }),
 		description: alert.body,
 		duration: 15_000,
-		action: { label: __('Open'), onClick: () => router.push(alert.path) },
+		//// Neoffice — the verb's own translation: "Open" alone is the status "Ouvert" in the French catalogue,
+		//// the button read "Ouvert" (maintenance#1387). The Action context is "Ouvrir", as Drive's button asks.
+		action: { label: __('Open', null, 'Action'), onClick: () => router.push(alert.path) },
 	})
 	if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
 		const notification = new Notification(alert.title, {

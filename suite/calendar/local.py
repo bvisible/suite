@@ -70,6 +70,11 @@ def get_local_account(user: str | None = None, create: bool = True) -> str | Non
     if account or not create:
         return account
 
+    # Two requests of a first visit can both get here. The user's row is the lock: the second one waits for the
+    # first to commit, then a locking read, which sees committed rows, finds the account the first one made.
+    frappe.db.get_value("User", user, "name", for_update=True)
+    if account := frappe.db.get_value("Local Calendar Account", {"user": user}, for_update=True):
+        return account
     doc = frappe.get_doc({"doctype": "Local Calendar Account", "user": user})
     doc.insert(ignore_permissions=True)
     return doc.name
@@ -501,16 +506,24 @@ class LocalJMAPConnection:
 
     # calendars
 
-    def calendar_rows(self) -> list:
-        return frappe.get_all(
+    def calendar_rows(self, locking: bool = False) -> list:
+        return frappe.db.get_values(
             "Local Calendar",
-            filters={"account": self.account},
-            fields=["name", "data"],
+            {"account": self.account},
+            ["name", "data"],
+            as_dict=True,
             order_by="creation asc",
+            for_update=locking,
         )
 
     def calendars(self) -> list[dict]:
         rows = self.calendar_rows()
+        if not rows:
+            # The screen asks for the calendars from several places at once, so two requests of a first visit can
+            # both find none (two default calendars on the hub, 10.10). The account's row is the lock: the second
+            # one waits for the first to commit, and its locking read sees the calendar the first one made.
+            frappe.db.get_value("Local Calendar Account", self.account, "name", for_update=True)
+            rows = self.calendar_rows(locking=True)
         if not rows:
             self.insert_calendar(
                 {

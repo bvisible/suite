@@ -12,6 +12,8 @@ from frappe.tests import IntegrationTestCase
 DESK = "local-calendar-desk@example.com"
 OTHER = "local-calendar-other@example.com"
 PORTAL = "local-calendar-portal@example.com"
+FIRST_VISIT = "local-calendar-first-visit@example.com"  # no calendar until a test asks
+TWICE = "local-calendar-twice@example.com"  # no account until a test asks
 ZURICH = "Europe/Zurich"
 
 
@@ -50,6 +52,8 @@ class TestLocalCalendar(IntegrationTestCase):
         _user(DESK, "System User")
         _user(OTHER, "System User")
         _user(PORTAL, "Website User")
+        _user(FIRST_VISIT, "System User")
+        _user(TWICE, "System User")
 
     def setUp(self):
         # The guard's way: where a mailbox could be made but was not, it asks for the local account.
@@ -402,6 +406,26 @@ class TestLocalCalendar(IntegrationTestCase):
         self.assertEqual(shown[0].args[1]["title"], "Inventaire")
         self.assertEqual(shown[0].kwargs["user"], DESK)
 
+    def test_the_alert_speaks_its_users_language(self):
+        # The job that sends an alert runs in the site's default language: on the hub (10.10) the toast told a
+        # French-speaking user "Sat, 10 Oct at 10:00 AM".
+        from suite.calendar.doctype.calendar_event import calendar_event
+
+        frappe.db.set_value("User", DESK, "language", "fr")
+        frappe.cache.hdel("lang", DESK)
+        self.addCleanup(frappe.cache.hdel, "lang", DESK)
+        self.addCleanup(setattr, frappe.local, "lang", frappe.local.lang)
+        frappe.local.lang = "en"  # the job's
+        id = calendar_event.add_calendar_event(
+            self.account, title="Inventaire", start="2026-11-05T08:00:00", duration="PT2H", time_zone=ZURICH
+        )
+        with mock.patch.object(frappe, "publish_realtime") as published:
+            calendar_event.send_event_alert_notification(
+                DESK, {"accountId": self.account, "calendarEventId": id, "recurrenceId": None}
+            )
+        shown = [call.args[1] for call in published.call_args_list if call.args[:1] == ("calendar_alert",)]
+        self.assertEqual(shown[0]["body"], "jeu. 5 nov. à 08:00")
+
     def test_an_occurrence_changed_alone_rings_by_its_own_reminder(self):
         from suite.calendar.doctype.calendar_event import calendar_event
         from suite.calendar.local import deliver_due_alerts, parse_utc
@@ -485,3 +509,45 @@ class TestLocalCalendar(IntegrationTestCase):
             deliver_due_alerts(now=parse_utc("2026-11-10T08:46:30Z"))  # the next minute
         self.assertEqual([call.args[1]["calendarEventId"] for call in sent.call_args_list], [sound])
         self.assertEqual(logged() - before, 2)  # each broken event once, not once a minute
+
+    def test_two_requests_of_a_first_visit_make_one_default_calendar(self):
+        # The screen asks for the calendars from several places at once: on the hub (10.10), two requests of the
+        # first visit each found none and each made a default calendar, 16 ms apart.
+        from suite.calendar.local import LocalJMAPConnection, get_local_account
+
+        connection = LocalJMAPConnection(get_local_account(FIRST_VISIT), FIRST_VISIT)
+        connection.calendars()  # the first request makes the default calendar
+        rows = connection.calendar_rows
+        reads = []
+
+        def read_before_the_first_request_committed(*args, **kwargs):
+            reads.append(kwargs)
+            return [] if len(reads) == 1 else rows(*args, **kwargs)
+
+        with mock.patch.object(
+            connection, "calendar_rows", side_effect=read_before_the_first_request_committed
+        ):
+            seen = connection.calendars()  # the second request
+        self.assertEqual(len([calendar for calendar in seen if calendar.get("isDefault")]), 1)
+        self.assertEqual(frappe.db.count("Local Calendar", {"account": connection.account}), 1)
+
+    def test_two_requests_of_a_first_visit_make_one_account(self):
+        from suite.calendar.local import get_local_account
+
+        made = get_local_account(TWICE)
+        get_value = frappe.db.get_value
+
+        def not_committed_yet(doctype, filters=None, *args, **kwargs):
+            # The account the other request made, which a plain read does not see before it commits.
+            if (
+                doctype == "Local Calendar Account"
+                and filters == {"user": TWICE}
+                and not kwargs.get("for_update")
+            ):
+                return None
+            return get_value(doctype, filters, *args, **kwargs)
+
+        with mock.patch.object(frappe.db, "get_value", side_effect=not_committed_yet):
+            again = get_local_account(TWICE)  # the second request
+        self.assertEqual(again, made)
+        self.assertEqual(frappe.db.count("Local Calendar Account", {"user": TWICE}), 1)

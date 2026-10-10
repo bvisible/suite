@@ -796,6 +796,32 @@ def _enqueue_event_notification(account: str, action: str, **kwargs) -> None:
     )
 
 
+# //// Neoffice — added functions (maintenance#1387): the text of an alert in its user's language. The job that sends
+# //// an alert runs in the site's default language, and strftime knows English names only, so a French-speaking
+# //// user read "Sat, 10 Oct at 10:00 AM". Babel writes the day and the time as the user's locale does.
+def _alert_moment(moment: datetime, lang: str | None) -> tuple[str, str]:
+    """The day and the time of an alert as its user's locale writes them ("jeu. 5 nov.", "08:00")."""
+
+    from babel.core import Locale, UnknownLocaleError
+    from babel.dates import format_skeleton, format_time
+
+    try:
+        locale = Locale.parse((lang or "en").replace("-", "_"))
+    except (UnknownLocaleError, ValueError):
+        locale = Locale.parse("en")
+    return format_skeleton("MMMEd", moment, locale=locale), format_time(moment, "short", locale=locale)
+
+
+def _alert_body(start: datetime | None, all_day: bool, lang: str | None) -> str:
+    """The line under an alert's title: when the event starts, in the user's language."""
+
+    if not start:
+        return _("Event starting soon", lang=lang)
+    if all_day:
+        return _("{0} · All day", lang=lang).format(_alert_moment(start, lang)[0])
+    return _("{0} at {1}", lang=lang).format(*_alert_moment(start, lang))
+
+
 def send_event_alert_notification(user: str, alert: dict, ctx: dict | None = None) -> None:
     """Sends a device push notification for a JMAP CalendarAlert triggered by the server.
 
@@ -852,14 +878,11 @@ def send_event_alert_notification(user: str, alert: dict, ctx: dict | None = Non
             except Exception:
                 logger.warning("calendar-alert-timezone-conversion-failed")
 
-        if not start_dt:
-            body = _("Event starting soon")
-        elif all_day:
-            body = _("{0} · All day").format(start_dt.strftime("%a, %d %b"))
-        else:
-            body = _("{0} at {1}").format(
-                start_dt.strftime("%a, %d %b"), start_dt.strftime("%I:%M %p").lstrip("0")
-            )
+        # //// Neoffice — in the user's language (maintenance#1387): see _alert_body.
+        from frappe.translate import get_user_lang
+
+        lang = get_user_lang(user)
+        body = _alert_body(start_dt, all_day, lang)
 
         url = frappe.utils.get_url()
         link = f"{url}/calendar/account/{account}"
@@ -868,7 +891,8 @@ def send_event_alert_notification(user: str, alert: dict, ctx: dict | None = Non
             if recurrence_id:
                 link += f"&recurrence={quote(recurrence_id, safe='')}"
 
-        title = event.get("title") or _("[No title]")
+        # //// Neoffice — the user's language, as above.
+        title = event.get("title") or _("[No title]", lang=lang)
 
         # An open tab hears the alert over the socket whether or not device push is set
         # up; the path is the link without the host, for the app's router.
