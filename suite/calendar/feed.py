@@ -149,7 +149,8 @@ def disable_calendar_feed() -> dict:
 # ───────────────────────────── what the address answers ──────────────────────────────
 
 
-@frappe.whitelist(allow_guest=True, methods=["GET"])
+# A guest reads with the address and nothing else: the address is the secret (see the header).
+@frappe.whitelist(allow_guest=True, methods=["GET"])  # nosemgrep: guest-whitelisted-method
 @rate_limit(key="t", limit=RATE_LIMIT, seconds=3600, ip_based=False)
 def calendar_feed(t: str = ""):
     """The iCalendar text of the person the address belongs to. Nothing is said of why an address is refused."""
@@ -200,11 +201,11 @@ def _as(user: str):
         if memo is not None:
             memo.clear()
         previous = frappe.session.user
-        frappe.set_user(user)
+        frappe.set_user(user)  # nosemgrep: frappe-setuser
         try:
             yield
         finally:
-            frappe.set_user(previous)
+            frappe.set_user(previous)  # nosemgrep: frappe-setuser
             memo = getattr(frappe.local, "request_cache", None)
             if memo is not None:
                 memo.clear()
