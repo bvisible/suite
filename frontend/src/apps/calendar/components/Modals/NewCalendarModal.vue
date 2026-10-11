@@ -15,9 +15,9 @@
 	<Dialog v-model="show" :title="__('Add a calendar')">
 		<template #default>
 			<div class="flex flex-col gap-4">
-				<!-- Mode selector. //// Neoffice — an external calendar is aggregated by the mail server: a calendar
-				     kept in Neoffice only makes new ones (maintenance#1387). -->
-				<div v-if="!isLocal" class="bg-surface-gray-2 flex rounded-lg p-0.5 text-sm">
+				<!-- Mode selector. //// Neoffice — a calendar kept in Neoffice takes an external calendar too: the
+				     subscription is written there, no mail server needed (maintenance#1428). -->
+				<div class="bg-surface-gray-2 flex rounded-lg p-0.5 text-sm">
 					<button
 						type="button"
 						class="flex-1 rounded-md py-1.5 transition"
@@ -87,7 +87,12 @@
 						{{ providerHint }}
 					</p>
 					<p class="text-ink-gray-4 text-xs">
-						{{ __('Read-only: events from this account will appear here, in CalDAV and on mobile.') }}
+						<!-- //// Neoffice — CalDAV is the mail server's: a calendar kept in Neoffice has none (maintenance#1428). -->
+						{{
+							isLocal
+								? __('Read-only: events from this account will appear here.')
+								: __('Read-only: events from this account will appear here, in CalDAV and on mobile.')
+						}}
 					</p>
 				</template>
 			</div>
