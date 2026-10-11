@@ -19,6 +19,8 @@
 			@failed="failed = true"
 		/>
 		<NewCalendarModal v-model="showNew" :account="account" @created="emit('reload')" />
+		<!-- //// Neoffice — the agenda as a private iCal address for Google, Outlook and Apple (maintenance#1428). -->
+		<CalendarFeedModal v-model="showFeed" />
 		<CalendarSettingsModal
 			v-if="editing"
 			v-model="showSettings"
@@ -37,6 +39,8 @@ import calendarLogo from '@/assets/app-logos/calendar.svg'
 import NeoCockpitBridge from '@/shell/NeoCockpitBridge.vue'
 import AppSidebar from '@/apps/calendar/components/AppSidebar.vue'
 import NewCalendarModal from '@/apps/calendar/components/Modals/NewCalendarModal.vue'
+//// Neoffice — share the agenda as a private iCal address (maintenance#1428, suite/calendar/feed.py).
+import CalendarFeedModal from '@/apps/calendar/components/Modals/CalendarFeedModal.vue'
 import CalendarSettingsModal from '@/apps/calendar/components/Modals/CalendarSettingsModal.vue'
 import { userStore } from '@/apps/calendar/stores/user'
 //// Neoffice — the dates of the ERP, a group of read-only calendars of their own (maintenance#1428).
@@ -63,6 +67,8 @@ const router = useRouter()
 const store = userStore()
 const failed = ref(false)
 const showNew = ref(false)
+//// Neoffice — the feed modal (maintenance#1428).
+const showFeed = ref(false)
 const showSettings = ref(false)
 const editing = ref<any>(null)
 
@@ -124,6 +130,8 @@ const contextNav = computed(() => [
 				}
 			}),
 			{ label: __('Add a calendar'), icon: 'lucide-plus', onClick: () => (showNew.value = true) },
+			//// Neoffice — the agenda, read by Google, Outlook and Apple through a private address (maintenance#1428).
+			{ label: __('Share your agenda'), icon: 'lucide-share-2', onClick: () => (showFeed.value = true) },
 		],
 	},
 	//// Neoffice — then the dates of the ERP, when the site has any for this person (maintenance#1428).
