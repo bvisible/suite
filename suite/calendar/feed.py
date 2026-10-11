@@ -158,7 +158,8 @@ def calendar_feed(t: str = ""):
         raise frappe.DoesNotExistError
     frappe.local.response.filename = "neoffice.ics"
     frappe.local.response.filecontent = _ics_of(user)
-    frappe.local.response.content_type = "text/calendar; charset=utf-8"
+    # No charset here: the response adds it to a text type itself (it said it twice).
+    frappe.local.response.content_type = "text/calendar"
     frappe.local.response.display_content_as = "inline"
     frappe.local.response.type = "download"
 

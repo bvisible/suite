@@ -354,7 +354,7 @@ class TestWhatTheAddressAnswers(AddressCase):
 
         response = frappe.local.response
         self.assertEqual(response.type, "download")
-        self.assertEqual(response.content_type, "text/calendar; charset=utf-8")
+        self.assertEqual(response.content_type, "text/calendar", "the charset is added by the response, once")
         self.assertEqual(response.display_content_as, "inline")
         self.assertEqual(response.filecontent, b"BEGIN:VCALENDAR\r\nEND:VCALENDAR\r\n")
         self.assertTrue(response.filename.endswith(".ics"))
