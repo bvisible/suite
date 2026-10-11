@@ -4,6 +4,7 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
 import json
 from typing import Literal
 from uuid import uuid7
@@ -527,6 +528,13 @@ def set_calendar_visibility(account: str, id: str, visible: int = 1) -> None:
     sidebar toggle survives reloads. Upstream only toggled it in local state.
     `visible` is int (0/1) — a `int | bool` Union annotation made Frappe fail to
     coerce the string the HTTP layer sends → ValidationError. ////"""
+
+    # //// Neoffice — a date source of the ERP is not a calendar of the mail server: its switch is kept by the app
+    # //// that provides it (maintenance#1428, suite/calendar/sources.py).
+    from suite.calendar.sources import is_virtual, set_visibility
+
+    if is_virtual(id):
+        return set_visibility(account, id, visible)
 
     service = get_calendar_service(account)
     response = service.set_visibility(id, cint(visible))

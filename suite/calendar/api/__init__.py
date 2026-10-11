@@ -1,11 +1,17 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
 import json
 
 import frappe
 from frappe import _
 
+# //// Neoffice — cint, for `erp_dates` below (maintenance#1428).
+from frappe.utils import cint
+
+# //// Neoffice — the dates of the ERP, shown as read-only calendars (maintenance#1428, suite/calendar/sources.py).
+from suite.calendar import sources as erp_sources
 from suite.calendar.api.rsvp import record_rsvp
 from suite.calendar.doctype.calendar.calendar import ensure_default_alerts, fetch_calendars
 from suite.calendar.doctype.calendar_event.calendar_event import (
@@ -24,7 +30,7 @@ from suite.utils.rate_limiter import dynamic_rate_limit
 # //// Neoffice — widened return. Upstream hands the SPA only {name, _name};
 # //// our sidebar needs colour, visibility and rights, and every calendar rather
 # //// than the first page. Full reason in the docstring below.
-def get_calendars(account: str) -> list[dict]:
+def get_calendars(account: str, erp_dates: int = 0) -> list[dict]:
     """Returns the account's calendars with the display + permission info the UI needs.
 
     #//// Neoffice — upstream returns only {name, _name}, so the SPA sidebar had no
@@ -53,11 +59,19 @@ def get_calendars(account: str) -> list[dict]:
         "may_delete",
     )
     calendars = fetch_calendars(account, limit=100)
-    return [{key: cal.get(key) for key in fields} for cal in calendars]
+    listed = [{key: cal.get(key) for key in fields} for cal in calendars]
+    # //// Neoffice — the dates of the ERP follow the person's own calendars, as calendars of their own. Only the
+    # //// calendar page asks (`erp_dates`): the mail sidebar and Meet read the same calls for today's events.
+    if cint(erp_dates):
+        listed += erp_sources.virtual_calendars(account)
+    return listed
 
 
 @frappe.whitelist()
-def get_calendar_events(account: str, from_date: str, to_date: str, time_zone: str) -> list[dict]:
+# //// Neoffice — `erp_dates`: the dates of the ERP too, for the calendar page only (maintenance#1428).
+def get_calendar_events(
+    account: str, from_date: str, to_date: str, time_zone: str, erp_dates: int = 0
+) -> list[dict]:
     """Fetches calendar events between from_date and to_date for the specified account."""
 
     # The API listens UTC: a naive range value is read as UTC, not system time.
@@ -71,6 +85,11 @@ def get_calendar_events(account: str, from_date: str, to_date: str, time_zone: s
 
     enrich_events_with_master_data(account, events)
     enrich_participants_with_avatars(events)
+
+    # //// Neoffice — then the entries of the ERP's date sources that are switched on (read-only, no master data
+    # //// to look up: they are not in the mail server). Only the calendar page asks, see get_calendars.
+    if cint(erp_dates):
+        events += erp_sources.virtual_events(account, from_date, to_date)
 
     return events
 
