@@ -318,7 +318,9 @@ def _vevent(event: dict, calendars: list[dict], host: str, default_zone: str, st
         lines.append(_("Late"))
     if lines:
         component.add("description", "\n".join(dict.fromkeys(lines)))
-    places = [str(place.get("name") or place.get("description") or "") for place in event.get("locations") or []]
+    places = [
+        str(place.get("name") or place.get("description") or "") for place in event.get("locations") or []
+    ]
     places = [place for place in places if place]
     if places:
         component.add("location", ", ".join(places))

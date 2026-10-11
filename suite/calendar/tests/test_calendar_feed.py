@@ -115,7 +115,17 @@ class TestTheAddress(AddressCase):
         other = self.token_of(feed.enable_calendar_feed())
         flipped = token[:-1] + ("0" if token[-1] != "0" else "1")
 
-        for wrong in (flipped, other[:16] + token[16:], token[:16] + other[16:], token[:-2], token + "00", "", None, "z" * 48, token.upper()):
+        for wrong in (
+            flipped,
+            other[:16] + token[16:],
+            token[:16] + other[16:],
+            token[:-2],
+            token + "00",
+            "",
+            None,
+            "z" * 48,
+            token.upper(),
+        ):
             self.assertIsNone(feed.user_for(wrong), repr(wrong))
 
     def test_a_new_address_replaces_the_old_one_wherever_it_was_pasted(self):
@@ -170,10 +180,20 @@ class TestWhatItPublishes(IntegrationTestCase):
             [
                 _event(),
                 _event(
-                    id="e2", uid="uid-2", title="Day off", start="2026-10-13T00:00:00", duration="P1D", show_without_time=1
+                    id="e2",
+                    uid="uid-2",
+                    title="Day off",
+                    start="2026-10-13T00:00:00",
+                    duration="P1D",
+                    show_without_time=1,
                 ),
                 _event(
-                    id="e3", uid="uid-3", title="Away", start="2026-10-14T00:00:00", duration="P3D", show_without_time=1
+                    id="e3",
+                    uid="uid-3",
+                    title="Away",
+                    start="2026-10-14T00:00:00",
+                    duration="P3D",
+                    show_without_time=1,
                 ),
             ]
         )
@@ -185,7 +205,9 @@ class TestWhatItPublishes(IntegrationTestCase):
         self.assertEqual(timed["dtend"].dt.isoformat(), "2026-10-12T15:00:00+02:00")
         self.assertIn(b"DTSTART;TZID=Europe/Zurich:20261012T140000", content)
         self.assertEqual(day["dtstart"].dt, date(2026, 10, 13))
-        self.assertEqual(day["dtend"].dt, date(2026, 10, 14), "a whole day ends the day after, the way iCalendar says it")
+        self.assertEqual(
+            day["dtend"].dt, date(2026, 10, 14), "a whole day ends the day after, the way iCalendar says it"
+        )
         self.assertEqual((span["dtstart"].dt, span["dtend"].dt), (date(2026, 10, 14), date(2026, 10, 17)))
 
     def test_a_whole_day_without_a_duration_is_one_day(self):
@@ -193,7 +215,9 @@ class TestWhatItPublishes(IntegrationTestCase):
             self.render([_event(start="2026-10-13T00:00:00", duration="", show_without_time=1)])
         )
 
-        self.assertEqual((component["dtstart"].dt, component["dtend"].dt), (date(2026, 10, 13), date(2026, 10, 14)))
+        self.assertEqual(
+            (component["dtstart"].dt, component["dtend"].dt), (date(2026, 10, 13), date(2026, 10, 14))
+        )
 
     def test_it_is_iCalendar_a_parser_reads_back_with_the_zone_it_names(self):
         content = self.render([_event()])
@@ -210,7 +234,10 @@ class TestWhatItPublishes(IntegrationTestCase):
 
     def test_only_the_calendars_the_person_shows_are_published(self):
         hidden = _event(
-            id="e9", uid="uid-9", title="Hidden", calendars=[{"calendar": "acc|z", "calendar_id": "z", "calendar_name": "Old"}]
+            id="e9",
+            uid="uid-9",
+            title="Hidden",
+            calendars=[{"calendar": "acc|z", "calendar_id": "z", "calendar_name": "Old"}],
         )
 
         titles = [str(c["summary"]) for c in _components(self.render([_event(), hidden], shown=("b",)))]
@@ -230,7 +257,9 @@ class TestWhatItPublishes(IntegrationTestCase):
             route="/app/todo/TODO-1",
             late=1,
             meta="Task",
-            calendars=[{"calendar": "acc|erp:tasks", "calendar_id": "erp:tasks", "calendar_name": "To-dos and tasks"}],
+            calendars=[
+                {"calendar": "acc|erp:tasks", "calendar_id": "erp:tasks", "calendar_name": "To-dos and tasks"}
+            ],
         )
 
         (component,) = _components(self.render([erp], shown=("erp:tasks",)))
@@ -255,7 +284,11 @@ class TestWhatItPublishes(IntegrationTestCase):
         self.assertTrue(uids[2].startswith("single@"), "an event that does not repeat keeps its address")
 
     def test_what_a_title_may_hold_is_escaped_and_what_is_missing_is_left_out(self):
-        tricky = _event(title="Lunch, with: Ada; Bob\nand Carol", description="Line one\nLine two", locations=[{"name": "Café, Lausanne"}])
+        tricky = _event(
+            title="Lunch, with: Ada; Bob\nand Carol",
+            description="Line one\nLine two",
+            locations=[{"name": "Café, Lausanne"}],
+        )
         no_start = _event(id="n", uid="n", start="")
 
         components = _components(self.render([tricky, no_start]))
@@ -299,9 +332,11 @@ class TestWhatItReads(AddressCase):
             calls.append((account, from_date, to_date, time_zone, erp_dates))
             return [_event(id=f"e-{from_date}", uid=f"u-{from_date}", start=from_date[:10] + "T10:00:00")]
 
-        with mock.patch.object(feed, "_account_of", return_value="acc"), mock.patch(
-            "suite.calendar.api.get_calendars", side_effect=get_calendars
-        ), mock.patch("suite.calendar.api.get_calendar_events", side_effect=get_calendar_events):
+        with (
+            mock.patch.object(feed, "_account_of", return_value="acc"),
+            mock.patch("suite.calendar.api.get_calendars", side_effect=get_calendars),
+            mock.patch("suite.calendar.api.get_calendar_events", side_effect=get_calendar_events),
+        ):
             content = feed.build_ics(DESK)
 
         self.assertEqual(set(acting), {DESK}, "as the person, not as the one who asked")
@@ -312,20 +347,24 @@ class TestWhatItReads(AddressCase):
         today = frappe.utils.getdate()
         self.assertEqual(first, today - timedelta(days=feed.DAYS_BEFORE))
         self.assertEqual(last, today + timedelta(days=feed.DAYS_AFTER))
-        for (_a, from_date, to_date, *_rest), following in zip(calls, calls[1:] + [None]):
+        for (_a, from_date, to_date, *_rest), following in zip(calls, [*calls[1:], None], strict=True):
             self.assertLessEqual(
                 (date.fromisoformat(to_date[:10]) - date.fromisoformat(from_date[:10])).days, feed.CHUNK_DAYS
             )
             self.assertRegex(from_date, r"^\d{4}-\d{2}-\d{2}T00:00:00Z$")
             if following:
-                self.assertEqual(to_date, following[1], "the chunks follow each other, without a gap or a repeat")
+                self.assertEqual(
+                    to_date, following[1], "the chunks follow each other, without a gap or a repeat"
+                )
         self.assertEqual(len(_components(content)), len(calls))
 
     def test_an_event_that_two_chunks_both_return_is_published_once(self):
         same = _event(id="long", uid="long", start="2026-10-12T10:00:00")
-        with mock.patch.object(feed, "_account_of", return_value="acc"), mock.patch(
-            "suite.calendar.api.get_calendars", return_value=[{"id": "b", "visible": 1}]
-        ), mock.patch("suite.calendar.api.get_calendar_events", return_value=[same]):
+        with (
+            mock.patch.object(feed, "_account_of", return_value="acc"),
+            mock.patch("suite.calendar.api.get_calendars", return_value=[{"id": "b", "visible": 1}]),
+            mock.patch("suite.calendar.api.get_calendar_events", return_value=[same]),
+        ):
             content = feed.build_ics(DESK)
 
         self.assertEqual(len(_components(content)), 1)
