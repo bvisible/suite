@@ -24495,3 +24495,93 @@ msgstr "Ce calendrier n'existe pas."
 #: suite/public/frontend/assets/CalendarView-Bw0eSH1f.js:2
 msgid "This date comes from the ERP: open the document to change it."
 msgstr "Cette date provient de l'ERP : ouvrez le document pour la modifier."
+
+#: frontend/src/apps/calendar/components/Modals/CalendarFeedModal.vue:123
+#: suite/public/frontend/assets/CalendarView-CJKWQmL8.js:2
+msgid "Address copied."
+msgstr "Adresse copiée."
+
+#: suite/calendar/feed.py:271
+msgid "Agenda of {0}"
+msgstr "Agenda de {0}"
+
+#: frontend/src/apps/calendar/components/Modals/CalendarFeedModal.vue:34
+msgid "Apple Calendar: File, New Calendar Subscription."
+msgstr "Apple Calendrier : Fichier, Nouvel abonnement à un calendrier."
+
+#: frontend/src/apps/calendar/components/Modals/CalendarFeedModal.vue:98
+#: suite/public/frontend/assets/CalendarView-CJKWQmL8.js:2
+msgid "Could not create a new address."
+msgstr "Impossible de créer une nouvelle adresse."
+
+#: frontend/src/apps/calendar/components/Modals/CalendarFeedModal.vue:90
+#: suite/public/frontend/assets/CalendarView-CJKWQmL8.js:2
+msgid "Could not create the address."
+msgstr "Impossible de créer l'adresse."
+
+#: frontend/src/apps/calendar/components/Modals/CalendarFeedModal.vue:85
+#: suite/public/frontend/assets/CalendarView-CJKWQmL8.js:2
+msgid "Could not read your sharing."
+msgstr "Impossible de lire votre partage."
+
+#: frontend/src/apps/calendar/components/Modals/CalendarFeedModal.vue:106
+#: suite/public/frontend/assets/CalendarView-CJKWQmL8.js:2
+msgid "Could not stop sharing."
+msgstr "Impossible d'arrêter le partage."
+
+#: frontend/src/apps/calendar/components/Modals/CalendarFeedModal.vue:58
+msgid "Create a private address"
+msgstr "Créer une adresse privée"
+
+#: frontend/src/apps/calendar/components/Modals/CalendarFeedModal.vue:32
+msgid "Google Calendar: Other calendars, From URL."
+msgstr "Google Agenda : Autres agendas, À partir de l'URL."
+
+#: frontend/src/apps/calendar/components/Modals/CalendarFeedModal.vue:38
+msgid "Google updates a subscribed calendar every few hours, sometimes only once a day; Outlook and Apple within the hour. Keep this address to yourself: whoever has it can read your agenda."
+msgstr "Google met à jour un calendrier auquel vous êtes abonné toutes les quelques heures, parfois une seule fois par jour ; Outlook et Apple, dans l'heure. Gardez cette adresse pour vous : quiconque la possède peut lire votre agenda."
+
+#: frontend/src/apps/calendar/components/Modals/CalendarFeedModal.vue:96
+#: suite/public/frontend/assets/CalendarView-CJKWQmL8.js:2
+msgid "New address created. The previous one no longer works."
+msgstr "Nouvelle adresse créée. L'ancienne ne fonctionne plus."
+
+#: frontend/src/apps/calendar/components/Modals/CalendarFeedModal.vue:33
+msgid "Outlook: Add calendar, Subscribe from web."
+msgstr "Outlook : Ajouter un calendrier, S'abonner à partir du web."
+
+#: frontend/src/apps/calendar/components/Modals/NewCalendarModal.vue:93
+msgid "Read-only: events from this account will appear here."
+msgstr "Lecture seule : les événements de ce compte apparaîtront ici."
+
+#: frontend/src/apps/calendar/components/Modals/CalendarFeedModal.vue:126
+#: suite/public/frontend/assets/CalendarView-CJKWQmL8.js:2
+msgid "Select the address and copy it."
+msgstr "Sélectionnez l'adresse et copiez-la."
+
+#: frontend/src/apps/calendar/components/Modals/CalendarFeedModal.vue:6
+#: frontend/src/apps/calendar/components/NeoCockpitSidebar.vue:134
+#: suite/public/frontend/assets/CalendarView-CJKWQmL8.js:2
+msgid "Share your agenda"
+msgstr "Partager votre agenda"
+
+#: frontend/src/apps/calendar/components/Modals/CalendarFeedModal.vue:104
+#: suite/public/frontend/assets/CalendarView-CJKWQmL8.js:2
+msgid "Sharing stopped."
+msgstr "Partage arrêté."
+
+#: frontend/src/apps/calendar/components/Modals/CalendarFeedModal.vue:11
+msgid "Show this agenda in Google Calendar, Outlook or Apple Calendar. They get what you see here, your events and the dates of the ERP you show, and only show it: what you change there does not come back."
+msgstr "Affichez cet agenda dans Google Agenda, Outlook ou Apple Calendrier. Ces applications reçoivent ce que vous voyez ici (vos événements et les dates de l'ERP que vous affichez) et ne font que l'afficher : ce que vous y modifiez ne revient pas ici."
+
+#: frontend/src/apps/calendar/components/Modals/CalendarFeedModal.vue:56
+msgid "Stop sharing"
+msgstr "Arrêter le partage"
+
+#: frontend/src/apps/calendar/components/Modals/CalendarFeedModal.vue:52
+msgid "The current address stops working. Click again to confirm."
+msgstr "L'adresse actuelle cessera de fonctionner. Cliquez à nouveau pour confirmer."
+
+#: frontend/src/apps/calendar/components/Modals/CalendarFeedModal.vue:19
+msgid "Your private address"
+msgstr "Votre adresse privée"
