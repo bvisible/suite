@@ -39,6 +39,8 @@ import AppSidebar from '@/apps/calendar/components/AppSidebar.vue'
 import NewCalendarModal from '@/apps/calendar/components/Modals/NewCalendarModal.vue'
 import CalendarSettingsModal from '@/apps/calendar/components/Modals/CalendarSettingsModal.vue'
 import { userStore } from '@/apps/calendar/stores/user'
+//// Neoffice — the dates of the ERP, a group of read-only calendars of their own (maintenance#1428).
+import { isErpCalendar, swatch } from '@/apps/calendar/utils/erpDates'
 
 //// Neoffice — `inheritAttrs: false` + `v-bind="$attrs"` on the fallback: upstream's
 //// AppSidebar grew a mini-month and an event list (month/year/day/view/events/
@@ -47,11 +49,15 @@ import { userStore } from '@/apps/calendar/stores/user'
 //// relayed untouched so the fallback keeps upstream's full behaviour.
 defineOptions({ inheritAttrs: false })
 
-const { calendars, visibleCalendars } = defineProps<{
+const { calendars, visibleCalendars, erpScope, erpScoped } = defineProps<{
 	calendars: any[]
 	visibleCalendars: string[]
+	//// Neoffice — whose dates the sources of the ERP show, and whether the person can choose (maintenance#1428).
+	erpScope?: string
+	erpScoped?: boolean
 }>()
-const emit = defineEmits(['update:visibleCalendars', 'reload'])
+//// Neoffice — toggleErpScope: the person asks for the other scope (maintenance#1428).
+const emit = defineEmits(['update:visibleCalendars', 'reload', 'toggleErpScope'])
 
 const router = useRouter()
 const store = userStore()
@@ -68,6 +74,30 @@ function openSettings(c: any) {
 	showSettings.value = true
 }
 
+//// Neoffice — the person's own calendars, then the dates of the ERP: read-only, switched like them, no gear and
+//// nothing to change from here (maintenance#1428).
+const ownCalendars = computed(() => calendars.filter((c) => !isErpCalendar(c)))
+const erpItems = computed(() => [
+	...calendars
+		.filter((c) => isErpCalendar(c))
+		.map((c) => ({
+			label: c._name,
+			color: swatch(c.palette) || '#9BA3AF',
+			dim: !visibleCalendars.includes(c.name),
+			onClick: () => emit('update:visibleCalendars', c.name),
+		})),
+	// Whose dates the sources show: only the ones that have an owner (tasks, leaves...) depend on it.
+	...(erpScoped
+		? [
+			{
+				label: erpScope === 'all' ? __('Everyone’s dates') : __('My dates'),
+				icon: erpScope === 'all' ? 'lucide-users' : 'lucide-user',
+				onClick: () => emit('toggleErpScope'),
+			},
+		]
+		: []),
+])
+
 const contextNav = computed(() => [
 	{
 		label: __('Calendars'),
@@ -75,11 +105,12 @@ const contextNav = computed(() => [
 			// //// Neoffice: colour swatch (filled=visible, hollow=hidden), a
 			// "shared" icon+tooltip, and a gear opening the calendar settings.
 			// Click on the row toggles visibility. ////
-			...calendars.map((c) => {
+			...ownCalendars.value.map((c) => {
 				const sharedCount = (c.share_with || []).length
 				return {
 					label: c._name,
-					color: c.color || '#9BA3AF',
+					//// Neoffice — swatch(): a palette name drawn with the ink variable the grid uses (maintenance#1428).
+					color: swatch(c.color) || '#9BA3AF',
 					dim: !visibleCalendars.includes(c.name),
 					shared: sharedCount > 0,
 					sharedTitle: !sharedCount
@@ -94,5 +125,7 @@ const contextNav = computed(() => [
 			{ label: __('Add a calendar'), icon: 'lucide-plus', onClick: () => (showNew.value = true) },
 		],
 	},
+	//// Neoffice — then the dates of the ERP, when the site has any for this person (maintenance#1428).
+	...(erpItems.value.length ? [{ label: __('Dates of the ERP'), items: erpItems.value }] : []),
 ])
 </script>

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, inject, onMounted, reactive, ref, useTemplateRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Button, Dialog, TabButtons, createResource, usePageMeta } from 'frappe-ui'
+//// Neoffice — toast, for the refusal to move a date of the ERP (maintenance#1428).
+import { Button, Dialog, TabButtons, createResource, toast, usePageMeta } from 'frappe-ui'
 import { Calendar } from 'frappe-ui/experimental'
 
 import { useScreenSize } from '@/composables/useScreenSize'
@@ -11,6 +12,9 @@ import { eventLastDay, isAllDayEvent } from '@/apps/calendar/utils/eventTime'
 import { userStore } from '@/apps/calendar/stores/user'
 import AppSidebar from '@/apps/calendar/components/AppSidebar.vue'
 import EventDetailSidebar from '@/apps/calendar/components/EventDetailSidebar.vue'
+//// Neoffice — the dates of the ERP (tasks, reminders, bookings, leaves...) read-only in the calendar (maintenance#1428).
+import ErpDateDetail from '@/apps/calendar/components/ErpDateDetail.vue'
+import { LATE_PALETTE, erpEventRoute } from '@/apps/calendar/utils/erpDates'
 //// Neoffice — the shared NeoCockpit chrome wraps Calendar's AppSidebar: same
 //// left rail as the rest of Neoffice, plus the per-calendar gear (rename, colour,
 //// share, CalDAV, delete) that upstream has no UI for. It relays every AppSidebar
@@ -183,7 +187,8 @@ const getEventRole = (event) => {
 
 const calendars = createResource({
 	url: 'suite.calendar.api.get_calendars',
-	makeParams: () => ({ account: store.accountId }),
+	//// Neoffice — `erp_dates`: the dates of the ERP follow the person's calendars (maintenance#1428).
+	makeParams: () => ({ account: store.accountId, erp_dates: 1 }),
 	auto: true,
 	// //// Neoffice: respect each calendar's persisted isVisible state instead of
 	// showing them all — the hidden ones stay hidden across reloads. ////
@@ -206,18 +211,40 @@ function toggleCalendarVisibility(name: string) {
 	const wasVisible = visibleCalendars.value.includes(name)
 	if (wasVisible) visibleCalendars.value.splice(visibleCalendars.value.indexOf(name), 1)
 	else visibleCalendars.value.push(name)
-	setVisibility.submit({
-		account: store.accountId,
-		id: name.split('|').pop(),
-		visible: wasVisible ? 0 : 1,
-	})
+	//// Neoffice — the entries of a source of the ERP are read only while it is on (maintenance#1428): the events are
+	//// fetched again once the server has kept the switch.
+	const erp = !!calendars.data?.find((cal) => cal.name === name)?.virtual
+	setVisibility.submit(
+		{
+			account: store.accountId,
+			id: name.split('|').pop(),
+			visible: wasVisible ? 0 : 1,
+		},
+		{ onSuccess: () => erp && events.reload() },
+	)
 }
+
+//// Neoffice — whose dates the sources of the ERP show: the person's own, or all they may read (maintenance#1428).
+const erpScope = computed(() => calendars.data?.find((cal) => cal.virtual)?.scope || 'mine')
+const erpScoped = computed(() => !!calendars.data?.some((cal) => cal.virtual && cal.scoped))
+const setScope = createResource({
+	url: 'suite.calendar.sources.set_calendar_scope',
+	onSuccess: () => {
+		calendars.reload()
+		events.reload()
+	},
+	onError: (error) => raiseToast(error.message, 'error'),
+})
+const toggleErpScope = () =>
+	setScope.submit({ account: store.accountId, scope: erpScope.value === 'all' ? 'mine' : 'all' })
 // Calendars carry no colour of their own, so each takes one from the palette by
 // position; its events and its dot in the sidebar share it.
 const PALETTE = ['green', 'blue', 'violet', 'amber', 'pink', 'cyan', 'orange']
 const calendarColor = (name: string) => {
 	const index = calendars.data?.findIndex((cal) => cal.name === name) ?? -1
-	return PALETTE[Math.max(index, 0) % PALETTE.length]
+	//// Neoffice — a source of the ERP keeps the colour it was given, wherever it comes in the list (maintenance#1428).
+	const given = index >= 0 ? calendars.data[index].palette : ''
+	return given || PALETTE[Math.max(index, 0) % PALETTE.length]
 }
 const coloredCalendars = computed(
 	() => calendars.data?.map((cal) => ({ ...cal, color: calendarColor(cal.name) })) || [],
@@ -234,6 +261,8 @@ const events = createResource({
 			from_date: date.startOf('month').subtract(37, 'day').utc().format('YYYY-MM-DD[T]HH:mm:ss[Z]'),
 			to_date: date.endOf('month').add(37, 'day').utc().format('YYYY-MM-DD[T]HH:mm:ss[Z]'),
 			time_zone: dayjs.tz.guess(),
+			//// Neoffice — with the dates of the ERP that are switched on (maintenance#1428).
+			erp_dates: 1,
 		}
 	},
 	transform: (data) => data.map(transformEvent),
@@ -248,7 +277,11 @@ const visibleEvents = computed(
 					.map((c) => c.calendar)
 					.some((cal) => visibleCalendars.value.includes(cal)),
 			)
-			.map((event) => ({ ...event, color: calendarColor(event.calendars[0]?.calendar) })) || [],
+			//// Neoffice — a date of the ERP that is late draws in pink whatever its source's colour (maintenance#1428).
+			.map((event) => ({
+				...event,
+				color: event.virtual && event.late ? LATE_PALETTE : calendarColor(event.calendars[0]?.calendar),
+			})) || [],
 )
 
 const showEditEvent = ref(false)
@@ -257,7 +290,15 @@ const event = reactive({})
 
 const withActualTitle = (event) => ({ ...event, title: event.actualTitle })
 
+//// Neoffice — a date of the ERP opens its document in the desk, not the event form (maintenance#1428).
+const openErpDocument = (event) => {
+	const route = erpEventRoute(event)
+	if (route) window.location.assign(route)
+}
+
 const handleOpenEvent = (e) => {
+	//// Neoffice — a date of the ERP opens its document (maintenance#1428).
+	if (e.calendarEvent?.virtual) return openErpDocument(e.calendarEvent)
 	Object.assign(event, e, e.calendarEvent && { calendarEvent: withActualTitle(e.calendarEvent) })
 	showEditEvent.value = true
 
@@ -347,6 +388,8 @@ const newEventDate = () => {
 // A pill in the grid and a row in the sidebar's upcoming list toggle the
 // detail panel the way mail's does: a second click on the open event closes it.
 const toggleEventDetail = (calendarEvent) => {
+	//// Neoffice — no panel on a phone: a date of the ERP opens its document (maintenance#1428).
+	if (calendarEvent.virtual && isMobile.value) return openErpDocument(calendarEvent)
 	const open = selectedCalendarEvent.value
 	if (
 		open &&
@@ -446,6 +489,11 @@ watch([showRecurringEventModal, showNotifyModal], ([recurring, notify]) => {
 })
 
 const handleUpdate = (e) => {
+	//// Neoffice — a date of the ERP is not moved from here (maintenance#1428): it goes back, and why is said.
+	if (e.virtual) {
+		toast.info(__('This date comes from the ERP: open the document to change it.'))
+		return revertUpdate()
+	}
 	Object.assign(eventToBeUpdated, withActualTitle(e))
 	confirmed = false
 	if (e.recurrence_id) showRecurringEventModal.value = true
@@ -546,6 +594,9 @@ const NOTIFY_MODAL_OPTIONS = {
 				:events="visibleEvents"
 				:selected-event="selectedCalendarEvent"
 				@update:visible-calendars="toggleCalendarVisibility"
+				:erp-scope="erpScope"
+				:erp-scoped="erpScoped"
+				@toggle-erp-scope="toggleErpScope"
 				@reload="calendars.reload()"
 				@select-date="(date) => calendarRef?.setCalendarDate(date)"
 				@select-event="toggleEventDetail"
@@ -603,8 +654,16 @@ const NOTIFY_MODAL_OPTIONS = {
 			     covered the grid it is meant to sit beside. The selection still happens
 			     (?event= stays in the URL, so a shared link still names its event),
 			     there is just nowhere to show it until this gets a sheet of its own. -->
+			<!-- //// Neoffice — a date of the ERP has a panel of its own: read-only, with the way to its document (maintenance#1428). -->
+			<ErpDateDetail
+				v-if="selectedCalendarEvent?.virtual && !isMobile"
+				:key="selectedCalendarEvent.id"
+				:calendar-event="selectedCalendarEvent"
+				@close="closeEventDetail"
+			/>
+			<!-- //// Neoffice — v-else-if: the panel of an event of the mail server (maintenance#1428). -->
 			<EventDetailSidebar
-				v-if="selectedCalendarEvent && !isMobile"
+				v-else-if="selectedCalendarEvent && !isMobile"
 				:key="selectedCalendarEvent.id + (selectedCalendarEvent.recurrence_id ?? '')"
 				:calendar-event="selectedCalendarEvent"
 				@close="closeEventDetail"
