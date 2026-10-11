@@ -91,7 +91,8 @@ const erpItems = computed(() => [
 		? [
 			{
 				label: erpScope === 'all' ? __('Everyone’s dates') : __('My dates'),
-				icon: erpScope === 'all' ? 'lucide-users' : 'lucide-user',
+				//// Neoffice — the cockpit draws the icons of its own map: `user-check` and `users` are in it, a plain `user` is not.
+				icon: erpScope === 'all' ? 'lucide-users' : 'lucide-user-check',
 				onClick: () => emit('toggleErpScope'),
 			},
 		]
