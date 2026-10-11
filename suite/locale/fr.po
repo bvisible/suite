@@ -24430,3 +24430,68 @@ msgstr "Le calendrier par défaut ne peut pas être supprimé."
 #: suite/calendar/local.py:486
 msgid "{0} needs a mail account."
 msgstr "{0} nécessite une boîte de messagerie."
+
+#: suite/calendar/sources.py:317
+msgid "Choose which dates to show: yours, or all of them."
+msgstr "Choisissez les dates à afficher : les vôtres, ou toutes."
+
+#: frontend/src/apps/calendar/components/NeoCockpitSidebar.vue:129
+#: suite/public/frontend/assets/CalendarView-Bw0eSH1f.js:2
+msgid "Dates of the ERP"
+msgstr "Dates de l'ERP"
+
+#. Description of the 'Range End (UTC)' (Datetime) field in DocType 'Local
+#. Calendar Event'
+#: suite/calendar/doctype/local_calendar_event/local_calendar_event.json
+msgid "Empty for a series without an end."
+msgstr "Vide pour une série sans fin."
+
+#: frontend/src/apps/calendar/components/NeoCockpitSidebar.vue:93
+#: suite/public/frontend/assets/CalendarView-Bw0eSH1f.js:2
+msgid "Everyone’s dates"
+msgstr "Dates de tout le monde"
+
+#. Name of a DocType
+#: suite/calendar/doctype/local_calendar/local_calendar.json
+msgid "Local Calendar"
+msgstr "Calendrier local"
+
+#. Name of a DocType
+#: suite/calendar/doctype/local_calendar_account/local_calendar_account.json
+msgid "Local Calendar Account"
+msgstr "Compte de calendrier local"
+
+#. Name of a DocType
+#: suite/calendar/doctype/local_calendar_event/local_calendar_event.json
+msgid "Local Calendar Event"
+msgstr "Événement de calendrier local"
+
+#: frontend/src/apps/calendar/components/NeoCockpitSidebar.vue:93
+#: suite/public/frontend/assets/CalendarView-Bw0eSH1f.js:2
+msgid "My dates"
+msgstr "Mes dates"
+
+#. Label of a Datetime field in DocType 'Local Calendar Event'
+#: suite/calendar/doctype/local_calendar_event/local_calendar_event.json
+msgid "Range End (UTC)"
+msgstr "Fin de la plage (UTC)"
+
+#. Label of a Datetime field in DocType 'Local Calendar Event'
+#: suite/calendar/doctype/local_calendar_event/local_calendar_event.json
+msgid "Range Start (UTC)"
+msgstr "Début de la plage (UTC)"
+
+#. Label of a Check field in DocType 'Local Calendar Event'
+#: suite/calendar/doctype/local_calendar_event/local_calendar_event.json
+msgid "Recurs"
+msgstr "Se répète"
+
+#: suite/calendar/sources.py:309
+msgid "This calendar does not exist."
+msgstr "Ce calendrier n'existe pas."
+
+#: frontend/src/apps/calendar/components/ErpDateDetail.vue:76
+#: frontend/src/apps/calendar/pages/CalendarView.vue:494
+#: suite/public/frontend/assets/CalendarView-Bw0eSH1f.js:2
+msgid "This date comes from the ERP: open the document to change it."
+msgstr "Cette date provient de l'ERP : ouvrez le document pour la modifier."

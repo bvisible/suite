@@ -24723,3 +24723,82 @@ msgstr ""
 msgid "— No message body —"
 msgstr ""
 
+#. Description of a DocType
+#: suite/calendar/doctype/local_calendar/local_calendar.json
+msgid "//// Neoffice — added DocType (no upstream equivalent): a calendar of a Local Calendar Account, kept as the mail server would answer it (JMAP Calendar object in `data`), maintenance#1387."
+msgstr ""
+
+#. Description of a DocType
+#: suite/calendar/doctype/local_calendar_event/local_calendar_event.json
+msgid "//// Neoffice — added DocType (no upstream equivalent): an event of a Local Calendar Account, kept as the mail server would answer it (JMAP CalendarEvent object in `data`, series and their exceptions included), with the span it covers in UTC for the period queries (maintenance#1387)."
+msgstr ""
+
+#. Description of a DocType
+#: suite/calendar/doctype/local_calendar_account/local_calendar_account.json
+msgid "//// Neoffice — added DocType (no upstream equivalent): the calendar account of a desk user who has no mailbox, whose calendars and events are kept in Frappe instead of the mail server (maintenance#1387, suite/calendar/local.py)."
+msgstr ""
+
+#: suite/calendar/sources.py:317
+msgid "Choose which dates to show: yours, or all of them."
+msgstr ""
+
+#: frontend/src/apps/calendar/components/NeoCockpitSidebar.vue:129
+msgid "Dates of the ERP"
+msgstr ""
+
+#. Description of the 'Range End (UTC)' (Datetime) field in DocType 'Local
+#. Calendar Event'
+#: suite/calendar/doctype/local_calendar_event/local_calendar_event.json
+msgid "Empty for a series without an end."
+msgstr ""
+
+#: frontend/src/apps/calendar/components/NeoCockpitSidebar.vue:93
+msgid "Everyone’s dates"
+msgstr ""
+
+#: frontend/src/apps/calendar/components/ErpDateDetail.vue:55
+msgid "Late"
+msgstr ""
+
+#. Name of a DocType
+#: suite/calendar/doctype/local_calendar/local_calendar.json
+msgid "Local Calendar"
+msgstr ""
+
+#. Name of a DocType
+#: suite/calendar/doctype/local_calendar_account/local_calendar_account.json
+msgid "Local Calendar Account"
+msgstr ""
+
+#. Name of a DocType
+#: suite/calendar/doctype/local_calendar_event/local_calendar_event.json
+msgid "Local Calendar Event"
+msgstr ""
+
+#: frontend/src/apps/calendar/components/NeoCockpitSidebar.vue:93
+msgid "My dates"
+msgstr ""
+
+#. Label of a Datetime field in DocType 'Local Calendar Event'
+#: suite/calendar/doctype/local_calendar_event/local_calendar_event.json
+msgid "Range End (UTC)"
+msgstr ""
+
+#. Label of a Datetime field in DocType 'Local Calendar Event'
+#: suite/calendar/doctype/local_calendar_event/local_calendar_event.json
+msgid "Range Start (UTC)"
+msgstr ""
+
+#. Label of a Check field in DocType 'Local Calendar Event'
+#: suite/calendar/doctype/local_calendar_event/local_calendar_event.json
+msgid "Recurs"
+msgstr ""
+
+#: suite/calendar/sources.py:309
+msgid "This calendar does not exist."
+msgstr ""
+
+#: frontend/src/apps/calendar/components/ErpDateDetail.vue:76
+#: frontend/src/apps/calendar/pages/CalendarView.vue:494
+msgid "This date comes from the ERP: open the document to change it."
+msgstr ""
