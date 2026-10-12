@@ -135,6 +135,6 @@ const contextNav = computed(() => [
 		],
 	},
 	//// Neoffice — then the dates of the ERP, when the site has any for this person (maintenance#1428).
-	...(erpItems.value.length ? [{ label: __('Dates of the ERP'), items: erpItems.value }] : []),
+	...(erpItems.value.length ? [{ label: __('Dates of Neoffice'), items: erpItems.value }] : []),
 ])
 </script>

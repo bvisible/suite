@@ -73,7 +73,7 @@ const when = computed(() => {
 					{{ __('Open the document') }}
 				</a>
 				<p class="text-ink-gray-5 text-xs leading-4">
-					{{ __('This date comes from the ERP: open the document to change it.') }}
+					{{ __('This date comes from Neoffice: open the document to change it.') }}
 				</p>
 			</div>
 		</div>

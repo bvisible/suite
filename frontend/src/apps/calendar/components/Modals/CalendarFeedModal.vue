@@ -9,7 +9,7 @@
 				<p class="text-ink-gray-6 text-sm leading-relaxed">
 					{{
 						__(
-							'Show this agenda in Google Calendar, Outlook or Apple Calendar. They get what you see here, your events and the dates of the ERP you show, and only show it: what you change there does not come back.',
+							'Show this agenda in Google Calendar, Outlook or Apple Calendar. They get what you see here, your events and the dates of Neoffice you show, and only show it: what you change there does not come back.',
 						)
 					}}
 				</p>

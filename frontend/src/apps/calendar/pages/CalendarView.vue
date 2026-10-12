@@ -491,7 +491,7 @@ watch([showRecurringEventModal, showNotifyModal], ([recurring, notify]) => {
 const handleUpdate = (e) => {
 	//// Neoffice — a date of the ERP is not moved from here (maintenance#1428): it goes back, and why is said.
 	if (e.virtual) {
-		toast.info(__('This date comes from the ERP: open the document to change it.'))
+		toast.info(__('This date comes from Neoffice: open the document to change it.'))
 		return revertUpdate()
 	}
 	Object.assign(eventToBeUpdated, withActualTitle(e))
