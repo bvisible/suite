@@ -24887,3 +24887,18 @@ msgstr ""
 #: frontend/src/apps/calendar/components/Modals/CalendarFeedModal.vue:19
 msgid "Your private address"
 msgstr ""
+
+#: frontend/src/apps/calendar/components/NeoCockpitSidebar.vue:138
+#: suite/public/frontend/assets/CalendarView-DQskN5h0.js:2
+msgid "Dates of Neoffice"
+msgstr ""
+
+#: frontend/src/apps/calendar/components/Modals/CalendarFeedModal.vue:11
+msgid "Show this agenda in Google Calendar, Outlook or Apple Calendar. They get what you see here, your events and the dates of Neoffice you show, and only show it: what you change there does not come back."
+msgstr ""
+
+#: frontend/src/apps/calendar/components/ErpDateDetail.vue:76
+#: frontend/src/apps/calendar/pages/CalendarView.vue:494
+#: suite/public/frontend/assets/CalendarView-DQskN5h0.js:2
+msgid "This date comes from Neoffice: open the document to change it."
+msgstr ""

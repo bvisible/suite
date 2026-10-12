@@ -24585,3 +24585,18 @@ msgstr "L'adresse actuelle cessera de fonctionner. Cliquez à nouveau pour confi
 #: frontend/src/apps/calendar/components/Modals/CalendarFeedModal.vue:19
 msgid "Your private address"
 msgstr "Votre adresse privée"
+
+#: frontend/src/apps/calendar/components/NeoCockpitSidebar.vue:138
+#: suite/public/frontend/assets/CalendarView-DQskN5h0.js:2
+msgid "Dates of Neoffice"
+msgstr "Dates de Neoffice"
+
+#: frontend/src/apps/calendar/components/Modals/CalendarFeedModal.vue:11
+msgid "Show this agenda in Google Calendar, Outlook or Apple Calendar. They get what you see here, your events and the dates of Neoffice you show, and only show it: what you change there does not come back."
+msgstr "Affichez cet agenda dans Google Agenda, Outlook ou Apple Calendrier. Ces applications reçoivent ce que vous voyez ici (vos événements et les dates de Neoffice que vous affichez) et ne font que l'afficher : ce que vous y modifiez ne revient pas ici."
+
+#: frontend/src/apps/calendar/components/ErpDateDetail.vue:76
+#: frontend/src/apps/calendar/pages/CalendarView.vue:494
+#: suite/public/frontend/assets/CalendarView-DQskN5h0.js:2
+msgid "This date comes from Neoffice: open the document to change it."
+msgstr "Cette date provient de Neoffice : ouvrez le document pour la modifier."
