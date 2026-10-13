@@ -44,6 +44,11 @@ USERS_FOLDER = "Users"
 PREVIOUS_TEAMS_FOLDER = "Previous Teams"
 # What a user's own folder is called back to them.
 HOME_LABEL = "Home"
+# //// Neoffice — a third root, for the folders an app keeps for a document (a project's files:
+# //// neoffice_activity/project_drive.py). Each folder below is attached to its document and
+# //// follows it (`_ref_doc_access`). Not inside `Drive`: the $GENERAL read row there would decide
+# //// `read` for every user on every folder below, over what the document allows.
+PROJECTS_FOLDER = "Projects"
 
 # Framework-created folders (the site root and its attachments folder);
 # uploads still sitting in them haven't been adopted into a user folder yet.
@@ -207,6 +212,14 @@ def get_users_folder():
     """Private user folders. A root beside `Drive`, not inside it, so nothing granted
     on the shared tree reaches in. Carries no grant."""
     return _pinned_root(USERS_FOLDER)
+
+
+# //// Neoffice — the root of the folders kept for a document (see PROJECTS_FOLDER). Carries no
+# //// grant and nobody but an admin reads it: a folder below is reached from its document.
+def get_projects_folder():
+    """Folders kept for a document, each attached to it. A root beside `Drive`,
+    like `Users`, so nothing granted on the shared tree reaches in."""
+    return _pinned_root(PROJECTS_FOLDER)
 
 
 def _pinned_root(file_name):

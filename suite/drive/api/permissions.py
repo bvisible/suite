@@ -106,6 +106,11 @@ def _ref_doc_access(entity, user):
         **NO_ACCESS,
         "read": int(read or public),
         "comment": int(write),
+        # //// Neoffice — upstream left `upload` at 0, so a folder attached to a document took no new
+        # //// child from anyone who may write the document: creating a folder, uploading or making a
+        # //// document in it all ask `upload` on the folder (can_create_in_folder). A project's folder
+        # //// (PROJECTS_FOLDER) is filled by whoever may write the project. `share` stays at 0.
+        "upload": int(write),
         "write": int(write),
     }
 
