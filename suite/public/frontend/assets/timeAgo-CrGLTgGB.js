@@ -1,0 +1,1 @@
+import{x as e}from"./dist-D1suxZPK.js";function t(t){return e(t,{locale:document.documentElement.lang||void 0})}export{t};
