@@ -1,5 +1,5 @@
 import { dialog, call, toast } from 'frappe-ui'
-import { useTimeAgo } from '@vueuse/core'
+import { timeAgo } from '@/boot/timeAgo' //// Neoffice — relative times in the reader's language, not vueuse's English
 import { getTrash, toggleFav, clearRecent, clearTrash } from '@/apps/drive/resources/files.js'
 import { sortEntities } from '@/apps/drive/utils/files.js'
 
@@ -54,7 +54,7 @@ export function confirmRemove(entities, { onSuccess } = {}) {
             ...getTrash.data,
             ...entities.map((entity) => {
               entity.modified = Date()
-              entity.relativeModified = useTimeAgo(entity.modified)
+              entity.relativeModified = timeAgo(entity.modified) //// Neoffice — the reader's language (boot/timeAgo.ts)
               return entity
             }),
           ]),

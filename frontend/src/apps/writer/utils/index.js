@@ -3,7 +3,7 @@ import router from '@/apps/writer/router'
 import { useSessionStore } from '@/boot/session'
 import { formatSize } from '@/apps/writer/utils/format'
 import { nextTick, h } from 'vue'
-import { useTimeAgo } from '@vueuse/core'
+import { timeAgo } from '@/boot/timeAgo' //// Neoffice — relative times in the reader's language, not vueuse's English
 import { set } from 'idb-keyval'
 import editorStyle from '@/apps/writer/styles/editor.css?inline'
 import globalStyle from '@/apps/writer/styles/index.css?inline'
@@ -55,8 +55,8 @@ export const groupByFolder = (entities) => {
 export const prettyData = (entities) => {
   return entities.map((entity) => {
     entity.file_size_pretty = formatSize(entity.file_size)
-    entity.relativeModified = useTimeAgo(entity.modified)
-    if (entity.accessed) entity.relativeAccessed = useTimeAgo(entity.accessed)
+    entity.relativeModified = timeAgo(entity.modified) //// Neoffice — the reader's language (boot/timeAgo.ts)
+    if (entity.accessed) entity.relativeAccessed = timeAgo(entity.accessed) //// Neoffice — the reader's language (boot/timeAgo.ts)
     return entity
   })
 }

@@ -7,7 +7,7 @@
 </template>
 <script setup lang="ts">
 import { computed, inject } from 'vue'
-import { useTimeAgo } from '@vueuse/core'
+import { timeAgo } from '@/boot/timeAgo' //// Neoffice — relative times in the reader's language, not vueuse's English
 import { Tooltip } from 'frappe-ui'
 
 const {
@@ -24,8 +24,10 @@ const formattedDate = computed(() => {
 	//// Neoffice — `LT` and `lll`: the reader's clock and date order, not upstream's US patterns (maintenance#1321).
 	if (clock) return dayjs(datetime).format('LT')
 	if (!inList) {
-		const timeAgo = useTimeAgo(datetime).value
-		return __(timeAgo.charAt(0).toUpperCase() + timeAgo.slice(1))
+		//// Neoffice — the phrase in the reader's language (boot/timeAgo.ts); __() of a phrase made at run time found
+		//// no msgid, so upstream's « 2 hours ago » stayed English.
+		const ago = timeAgo(datetime).value
+		return ago.charAt(0).toUpperCase() + ago.slice(1)
 	}
 	//// Neoffice — `LT`, the reader's clock (maintenance#1321).
 	if (dayjs(datetime).isToday()) return dayjs(datetime).format('LT')

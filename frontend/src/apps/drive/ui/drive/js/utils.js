@@ -1,6 +1,6 @@
 import { toast } from 'frappe-ui'
 import slugify from 'slugify'
-import { useTimeAgo } from '@vueuse/core'
+import { timeAgo } from '@/boot/timeAgo' //// Neoffice — relative times in the reader's language, not vueuse's English
 
 import dayjs from 'dayjs'
 import localizedFormat from 'dayjs/plugin/localizedFormat'
@@ -91,8 +91,8 @@ export function formatSize(size, nDigits = 1) {
 
 const prettyFile = (entity) => {
   entity.file_size_pretty = formatSize(entity.file_size)
-  entity.relativeModified = useTimeAgo(entity.modified)
-  if (entity.accessed) entity.relativeAccessed = useTimeAgo(entity.accessed)
+  entity.relativeModified = timeAgo(entity.modified) //// Neoffice — the reader's language (boot/timeAgo.ts)
+  if (entity.accessed) entity.relativeAccessed = timeAgo(entity.accessed) //// Neoffice — the reader's language (boot/timeAgo.ts)
   return entity
 }
 

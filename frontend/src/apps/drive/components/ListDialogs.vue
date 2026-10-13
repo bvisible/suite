@@ -55,7 +55,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useTimeAgo } from '@vueuse/core'
+import { timeAgo } from '@/boot/timeAgo' //// Neoffice — relative times in the reader's language, not vueuse's English
 import { useRoute } from 'vue-router'
 
 import NewFolderDialog from '@/apps/drive/components/NewFolderDialog.vue'
@@ -100,7 +100,7 @@ function addToList(data, file_type) {
     write: 1,
     share: 1,
     comment: 1,
-    relativeModified: useTimeAgo(now),
+    relativeModified: timeAgo(now), //// Neoffice — the reader's language (boot/timeAgo.ts)
   }
   props.list.data.push(data)
 }

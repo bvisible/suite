@@ -4,7 +4,7 @@ import { isHomeContext } from '@/apps/drive/data/breadcrumbs'
 import { currentFolder } from '@/apps/drive/data/currentFolder'
 import { formatSize } from '@/apps/drive/utils/format'
 import { nextTick } from 'vue'
-import { useTimeAgo } from '@vueuse/core'
+import { timeAgo } from '@/boot/timeAgo' //// Neoffice — relative times in the reader's language, not vueuse's English
 import { getFileLink } from '@/apps/drive/ui/drive/js/utils'
 import {
   getRecents,
@@ -142,7 +142,7 @@ export const openEntity = (entity, new_tab = false) => {
 
     mutate([entity], (e) => {
       e.accessed = Date()
-      entity.relativeAccessed = useTimeAgo(entity.accessed)
+      entity.relativeAccessed = timeAgo(entity.accessed) //// Neoffice — the reader's language (boot/timeAgo.ts)
     })
   }
 
@@ -307,8 +307,8 @@ export const groupByFolder = (entities) => {
 export const prettyData = (entities) => {
   return entities.map((entity) => {
     entity.file_size_pretty = formatSize(entity.file_size)
-    entity.relativeModified = useTimeAgo(entity.modified)
-    if (entity.accessed) entity.relativeAccessed = useTimeAgo(entity.accessed)
+    entity.relativeModified = timeAgo(entity.modified) //// Neoffice — the reader's language (boot/timeAgo.ts)
+    if (entity.accessed) entity.relativeAccessed = timeAgo(entity.accessed) //// Neoffice — the reader's language (boot/timeAgo.ts)
     return entity
   })
 }
