@@ -1,0 +1,24 @@
+/* //// Neoffice — added file (no upstream equivalent): the desk's calendar in Neodesk's look (canvas « Neodesk »,
+   board 11). Forum comes from our frappe fork's assets, so every instance has it; frappe-ui's ink square on today
+   (week, month and day views) turns clay. The day labels stay frappe-ui's own (« lun. 12 », one text). */
+
+@font-face {
+	font-family: 'Forum';
+	src: url('/assets/frappe/fonts/forum/Forum-Regular.woff2') format('woff2');
+	font-display: swap;
+}
+
+/* The month in the header, as Neodesk writes it */
+.neo-cal-title {
+	font-family: 'Forum', Georgia, serif;
+	font-size: 26px;
+	line-height: 30px;
+	font-weight: 400;
+	letter-spacing: -0.2px;
+}
+
+/* frappe-ui marks today with « bg-surface-gray-10 … rounded-4 size-[25px] »: clay, its ink light */
+.neo-calendar .bg-surface-gray-10.rounded-4[class~='size-[25px]'] {
+	background-color: #d68a59;
+	color: #fffdf8;
+}

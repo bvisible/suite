@@ -23,6 +23,8 @@ import NeoCockpitSidebar from '@/apps/calendar/components/NeoCockpitSidebar.vue'
 import EventModal from '@/apps/calendar/components/Modals/EventModal.vue'
 // //// Neoffice — the reader's clock (maintenance#1321).
 import { usesMeridiem } from '@/neoffice/clock'
+import '@/apps/calendar/neodeskLook.css' //// Neoffice — Neodesk's look: the title in Forum, today in clay (board 11)
+import { pageTitle } from '@/apps/calendar/utils/pageTitle' //// Neoffice — Neodesk's title (board 11)
 
 const dayjs = inject('$dayjs')
 
@@ -341,33 +343,17 @@ const closeEventDetail = () => {
 	router.replace({ query })
 }
 
-/** "August 2026" → the month and its year apart, so the year can be set in a lighter ink. */
-const splitYear = (title: string) => {
-	const match = /^(.*?)[,\s]*(\d{4})$/.exec(title || '')
-	return match ? { label: match[1], year: match[2] } : { label: title, year: '' }
-}
+//// Neoffice — upstream's splitYear (« August 2026 » → month and year apart) is gone with headerTitle: the title is
+//// Neodesk's, `title` below (utils/pageTitle.ts).
 
 // The period the calendar is showing, as it reports it on every change of view or date.
 const visibleRange = ref<{ view: string; startDate: string; endDate: string } | null>(null)
 
-// The header names the period in view: the month for Month, the day for Day (the
-// calendar's own title serves both), and for Week the days themselves — "Aug 23 – 29",
-// or "Aug 30 – Sep 5" when the week straddles two months — rather than a month the
-// week only partly belongs to.
-const headerTitle = (title: string) => {
-	const range = visibleRange.value
-	if (range?.view !== 'Week') return splitYear(title)
-	const start = dayjs(range.startDate)
-	const end = dayjs(range.endDate)
-	//// Neoffice — the day before the month on a 24-hour locale (« 5 – 11 oct. », « 28 sept. – 4 oct. »), as
-	//// French, German and Italian write a week; English keeps upstream's « Oct 5 – 11 » (maintenance#1321).
-	if (!usesMeridiem(start)) {
-		const from = start.format(end.isSame(start, 'month') ? 'D' : 'D MMM')
-		return { label: `${from} – ${end.format('D MMM')}`, year: end.format('YYYY') }
-	}
-	const endLabel = end.isSame(start, 'month') ? end.format('D') : end.format('MMM D')
-	return { label: `${start.format('MMM D')} – ${endLabel}`, year: end.format('YYYY') }
-}
+//// Neoffice — the title of Neodesk's calendar (canvas « Neodesk », board 11, utils/pageTitle.ts), in place of
+//// upstream's splitYear and headerTitle: the month in Forum (« Octobre 2026 »), « Semaine 42 » beside it in the week,
+//// the day in full in the day view. Upstream named a week by its days (« Oct 5 – 11 », the day first since
+//// maintenance#1321): the columns say them already.
+const title = (monthYear: string) => pageTitle(visibleRange.value, monthYear, dayjs, __('Week'))
 
 // The header's "+ Event" opens on the period in view: starting an event while
 // looking at next week should land in next week. Today wins whenever it is on
@@ -601,7 +587,8 @@ const NOTIFY_MODAL_OPTIONS = {
 				@select-date="(date) => calendarRef?.setCalendarDate(date)"
 				@select-event="toggleEventDetail"
 			/>
-			<div class="min-h-0 min-w-0 flex-1 p-4">
+			<!-- //// Neoffice — neo-calendar: the scope of Neodesk's look (neodeskLook.css, board 11). -->
+			<div class="neo-calendar min-h-0 min-w-0 flex-1 p-4">
 				<!-- //// Neoffice — :config, the grid on the reader's clock (maintenance#1321). -->
 				<Calendar
 					ref="calendar"
@@ -628,10 +615,11 @@ const NOTIFY_MODAL_OPTIONS = {
 								<Button variant="ghost" icon="lucide-chevron-left" @click="decrement" />
 								<Button variant="ghost" :label="__('Today')" @click="setCalendarDate()" />
 								<Button variant="ghost" icon="lucide-chevron-right" @click="increment" />
-								<div class="flex items-baseline gap-1.5 px-2 text-lg leading-5">
-									<span class="font-medium text-ink-gray-9">{{ headerTitle(currentMonthYear).label }}</span>
-									<span v-if="headerTitle(currentMonthYear).year" class="text-ink-gray-4">
-										{{ headerTitle(currentMonthYear).year }}
+								<!-- //// Neoffice — the month in Forum and the week beside it, Neodesk's title (board 11). -->
+								<div class="flex items-baseline gap-2 px-2">
+									<span class="neo-cal-title text-ink-gray-9">{{ title(currentMonthYear).title }}</span>
+									<span v-if="title(currentMonthYear).sub" class="text-base text-ink-gray-5">
+										{{ title(currentMonthYear).sub }}
 									</span>
 								</div>
 							</div>
