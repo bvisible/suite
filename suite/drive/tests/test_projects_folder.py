@@ -90,6 +90,11 @@ class TestProjectsFolder(IntegrationTestCase):
         self.assertTrue(row.is_folder)
         self.assertFalse(frappe.db.exists("Drive Permission", {"entity": root.name}))
 
+    def test_the_root_reads_in_the_sites_language(self):
+        get_projects_folder()
+        label = frappe._(PROJECTS_FOLDER, lang=frappe.db.get_default("lang") or "en")
+        self.assertEqual(frappe.db.get_value("File", PROJECTS_FOLDER, "file_name"), label)
+
     def test_whoever_may_write_the_document_may_fill_its_folder(self):
         access = self._access(self.writer)
         self.assertEqual((access["read"], access["upload"], access["write"]), (1, 1, 1))

@@ -219,7 +219,13 @@ def get_users_folder():
 def get_projects_folder():
     """Folders kept for a document, each attached to it. A root beside `Drive`,
     like `Users`, so nothing granted on the shared tree reaches in."""
-    return _pinned_root(PROJECTS_FOLDER)
+    root = _pinned_root(PROJECTS_FOLDER)
+    # //// Neoffice — a path shows the site's word for the root (« Projets »), not its pinned name; the name
+    # //// and the storage prefix stay `Projects`.
+    label = frappe._(PROJECTS_FOLDER, lang=frappe.db.get_default("lang") or "en")
+    if label and frappe.db.get_value("File", root.name, "file_name") != label:
+        frappe.db.set_value("File", root.name, "file_name", label, update_modified=False)
+    return root
 
 
 def _pinned_root(file_name):
@@ -682,7 +688,8 @@ def create_drive_file(
         "file_type": file_type,
         "mime_type": mime_type,
         "is_folder": file_type == "Folder",
-        "file_modified": (datetime.fromtimestamp(file_modified) if file_modified else frappe.utils.now()),
+        # //// Neoffice — the file's own time in the site's zone (_site_time), not the server's
+        "file_modified": (_site_time(file_modified) if file_modified else frappe.utils.now()),
     }
     if content_doctype:
         values["content_doctype"] = content_doctype
@@ -696,6 +703,18 @@ def create_drive_file(
     if owner:
         drive_file.db_set("owner", owner, update_modified=False)
     return drive_file
+
+
+# //// Neoffice — a file's own time (an epoch, from the browser's upload) in the zone of the site, as the DB keeps
+# //// it. A zoneless fromtimestamp() read it in the server's zone: on a UTC server and a site in Europe/Zurich, a
+# //// file uploaded a minute ago read « 2 hours ago » in the Drive and in the project's files card. WebDAV's PUT
+# //// already went around it (webdav/put.py, _client_mtime_datetime).
+def _site_time(epoch):
+    from datetime import UTC
+
+    from suite.drive.webdav.properties import to_site_naive
+
+    return to_site_naive(datetime.fromtimestamp(float(epoch), tz=UTC))
 
 
 def get_new_file_name(file_name: str, parent_name: str, type: str = False, entity: str | None = None):
