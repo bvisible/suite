@@ -24600,3 +24600,8 @@ msgstr "Affichez cet agenda dans Google Agenda, Outlook ou Apple Calendrier. Ces
 #: suite/public/frontend/assets/CalendarView-DQskN5h0.js:2
 msgid "This date comes from Neoffice: open the document to change it."
 msgstr "Cette date provient de Neoffice : ouvrez le document pour la modifier."
+
+#: frontend/neoffice-calendar-i18n.ts:82
+#: frontend/src/test/neoffice-calendar-i18n.test.ts:72
+msgid "No events"
+msgstr "Aucun événement"
