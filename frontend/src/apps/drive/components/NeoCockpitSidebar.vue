@@ -28,7 +28,8 @@ import ShortcutsDialog from '@/apps/drive/components/ShortcutsDialog.vue'
 import Sidebar from '@/apps/drive/components/Sidebar.vue'
 import { getRootSection } from '@/apps/drive/data/breadcrumbs'
 import emitter from '@/apps/drive/emitter'
-import { storageBar } from '@/apps/drive/resources/files'
+//// Neoffice — rootInfo too: the native Sidebar fetched it, and the breadcrumbs wait for it (data/breadcrumbs.ts)
+import { rootInfo, storageBar } from '@/apps/drive/resources/files'
 import { notifCount } from '@/apps/drive/resources/permissions'
 import { base2BlockSize, formatSize } from '@/apps/drive/utils/format'
 
@@ -37,6 +38,9 @@ const failed = ref(false)
 
 notifCount.fetch()
 storageBar.fetch()
+//// Neoffice — the native Sidebar fetched the caller's home and the site folder; replaced by the cockpit, nothing
+//// did, and a folder opened by its link kept a breadcrumb of grey placeholders: its trail waits for them.
+rootInfo.fetch()
 
 const showSettings = ref(false)
 const showShortcuts = ref(false)
