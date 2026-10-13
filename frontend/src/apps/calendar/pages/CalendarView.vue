@@ -621,7 +621,9 @@ const NOTIFY_MODAL_OPTIONS = {
 						<!-- Navigation leads: back, Today, forward, then the title they change,
 						     so the title's length moves nothing. New event sits at the far
 						     right, past the view switcher. -->
-						<div class="mb-2 flex items-center justify-between">
+						<!-- //// Neoffice — flex-wrap: on a phone (390 px) the steps, the title, the views and « Event » did
+						     //// not fit on one line and the views ran off the screen; they now go under it (maintenance#1392). -->
+						<div class="mb-2 flex flex-wrap items-center justify-between gap-y-2">
 							<div class="flex items-center gap-x-1">
 								<Button variant="ghost" icon="lucide-chevron-left" @click="decrement" />
 								<Button variant="ghost" :label="__('Today')" @click="setCalendarDate()" />

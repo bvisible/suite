@@ -1,4 +1,4 @@
-// //// Neoffice — added file (no upstream equivalent): tests of neoffice-calendar-i18n.ts (maintenance#1321, #1346).
+// //// Neoffice — added file (no upstream equivalent): tests of neoffice-calendar-i18n.ts (maintenance#1321, #1346, #1392).
 import fs from 'node:fs'
 import path from 'node:path'
 import { transformWithOxc } from 'vite'
@@ -62,6 +62,17 @@ describe("frappe-ui's calendar in the reader's language", () => {
     expect(order('Monday')).toEqual(['lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.', 'dim.'])
     expect(order(undefined)).toEqual(['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'])
     delete (window as unknown as Record<string, unknown>).first_day_of_the_week
+  })
+
+  it("says the phone's empty day and the days of a stay in the reader's language (#1392)", () => {
+    const { code } = rewriteCalendarFile(
+      'CalendarMonthStack.vue',
+      fs.readFileSync(path.join(calendarDir, 'CalendarMonthStack.vue'), 'utf8'),
+    )
+    expect(code).toContain("{{ __('No events') }}")
+    expect(code).not.toMatch(/>\s*No events\s*</)
+    expect(code).toContain("__('Day {0} of {1}', [String(day), String(total)])")
+    expect(code).not.toContain('· all day`')
   })
 
   it("leaves the Vue plugin's compiled parts of a file alone, and fails a file whose text moved", () => {
@@ -132,6 +143,14 @@ describe("frappe-ui's calendar starts the week on the site's first day", () => {
     expect(iso(weeks[0]![0]!)).toBe('2026-09-28')
     expect(weeks.map((week) => week[0]!.getDay())).toEqual(Array(weeks.length).fill(1))
     expect(iso((strip.weekStart as (d: Date) => Date)(new Date(2026, 9, 11)))).toBe('2026-10-05')
+  })
+
+  it('writes a 24-hour time without the seconds the grid pads it with, and keeps the 12-hour one (#1392)', () => {
+    const format = utils.formatTime as (time: string, format: string) => string
+    expect(format('10:00:00', '24h')).toBe('10:00')
+    expect(format('09:30', '24h')).toBe('09:30')
+    expect(format('14:30:00', '12h')).toBe('2:30 pm')
+    expect(format('14:00:00', '12h')).toBe('2 pm')
   })
 
   it("an event's column in the week counts from that day", () => {

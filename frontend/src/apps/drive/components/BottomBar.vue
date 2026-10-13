@@ -25,21 +25,23 @@ export default {
   computed: {
     sidebarItems() {
       const first = getRootSection()
+      //// Neoffice — the labels in the reader's language: a French phone read « Home · Recents · Everyone ·
+      //// Favourites » (maintenance#1392). The desk's sidebar already says them through __().
       return [
         {
-          label: 'Home',
+          label: __('Home'),
           route: { name: 'drive-Home' },
           icon: LucideHome,
           highlight: () => first.name === 'drive-Home',
         },
         {
-          label: 'Recents',
+          label: __('Recents'), //// Neoffice — the reader's language (#1392)
           route: { name: 'drive-Recents' },
           icon: LucideClock,
           highlight: () => first.name === 'drive-Recents',
         },
         {
-          label: 'Everyone',
+          label: __('Everyone'), //// Neoffice — the reader's language (#1392)
           route: rootInfo.data
             ? { name: 'drive-Folder', params: { entityName: rootInfo.data.root } }
             : { name: 'drive-Home' },
@@ -47,7 +49,7 @@ export default {
           highlight: () => first.name === rootInfo.data?.root,
         },
         {
-          label: 'Favourites',
+          label: __('Favourites'), //// Neoffice — the reader's language (#1392)
           route: { name: 'drive-Favourites' },
           icon: LucideStar,
           highlight: () => first.name === 'drive-Favourites',

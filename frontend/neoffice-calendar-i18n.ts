@@ -14,6 +14,10 @@ import type { Plugin } from 'vite'
 // //// getDay(). The week now starts on the site's first day of the week (System Settings, Monday in Switzerland),
 // //// which www/suite.py puts on window.first_day_of_the_week, as the desk's calendars use it. Sunday where the page
 // //// carries none, as upstream draws it.
+// ////
+// //// On a phone the grid is a list of days (CalendarMonthStack, maintenance#1392): its empty day said « No events »,
+// //// a stay « Day 2 of 3 · all day », in English, and a time « 10:00:00 » — frappe-ui pads its times with seconds,
+// //// which its 24-hour formatTime handed back as they were.
 
 type Rewrite = { find: RegExp | string; replace: string }
 
@@ -60,6 +64,11 @@ export const CALENDAR_REWRITES: Record<string, Rewrite[]> = {
     { find: "toLocaleDateString('en-US', options)", replace: 'toLocaleDateString(neoLang(), options)' },
     // the first of the month in the column of its weekday, counted from the site's first day
     { find: 'let leftPadding = firstDay.getDay()', replace: 'let leftPadding = neoWeekColumn(firstDay)' },
+    // a 24-hour time without the seconds the grid pads its times with: « 10:00 », not « 10:00:00 » (#1392)
+    {
+      find: '    time = `${hours}:${minutes} ${ampm}`\n  }\n  return time\n}',
+      replace: "    time = `${hours}:${minutes} ${ampm}`\n    return time\n  }\n  return time.split(':').slice(0, 2).join(':')\n}",
+    },
   ],
   'Calendar.vue': [
     { find: '<Button label="Today" ', replace: `<Button :label="__('Today')" ` },
@@ -67,7 +76,15 @@ export const CALENDAR_REWRITES: Record<string, Rewrite[]> = {
     { find: "{ label: 'Week', value: 'Week',", replace: "{ label: __('Week'), value: 'Week'," },
     { find: "{ label: 'Month', value: 'Month',", replace: "{ label: __('Month'), value: 'Month'," },
   ],
-  'CalendarMonthStack.vue': [{ find: "return 'All day'", replace: "return __('All day')" }],
+  'CalendarMonthStack.vue': [
+    { find: "return 'All day'", replace: "return __('All day')" },
+    // the phone's list of days: an empty day, the days of a stay (#1392)
+    { find: /(<p v-if="!row\.events\.length" class="[^"]*">)\s*No events\s*(<\/p>)/, replace: "$1{{ __('No events') }}$2" },
+    {
+      find: 'return `Day ${day} of ${total} · all day`',
+      replace: "return `${__('Day {0} of {1}', [String(day), String(total)])} · ${__('All day')}`",
+    },
+  ],
   'CalendarDaily.vue': [
     {
       find: `:label="dayFullDayEvents.length - 4 + ' more'"`,
