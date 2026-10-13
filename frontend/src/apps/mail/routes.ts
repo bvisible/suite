@@ -458,10 +458,13 @@ export default routes
 /* was DELETED; this side-effect replaces it. Backend method preserved as-is. */
 /* -------------------------------------------------------------------------- */
 
-const translations = createResource({
-	url: 'suite.mail.api.get_translations',
-	cache: 'translations',
-	transform: (data) => (window.translatedMessages = data),
-})
-
-if (!window.translatedMessages) translations.fetch()
+//// Neoffice — the resource is made only when the page's boot carries no catalogue (www/suite.py puts the reader's
+//// on window.translatedMessages): frappe-ui restores a cached resource as soon as it is created, fetched or not,
+//// and this transform then put an older cached catalogue back over the boot's, so a new translation never showed
+//// until the browser's storage was cleared (maintenance#1392).
+if (!window.translatedMessages)
+	createResource({
+		url: 'suite.mail.api.get_translations',
+		cache: 'translations',
+		transform: (data) => (window.translatedMessages = data),
+	}).fetch()

@@ -234,9 +234,13 @@ setupTheme()
 
 // The suite installs ONE global translation plugin so bare `__()` works. We
 // only need to populate `window.translatedMessages`. Backend path preserved.
-const translations = createResource({
-  url: 'suite.drive.api.product.get_translations',
-  cache: 'translations',
-  transform: (data: unknown) => ((window as any).translatedMessages = data),
-})
-if (!(window as any).translatedMessages) translations.fetch()
+//// Neoffice — the resource is made only when the page's boot carries no catalogue (www/suite.py puts the reader's
+//// on window.translatedMessages): frappe-ui restores a cached resource as soon as it is created, fetched or not,
+//// and this transform then put an older cached catalogue back over the boot's, so a new translation never showed
+//// until the browser's storage was cleared (maintenance#1392).
+if (!(window as any).translatedMessages)
+  createResource({
+    url: 'suite.drive.api.product.get_translations',
+    cache: 'translations',
+    transform: (data: unknown) => ((window as any).translatedMessages = data),
+  }).fetch()
