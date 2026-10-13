@@ -707,6 +707,29 @@ socket.on('client-rename', ({ entity_name, title }) => {
   const file = props.getEntities.data.find((k) => k.name === entity_name)
   file.file_name = title
 })
+
+//// Neoffice — the server announces a new file to the room of its folder, no longer to every session of the site
+//// (maintenance#1532, suite/drive/api/files.py upload_file): the page joins the room of the folder it shows, which
+//// Frappe opens only to those who may read it, joins it again after a reconnection (a room does not survive one),
+//// and leaves it with the folder or the page. The uploader's own sessions get theirs by their user.
+const shownFolder = computed(() => props.getEntities?.params?.entity_name || '')
+const joinFolder = (name) => {
+  if (name) socket.emit('doc_subscribe', 'File', name)
+}
+watch(
+  shownFolder,
+  (name, previous) => {
+    if (previous) socket.emit('doc_unsubscribe', 'File', previous)
+    joinFolder(name)
+  },
+  { immediate: true }
+)
+const rejoinFolder = () => joinFolder(shownFolder.value)
+socket.on('connect', rejoinFolder)
+onBeforeUnmount(() => {
+  socket.off('connect', rejoinFolder)
+  if (shownFolder.value) socket.emit('doc_unsubscribe', 'File', shownFolder.value)
+})
 </script>
 <style>
 .file-drag #drop-area {

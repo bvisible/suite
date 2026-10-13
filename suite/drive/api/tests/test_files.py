@@ -1,6 +1,7 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
 from contextlib import contextmanager
 from io import BytesIO
 from pathlib import Path
@@ -547,6 +548,28 @@ class TestDriveFilesAPI(IntegrationTestCase):
         ):
             with self.assertRaises(frappe.PermissionError):
                 upload_file(total_file_size=6, parent=self.folder.name)
+
+    # //// Neoffice — a new file is announced to the room of its folder and to its uploader, never to the whole site
+    # //// (maintenance#1532: every browser of the site received the row of every upload).
+    def test_upload_announces_the_file_to_its_folder_and_its_uploader_only(self):
+        with (
+            self.set_user(OWNER),
+            self.upload_request(b"announced", "announced.txt", frappe.generate_hash(12)),
+            patch("suite.drive.api.files.validate_quota"),
+            patch("suite.drive.api.files.frappe.publish_realtime") as publish,
+        ):
+            uploaded = upload_file(total_file_size=9, parent=self.folder.name)
+
+        added = [call for call in publish.call_args_list if call.args[0] == "list-add"]
+        self.assertEqual(
+            [{key: call.kwargs.get(key) for key in ("room", "user", "doctype", "docname")} for call in added],
+            [
+                {"room": None, "user": None, "doctype": "File", "docname": self.folder.name},
+                {"room": None, "user": OWNER, "doctype": None, "docname": None},
+            ],
+        )
+        for call in added:
+            self.assertEqual(call.args[1]["file"]["name"], uploaded.name)
 
     def test_upload_with_unknown_mime_type(self):
         with self.set_user(OWNER):

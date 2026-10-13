@@ -1,4 +1,4 @@
-import { computed, createApp, defineComponent, h, nextTick, ref } from 'vue'
+import { computed, createApp, defineComponent, h, nextTick, reactive, ref } from 'vue' //// Neoffice — reactive, for the folder room below
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // What ListView actually does that matters here: expose a computed derived from
@@ -122,7 +122,8 @@ function mountPage(grouper: (rows: unknown[]) => unknown) {
   )
   app.config.errorHandler = (err) => errors.push(String(err))
   app.config.warnHandler = (msg) => errors.push(msg)
-  app.provide('socket', { on: vi.fn() })
+  //// Neoffice — the page also joins and leaves the room of its folder (maintenance#1532)
+  app.provide('socket', { on: vi.fn(), off: vi.fn(), emit: vi.fn() })
   app.mount(document.createElement('div'))
   return { app, errors }
 }
@@ -211,7 +212,8 @@ function mountPaginated(firstPage: {
         }),
     })
   )
-  app.provide('socket', { on: vi.fn() })
+  //// Neoffice — the page also joins and leaves the room of its folder (maintenance#1532)
+  app.provide('socket', { on: vi.fn(), off: vi.fn(), emit: vi.fn() })
   app.mount(document.createElement('div'))
   return { app, getEntities }
 }
@@ -420,6 +422,78 @@ describe('GenericPage pagination', () => {
 
     expect(frappeUI.request).toHaveBeenCalled()
     expect(frappeUI.request.mock.calls[0][0].params).toMatchObject({ start: 50 })
+    app.unmount()
+  })
+})
+
+//// Neoffice — a new file is announced to the room of its folder, no longer to every session of the site
+//// (maintenance#1532): the page joins the room of the folder it shows, again after a reconnection, and leaves it.
+describe('GenericPage folder room', () => {
+  beforeEach(() => {
+    frappeUI.scrollHost!.value = null
+    window.__ = (message: string) => message
+  })
+
+  function mountFolder(params: Record<string, string>) {
+    const handlers: Record<string, ((...args: unknown[]) => void)[]> = {}
+    const socket = {
+      on: vi.fn((event: string, handler: (...args: unknown[]) => void) => {
+        ;(handlers[event] ||= []).push(handler)
+      }),
+      off: vi.fn(),
+      emit: vi.fn(),
+    }
+    const getEntities = reactive({
+      data: [] as unknown[],
+      error: null,
+      loading: false,
+      paginated: false,
+      params,
+      url: 'suite.drive.api.list.files',
+      fetch: vi.fn(),
+      setData: vi.fn(),
+    })
+    const app = createApp(
+      defineComponent({ setup: () => () => h(GenericPage, { getEntities, showSort: false }) })
+    )
+    app.provide('socket', socket)
+    app.mount(document.createElement('div'))
+    return { app, socket, handlers, getEntities }
+  }
+
+  it('joins the room of the folder it shows, and again after a reconnection', async () => {
+    const { app, socket, handlers } = mountFolder({ entity_name: 'folder-1' })
+    await nextTick()
+    expect(socket.emit).toHaveBeenCalledWith('doc_subscribe', 'File', 'folder-1')
+
+    socket.emit.mockClear()
+    handlers.connect.forEach((handler) => handler())
+    expect(socket.emit).toHaveBeenCalledWith('doc_subscribe', 'File', 'folder-1')
+    app.unmount()
+  })
+
+  it('leaves the room of a folder it no longer shows, and of its folder when it goes', async () => {
+    const { app, socket, handlers, getEntities } = mountFolder({ entity_name: 'folder-1' })
+    await nextTick()
+
+    socket.emit.mockClear()
+    getEntities.params = { entity_name: 'folder-2' }
+    await nextTick()
+    expect(socket.emit.mock.calls).toEqual([
+      ['doc_unsubscribe', 'File', 'folder-1'],
+      ['doc_subscribe', 'File', 'folder-2'],
+    ])
+
+    socket.emit.mockClear()
+    app.unmount()
+    expect(socket.emit).toHaveBeenCalledWith('doc_unsubscribe', 'File', 'folder-2')
+    expect(socket.off).toHaveBeenCalledWith('connect', handlers.connect[0])
+  })
+
+  it('joins no room on a page that lists no folder (recents, favourites)', async () => {
+    const { app, socket } = mountFolder({})
+    await nextTick()
+    expect(socket.emit).not.toHaveBeenCalled()
     app.unmount()
   })
 })

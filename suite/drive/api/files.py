@@ -1,6 +1,7 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
 import hashlib
 import json
 import os
@@ -138,7 +139,14 @@ def upload_file(
         # Find a cleaner way to handle folder sizes as multiple simultaneous uploads will break this
         pass
 
-    frappe.publish_realtime("list-add", {"file": prettify_file(drive_file.as_dict())})
+    # //// Neoffice — upstream published the new file's row with no user and no room, to every session of the site:
+    # //// each browser received the name, owner and folder of every file anyone uploaded, private folders included
+    # //// (maintenance#1532). Now to the room of its folder, which a Drive page joins for the folder it shows and which
+    # //// Frappe opens only to those who may read that folder (can_subscribe_doc, the File permission hook), and to
+    # //// the uploader's own sessions. Two publishes: a `user` takes precedence over a document's room.
+    added = {"file": prettify_file(drive_file.as_dict())}
+    frappe.publish_realtime("list-add", added, doctype="File", docname=parent)
+    frappe.publish_realtime("list-add", added, user=frappe.session.user)
 
     return drive_file
 
