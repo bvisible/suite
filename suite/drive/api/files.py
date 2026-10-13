@@ -707,6 +707,10 @@ def toggle_entity_status(doc, manager: FileManager, locked_owners: set):
     frappe.db.get_value("File", doc.name, "name", for_update=True)
     if not user_has_permission(doc, "write"):
         raise frappe.PermissionError("You do not have permission to remove this file")
+    # //// Neoffice — the Drive's check above decides who may trash a row. frappe's role rule on File judged the
+    # //// save again and refused a row the user does not own wherever « All » writes only its own Files (osiris
+    # //// since 2022): a shared folder's writer, a project's team (neoffice_activity/project_drive.py).
+    doc.flags.ignore_permissions = True
     if doc.owner not in locked_owners:
         acquire_owner_storage_lock(doc.owner)
         locked_owners.add(doc.owner)

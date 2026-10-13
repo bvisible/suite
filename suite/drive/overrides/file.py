@@ -349,6 +349,9 @@ class File(FrappeFile):
             )
         elif not user_has_permission(new_parent, "upload") or not user_has_permission(self, "write"):
             frappe.throw("You don't have permission to move this file.", frappe.PermissionError)
+        # //// Neoffice — the Drive's check above decides; frappe's role rule on File would refuse the save of a
+        # //// row the user does not own (« All » writes only its own Files on osiris). See toggle_entity_status.
+        self.flags.ignore_permissions = True
 
         if not frappe.db.get_value("File", new_parent, "is_folder"):
             frappe.throw(
@@ -405,6 +408,9 @@ class File(FrappeFile):
         frappe.db.get_value("File", self.name, "name", for_update=True)
         if not user_has_permission(self, "write"):
             frappe.throw("You cannot rename this file", frappe.PermissionError)
+        # //// Neoffice — the Drive's check above decides; frappe's role rule on File would refuse the save of a
+        # //// row the user does not own (« All » writes only its own Files on osiris). See toggle_entity_status.
+        self.flags.ignore_permissions = True
 
         if new_file_name == self.file_name:
             return self
@@ -430,7 +436,12 @@ class File(FrappeFile):
         if not self.manager.flat:
             path = self.manager.rename(self)
             if self.file_url and not self._not_in_disk():
-                self.recursive_path_move(self.file_url, path)
+                # //// Neoffice (v15) — the storage key came back as a pathlib.Path and went into file_url as one.
+                # //// Frappe v15 cannot serialise a Path: the save below raised (its Version row), after the bytes
+                # //// had moved, so the row kept its old url while the file was under the new name — every later
+                # //// read, rename or trash failed with "This file doesn't exist on disk". Stored as a string, a
+                # //// folder's with its trailing slash, the way move() stores it.
+                self.recursive_path_move(self.file_url, f"{path}/" if self.is_folder else str(path))
 
         self.save()
 
@@ -439,6 +450,9 @@ class File(FrappeFile):
         parent_write_access = user_has_permission(self.folder, "write")
         if not (write_access or parent_write_access):
             frappe.throw("Not permitted", frappe.PermissionError)
+        # //// Neoffice — the Drive's check above decides; frappe's role rule on File would refuse the save of a
+        # //// row the user does not own (« All » writes only its own Files on osiris). See toggle_entity_status.
+        self.flags.ignore_permissions = True
 
         delete_blob = not self._not_in_disk()
         blob_is_trashed = self.status == STATUS_TRASHED and not self.manager.flat
@@ -500,6 +514,10 @@ class File(FrappeFile):
             # only where a restore would put it back, so repoint it and move nothing
             if manager.s3_enabled and child.status != STATUS_TRASHED:
                 manager.move(child, new_child_url)
+            # //// Neoffice — a child follows its folder's authorised move or rename, whoever owns it: under
+            # //// frappe's role rule (« All » writes only its own Files) its save failed half-way, after the
+            # //// bytes had moved. See toggle_entity_status.
+            child.flags.ignore_permissions = True
             child.recursive_path_move(child.file_url, new_child_url)
         self.save()
 
