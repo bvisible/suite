@@ -504,6 +504,9 @@ def generate_upward_path(entity_name, user=None):
                     `tabFile`.name,
                     `tabFile`.folder,
                     `tabFile`.owner,
+                    -- //// Neoffice: what each folder is attached to (nearest_attached, PROJECTS_FOLDER)
+                    `tabFile`.attached_to_doctype,
+                    `tabFile`.attached_to_name,
                     0 AS level
                 FROM
                     `tabFile`
@@ -515,6 +518,9 @@ def generate_upward_path(entity_name, user=None):
                     t.name,
                     t.folder,
                     t.owner,
+                    -- //// Neoffice: what each folder is attached to
+                    t.attached_to_doctype,
+                    t.attached_to_name,
                     gp.level + 1
                 FROM
                     generated_path as gp
@@ -525,6 +531,9 @@ def generate_upward_path(entity_name, user=None):
             gp.name,
             gp.owner,
             gp.folder,
+            -- //// Neoffice: what each folder is attached to
+            gp.attached_to_doctype,
+            gp.attached_to_name,
             p.user AS perm_user,
             p.deny,
             p.read,
@@ -551,6 +560,10 @@ def generate_upward_path(entity_name, user=None):
                     "name": row["name"],
                     "owner": row["owner"],
                     "folder": row["folder"],
+                    # //// Neoffice — what each folder is attached to: below a folder kept for a document, the
+                    # //// document decides access (permissions.nearest_attached, PROJECTS_FOLDER).
+                    "attached_to_doctype": row["attached_to_doctype"],
+                    "attached_to_name": row["attached_to_name"],
                     "perms": [],
                 }
             )

@@ -13,7 +13,12 @@ from __future__ import annotations
 
 import frappe
 
-from suite.drive.api.permissions import get_user_access_for_user, is_drive_admin
+from suite.drive.api.permissions import (  # //// Neoffice — and what lies below a folder kept for a document
+    _ref_doc_access,
+    get_user_access_for_user,
+    is_drive_admin,
+    nearest_attached,
+)
 from suite.drive.utils import (
     GENERAL_USER,
     GROUP_PREFIX,
@@ -40,6 +45,10 @@ def resolve_children_access(
 
     inherited = _dribble_state(parent_path)
     own_rows = _child_permission_rows([child.name for child in children], user)
+    # //// Neoffice — below a folder attached to a document, what no row decides comes from the document, as
+    # //// in get_user_access_for_user: a project's folder synced over WebDAV lists what the project lets read.
+    ref = nearest_attached(parent_path)
+    lent = _ref_doc_access(frappe._dict(ref), user) if ref else {}
 
     access = {}
     for child in children:
@@ -50,11 +59,13 @@ def resolve_children_access(
             # rare: adopted framework attachments delegate to their reference doc
             access[child.name] = get_user_access_for_user(child, user)
         else:
-            access[child.name] = _compose(own_rows.get(child.name, []), inherited)
+            # //// Neoffice — and what a document lends below its folder
+            access[child.name] = _compose(own_rows.get(child.name, []), inherited, lent)
     return access
 
 
-def _compose(child_rows: list[dict], inherited: dict[str, int]) -> dict:
+# //// Neoffice — `lent`: what a document lends below its folder (resolve_children_access).
+def _compose(child_rows: list[dict], inherited: dict[str, int], lent: dict | None = None) -> dict:
     # identical evaluation order to dribble_access over parent_path + [child]:
     # the child's own rows are nearest and decide first, then the parent state
     decided = {}
@@ -62,7 +73,11 @@ def _compose(child_rows: list[dict], inherited: dict[str, int]) -> dict:
         for ptype in PERMISSION_TYPES:
             if row[ptype] and ptype not in decided:
                 decided[ptype] = 0 if row["deny"] else 1
-    return {ptype: decided.get(ptype, inherited.get(ptype, 0)) for ptype in PERMISSION_TYPES}
+    # //// Neoffice — then what a document lends below its folder (resolve_children_access), then deny.
+    return {
+        ptype: decided.get(ptype, inherited.get(ptype, (lent or {}).get(ptype, 0)))
+        for ptype in PERMISSION_TYPES
+    }
 
 
 def _dribble_state(path: list[dict]) -> dict[str, int]:
@@ -109,5 +124,9 @@ def parent_access(parent_path: list[dict], parent: frappe._dict, user: str) -> d
         return dict(ALL_ACCESS)
     if user != "Guest" and parent.owner == user:
         return dict(ALL_ACCESS)
+    # //// Neoffice — below a folder attached to a document, that document decides with the rows of the path.
+    if nearest_attached(parent_path[:-1]):
+        access = get_user_access_for_user(parent, user)
+        return {ptype: access.get(ptype, 0) for ptype in PERMISSION_TYPES}
     leaf = parent_path[-1]
     return {ptype: leaf.get(ptype, 0) for ptype in PERMISSION_TYPES}

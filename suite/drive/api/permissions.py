@@ -68,8 +68,30 @@ def get_user_access_for_user(entity: str | Document | frappe._dict, user: str):
             access = {**_ref_doc_access(entity, user), **{t: access[t] for t in decided}}
         return {**access, "type": "user" if access["write"] else "guest"}
 
-    access = filter_access(generate_upward_path(entity.name, user))
+    path = generate_upward_path(entity.name, user)
+    access = filter_access(path)
+    # //// Neoffice — what lies below a folder attached to a document takes that document's access, as the
+    # //// folder itself does: a project's folder and all it holds follow the project (PROJECTS_FOLDER,
+    # //// neoffice_activity/project_drive.py) without a row of its own to keep in step. Explicit rows on the
+    # //// path still decide first, type by type, as for an attachment.
+    ref = nearest_attached(path[:-1])
+    if ref:
+        decided = set(path[-1]["decided"])
+        if decided != set(PERMISSION_TYPES):
+            access = {**_ref_doc_access(frappe._dict(ref), user), **{t: access[t] for t in decided}}
     return {**access, "type": "user" if access["write"] else "guest"}
+
+
+# //// Neoffice — the nearest node of an upward path attached to a document (see get_user_access_for_user).
+def nearest_attached(nodes):
+    return next(
+        (
+            node
+            for node in reversed(nodes)
+            if node.get("attached_to_doctype") and node.get("attached_to_name")
+        ),
+        None,
+    )
 
 
 @frappe.whitelist(allow_guest=True)

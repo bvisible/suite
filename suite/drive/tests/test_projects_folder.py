@@ -1,6 +1,7 @@
-# //// Neoffice — added file (no upstream equivalent). The `Projects` root, and the upload right a
-# //// folder takes from the document it is attached to: a project's folder is filled by whoever may
-# //// write the project (neoffice_activity/project_drive.py).
+# //// Neoffice — added file (no upstream equivalent). The `Projects` root, the upload right a folder
+# //// takes from the document it is attached to, and the access it lends to all it holds: a project's
+# //// folder is read by whoever reads the project and filled by whoever writes it
+# //// (neoffice_activity/project_drive.py), in the Drive and over WebDAV.
 from __future__ import annotations
 
 import shutil
@@ -10,8 +11,15 @@ import frappe
 from frappe.tests import IntegrationTestCase
 
 from suite.drive.api.permissions import get_user_access_for_user
-from suite.drive.utils import PROJECTS_FOLDER, ROOT_FOLDER, create_drive_file, get_projects_folder
+from suite.drive.utils import (
+    PROJECTS_FOLDER,
+    ROOT_FOLDER,
+    create_drive_file,
+    generate_upward_path,
+    get_projects_folder,
+)
 from suite.drive.utils.files import FileManager, storage_key
+from suite.drive.webdav import perms
 from suite.tests.utils import ensure_user
 
 
@@ -36,6 +44,18 @@ class TestProjectsFolder(IntegrationTestCase):
             owner="Administrator",
         )
         self.folder.db_set({"attached_to_doctype": "ToDo", "attached_to_name": self.todo.name})
+        # below it, nothing attached: a folder and a file in it, as anyone adds them
+        self.below = create_drive_file(
+            f"below-{suffix}", self.folder.name, "Folder", lambda file: manager.create_folder(file)
+        )
+        self.file = create_drive_file(
+            f"note-{suffix}.txt",
+            self.below.name,
+            "Text",
+            f"{self.below.file_url}note-{suffix}.txt",
+            "text/plain",
+            5,
+        )
 
     def tearDown(self):
         frappe.flags.mute_drive_activity_log = False
@@ -43,16 +63,21 @@ class TestProjectsFolder(IntegrationTestCase):
             shutil.rmtree(FileManager().site_folder / storage_key(self.folder.file_url), ignore_errors=True)
         super().tearDown()
 
-    def _access(self, user):
-        """The folder's access for `user`, who may write the document (writer), only read it
-        (reader) or neither (stranger)."""
+    def _rights(self):
+        """`user` may write the document (writer), only read it (reader) or neither (stranger)."""
         rights = {self.writer: ("read", "write"), self.reader: ("read",)}
 
         def has_permission(doctype, ptype="read", doc=None, user=None, **kwargs):
             return ptype in rights.get(user, ())
 
-        with patch("suite.drive.api.permissions.frappe.has_permission", side_effect=has_permission):
-            return get_user_access_for_user(frappe.get_doc("File", self.folder.name), user)
+        return patch("suite.drive.api.permissions.frappe.has_permission", side_effect=has_permission)
+
+    def _access(self, user, name=None):
+        with self._rights():
+            return get_user_access_for_user(frappe.get_doc("File", name or self.folder.name), user)
+
+    def _bits(self, access):
+        return (access["read"], access["upload"], access["write"])
 
     def test_the_root_stands_beside_drive_and_carries_no_grant(self):
         root = get_projects_folder()
@@ -78,3 +103,38 @@ class TestProjectsFolder(IntegrationTestCase):
         # Under `Drive`, the root's $GENERAL row would have let this user read it.
         access = self._access(self.stranger)
         self.assertEqual((access["read"], access["upload"], access["write"]), (0, 0, 0))
+
+    def test_what_lies_below_the_folder_takes_the_documents_access(self):
+        for name in (self.below.name, self.file.name):
+            self.assertEqual(self._bits(self._access(self.writer, name)), (1, 1, 1), name)
+            self.assertEqual(self._bits(self._access(self.reader, name)), (1, 0, 0), name)
+            self.assertEqual(self._bits(self._access(self.stranger, name)), (0, 0, 0), name)
+
+    def test_a_row_nearer_than_the_document_still_decides(self):
+        frappe.get_doc(
+            {
+                "doctype": "Drive Permission",
+                "entity": self.below.name,
+                "user": self.reader,
+                "deny": 1,
+                "read": 1,
+            }
+        ).insert(ignore_permissions=True)
+        self.assertEqual(self._access(self.reader, self.file.name)["read"], 0)
+        self.assertEqual(self._access(self.reader, self.folder.name)["read"], 1)
+
+    def test_webdav_lists_below_the_folder_as_the_drive_does(self):
+        children = [frappe._dict(frappe.get_doc("File", self.file.name).as_dict())]
+        below = frappe._dict(frappe.get_doc("File", self.below.name).as_dict())
+        with self._rights():
+            for user, bits in (
+                (self.writer, (1, 1, 1)),
+                (self.reader, (1, 0, 0)),
+                (self.stranger, (0, 0, 0)),
+            ):
+                listed = perms.resolve_children_access(
+                    generate_upward_path(self.below.name, user), children, user
+                )
+                self.assertEqual(self._bits(listed[self.file.name]), bits, user)
+                folder = perms.parent_access(generate_upward_path(self.below.name, user), below, user)
+                self.assertEqual(self._bits(folder), bits, user)
