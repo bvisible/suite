@@ -22,7 +22,7 @@
 			<div
 				v-if="open"
 				ref="menu"
-				class="fixed z-50 w-72 rounded-6 border border-outline-gray-2 bg-surface-gray-1 p-3 shadow-lg"
+				class="fixed z-50 w-96 max-w-[calc(100vw-1rem)] rounded-6 border border-outline-gray-2 bg-surface-gray-1 p-3 shadow-lg"
 				:style="{ top: `${position.top}px`, right: `${position.right}px` }"
 				role="dialog"
 				:aria-label="__('Notes of this meeting')"
