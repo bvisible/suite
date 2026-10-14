@@ -35,6 +35,16 @@
 				<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 				{{ __('Guest') }}
 			</span>
+			<!-- //// Neoffice — while notes are being taken of the call, who agreed to them (their voice is captured) -->
+			<span
+				v-if="isCaptured"
+				class="inline-flex items-center gap-1 rounded-full bg-surface-gray-4 px-1.5 py-px text-xs text-ink-gray-6 tracking-[0.24px]"
+				:title="__('{0} agreed to the notes', [participant.user_name || participant.user_id])"
+				data-testid="people-seance-chip"
+			>
+				<span class="size-1.5 rounded-full bg-[#D68A59]" aria-hidden="true" />
+				{{ __('Agreed') }}
+			</span>
 		</div>
 
 		<div class="flex flex-shrink-0 items-center gap-1">
@@ -141,6 +151,11 @@ const isHandRaised = computed(() => {
 	if (!meetingCtx?.raiseHandStore?.raisedHands) return false;
 	return !!meetingCtx.raiseHandStore.raisedHands[props.participant.user_id];
 });
+
+//// Neoffice — captured by the notes of the call: the person said yes and the call server listens to them
+const isCaptured = computed(
+	() => meetingCtx?.seanceStore?.isCaptured(props.participant.user_id) ?? false,
+);
 
 const handleKickConfirm = (ban: boolean) => {
 	emit("kickParticipant", props.participant.user_id, ban);

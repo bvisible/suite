@@ -81,6 +81,20 @@
 					</template>
 				</ReactionPicker>
 
+				<!-- //// Neoffice — the host's button for the notes of the call (a "séance"): offered only when the
+				     instance and the call server can take them, and it ends them while they run -->
+				<ToolbarButton
+					v-if="canTakeNotes"
+					:active="notesActive"
+					:show-tooltip="isVisible"
+					:title="notesActive ? __('End the notes') : __('Take notes')"
+					:disabled="notesBusy"
+					data-testid="toolbar-notes"
+					@click="$emit('manage-notes')"
+				>
+					<span class="lucide-notebook-pen size-5" aria-hidden="true" />
+				</ToolbarButton>
+
 				<!-- More Options -->
 				<div class="relative">
 					<Dropdown :options="moreOptions">
@@ -251,6 +265,10 @@ const props = defineProps<{
 	canManageRecording?: boolean;
 	recordingStatus?: string;
 	recordingLoading?: boolean;
+	//// Neoffice — the notes of the call (a "séance"): the button, whether they run, whether a request is in flight
+	canTakeNotes?: boolean;
+	notesActive?: boolean;
+	notesBusy?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -270,6 +288,8 @@ const emit = defineEmits<{
 	"update:isReactionPickerOpen": [value: boolean];
 	"visibility-change": [visible: boolean];
 	"manage-recording": [];
+	//// Neoffice — the host asks to take, or to end, the notes of the call
+	"manage-notes": [];
 }>();
 
 const { isMobile } = useResponsiveGrid();

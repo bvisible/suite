@@ -20,6 +20,17 @@
 						:can-stop="isCurrentUserHost || isCurrentUserCohost"
 						@click="handleRecordingAction"
 					/>
+					<!-- //// Neoffice — the notes of the call (a "séance"): a calm pill for everybody in it -->
+					<SeanceIndicator
+						v-if="!showPreview && seanceStore.active"
+						:started-at="seanceStore.startedAt"
+						:you="seanceStore.you"
+						:can-end="isCurrentUserHost || isCurrentUserCohost"
+						:busy="seanceStore.busy"
+						@agree="seance.agree()"
+						@withdraw="seance.withdraw($event)"
+						@end="seanceStopDialogOpen = true"
+					/>
 					<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 					<Button
 						v-if="showPreview"
@@ -228,6 +239,8 @@
 				<!-- Meeting controls live in their own row so tiles resize without JS padding -->
 				<div class="pointer-events-none min-h-0">
 					<!-- Meeting controls -->
+					<!-- //// Neoffice — the notes of the call (a "séance"): the host's button and its state arrive as
+					     the props canTakeNotes, notesActive and notesBusy, and the click as the event manage-notes -->
 					<MeetingToolbar
 						:isChatOpen="chatStore.isChatOpen"
 						:isPeopleOpen="isPeopleOpen"
@@ -251,6 +264,10 @@
 						:canManageRecording="recording.globalEnabled.value && (isCurrentUserHost || isCurrentUserCohost)"
 						:recordingStatus="recording.state.value?.status"
 						:recordingLoading="recording.startLoading.value || recording.stopLoading.value"
+						:canTakeNotes="canManageNotes"
+						:notesActive="seanceStore.active"
+						:notesBusy="seanceStore.busy"
+						@manage-notes="handleNotesAction"
 						@toggle-chat="toggleChat"
 						@toggle-people="togglePeople"
 						@toggle-reactions="toggleReactions($event)"
@@ -298,6 +315,24 @@
 			:loading="recording.stopLoading.value"
 			@confirm="confirmRecordingStop"
 		/>
+
+		<!-- //// Neoffice — the notes of the call (a "séance"): the card that asks each person, never blocking -->
+		<Teleport to="body">
+			<div
+				v-if="!showPreview && seanceStore.isAsked"
+				class="pointer-events-none fixed right-4 top-14 z-50"
+			>
+				<SeanceConsentCard
+					:started-by="seanceStore.startedBy?.name"
+					:retention-days="seanceStore.retentionDays"
+					:busy="seanceStore.busy"
+					@agree="seance.agree()"
+					@decline="seance.decline()"
+				/>
+			</div>
+		</Teleport>
+		<SeanceStartDialog v-model:open="seanceStartDialogOpen" :confirm="() => seance.start()" />
+		<SeanceStopDialog v-model:open="seanceStopDialogOpen" :confirm="() => seance.stop()" />
 	</div>
 </template>
 
@@ -332,6 +367,10 @@ import MeetingLayout from "../components/MeetingLayout.vue";
 import MeetingPreview from "../components/MeetingPreview.vue";
 import MeetingHeader from "../components/MeetingHeader.vue";
 import RecordingIndicator from "../components/RecordingIndicator.vue";
+import SeanceConsentCard from "../components/SeanceConsentCard.vue"; //// Neoffice — the notes of the call
+import SeanceIndicator from "../components/SeanceIndicator.vue"; //// Neoffice — the notes of the call
+import SeanceStartDialog from "../components/SeanceStartDialog.vue"; //// Neoffice — the notes of the call
+import SeanceStopDialog from "../components/SeanceStopDialog.vue"; //// Neoffice — the notes of the call
 import RecordingPreflightDialog from "../components/RecordingPreflightDialog.vue";
 import RecordingStopDialog from "../components/RecordingStopDialog.vue";
 import MeetingToolbar from "../components/MeetingToolbar.vue";
@@ -342,7 +381,7 @@ import { useBackgroundEffects } from "../composables/useBackgroundEffects";
 import { useCaptions } from "../composables/useCaptions";
 import { useChat } from "../composables/useChat";
 import { useChatStore } from "../composables/useChatStore";
-import { useConnectionState } from "../composables/useConnectionState";
+import { readGuestSession, useConnectionState } from "../composables/useConnectionState"; //// Neoffice — the guest's proof, for the notes of the call
 import { useCurrentUser } from "../composables/useCurrentUser";
 import { useE2EEState } from "../composables/useE2EEState";
 import { useGridLayout } from "../composables/useGridLayout";
@@ -370,6 +409,8 @@ import {
 import { useReactionStore } from "../composables/useReactionStore";
 import { useReactions } from "../composables/useReactions";
 import { useResponsiveGrid } from "../composables/useResponsiveGrid";
+import { useSeance } from "../composables/useSeance"; //// Neoffice — the notes of the call
+import { useSeanceStore } from "../composables/useSeanceStore"; //// Neoffice — the notes of the call
 import {
 	type SFUScreenShareData,
 	useSFUConnection,
@@ -450,6 +491,7 @@ const pollStore = usePollStore();
 const lobbyStore = useLobbyStore();
 const reactionStore = useReactionStore();
 const raiseHandStore = useRaiseHandStore();
+const seanceStore = useSeanceStore(); //// Neoffice — the notes of the call (a "séance")
 const gridLayout = useGridLayout(mediaState);
 
 // --- Lobby notification tracking ---
@@ -809,6 +851,46 @@ const {
 	toggleCaptions,
 } = captions;
 
+//// Neoffice — the notes of the call (a "séance"): the host asks, each person answers, the call server copies
+//// the voice of those who said yes and the instance writes the minutes. The whole feature stays out of sight
+//// until the instance and the call server say they can take notes (bvisible/neoffice-maintenance#1343).
+const seance = useSeance({
+	meetingId: meetingId.value,
+	sfuClient: sfuConnection.sfuClient,
+	store: seanceStore,
+	currentUserId: () => (currentUser.currentUser.value?.user_id as string | undefined) ?? null,
+	guestProof: () => {
+		if (session.isLoggedIn) return null;
+		const guest = readGuestSession(meetingId.value);
+		return guest ? { guest_id: guest.guestId, guest_session_token: guest.guestSessionToken } : null;
+	},
+});
+const seanceStartDialogOpen = ref(false);
+const seanceStopDialogOpen = ref(false);
+const canManageNotes = computed(
+	() => seance.canStart.value || (seanceStore.active && (isCurrentUserHost.value || isCurrentUserCohost.value)),
+);
+
+function handleNotesAction() {
+	if (seanceStore.busy) return;
+	if (seanceStore.active) seanceStopDialogOpen.value = true;
+	else seanceStartDialogOpen.value = true;
+}
+
+// Ask where the notes stand (and what this person may do) once the call is set up: a late joiner, a reload.
+watch(
+	() => sfuConnection.isSetupComplete.value,
+	(ready) => {
+		if (!ready) return;
+		void seance.refresh();
+		void seance.loadCapabilities();
+	},
+	{ immediate: true },
+);
+watch([isCurrentUserHost, isCurrentUserCohost], () => {
+	if (sfuConnection.isSetupComplete.value) void seance.loadCapabilities();
+});
+
 // --- Lobby ---
 const lobby = useLobby({
 	lobbyStore,
@@ -833,6 +915,7 @@ provideMeetingContext({
 	onBackgroundEffectsChanged: mediaControls.applyBackgroundEffectsToLocalStream,
 	networkQuality,
 	localNetworkQuality,
+	seanceStore, //// Neoffice — who agreed to the notes of the call, for the people panel
 });
 
 // Provide legacy injects for components not yet migrated to useMeetingContext
@@ -1191,6 +1274,7 @@ onMounted(async () => {
 	lobbyStore.$reset();
 	reactionStore.$reset();
 	raiseHandStore.$reset();
+	seanceStore.$reset(); //// Neoffice — the notes of the call
 	captions.reset();
 	gridLayout.resetGridLayout();
 	currentUser.resetCurrentUser();
@@ -1230,6 +1314,7 @@ onMounted(async () => {
 	chat.setupChatEvents(showMeetingNotification);
 	reactions.setupReactionEvents();
 	raiseHand.setupRaiseHandEvents();
+	seance.setupSeanceEvents(); //// Neoffice — the notes of the call
 	poll.setupPollEvents(showMeetingNotification);
 
 	// Setup notification context watchers
@@ -1268,6 +1353,7 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
+	seance.dispose(); //// Neoffice — the notes of the call
 	clearConnectingToast();
 	clearMeetingNotifications();
 	document.removeEventListener("fullscreenchange", syncFullscreenState);

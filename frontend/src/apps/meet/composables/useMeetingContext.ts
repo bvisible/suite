@@ -10,6 +10,7 @@ import type { ParticipantStore } from "./useParticipantStore";
 import type { RaiseHandStore } from "./useRaiseHandStore";
 import type { ReactionStore } from "./useReactionStore";
 import type { NetworkQuality } from "./useNetworkQuality";
+import type { SeanceStore } from "./useSeanceStore"; //// Neoffice — the notes of the call, read by the people panel
 
 interface MeetingContext {
 	mediaState: MediaState;
@@ -26,6 +27,8 @@ interface MeetingContext {
 	onBackgroundEffectsChanged: () => void;
 	networkQuality: Ref<NetworkQuality>;
 	localNetworkQuality: Ref<string>;
+	//// Neoffice — who agreed to the notes of the call, for the chip of the people panel (absent in tests)
+	seanceStore?: SeanceStore;
 }
 
 const MEETING_CONTEXT_KEY: InjectionKey<MeetingContext> =
