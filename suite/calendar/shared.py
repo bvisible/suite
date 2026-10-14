@@ -61,10 +61,38 @@ def other_accounts(account: str) -> list[str]:
     if not account or is_local_account(account):
         return []
 
-    accounts = get_user_jmap_accounts(frappe.session.user)
+    user = frappe.session.user
+    accounts = get_user_jmap_accounts(user)
     if account not in accounts:
         return []
+    accounts = _linked_with_session(user, accounts)
     return [other for other in accounts if other != account and not is_local_account(other)]
+
+
+def _linked_with_session(user: str, linked: list[str]) -> list[str]:
+    """The user's accounts, linked, with the ones their session lists and that have no link yet. The link is made
+    when the session state changes (core.py, `_sync_accounts_on_state_change`); a request that failed after that
+    left the session cached and the link not, so that the account would stay unseen until the next change. The
+    same reconciling is run here, as the server's session says it."""
+
+    try:
+        from suite.mail.jmap import get_jmap_connection
+
+        connection = get_jmap_connection(user)
+        listed = list((connection.accounts or {}).keys())
+    except Exception:
+        return linked
+
+    if not [account for account in listed if account not in linked]:
+        return linked
+
+    try:
+        from suite.mail.doctype.jmap_account.jmap_account import sync_jmap_accounts
+
+        sync_jmap_accounts(user, connection.accounts)
+    except Exception:
+        return linked
+    return frappe.db.get_all("User Account", {"user": user}, pluck="account")
 
 
 def owner_label(account: str) -> str:

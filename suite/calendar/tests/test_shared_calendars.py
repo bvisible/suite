@@ -115,13 +115,46 @@ class TestSharedCalendarsAndEvents(IntegrationTestCase):
         self.owner.stop()
 
     def test_the_other_accounts_are_the_ones_of_the_user_that_are_not_the_one_open(self):
-        with mock.patch(
-            "suite.mail.doctype.user_account.user_account.get_user_jmap_accounts",
-            return_value=[ME, THEIRS, OTHER],
+        with (
+            mock.patch(
+                "suite.mail.doctype.user_account.user_account.get_user_jmap_accounts",
+                return_value=[ME, THEIRS, OTHER],
+            ),
+            mock.patch.object(shared, "_linked_with_session", side_effect=lambda user, linked: linked),
         ):
             self.assertEqual(shared.other_accounts(ME), [THEIRS, OTHER])
             # an account that is not the person's is not a starting point
             self.assertEqual(shared.other_accounts("test-shared-stranger"), [])
+
+    def test_an_account_the_session_lists_without_a_link_is_linked_first(self):
+        # The session was cached and the link was not made (the request that made it failed): the server's session
+        # still says the person reaches that account, so the link is made as it is when the state changes.
+        connection = mock.Mock(accounts={ME: {}, THEIRS: {}})
+        with (
+            mock.patch(
+                "suite.mail.doctype.user_account.user_account.get_user_jmap_accounts", return_value=[ME]
+            ),
+            mock.patch("suite.mail.jmap.get_jmap_connection", return_value=connection),
+            mock.patch("suite.mail.doctype.jmap_account.jmap_account.sync_jmap_accounts") as sync,
+            mock.patch.object(shared.frappe.db, "get_all", return_value=[ME, THEIRS]),
+        ):
+            self.assertEqual(shared.other_accounts(ME), [THEIRS])
+
+        sync.assert_called_once_with(frappe.session.user, connection.accounts)
+
+    def test_a_session_that_lists_nothing_new_makes_no_link(self):
+        connection = mock.Mock(accounts={ME: {}, THEIRS: {}})
+        with (
+            mock.patch(
+                "suite.mail.doctype.user_account.user_account.get_user_jmap_accounts",
+                return_value=[ME, THEIRS],
+            ),
+            mock.patch("suite.mail.jmap.get_jmap_connection", return_value=connection),
+            mock.patch("suite.mail.doctype.jmap_account.jmap_account.sync_jmap_accounts") as sync,
+        ):
+            self.assertEqual(shared.other_accounts(ME), [THEIRS])
+
+        sync.assert_not_called()
 
     def test_a_calendar_kept_in_neoffice_has_no_other_accounts(self):
         with mock.patch("suite.calendar.local.is_local_account", return_value=True):
