@@ -1,22 +1,22 @@
 {
   "wordcraft": {
-    "version": "0.6.1+f65fa69",
-    "url": "https://github.com/bvisible/wordcraft/releases/download/web-0.6.1-f65fa69/wordcraft-web-0.6.1.zip",
-    "sha256": "1ed3ee7f473e217e68862658e8afa1b28eccd51460cad3c4c808c67aa811f138"
+    "version": "0.6.1+8e6d0aa",
+    "url": "https://github.com/bvisible/wordcraft/releases/download/web-0.6.1-8e6d0aa/wordcraft-web-0.6.1.zip",
+    "sha256": "287f95ce60d99d27f5c988cd6bc79b97011a765995e2db4ca6b1c8577a1ff343"
   },
   "gridcraft": {
-    "version": "0.6.1+ea750d2",
-    "url": "https://github.com/bvisible/gridcraft/releases/download/web-0.6.1-ea750d2/gridcraft-web-0.6.1.zip",
-    "sha256": "34a91baa1aa444eb235b2ad2f50928ef9526b7c37e865a33142ef4ef60cf58b9"
+    "version": "0.6.1+36762d0",
+    "url": "https://github.com/bvisible/gridcraft/releases/download/web-0.6.1-36762d0/gridcraft-web-0.6.1.zip",
+    "sha256": "44102ae032c7ac95139260c1c0e56e93e1edcfcd4eb6a885674f8fe45a715f67"
   },
   "deckcraft": {
-    "version": "0.6.1+24f9041",
-    "url": "https://github.com/bvisible/deckcraft/releases/download/web-0.6.1-24f9041/deckcraft-web-0.6.1.zip",
-    "sha256": "27c4509e7038668942ece456095cc31d1d34787ecb2d820628086d891c5e24d2"
+    "version": "0.6.1+b070bb6",
+    "url": "https://github.com/bvisible/deckcraft/releases/download/web-0.6.1-b070bb6/deckcraft-web-0.6.1.zip",
+    "sha256": "60ddd6ff77ca2c606d15e0da6f69c6feb9cfbbec449399d93b2065b9c639602a"
   },
   "pdfcraft": {
-    "version": "0.7.1+10ce26f",
-    "url": "https://github.com/bvisible/pdfcraft/releases/download/web-0.7.1-10ce26f/pdfcraft-web-0.7.1.zip",
-    "sha256": "ec36a7d3df56eb55fd086d90467211ac3ca585bec8d6749f7aaf5b0fd79b7f14"
+    "version": "0.7.1+fcb6a23",
+    "url": "https://github.com/bvisible/pdfcraft/releases/download/web-0.7.1-fcb6a23/pdfcraft-web-0.7.1.zip",
+    "sha256": "097f47001408b6507862856e28b85e54b478e17c387a3ca791620d6541e044d7"
   }
 }
