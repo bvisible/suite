@@ -24605,3 +24605,86 @@ msgstr "Cette date provient de Neoffice : ouvrez le document pour la modifier."
 #: frontend/src/test/neoffice-calendar-i18n.test.ts:72
 msgid "No events"
 msgstr "Aucun événement"
+
+#: suite/drive/wopi/craft.py:166
+msgid "A copy keeps the type of the document"
+msgstr "Une copie garde le type du document."
+
+#: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue:52
+#: suite/public/frontend/assets/MSOfficePreview-BytfOiU1.js:1
+msgid "Replace their version"
+msgstr "Remplacer leur version"
+
+#: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue:51
+#: suite/public/frontend/assets/MSOfficePreview-BytfOiU1.js:1
+msgid "Save as a copy"
+msgstr "Enregistrer une copie"
+
+#: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue:202
+#: suite/public/frontend/assets/MSOfficePreview-BytfOiU1.js:1
+msgid "Saved as {0}"
+msgstr "Enregistré sous {0}"
+
+#: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue:232
+#: suite/public/frontend/assets/MSOfficePreview-BytfOiU1.js:1
+msgid "Someone else changed this document since you opened it."
+msgstr "Une autre personne a modifié ce document depuis que vous l'avez ouvert."
+
+#: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue:109
+#: suite/public/frontend/assets/MSOfficePreview-BytfOiU1.js:1
+msgid "Someone else saved a new version of this document since you opened it. You can keep yours as a copy next to it, or replace theirs with yours."
+msgstr "Une autre personne a enregistré une nouvelle version de ce document depuis que vous l'avez ouvert. Vous pouvez enregistrer la vôtre sous forme de copie à côté, ou remplacer leur version par la vôtre."
+
+#: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue:235
+#: suite/public/frontend/assets/MSOfficePreview-BytfOiU1.js:1
+msgid "The document could not be saved."
+msgstr "Le document n'a pas pu être enregistré."
+
+#: suite/drive/wopi/craft.py:170
+msgid "The document is empty"
+msgstr "Le document est vide."
+
+#: suite/drive/wopi/craft.py:172
+msgid "The document is too large"
+msgstr "Le document est trop grand."
+
+#: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue:127
+#: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue:159
+#: suite/public/frontend/assets/MSOfficePreview-BytfOiU1.js:1
+msgid "The editing session has expired. Reload the page."
+msgstr "La session d'édition a expiré. Actualisez la page."
+
+#: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue:282
+#: suite/public/frontend/assets/MSOfficePreview-BytfOiU1.js:1
+msgid "The editor could not start."
+msgstr "L'éditeur n'a pas pu démarrer."
+
+#: suite/drive/wopi/craft.py:114
+msgid "The editor is not installed on this site"
+msgstr "L'éditeur n'est pas installé sur ce site."
+
+#: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue:130
+#: suite/public/frontend/assets/MSOfficePreview-BytfOiU1.js:1
+msgid "The server answered {0}."
+msgstr "Le serveur a répondu {0}."
+
+#: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue:48
+#: suite/public/frontend/assets/MSOfficePreview-BytfOiU1.js:1
+msgid "This document has changed"
+msgstr "Ce document a été modifié."
+
+#: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue:33
+#: suite/public/frontend/assets/MSOfficePreview-BytfOiU1.js:1
+msgid "You can read this document but not change it."
+msgstr "Vous pouvez consulter ce document, mais pas le modifier."
+
+#: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue:128
+#: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue:166
+#: suite/public/frontend/assets/MSOfficePreview-BytfOiU1.js:1
+msgid "You do not have permission to change this document."
+msgstr "Vous n'avez pas l'autorisation de modifier ce document."
+
+#: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue:306
+#: suite/public/frontend/assets/MSOfficePreview-BytfOiU1.js:1
+msgid "You have unsaved changes. Leave without saving?"
+msgstr "Vous avez des modifications non enregistrées. Quitter sans enregistrer ?"
