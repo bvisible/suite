@@ -579,7 +579,11 @@ def get_jmap_client(
     if enabled is None or (not enabled and not allow_disabled):
         frappe.throw(_("User {0} does not exist or is disabled.").format(frappe.bold(user)))
 
-    settings = frappe.db.exists("User Settings", {"user": user, "username": ["!=", None]})
+    # //// Neoffice (v15) — `["!=", None]` renders as `!= NULL`, which SQL never matches: on Frappe v15 this
+    # //// lookup found nothing, so every user with a mailbox was told it had no JMAP settings (is_jmap_configured
+    # //// in suite/mail/utils/user.py has the same note). "is set" reads the same on v15 and v16; keep it until
+    # //// the fleet is on v16 and upstream's spelling can be taken back.
+    settings = frappe.db.exists("User Settings", {"user": user, "username": ["is", "set"]})
     if not settings:
         frappe.throw(_("User {0} does not have JMAP settings configured.").format(frappe.bold(user)))
 

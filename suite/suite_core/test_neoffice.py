@@ -113,6 +113,74 @@ class TestPortalRoleKeepsNoDeskAccess(IntegrationTestCase):
         frappe.db.commit()
 
 
+class TestNullFiltersMeanTheSameOnV15(IntegrationTestCase):
+    """On Frappe v15 a filter `["!=", None]` renders `!= NULL`, which SQL never matches, while v16 reads it as
+    "is set". Upstream writes it that way (14.10.2026: get_jmap_client, so every mailbox answered "no JMAP
+    settings" on osiris); the fork spells it ["is", "set"], which both versions read the same."""
+
+    def test_no_filter_of_the_app_compares_a_field_with_none(self):
+        import os
+        import re
+
+        import suite
+
+        root = os.path.dirname(suite.__file__)
+        pattern = re.compile(r"""[\[(]\s*["'](?:!=|=|<>)["']\s*,\s*None\s*[\])]""")
+        found = []
+        for folder, folders, files in os.walk(root):
+            folders[:] = [d for d in folders if d not in ("node_modules", "public", "__pycache__")]
+            for name in files:
+                if not name.endswith(".py") or name == "test_neoffice.py":
+                    continue
+                path = os.path.join(folder, name)
+                with open(path, encoding="utf-8") as source:
+                    for number, line in enumerate(source, 1):
+                        # the notes that explain the idiom quote it
+                        if not line.lstrip().startswith("#") and pattern.search(line):
+                            found.append(f"{os.path.relpath(path, root)}:{number}")
+
+        self.assertEqual(found, [], "use [\"is\", \"set\"] / [\"is\", \"not set\"], which v15 and v16 read alike")
+
+    def test_a_user_whose_settings_carry_a_username_reaches_the_mail_server(self):
+        """The real lookup, unmocked: the settings row is found once it has a username, not before."""
+
+        from unittest import mock
+
+        from suite.mail import jmap as suite_jmap
+
+        class Reached(Exception):
+            pass
+
+        user = f"jmap-settings-{frappe.generate_hash(6)}@example.com"
+        ensure_user(user)
+        settings = frappe.db.get_value("User Settings", {"user": user})
+        self.assertTrue(settings, "User Settings come with the user")
+
+        settings_doc = mock.Mock(username="mailbox@example.com")
+        settings_doc.get_password.return_value = "pw"
+
+        def get_client():
+            frappe.local.request_cache.clear()  # get_jmap_client is cached per request
+            with (
+                mock.patch.object(suite_jmap, "get_config", return_value=("https://jmap.example.com", 1)),
+                mock.patch.object(suite_jmap, "get_cached_session", return_value=None),
+                mock.patch.object(suite_jmap.SuiteJMAPClient, "connect", side_effect=Reached),
+                mock.patch.object(frappe, "get_cached_doc", return_value=settings_doc),
+            ):
+                return suite_jmap.get_jmap_client(user, ignore_permissions=True)
+
+        def set_username(value):
+            frappe.db.set_value("User Settings", settings, "username", value, update_modified=False)
+
+        set_username(None)
+        with self.assertRaises(frappe.ValidationError):
+            get_client()
+
+        set_username("mailbox@example.com")
+        with self.assertRaises(Reached):
+            get_client()
+
+
 class TestWopiSecretIsProvisionedOnce(IntegrationTestCase):
     """The signing secret has one source of truth. It used to be minted per request,
     inside a try/except that swallowed the write on every read-only transaction."""
