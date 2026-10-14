@@ -24688,3 +24688,8 @@ msgstr "Vous n'avez pas l'autorisation de modifier ce document."
 #: suite/public/frontend/assets/MSOfficePreview-BytfOiU1.js:1
 msgid "You have unsaved changes. Leave without saving?"
 msgstr "Vous avez des modifications non enregistrées. Quitter sans enregistrer ?"
+
+#: frontend/src/apps/drive/components/FileTypePreview/PdfWithEditor.vue:8
+#: suite/public/frontend/assets/PdfWithEditor-BvmdG42s.js:1
+msgid "Edit PDF"
+msgstr "Modifier le PDF"
