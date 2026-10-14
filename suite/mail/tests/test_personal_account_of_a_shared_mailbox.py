@@ -158,3 +158,24 @@ class TestPersonalAccountOfASharedMailbox(IntegrationTestCase):
 
         self.assertTrue(applies_to(COLLEAGUES_BOX))
         self.assertFalse(applies_to(OWNERS_BOX))
+
+    def test_an_account_the_session_lists_without_a_link_is_linked_when_the_session_is_read(self):
+        from suite.mail.doctype.user_account.user_account import warm_user_jmap_session
+
+        connection = mock.Mock(
+            accounts={COLLEAGUES_BOX: {}, OWNERS_BOX: {}, LATE_BOX: {}, "test-shared-box-new": {}}
+        )
+        with (
+            mock.patch("suite.mail.jmap.get_jmap_connection", return_value=connection),
+            mock.patch("suite.mail.doctype.jmap_account.jmap_account.sync_jmap_accounts") as sync,
+        ):
+            warm_user_jmap_session(COLLEAGUE)  # linked to the first two only: a new account is listed
+            sync.assert_called_once_with(COLLEAGUE, connection.accounts)
+
+        connection = mock.Mock(accounts={COLLEAGUES_BOX: {}, OWNERS_BOX: {}})
+        with (
+            mock.patch("suite.mail.jmap.get_jmap_connection", return_value=connection),
+            mock.patch("suite.mail.doctype.jmap_account.jmap_account.sync_jmap_accounts") as sync,
+        ):
+            warm_user_jmap_session(COLLEAGUE)  # nothing the person has no link to
+            sync.assert_not_called()

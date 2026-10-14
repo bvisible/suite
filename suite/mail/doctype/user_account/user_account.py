@@ -188,7 +188,16 @@ def warm_user_jmap_session(user: str) -> None:
     # A refusal is for the calls that follow to say: what it puts in the message log is not wanted here.
     messages = list(frappe.local.message_log)
     try:
-        get_jmap_connection(user)
+        connection = get_jmap_connection(user)
+        # //// Neoffice — the link of an account is made when the session state changes: an account the session lists
+        # //// and the person has no link to (a calendar just shared with them, a request that failed after the
+        # //// state moved) is linked here, once, before the screens that read it ask all at the same time.
+        if set(connection.accounts or {}) - set(
+            frappe.db.get_all("User Account", {"user": user}, pluck="account")
+        ):
+            from suite.mail.doctype.jmap_account.jmap_account import sync_jmap_accounts
+
+            sync_jmap_accounts(user, connection.accounts)
     except Exception:
         frappe.local.message_log = messages
 

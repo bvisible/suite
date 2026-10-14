@@ -235,6 +235,10 @@ def get_user_info() -> dict | None:
     data.is_suite_admin = is_suite_admin(user)
     data.is_system_manager = is_system_manager(user)
     data.is_jmap_configured = is_jmap_configured(user)
+    # //// Neoffice — the session is read first, and the accounts it lists are linked, so that what follows reads the
+    # //// links as they are (maintenance#1579, suite.mail.doctype.user_account.warm_user_jmap_session).
+    if data.is_jmap_configured:
+        warm_user_jmap_session(user)
     data.accounts = frappe.db.get_all("User Account", {"user": user}, ["account"])
 
     settings_by_account = {
@@ -256,8 +260,6 @@ def get_user_info() -> dict | None:
     # //// Neoffice — « personal » is the user's own mailbox as the mail server says it for THEM, not the flag of the
     # //// shared JMAP Account document: a mailbox a colleague shares with them is not theirs, and the calendar and
     # //// the mail open the first personal account (maintenance#1579, suite.mail.doctype.user_account).
-    if data.is_jmap_configured:
-        warm_user_jmap_session(user)
     personal_accounts = set(get_personal_accounts_of_user(user, [row["account"] for row in data.accounts]))
     for account in data.accounts:
         settings = settings_by_account.get(account["account"])
