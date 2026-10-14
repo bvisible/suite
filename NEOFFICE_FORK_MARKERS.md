@@ -130,6 +130,13 @@ documents to `view.officeapps.live.com`. Ported from the standalone Neoffice
 
 At a merge: keep the file whole. Nothing upstream collides with it.
 
+#### `suite/drive/wopi/craft_editors.json`
+**Entirely ours — no upstream equivalent.** The list of the Craft editors' browser builds (Word, Excel,
+PowerPoint, PDF: Neoffice's forks of storytold's Craft apps) that `suite/drive/wopi/craft_install.py` installs
+under `suite/public/craft/` after every migrate: per editor folder, the `version`, the release asset `url`
+(only `https://github.com/bvisible/…` is accepted) and its `sha256`. The Drive opens Office documents in them,
+with no Collabora (`suite/drive/wopi/craft.py`, `CraftEditor.vue`). At a merge: keep the file whole.
+
 #### `suite/calendar/doctype/local_calendar_account/local_calendar_account.json`
 #### `suite/calendar/doctype/local_calendar/local_calendar.json`
 #### `suite/calendar/doctype/local_calendar_event/local_calendar_event.json`

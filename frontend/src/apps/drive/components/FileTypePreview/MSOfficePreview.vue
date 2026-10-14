@@ -8,7 +8,11 @@
        leave for Microsoft just because coolwsd is still waking up — it is stopped
        after 15 idle minutes, and a cold start can outrun the 20 s probe. We keep
        waiting instead, and offer a download if it truly never comes up. //// -->
-  <CollaboraEditor v-if="collabora === true" :preview-entity="previewEntity" @error="collabora = false" />
+  <!-- //// Neoffice — a document one of our Craft editors opens and writes back (suite/drive/wopi/craft.py) opens
+       there, and Collabora is never woken. The editors are the Drive's own: browser builds served by this site.
+       A site without the build, or a type no editor writes back (.doc, .odt…), goes on to Collabora below. //// -->
+  <CraftEditor v-if="craftConfig" :config="craftConfig" :preview-entity="previewEntity" />
+  <CollaboraEditor v-else-if="collabora === true" :preview-entity="previewEntity" @error="collabora = false" />
   <div v-else-if="collabora === null" class="w-full h-full flex flex-col items-center justify-center gap-3">
     <LucideLoaderCircle class="size-7 animate-spin text-ink-gray-6" />
     <span v-if="waking" class="text-p-sm text-ink-gray-6">{{ __('Starting the editor…') }}</span>
@@ -72,6 +76,8 @@
 import { Button, createResource } from 'frappe-ui'
 import { computed, onMounted, ref, watch } from 'vue'
 import CollaboraEditor from '@/apps/drive/components/FileTypePreview/CollaboraEditor.vue'
+//// Neoffice — the Craft editors come first (see the template).
+import CraftEditor from '@/apps/drive/components/FileTypePreview/CraftEditor.vue'
 //// Neoffice — Drive's own download helper, for `download` below.
 import { entitiesDownload } from '@/apps/drive/utils/download.js'
 import LucideLoaderCircle from '~icons/lucide/loader-circle'
@@ -123,7 +129,21 @@ function retry() {
   probe()
 }
 
-onMounted(probe)
+//// Neoffice — asked before Collabora: `available` is false when this site has no build of the editor for the
+//// type, or cannot read the file; the Collabora probe then runs exactly as it did.
+const craftConfig = ref(null)
+const craftProbe = createResource({
+  url: 'suite.drive.wopi.craft.get_craft_editor_config',
+  onSuccess(data) {
+    if (data?.available) craftConfig.value = data
+    else probe()
+  },
+  onError() {
+    probe()
+  },
+})
+
+onMounted(() => craftProbe.submit({ file_id: props.previewEntity.name }))
 
 const warned = ref(false)
 watch(warned, async () => {

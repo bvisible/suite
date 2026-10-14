@@ -99,6 +99,14 @@ def write_file_content(file, content: bytes) -> None:
             f.write(content)
 
 
+# //// Neoffice — what the content of a file is at this moment, for the editors that are not Collabora (craft.py).
+# //// `modified` moves for any change of the row, a rename or a share included: a document somebody else only
+# //// renamed would read as "changed since you opened it". The content's own time and size move only when the
+# //// bytes do (PutFile, an upload, a WebDAV PUT).
+def content_version(file) -> str:
+    return f"{file.file_modified}|{file.file_size}"
+
+
 def validate_access_token(file_id: str) -> dict:
     """Validate access token from request and return token data."""
     # Token comes via X-WOPI-Access-Token header or query param
@@ -190,6 +198,8 @@ def get_file(file_id: str):
     frappe.response.type = "binary"
     set_response_header("Content-Type", CONTENT_TYPES.get(extension, "application/octet-stream"))
     set_response_header("X-WOPI-ItemVersion", str(file.modified))
+    # //// Neoffice — the version an editor without a lock says it opened (see put_file).
+    set_response_header("X-Neoffice-Content-Version", content_version(file))
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
@@ -216,6 +226,17 @@ def put_file(file_id: str):
         set_response_header("X-WOPI-Lock", current_lock.get("lock_id", ""))
         return {"error": "Lock mismatch"}
 
+    # //// Neoffice — optimistic concurrency for the editors that hold no lock (craft.py). Collabora locks the
+    # //// document; an editor saving from the Drive page does not, so two people editing the same document would
+    # //// overwrite each other without a word. It says which content it opened in X-Neoffice-Base-Version: when the
+    # //// file has changed since, nothing is written (409) and the page offers a copy. Collabora sends no such
+    # //// header and is unaffected.
+    base_version = frappe.request.headers.get("X-Neoffice-Base-Version")
+    if base_version and base_version != content_version(file):
+        frappe.local.response.http_status_code = 409
+        set_response_header("X-Neoffice-Content-Version", content_version(file))
+        return {"error": "The file changed since it was opened"}
+
     content = frappe.request.get_data()
 
     # Keep the previous bytes so a failed write can be rolled back
@@ -232,6 +253,8 @@ def put_file(file_id: str):
         )
         frappe.db.commit()
         set_response_header("X-WOPI-ItemVersion", str(file.modified))
+        # //// Neoffice — the version the next save of the same editor builds on.
+        set_response_header("X-Neoffice-Content-Version", content_version(file))
     except Exception as e:
         if previous is not None:
             try:

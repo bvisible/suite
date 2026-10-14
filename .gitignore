@@ -21,6 +21,9 @@ yarn-error.log
 # instances do not need in git.
 /frontend/dist-recorder/
 /suite/public/noise-suppression/
+# //// Neoffice — the Craft editors' browser builds (about 40 MB of WebAssembly each): installed from
+# //// pinned releases by suite/drive/wopi/craft_install.py, never committed.
+/suite/public/craft/
 
 # //// Neoffice — removed just above: upstream also ignored `/suite/**/www/*.html`
 # //// (with sheets.html / event_rsvp.html exceptions) and `/suite/www/service-worker.js`.
