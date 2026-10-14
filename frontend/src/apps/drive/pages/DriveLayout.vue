@@ -130,3 +130,20 @@ onKeyDown((e) => {
   }
 })
 </script>
+
+<style>
+/* //// Neoffice — the drop zone fills the pane again. Since upstream's frappe-ui app shells (53bc173f6, merged with
+   //// 42afbc164 on 31.08.2026) `#dropzone` sits in the shell's scroll region inside an auto-height wrapper, so its
+   //// `min-h-full` has nothing to resolve against: it is only as tall as the navbar, the toolbar and the rows, and a
+   //// file dropped below the last row (most of the page of a short or empty folder) got neither the « Drop to upload »
+   //// animation (`.file-drag`, GenericPage.vue) nor an upload. The wrapper is made at least as tall as the scroll
+   //// viewport and #dropzone fills it. Drop this when upstream makes #dropzone fill its pane. */
+[data-slot='scroll-area-viewport'] > :has(> #dropzone) {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+[data-slot='scroll-area-viewport'] > :has(> #dropzone) > #dropzone {
+  flex: 1 0 auto;
+}
+</style>
