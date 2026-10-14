@@ -1,0 +1,1 @@
+import{g as e}from"./runtime-core.esm-bundler-CaODJcyn.js";var t=(t,n)=>({groups:e(()=>t.value.map(e=>({...e,items:e.items.filter(e=>!n.includes(e.value))})).filter(e=>e.items.length)),findTab:e=>t.value.flatMap(e=>e.items).find(t=>t.value===e)});export{t};

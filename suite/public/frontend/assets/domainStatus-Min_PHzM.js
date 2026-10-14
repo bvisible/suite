@@ -1,0 +1,1 @@
+var e=[`Active`,`Pending Verification`,`Disabled`],t={Active:`green`,"Pending Verification":`amber`,Disabled:`gray`},n=e=>({Active:__(`Active`),"Pending Verification":__(`Pending Verification`),Disabled:__(`Disabled`)})[e],r=e=>e?{label:n(e),theme:t[e]}:{label:``,theme:`gray`},i=()=>[{label:__(`All`),value:`All`},...e.map(e=>({label:n(e),value:e}))];export{i as n,r as t};

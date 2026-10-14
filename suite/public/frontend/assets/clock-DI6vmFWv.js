@@ -1,0 +1,1 @@
+var e=e=>!e.hour(13).minute(0).format(`LT`).includes(`13`),t=(t,n=`h:mm a`,r=`LT`)=>t.format(e(t)?n:r);export{e as n,t};

@@ -1,0 +1,1 @@
+import{n as e}from"./pdfjs-D9yrdDxM.js";export{e as pdfjs};

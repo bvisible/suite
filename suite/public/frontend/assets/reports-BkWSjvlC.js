@@ -1,0 +1,1 @@
+var e=[{label:__(`Last 7 days`),value:`7`},{label:__(`Last 30 days`),value:`30`},{label:__(`Last 90 days`),value:`90`},{label:__(`All reports`),value:`0`}],t=e=>e==null?`—`:`${e}%`,n=e=>e==null?`gray`:e<90?`red`:`green`,r=(e,t)=>t?Math.round(e*100/t):null;export{r as i,t as n,n as r,e as t};

@@ -1,0 +1,1 @@
+import{t as e}from"./toast-CyG5AMJK.js";import{a as t,n,o as r,r as i,t as a}from"./setupTheme-DxC7UMoE.js";var o=()=>(n(),{dataTheme:a,themeMode:t,switchTheme:i,cycleTheme:()=>{let n=r(t.value);i(n),e.success(n===`automatic`?__(`Theme set to follow your system`):__(`Theme changed to {0}`,[__(n===`light`?`Light`:`Dark`)]))}});export{o as t};

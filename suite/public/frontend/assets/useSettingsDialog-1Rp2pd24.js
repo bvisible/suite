@@ -1,0 +1,1 @@
+import{vn as e}from"./runtime-core.esm-bundler-CaODJcyn.js";var t=e(!1),n=e(`profile`);function r(e=`profile`){n.value=e,t.value=!0}export{n,t as r,r as t};

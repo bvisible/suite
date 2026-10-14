@@ -1,0 +1,1 @@
+import{L as e}from"./runtime-core.esm-bundler-CaODJcyn.js";function t(){let t=e()?.vnode?.scopeId;return t?{[t]:``}:{}}export{t};

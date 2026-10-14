@@ -1,0 +1,1 @@
+import{t as e}from"./frappeRequest-t4_0NFIj.js";function t(t,n={},r={}){return e({url:t,method:`POST`,params:n??{},headers:r.headers,onError:e=>{r.onError&&e.response&&r.onError({response:e.response,status:e.status??e.response.status,error:e})}})}export{t};

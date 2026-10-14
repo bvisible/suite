@@ -1,0 +1,1 @@
+import{vn as e}from"./runtime-core.esm-bundler-CaODJcyn.js";var t=e(!1),n=()=>({isViewSheetOpen:t,openViewSheet:()=>t.value=!0,closeViewSheet:()=>t.value=!1}),r=e(!1),i=()=>({showShortcuts:r,openShortcuts:()=>r.value=!0});export{n,i as t};

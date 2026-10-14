@@ -33,32 +33,105 @@
       content="{{ '#171717' if desk_theme and desk_theme.lower() == 'dark' else '#ffffff' }}"
     />
     <!-- No manifest / standalone metas here on purpose: this shell is shared by
-         all seven apps, so anything installable in <head> makes drive, calendar,
-         ... add to the home screen as Frappe Mail. Mail injects its own set on
-         entering /mail (see router/index.ts setPwaTags). -->
-    <script type="module" crossorigin src="/assets/suite/frontend/assets/index-CmOMTPc_.js"></script>
+         all seven apps, and only those with a phone layout offer the install.
+         The router attaches the suite's set on entering one of them and removes
+         it on leaving (see router/index.ts setPwaTags). -->
+    <script type="module" crossorigin src="/assets/suite/frontend/assets/index-C5UtUbZP.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/rolldown-runtime-C0FnF6B9.js">
     <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/runtime-core.esm-bundler-CaODJcyn.js">
     <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/runtime-dom.esm-bundler-CngAXjEY.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/dist-BjCMfq8e.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/TooltipTrigger-BL0w9OUo.js">
     <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/pinia-BoM1sIFu.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/_plugin-vue_export-helper-BDNMzG2s.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/preload-helper-z1L8cojz.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/esm-Bp2xjpYC.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/debounce-BcU4KGyI.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/request-BQ_15w-o.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/config-BnDYwH6g.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/resources-BNFZ3SHw.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/session-DgDcMotU.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/is-equal-8VOV02sH.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/getActiveElement-DWEoD8ZB.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/FocusScope-DqUJhFWj.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/useFocusGuards-Cb_bDfRv.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/Collection-DUTuNYbX.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/useTypeahead-BqoNbqqm.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/utils-C-tBG-tA.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/SelectViewport-DR7LIi20.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/utils-BSPwc6Vv.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/ComboboxViewport-Dz-PbvGr.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/DialogTitle-D6v-_fhr.js">
     <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/vue-router-OdK2B1xM.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/registry-D9c2w8kZ.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/router-cyuqxiTR.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/translation-D6uPgUzp.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/_plugin-vue_export-helper-BDNMzG2s.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/TooltipBubble-B9qlebO1.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/Button-D8QircWK.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/Avatar-C16tFRv4.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/preload-helper-z1L8cojz.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/timezone-DCUZA_g0.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/PopoverPanel-CJN3m8Qj.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/Popover-CUT8YCwa.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/useInputLabeling-DALntLeV.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/ItemListRow-Cc3AGsbR.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/LabelingWrapper-DzBcoing.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/Select-D-vU2yvV.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/debounce-CBHZy1lM.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/Combobox-CCrotlFi.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/customParseFormat-BLS35S7J.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/config-BnDYwH6g.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/Textarea-BMG8rzFo.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/Checkbox-WT_2TICD.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/FormControl-iG0KO5Pz.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/keyboardShortcutCombo-DguqFOD2.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/useKeyboardShortcut-sAVPtEAS.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/Dialog-2UJEAjsO.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/Dialog-BbcEAomN.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/Tooltip-CnItRgAb.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/Icon-CwXbJUyH.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/resources-6XP6haKT.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/useForwardScopeId-BYg6mViA.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/SwitchThumb-DfI3FB3O.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/Switch-DfMiXRHZ.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/KeyboardShortcut-Dr-Iaw5V.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/serviceWorker-BkH821sR.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/session-Dcbhav-o.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/registry-BKOldLYv.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/constants-CY7xvlZb.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/localStorage-CwmnLzMO.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/calendar-DiOzK8x1.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/video-camera-BIskusAd.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/router-B9Rk8Ko7.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/user-tJuMhb8i.js">
     <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/purify.es-BQK0RoQz.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/toast-B42daacX.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/frappeRequest-41I_R4gd.js">
-    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/config-Cq88u4C3.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/toast-CyG5AMJK.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/createLucideIcon-DzuAF9dp.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/isYesterday-p6mn6VpX.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/utils-CupHHGOZ.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/datetime-CbtPBdqf.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/useScreenSize-ByPhRTdZ.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/frappeRequest-t4_0NFIj.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/setupTheme-DxC7UMoE.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/useTheme-DjLe2-pX.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/root-CGEoZXxa.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/composables-l3_mSBP7.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/ContactOption-CJ2casZx.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/user-BO0A28h5.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/dayjs-DBKdXJYo.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/datetime-BBL8zAVR.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/HighlightedText-CfrR_NMK.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/clock-DI6vmFWv.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/eventTime-D9PO3JXt.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/DateChip-BBZ5Xkza.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/useCalendarSearchFilters-E1zeDwg2.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/useFileUpload-SMXMj2lp.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/toasts-Cehl5HY7.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/timeAgo-DIP7o3GI.js">
     <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/dayjs.min-QUnUIOl1.js">
-    <link rel="stylesheet" crossorigin href="/assets/suite/frontend/assets/index-CzsUu29j.css">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/utils-I9wWSic9.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/emitter-I4JosRyw.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/format-Bl18JsG6.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/files-MMCz8d2B.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/translation-D6uPgUzp.js">
+    <link rel="modulepreload" crossorigin href="/assets/suite/frontend/assets/config-CBBnwW_L.js">
+    <link rel="stylesheet" crossorigin href="/assets/suite/frontend/assets/Button-CIBl5jj7.css">
+    <link rel="stylesheet" crossorigin href="/assets/suite/frontend/assets/PopoverPanel-CZqEOzWA.css">
+    <link rel="stylesheet" crossorigin href="/assets/suite/frontend/assets/Select-CkXCnf1r.css">
+    <link rel="stylesheet" crossorigin href="/assets/suite/frontend/assets/Combobox-BfB-6dLh.css">
+    <link rel="stylesheet" crossorigin href="/assets/suite/frontend/assets/FormControl-Dy9UhSD5.css">
+    <link rel="stylesheet" crossorigin href="/assets/suite/frontend/assets/Dialog-CCQxvD0C.css">
+    <link rel="stylesheet" crossorigin href="/assets/suite/frontend/assets/index-CtKt3g_8.css">
   </head>
   <body>
     <div id="app" class="h-screen"></div>

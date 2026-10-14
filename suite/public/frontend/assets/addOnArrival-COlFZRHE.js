@@ -1,0 +1,1 @@
+import{ct as e}from"./runtime-core.esm-bundler-CaODJcyn.js";import{a as t,o as n}from"./vue-router-OdK2B1xM.js";var r={add:`1`};function i(r){let i=t(),a=n();e(()=>{if(i.query.add!==`1`)return;r.value=!0;let{add:e,...t}=i.query;a.replace({query:t})})}export{i as n,r as t};

@@ -1,0 +1,1 @@
+import{t as e}from"./useSettingsDialog-1Rp2pd24.js";function t(){return{label:__(`Settings`),icon:`lucide-settings`,onClick:()=>e()}}export{t};

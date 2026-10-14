@@ -1,1 +1,0 @@
-import{i as e,o as t,t as n}from"./DialogTitle-CctlkgcE.js";import{t as r}from"./Dialog-B_9181I2.js";var i=r;i.Title=n,i.Description=e,i.Close=t;export{i as t};

@@ -1,0 +1,1 @@
+import{On as e,b as t,k as n,mt as r,tr as i,wn as a}from"./runtime-core.esm-bundler-CaODJcyn.js";import{x as o}from"./dist-BjCMfq8e.js";var s={class:`text-p-xs text-ink-gray-5`},c=n({__name:`DriveSearchResultModified`,props:{modified:{}},setup(n){let c=o(a(n,`modified`));return(n,a)=>(r(),t(`span`,s,i(e(c)),1))}});export{c as default};

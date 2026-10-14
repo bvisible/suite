@@ -1,0 +1,1 @@
+import{Ht as e,g as t}from"./runtime-core.esm-bundler-CaODJcyn.js";import{t as n}from"./resources-6XP6haKT.js";var r=r=>{let i=n({url:`suite.mail.api.admin.get_enabled_domains`,initialData:[]});return e(r,e=>e&&i.fetch(),{immediate:!0}),{domains:i,domainsError:t(()=>{let e=i.error;return e?e.messages?.[0]||e.message||__(`Could not load the domains.`):``})}};export{r as t};

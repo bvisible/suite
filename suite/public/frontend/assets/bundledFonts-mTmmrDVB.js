@@ -1,0 +1,1 @@
+var e=[`400 16px Anton`,`400 16px "Courier Prime"`,`italic 400 16px "Courier Prime"`,`700 16px "Courier Prime"`,`italic 700 16px "Courier Prime"`],t=`AĀẠ`,n=()=>document.fonts?.load?Promise.all(e.map(e=>document.fonts.load(e,t))):Promise.resolve();export{n as t};

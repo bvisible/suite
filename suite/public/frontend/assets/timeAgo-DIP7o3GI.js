@@ -1,0 +1,1 @@
+import{S as e}from"./dist-BjCMfq8e.js";function t(t){return e(t,{locale:document.documentElement.lang||void 0})}export{t};
