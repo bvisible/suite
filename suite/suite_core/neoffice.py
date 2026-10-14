@@ -89,6 +89,24 @@ def drop_orphan_role_assignments(role_name: str) -> int:
     return len(orphans)
 
 
+def drop_orphan_suite_role_assignments() -> int:
+    """before_migrate: drop the orphan ``Has Role`` rows of both Suite roles, before the fixtures sync.
+
+    The role fixture's import makes Frappe re-evaluate every holder of a role (``Role.on_update``), and one row
+    naming a deleted user raises DoesNotExistError there: « Skipping fixture syncing from the file role.json.
+    Reason: User <deleted> not found » (seen on the clone of osiris on 14.10.2026, after upstream's roles
+    patch). The fixture is then silently not applied, and stays so at every migrate. This runs first, so the
+    sync meets none. ``ensure_portal_role_has_no_desk_access`` does the same but only when the role carries desk
+    access, and after the fixtures.
+    """
+
+    return sum(
+        drop_orphan_role_assignments(role)
+        for role in (PORTAL_ROLE, "Suite Admin")
+        if frappe.db.exists("Role", role)
+    )
+
+
 def ensure_portal_role_has_no_desk_access(role_name: str = PORTAL_ROLE) -> bool:
     """Hold "Suite User" at ``desk_access = 0``, whatever the last merge left.
 

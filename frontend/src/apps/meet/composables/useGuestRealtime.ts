@@ -1,5 +1,5 @@
-import { frappeRequest } from "frappe-ui";
 import type { Socket } from "socket.io-client";
+import { request } from "../utils/request";
 import {
 	isUnknownRecord,
 	type JoinPayload,
@@ -24,6 +24,12 @@ interface GuestRealtimeEvent {
 	meetingId: string;
 }
 
+const GUEST_SUBSCRIPTION_RETRY_DELAY = 5_000;
+const GUEST_SUBSCRIPTION_MAX_RETRIES = 4;
+// //// Neoffice — the reconciliation poll upstream removed: Frappe v15's realtime server loads no app handlers, so
+// //// nothing answers `guest_subscribe` and a guest in the waiting room would never hear of its admission. The
+// //// poll asks for the status of the session, with the guest's own proof, as it always did — and only while the
+// //// realtime subscription has not been acknowledged, so a site whose server answers it never polls.
 const GUEST_STATUS_RECONCILIATION_INTERVAL = 5_000;
 
 interface GuestRealtimeLifecycleOptions {
@@ -69,15 +75,14 @@ export async function getApprovedGuestConnectionDetails(
 	session: StoredGuestSession,
 ): Promise<JoinPayload> {
 	const response = normalizeJoinPayload(
-		await frappeRequest({
-			url: "suite.meet.api.meeting.get_approved_guest_connection_details",
-			method: "POST",
-			params: {
+		await request(
+			"/api/v2/method/suite.meet.api.meeting.get_approved_guest_connection_details",
+			{
 				meeting_id: session.meetingId,
 				guest_id: session.guestId,
 				guest_session_token: session.guestSessionToken,
 			},
-		}),
+		),
 	);
 	if (response?.status !== "joined" || !response.auth_token) {
 		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
@@ -100,8 +105,12 @@ export function createGuestRealtimeLifecycle({
 }: GuestRealtimeLifecycleOptions) {
 	let setup = false;
 	let subscribedSession: StoredGuestSession | null = null;
+	let subscriptionRetryTimeout: ReturnType<typeof setTimeout> | null = null;
+	let subscriptionRetryCount = 0;
+	// //// Neoffice — see GUEST_STATUS_RECONCILIATION_INTERVAL.
 	let reconciliationInterval: ReturnType<typeof setInterval> | null = null;
 	let reconciliationInProgress = false;
+	let realtimeAcknowledged = false;
 
 	const matchesSubscribedSession = (value: unknown) => {
 		const event = normalizeGuestRealtimeEvent(value);
@@ -120,10 +129,18 @@ export function createGuestRealtimeLifecycle({
 			guest_session_token: subscribedSession.guestSessionToken,
 		});
 		subscribedSession = null;
+		// //// Neoffice — see GUEST_STATUS_RECONCILIATION_INTERVAL.
+		realtimeAcknowledged = false;
 	};
 
 	const stop = () => {
 		unsubscribe();
+		if (subscriptionRetryTimeout) {
+			clearTimeout(subscriptionRetryTimeout);
+			subscriptionRetryTimeout = null;
+		}
+		subscriptionRetryCount = 0;
+		// //// Neoffice — the reconciliation poll stops with the lifecycle, socket or none.
 		if (reconciliationInterval) {
 			clearInterval(reconciliationInterval);
 			reconciliationInterval = null;
@@ -148,6 +165,9 @@ export function createGuestRealtimeLifecycle({
 		}
 		const status = normalizeStatus(value.status);
 		if (value.ok) {
+			subscriptionRetryCount = 0;
+			// //// Neoffice — the server answers the subscription: realtime is the path, no poll.
+			realtimeAcknowledged = true;
 			if (!status || status === "rejected" || status === "banned" || status === "expired") {
 				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
 				onError(new Error(__("Invalid guest subscription status")));
@@ -161,6 +181,22 @@ export function createGuestRealtimeLifecycle({
 			return;
 		}
 		const reason = typeof value.error === "string" ? value.error : "invalid_request";
+		if (reason === "validation_failed") {
+			if (subscriptionRetryCount >= GUEST_SUBSCRIPTION_MAX_RETRIES) {
+				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+				onError(new Error(__("Could not verify your guest session. Please reconnect.")));
+				return;
+			}
+			if (!subscriptionRetryTimeout) {
+				const delay = GUEST_SUBSCRIPTION_RETRY_DELAY * 2 ** subscriptionRetryCount;
+				subscriptionRetryCount += 1;
+				subscriptionRetryTimeout = setTimeout(() => {
+					subscriptionRetryTimeout = null;
+					subscribe();
+				}, delay);
+			}
+			return;
+		}
 		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
 		onError(new Error(__("Guest realtime subscription failed: {0}", [reason])));
 	};
@@ -168,6 +204,10 @@ export function createGuestRealtimeLifecycle({
 	const subscribe = () => {
 		const session = readSession();
 		if (!socket || !isActiveSession(session)) return;
+		if (subscriptionRetryTimeout) {
+			clearTimeout(subscriptionRetryTimeout);
+			subscriptionRetryTimeout = null;
+		}
 		if (
 			subscribedSession &&
 			(subscribedSession.guestId !== session.guestId ||
@@ -185,20 +225,20 @@ export function createGuestRealtimeLifecycle({
 		);
 	};
 
+	// //// Neoffice — the reconciliation poll: see GUEST_STATUS_RECONCILIATION_INTERVAL.
 	const reconcile = async () => {
 		const session = readSession();
-		if (!isActiveSession(session) || reconciliationInProgress) return;
+		if (realtimeAcknowledged || !isActiveSession(session) || reconciliationInProgress) return;
 		reconciliationInProgress = true;
 		try {
-			const response = await frappeRequest({
-				url: "suite.meet.api.meeting.validate_guest_session",
-				method: "POST",
-				params: {
+			const response = await request<unknown>(
+				"/api/v2/method/suite.meet.api.meeting.validate_guest_session",
+				{
 					meeting_id: meetingId,
 					guest_id: session.guestId,
 					guest_session_token: session.guestSessionToken,
 				},
-			});
+			);
 			if (!isUnknownRecord(response)) return;
 			const status = normalizeStatus(response.status);
 			if (response.valid === true && (status === "pending" || status === "admitted")) {
@@ -209,7 +249,7 @@ export function createGuestRealtimeLifecycle({
 				handleTerminalStatus("expired");
 			}
 		} catch {
-			// Realtime remains the primary path; retry transient reconciliation failures.
+			// Realtime remains the primary path where it exists; retry transient failures at the next tick.
 		} finally {
 			reconciliationInProgress = false;
 		}
@@ -224,6 +264,7 @@ export function createGuestRealtimeLifecycle({
 		if (matchesSubscribedSession(value)) handleTerminalStatus("rejected");
 	}
 	function handleReconnect() {
+		subscriptionRetryCount = 0;
 		subscribe();
 	}
 
@@ -240,6 +281,7 @@ export function createGuestRealtimeLifecycle({
 			socket.on("meet:guest_join_rejected", handleRejected);
 			socket.on("connect", handleReconnect);
 			setup = true;
+			// //// Neoffice — see GUEST_STATUS_RECONCILIATION_INTERVAL.
 			reconciliationInterval = setInterval(
 				() => void reconcile(),
 				GUEST_STATUS_RECONCILIATION_INTERVAL,

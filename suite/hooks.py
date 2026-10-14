@@ -264,7 +264,7 @@ doc_events = {
     "User": {
         # Roles are assigned before insert so they are present when Frappe's
         # User.validate runs — assigning them after insert triggers a spurious
-        # "No Roles Specified" warning and leaves user_type mis-resolved.
+        # "No Roles Specified" warning.
         # //// Neoffice — we reached the same conclusion independently (e113aa921,
         # //// 31.08.2026): our own before_insert hooks replaced two after_insert
         # //// ones that reloaded and re-saved the just-inserted User. Combined with
@@ -290,6 +290,9 @@ doc_events = {
             "suite.mail.events.provision_mail_account",
         ],
         "on_update": [
+            # First: the disabled account role applied below may cut the JMAP access the
+            # deletion needs.
+            "suite.mail.events.delete_push_subscriptions_on_disable",
             "suite.mail.events.update_account_password",
             "suite.mail.events.clear_sessions_on_disable",
             "suite.mail.events.apply_disabled_account_role",
@@ -322,6 +325,10 @@ setup_wizard_url = "/suite/setup"
 
 # //// Neoffice — no `persistent_cache_keys` any more: its only key was the stamp of the last Collabora use,
 # //// which the idle watchdog of coolwsd read; both went with Collabora (maintenance#1570).
+
+# Heal the user's JMAP push subscription on login (enqueued; a lost subscription silently
+# ends webhooks — realtime events and mailbox-count invalidation both ride on them)
+on_login = ["suite.mail.doctype.push_subscription.push_subscription.on_login"]
 
 # ============================================================================
 # Scheduled Tasks (per-frequency lists combined; cron keys de-duplicated)
@@ -357,16 +364,14 @@ scheduler_events = {
     "cron": {
         "* * * * *": [
             "suite.meet.api.recording.reconcile_pending_recordings",
+            "suite.meet.recording.ingest.reconcile_due_finalizations",
             # //// Neoffice — the alerts of the calendars kept in Frappe, which no mail server pushes
             # //// (maintenance#1387, suite/calendar/local.py).
             "suite.calendar.local.deliver_due_alerts",
         ],
         "*/5 * * * *": [
             # mail
-            "suite.mail.doctype.server_job.server_job.retry_failed_jobs",
             "suite.mail.doctype.mail_queue.mail_queue.enqueue_process_pending_emails",
-            "suite.mail.doctype.server_deployment.server_deployment.retry_failed_deployments",
-            "suite.mail.doctype.server_ansible_play.server_ansible_play.retry_failed_ansible_plays",
         ],
     },
 }
@@ -378,6 +383,10 @@ scheduler_events = {
 before_install = "suite.suite_core.boot.before_install"
 after_install = "suite.suite_core.boot.after_install"
 after_migrate = "suite.suite_core.boot.after_migrate"
+# //// Neoffice — before the fixtures sync: the role fixture's import re-evaluates every holder of a Suite role, and one
+# //// orphan `Has Role` row (a user deleted without it) makes Frappe skip the whole fixture file, silently, at every
+# //// migrate. See suite/suite_core/neoffice.py::drop_orphan_suite_role_assignments.
+before_migrate = ["suite.suite_core.neoffice.drop_orphan_suite_role_assignments"]
 after_app_install = "suite.suite_core.boot.after_app_install"
 extend_bootinfo = "suite.suite_core.boot.extend_bootinfo"
 
@@ -445,9 +454,6 @@ ignore_links_on_delete = [
     "Drive DAV Lock",
     # mail
     "Mail Account Request",
-    "Server Job",
-    "Server Ansible Play",
-    "Server Deployment",
     "JMAP Account",
     "User Account",
     "Screened Email Address",
@@ -491,6 +497,12 @@ ALLOWED_PATHS = [
     "/api/method/frappe.website.doctype.web_form.web_form.accept",
     "/api/method/frappe.core.doctype.user.user.test_password_strength",
     "/api/method/frappe.core.doctype.user.user.update_password",
+    "/api/v2/method/suite.meet.api.recording.get_state",
+    "/api/v2/method/suite.meet.api.recording.get_preflight",
+    "/api/v2/method/suite.meet.api.recording.start",
+    "/api/v2/method/suite.meet.api.recording.stop",
+    "/api/v2/method/suite.api.account.get_logged_in_user",
+    "/api/v2/method/suite.calendar.api.get_calendar_events",
     # drive — WebDAV mount root
     "/dav",
 ]
@@ -502,7 +514,12 @@ ALLOWED_WILDCARD_PATHS = [
     # endpoints still called by Frappe Framework (see override_whitelisted_methods).
     "/api/method/mail.api.",
     "/api/method/suite.calendar.api.",
-    "/api/method/suite.meet.api.",
+    # meet — recorder callbacks remain on their existing protocol during the API cutover
+    "/api/method/suite.meet.api.recording.recorder_",
+    "/api/v2/method/suite.meet.api.meeting.",
+    "/api/v2/method/suite.meet.api.schedule.",
+    "/api/v2/method/suite.meet.api.test_helpers.",
+    "/api/v2/document/Meet%20Room/",
     "/api/method/suite.drive.api.",
     "/api/method/suite.writer.api.",
     # writer — backward-compatible prefix for embed URLs stored in old documents

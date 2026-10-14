@@ -13,7 +13,7 @@
 				>
 					<Switch
 						v-model="allowGuest"
-						:disabled="meetingDoc.updateSettings.loading || meetingDoc.get.loading"
+						:disabled="meetingDoc.updateSettings.loading || meetingDoc.loading"
 					/>
 				</SettingsRow>
 
@@ -24,7 +24,7 @@
 				>
 					<Switch
 						v-model="requireHostApproval"
-						:disabled="meetingDoc.updateSettings.loading || meetingDoc.get.loading"
+						:disabled="meetingDoc.updateSettings.loading || meetingDoc.loading"
 					/>
 				</SettingsRow>
 
@@ -35,7 +35,7 @@
 				>
 					<Switch
 						v-model="hostOnlyChat"
-						:disabled="meetingDoc.updateSettings.loading || meetingDoc.get.loading"
+						:disabled="meetingDoc.updateSettings.loading || meetingDoc.loading"
 					/>
 				</SettingsRow>
 
@@ -56,10 +56,11 @@ import {
 	SettingsRow,
 	Switch,
 	toast,
+	useDoc,
 } from 'frappe-ui';
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useChatStore } from "@/apps/meet/composables/useChatStore";
-import { useMeetingDoc } from "../../composables/useMeetingDoc";
+import { submit } from "../../utils/request";
 import E2EESettingsSection from "./E2EESettingsSection.vue";
 
 const props = defineProps({
@@ -69,17 +70,35 @@ const props = defineProps({
 	},
 });
 
-const {
-	getMeetingDoc,
-	allowGuest: globalAllowGuest,
-	meetingType: globalMeetingType,
-	e2eeEnabled: globalE2EEEnabled,
-} = useMeetingDoc();
+interface MeetingDocument {
+	name: string;
+	allow_guest?: boolean;
+	meeting_type?: string;
+	host_only_chat?: boolean;
+	e2ee_enabled?: boolean;
+}
+
+const meetingDoc = useDoc<MeetingDocument, {
+	updateSettings: (params: {
+		allow_guest: boolean;
+		meeting_type: string;
+		host_only_chat: boolean;
+	}) => unknown;
+	enableE2ee: () => unknown;
+}>({
+	doctype: "Meet Room",
+	name: () => props.meetingId,
+	methods: {
+		updateSettings: "update_settings",
+		enableE2ee: "enable_e2ee",
+	},
+});
+const globalE2EEEnabled = computed(() => Boolean(meetingDoc.doc?.e2ee_enabled));
 
 const chatStore = useChatStore();
 
-const allowGuest = ref<boolean>(globalAllowGuest.value);
-const meetingType = ref<string>(globalMeetingType.value);
+const allowGuest = ref(false);
+const meetingType = ref("open");
 const hostOnlyChat = ref<boolean>(chatStore.hostOnlyChat);
 
 const requireHostApproval = computed({
@@ -89,25 +108,25 @@ const requireHostApproval = computed({
 	},
 });
 
-const meetingDoc = getMeetingDoc(props.meetingId);
-
-onMounted(async () => {
-	try {
-		allowGuest.value = globalAllowGuest.value;
-		meetingType.value = globalMeetingType.value;
-		if (meetingDoc.doc?.host_only_chat !== undefined) {
-			hostOnlyChat.value = !!meetingDoc.doc.host_only_chat;
-		}
-	} catch (error) {
-		console.error("Failed to load meeting settings");
-	}
-});
+let syncingFromDocument = false;
+watch(
+	() => meetingDoc.doc,
+	(doc) => {
+		if (!doc) return;
+		syncingFromDocument = true;
+		allowGuest.value = Boolean(doc.allow_guest);
+		meetingType.value = doc.meeting_type || "open";
+		hostOnlyChat.value = Boolean(doc.host_only_chat);
+		syncingFromDocument = false;
+	},
+	{ immediate: true },
+);
 
 const saveSettings = debounce(async () => {
 	if (meetingDoc.updateSettings.loading) return;
 
 	try {
-		await meetingDoc.updateSettings.submit({
+		await submit(meetingDoc.updateSettings, {
 			allow_guest: allowGuest.value,
 			meeting_type: meetingType.value,
 			host_only_chat: hostOnlyChat.value,
@@ -129,8 +148,8 @@ watch(hostOnlyChat, (newValue) => {
 	chatStore.hostOnlyChat = newValue;
 });
 watch([allowGuest, meetingType, hostOnlyChat], () => {
-	if (!meetingDoc.get.loading) {
+	if (!syncingFromDocument && !meetingDoc.loading) {
 		saveSettings();
 	}
-});
+}, { flush: "sync" });
 </script>

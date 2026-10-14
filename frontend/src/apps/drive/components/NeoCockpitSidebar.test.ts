@@ -11,9 +11,7 @@ vi.mock('@/shell/NeoCockpitBridge.vue', () => ({ default: defineComponent({ rend
 vi.mock('@/apps/drive/components/Settings/SettingsDialog.vue', () => ({
   default: defineComponent({ render: () => h('div') }),
 }))
-vi.mock('@/apps/drive/components/ShortcutsDialog.vue', () => ({
-  default: defineComponent({ render: () => h('div') }),
-}))
+vi.mock('@/stores/root', () => ({ useRootStore: () => ({ paletteOpen: false }) }))
 vi.mock('@/apps/drive/components/Sidebar.vue', () => ({ default: defineComponent({ render: () => h('div') }) }))
 vi.mock('@/apps/drive/data/breadcrumbs', () => ({ getRootSection: () => ({}) }))
 vi.mock('@/apps/drive/emitter', () => ({ default: { on: vi.fn(), emit: vi.fn() } }))

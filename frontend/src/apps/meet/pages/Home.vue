@@ -115,7 +115,14 @@
 					<FormControl v-model="scheduleTitle" :label="__('Title')" :placeholder="__('Team meeting')" />
 					<div class="grid grid-cols-1 gap-3 md:grid-cols-3">
 						<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
-						<FormControl v-model="scheduleDate" :label="__('Date')" type="date" />
+						<!-- //// Neoffice — format `ll`, the date as the reader writes it (« 14 oct. 2026 »): upstream's "MMM D, YYYY" reads « oct. 14, 2026 » in French (#1321) -->
+						<FormControl
+							v-model="scheduleDate"
+							:label="__('Date')"
+							type="date"
+							format="ll"
+							:placeholder="__('Select date')"
+						/>
 						<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 						<FormControl
 							v-model="scheduleStartTime"
@@ -123,6 +130,7 @@
 							type="time"
 							:interval="15"
 							:format="timeInputFormat"
+							:placeholder="__('Select time')"
 						/>
 						<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
 						<FormControl
@@ -131,6 +139,7 @@
 							type="time"
 							:interval="15"
 							:format="timeInputFormat"
+							:placeholder="__('Select time')"
 						/>
 					</div>
 					<ParticipantSelector
@@ -163,10 +172,10 @@ import {
 	Button,
 	Dialog,
 	FormControl,
-	createResource,
 	toast,
+	useCall,
 } from "frappe-ui";
-import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import { ref, computed, onMounted, onScopeDispose, onUnmounted, watch } from "vue";
 import { useRouter } from "vue-router";
 
 import { userStore as useCalendarUserStore } from "@/apps/calendar/stores/user";
@@ -178,7 +187,9 @@ import {
 	adjustScheduleEndTime,
 	adjustScheduleStartTime,
 } from "@/apps/calendar/utils/scheduleTime";
-import { useConnectionState } from "../composables/useConnectionState";
+import { useStartMeeting } from "../composables/useStartMeeting";
+import { submit } from "../utils/request";
+import { useRootStore } from "@/stores/root";
 // //// Neoffice: NeoCockpit chrome (falls back to the native MeetSidebar itself) ////
 import NeoCockpitSidebar from "../components/NeoCockpitSidebar.vue";
 import UpcomingMeetings from "../components/UpcomingMeetings.vue";
@@ -199,7 +210,8 @@ interface CalendarParticipant {
 const router = useRouter();
 //// Neoffice — `HH:mm` on a 24-hour locale; upstream wrote `h:mm A` for every reader (maintenance#1321).
 const timeInputFormat = usesMeridiem(dayjs()) ? "h:mm A" : "HH:mm";
-const connectionState = useConnectionState();
+const root = useRootStore();
+const { isStartingMeeting, startMeeting } = useStartMeeting();
 const calendarStore = useCalendarUserStore();
 const meetingCode = ref("");
 const meetingCodeError = ref("");
@@ -220,33 +232,14 @@ watch(scheduleEndTime, (endTime) => {
 	scheduleStartTime.value = adjustScheduleStartTime(scheduleStartTime.value, endTime);
 });
 
-const userResource = createResource({
-	url: "suite.api.account.get_logged_in_user",
-	cache: "User",
-	auto: true,
+const userResource = useCall<{ name?: string; full_name?: string; user_image?: string }>({
+	url: "/api/v2/method/suite.api.account.get_logged_in_user",
 });
 
 const firstName = computed(() => {
 	const name = userResource.data?.full_name || userResource.data?.name || "";
 	// //// Neoffice — i18n: text a person reads goes through __() (#1316)
 	return name.split(" ")[0];
-});
-
-const createMeeting = createResource({
-	url: "suite.meet.api.meeting.create",
-	method: "POST",
-	onSuccess: (meeting_code: string) => {
-		router.push({
-			name: "meet-meeting",
-			params: { meetingId: meeting_code },
-		});
-		connectionState.justCreated = true;
-	},
-	onError: (error: unknown) => {
-		console.error("Error creating meeting:", error);
-		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
-		toast.error(__("Failed to create meeting. Please try again."));
-	},
 });
 
 const scheduleStart = computed(() => dayjs(`${scheduleDate.value}T${scheduleStartTime.value}`));
@@ -289,9 +282,10 @@ const scheduledParticipants = computed(() => {
 	return participants;
 });
 
-const scheduleMeeting = createResource({
-	url: "suite.meet.api.schedule.create_scheduled_meeting",
-	makeParams: () => ({
+const scheduleMeeting = useCall({
+	url: "/api/v2/method/suite.meet.api.schedule.create_scheduled_meeting",
+	method: "POST",
+	params: () => ({
 		account: calendarStore.accountId,
 		title: scheduleTitle.value,
 		start: scheduleStart.value.format("YYYY-MM-DD[T]HH:mm:ss"),
@@ -300,6 +294,7 @@ const scheduleMeeting = createResource({
 		participants: scheduledParticipants.value,
 		send_scheduling_messages: scheduledParticipants.value.length > 1,
 	}),
+	immediate: false,
 	onSuccess: () => {
 		showScheduleDialog.value = false;
 		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
@@ -310,32 +305,6 @@ const scheduleMeeting = createResource({
 		console.error("Error scheduling meeting:", error);
 	},
 });
-
-const startMeeting = (meetingType: "open" | "restricted") => {
-	// //// Neoffice — i18n: text a person reads goes through __() (#1316)
-	const toastId = toast.loading(__("Creating meeting..."));
-	createMeeting
-		.submit({ meeting_type: meetingType })
-		.then((meetingCode: string) => {
-			toast.dismiss(toastId);
-			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
-			toast.success(__("Meeting created successfully!"), {
-				duration: 8000,
-				action: {
-					// //// Neoffice — i18n: text a person reads goes through __() (#1316)
-					label: __("Copy link"),
-					onClick: () => {
-						const path = router.resolve({
-							name: "meet-meeting",
-							params: { meetingId: meetingCode },
-						}).href;
-						navigator.clipboard.writeText(new URL(path, window.location.origin).href);
-					},
-				},
-			});
-		})
-		.catch(() => toast.dismiss(toastId));
-};
 
 const startInstantMeeting = () => startMeeting("open");
 
@@ -368,7 +337,7 @@ const submitScheduledMeeting = () => {
 		toast.error(__("Enter a valid date and an end time after the start time."));
 		return;
 	}
-	toast.promise(scheduleMeeting.submit(), {
+	toast.promise(submit(scheduleMeeting), {
 		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
 		loading: __("Scheduling meeting..."),
 		error: __("Failed to schedule meeting. Please try again."),
@@ -402,6 +371,48 @@ const isMeetingCodeValid = (code: string) => {
 	const regex = /^[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}$/;
 	return regex.test(code);
 };
+
+const unregisterPaletteGroups = root.registerPaletteGroups("meet-home", () => [
+	{
+		commands: [
+			{
+				id: "meet-start-open",
+				label: "Start instant meet",
+				enterHint: "start instant meet",
+				icon: "lucide-zap",
+				keywords: ["new", "instant", "room"],
+				disabled: isStartingMeeting.value,
+				run: startInstantMeeting,
+			},
+			{
+				id: "meet-start-restricted",
+				label: "Start restricted meet",
+				enterHint: "start restricted meet",
+				icon: "lucide-lock",
+				keywords: ["new", "private", "room"],
+				disabled: isStartingMeeting.value,
+				run: startRestrictedMeeting,
+			},
+			{
+				id: "meet-join-code",
+				label: "Join with code",
+				enterHint: "join with code",
+				icon: "lucide-link",
+				keywords: ["room", "call"],
+				run: () => (showJoinDialog.value = true),
+			},
+			{
+				id: "meet-schedule",
+				label: "Schedule meet",
+				enterHint: "schedule meet",
+				icon: "lucide-calendar-plus",
+				keywords: ["calendar", "new"],
+				run: openScheduleDialog,
+			},
+		],
+	},
+]);
+onScopeDispose(unregisterPaletteGroups);
 
 onMounted(() => {
 	document.documentElement.style.overflow = "hidden";

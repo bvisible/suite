@@ -14,7 +14,9 @@ const APPS = ['calendar', 'mail', 'drive', 'writer']
 
 describe("the page's catalogue is never replaced by a cached one", () => {
   it.each(APPS)('%s makes its translations resource only when the page has no catalogue', (app) => {
-    const source = fs.readFileSync(path.resolve(__dirname, `../apps/${app}/routes.ts`), 'utf8')
+    // Upstream moved each app's boot code from routes.ts to runtime.ts (4fede41ae, merged 14.10.2026), with the
+    // same guard: the page's catalogue first, the cached resource only where the page carries none.
+    const source = fs.readFileSync(path.resolve(__dirname, `../apps/${app}/runtime.ts`), 'utf8')
     const at = source.indexOf("cache: 'translations'")
     expect(at, `${app}: no cached translations resource left`).toBeGreaterThan(-1)
     // The resource is created inside the guard, not before it

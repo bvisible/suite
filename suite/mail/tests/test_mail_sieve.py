@@ -4,6 +4,10 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+from unittest import mock
+
+import frappe
+
 from suite.mail.api.mail import create_mailbox, get_mailboxes, get_threads
 from suite.mail.api.sieve import (
     create_automation_script,
@@ -14,6 +18,7 @@ from suite.mail.api.sieve import (
     update_sieve_script,
 )
 from suite.mail.doctype.sieve_script.sieve_script import AUTOMATION_SCRIPT_NAME
+from suite.mail.jmap import SuiteJMAPClient, get_account_client
 from suite.mail.tests.base import StalwartIntegrationTestCase, unique_name
 
 
@@ -57,10 +62,38 @@ class TestMailSieve(StalwartIntegrationTestCase):
             delete_sieve_script(self.account, script["id"])
         self.assertNotIn(name, self._scripts())
 
+    def test_script_content_travels_inside_the_request(self):
+        # Stalwart offers RFC 9404, so a save uploads the script in the request and names its blob
+        # as `#script` - a creation reference the server has to resolve in a create and in an
+        # update alike. With the upload endpoint closed off, content that reads back got there
+        # no other way.
+        name = unique_name("inline")
+        closed = mock.patch.object(
+            SuiteJMAPClient, "upload", side_effect=AssertionError("the upload endpoint was used")
+        )
+        with self.set_user(self.member.email):
+            self.assertIn("blob", get_account_client(self.account).capabilities.attrs)
+
+            with closed:
+                create_sieve_script(self.account, name, 'require ["fileinto"];\nkeep;\n', active=False)
+            created = self._scripts()[name]
+            self.assertIn("keep;", created["content"])
+
+            with closed:
+                update_sieve_script(
+                    self.account, created["id"], name, 'require ["fileinto"];\ndiscard;\n', active=False
+                )
+            updated = self._scripts()[name]
+            self.assertEqual(updated["id"], created["id"])
+            self.assertIn("discard;", updated["content"])
+            self.assertNotIn("keep;", updated["content"])
+
+            delete_sieve_script(self.account, created["id"])
+
     def test_invalid_script_rejected(self):
         with self.set_user(self.member.email):
             self.assertRaises(
-                Exception,
+                frappe.ValidationError,
                 create_sieve_script,
                 self.account,
                 unique_name("broken"),

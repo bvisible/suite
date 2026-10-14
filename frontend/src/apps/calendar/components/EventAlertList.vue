@@ -3,6 +3,12 @@ import { watch } from 'vue'
 import { Button, FormControl } from 'frappe-ui'
 
 import { requestAlertPermission } from '@/utils/calendarAlert'
+import {
+	ALERT_ACTION_OPTIONS,
+	DIRECTION_OPTIONS,
+	RELATIVE_TO_OPTIONS,
+	UNIT_OPTIONS,
+} from '@/apps/calendar/utils/eventOptions'
 
 const { alerts } = defineProps<{ alerts: any[] }>()
 
@@ -24,32 +30,6 @@ const removeAlert = (i: number) => {
 	const updated = alerts.filter((_, idx) => idx !== i)
 	emit('update:alerts', updated)
 }
-
-// Display is delivered as a device push and an in-app toast; Email is sent by
-// the calendar server. `Audio` exists in the schema only so imported calendars
-// keep their alarms — it plays nothing here, so it is not offered and an
-// existing one reads as Display.
-const ALERT_ACTION_OPTIONS = [
-	{ label: __('Notification'), value: 'Display' },
-	{ label: __('Email'), value: 'Email' },
-]
-
-const UNIT_OPTIONS = [
-	{ label: __('Minutes'), value: 'minutes' },
-	{ label: __('Hours'), value: 'hours' },
-	{ label: __('Days'), value: 'days' },
-	{ label: __('Weeks'), value: 'weeks' },
-]
-
-const DIRECTION_OPTIONS = [
-	{ label: __('Before'), value: -1 },
-	{ label: __('After'), value: 1 },
-]
-
-const RELATIVE_TO_OPTIONS = [
-	{ label: __('Start'), value: 'Start' },
-	{ label: __('End'), value: 'End' },
-]
 </script>
 
 <template>
@@ -93,9 +73,12 @@ const RELATIVE_TO_OPTIONS = [
 		</template>
 		<template v-else>
 			<span class="text-ink-gray-8 mb-1.5 mt-auto text-base">{{ __('on') }}</span>
+			<!-- //// Neoffice — format `ll`, the date as the reader writes it (« 14 oct. 2026 »): upstream's "MMM D, YYYY" reads « oct. 14, 2026 » in French (#1321) -->
 			<FormControl
 				:model-value="alert.date"
 				type="date"
+				format="ll"
+				:placeholder="__('Select date')"
 				class="mt-auto w-full"
 				@update:model-value="updateAlert(i, 'date', $event)"
 			/>
@@ -103,6 +86,9 @@ const RELATIVE_TO_OPTIONS = [
 			<FormControl
 				:model-value="alert.time"
 				type="time"
+				:interval="15"
+				format="h:mm A"
+				:placeholder="__('Select time')"
 				class="mt-auto w-full"
 				@update:model-value="updateAlert(i, 'time', $event)"
 			/>

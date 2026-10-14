@@ -3,6 +3,10 @@
 from __future__ import annotations
 import unittest
 from unittest import mock
+from uuid import uuid4
+
+import frappe
+from frappe.tests import IntegrationTestCase
 
 from suite.api import account
 
@@ -131,3 +135,14 @@ class GetUsers(AccountTestBase):
         users = account.get_users()
 
         self.assertEqual([u["is_admin"] for u in users], [True, False])
+
+
+class GetUsersOnSite(IntegrationTestCase):
+    def test_lists_members_who_have_no_desk_access(self):
+        member = frappe.new_doc("User")
+        member.email = f"member-{uuid4().hex[:8]}@example.com"
+        member.first_name = "Member"
+        member.insert(ignore_permissions=True)
+        self.assertEqual(member.user_type, "Website User")
+
+        self.assertIn(member.name, [user["name"] for user in account.get_users()])

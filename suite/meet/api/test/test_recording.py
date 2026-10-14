@@ -5,6 +5,7 @@
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 import hashlib
+import json
 import time
 import uuid
 from datetime import UTC, datetime, timedelta
@@ -16,10 +17,13 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, now_datetime
 
 from suite.drive.api.storage import get_storage_reservation, get_storage_usage
+from suite.drive.utils import create_drive_file
 from suite.meet.api.recording import (
     BYTES_PER_SECOND,
     MAX_BUDGET_BYTES,
+    MAX_SECONDS,
     MINIMUM_BUDGET_BYTES,
+    STARTUP_TIMEOUT_SECONDS,
     _apply_segment_progress,
     _limits,
     _reconcile_interrupted,
@@ -40,11 +44,15 @@ from suite.meet.api.recording import (
 from suite.meet.doctype.meet_recording.meet_recording import recording_storage_reservation_key
 from suite.meet.recording.callback_auth import CALLBACK_AUDIENCE, CALLBACK_TYPE, authenticate_callback
 from suite.meet.recording.ingest import (
+    InfrastructureFinalizationError,
     _upload_path,
     append_chunk,
     begin_upload,
     complete_upload,
+    deliver_recording_notification,
+    finalization_status,
     process_upload,
+    reconcile_due_finalizations,
 )
 from suite.meet.recording.recorder_client import RecorderOutcome
 
@@ -354,7 +362,24 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
         started = start(self.room.name, str(uuid.uuid4()))
         recording = frappe.get_doc("Meet Recording", started["name"])
         now = int(time.time())
+        body = json.dumps(
+            {
+                "protocol_version": 1,
+                "recording_id": recording.name,
+                "job": recording.recorder_job_id,
+                "event_sequence": 2,
+                "captured_bytes": 0,
+                "size": 1,
+                "sha256": "a" * 64,
+                "duration_ms": 1000,
+                "ended_at": "2026-01-01T00:00:00.000Z",
+                "end_reason_code": "host_stop",
+                "gaps": [],
+            },
+            separators=(",", ":"),
+        ).encode()
         claims = {
+            "protocol_version": 1,
             "iss": f"meet-recorder:{frappe.local.site}",
             "aud": CALLBACK_AUDIENCE,
             "site": frappe.local.site,
@@ -362,7 +387,7 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
             "job": recording.recorder_job_id,
             "operation": "stopped",
             "operation_id": "2",
-            "body_sha256": hashlib.sha256(b"{}").hexdigest(),
+            "body_sha256": hashlib.sha256(body).hexdigest(),
             "jti": str(uuid.uuid4()),
             "iat": now,
             "exp": now + 30,
@@ -376,11 +401,12 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
         original_request = getattr(frappe.local, "request", None)
         frappe.local.request = Mock(
             headers={"X-Meet-Recorder-Authorization": f"Bearer {token}"},
-            get_data=Mock(return_value=b"{}"),
+            get_data=Mock(return_value=body),
         )
         try:
             self.assertEqual(
                 authenticate_callback(
+                    protocol_version=1,
                     recording=recording.name,
                     job=recording.recorder_job_id,
                     operation="stopped",
@@ -391,6 +417,7 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
             )
             with self.assertRaises(frappe.AuthenticationError):
                 authenticate_callback(
+                    protocol_version=1,
                     recording=recording.name,
                     job=recording.recorder_job_id,
                     operation="complete_upload",
@@ -440,19 +467,18 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
                     "suite.meet.recording.ingest._recordings_folder",
                     return_value=recording.drive_home_folder,
                 ),
-                patch("suite.meet.recording.ingest.update_file_size"),
-                patch("suite.meet.recording.ingest.FileManager.upload_file"),
+                patch("suite.drive.utils.update_file_size"),
+                patch("suite.drive.utils.files.FileManager.upload_file"),
                 patch("suite.meet.recording.ingest.frappe.enqueue") as enqueue,
                 patch("suite.meet.api.recording._publish_state") as publish_state,
             ):
                 self.assertEqual(complete_upload(recording.name, event_sequence=7), {"status": "Processing"})
-                result = process_upload(recording.name, event_sequence=7)
-                self.assertEqual(process_upload(recording.name, event_sequence=7), result)
+                result = process_upload(recording.name)
+                self.assertEqual(process_upload(recording.name), result)
 
             enqueue.assert_called_once_with(
                 process_upload,
                 recording_name=recording.name,
-                event_sequence=7,
                 queue="long",
                 timeout=6 * 60 * 60 + 5 * 60,
                 enqueue_after_commit=True,
@@ -467,6 +493,19 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
             self.assertEqual(result, {"artifact": artifact.name, "status": "Ready"})
             self.assertEqual(completed.artifact_size, len(content))
             self.assertEqual(completed.artifact_sha256, digest)
+            self.assertEqual(artifact.name, completed.publication_key)
+            self.assertEqual(artifact.content_hash, digest)
+            self.assertEqual(completed.finalization_stage, "Terminal")
+            self.assertIsNotNone(completed.validated_at)
+            self.assertIsNotNone(completed.published_at)
+            self.assertTrue(completed.notification_pending)
+            self.assertEqual(
+                finalization_status(recording.name),
+                {"action": "delete_local", "terminal_result": "Ready"},
+            )
+            completed.reload()
+            self.assertIsNotNone(completed.terminal_acknowledged_at)
+            self.assertTrue(completed.notification_pending)
             self.assertIsNone(get_storage_reservation(recording_storage_reservation_key(recording.name)))
             self.assertEqual(artifact.owner, self.owner)
             self.assertEqual(artifact.folder, recording.drive_home_folder)
@@ -484,6 +523,179 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
             path.unlink(missing_ok=True)
             if artifact:
                 frappe.delete_doc("File", artifact.name, force=True, ignore_permissions=True)
+
+    def test_finalization_resumes_verified_bytes_and_retries_infrastructure_failures(self):
+        started = start(self.room.name, str(uuid.uuid4()))
+        stop(self.room.name)
+        content = b"retryable-artifact"
+        digest = hashlib.sha256(content).hexdigest()
+        begin_upload(
+            started["name"],
+            event_sequence=2,
+            size=len(content),
+            sha256=digest,
+            duration_ms=1000,
+        )
+        recording = frappe.get_doc("Meet Recording", started["name"])
+        path = _upload_path(recording.upload_id)
+        try:
+            self.assertEqual(finalization_status(recording.name), {"action": "resume_upload", "offset": 0})
+            append_chunk(recording.name, offset=0, chunk=content, chunk_sha256=digest)
+            self.assertEqual(
+                finalization_status(recording.name),
+                {"action": "resume_upload", "offset": len(content)},
+            )
+            with patch("suite.meet.recording.ingest.frappe.enqueue"):
+                complete_upload(recording.name, event_sequence=7)
+            self.assertEqual(finalization_status(recording.name), {"action": "wait"})
+
+            with patch(
+                "suite.meet.recording.ingest._validate_media",
+                side_effect=InfrastructureFinalizationError("media_tool_unavailable", "ffprobe unavailable"),
+            ):
+                self.assertEqual(process_upload(recording.name), {"status": "Processing"})
+            recording.reload()
+            self.assertEqual(recording.finalization_attempts, 1)
+            self.assertEqual(recording.finalization_stage, "Pending")
+            self.assertEqual(recording.finalization_failure_type, "infrastructure")
+            self.assertEqual(recording.finalization_failure_code, "media_tool_unavailable")
+            self.assertIsNotNone(recording.finalization_next_retry_at)
+
+            recording.db_set("finalization_next_retry_at", add_to_date(now_datetime(), seconds=-1))
+            with patch("suite.meet.recording.ingest.frappe.enqueue") as enqueue:
+                reconcile_due_finalizations()
+            self.assertTrue(
+                any(
+                    call.kwargs.get("recording_name") == recording.name
+                    and call.kwargs.get("job_id") == f"meet-recording-upload::{recording.name}"
+                    for call in enqueue.call_args_list
+                )
+            )
+        finally:
+            path.unlink(missing_ok=True)
+
+    def test_terminal_email_is_owner_only_and_does_not_gate_cleanup(self):
+        started = start(self.room.name, str(uuid.uuid4()))
+        stop(self.room.name)
+        content = b"invalid-artifact"
+        begin_upload(
+            started["name"],
+            event_sequence=2,
+            size=len(content),
+            sha256=hashlib.sha256(content).hexdigest(),
+            duration_ms=1000,
+        )
+        recording = frappe.get_doc("Meet Recording", started["name"])
+        path = _upload_path(recording.upload_id)
+        try:
+            append_chunk(
+                recording.name,
+                offset=0,
+                chunk=content,
+                chunk_sha256=hashlib.sha256(content).hexdigest(),
+            )
+            with patch("suite.meet.recording.ingest.frappe.enqueue"):
+                complete_upload(recording.name, event_sequence=7)
+            with patch(
+                "suite.meet.recording.ingest._validate_media",
+                side_effect=frappe.ValidationError("invalid media"),
+            ):
+                process_upload(recording.name)
+            recording.reload()
+            self.assertEqual(recording.status, "Processing")
+
+            recording.db_set(
+                {
+                    "metadata_accepted_at": add_to_date(now_datetime(), seconds=-2),
+                    "finalization_deadline": add_to_date(now_datetime(), seconds=-1),
+                    "finalization_next_retry_at": add_to_date(now_datetime(), seconds=-1),
+                }
+            )
+            with patch("suite.meet.recording.ingest.frappe.enqueue"):
+                reconcile_due_finalizations()
+            recording.reload()
+            self.assertEqual(recording.status, "Failed")
+            self.assertTrue(recording.notification_pending)
+            self.assertEqual(
+                finalization_status(recording.name),
+                {"action": "delete_local", "terminal_result": "Failed"},
+            )
+
+            with patch(
+                "suite.meet.recording.ingest.frappe.sendmail",
+                side_effect=RuntimeError("mail queue unavailable"),
+            ):
+                deliver_recording_notification(recording.name)
+            recording.reload()
+            self.assertTrue(recording.notification_pending)
+            self.assertEqual(recording.notification_attempts, 1)
+            self.assertIsNotNone(recording.notification_next_retry_at)
+
+            recording.db_set("notification_next_retry_at", add_to_date(now_datetime(), seconds=-1))
+            with patch("suite.meet.recording.ingest.frappe.sendmail") as sendmail:
+                deliver_recording_notification(recording.name)
+            recording.reload()
+            self.assertFalse(recording.notification_pending)
+            self.assertEqual(recording.notification_attempts, 2)
+            self.assertIsNotNone(recording.notification_sent_at)
+            self.assertEqual(sendmail.call_args.kwargs["recipients"], [self.owner])
+            self.assertEqual(
+                sendmail.call_args.kwargs["message_id"],
+                f"meet-recording-finalization-{recording.name}@{frappe.local.site}",
+            )
+            self.assertEqual(sendmail.call_args.kwargs["template"], "meet_recording")
+            self.assertIn("could not be processed", sendmail.call_args.kwargs["args"]["description"])
+            self.assertIn("No recording was added to Drive", sendmail.call_args.kwargs["args"]["description"])
+            self.assertIsNone(sendmail.call_args.kwargs["args"]["link"])
+            self.assertFalse(frappe.db.exists("Notification Log", {"document_name": recording.name}))
+        finally:
+            path.unlink(missing_ok=True)
+
+    def test_ready_email_names_room_and_links_to_drive_artifact(self):
+        self.room.db_set("title", "Weekly planning")
+        started = start(self.room.name, str(uuid.uuid4()))
+        stop(self.room.name)
+        recording = frappe.get_doc("Meet Recording", started["name"])
+        artifact = create_drive_file(
+            "Weekly planning recording.mp4",
+            recording.drive_home_folder,
+            "Video",
+            "/weekly-planning-recording.mp4",
+            mime_type="video/mp4",
+            owner=self.owner,
+        )
+        recording.db_set(
+            {
+                "status": "Ready",
+                "artifact": artifact.name,
+                "artifact_size": 1,
+                "artifact_duration": 1,
+                "artifact_sha256": "a" * 64,
+                "notification_pending": 1,
+                "notification_next_retry_at": now_datetime(),
+            },
+            update_modified=False,
+        )
+
+        artifact_url = f"https://suite.test/drive/f/{artifact.name}"
+        try:
+            with (
+                patch("suite.meet.recording.ingest.frappe.sendmail") as sendmail,
+                patch("suite.meet.recording.ingest.frappe.utils.get_url", return_value=artifact_url),
+            ):
+                deliver_recording_notification(recording.name)
+
+            self.assertEqual(sendmail.call_args.kwargs["recipients"], [self.owner])
+            self.assertEqual(
+                sendmail.call_args.kwargs["subject"],
+                "Your recording of Weekly planning is ready",
+            )
+            self.assertEqual(sendmail.call_args.kwargs["template"], "meet_recording")
+            self.assertIn("Weekly planning", sendmail.call_args.kwargs["args"]["description"])
+            self.assertEqual(sendmail.call_args.kwargs["args"]["link"], artifact_url)
+            self.assertFalse(frappe.db.exists("Notification Log", {"document_name": recording.name}))
+        finally:
+            frappe.delete_doc("File", artifact.name, force=True, ignore_permissions=True)
 
     def test_completed_upload_with_capture_gap_creates_partial_artifact(self):
         started = start(self.room.name, str(uuid.uuid4()))
@@ -511,6 +723,7 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
         self.assertIsNone(recording.ended_at.tzinfo)
         path = _upload_path(recording.upload_id)
         append_chunk(recording.name, offset=0, chunk=content, chunk_sha256=digest)
+        complete_upload(recording.name, event_sequence=7)
         artifact = None
         try:
             with (
@@ -519,14 +732,29 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
                     "suite.meet.recording.ingest._recordings_folder",
                     return_value=recording.drive_home_folder,
                 ),
-                patch("suite.meet.recording.ingest.update_file_size"),
-                patch("suite.meet.recording.ingest.FileManager.upload_file"),
+                patch("suite.drive.utils.update_file_size"),
+                patch("suite.drive.utils.files.FileManager.upload_file"),
             ):
-                result = process_upload(recording.name, event_sequence=7)
+                result = process_upload(recording.name)
             completed = frappe.get_doc("Meet Recording", recording.name)
             artifact = frappe.get_doc("File", completed.artifact)
             self.assertEqual(result["status"], "Partial")
             self.assertEqual(frappe.parse_json(completed.capture_gaps), [gap])
+            with (
+                patch("suite.meet.recording.ingest.frappe.sendmail") as sendmail,
+                patch(
+                    "suite.meet.recording.ingest.frappe.utils.get_url",
+                    return_value=f"https://suite.test/drive/f/{artifact.name}",
+                ),
+            ):
+                deliver_recording_notification(completed.name)
+            self.assertIn("partial recording", sendmail.call_args.kwargs["subject"])
+            self.assertEqual(sendmail.call_args.kwargs["template"], "meet_recording")
+            self.assertIn(
+                "Some portions could not be captured",
+                sendmail.call_args.kwargs["args"]["description"],
+            )
+            self.assertIn(f"/drive/f/{artifact.name}", sendmail.call_args.kwargs["args"]["link"])
         finally:
             path.unlink(missing_ok=True)
             if artifact:
@@ -569,6 +797,16 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
         self.assertEqual(recording.recorder_key_thumbprint, "xx0BcA-wMohw8atYDJOe6peGModklG2wRHBlXHMvl0M")
         client.deliver_grant.assert_called_once()
         self.assertEqual(client.deliver_grant.call_args.kwargs["endpoint_generation"], 0)
+        grant = jwt.decode(
+            client.deliver_grant.call_args.kwargs["grant"],
+            frappe.conf.sfu_secret,
+            algorithms=["HS256"],
+            audience="meet-sfu-recorder",
+        )
+        self.assertLessEqual(
+            grant["authorization_expires_at"] - grant["iat"],
+            MAX_SECONDS + STARTUP_TIMEOUT_SECONDS,
+        )
 
     def test_replacement_ready_rotates_key_and_grant_once(self):
         recording, interrupted, interruption_id = self._interrupted_recording()
@@ -583,6 +821,7 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
             1,
             REPLACEMENT_JWK,
             (interrupted + timedelta(seconds=1)).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+            1,
         )
 
         with (
@@ -593,7 +832,7 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
             retried = recorder_replacement_ready(*arguments)
 
         recording.reload()
-        self.assertEqual(first, {"status": "Interrupted", "grant_delivered": True})
+        self.assertEqual(first, {"protocol_version": 1, "status": "Interrupted", "grant_delivered": True})
         self.assertEqual(retried, first)
         self.assertEqual(recording.endpoint_generation, 1)
         self.assertEqual(recording.replacement_event_sequence, 7)
@@ -603,7 +842,7 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
         client.deliver_grant.assert_called_once()
         self.assertEqual(client.deliver_grant.call_args.kwargs["endpoint_generation"], 1)
 
-        conflicting = (*arguments[:5], PUBLIC_JWK, arguments[6])
+        conflicting = (*arguments[:5], PUBLIC_JWK, arguments[6], 1)
         with (
             patch("suite.meet.api.recording.authenticate_callback"),
             patch("suite.meet.api.recording._client", return_value=client),
@@ -615,7 +854,9 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
             patch("suite.meet.api.recording._client", return_value=client),
             self.assertRaises(frappe.ValidationError),
         ):
-            recorder_replacement_ready(*arguments[:2], 8, interruption_id, 1, REPLACEMENT_JWK, arguments[6])
+            recorder_replacement_ready(
+                *arguments[:2], 8, interruption_id, 1, REPLACEMENT_JWK, arguments[6], 1
+            )
 
         resumed = interrupted + timedelta(seconds=2)
         recovered = interrupted + timedelta(seconds=3)
@@ -630,9 +871,13 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
                 interruption_id,
                 resumed.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
                 recovered.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+                1,
             )
             after_recovery = recorder_replacement_ready(*arguments)
-        self.assertEqual(after_recovery, {"status": "Recording", "grant_delivered": True})
+        self.assertEqual(
+            after_recovery,
+            {"protocol_version": 1, "status": "Recording", "grant_delivered": True},
+        )
         client.deliver_grant.assert_called_once()
 
     def test_reconciliation_adopts_lost_replacement_callback_and_retries_grant(self):
@@ -705,6 +950,7 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
             1,
             REPLACEMENT_JWK,
             (interrupted + timedelta(seconds=1)).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+            1,
         )
 
         with (
@@ -755,6 +1001,7 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
                 (interrupted + timedelta(seconds=1))
                 .isoformat(timespec="milliseconds")
                 .replace("+00:00", "Z"),
+                1,
             )
 
         frappe.db.set_value(
@@ -779,6 +1026,7 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
                 (interrupted + timedelta(seconds=1))
                 .isoformat(timespec="milliseconds")
                 .replace("+00:00", "Z"),
+                1,
             )
 
     def _interrupted_recording(self):
@@ -791,7 +1039,7 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
                 recording.name,
                 recording.recorder_job_id,
                 6,
-                "connection_lost",
+                "sfu_disconnected",
                 interruption_id,
                 interrupted.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
                 (interrupted + timedelta(seconds=60))
@@ -800,6 +1048,7 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
                 recording.started_at.replace(tzinfo=UTC)
                 .isoformat(timespec="milliseconds")
                 .replace("+00:00", "Z"),
+                1,
             )
         recording.reload()
         return recording, interrupted, interruption_id
@@ -824,10 +1073,11 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
                 recording.started_at.replace(tzinfo=UTC)
                 .isoformat(timespec="milliseconds")
                 .replace("+00:00", "Z"),
+                1,
             )
 
         recording.reload()
-        self.assertEqual(result, {"status": "Interrupted"})
+        self.assertEqual(result, {"protocol_version": 1, "status": "Interrupted"})
         self.assertEqual(recording.status, "Interrupted")
         self.assertEqual(recording.recorder_event_sequence, 6)
 
@@ -841,10 +1091,11 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
                 interruption_id,
                 resumed.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
                 recovered.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+                1,
             )
 
         recording.reload()
-        self.assertEqual(result, {"status": "Recording"})
+        self.assertEqual(result, {"protocol_version": 1, "status": "Recording"})
         self.assertEqual(recording.recorder_event_sequence, 7)
         self.assertEqual(
             frappe.parse_json(recording.capture_gaps),
@@ -872,7 +1123,7 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
             public_jwk=REPLACEMENT_JWK,
             endpoint_generation=2,
             state="capture_ready",
-            health_reason=None,
+            reason_code=None,
             event_sequence=9,
             interruption={
                 "id": interruption_id,
@@ -924,6 +1175,7 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
                 recording.started_at.replace(tzinfo=UTC)
                 .isoformat(timespec="milliseconds")
                 .replace("+00:00", "Z"),
+                1,
             )
         frappe.db.set_value(
             "Meet Recording",
@@ -963,6 +1215,7 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
                 recording.started_at.replace(tzinfo=UTC)
                 .isoformat(timespec="milliseconds")
                 .replace("+00:00", "Z"),
+                1,
             )
         client = Mock()
         client.query.return_value = RecorderOutcome(
@@ -1015,10 +1268,11 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
                     sequence,
                     milestone,
                     timestamp,
+                    1,
                 )
 
         recording = frappe.get_doc("Meet Recording", result["name"])
-        self.assertEqual(state, {"status": "Recording"})
+        self.assertEqual(state, {"protocol_version": 1, "status": "Recording"})
         self.assertEqual(recording.status, "Recording")
         self.assertEqual(
             recording.started_at,
@@ -1036,13 +1290,14 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
             recording.name,
             recording.recorder_job_id,
             6,
-            "connection_lost",
+            "sfu_disconnected",
             interruption_id,
             interrupted.isoformat(timespec="milliseconds").replace("+00:00", "Z"),
             (interrupted + timedelta(seconds=60)).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
             recording.started_at.replace(tzinfo=UTC)
             .isoformat(timespec="milliseconds")
             .replace("+00:00", "Z"),
+            1,
         )
 
         with patch("suite.meet.api.recording.authenticate_callback"):
@@ -1063,7 +1318,7 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
         )
 
         with patch("suite.meet.api.recording.authenticate_callback"):
-            recorder_failed(recording.name, recording.recorder_job_id, 6, "capture_failed")
+            recorder_failed(recording.name, recording.recorder_job_id, 6, 1, "capture_failed")
 
         self.assertEqual(get_storage_usage(self.owner)["reserved_size"], usage_before.get("reserved_size", 0))
 
@@ -1122,13 +1377,13 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
         path = _upload_path(recording.upload_id)
         append_chunk(recording.name, offset=0, chunk=content, chunk_sha256=digest)
         with patch("suite.meet.api.recording.authenticate_callback"):
-            recorder_failed(recording.name, recording.recorder_job_id, 7, "processing_failed")
+            recorder_failed(recording.name, recording.recorder_job_id, 7, 1, "processing_failed")
         frappe.db.set_value("Meet Recording", recording.name, "modified", "2000-01-01", update_modified=False)
 
         recent = start(self.room.name, str(uuid.uuid4()))
         recent_recording = frappe.get_doc("Meet Recording", recent["name"])
         with patch("suite.meet.api.recording.authenticate_callback"):
-            recorder_failed(recent_recording.name, recent_recording.recorder_job_id, 6, "capture_failed")
+            recorder_failed(recent_recording.name, recent_recording.recorder_job_id, 6, 1, "capture_failed")
 
         cleanup_failed_recordings()
 
@@ -1140,7 +1395,7 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
     def test_explicit_rejection_and_startup_timeout_are_retained(self):
         frappe.conf.recording_fixture_mode = False
         client = Mock()
-        client.reserve.return_value = RecorderOutcome("rejected", reason="capacity")
+        client.reserve.return_value = RecorderOutcome("rejected", reason_code="capacity")
         with (
             patch("suite.meet.api.recording._client", return_value=client),
             patch("suite.meet.api.recording.frappe.publish_realtime") as publish,
@@ -1228,7 +1483,7 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
         frappe.conf.recording_fixture_mode = False
         outcomes = [
             RecorderOutcome("accepted", _system_datetime_as_utc(now_datetime()), PUBLIC_JWK),
-            RecorderOutcome("rejected", reason="capacity"),
+            RecorderOutcome("rejected", reason_code="capacity"),
             RecorderOutcome("indeterminate"),
         ]
         client = Mock()

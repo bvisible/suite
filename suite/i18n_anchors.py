@@ -11,6 +11,10 @@ the whole site (webshop means "Boutique" by it), while the desk looks a DocType 
 This function is never called: it exists so the extractor finds the strings.
 """
 
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+from __future__ import annotations
+
 from frappe import _
 
 

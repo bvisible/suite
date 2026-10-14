@@ -8,6 +8,7 @@ from frappe.tests import IntegrationTestCase
 from suite.suite_core.neoffice import (
     PORTAL_ROLE,
     drop_orphan_role_assignments,
+    drop_orphan_suite_role_assignments,
     ensure_portal_role_has_no_desk_access,
     ensure_wopi_secret,
 )
@@ -64,6 +65,29 @@ class TestPortalRoleKeepsNoDeskAccess(IntegrationTestCase):
             [],
             "the unreachable row must be gone, not merely stepped over",
         )
+
+    def test_the_suite_roles_orphans_go_before_the_fixtures_sync(self):
+        """The role fixture's import re-evaluates every holder; an orphan row made Frappe skip the whole file
+        at every migrate (14.10.2026, the clone of osiris). A before_migrate hook, so it is ahead of the sync."""
+        self.assertIn(
+            "suite.suite_core.neoffice.drop_orphan_suite_role_assignments",
+            frappe.get_hooks("before_migrate"),
+        )
+
+        ghost = f"deleted-{frappe.generate_hash(6)}@example.com"
+        frappe.get_doc(
+            {
+                "doctype": "Has Role",
+                "parenttype": "User",
+                "parentfield": "roles",
+                "parent": ghost,
+                "role": PORTAL_ROLE,
+            }
+        ).insert(ignore_permissions=True)
+        frappe.db.commit()
+
+        self.assertGreaterEqual(drop_orphan_suite_role_assignments(), 1)
+        self.assertFalse(frappe.db.exists("Has Role", {"parenttype": "User", "parent": ghost}))
 
     def test_dropping_orphans_leaves_the_live_assignments_alone(self):
         role = frappe.get_doc({"doctype": "Role", "role_name": f"Neoffice Test {frappe.generate_hash(6)}"})

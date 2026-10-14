@@ -1,15 +1,15 @@
 # //// Neoffice — added file (no upstream equivalent).
-"""Backstop the role consolidation so portal accounts keep out of the desk.
+"""Backstop the role consolidation so portal accounts keep out of the desk — and out of "Suite Admin".
 
 Upstream's 8b911806e consolidated Drive's "Drive User"/"Drive Admin" onto the
 suite-wide "Suite User"/"Suite Admin", and made both carry desk access on the
-grounds that "both Drive roles carried desk access". That holds upstream. It does
-not hold here: this fleet deliberately ships "Drive User", "Meet User" and
-"Mail Admin" with ``desk_access = 0`` so that a visitor who signs up on the shop
-stays a Website User (fixed once already in e20b2ac06).
+grounds that "both Drive roles carried desk access". That did not hold here: this
+fleet deliberately ships "Drive User", "Meet User" and "Mail Admin" with
+``desk_access = 0`` so that a visitor who signs up on the shop stays a Website
+User (fixed once already in e20b2ac06). Upstream's 81975f23f (07.10.2026) has
+since taken desk access off both Suite roles; what stays ours is the second half.
 
-Three upstream patches therefore migrate role assignments onto roles that, left
-alone, would carry desk access:
+Three upstream patches migrate role assignments onto the Suite roles:
 
 * ``switch_drive_roles_to_suite_roles``  — "Drive User"  -> "Suite User"
 * ``switch_meet_user_to_suite_user``     — "Meet User"   -> "Suite User"
@@ -17,18 +17,17 @@ alone, would carry desk access:
 
 None of them recomputes ``user_type``: they write ``Has Role`` rows in bulk (or
 rename the Role outright), because upstream can assume every holder is already a
-System User. Here they are not, so the damage is invisible at migrate time and
-lands later — the account is promoted by the first ``User.save()`` that happens
-to touch it, weeks after the fact.
+System User. Here they are not. And "Suite Admin" is a Drive super-reader
+(``suite/drive/utils/overrides.py``, ``suite/drive/api/permissions.py``): on a site
+with shop customers, a portal account that holds it reads every file of the company.
 
-We already hold the role to ``desk_access = 0`` in three places (the fixture, the
-``assign_suite_role`` hook, and the three patches themselves). This patch is the
-proof, run last: it re-asserts the fixture value and strips "Suite Admin" from
-any account that was still a Website User when the migration ended — which, since
-nothing above recomputes ``user_type``, is exactly the set of accidental
-promotions.
+This patch runs after those three and before upstream's
+``remove_desk_access_from_suite_roles``. It re-asserts the roles at 0 and strips
+"Suite Admin" from any account still typed Website User — at that point exactly the
+portal accounts, since the staff whose only desk role was a Suite role are still
+System Users and are demoted afterwards, with their role.
 
-Measured on osiris, 31.08.2026, before the merge: 216 Website Users held
+Measured on osiris, 31.08.2026, before the first merge: 216 Website Users held
 "Drive User", 277 held "Meet User", and 1 held "Mail Admin".
 """
 
@@ -54,7 +53,8 @@ def _enforce_role_desk_access() -> None:
     something saved a User before the fixtures caught up.
     """
 
-    for role, desk_access in (("Suite User", 0), ("Suite Admin", 1)):
+    # //// Neoffice — both at 0 now: upstream's 81975f23f (07.10.2026) took desk access off "Suite Admin" too.
+    for role, desk_access in (("Suite User", 0), ("Suite Admin", 0)):
         if not frappe.db.exists("Role", role):
             continue
         if frappe.db.get_value("Role", role, "desk_access") != desk_access:

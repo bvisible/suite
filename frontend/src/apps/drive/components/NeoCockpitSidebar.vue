@@ -13,8 +13,10 @@
     search-kbd="⌘K"
     @failed="failed = true"
   />
-  <SettingsDialog v-if="!failed && showSettings" v-model="showSettings" :suggested-tab="suggestedTab" />
-  <ShortcutsDialog v-if="!failed && showShortcuts" v-model="showShortcuts" />
+  <!-- //// Neoffice — upstream's dialog is `v-model:open` since the shell's SuiteSettingsDialog, and the shortcuts
+       dialog moved to the layout (DriveLayout.vue, frappe-ui's KeyboardShortcutsDialog): this component keeps only
+       the settings. //// -->
+  <SettingsDialog v-if="!failed" v-model:open="showSettings" :suggested-tab="suggestedTab" />
 </template>
 
 <script setup>
@@ -24,10 +26,11 @@ import { useRouter } from 'vue-router'
 import driveLogo from '@/assets/app-logos/drive.svg'
 import NeoCockpitBridge from '@/shell/NeoCockpitBridge.vue'
 import SettingsDialog from '@/apps/drive/components/Settings/SettingsDialog.vue'
-import ShortcutsDialog from '@/apps/drive/components/ShortcutsDialog.vue'
 import Sidebar from '@/apps/drive/components/Sidebar.vue'
 import { getRootSection } from '@/apps/drive/data/breadcrumbs'
 import emitter from '@/apps/drive/emitter'
+//// Neoffice — the search box opens the suite's command palette (upstream removed Drive's own SearchPopup)
+import { useRootStore } from '@/stores/root'
 //// Neoffice — rootInfo too: the native Sidebar fetched it, and the breadcrumbs wait for it (data/breadcrumbs.ts)
 import { rootInfo, storageBar } from '@/apps/drive/resources/files'
 import { notifCount } from '@/apps/drive/resources/permissions'
@@ -43,21 +46,19 @@ storageBar.fetch()
 rootInfo.fetch()
 
 const showSettings = ref(false)
-const showShortcuts = ref(false)
-const suggestedTab = ref(0)
-emitter.on('showSettings', (val = 0) => {
+//// Neoffice — a tab is named now ('statistics', 'webdav', 'storage'), as upstream's Sidebar and StorageBar emit it
+const suggestedTab = ref('profile')
+emitter.on('showSettings', (val = 'profile') => {
   if (val === -1) showSettings.value = false
   else {
     showSettings.value = true
     suggestedTab.value = val
   }
 })
-emitter.on('toggleShortcuts', () => {
-  showShortcuts.value = !showShortcuts.value
-})
 
+const root = useRootStore()
 function openSearch() {
-  emitter.emit('showSearchPopup', true)
+  root.paletteOpen = true
 }
 
 const surfaceApp = {
@@ -116,7 +117,7 @@ const contextFooter = computed(() => {
     label: __('Storage'),
     sub: formatSize(used) + ' / ' + base2BlockSize(limit),
     percent: Math.min(100, (100 * used) / limit),
-    onClick: () => emitter.emit('showSettings', 2),
+    onClick: () => emitter.emit('showSettings', 'statistics'),
   }
 })
 </script>

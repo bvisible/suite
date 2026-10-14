@@ -2,6 +2,8 @@ import { toast } from 'frappe-ui'
 import slugify from 'slugify'
 import { timeAgo } from '@/boot/timeAgo' //// Neoffice — relative times in the reader's language, not vueuse's English
 
+import router from '@/apps/drive/router'
+
 import dayjs from 'dayjs'
 import localizedFormat from 'dayjs/plugin/localizedFormat'
 import utc from 'dayjs/plugin/utc'
@@ -27,9 +29,10 @@ export function getFileLink(entity, copy = true) {
     //// Neoffice — link to the Drive preview (the Craft editors), not to a
     //// native editor that cannot open the binary. See utils/files.js.
     link = `${window.location.origin}/drive/${getLinkStem(entity)}`
-  }
-else if (entity.content_doctype === 'Presentation') {
+  } else if (entity.content_doctype === 'Presentation') {
     link = `${window.location.origin}/slides/presentation/${entity.content_docname}`
+  } else if (entity.content_doctype === 'Sheet') {
+    link = `${window.location.origin}/sheets/${entity.content_docname || entity.name}`
   } else if (entity.file_type === 'Document' || entity.file_type === 'Markdown') {
     link = `${window.location.origin}/writer/w/${entity.name}`
   } else {
@@ -78,7 +81,7 @@ export const copyToClipboard = (str) => {
   }
 }
 
-export function formatSize(size, nDigits = 1) {
+function formatSize(size, nDigits = 1) {
   if (size === 0) return '0 KB'
   var i = -1
   var byteUnits = ['KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
@@ -111,35 +114,27 @@ export const formatDate = (date) => {
   return `${d.format('L')}, ${d.format('LT')}`
 }
 
-
 export const openEntity = (entity, new_tab = false) => {
-  if (new_tab) {
-    return window.open(getFileLink(entity, false), '_blank')
-  }
+  if (new_tab) return window.open(getFileLink(entity, false), '_blank')
 
   if (entity.name === '') {
-    window.location.href = '/drive/'
+    router.push({ name: 'drive-Home' })
   } else if (entity.is_folder) {
-    window.location.href = '/drive/d/' + entity.name
+    router.push({ name: 'drive-Folder', params: { entityName: entity.name } })
   } else if (entity.file_type === 'Link') {
     const origin = new URL(entity.file_url).origin
-    if (
-      confirm(
-        `This will open an external link to ${origin} - are you sure you want to open?`,
-      )
-    )
+    if (confirm(`This will open an external link to ${origin} - are you sure you want to open?`)) {
       window.open(entity.file_url, '_blank')
+    }
   } else if (isOfficeBinary(entity)) {
-    // //// Neoffice: the preview with our Craft editors ////
-    window.location.href = '/drive/' + getLinkStem(entity)
+    //// Neoffice — the Drive preview, which mounts our Craft editors. Upstream now routes in-app
+    //// (router.push) instead of `window.location.href`; same route as utils/files.js openEntity.
+    router.push({ name: 'drive-File', params: { entityName: entity.name } })
   } else if (entity.file_type === 'Presentation') {
-    window.location.href = '/slides/presentation/' + entity.name
-  } else if (
-    entity.file_type === 'Document' ||
-    entity.file_type === 'Markdown'
-  ) {
-    window.location.href = '/writer/w/' + entity.name
+    router.push({ name: 'slides-editor', params: { presentationId: entity.name } })
+  } else if (entity.file_type === 'Document' || entity.file_type === 'Markdown') {
+    router.push({ name: 'writer-document', params: { id: entity.name } })
   } else {
-    window.location.href = '/drive/f/' + entity.name
+    router.push({ name: 'drive-File', params: { entityName: entity.name } })
   }
 }

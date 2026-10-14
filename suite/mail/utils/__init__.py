@@ -13,10 +13,8 @@ from frappe.utils.caching import request_cache
 from suite.utils import log_error
 
 CONFIG_KEYS = [
-    # JMAP
+    # Mail server: the JMAP URL end users connect to
     "server_url",
-    "username",
-    "password",
     "verify_ssl",
     # SpamAssassin
     "spamd_host",
@@ -24,30 +22,14 @@ CONFIG_KEYS = [
     "spamd_scanning_mode",
     "spamd_hybrid_scanning_threshold",
     # Defaults
-    "default_dns_ttl",
     "default_disk_quota_gb",
-    "disabled_account_role",
     "enable_gravatar",
     "default_gravatar",
     "expand_mailing_list_participants",
-    "stalwart_version",
-    "stalwart_cli_version",
-    # Logs
-    "admin_log_file_count",
-    "admin_log_level",
-    "admin_log_max_file_size",
-    "push_log_file_count",
-    "push_log_level",
-    "push_log_max_file_size",
-    "inbound_log_file_count",
-    "inbound_log_level",
-    "inbound_log_max_file_size",
-    "outbound_log_file_count",
-    "outbound_log_level",
-    "outbound_log_max_file_size",
-    "exchange_log_file_count",
-    "exchange_log_level",
-    "exchange_log_max_file_size",
+    # Logging (shared by every mail log)
+    "log_level",
+    "log_file_count",
+    "log_max_file_size_mb",
     # Limits
     "exchange_max_export",
     "exchange_max_import",
@@ -59,12 +41,8 @@ CONFIG_KEYS = [
     "process_pending_emails_batch_size",
     "process_pending_emails_max_batch_size",
     # Timeouts
-    "ansible_play_timeout",
-    "server_job_timeout",
-    "server_deployment_timeout",
     "scan_message_timeout",
     "process_pending_emails_timeout",
-    "stalwart_cli_command_timeout",
     "exchange_export_timeout",
     "exchange_import_timeout",
 ]
@@ -82,10 +60,7 @@ def get_config(key: str | tuple[str, ...] | None = None) -> dict[str, Any] | tup
 
     config = {}
     for field in CONFIG_KEYS:
-        if field == "password":
-            config[field] = password_or_none(settings, field) or mail_conf.get(field)
-        else:
-            config[field] = settings.get(field) or mail_conf.get(field)
+        config[field] = settings.get(field) or mail_conf.get(field)
 
     if key:
         if isinstance(key, str):
@@ -100,20 +75,27 @@ def get_config(key: str | tuple[str, ...] | None = None) -> dict[str, Any] | tup
     return config
 
 
+# //// Neoffice — upstream removed `is_stalwart_configured` with its Stalwart client; neoffice_theme (calendar_bridge,
+# //// calendar_connectors) still asks whether a mail server is behind a mailbox, and our own provisioning needs the
+# //// administrator's credentials: both are answered by suite/mail/neoffice_stalwart.py.
 def is_stalwart_configured(raise_exception: bool = False) -> bool:
-    """Checks if the Stalwart server is properly configured."""
+    from suite.mail.neoffice_stalwart import is_stalwart_configured as configured
 
-    config = get_config()
+    return configured(raise_exception)
 
-    server_url = config.get("server_url")
-    username = config.get("username")
-    password = config.get("password")
 
-    if server_url and (username and password):
+def is_jmap_server_configured(raise_exception: bool = False) -> bool:
+    """Whether the site knows its JMAP server, in Mail Settings or the site config.
+
+    That is all Mail and Calendar need: users read, send and schedule straight against the
+    server. Suite Cloud is only behind the Admin Dashboard and the creation of accounts.
+    """
+
+    if get_config("server_url"):
         return True
 
     if raise_exception:
-        frappe.throw(_("Stalwart server is not properly configured. Please check your Mail Settings."))
+        frappe.throw(_("The JMAP server is not configured. Please check your Mail Settings."))
 
     return False
 
@@ -149,23 +131,11 @@ def flatten_dict(d, parent_key="", sep=".") -> dict:
     return items
 
 
-def password_or_none(doc, field: str) -> str | None:
-    """Returns the password if the field is set, otherwise returns None."""
-
-    return doc.get_password(field) if doc.get(field) else None
-
-
 def generate_uuid_style_hash(input_str: str) -> str:
     """Generates a UUID-style hash from the input string."""
 
     hash = hashlib.md5(input_str.encode()).hexdigest()
     return f"{hash[:8]}-{hash[8:12]}-{hash[12:16]}-{hash[16:20]}-{hash[20:]}"
-
-
-def get_mail_app_path() -> str:
-    """Returns the path to the Suite app directory."""
-
-    return os.path.join(get_bench_path(), "apps/suite")
 
 
 def get_messages_directory() -> str:
@@ -222,26 +192,3 @@ def get_contacts_export_directory() -> str:
     directory = os.path.join(get_bench_path(), "sites", frappe.local.site, "contacts-exchange", "export")
     os.makedirs(directory, exist_ok=True)
     return directory
-
-
-def get_stalwart_cli_path(raise_exception: bool = False) -> str:
-    """Returns the path to the Stalwart CLI tool, raising an error if not found."""
-
-    cli_path = os.path.join(get_mail_app_path(), "stalwart-cli")
-    if not os.path.exists(cli_path) and raise_exception:
-        relpath = os.path.relpath(cli_path, get_bench_path())
-        frappe.throw(_("Stalwart CLI not found at {0}.").format(relpath))
-
-    return cli_path
-
-
-def get_stalwart_version() -> str:
-    """Returns the Stalwart version from configuration or default."""
-
-    return get_config("stalwart_version")
-
-
-def get_stalwart_cli_version() -> str:
-    """Returns the Stalwart CLI version from configuration or default."""
-
-    return get_config("stalwart_cli_version")

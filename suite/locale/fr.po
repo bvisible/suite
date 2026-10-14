@@ -24693,3 +24693,1628 @@ msgstr "Vous avez des modifications non enregistrées. Quitter sans enregistrer 
 #: suite/public/frontend/assets/PdfWithEditor-BvmdG42s.js:1
 msgid "Edit PDF"
 msgstr "Modifier le PDF"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "1 expired invite"
+msgstr "1 invitation expirée"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "1 invite expires within a day"
+msgstr "1 invitation expire dans moins d'un jour"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "1 needs action"
+msgstr "1 action requise"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "1 not active"
+msgstr "1 non actif"
+
+#: suite/calendar/api/__init__.py
+msgid "A calendar needs a name."
+msgstr "Un calendrier doit avoir un nom."
+
+#: suite/meet/doctype/meet_recording/meet_recording.py
+msgid "A completed recording upload must contain every expected byte"
+msgstr "Un téléversement d'enregistrement terminé doit contenir chaque octet attendu"
+
+#: frontend/src/apps/calendar/components/CommandPalette/CalendarFilterPanel.vue
+msgid "A date range finds the occurrence in it, rather than the series it belongs to — so picking one end fills the other."
+msgstr "Une plage de dates trouve l'occurrence qu'elle contient, plutôt que la série à laquelle elle appartient — ainsi, choisir une extrémité remplit l'autre."
+
+#: suite/meet/doctype/meet_recording/meet_recording.py
+msgid "A delivered recording notification cannot remain pending"
+msgstr "Une notification d'enregistrement remise ne peut pas rester en attente"
+
+#: suite/mail/doctype/mail_account_request/mail_account_request.py
+msgid "A mail account {0} already exists."
+msgstr "Un compte de messagerie {0} existe déjà."
+
+#: suite/meet/recording/ingest.py
+msgid "A partial recording of {0} from {1} is ready in Drive. Some portions could not be captured."
+msgstr "Un enregistrement partiel de {0} (début : {1}) est prêt dans Drive. Certaines portions n'ont pas pu être capturées."
+
+#: suite/meet/doctype/meet_recording/meet_recording.py
+msgid "A recording artifact cannot be published before validation"
+msgstr "Un artefact d'enregistrement ne peut pas être publié avant sa validation"
+
+#: suite/meet/doctype/meet_recording/meet_recording.py
+msgid "A recording artifact cannot be validated before upload completion"
+msgstr "Un artefact d'enregistrement ne peut pas être validé avant la fin du téléversement"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "A shared address for a team."
+msgstr "Une adresse partagée pour une équipe."
+
+#: frontend/src/apps/mail/components/Modals/AddAccountModal.vue
+msgid "Account added."
+msgstr "Compte ajouté."
+
+#: frontend/src/apps/mail/pages/dashboard/AccountView.vue
+msgid "Account deleted."
+msgstr "Compte supprimé."
+
+#: frontend/src/apps/mail/pages/dashboard/AccountView.vue
+msgid "Account disabled."
+msgstr "Compte désactivé."
+
+#: frontend/src/apps/mail/pages/dashboard/AccountView.vue
+msgid "Account enabled."
+msgstr "Compte activé."
+
+#: frontend/src/apps/mail/pages/dashboard/AccountView.vue
+msgid "Account not found."
+msgstr "Compte introuvable."
+
+#: frontend/src/apps/mail/pages/dashboard/UsersView.vue
+msgid "Accounts deleted."
+msgstr "Comptes supprimés."
+
+#: frontend/src/apps/mail/pages/dashboard/UsersView.vue
+msgid "Accounts disabled."
+msgstr "Comptes désactivés."
+
+#: frontend/src/apps/mail/pages/dashboard/UsersView.vue
+msgid "Accounts enabled."
+msgstr "Comptes activés."
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "Add a group"
+msgstr "Ajouter un groupe"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "Add a mailing list"
+msgstr "Ajouter une liste de diffusion"
+
+#: frontend/src/apps/calendar/components/mobile/MobileEventForm.vue
+msgid "Add alert"
+msgstr "Ajouter une alerte"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "Add an account"
+msgstr "Ajouter un compte"
+
+#: frontend/src/apps/calendar/components/mobile/MobileEventForm.vue
+msgid "Add location"
+msgstr "Ajouter un lieu"
+
+#: suite/mail/neoffice_stalwart.py
+msgid "Aliases and groups are not supported when a mailbox is made here."
+msgstr "Les alias et les groupes ne sont pas pris en charge lorsqu'une boîte aux lettres est créée ici."
+
+#: frontend/src/apps/calendar/components/CommandPalette/CalendarFilterPanel.vue
+msgid "All calendars"
+msgstr "Tous les calendriers"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportsView.vue
+#: frontend/src/apps/mail/pages/dashboard/TlsReportsView.vue
+msgid "All domains"
+msgstr "Tous les domaines"
+
+#: frontend/src/apps/calendar/utils/recurringScope.ts
+msgid "All events in the series"
+msgstr "Tous les événements de la série"
+
+#: frontend/src/apps/mail/components/DmarcStatTiles.vue
+msgid "All passed"
+msgstr "Tous réussis"
+
+#: frontend/src/apps/mail/utils/reports.ts
+msgid "All reports"
+msgstr "Tous les rapports"
+
+#: frontend/src/apps/mail/components/TlsStatTiles.vue
+msgid "All succeeded"
+msgstr "Tous réussis"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "allocated, no cap"
+msgstr "alloué, sans plafond"
+
+#: frontend/src/apps/mail/components/Modals/EditDomainModal.vue
+msgid "Allow relaying"
+msgstr "Autoriser le relais"
+
+#: frontend/src/apps/calendar/components/CommandPalette/CalendarFilterPanel.vue
+msgid "Any date"
+msgstr "Toutes dates"
+
+#: frontend/src/apps/mail/pages/dashboard/UsersView.vue
+msgid "Are you sure you want to delete the selected accounts? This action cannot be undone."
+msgstr "Voulez-vous vraiment supprimer les comptes sélectionnés ? Cette action est irréversible."
+
+#: frontend/src/apps/mail/pages/dashboard/AccountView.vue
+msgid "Are you sure you want to delete this account? This action cannot be undone."
+msgstr "Voulez-vous vraiment supprimer ce compte ? Cette action est irréversible."
+
+#: frontend/src/apps/mail/components/Settings/IdentitySettings.vue
+msgid "Are you sure you want to delete this identity?"
+msgstr "Voulez-vous vraiment supprimer cette identité ?"
+
+#: frontend/src/apps/mail/pages/dashboard/AccountView.vue
+msgid "Are you sure you want to disable receiving for this account? It can still send emails, but mail addressed to it will bounce back to the sender."
+msgstr "Voulez-vous vraiment désactiver la réception pour ce compte ? Il pourra toujours envoyer des e-mails, mais les e-mails qui lui sont adressés seront renvoyés à l'expéditeur."
+
+#: frontend/src/apps/mail/pages/dashboard/GroupView.vue
+msgid "Are you sure you want to disable receiving for this group? Mail addressed to it will bounce back to the sender."
+msgstr "Voulez-vous vraiment désactiver la réception pour ce groupe ? Les e-mails qui lui sont adressés seront renvoyés à l'expéditeur."
+
+#: frontend/src/apps/mail/pages/dashboard/UsersView.vue
+msgid "Are you sure you want to disable the selected accounts? They will no longer be able to log in."
+msgstr "Voulez-vous vraiment désactiver les comptes sélectionnés ? Leurs titulaires ne pourront plus se connecter."
+
+#: frontend/src/apps/mail/pages/dashboard/AccountView.vue
+msgid "Are you sure you want to disable this account? They will no longer be able to log in."
+msgstr "Voulez-vous vraiment désactiver ce compte ? Son titulaire ne pourra plus se connecter."
+
+#: frontend/src/apps/mail/pages/dashboard/AccountView.vue
+msgid "Are you sure you want to enable receiving for this account? Mail addressed to it will be delivered again."
+msgstr "Voulez-vous vraiment activer la réception pour ce compte ? Les e-mails qui lui sont adressés seront de nouveau distribués."
+
+#: frontend/src/apps/mail/pages/dashboard/GroupView.vue
+msgid "Are you sure you want to enable receiving for this group? Mail addressed to it will be delivered again."
+msgstr "Voulez-vous vraiment activer la réception pour ce groupe ? Les e-mails qui lui sont adressés seront de nouveau distribués."
+
+#: frontend/src/apps/mail/pages/dashboard/UsersView.vue
+msgid "Are you sure you want to enable the selected accounts? They will be able to log in again."
+msgstr "Voulez-vous vraiment activer les comptes sélectionnés ? Leurs titulaires pourront de nouveau se connecter."
+
+#: frontend/src/apps/mail/pages/dashboard/AccountView.vue
+msgid "Are you sure you want to enable this account? They will be able to log in again."
+msgstr "Voulez-vous vraiment activer ce compte ? Son titulaire pourra de nouveau se connecter."
+
+#: suite/mail/doctype/contacts_exchange/contacts_exchange.py
+msgid "At least {0} of {1} contact(s) were moved into the destination address book(s) before the "
+msgstr "Au moins {0} sur {1} contact(s) ont été déplacés vers le ou les carnets d'adresses de destination avant l'échec "
+
+#: suite/mail/doctype/mail_exchange/mail_exchange.py
+msgid "At least {0} of {1} email(s) were moved into the destination folder(s) before the "
+msgstr "Au moins {0} sur {1} e-mail(s) ont été déplacés vers le ou les dossiers de destination avant l'échec "
+
+#: frontend/src/apps/calendar/utils/format.ts
+msgid "at time of event"
+msgstr "au moment de l'événement"
+
+#: frontend/src/apps/calendar/components/CommandPalette/CalendarFilterPanel.vue
+msgid "Attendee"
+msgstr "Participant"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "Broadcast mail to many recipients."
+msgstr "Diffusez un message à un grand nombre de destinataires."
+
+#: frontend/src/apps/calendar/components/Modals/CalendarModal.vue
+msgid "Calendar created."
+msgstr "Calendrier créé."
+
+#: suite/calendar/doctype/calendar_event/calendar_event.py
+msgid "Calendar Events Fetch Error"
+msgstr "Erreur de récupération des événements du calendrier"
+
+#: suite/calendar/doctype/calendar/calendar.py
+msgid "Calendar Fetch Error"
+msgstr "Erreur de récupération du calendrier"
+
+#: suite/calendar/api/__init__.py
+msgid "Calendar not found."
+msgstr "Calendrier introuvable."
+
+#: frontend/src/apps/calendar/components/AppSidebar.vue
+#: frontend/src/apps/calendar/components/Settings/CalendarsSettings.vue
+msgid "Calendar options"
+msgstr "Options du calendrier"
+
+#: suite/mail/doctype/push_subscription/push_subscription.py
+msgid "Cannot authenticate for {0} account(s); they are skipped for 24 h and tried again "
+msgstr "Impossible de s'authentifier pour {0} compte(s) ; ils sont ignorés pendant 24 h, puis réessayés "
+
+#: suite/suite_core/boot.py
+msgid "Cannot install Frappe Suite because the following standalone app(s) are installed on this site: {0}. "
+msgstr "Impossible d'installer Frappe Suite, car la ou les applications autonomes suivantes sont installées sur ce site : {0}. "
+
+#: frontend/src/apps/mail/components/Modals/EditDomainModal.vue
+msgid "Catch-All Address"
+msgstr "Adresse fourre-tout"
+
+#: frontend/src/apps/mail/pages/dashboard/DomainView.vue
+msgid "Catch-all: {0}"
+msgstr "Fourre-tout : {0}"
+
+#: frontend/src/apps/mail/utils/tls.ts
+msgid "Certificate expired"
+msgstr "Certificat expiré"
+
+#: frontend/src/apps/mail/utils/tls.ts
+msgid "Certificate name mismatch"
+msgstr "Nom du certificat non concordant"
+
+#: frontend/src/apps/mail/utils/tls.ts
+msgid "Certificate not trusted"
+msgstr "Certificat non approuvé"
+
+#: suite/mail/api/admin.py
+msgid "Change your own password from your account settings."
+msgstr "Modifiez votre mot de passe depuis les paramètres de votre compte."
+
+#: frontend/src/apps/mail/components/Settings/Account.vue
+msgid "Choose how to handle future messages from this sender."
+msgstr "Choisissez comment traiter les futurs messages de cet expéditeur."
+
+#: suite/slides/api/slides.py
+msgid "Composite presentations have no slides of their own"
+msgstr "Les présentations composites n'ont pas de diapositives propres"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "Connect a domain and set up its DNS."
+msgstr "Connectez un domaine et configurez son DNS."
+
+#: frontend/src/apps/drive/components/Settings/WebDAVSettings.vue
+msgid "Connect Drive to desktop, mobile, and other file apps"
+msgstr "Connectez Drive aux applications de bureau, mobiles et autres gestionnaires de fichiers"
+
+#: suite/suite_core/doctype/suite_settings/suite_settings.py
+msgid "Connected to Suite Cloud as site {0} on cluster {1}."
+msgstr "Connecté à Suite Cloud en tant que site {0} sur le cluster {1}."
+
+#: suite/mail/doctype/contact_card/contact_card.py
+msgid "Contact Card Deletion Error"
+msgstr "Erreur de suppression de la carte de contact"
+
+#: frontend/src/apps/calendar/components/EventDetail.vue
+msgid "Copy Invite"
+msgstr "Copier l'invitation"
+
+#: frontend/src/apps/mail/components/Modals/AddDomainModal.vue
+msgid "Copy value"
+msgstr "Copier la valeur"
+
+#: frontend/src/apps/mail/composables/useEnabledDomains.ts
+msgid "Could not load the domains."
+msgstr "Impossible de charger les domaines."
+
+#: suite/calendar/api/__init__.py
+msgid "Could not update the calendar."
+msgstr "Impossible de mettre à jour le calendrier."
+
+#: frontend/src/apps/calendar/components/Modals/EventModal.vue
+msgid "Create a calendar event."
+msgstr "Créer un événement du calendrier."
+
+#: frontend/src/apps/mail/utils/tls.ts
+msgid "DANE required but missing"
+msgstr "DANE requis mais absent"
+
+#: frontend/neoffice-calendar-i18n.ts
+msgid "Day {0}/{1}"
+msgstr "Jour {0}/{1}"
+
+#: frontend/src/apps/calendar/composables/useCalendarActions.ts
+msgid "Default calendar changed."
+msgstr "Calendrier par défaut modifié."
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "Default Quota"
+msgstr "Quota par défaut"
+
+#: frontend/src/apps/mail/pages/dashboard/UsersView.vue
+msgid "Delete Accounts"
+msgstr "Supprimer les comptes"
+
+#: frontend/src/apps/mail/components/Settings/IdentitySettings.vue
+msgid "Delete Identity"
+msgstr "Supprimer l'identité"
+
+#: frontend/src/apps/calendar/composables/useEventDelete.ts
+msgid "Delete repeating event"
+msgstr "Supprimer l'événement récurrent"
+
+#: frontend/src/apps/drive/components/GenericPage.vue
+msgid "Delete selected files"
+msgstr "Supprimer les fichiers sélectionnés"
+
+#: frontend/src/apps/mail/components/Modals/EditDomainModal.vue
+msgid "Deliver mail sent to user+tag@{0} to the mailbox of user@{0}."
+msgstr "Distribuer les e-mails envoyés à user+tag@{0} dans la boîte aux lettres de user@{0}."
+
+#: frontend/src/apps/mail/pages/dashboard/AccountView.vue
+msgid "Disable Account"
+msgstr "Désactiver le compte"
+
+#: frontend/src/apps/mail/pages/dashboard/UsersView.vue
+msgid "Disable Accounts"
+msgstr "Désactiver les comptes"
+
+#: frontend/src/apps/meet/components/MeetingToolbar.vue
+msgid "Disable captions"
+msgstr "Désactiver les sous-titres"
+
+#: frontend/src/apps/mail/pages/dashboard/DomainView.vue
+msgid "Disable Domain"
+msgstr "Désactiver le domaine"
+
+#: frontend/src/apps/mail/components/Modals/AddAccountModal.vue
+#: frontend/src/apps/mail/components/Modals/AddGroupModal.vue
+#: frontend/src/apps/mail/components/Modals/EditInviteModal.vue
+msgid "Disable Receiving"
+msgstr "Désactiver la réception"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportView.vue
+msgid "DKIM alignment"
+msgstr "Alignement DKIM"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportView.vue
+msgid "DKIM {0} ({1}): {2}"
+msgstr "DKIM {0} ({1}) : {2}"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportView.vue
+msgid "DKIM: {0}"
+msgstr "DKIM : {0}"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportView.vue
+msgid "DMARC Report"
+msgstr "Rapport DMARC"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportView.vue
+msgid "DMARC report for {0}"
+msgstr "Rapport DMARC pour {0}"
+
+#: frontend/src/apps/mail/components/AppSidebar.vue
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportView.vue
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportsView.vue
+msgid "DMARC Reports"
+msgstr "Rapports DMARC"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "DNS records are not verified yet, so no mail flows for it."
+msgstr "Les enregistrements DNS ne sont pas encore vérifiés : aucun e-mail ne circule donc pour ce domaine."
+
+#: frontend/src/apps/mail/pages/dashboard/DomainView.vue
+msgid "DNS records checked."
+msgstr "Enregistrements DNS vérifiés."
+
+#: frontend/src/apps/mail/utils/tls.ts
+msgid "DNSSEC validation failed"
+msgstr "Échec de la validation DNSSEC"
+
+#: frontend/src/apps/mail/pages/dashboard/DomainView.vue
+msgid "Domain disabled."
+msgstr "Domaine désactivé."
+
+#: frontend/src/apps/mail/pages/dashboard/DomainView.vue
+msgid "Domain enabled. Verify its DNS records to bring it live."
+msgstr "Domaine activé. Vérifiez ses enregistrements DNS pour le mettre en service."
+
+#: frontend/src/apps/mail/components/Modals/EditDomainModal.vue
+msgid "Domain updated."
+msgstr "Domaine mis à jour."
+
+#: suite/mail/doctype/mail_settings/mail_settings.py
+msgid "Domain {0} is not an active mail domain of this site."
+msgstr "Le domaine {0} n'est pas un domaine de messagerie actif de ce site."
+
+#: frontend/src/apps/mail/components/Modals/EditAccountModal.vue
+msgid "Edit Account"
+msgstr "Modifier le compte"
+
+#: frontend/src/apps/calendar/components/Modals/CalendarModal.vue
+msgid "Edit Calendar"
+msgstr "Modifier le calendrier"
+
+#: frontend/src/apps/calendar/components/Modals/EventModal.vue
+msgid "Edit this calendar event."
+msgstr "Modifier cet événement du calendrier."
+
+#: frontend/src/apps/calendar/components/Modals/EventModal.vue
+msgid "Edit title"
+msgstr "Modifier le titre"
+
+#: suite/mail/doctype/mail_queue/payload.py
+msgid "either blob_id or file_url is required"
+msgstr "blob_id ou file_url est requis"
+
+#: suite/mail/doctype/mail_queue/mail_queue.py
+msgid "Email processing aborted: {retries} out of {total_count} emails failed "
+msgstr "Traitement des e-mails interrompu : {retries} e-mails sur {total_count} ont échoué "
+
+#: frontend/src/apps/mail/pages/dashboard/AccountView.vue
+msgid "Enable Account"
+msgstr "Activer le compte"
+
+#: frontend/src/apps/mail/pages/dashboard/UsersView.vue
+msgid "Enable Accounts"
+msgstr "Activer les comptes"
+
+#: frontend/src/apps/meet/components/MeetingToolbar.vue
+msgid "Enable captions"
+msgstr "Activer les sous-titres"
+
+#: frontend/src/apps/mail/pages/dashboard/DomainView.vue
+msgid "Enable Domain"
+msgstr "Activer le domaine"
+
+#: frontend/src/apps/mail/pages/dashboard/AccountView.vue
+#: frontend/src/apps/mail/pages/dashboard/GroupView.vue
+msgid "Enable Receiving"
+msgstr "Activer la réception"
+
+#: frontend/neoffice-calendar-i18n.ts
+msgid "Ends {0}"
+msgstr "Se termine à {0}"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportView.vue
+msgid "Envelope from: {0}"
+msgstr "Expéditeur de l'enveloppe : {0}"
+
+#: frontend/src/apps/calendar/components/Modals/EventModal.vue
+msgid "Event options"
+msgstr "Options de l'événement"
+
+#: suite/calendar/api/invites.py
+msgid "Events of an invite could not be added"
+msgstr "Les événements d'une invitation n'ont pas pu être ajoutés"
+
+#: frontend/src/apps/mail/components/Modals/EditAccountQuotaModal.vue
+msgid "Every account has a quota; it must be above zero."
+msgstr "Chaque compte a un quota ; il doit être supérieur à zéro."
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "Every domain is active and no invite is waiting. Nothing needs your attention."
+msgstr "Tous les domaines sont actifs et aucune invitation n'est en attente. Rien ne nécessite votre attention."
+
+#: frontend/src/apps/calendar/components/Modals/DeleteCalendarModal.vue
+msgid "Every event on this calendar will be deleted too. This can't be undone."
+msgstr "Tous les événements de ce calendrier seront également supprimés. Cette action est irréversible."
+
+#: frontend/src/apps/mail/pages/dashboard/TlsReportsView.vue
+msgid "Every reported session negotiated TLS."
+msgstr "Toutes les sessions signalées ont négocié TLS."
+
+#: frontend/src/apps/mail/pages/dashboard/TlsReportView.vue
+msgid "Every session negotiated TLS."
+msgstr "Toutes les sessions ont négocié TLS."
+
+#: frontend/src/apps/calendar/utils/format.ts
+msgid "Every {0}"
+msgstr "Chaque {0}"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "Extend them if the people have not had a chance to accept."
+msgstr "Prolongez-les si les personnes n'ont pas eu l'occasion d'accepter."
+
+#: frontend/src/apps/drive/components/Settings/WebDAVSettings.vue
+msgid "External Access"
+msgstr "Accès externe"
+
+#: frontend/src/apps/mail/components/DmarcStatTiles.vue
+msgid "Failed DMARC"
+msgstr "DMARC en échec"
+
+#: frontend/src/apps/mail/components/TlsStatTiles.vue
+msgid "Failed Sessions"
+msgstr "Sessions en échec"
+
+#: suite/mail/doctype/mail_account_request/mail_account_request.py
+msgid "Failed to create the mail account, check error log for details."
+msgstr "Impossible de créer le compte de messagerie, consultez le journal des erreurs pour plus de détails."
+
+#: frontend/src/apps/mail/pages/dashboard/AccountView.vue
+msgid "Failed to delete account."
+msgstr "Impossible de supprimer le compte."
+
+#: frontend/src/apps/mail/pages/dashboard/UsersView.vue
+msgid "Failed to delete accounts."
+msgstr "Impossible de supprimer les comptes."
+
+#: frontend/src/apps/mail/pages/dashboard/UsersView.vue
+msgid "Failed to disable accounts."
+msgstr "Impossible de désactiver les comptes."
+
+#: frontend/src/apps/mail/pages/dashboard/UsersView.vue
+msgid "Failed to enable accounts."
+msgstr "Impossible d'activer les comptes."
+
+#: suite/mail/doctype/mail_message/mail_message.py
+msgid "Failed to initialize email sync state"
+msgstr "Impossible d'initialiser l'état de synchronisation des e-mails"
+
+#: suite/mail/doctype/contacts_exchange/contacts_exchange.py
+msgid "Failed to move {0} contact(s) into the destination address book(s): {1}"
+msgstr "Impossible de déplacer {0} contact(s) vers le ou les carnets d'adresses de destination : {1}"
+
+#: suite/mail/doctype/mail_exchange/mail_exchange.py
+msgid "Failed to move {0} email(s) into the destination folder(s): {1}"
+msgstr "Impossible de déplacer {0} e-mail(s) vers le ou les dossiers de destination : {1}"
+
+#: suite/mail/api/scheduled.py
+msgid "Failed to remove the old record of a retried email"
+msgstr "Impossible de supprimer l'ancien enregistrement d'un e-mail réessayé"
+
+#: frontend/src/apps/mail/pages/dashboard/TlsReportsView.vue
+msgid "Failure Types"
+msgstr "Types d'échec"
+
+#: frontend/src/apps/mail/components/Modals/EditDomainModal.vue
+msgid "Forward mail for addresses of {0} that have no account here to the domain's MX, so some mailboxes can stay on another server."
+msgstr "Transférer les e-mails destinés aux adresses de {0} qui n'ont pas de compte ici vers le MX du domaine, afin que certaines boîtes aux lettres puissent rester sur un autre serveur."
+
+#: frontend/src/apps/calendar/pages/CalendarView.vue
+msgid "Go to Today (T)"
+msgstr "Aller à aujourd'hui (T)"
+
+#: suite/mail/doctype/mail_account_request/mail_account_request.py
+msgid "Group {0} does not exist."
+msgstr "Le groupe {0} n'existe pas."
+
+#: frontend/src/apps/mail/pages/dashboard/TlsReportView.vue
+msgid "HELO: {0}"
+msgstr "HELO : {0}"
+
+#: frontend/src/apps/mail/components/Settings/IdentitySettings.vue
+msgid "Identities are the addresses you send mail as. Create one to get started."
+msgstr "Les identités sont les adresses avec lesquelles vous envoyez des e-mails. Créez-en une pour commencer."
+
+#: frontend/src/apps/mail/components/Settings/IdentitySettings.vue
+msgid "Identity deleted."
+msgstr "Identité supprimée."
+
+#: suite/mail/doctype/mail_exchange/mail_exchange.py
+msgid "Import metadata contains an email with no destination mailbox."
+msgstr "Les métadonnées d'importation contiennent un e-mail sans boîte aux lettres de destination."
+
+#: frontend/src/shell/InstallPrompt.vue
+msgid "Install Frappe Suite"
+msgstr "Installer Frappe Suite"
+
+#: frontend/src/apps/mail/utils/tls.ts
+msgid "Invalid MTA-STS policy"
+msgstr "Politique MTA-STS invalide"
+
+#: suite/mail/doctype/push_subscription/push_subscription.py
+msgid "Invalid push notification: {0}"
+msgstr "Notification push invalide : {0}"
+
+#: suite/meet/recording/callback_auth.py
+msgid "Invalid recorder callback query"
+msgstr "Requête de rappel de l'enregistreur invalide"
+
+#: suite/meet/recording/callback_auth.py
+msgid "Invalid recorder finalization authorization"
+msgstr "Autorisation de finalisation de l'enregistreur invalide"
+
+#: suite/meet/recording/callback_auth.py
+msgid "Invalid recorder finalization binding"
+msgstr "Liaison de finalisation de l'enregistreur invalide"
+
+#: suite/meet/recording/callback_auth.py
+msgid "Invalid recorder finalization body"
+msgstr "Corps de la requête de finalisation de l'enregistreur invalide"
+
+#: suite/meet/recording/callback_auth.py
+msgid "Invalid recorder finalization scope"
+msgstr "Portée de finalisation de l'enregistreur invalide"
+
+#: suite/meet/api/recording.py
+msgid "Invalid recording end reason code"
+msgstr "Code de motif de fin d'enregistrement invalide"
+
+#: suite/meet/api/recording.py
+msgid "Invalid recording gap reason code"
+msgstr "Code du motif d'interruption de l'enregistrement invalide"
+
+#: suite/meet/api/recording.py
+msgid "Invalid recording interruption reason code"
+msgstr "Code du motif d'interruption de l'enregistrement invalide"
+
+#: frontend/src/apps/mail/utils/tls.ts
+msgid "Invalid TLSA record"
+msgstr "Enregistrement TLSA invalide"
+
+#: frontend/src/apps/mail/components/Modals/AddAccountModal.vue
+msgid "Invitation sent."
+msgstr "Invitation envoyée."
+
+#: frontend/src/apps/calendar/components/EventDetail.vue
+msgid "Invite copied."
+msgstr "Invitation copiée."
+
+#: frontend/src/apps/mail/components/Settings/Account.vue
+msgid "Keep forwarded emails in the original thread."
+msgstr "Conserver les e-mails transférés dans le fil de discussion d'origine."
+
+#: frontend/src/apps/mail/pages/dashboard/DomainsView.vue
+msgid "Last Verified"
+msgstr "Dernière vérification"
+
+#: frontend/src/apps/mail/pages/dashboard/DomainView.vue
+msgid "Mail for addresses of {0} without an account here is forwarded to the domain's MX."
+msgstr "Les e-mails destinés aux adresses de {0} sans compte ici sont transférés vers le MX du domaine."
+
+#: frontend/src/apps/mail/pages/dashboard/DomainView.vue
+msgid "Mail for addresses of {0} without an account here is rejected, or goes to the catch-all."
+msgstr "Les e-mails destinés aux adresses de {0} sans compte ici sont rejetés, ou envoyés à l'adresse fourre-tout."
+
+#: frontend/src/apps/mail/pages/dashboard/DomainView.vue
+msgid "Mail for this domain stops flowing and its verification is dropped. After enabling it again, its DNS records must be verified before mail flows. Continue?"
+msgstr "Les e-mails de ce domaine cessent d'être distribués et sa vérification est supprimée. Après l'avoir réactivé, ses enregistrements DNS devront être vérifiés avant que les e-mails ne circulent de nouveau. Continuer ?"
+
+#: frontend/src/apps/mail/components/Settings/MailLayoutSettings.vue
+msgid "Mail layout"
+msgstr "Mise en page de la messagerie"
+
+#: frontend/src/apps/mail/components/Settings/MailLayoutSettings.vue
+msgid "Mail layout updated."
+msgstr "Mise en page de la messagerie mise à jour."
+
+#: frontend/src/apps/mail/composables/useSettingsTabs.ts
+msgid "Mail Preferences"
+msgstr "Préférences de messagerie"
+
+#: frontend/src/apps/mail/components/Modals/AddAccountEmailModal.vue
+msgid "Mail sent to this address is delivered to this account's mailbox."
+msgstr "Les e-mails envoyés à cette adresse sont distribués dans la boîte aux lettres de ce compte."
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "Mail Service"
+msgstr "Service de messagerie"
+
+#: frontend/src/apps/mail/composables/useSettingsTabs.ts
+msgid "Mail Setup"
+msgstr "Configuration de la messagerie"
+
+#: frontend/src/apps/mail/pages/dashboard/DomainView.vue
+msgid "Mail to an address that does not exist on this domain is delivered here."
+msgstr "Les e-mails adressés à une adresse qui n'existe pas sur ce domaine sont distribués ici."
+
+#: frontend/src/apps/mail/components/Modals/EditDomainModal.vue
+msgid "Mail to an address that does not exist on this domain is delivered here. Leave empty to reject it."
+msgstr "Les e-mails adressés à une adresse qui n'existe pas sur ce domaine sont distribués ici. Laissez vide pour les rejeter."
+
+#: frontend/src/apps/mail/pages/dashboard/DomainView.vue
+msgid "Mail to an address that does not exist on this domain is rejected."
+msgstr "Les e-mails adressés à une adresse qui n'existe pas sur ce domaine sont rejetés."
+
+#: frontend/src/apps/mail/pages/dashboard/DomainView.vue
+msgid "Mail to user+tag@{0} is rejected."
+msgstr "Les e-mails adressés à user+tag@{0} sont rejetés."
+
+#: frontend/src/apps/mail/pages/dashboard/DomainView.vue
+msgid "Mail to user+tag@{0} reaches user@{0}."
+msgstr "Les e-mails adressés à user+tag@{0} parviennent à user@{0}."
+
+#: suite/mail/doctype/mail_account_request/mail_account_request.py
+msgid "Mailing list {0} does not exist."
+msgstr "La liste de diffusion {0} n'existe pas."
+
+#: frontend/src/apps/meet/composables/useStartMeeting.ts
+msgid "Meeting created, but could not open it."
+msgstr "Réunion créée, mais impossible de l'ouvrir."
+
+#: suite/meet/recording/callback_auth.py
+msgid "Missing recorder finalization authorization"
+msgstr "Autorisation de finalisation de l'enregistreur manquante"
+
+#: frontend/src/apps/mail/components/Settings/Account.vue
+msgid "Move future emails to Junk"
+msgstr "Déplacer les futurs e-mails vers les indésirables"
+
+#: frontend/src/apps/drive/components/GenericPage.vue
+msgid "Move selected files"
+msgstr "Déplacer les fichiers sélectionnés"
+
+#: frontend/src/apps/mail/composables/useThreadDrag.ts
+msgid "Moving 1 thread"
+msgstr "Déplacement de 1 fil de discussion"
+
+#: frontend/src/apps/mail/composables/useThreadDrag.ts
+msgid "Moving {0} threads"
+msgstr "Déplacement de {0} fils de discussion"
+
+#: frontend/src/apps/mail/utils/tls.ts
+msgid "MTA-STS certificate invalid"
+msgstr "Certificat MTA-STS invalide"
+
+#: frontend/src/apps/mail/utils/tls.ts
+msgid "MTA-STS policy unreachable"
+msgstr "Politique MTA-STS injoignable"
+
+#: suite/mail/utils/validation.py
+msgid "must be a UTC timestamp like 2026-01-31T09:30:00Z"
+msgstr "doit être un horodatage UTC, comme 2026-01-31T09:30:00Z"
+
+#: frontend/src/apps/mail/pages/dashboard/TlsReportView.vue
+msgid "MX: {0}"
+msgstr "MX : {0}"
+
+#: frontend/src/apps/calendar/components/AppSidebar.vue
+msgid "My Calendars"
+msgstr "Mes calendriers"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "Needs Attention"
+msgstr "À traiter"
+
+#: frontend/src/apps/mail/components/TlsStatTiles.vue
+msgid "Negotiated TLS"
+msgstr "TLS négocié"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "New accounts will be refused once the site quota is fully allocated."
+msgstr "Les nouveaux comptes seront refusés une fois le quota du site entièrement alloué."
+
+#: frontend/src/apps/calendar/components/AppSidebar.vue
+#: frontend/src/apps/calendar/components/Modals/CalendarModal.vue
+msgid "New Calendar"
+msgstr "Nouveau calendrier"
+
+#: frontend/src/apps/calendar/components/mobile/CalendarTabBar.vue
+msgid "New event"
+msgstr "Nouvel événement"
+
+#: frontend/src/apps/calendar/pages/CalendarView.vue
+msgid "New Event (E)"
+msgstr "Nouvel événement (E)"
+
+#: frontend/src/apps/calendar/pages/CalendarView.vue
+msgid "Next (→)"
+msgstr "Suivant (→)"
+
+#: frontend/neoffice-calendar-i18n.ts
+msgid "Next week"
+msgstr "Semaine suivante"
+
+#: frontend/src/apps/mail/pages/dashboard/UsersView.vue
+msgid "No accounts found"
+msgstr "Aucun compte trouvé"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "No accounts yet. Add one to give someone a mailbox on your domains."
+msgstr "Aucun compte pour le moment. Ajoutez-en un pour donner une boîte aux lettres à quelqu'un sur vos domaines."
+
+#: frontend/src/apps/mail/pages/dashboard/DomainView.vue
+msgid "No catch-all"
+msgstr "Aucune adresse fourre-tout"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportsView.vue
+msgid "No DMARC reports yet"
+msgstr "Aucun rapport DMARC pour le moment"
+
+#: frontend/src/apps/mail/components/Settings/IdentitySettings.vue
+msgid "No identities."
+msgstr "Aucune identité."
+
+#: frontend/src/apps/calendar/components/Modals/EventModal.vue
+msgid "No identity to organize the event. Add a participant identity in Calendar Settings whose email is also one of the account's mail identities."
+msgstr "Aucune identité pour organiser l'événement. Ajoutez une identité de participant dans les paramètres du calendrier, dont l'adresse e-mail est aussi l'une des identités de messagerie du compte."
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportsView.vue
+msgid "No mail was reported for this period."
+msgstr "Aucun e-mail n'a été signalé pour cette période."
+
+#: frontend/src/apps/calendar/components/ParticipantSelector.vue
+msgid "No matches. Press Enter to add this address."
+msgstr "Aucune correspondance. Appuyez sur Entrée pour ajouter cette adresse."
+
+#: frontend/src/apps/mail/pages/dashboard/UsersView.vue
+msgid "No matching accounts"
+msgstr "Aucun compte correspondant"
+
+#: frontend/src/apps/mail/utils/tls.ts
+msgid "No policy"
+msgstr "Aucune politique"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportsView.vue
+msgid "No receiver has sent a report for this period yet."
+msgstr "Aucun serveur de réception n'a encore envoyé de rapport pour cette période."
+
+#: frontend/src/apps/mail/pages/dashboard/TlsReportsView.vue
+msgid "No sending server has reported for this period yet."
+msgstr "Aucun serveur d'envoi n'a encore transmis de rapport pour cette période."
+
+#: frontend/src/apps/mail/pages/dashboard/TlsReportsView.vue
+msgid "No sessions were reported for this period."
+msgstr "Aucune session n'a été signalée pour cette période."
+
+#: frontend/src/apps/mail/pages/dashboard/TlsReportsView.vue
+msgid "No TLS reports yet"
+msgstr "Aucun rapport TLS pour le moment"
+
+#: suite/mail/utils/validation.py
+msgid "not a valid JMAP identifier"
+msgstr "n'est pas un identifiant JMAP valide"
+
+#: frontend/src/apps/mail/components/DNSRecords.vue
+msgid "Not verified"
+msgstr "Non vérifié"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "of {0} allocated"
+msgstr "sur {0} alloués"
+
+#: frontend/src/apps/calendar/components/mobile/MobileEventForm.vue
+msgid "On date"
+msgstr "À une date"
+
+#: suite/meet/doctype/meet_recording/meet_recording.py
+msgid "Only a terminal recording can be acknowledged"
+msgstr "Seul un enregistrement dans un état final peut être acquitté"
+
+#: frontend/src/apps/drive/components/GenericPage.vue
+msgid "Open in new tab"
+msgstr "Ouvrir dans un nouvel onglet"
+
+#: frontend/src/apps/drive/components/GenericPage.vue
+msgid "Open selected file in new tab"
+msgstr "Ouvrir le fichier sélectionné dans un nouvel onglet"
+
+#: frontend/src/apps/calendar/components/CommandPalette/CalendarFilterPanel.vue
+msgid "Organiser"
+msgstr "Organisateur"
+
+#: frontend/src/apps/mail/components/Settings/MailLayoutSettings.vue
+msgid "Organize the message list into date-based sections."
+msgstr "Organiser la liste des messages en sections par date."
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportView.vue
+msgid "Override: {0}"
+msgstr "Dérogation : {0}"
+
+#: frontend/src/apps/mail/components/Modals/AddDomainModal.vue
+msgid "Ownership record (TXT)"
+msgstr "Enregistrement de propriété (TXT)"
+
+#: suite/mail/api/admin.py
+msgid "Page length must be one of {0}."
+msgstr "La taille de page doit être l'une de ces valeurs : {0}."
+
+#: suite/mail/doctype/participant_identity/participant_identity.py
+msgid "Participant Identity Fetch Error"
+msgstr "Erreur de récupération de l'identité de participant"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportsView.vue
+msgid "Pass Rate"
+msgstr "Taux de réussite"
+
+#: frontend/src/apps/mail/components/DmarcStatTiles.vue
+msgid "Passed DKIM"
+msgstr "DKIM réussi"
+
+#: frontend/src/apps/mail/components/DmarcStatTiles.vue
+msgid "Passed DMARC"
+msgstr "DMARC réussi"
+
+#: frontend/src/apps/mail/components/DmarcStatTiles.vue
+msgid "Passed SPF"
+msgstr "SPF réussi"
+
+#: suite/mail/api/admin.py
+msgid "Period must be one of {0} days."
+msgstr "La période doit être l'une de ces valeurs, en jours : {0}."
+
+#: frontend/src/apps/calendar/components/mobile/MobileCalendar.vue
+msgid "Pick a date"
+msgstr "Choisir une date"
+
+#: frontend/src/apps/mail/pages/dashboard/TlsReportView.vue
+msgid "Policies Applied"
+msgstr "Politiques appliquées"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportView.vue
+msgid "Policy (p)"
+msgstr "Politique (p)"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportView.vue
+msgid "Policy Applied"
+msgstr "Politique appliquée"
+
+#: frontend/src/apps/calendar/pages/CalendarView.vue
+msgid "Previous (←)"
+msgstr "Précédent (←)"
+
+#: suite/mail/doctype/push_subscription/push_subscription.py
+msgid "Push subscriptions for {0} are currently being updated. Please try again in a few moments."
+msgstr "Les abonnements push de {0} sont en cours de mise à jour. Veuillez réessayer dans quelques instants."
+
+#: frontend/src/apps/mail/utils/dmarc.ts
+msgid "Quarantined"
+msgstr "En quarantaine"
+
+#: frontend/src/apps/mail/components/Modals/AddAccountModal.vue
+#: frontend/src/apps/mail/components/Modals/AddGroupModal.vue
+#: frontend/src/apps/mail/components/Modals/EditAccountQuotaModal.vue
+msgid "Quota (GB)"
+msgstr "Quota (Go)"
+
+#: suite/meet/api/meeting.py
+msgid "Realtime authentication required"
+msgstr "Authentification en temps réel requise"
+
+#: frontend/src/apps/mail/pages/dashboard/TlsReportView.vue
+msgid "Reason: {0}"
+msgstr "Motif : {0}"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportView.vue
+#: frontend/src/apps/mail/pages/dashboard/TlsReportView.vue
+msgid "Received {0}"
+msgstr "Reçu le {0}"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportsView.vue
+msgid "Receivers send a report about a day of mail from your domains to postmaster@your-domain. Reports appear here within an hour of arriving."
+msgstr "Les serveurs de réception envoient un rapport sur une journée d'e-mails provenant de vos domaines à postmaster@your-domain. Les rapports apparaissent ici dans l'heure qui suit leur arrivée."
+
+#: frontend/src/apps/mail/pages/dashboard/AccountView.vue
+#: frontend/src/apps/mail/pages/dashboard/GroupView.vue
+msgid "Receiving disabled."
+msgstr "Réception désactivée."
+
+#: frontend/src/apps/mail/pages/dashboard/AccountView.vue
+#: frontend/src/apps/mail/pages/dashboard/GroupView.vue
+msgid "Receiving enabled."
+msgstr "Réception activée."
+
+#: frontend/src/apps/mail/pages/dashboard/TlsReportView.vue
+msgid "Receiving MX: {0}"
+msgstr "MX de réception : {0}"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "Recent Accounts"
+msgstr "Comptes récents"
+
+#: suite/meet/recording/callback_auth.py
+msgid "Recorder finalization authorization was already used"
+msgstr "L'autorisation de finalisation de l'enregistreur a déjà été utilisée"
+
+#: suite/meet/recording/ingest.py
+msgid "Recording callback timestamp is invalid"
+msgstr "L'horodatage du rappel de l'enregistrement est invalide"
+
+#: suite/meet/recording/ingest.py
+msgid "Recording callback timestamps must use canonical UTC milliseconds"
+msgstr "Les horodatages du rappel d'enregistrement doivent utiliser des millisecondes UTC canoniques"
+
+#: suite/meet/doctype/meet_recording/meet_recording.py
+msgid "Recording finalization counters cannot be negative"
+msgstr "Les compteurs de finalisation de l'enregistrement ne peuvent pas être négatifs"
+
+#: suite/meet/doctype/meet_recording/meet_recording.py
+msgid "Recording finalization deadline must follow metadata acceptance"
+msgstr "L'échéance de finalisation de l'enregistrement doit suivre l'acceptation des métadonnées"
+
+#: suite/meet/recording/ingest.py
+msgid "Recording finalization deadline was exceeded"
+msgstr "L'échéance de finalisation de l'enregistrement a été dépassée"
+
+#: suite/meet/doctype/meet_recording/meet_recording.py
+msgid "Recording finalization requires durable metadata"
+msgstr "La finalisation de l'enregistrement exige des métadonnées durables"
+
+#: suite/meet/api/recording.py
+msgid "Recording startup timestamp must use canonical UTC milliseconds"
+msgstr "L'horodatage de démarrage de l'enregistrement doit utiliser des millisecondes UTC canoniques"
+
+#: suite/meet/recording/ingest.py
+msgid "Recording upload is already complete"
+msgstr "Le téléversement de l'enregistrement est déjà terminé"
+
+#: frontend/src/apps/calendar/components/mobile/MobileEventForm.vue
+msgid "Relative to"
+msgstr "Par rapport à"
+
+#: frontend/src/apps/mail/pages/dashboard/DomainView.vue
+msgid "Relaying off"
+msgstr "Relais désactivé"
+
+#: frontend/src/apps/mail/pages/dashboard/DomainView.vue
+msgid "Relaying on"
+msgstr "Relais activé"
+
+#: frontend/src/apps/calendar/components/mobile/MobileEventForm.vue
+msgid "Remove alert"
+msgstr "Supprimer l'alerte"
+
+#: frontend/src/apps/calendar/components/mobile/MobileEventForm.vue
+msgid "Remove location"
+msgstr "Supprimer le lieu"
+
+#: frontend/src/apps/calendar/components/CommandPalette/CalendarSearchResult.vue
+msgid "Repeats"
+msgstr "Se répète"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportView.vue
+#: frontend/src/apps/mail/pages/dashboard/TlsReportView.vue
+msgid "Report ID"
+msgstr "ID du rapport"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportView.vue
+#: frontend/src/apps/mail/pages/dashboard/TlsReportView.vue
+msgid "Reported by {0}"
+msgstr "Signalé par {0}"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportView.vue
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportsView.vue
+#: frontend/src/apps/mail/pages/dashboard/TlsReportView.vue
+msgid "Reporter"
+msgstr "Émetteur du rapport"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportView.vue
+msgid "Reporter remarks"
+msgstr "Remarques de l'émetteur"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportsView.vue
+#: frontend/src/apps/mail/pages/dashboard/TlsReportsView.vue
+msgid "Reporters"
+msgstr "Émetteurs"
+
+#: frontend/src/apps/calendar/components/EventDetail.vue
+msgid "Respond to repeating event"
+msgstr "Répondre à l'événement récurrent"
+
+#: frontend/src/apps/mail/components/Modals/AddGroupMembersModal.vue
+#: frontend/src/apps/mail/components/Modals/AddGroupModal.vue
+msgid "Search accounts"
+msgstr "Rechercher des comptes"
+
+#: frontend/src/apps/calendar/components/mobile/MobileSearch.vue
+msgid "Search events"
+msgstr "Rechercher des événements"
+
+#: frontend/src/apps/calendar/components/mobile/MobileSearch.vue
+msgid "Search events by name, organizer, or attendees."
+msgstr "Rechercher des événements par nom, organisateur ou participants."
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportsView.vue
+#: frontend/src/apps/mail/pages/dashboard/TlsReportsView.vue
+msgid "Search reporter or domain"
+msgstr "Rechercher un émetteur de rapport ou un domaine"
+
+#: suite/mail/jmap.py
+msgid "second"
+msgstr "seconde"
+
+#: frontend/src/apps/mail/pages/dashboard/AccountView.vue
+msgid "Send a password reset link to this account? The link will be emailed to their backup email address."
+msgstr "Envoyer un lien de réinitialisation du mot de passe à ce compte ? Le lien sera envoyé à l'e-mail de secours de cet utilisateur."
+
+#: suite/mail/jmap.py
+msgid "Send At cannot be more than {0} in the future."
+msgstr "La date d'envoi ne peut pas être à plus de {0} dans le futur."
+
+#: frontend/src/apps/mail/components/Settings/Account.vue
+msgid "Send emails from new senders to the Screener until accepted."
+msgstr "Placer les e-mails des nouveaux expéditeurs dans le Filtre jusqu'à leur acceptation."
+
+#: frontend/src/apps/calendar/components/EventDetail.vue
+msgid "Send response"
+msgstr "Envoyer la réponse"
+
+#: frontend/src/apps/mail/pages/dashboard/TlsReportView.vue
+msgid "Sent from: {0}"
+msgstr "Envoyé depuis : {0}"
+
+#: frontend/src/apps/mail/pages/dashboard/TlsReportsView.vue
+msgid "Servers that deliver mail to your domains send a daily report on their TLS connections to postmaster@your-domain once the domain publishes its TLS-RPT record. Reports appear here within an hour of arriving."
+msgstr "Les serveurs qui acheminent des e-mails vers vos domaines envoient chaque jour un rapport sur leurs connexions TLS à postmaster@your-domain, une fois que le domaine publie son enregistrement TLS-RPT. Les rapports apparaissent ici dans l'heure qui suit leur arrivée."
+
+#: frontend/src/apps/calendar/components/AppSidebar.vue
+msgid "Shared Calendars"
+msgstr "Calendriers partagés"
+
+#: suite/slides/api/slides.py
+msgid "Slide fields not accepted: {0}"
+msgstr "Champs de diapositive non acceptés : {0}"
+
+#: suite/slides/doctype/presentation/presentation.py
+msgid "Slide {0}: Advance After must be between 1 and 3600 seconds, not {1}"
+msgstr "Diapositive {0} : « Passage automatique après » doit être compris entre 1 et 3600 secondes, et non {1}"
+
+#: frontend/neoffice-calendar-i18n.ts
+msgid "Soon"
+msgstr "Bientôt"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportView.vue
+msgid "SPF alignment"
+msgstr "Alignement SPF"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportView.vue
+msgid "SPF {0}: {1}"
+msgstr "SPF {0} : {1}"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportView.vue
+msgid "SPF: {0}"
+msgstr "SPF : {0}"
+
+#: frontend/src/apps/mail/utils/tls.ts
+msgid "STARTTLS not offered"
+msgstr "STARTTLS non proposé"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "Storage is {0}% allocated"
+msgstr "Stockage alloué à {0} %"
+
+#: frontend/src/apps/mail/components/StorageBar.vue
+msgid "Storage unknown"
+msgstr "Stockage inconnu"
+
+#: frontend/src/apps/mail/components/Modals/EditDomainModal.vue
+msgid "Sub-addressing"
+msgstr "Sous-adressage"
+
+#: frontend/src/apps/mail/pages/dashboard/DomainView.vue
+msgid "Sub-addressing off"
+msgstr "Sous-adressage désactivé"
+
+#: frontend/src/apps/mail/pages/dashboard/DomainView.vue
+msgid "Sub-addressing on"
+msgstr "Sous-adressage activé"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportView.vue
+msgid "Subdomains (sp)"
+msgstr "Sous-domaines (sp)"
+
+#: frontend/src/apps/mail/pages/dashboard/TlsReportsView.vue
+msgid "Success Rate"
+msgstr "Taux de réussite"
+
+#: suite/mail/api/admin.py
+msgid "Suite Cloud cannot change whether an address receives mail yet."
+msgstr "Suite Cloud ne peut pas encore changer si une adresse reçoit des e-mails."
+
+#: suite/mail/doctype/mail_account_request/mail_account_request.py
+msgid "Suite Cloud cannot create accounts with receiving disabled yet."
+msgstr "Suite Cloud ne peut pas encore créer de comptes avec la réception désactivée."
+
+#: suite/mail/api/admin.py
+msgid "Suite Cloud cannot create groups with receiving disabled yet."
+msgstr "Suite Cloud ne peut pas encore créer de groupes avec la réception désactivée."
+
+#: suite/suite_core/utils.py
+msgid "Suite Cloud config key '{0}' not found"
+msgstr "Clé de configuration Suite Cloud « {0} » introuvable"
+
+#: suite/mail/suite_cloud/__init__.py
+msgid "Suite Cloud does not accept requests from this server's address; ask Frappe Cloud to update the site's allowed addresses."
+msgstr "Suite Cloud n'accepte pas les requêtes venant de l'adresse de ce serveur ; demandez à Frappe Cloud de mettre à jour les adresses autorisées du site."
+
+#: suite/suite_core/doctype/suite_settings/suite_settings.py
+msgid "Suite Cloud expects the JMAP URL {0}, but this site uses {1}."
+msgstr "Suite Cloud attend l'URL JMAP {0}, mais ce site utilise {1}."
+
+#: suite/suite_core/utils.py
+msgid "Suite Cloud is not configured. Please check your Suite Settings."
+msgstr "Suite Cloud n'est pas configuré. Vérifiez vos paramètres Suite."
+
+#: suite/mail/suite_cloud/__init__.py
+msgid "Suite Cloud is temporarily unavailable; try again shortly."
+msgstr "Suite Cloud est temporairement indisponible ; réessayez dans quelques instants."
+
+#: suite/mail/suite_cloud/__init__.py
+msgid "Suite Cloud is unreachable; try again shortly."
+msgstr "Suite Cloud est injoignable ; réessayez dans quelques instants."
+
+#: suite/mail/suite_cloud/__init__.py
+msgid "Suite Cloud refused the request."
+msgstr "Suite Cloud a refusé la demande."
+
+#: suite/mail/suite_cloud/__init__.py
+msgid "Suite Cloud rejected this site's credentials; check Suite Settings."
+msgstr "Suite Cloud a rejeté les identifiants de ce site ; vérifiez les paramètres Suite."
+
+#: suite/suite_core/doctype/suite_settings/suite_settings.py
+msgid "Suite Cloud URL is not https: the site's API key would travel in the clear."
+msgstr "L'URL de Suite Cloud n'est pas en https : la clé d'API du site circulerait en clair."
+
+#: frontend/src/apps/calendar/components/mobile/MobileCalendar.vue
+msgid "Switch view"
+msgstr "Changer de vue"
+
+#: suite/meet/doctype/meet_recording/meet_recording.py
+msgid "Terminal finalization requires a terminal recording result"
+msgstr "La finalisation à l'état terminal nécessite un résultat d'enregistrement terminal"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportView.vue
+msgid "Testing mode"
+msgstr "Mode test"
+
+#: frontend/src/apps/mail/components/Modals/EditInviteModal.vue
+msgid "The account can send emails but cannot receive them."
+msgstr "Le compte peut envoyer des e-mails, mais pas en recevoir."
+
+#: frontend/src/apps/mail/components/Modals/AddAccountModal.vue
+msgid "The account can send emails but cannot receive them. Mail addressed to it bounces back to the sender."
+msgstr "Le compte peut envoyer des e-mails, mais pas en recevoir. Les messages qui lui sont adressés sont retournés à l'expéditeur."
+
+#: frontend/src/apps/mail/components/Settings/Account.vue
+msgid "The address selected automatically when composing a message."
+msgstr "L'adresse sélectionnée automatiquement lors de la rédaction d'un message."
+
+#: suite/mail/doctype/mail_queue/mail_queue.py
+msgid "The attachments come to {0}, and this mail server allows {1} per email."
+msgstr "Les pièces jointes totalisent {0}, et ce serveur de messagerie autorise {1} par e-mail."
+
+#: suite/calendar/api/__init__.py
+msgid "The default calendar can't be deleted. Make another calendar the default first."
+msgstr "Le calendrier par défaut ne peut pas être supprimé. Définissez d'abord un autre calendrier comme calendrier par défaut."
+
+#: suite/mail/doctype/push_subscription/push_subscription.py
+msgid "The device client id {0} is reserved for this site's own subscription and cannot be"
+msgstr "L'identifiant de client d'appareil {0} est réservé à l'abonnement propre à ce site et ne peut pas être"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "The domain is disabled, so no mail flows for it."
+msgstr "Le domaine est désactivé : aucun e-mail n'y transite."
+
+#: suite/mail/api/scheduled.py
+msgid "The email could not be resubmitted; its delivery was cancelled and the message "
+msgstr "L'e-mail n'a pas pu être resoumis ; sa livraison a été annulée et le message "
+
+#: frontend/src/apps/mail/components/Modals/AddGroupModal.vue
+msgid "The group cannot receive emails. Mail addressed to it bounces back to the sender."
+msgstr "Le groupe ne peut pas recevoir d'e-mails. Les messages qui lui sont adressés sont retournés à l'expéditeur."
+
+#: suite/mail/doctype/mail_exchange/mail_exchange.py
+msgid "The import files {0} email(s) in more folders than this account allows for "
+msgstr "L'importation classe {0} e-mail(s) dans plus de dossiers que ce compte n'en autorise pour "
+
+#: suite/mail/doctype/mail_exchange/mail_exchange.py
+msgid "The import references {0} destination mailbox id(s) that do not exist in "
+msgstr "L'importation fait référence à {0} identifiant(s) de boîte aux lettres de destination qui n'existent pas dans "
+
+#: suite/mail/utils/__init__.py
+msgid "The JMAP server is not configured. Please check your Mail Settings."
+msgstr "Le serveur JMAP n'est pas configuré. Vérifiez vos paramètres de messagerie."
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "The links no longer work; resend or remove them."
+msgstr "Les liens ne fonctionnent plus ; renvoyez-les ou supprimez-les."
+
+#: suite/mail/doctype/mail_queue/mail_queue.py
+msgid "The mail server answered, but its answer could not be processed. The mail may "
+msgstr "Le serveur de messagerie a répondu, mais sa réponse n'a pas pu être traitée. Le message peut "
+
+#: suite/mail/neoffice_stalwart.py
+msgid "The mail server could not process this request. Please try again."
+msgstr "Le serveur de messagerie n'a pas pu traiter cette demande. Veuillez réessayer."
+
+#: suite/mail/doctype/contacts_exchange/contacts_exchange.py
+msgid "The mail server did not confirm the move. {0} of {1} contact(s) are known to "
+msgstr "Le serveur de messagerie n'a pas confirmé le déplacement. {0} contact(s) sur {1} sont connus pour "
+
+#: suite/mail/doctype/mail_exchange/mail_exchange.py
+msgid "The mail server did not confirm the move. {0} of {1} email(s) are known to "
+msgstr "Le serveur de messagerie n'a pas confirmé le déplacement. {0} e-mail(s) sur {1} sont connus pour "
+
+#: suite/mail/doctype/mail_queue/mail_queue.py
+msgid "The mail server did not confirm this mail. It may have been saved or sent: check "
+msgstr "Le serveur de messagerie n'a pas confirmé ce message. Il a peut-être été enregistré ou envoyé : vérifiez "
+
+#: suite/mail/neoffice_stalwart.py
+msgid "The mail server did not return a generated app password."
+msgstr "Le serveur de messagerie n'a pas fourni de mot de passe d'application généré."
+
+#: suite/mail/jmap.py
+msgid "The mail server does not support this action."
+msgstr "Le serveur de messagerie ne prend pas en charge cette action."
+
+#: suite/mail/doctype/mailbox/mailbox.py
+msgid "The mailboxes could not all be put in the new order: {0}"
+msgstr "Les boîtes aux lettres n'ont pas toutes pu être remises dans le nouvel ordre : {0}"
+
+#: suite/suite_core/doctype/rate_limit/rate_limit.py
+msgid "The method {method} is missing the required {decorator} decorator. "
+msgstr "La méthode {method} ne comporte pas le décorateur {decorator} requis. "
+
+#: suite/meet/recording/ingest.py
+msgid "The recording of {0} from {1} could not be processed. No recording was added to Drive."
+msgstr "L'enregistrement de {0} provenant de {1} n'a pas pu être traité. Aucun enregistrement n'a été ajouté à Drive."
+
+#: suite/meet/recording/ingest.py
+msgid "The recording of {0} from {1} is ready in Drive."
+msgstr "L'enregistrement de {0} provenant de {1} est prêt dans Drive."
+
+#: frontend/src/apps/mail/pages/dashboard/TlsReportView.vue
+msgid "The reporter counted no sessions."
+msgstr "L'émetteur du rapport n'a compté aucune session."
+
+#: frontend/src/apps/mail/pages/dashboard/TlsReportView.vue
+msgid "The reporter listed no policy."
+msgstr "L'émetteur du rapport n'a indiqué aucune politique."
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportView.vue
+msgid "The reporter listed no sources."
+msgstr "L'émetteur du rapport n'a indiqué aucune source."
+
+#: suite/mail/neoffice_stalwart.py
+msgid "The Stalwart administrator is not configured on this site."
+msgstr "L'administrateur Stalwart n'est pas configuré sur ce site."
+
+#: frontend/src/apps/mail/components/Modals/AddAccountModal.vue
+msgid "The user can change this later in their account settings."
+msgstr "L'utilisateur peut modifier cela plus tard dans les paramètres de son compte."
+
+#: suite/drive/wopi/token.py
+msgid "The WOPI signing secret is missing from WOPI Settings. "
+msgstr "Le secret de signature WOPI est absent des paramètres WOPI. "
+
+#: frontend/src/composables/useTheme.ts
+msgid "Theme changed to {0}"
+msgstr "Thème changé en {0}"
+
+#: frontend/src/composables/useTheme.ts
+msgid "Theme set to follow your system"
+msgstr "Thème réglé pour suivre votre système"
+
+#: suite/mail/api/admin.py
+msgid "This account has no mailbox on the mail server."
+msgstr "Ce compte n'a pas de boîte aux lettres sur le serveur de messagerie."
+
+#: suite/mail/jmap.py
+msgid "This account is not available on the mail server."
+msgstr "Ce compte n'est pas disponible sur le serveur de messagerie."
+
+#: suite/mail/jmap.py
+msgid "This account is read-only."
+msgstr "Ce compte est en lecture seule."
+
+#: frontend/src/apps/calendar/utils/recurringScope.ts
+msgid "This and following events"
+msgstr "Cet événement et les suivants"
+
+#: suite/mail/api/scheduled.py
+msgid "This email is already being sent again."
+msgstr "Cet e-mail est déjà en cours de renvoi."
+
+#: frontend/src/apps/calendar/pages/CalendarView.vue
+msgid "This event can't be edited."
+msgstr "Cet événement ne peut pas être modifié."
+
+#: suite/calendar/api/__init__.py
+msgid "This event does not repeat, so there is nothing following it."
+msgstr "Cet événement ne se répète pas : il n'y a donc aucun événement à sa suite."
+
+#: frontend/src/apps/calendar/utils/recurringScope.ts
+msgid "This event only"
+msgstr "Cet événement uniquement"
+
+#: suite/calendar/api/__init__.py
+msgid "This event's repeat rule could not be read, so it cannot be ended here."
+msgstr "La règle de répétition de cet événement n'a pas pu être lue ; la série ne peut donc pas être terminée ici."
+
+#: suite/calendar/api/__init__.py
+msgid "This event's repeat rule could not be read, so it cannot be split here."
+msgstr "La règle de répétition de cet événement n'a pas pu être lue ; la série ne peut donc pas être scindée ici."
+
+#: suite/mail/jmap.py
+msgid "This mail server doesn't support scheduled sending."
+msgstr "Ce serveur de messagerie ne prend pas en charge l'envoi programmé."
+
+#: frontend/src/apps/mail/components/AttachmentViewer.vue
+msgid "This PDF could not be displayed here."
+msgstr "Ce PDF n'a pas pu être affiché ici."
+
+#: suite/slides/api/slides.py
+msgid "This presentation was changed elsewhere. Reload to get the latest version."
+msgstr "Cette présentation a été modifiée ailleurs. Rechargez-la pour obtenir la dernière version."
+
+#: frontend/src/apps/mail/pages/dashboard/TlsReportView.vue
+msgid "TLS Report"
+msgstr "Rapport TLS"
+
+#: frontend/src/apps/mail/pages/dashboard/TlsReportView.vue
+msgid "TLS report for {0}"
+msgstr "Rapport TLS pour {0}"
+
+#: frontend/src/apps/mail/components/AppSidebar.vue
+#: frontend/src/apps/mail/pages/dashboard/TlsReportView.vue
+#: frontend/src/apps/mail/pages/dashboard/TlsReportsView.vue
+msgid "TLS Reports"
+msgstr "Rapports TLS"
+
+#: frontend/src/apps/mail/components/Modals/AddDomainModal.vue
+msgid "To add a domain, you must already own it. Publish the ownership record below at your DNS provider first; the domain is added once it resolves."
+msgstr "Pour ajouter un domaine, vous devez déjà en être propriétaire. Publiez d'abord l'enregistrement de propriété ci-dessous chez votre fournisseur DNS ; le domaine est ajouté dès qu'il est visible."
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportsView.vue
+msgid "Top Sending Sources"
+msgstr "Principales sources d'envoi"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportsView.vue
+#: frontend/src/apps/mail/pages/dashboard/TlsReportsView.vue
+msgid "Try another search, domain or period."
+msgstr "Essayez une autre recherche, un autre domaine ou une autre période."
+
+#: suite/mail/doctype/mail_queue/payload.py
+msgid "type is required for blob attachments"
+msgstr "type est requis pour les pièces jointes blob"
+
+#: frontend/src/apps/mail/components/Settings/MailLayoutSettings.vue
+msgid "Unable to save mail layout settings."
+msgstr "Impossible d'enregistrer les paramètres de mise en page de la messagerie."
+
+#: suite/mail/api/admin.py
+msgid "Unknown domain status {0}."
+msgstr "Statut de domaine inconnu : {0}."
+
+#: suite/meet/api/recording.py
+msgid "Unsupported recording callback protocol version"
+msgstr "Version du protocole de callback d'enregistrement non prise en charge"
+
+#: suite/meet/api/recording.py
+msgid "Unsupported recording finalization protocol version"
+msgstr "Version du protocole de finalisation d'enregistrement non prise en charge"
+
+#: frontend/src/apps/calendar/components/Modals/EventModal.vue
+#: frontend/src/apps/calendar/pages/CalendarView.vue
+msgid "Update repeating event"
+msgstr "Modifier l'événement récurrent"
+
+#: suite/mail/directory.py
+msgid "User and new password are required to update the mail password."
+msgstr "L'utilisateur et le nouveau mot de passe sont requis pour modifier le mot de passe de la messagerie."
+
+#: suite/mail/doctype/vacation_response/vacation_response.py
+msgid "Vacation Response Update Error"
+msgstr "Erreur de mise à jour de la réponse d'absence"
+
+#: frontend/src/apps/mail/utils/tls.ts
+msgid "Validation failure"
+msgstr "Échec de la validation"
+
+#: frontend/src/apps/mail/pages/dashboard/DomainView.vue
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "Verify DNS"
+msgstr "Vérifier le DNS"
+
+#: suite/meet/recording/ingest.py
+msgid "Your partial recording of {0} is ready"
+msgstr "Votre enregistrement partiel de {0} est prêt"
+
+#: suite/meet/recording/ingest.py
+msgid "Your recording of {0} could not be processed"
+msgstr "Votre enregistrement de {0} n'a pas pu être traité"
+
+#: suite/meet/recording/ingest.py
+msgid "Your recording of {0} is ready"
+msgstr "Votre enregistrement de {0} est prêt"
+
+#: frontend/src/apps/mail/components/StorageBar.vue
+msgid "{0} allotted"
+msgstr "{0} alloués"
+
+#: suite/calendar/tests/test_local_calendar.py:456
+msgctxt "fr"
+msgid "{0} at {1}"
+msgstr "{0} à {1}"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "{0} expired"
+msgstr "{0} expiré(s)"
+
+#: frontend/src/apps/mail/utils/index.ts
+msgid "{0} GB"
+msgstr "{0} Go"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "{0} GB per account"
+msgstr "{0} Go par compte"
+
+#: frontend/src/apps/mail/components/MailThread.vue
+msgid "{0} is currently on your"
+msgstr "{0} figure actuellement sur votre"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "{0} is disabled and cannot sign in; the mail is kept."
+msgstr "{0} est désactivé et ne peut pas se connecter ; les messages sont conservés."
+
+#: suite/mail/api/admin.py
+msgid "{0} is not a mail account."
+msgstr "{0} n'est pas un compte de messagerie."
+
+#: suite/mail/utils/validation.py
+msgid "{0} is not a valid email address or domain. Enter an email address (e.g. john@example.com) "
+msgstr "{0} n'est pas une adresse e-mail ou un domaine valide. Saisissez une adresse e-mail (par ex. john@example.com) "
+
+#: frontend/src/apps/mail/components/DmarcBreakdownRows.vue
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportView.vue
+msgid "{0} msgs"
+msgstr "{0} msg"
+
+#: frontend/src/apps/mail/components/DmarcStatTiles.vue
+msgid "{0} of all messages"
+msgstr "{0} sur tous les messages"
+
+#: frontend/src/apps/mail/components/TlsStatTiles.vue
+msgid "{0} of all sessions"
+msgstr "{0} sur toutes les sessions"
+
+#: frontend/src/apps/mail/components/StorageBar.vue
+msgid "{0} of {1} ({2}%)"
+msgstr "{0} sur {1} ({2} %)"
+
+#: suite/mail/doctype/contacts_exchange/contacts_exchange.py
+msgid "{0} of {1} contact(s) were already moved into the destination address book(s) and remain "
+msgstr "{0} contact(s) sur {1} ont déjà été déplacé(s) dans le ou les carnets d'adresses de destination et y restent "
+
+#: suite/mail/doctype/mail_exchange/mail_exchange.py
+msgid "{0} of {1} email(s) were already moved into the destination folder(s) and remain there; "
+msgstr "{0} e-mail(s) sur {1} ont déjà été déplacé(s) dans le ou les dossiers de destination et y restent ; "
+
+#: suite/mail/doctype/push_subscription/push_subscription.py
+msgid "{0} of {1} push subscription(s) were deleted before the mail server became "
+msgstr "{0} abonnement(s) push sur {1} ont été supprimé(s) avant que le serveur de messagerie ne devienne "
+
+#: suite/mail/doctype/push_subscription/push_subscription.py
+msgid "{0} of {1} push subscription(s) were deleted before the mail server refused the rest:"
+msgstr "{0} abonnement(s) push sur {1} ont été supprimé(s) avant que le serveur de messagerie ne refuse le reste :"
+
+#: frontend/src/apps/mail/pages/dashboard/TlsReportView.vue
+msgid "{0} ok · {1} failed"
+msgstr "{0} réussi(s) · {1} échec(s)"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportView.vue
+msgid "{0} passed"
+msgstr "{0} réussi(s)"
+
+#: frontend/src/apps/mail/components/DmarcStatTiles.vue
+#: frontend/src/apps/mail/components/TlsStatTiles.vue
+#: frontend/src/apps/mail/pages/dashboard/TlsReportsView.vue
+msgid "{0} reports"
+msgstr "{0} rapport(s)"
+
+#: frontend/src/apps/mail/pages/dashboard/TlsReportView.vue
+msgid "{0} succeeded"
+msgstr "{0} réussi(s)"
+
+#: frontend/src/apps/mail/components/StorageBar.vue
+msgid "{0} used, unlimited"
+msgstr "{0} utilisés, illimité"
+
+#: frontend/src/apps/calendar/utils/format.ts
+msgid "{0} {1} after end"
+msgstr "{0} {1} après la fin"
+
+#: frontend/src/apps/calendar/utils/format.ts
+msgid "{0} {1} after start"
+msgstr "{0} {1} après le début"
+
+#: frontend/src/apps/calendar/utils/format.ts
+msgid "{0} {1} before end"
+msgstr "{0} {1} avant la fin"
+
+#: frontend/src/apps/calendar/utils/format.ts
+msgid "{0} {1} before start"
+msgstr "{0} {1} avant le début"
+
+#: suite/mail/jmap.py
+msgid "{0}: the server allows {1}, {2} was requested."
+msgstr "{0} : le serveur autorise {1}, {2} a été demandé."
+
+#: suite/mail/doctype/mail_queue/payload.py
+msgid "{email} is not a valid email address"
+msgstr "{email} n'est pas une adresse e-mail valide"
+
+#: suite/mail/doctype/mail_queue/payload.py
+msgid "{file_url} is not a site file; it must start with /files/ or /private/files/"
+msgstr "{file_url} n'est pas un fichier du site ; il doit commencer par /files/ ou /private/files/"
+
+#: suite/mail/doctype/mail_queue/payload.py
+msgid "{header} is a standard email header and cannot be overridden; use a custom X- header"
+msgstr "{header} est un en-tête e-mail standard et ne peut pas être remplacé ; utilisez un en-tête X- personnalisé"

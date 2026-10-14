@@ -1,9 +1,8 @@
-import { createResource } from "frappe-ui";
+import { useCall } from "frappe-ui";
 import { io, type Socket } from "socket.io-client";
 import { computed, onUnmounted, readonly, ref } from "vue";
 import { session } from "@/boot/session";
 import type {
-	FrappeRequestError,
 	ParticipantJoinedEvent,
 	ParticipantLeftEvent,
 	ParticipantPreview,
@@ -34,15 +33,14 @@ export function useMeetingPreviewPresence(meetingId: string) {
 			isRefreshing = true;
 
 			console.log("Refreshing preview presence token");
-			await fetchPresenceToken.fetch();
+			await fetchPresenceToken.submit({ meeting_id: meetingId });
 			isRefreshing = false;
 		}, refreshAfter);
 	};
 
-	const fetchPresenceToken = createResource({
-		url: "suite.meet.api.meeting.get_sfu_presence_preview_token",
-		params: { meeting_id: meetingId },
-		auto: false,
+	const fetchPresenceToken = useCall<PresenceTokenResponse, { meeting_id: string }>({
+		url: "/api/v2/method/suite.meet.api.meeting.get_sfu_presence_preview_token",
+		immediate: false,
 		onSuccess(data: PresenceTokenResponse) {
 			if (data.restricted_preview) {
 				hasFetchedParticipants.value = true;
@@ -56,16 +54,14 @@ export function useMeetingPreviewPresence(meetingId: string) {
 				error.value = data.error || __("Failed to get presence token");
 			}
 		},
-		onError(err: FrappeRequestError) {
-			error.value = err.messages?.length
-				? err.messages[err.messages.length - 1]
-				// //// Neoffice — i18n: text a person reads goes through __() (#1316)
-				: __("Failed to fetch presence token");
+		onError(err: Error) {
+			// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+			error.value = err.message || __("Failed to fetch presence token");
 		},
 	});
 
 	if (session.isLoggedIn) {
-		fetchPresenceToken.fetch();
+		fetchPresenceToken.submit({ meeting_id: meetingId });
 	}
 
 	const connectToSFU = (tokenData: PresenceTokenResponse) => {
@@ -200,7 +196,7 @@ export function useMeetingPreviewPresence(meetingId: string) {
 
 	const refresh = (): void => {
 		error.value = null;
-		fetchPresenceToken.fetch();
+		fetchPresenceToken.submit({ meeting_id: meetingId });
 	};
 
 	onUnmounted(() => {

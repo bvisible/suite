@@ -15,9 +15,11 @@ import type { Plugin } from 'vite'
 // //// which www/suite.py puts on window.first_day_of_the_week, as the desk's calendars use it. Sunday where the page
 // //// carries none, as upstream draws it.
 // ////
-// //// On a phone the grid is a list of days (CalendarMonthStack, maintenance#1392): its empty day said « No events »,
-// //// a stay « Day 2 of 3 · all day », in English, and a time « 10:00:00 » — frappe-ui pads its times with seconds,
-// //// which its 24-hour formatTime handed back as they were.
+// //// On a phone the grid is a list of days (maintenance#1392), and since frappe-ui's Agenda view (4fede41ae, merged
+// //// 14.10.2026) that list is the Agenda — CalendarAgenda.vue, whose rows (eventRow.ts) say « All day », « Ends 5 pm »,
+// //// « From 9 am », « Day 2/3 », « Now » and whose weeks are « This week », « Next week », « Last week », in English;
+// //// and a time was « 10:00:00 » — frappe-ui pads its times with seconds, which its 24-hour formatTime handed back as
+// //// they were.
 
 type Rewrite = { find: RegExp | string; replace: string }
 
@@ -53,7 +55,7 @@ function neoWeekOrder(days) {
 
 // What the other files of the calendar import from calendarUtils.ts.
 const EXPORTS = `
-export { neoWeekColumn, neoWeekOrder }
+export { neoMonths, neoWeekColumn, neoWeekOrder }
 `
 
 export const CALENDAR_REWRITES: Record<string, Rewrite[]> = {
@@ -75,46 +77,77 @@ export const CALENDAR_REWRITES: Record<string, Rewrite[]> = {
     { find: "{ label: 'Day', value: 'Day',", replace: "{ label: __('Day'), value: 'Day'," },
     { find: "{ label: 'Week', value: 'Week',", replace: "{ label: __('Week'), value: 'Week'," },
     { find: "{ label: 'Month', value: 'Month',", replace: "{ label: __('Month'), value: 'Month'," },
+    { find: "{ label: 'Agenda', value: 'Agenda',", replace: "{ label: __('Agenda'), value: 'Agenda'," },
   ],
-  'CalendarMonthStack.vue': [
-    { find: "return 'All day'", replace: "return __('All day')" },
-    // the phone's list of days: an empty day, the days of a stay (#1392)
-    { find: /(<p v-if="!row\.events\.length" class="[^"]*">)\s*No events\s*(<\/p>)/, replace: "$1{{ __('No events') }}$2" },
+  // The Agenda: the list of weeks of the phone, and of the desktop's fourth view (#1392).
+  'CalendarAgenda.vue': [
+    { find: "{{ row.isToday ? 'Today' : weekday(row.date) }}", replace: "{{ row.isToday ? __('Today') : weekday(row.date) }}" },
+    { find: "if (week.isCurrent) return 'This week'", replace: "if (week.isCurrent) return __('This week')" },
+    { find: "if (week.isNext) return 'Next week'", replace: "if (week.isNext) return __('Next week')" },
+    { find: "if (week.isPrevious) return 'Last week'", replace: "if (week.isPrevious) return __('Last week')" },
+  ],
+  // The range of a week, in the reader's order (« 12–18 oct. », « Oct 12 – 18 »).
+  'agendaDays.ts': [
     {
-      find: 'return `Day ${day} of ${total} · all day`',
-      replace: "return `${__('Day {0} of {1}', [String(day), String(total)])} · ${__('All day')}`",
+      find: /const from = `\$\{shortMonth\(start\)\} \$\{start\.getDate\(\)\}`\n  const to =\n    start\.getMonth\(\) === end\.getMonth\(\)\n      \? `\$\{end\.getDate\(\)\}`\n      : `\$\{shortMonth\(end\)\} \$\{end\.getDate\(\)\}`\n  return `\$\{from\} – \$\{to\}`/,
+      replace:
+        "const lang = (typeof document !== 'undefined' && document.documentElement.lang) || 'en-US'\n" +
+        "  return new Intl.DateTimeFormat(lang, { day: 'numeric', month: 'short' }).formatRange(start, end)",
     },
+  ],
+  // What a listed event says about itself: « All day », « Ends 5 pm », « From 9 am », « Day 2/3 », « Now ».
+  'eventRow.ts': [
+    { find: "if (event.isFullDay) return 'All day'", replace: "if (event.isFullDay) return __('All day')" },
+    { find: "if (start < key && end > key) return 'All day'", replace: "if (start < key && end > key) return __('All day')" },
+    {
+      find: "return ends ? `Ends ${formatTime(ends, format)}` : 'All day'",
+      replace: "return ends ? __('Ends {0}', [formatTime(ends, format)]) : __('All day')",
+    },
+    {
+      find: "return begins ? `From ${formatTime(begins, format)}` : 'All day'",
+      replace: "return begins ? __('From {0}', [formatTime(begins, format)]) : __('All day')",
+    },
+    { find: 'return `Day ${day}/${total}`', replace: "return __('Day {0}/{1}', [String(day), String(total)])" },
+    { find: "return { label: 'Now', theme: 'blue', variant: 'solid' }", replace: "return { label: __('Now'), theme: 'blue', variant: 'solid' }" },
+    { find: "return { label: 'Soon', theme: 'amber' }", replace: "return { label: __('Soon'), theme: 'amber' }" },
   ],
   'CalendarDaily.vue': [
     {
-      find: `:label="dayFullDayEvents.length - 4 + ' more'"`,
-      replace: `:label="__('{0} more', [String(dayFullDayEvents.length - 4)])"`,
+      find: ':label="`+${hiddenFullDayEvents || dayFullDayEvents.length} more`"',
+      replace: ":label=\"`+${__('{0} more', [String(hiddenFullDayEvents || dayFullDayEvents.length)])}`\"",
     },
     // the label of the all-day row, a bare text node
-    { find: /(inline-flex items-center"\s*>)\s*All day\s*(<\/div>)/, replace: "$1{{ __('All day') }}$2" },
+    { find: /(calendar-all-day-label[^>]*>)\s*All day\s*(<\/div>)/, replace: "$1{{ __('All day') }}$2" },
   ],
   'CalendarWeekly.vue': [
-    { find: `:label="hiddenCount(col) + ' more'"`, replace: `:label="__('{0} more', [String(hiddenCount(col))])"` },
+    {
+      find: 'isNarrow ? `+${hiddenCount(col)}` : `+${hiddenCount(col)} more`',
+      replace: "isNarrow ? `+${hiddenCount(col)}` : `+${__('{0} more', [String(hiddenCount(col))])}`",
+    },
     // the label of the all-day row, a bare text node
-    { find: /(inline-flex items-center"\s*>)\s*All day\s*(<\/div>)/, replace: "$1{{ __('All day') }}$2" },
+    { find: /(calendar-all-day-label[^>]*>)\s*All day\s*(<\/div>)/, replace: "$1{{ __('All day') }}$2" },
   ],
-  // the Month view's week rows, from the site's first day
+  // the Month view's week rows, from the site's first day; the months abbreviated by Intl, not cut at three letters
   'monthStrip.ts': [
     {
-      find: "import { monthList, parseDate } from './calendarUtils'",
-      replace: "import { monthList, neoWeekColumn, parseDate } from './calendarUtils'",
+      find: "import { monthList } from './calendarUtils'",
+      replace: "import { monthList, neoMonths, neoWeekColumn } from './calendarUtils'",
     },
     { find: 'return addDays(date, -date.getDay())', replace: 'return addDays(date, -neoWeekColumn(date))' },
+    { find: 'return monthList[date.getMonth()]!.slice(0, 3)', replace: "return neoMonths('short')[date.getMonth()]!" },
   ],
   // the column a timed event moves within, when dragged sideways
   'CalendarWeekDayEvent.vue': [
-    { find: "  formattedDuration,\n} from './calendarUtils'", replace: "  formattedDuration,\n  neoWeekColumn,\n} from './calendarUtils'" },
+    {
+      find: "  EVENT_HEIGHT_THRESHOLD,\n} from './calendarUtils'",
+      replace: "  EVENT_HEIGHT_THRESHOLD,\n  neoWeekColumn,\n} from './calendarUtils'",
+    },
     { find: ': new Date(props.date).getDay()', replace: ': neoWeekColumn(new Date(props.date))' },
   ],
   'CalendarMonthly.vue': [
     {
-      find: "import { daysList, isWeekend, parseDate } from './calendarUtils'",
-      replace: "import { daysList, isWeekend, neoWeekOrder, parseDate } from './calendarUtils'",
+      find: "import { daysList, parseDate } from './calendarUtils'",
+      replace: "import { daysList, neoWeekOrder, parseDate } from './calendarUtils'",
     },
     // the header of the month, from the site's first day
     { find: 'v-for="day in daysList"', replace: 'v-for="day in neoWeekOrder(daysList)"' },

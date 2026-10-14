@@ -1,14 +1,5 @@
 import type { RouteRecordRaw } from 'vue-router'
 
-import { createResource } from 'frappe-ui'
-
-// Boot side-effects the suite's shared main.ts does not run, so trigger them
-// on writer module load.
-import { allUsers } from '@/apps/drive/sdk'
-import { getSessionUser } from '@/boot/session'
-
-if (getSessionUser()) allUsers.fetch()
-
 /**
  * Writer route module — mounted by the suite router under the '/writer' prefix.
  * Paths are RELATIVE to '/writer' (no leading slash; the empty-path child '' is
@@ -42,24 +33,3 @@ export const routes: RouteRecordRaw[] = [
     ],
   },
 ]
-
-export default routes
-
-/* -------------------------------------------------------------------------- */
-/* Translations                                                                */
-/*                                                                             */
-/* The suite installs ONE global translation plugin (foundation                */
-/* src/boot/translation.ts) so bare `__('text')` works everywhere. We only     */
-/* need to populate `window.translatedMessages`.                               */
-/* -------------------------------------------------------------------------- */
-
-//// Neoffice — the resource is made only when the page's boot carries no catalogue (www/suite.py puts the reader's
-//// on window.translatedMessages): frappe-ui restores a cached resource as soon as it is created, fetched or not,
-//// and this transform then put an older cached catalogue back over the boot's, so a new translation never showed
-//// until the browser's storage was cleared (maintenance#1392).
-if (!window.translatedMessages)
-  createResource({
-    url: 'suite.drive.api.product.get_translations',
-    cache: 'translations',
-    transform: (data) => (window.translatedMessages = data),
-  }).fetch()

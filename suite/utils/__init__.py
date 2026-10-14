@@ -188,9 +188,25 @@ def parse_filters(filters: list | None) -> dict:
         return {}
 
     result = {}
+    # //// Neoffice — Frappe v15 hands the `get_list` of a virtual doctype its filters as a dict
+    # //// ({"field": value} or {"field": [operator, value]}), where v16 gives FilterTuple lists: the loop
+    # //// below read the keys of that dict as filters and raised AttributeError (HTTP 500 on `Calendar`,
+    # //// `Calendar Event` and `Mail Message` from frappe.client.get_list). Equality conditions only, as below.
+    if isinstance(filters, dict):
+        for fieldname, value in filters.items():
+            if isinstance(value, (list, tuple)):
+                if len(value) == 2 and value[0] == "=":
+                    result[fieldname] = value[1]
+            else:
+                result[fieldname] = value
+        return result
+
     for f in filters:
-        if isinstance(f, list):
+        # //// Neoffice — a tuple spec too (a FilterTuple is one), and nothing that is not a filter.
+        if isinstance(f, list | tuple):
             f = FilterTuple(f)
+        elif not hasattr(f, "operator"):
+            continue
 
         if f.operator == "=":
             result[f.fieldname] = f.value

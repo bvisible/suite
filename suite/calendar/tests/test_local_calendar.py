@@ -292,11 +292,37 @@ class TestLocalCalendar(IntegrationTestCase):
         self.assertFalse([event for event in _events(self.account) if event["id"] == id])
 
     def test_what_needs_a_mail_account_says_so(self):
-        from suite.calendar.local import LocalJMAPConnection
+        from jmap import MethodError
 
-        connection = LocalJMAPConnection(self.account, DESK)
-        with self.assertRaises(NotImplementedError):
-            connection.request(json={"methodCalls": [["CalendarEvent/parse", {"blobIds": ["x"]}, "0"]]})
+        from suite.mail.jmap import get_account_client
+
+        client = get_account_client(self.account)
+
+        # A method of the calendars capability the account does not implement: the server's own answer, from the
+        # transport that stands for the mail server (suite.calendar.local.LocalTransport).
+        with self.assertRaises(MethodError) as raised:
+            with client.batch() as b:
+                handle = b.calendars.calendar_event_notification.get()
+            handle.result  # the answer of a call is read from its handle
+        self.assertEqual(raised.exception.type, "unknownMethod")
+
+        # A capability the account lacks is not offered at all: no mail, and no parsing of a calendar file.
+        self.assertEqual(sorted(client.capabilities.attrs), ["calendars", "core"])
+        with self.assertRaises(AttributeError):
+            with client.batch() as b:
+                b.mail  # noqa: B018
+
+    def test_the_account_is_answered_through_a_real_jmap_client(self):
+        from suite.calendar import jmap_events
+        from suite.mail.jmap import get_account_client, get_cached_calendars
+
+        client = get_account_client(self.account)
+        self.assertEqual(client.default_account, self.account)
+
+        calendars = get_cached_calendars(self.account)
+        self.assertEqual([c["isDefault"] for c in calendars], [True])
+        self.assertTrue(calendars[0]["myRights"]["mayWriteAll"])
+        self.assertEqual(jmap_events.get_events(client, []), [])
 
     def test_a_meet_room_is_attached_to_an_event_of_a_local_calendar(self):
         from suite.meet.api.schedule import create_meet_link, create_scheduled_meeting

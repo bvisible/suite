@@ -1,5 +1,8 @@
 # //// Neoffice — added file (no upstream equivalent). Writer's document list, called the way the browser calls
 # //// it: start and limit as text from the query string.
+# //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
+# //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
+from __future__ import annotations
 import frappe
 from frappe.tests.utils import FrappeTestCase
 

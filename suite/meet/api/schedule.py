@@ -6,16 +6,11 @@ import frappe
 from frappe.utils import get_url
 
 from suite.calendar.doctype.calendar_event.calendar_event import add_calendar_event
-
-# //// Neoffice — the calendars other people shared with the person (maintenance#1579).
-from suite.calendar.shared import resolves_shared
 from suite.mail.doctype.user_account.user_account import is_jmap_account_belongs_to_user
 from suite.meet.api.meeting import create as create_meeting
 
 
-@frappe.whitelist()
-# //// Neoffice — an id that names another account's object makes the call on that account (maintenance#1579, suite/calendar/shared.py).
-@resolves_shared(lists=("calendar_ids",))
+@frappe.whitelist(methods=["POST"])
 def create_scheduled_meeting(
     account: str,
     user: str | None = None,
@@ -43,7 +38,6 @@ def create_scheduled_meeting(
     del user
 
     is_jmap_account_belongs_to_user(account, raise_exception=True)
-    organizer = frappe.db.get_value("JMAP Account", account, "default_outgoing_email") or frappe.session.user
 
     meeting_id = create_meeting(meeting_type=meeting_type, title=title)
     meet_url = get_url(f"/meet/{meeting_id}")
@@ -51,6 +45,8 @@ def create_scheduled_meeting(
     # The meet link is attached as a structured event link (see `links=` below), which is what
     # the UI's "Join Frappe Meet" button, the invite email's Meet card, and the exported .ics URL
     # all read from. So it is deliberately NOT injected into the description.
+    # An omitted organizer resolves to the account's default participant identity in the JMAP
+    # layer, same as a plain calendar event.
     event_id = add_calendar_event(
         account=account,
         organizer=organizer,
@@ -78,7 +74,7 @@ def create_scheduled_meeting(
     return {"meeting_id": meeting_id, "meeting_url": meet_url, "event_id": event_id}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def create_meet_link(account: str, title: str | None = None, meeting_type: str = "open") -> dict[str, str]:
     """Create a Meet room and return its link, for attaching to an existing calendar event."""
 

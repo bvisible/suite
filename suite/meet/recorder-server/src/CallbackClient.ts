@@ -2,12 +2,58 @@ import { createHash, randomUUID } from 'node:crypto';
 import { open, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import jwt from 'jsonwebtoken';
+import { logger } from './logger.js';
 import { safeJobDirectory } from './ManifestStore.js';
 import type { JobRecord } from './types.js';
 
 const AUDIENCE = 'meet-recording-callback';
 const TYPE = 'meet-recording-callback+jwt';
+const PROTOCOL_VERSION = 1;
+const FINALIZATION_AUDIENCE = 'meet-recording-finalization';
+const FINALIZATION_TYPE = 'meet-recording-finalization+jwt';
+const FINALIZATION_PROTOCOL_VERSION = 1;
 const CHUNK_SIZE = 8 * 1024 * 1024;
+const PROGRESS_ATTEMPTS = 3;
+const PROGRESS_ATTEMPT_TIMEOUT_MS = 10_000;
+
+class CallbackRequestError extends Error {
+	constructor(
+		message: string,
+		readonly reason: string,
+		readonly retryable: boolean,
+		cause?: unknown,
+	) {
+		super(message, { cause });
+	}
+}
+
+function transportReason(error: unknown): string {
+	if (!(error instanceof Error)) return 'transport_error';
+	if (error.name === 'TimeoutError' || error.name === 'AbortError')
+		return 'timeout';
+	const cause = error.cause;
+	if (
+		cause &&
+		typeof cause === 'object' &&
+		'code' in cause &&
+		typeof cause.code === 'string' &&
+		/^[A-Z][A-Z0-9_]{0,63}$/.test(cause.code)
+	)
+		return cause.code;
+	return 'transport_error';
+}
+const FRAPPE_RECORDING_STATES = new Set([
+	'Pending',
+	'Starting',
+	'Recording',
+	'Interrupted',
+	'Stopping',
+	'Processing',
+	'Ready',
+	'Partial',
+	'Failed',
+	'Cancelled',
+]);
 
 interface CallbackClientOptions {
 	origin: string;
@@ -19,10 +65,11 @@ interface CallbackClientOptions {
 }
 
 interface InterruptedRequest {
+	protocol_version: typeof PROTOCOL_VERSION;
 	recording_id: string;
 	job: string;
 	event_sequence: number;
-	reason: string;
+	reason_code: string;
 	interruption_id: string;
 	interrupted_at: string;
 	interruption_deadline: string;
@@ -30,6 +77,7 @@ interface InterruptedRequest {
 }
 
 interface RecoveredRequest {
+	protocol_version: typeof PROTOCOL_VERSION;
 	recording_id: string;
 	job: string;
 	event_sequence: number;
@@ -39,6 +87,7 @@ interface RecoveredRequest {
 }
 
 interface ReplacementReadyRequest {
+	protocol_version: typeof PROTOCOL_VERSION;
 	recording_id: string;
 	job: string;
 	event_sequence: number;
@@ -49,6 +98,7 @@ interface ReplacementReadyRequest {
 }
 
 interface StartupProgressRequest {
+	protocol_version: typeof PROTOCOL_VERSION;
 	recording_id: string;
 	job: string;
 	event_sequence: number;
@@ -57,13 +107,15 @@ interface StartupProgressRequest {
 }
 
 interface FailedRequest {
+	protocol_version: typeof PROTOCOL_VERSION;
 	recording_id: string;
 	job: string;
 	event_sequence: number;
-	failure_code: 'capture_failed';
+	reason_code: 'capture_failed';
 }
 
 interface StoppedRequest {
+	protocol_version: typeof PROTOCOL_VERSION;
 	recording_id: string;
 	job: string;
 	event_sequence: number;
@@ -72,17 +124,19 @@ interface StoppedRequest {
 	sha256: string;
 	duration_ms: number;
 	ended_at: string;
-	end_reason: string;
-	gaps: Array<{ started_at: string; ended_at: string; reason: string }>;
+	end_reason_code: string;
+	gaps: Array<{ started_at: string; ended_at: string; reason_code: string }>;
 }
 
 interface CompleteUploadRequest {
+	protocol_version: typeof PROTOCOL_VERSION;
 	recording_id: string;
 	job: string;
 	event_sequence: number;
 }
 
 interface SegmentProgressRequest {
+	protocol_version: typeof PROTOCOL_VERSION;
 	recording_id: string;
 	job: string;
 	captured_bytes: number;
@@ -117,24 +171,43 @@ type CallbackOperation =
 	| 'stopped'
 	| 'segment_progress'
 	| 'upload_chunk'
-	| 'complete_upload';
+	| 'complete_upload'
+	| 'status';
 
 interface StatusResponse {
+	protocol_version: typeof PROTOCOL_VERSION;
 	status: string;
 }
 
 interface UploadStartResponse {
+	protocol_version: typeof PROTOCOL_VERSION;
 	offset: number;
 	complete: boolean;
 }
 
 interface UploadChunkResponse {
+	protocol_version: typeof PROTOCOL_VERSION;
 	offset: number;
 }
 
 interface SegmentProgressResponse {
+	protocol_version: typeof PROTOCOL_VERSION;
 	budget_bytes: number;
 }
+
+type FinalizationAction =
+	| { protocol_version: 1; action: 'wait' }
+	| { protocol_version: 1; action: 'resume_upload'; offset: number }
+	| {
+			protocol_version: 1;
+			action: 'delete_local';
+			terminal_result: 'Ready' | 'Partial' | 'Failed';
+	  };
+
+export type FinalizationProgress = (
+	phase: 'started' | 'cleanup_authorized' | 'local_deleted',
+	terminalResult?: 'Ready' | 'Partial' | 'Failed',
+) => Promise<void>;
 
 export class CallbackClient {
 	private readonly timeoutMs: number;
@@ -169,6 +242,7 @@ export class CallbackClient {
 						'startup_progress',
 						String(sequence),
 						{
+							protocol_version: PROTOCOL_VERSION,
 							recording_id: job.recording,
 							job: job.job,
 							event_sequence: sequence,
@@ -198,10 +272,11 @@ export class CallbackClient {
 				'interrupted',
 				String(sequence),
 				{
+					protocol_version: PROTOCOL_VERSION,
 					recording_id: job.recording,
 					job: job.job,
 					event_sequence: sequence,
-					reason: job.health_reason ?? 'capture_interrupted',
+					reason_code: this.healthReason(job.health_reason),
 					interruption_id: job.interruption_id,
 					interrupted_at: job.interrupted_at,
 					interruption_deadline: job.interruption_deadline,
@@ -227,6 +302,7 @@ export class CallbackClient {
 				'recovered',
 				String(sequence),
 				{
+					protocol_version: PROTOCOL_VERSION,
 					recording_id: job.recording,
 					job: job.job,
 					event_sequence: sequence,
@@ -250,6 +326,7 @@ export class CallbackClient {
 				'replacement_ready',
 				String(sequence),
 				{
+					protocol_version: PROTOCOL_VERSION,
 					recording_id: job.recording,
 					job: job.job,
 					event_sequence: sequence,
@@ -269,40 +346,95 @@ export class CallbackClient {
 	): Promise<number> {
 		if (!Number.isSafeInteger(capturedBytes) || capturedBytes < 0)
 			throw new Error('invalid captured byte count');
-		const response = await this.json(
-			'recorder_segment_progress',
-			job,
-			'segment_progress',
-			String(capturedBytes),
-			{
-				recording_id: job.recording,
-				job: job.job,
-				captured_bytes: capturedBytes,
-			},
-			parseSegmentProgressResponse,
-		);
-		return response.budget_bytes;
+		// Progress is cumulative and idempotent. Each retry signs a fresh JWT,
+		// including when Frappe committed progress before the response was lost.
+		for (let attempt = 1; ; attempt++) {
+			try {
+				const response = await this.json(
+					'recorder_segment_progress',
+					job,
+					'segment_progress',
+					String(capturedBytes),
+					{
+						protocol_version: PROTOCOL_VERSION,
+						recording_id: job.recording,
+						job: job.job,
+						captured_bytes: capturedBytes,
+					},
+					parseSegmentProgressResponse,
+					Math.min(this.timeoutMs, PROGRESS_ATTEMPT_TIMEOUT_MS),
+				);
+				return response.budget_bytes;
+			} catch (error) {
+				const retryable =
+					error instanceof CallbackRequestError && error.retryable;
+				const retry = retryable && attempt < PROGRESS_ATTEMPTS;
+				logger.error({
+					event: 'segment_progress_callback_failed',
+					job: job.job,
+					attempt,
+					status: retry ? 'retrying' : retryable ? 'exhausted' : 'rejected',
+					reason:
+						error instanceof CallbackRequestError
+							? error.reason
+							: 'invalid_response',
+				});
+				if (!retry) throw error;
+				await this.sleep(250 * 2 ** (attempt - 1));
+			}
+		}
 	}
 
-	async upload(job: JobRecord): Promise<void> {
+	async upload(
+		job: JobRecord,
+		onProgress: FinalizationProgress = async () => undefined,
+	): Promise<void> {
+		if (job.cleanup_authorized_at) {
+			await this.deleteLocal(job);
+			await onProgress('local_deleted', job.cleanup_result);
+			return;
+		}
+		let started = Boolean(job.finalization_started_at);
 		let delay = 1_000;
-		for (let attempt = 0; ; attempt += 1) {
+		let attempt = 0;
+		for (;;) {
 			try {
-				await this.performUpload(job);
-				await rm(safeJobDirectory(this.options.dataRoot, job.job), {
-					recursive: true,
-					force: true,
-				});
+				if (!started) {
+					await this.beginFinalization(job, async () => {
+						await onProgress('started');
+						started = true;
+					});
+				}
+				const action = await this.finalizationStatus(job);
+				if (action.action === 'wait') {
+					attempt = 0;
+					delay = 1_000;
+					await this.sleep(5_000);
+					continue;
+				}
+				if (action.action === 'resume_upload') {
+					await this.uploadArtifact(job, action.offset);
+					attempt = 0;
+					delay = 1_000;
+					continue;
+				}
+				await onProgress('cleanup_authorized', action.terminal_result);
+				await this.deleteLocal(job);
+				await onProgress('local_deleted', action.terminal_result);
 				return;
 			} catch (error) {
-				if (attempt === 4) throw error;
+				attempt += 1;
+				if (attempt >= 5) throw error;
 				await this.sleep(delay);
 				delay *= 2;
 			}
 		}
 	}
 
-	private async performUpload(job: JobRecord): Promise<void> {
+	private async beginFinalization(
+		job: JobRecord,
+		onAccepted: () => Promise<void>,
+	): Promise<void> {
 		const terminalSequence = (job.event_sequence ?? 2) + 1;
 		if (job.state === 'failed') {
 			await this.json(
@@ -311,13 +443,15 @@ export class CallbackClient {
 				'failed',
 				String(terminalSequence),
 				{
+					protocol_version: PROTOCOL_VERSION,
 					recording_id: job.recording,
 					job: job.job,
 					event_sequence: terminalSequence,
-					failure_code: 'capture_failed',
+					reason_code: 'capture_failed',
 				},
 				parseStatusResponse,
 			);
+			await onAccepted();
 			return;
 		}
 		const artifact = job.artifact;
@@ -335,6 +469,7 @@ export class CallbackClient {
 			'stopped',
 			String(stoppedSequence),
 			{
+				protocol_version: PROTOCOL_VERSION,
 				recording_id: job.recording,
 				job: job.job,
 				event_sequence: stoppedSequence,
@@ -343,17 +478,32 @@ export class CallbackClient {
 				sha256: artifact.sha256,
 				duration_ms: artifact.duration_ms,
 				ended_at: job.terminal_at ?? new Date().toISOString(),
-				end_reason: this.endReason(job),
+				end_reason_code: this.endReason(job),
 				gaps: (artifact.gaps ?? []).map((gap) => ({
 					started_at: gap.started_at,
 					ended_at: gap.ended_at ?? job.terminal_at ?? new Date().toISOString(),
-					reason: this.gapReason(gap.reason),
+					reason_code: this.gapReason(gap.reason),
 				})),
 			},
 			parseUploadStartResponse,
 		);
-		if (begun.complete === true) return;
-		let offset = begun.offset;
+		await onAccepted();
+		if (!begun.complete) await this.uploadArtifact(job, begun.offset);
+	}
+
+	private async uploadArtifact(
+		job: JobRecord,
+		requestedOffset: number,
+	): Promise<void> {
+		const artifact = job.artifact;
+		if (
+			!artifact?.bytes ||
+			!artifact.sha256 ||
+			!artifact.duration_ms ||
+			!['complete', 'partial'].includes(artifact.state)
+		)
+			throw new Error('terminal recording artifact is incomplete');
+		let offset = requestedOffset;
 		if (!Number.isSafeInteger(offset) || offset < 0 || offset > artifact.bytes)
 			throw new Error('invalid Frappe upload offset');
 
@@ -383,16 +533,51 @@ export class CallbackClient {
 			'recorder_complete_upload',
 			job,
 			'complete_upload',
-			String(stoppedSequence + 1),
+			String((job.event_sequence ?? 2) + 2),
 			{
+				protocol_version: PROTOCOL_VERSION,
 				recording_id: job.recording,
 				job: job.job,
-				event_sequence: stoppedSequence + 1,
+				event_sequence: (job.event_sequence ?? 2) + 2,
 			},
 			parseStatusResponse,
 		);
-		if (!['Ready', 'Partial'].includes(completed.status))
-			throw new Error('Frappe recording artifact is still processing');
+		if (!['Processing', 'Ready', 'Partial'].includes(completed.status))
+			throw new Error('invalid Frappe upload completion state');
+	}
+
+	private async finalizationStatus(
+		job: JobRecord,
+	): Promise<FinalizationAction> {
+		const body = JSON.stringify({
+			protocol_version: FINALIZATION_PROTOCOL_VERSION,
+			recording_id: job.recording,
+			job: job.job,
+		});
+		const url = new URL(
+			'/api/method/suite.meet.api.recording.recorder_finalization_status',
+			this.options.origin,
+		);
+		return this.request(
+			url,
+			job,
+			'status',
+			'status',
+			{
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body,
+			},
+			parseFinalizationResponse,
+			true,
+		);
+	}
+
+	private async deleteLocal(job: JobRecord): Promise<void> {
+		await rm(safeJobDirectory(this.options.dataRoot, job.job), {
+			recursive: true,
+			force: true,
+		});
 	}
 
 	private async retryHealthCallback(
@@ -425,6 +610,7 @@ export class CallbackClient {
 		);
 		url.searchParams.set('recording_id', job.recording);
 		url.searchParams.set('job', job.job);
+		url.searchParams.set('protocol_version', String(PROTOCOL_VERSION));
 		url.searchParams.set('offset', String(offset));
 		url.searchParams.set('chunk_sha256', hash);
 		const body = new Uint8Array(chunk.length);
@@ -450,6 +636,7 @@ export class CallbackClient {
 		operationId: string,
 		body: CallbackRequest,
 		parseResponse: (value: unknown) => T,
+		timeoutMs = this.timeoutMs,
 	): Promise<T> {
 		const url = new URL(
 			`/api/method/suite.meet.api.recording.${method}`,
@@ -466,6 +653,8 @@ export class CallbackClient {
 				body: JSON.stringify(body),
 			},
 			parseResponse,
+			false,
+			timeoutMs,
 		);
 	}
 
@@ -476,28 +665,60 @@ export class CallbackClient {
 		operationId: string,
 		init: RequestInit,
 		parseResponse: (value: unknown) => T,
+		finalization = false,
+		timeoutMs = this.timeoutMs,
 	): Promise<T> {
-		const response = await fetch(url, {
-			...init,
-			headers: {
-				...init.headers,
-				'X-Meet-Recorder-Authorization': `Bearer ${this.token(
-					job,
-					operation,
-					operationId,
-					init.body,
-				)}`,
-			},
-			signal: AbortSignal.timeout(this.timeoutMs),
-		});
-		const text = await response.text();
-		if (!response.ok || text.length > 64 * 1024)
-			throw new Error(`Frappe callback failed with HTTP ${response.status}`);
-		const parsed: unknown = JSON.parse(text);
+		let text: string;
+		try {
+			const response = await fetch(url, {
+				...init,
+				headers: {
+					...init.headers,
+					'X-Meet-Recorder-Authorization': `Bearer ${this.token(
+						job,
+						operation,
+						operationId,
+						init.body,
+						finalization,
+					)}`,
+				},
+				signal: AbortSignal.timeout(timeoutMs),
+			});
+			if (!response.ok) {
+				// A refusal remains authoritative even if its body cannot be read.
+				void response.body?.cancel().catch(() => undefined);
+				throw new CallbackRequestError(
+					`Frappe callback failed with HTTP ${response.status}`,
+					`HTTP_${response.status}`,
+					response.status === 408 ||
+						response.status === 429 ||
+						response.status >= 500,
+				);
+			}
+			text = await response.text();
+		} catch (error) {
+			if (error instanceof CallbackRequestError) throw error;
+			const reason = transportReason(error);
+			throw new CallbackRequestError(
+				`Frappe callback transport failed: ${reason}`,
+				reason,
+				true,
+				error,
+			);
+		}
+		if (text.length > 64 * 1024)
+			throw new Error('invalid Frappe callback response');
+		let parsed: unknown;
+		try {
+			parsed = JSON.parse(text);
+		} catch {
+			// SyntaxError messages can echo response bytes into the capture logs.
+			throw new Error('invalid Frappe callback response');
+		}
 		if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
 			throw new Error('invalid Frappe callback response');
 		}
-		if (!('message' in parsed)) {
+		if (!exactKeys(parsed, ['message']) || !('message' in parsed)) {
 			throw new Error('invalid Frappe callback response');
 		}
 		return parseResponse(parsed.message);
@@ -508,6 +729,7 @@ export class CallbackClient {
 		operation: CallbackOperation,
 		operationId: string,
 		body: BodyInit | null | undefined,
+		finalization = false,
 	): string {
 		const now = Math.floor(Date.now() / 1000);
 		const bytes =
@@ -519,8 +741,11 @@ export class CallbackClient {
 		if (!bytes) throw new Error('unsupported callback request body');
 		return jwt.sign(
 			{
+				protocol_version: finalization
+					? FINALIZATION_PROTOCOL_VERSION
+					: PROTOCOL_VERSION,
 				iss: `meet-recorder:${this.options.site}`,
-				aud: AUDIENCE,
+				aud: finalization ? FINALIZATION_AUDIENCE : AUDIENCE,
 				site: this.options.site,
 				recording: job.recording,
 				job: job.job,
@@ -532,7 +757,10 @@ export class CallbackClient {
 				exp: now + 30,
 			},
 			this.options.secret,
-			{ algorithm: 'HS256', header: { alg: 'HS256', typ: TYPE } },
+			{
+				algorithm: 'HS256',
+				header: { alg: 'HS256', typ: finalization ? FINALIZATION_TYPE : TYPE },
+			},
 		);
 	}
 
@@ -549,6 +777,22 @@ export class CallbackClient {
 		return 'host_stop';
 	}
 
+	private healthReason(reason?: string): string {
+		const finite = new Set([
+			'browser_disconnected',
+			'capture_interrupted',
+			'configuration_failed',
+			'ffmpeg_exited',
+			'media_attachment_failed',
+			'media_subscription_failed',
+			'page_crashed',
+			'projection_invalid',
+			'receive_transport_failed',
+			'sfu_disconnected',
+		]);
+		return reason && finite.has(reason) ? reason : 'capture_interrupted';
+	}
+
 	private gapReason(reason: string): string {
 		if (reason.includes('ffmpeg') || reason.includes('segment'))
 			return 'ffmpeg_exited';
@@ -557,24 +801,68 @@ export class CallbackClient {
 	}
 }
 
-function parseStatusResponse(value: unknown): StatusResponse {
+export function parseStatusResponse(value: unknown): StatusResponse {
+	if (
+		!exactKeys(value, ['protocol_version', 'status']) ||
+		!('protocol_version' in value) ||
+		value.protocol_version !== PROTOCOL_VERSION ||
+		!('status' in value) ||
+		typeof value.status !== 'string' ||
+		!FRAPPE_RECORDING_STATES.has(value.status)
+	) {
+		throw new Error('invalid Frappe callback response');
+	}
+	return { protocol_version: PROTOCOL_VERSION, status: value.status };
+}
+
+export function parseFinalizationResponse(value: unknown): FinalizationAction {
 	if (
 		!value ||
 		typeof value !== 'object' ||
 		Array.isArray(value) ||
-		!('status' in value) ||
-		typeof value.status !== 'string'
-	) {
-		throw new Error('invalid Frappe callback response');
-	}
-	return { status: value.status };
+		!('protocol_version' in value) ||
+		value.protocol_version !== FINALIZATION_PROTOCOL_VERSION ||
+		!('action' in value) ||
+		typeof value.action !== 'string'
+	)
+		throw new Error('invalid Frappe finalization response');
+	if (
+		value.action === 'wait' &&
+		exactKeys(value, ['action', 'protocol_version'])
+	)
+		return { protocol_version: 1, action: 'wait' };
+	if (
+		value.action === 'resume_upload' &&
+		exactKeys(value, ['action', 'offset', 'protocol_version']) &&
+		'offset' in value &&
+		typeof value.offset === 'number' &&
+		Number.isSafeInteger(value.offset) &&
+		value.offset >= 0
+	)
+		return {
+			protocol_version: 1,
+			action: 'resume_upload',
+			offset: value.offset,
+		};
+	if (
+		value.action === 'delete_local' &&
+		exactKeys(value, ['action', 'protocol_version', 'terminal_result']) &&
+		'terminal_result' in value &&
+		['Ready', 'Partial', 'Failed'].includes(String(value.terminal_result))
+	)
+		return {
+			protocol_version: 1,
+			action: 'delete_local',
+			terminal_result: value.terminal_result as 'Ready' | 'Partial' | 'Failed',
+		};
+	throw new Error('invalid Frappe finalization response');
 }
 
 function parseUploadStartResponse(value: unknown): UploadStartResponse {
 	if (
-		!value ||
-		typeof value !== 'object' ||
-		Array.isArray(value) ||
+		!exactKeys(value, ['complete', 'offset', 'protocol_version']) ||
+		!('protocol_version' in value) ||
+		value.protocol_version !== PROTOCOL_VERSION ||
 		!('complete' in value) ||
 		typeof value.complete !== 'boolean' ||
 		!('offset' in value) ||
@@ -583,30 +871,32 @@ function parseUploadStartResponse(value: unknown): UploadStartResponse {
 	) {
 		throw new Error('invalid Frappe callback response');
 	}
-	return { complete: value.complete, offset: value.offset };
+	return {
+		protocol_version: PROTOCOL_VERSION,
+		complete: value.complete,
+		offset: value.offset,
+	};
 }
 
 function parseUploadChunkResponse(value: unknown): UploadChunkResponse {
 	if (
-		!value ||
-		typeof value !== 'object' ||
-		Array.isArray(value) ||
+		!exactKeys(value, ['offset', 'protocol_version']) ||
+		!('protocol_version' in value) ||
+		value.protocol_version !== PROTOCOL_VERSION ||
 		!('offset' in value) ||
 		typeof value.offset !== 'number' ||
 		!Number.isSafeInteger(value.offset)
 	) {
 		throw new Error('invalid Frappe callback response');
 	}
-	return { offset: value.offset };
+	return { protocol_version: PROTOCOL_VERSION, offset: value.offset };
 }
 
 function parseSegmentProgressResponse(value: unknown): SegmentProgressResponse {
 	if (
-		!value ||
-		typeof value !== 'object' ||
-		Array.isArray(value) ||
-		JSON.stringify(Object.keys(value).sort()) !==
-			JSON.stringify(['budget_bytes']) ||
+		!exactKeys(value, ['budget_bytes', 'protocol_version']) ||
+		!('protocol_version' in value) ||
+		value.protocol_version !== PROTOCOL_VERSION ||
 		!('budget_bytes' in value) ||
 		typeof value.budget_bytes !== 'number' ||
 		!Number.isSafeInteger(value.budget_bytes) ||
@@ -614,5 +904,17 @@ function parseSegmentProgressResponse(value: unknown): SegmentProgressResponse {
 	) {
 		throw new Error('invalid Frappe callback response');
 	}
-	return { budget_bytes: value.budget_bytes };
+	return {
+		protocol_version: PROTOCOL_VERSION,
+		budget_bytes: value.budget_bytes,
+	};
+}
+
+function exactKeys(value: unknown, keys: string[]): value is object {
+	return (
+		!!value &&
+		typeof value === 'object' &&
+		!Array.isArray(value) &&
+		JSON.stringify(Object.keys(value).sort()) === JSON.stringify(keys)
+	);
 }

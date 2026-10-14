@@ -40,31 +40,34 @@
 		<div class="flex flex-shrink-0 items-center gap-1">
 			<!-- Raised Hand Indicator -->
 			<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
-			<div v-if="isHandRaised" class="flex items-center justify-center p-1.5 rounded-6" :title="__('{0} has raised their hand', [participant.user_name || participant.user_id])">
-				<div class="rounded-full bg-amber-500 p-0.5">
-					<lucide-hand class="w-3.5 h-3.5 text-ink-gray-9" />
+			<Tooltip v-if="isHandRaised" :text="__('{0} has raised their hand', [participant.user_name || participant.user_id])">
+				<div
+					class="flex items-center justify-center p-1.5 rounded-6"
+					:aria-label="__('{0} has raised their hand', [participant.user_name || participant.user_id])"
+				>
+					<div class="rounded-full !bg-[#e54e17] px-1.5 py-1">
+						<lucide-hand class="w-3.5 h-3.5 text-white" />
+					</div>
 				</div>
-			</div>
+			</Tooltip>
 
 			<!-- Video Status -->
 			<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
-			<span
-				class="flex items-center justify-center p-1.5 text-ink-gray-6"
-				:title="participant.video_enabled ? __('Camera on') : __('Camera off')"
-			>
-				<MeetCameraIcon v-if="participant.video_enabled" class="size-4" />
-				<MeetCameraOffIcon v-else class="size-4" />
-			</span>
+			<Tooltip :text="participant.video_enabled ? __('Camera on') : __('Camera off')">
+				<span class="flex items-center justify-center p-1.5 text-ink-gray-6">
+					<MeetCameraIcon v-if="participant.video_enabled" class="size-4" />
+					<MeetCameraOffIcon v-else class="size-4" />
+				</span>
+			</Tooltip>
 
 			<!-- Audio Status -->
 			<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
-			<span
-				class="flex items-center justify-center p-1.5 text-ink-gray-6"
-				:title="participant.audio_enabled ? __('Microphone on') : __('Microphone off')"
-			>
-				<MeetMicIcon v-if="participant.audio_enabled" class="size-4" />
-				<MeetMicOffIcon v-else class="size-4" />
-			</span>
+			<Tooltip :text="participant.audio_enabled ? __('Microphone on') : __('Microphone off')">
+				<span class="flex items-center justify-center p-1.5 text-ink-gray-6">
+					<MeetMicIcon v-if="participant.audio_enabled" class="size-4" />
+					<MeetMicOffIcon v-else class="size-4" />
+				</span>
+			</Tooltip>
 
 			<!-- Host Controls -->
 			<div v-if="canControlParticipant" class="relative">
@@ -96,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { Dropdown } from "frappe-ui";
+import { Dropdown, Tooltip } from "frappe-ui";
 import { computed, ref } from "vue";
 import { useMeetingContext } from "../composables/useMeetingContext";
 import MeetCameraIcon from "../icons/MeetCameraIcon.vue";

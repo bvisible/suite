@@ -4,9 +4,14 @@
 # //// there was no calendar at all. On a site without Stalwart, and for Administrator everywhere, a desk user found
 # //// « Aucun compte de calendrier pour le moment ». Here a Local Calendar Account answers the few JMAP calls of the
 # //// calendar itself (Calendar/get|set, CalendarEvent/get|set|query, ParticipantIdentity/get) on objects kept in
-# //// Frappe (Local Calendar, Local Calendar Event), shaped as the mail server shapes them. The JMAP services, the
-# //// Calendar doctypes and the screens of the calendar run unchanged on top of it. Any other JMAP call raises
-# //// NotImplementedError, so that one an upstream merge adds is seen. The plan: Obsidian, Neoffice/Suite-Adoption/15.
+# //// Frappe (Local Calendar, Local Calendar Event), shaped as the mail server shapes them.
+# ////
+# //// Since the merge of 2026-10-14 upstream speaks JMAP through jmaplib (suite/mail/jmap.py), over httpx. The local
+# //// account therefore gets a real jmaplib client (get_local_client) whose HTTP transport is the one below
+# //// (LocalTransport): it is the mail server's end of the wire, answering from Frappe records. The Calendar doctypes,
+# //// suite/calendar/jmap_events.py and the screens run unchanged on top of it. A method it does not know is answered
+# //// `unknownMethod` like a real server would, a capability it does not advertise is refused by jmaplib before
+# //// anything is sent. The plan: Obsidian, Neoffice/Suite-Adoption/15 and 17.
 from __future__ import annotations
 
 import copy
@@ -16,6 +21,7 @@ from datetime import UTC, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 import frappe
+import httpx
 from dateutil import rrule
 from frappe import _
 from frappe.utils import get_system_timezone
@@ -25,10 +31,14 @@ STATE = "local"
 UTC = UTC
 MAX_OCCURRENCES = 2000  # occurrences unrolled for one series in one call: a rule without an end stops here
 DEFAULT_COLOR = "#D68A59"
+CORE_URN = "urn:ietf:params:jmap:core"
+CALENDARS_URN = "urn:ietf:params:jmap:calendars"
 CAPABILITIES = {
-    "urn:ietf:params:jmap:core": {"maxObjectsInGet": 1000, "maxObjectsInSet": 500, "maxCallsInRequest": 16},
-    "urn:ietf:params:jmap:calendars": {},
+    CORE_URN: {"maxObjectsInGet": 1000, "maxObjectsInSet": 500, "maxCallsInRequest": 16},
+    CALENDARS_URN: {"mayCreateCalendar": True},
 }
+# Never resolved: the transport answers it. `.invalid` is reserved (RFC 2606), so a request that escaped fails.
+API_URL = "https://local.invalid/jmap/"
 # The owner may do everything here but answer invitations: RSVP needs a mail account.
 RIGHTS = {
     "mayReadFreeBusy": True,
@@ -135,13 +145,82 @@ def local_account_user(
 
 
 def get_local_connection(account: str, ignore_permissions: bool = False) -> LocalJMAPConnection | None:
-    """The connection for a local account (its owner checked), or None when the account is a mail account."""
+    """The records of a local account (its owner checked), or None when the account is a mail account."""
 
     if not is_local_account(account):
         return None
 
     user = local_account_user(account, raise_exception=True, ignore_permissions=ignore_permissions)
     return LocalJMAPConnection(account, user)
+
+
+def get_local_client(account: str, user: str | None = None, ignore_permissions: bool = False):
+    """A jmaplib client (suite.mail.jmap.SuiteJMAPClient) for a local account, its owner checked, or None when the
+    account is a mail account. `user` is who the call is for when it is not the session user: the alert sender runs
+    in a job and names the account's owner, who must be the account's owner indeed."""
+
+    if not is_local_account(account):
+        return None
+
+    owner = frappe.db.get_value("Local Calendar Account", account, "user")
+    if user is not None:
+        if owner != user:
+            frappe.throw(
+                _("Calendar account {0} does not belong to the user {1}.").format(
+                    frappe.bold(account), frappe.bold(user)
+                ),
+                frappe.PermissionError,
+            )
+    else:
+        owner = local_account_user(account, raise_exception=True, ignore_permissions=ignore_permissions)
+
+    # Lazy: suite.mail.jmap imports the user-account module, which imports this one.
+    from jmap import Id
+    from jmap.core.session import Session
+    from jmap.defaults import default_registry
+
+    from suite.mail.jmap import RETRY_POLICY, SuiteHTTPClient, SuiteJMAPClient
+
+    session = Session.from_wire(session_document(account, owner))
+    registry = default_registry()
+    client = SuiteJMAPClient(
+        session,
+        registry.resolve(session, Id(account), experimental=True),
+        SuiteHTTPClient(transport=LocalTransport(LocalJMAPConnection(account, owner))),
+        registry=registry,
+        retry_policy=RETRY_POLICY,
+        default_account=Id(account),
+        owns_http=True,
+        session_url=API_URL,
+        experimental=True,
+    )
+    client.user = owner
+    client.peers = [client]
+    return client
+
+
+def session_document(account: str, user: str) -> dict:
+    """The JMAP session of a local account, as the mail server would hand it out: one personal, writable account that
+    has the calendars and nothing else (no mail, no principals, no blobs), so jmaplib refuses the rest by itself."""
+
+    return {
+        "capabilities": CAPABILITIES,
+        "accounts": {
+            account: {
+                "name": user,
+                "isPersonal": True,
+                "isReadOnly": False,
+                "accountCapabilities": CAPABILITIES,
+            }
+        },
+        "primaryAccounts": {urn: account for urn in CAPABILITIES},
+        "username": user,
+        "apiUrl": API_URL,
+        "downloadUrl": f"{API_URL}download/{{accountId}}/{{blobId}}/{{name}}?accept={{type}}",
+        "uploadUrl": f"{API_URL}upload/{{accountId}}/",
+        "eventSourceUrl": f"{API_URL}eventsource/?types={{types}}&closeafter={{closeafter}}&ping={{ping}}",
+        "state": STATE,
+    }
 
 
 def suggest_colleagues(text: str, limit: int = 10) -> list[dict]:
@@ -470,39 +549,15 @@ def apply_patch(obj: dict, patch: dict) -> dict:
 
 
 class LocalJMAPConnection:
-    """What the calendar's JMAP services ask of a connection, answered on Frappe records (see the top of the file)."""
+    """The records of one local account, which the JMAP methods below answer from (see the top of the file)."""
 
     def __init__(self, account: str, user: str) -> None:
         self.account = account
         self.user = user
-        self.capabilities = CAPABILITIES
-        self.api_url = "local"
-        self.state = STATE
-        self.accounts = {
-            account: {
-                "name": user,
-                "isPersonal": True,
-                "isReadOnly": False,
-                "accountCapabilities": {capability: {} for capability in CAPABILITIES},
-            }
-        }
-        self.primary_accounts = {capability: account for capability in CAPABILITIES}
 
     @property
     def time_zone(self) -> str:
         return frappe.db.get_value("User", self.user, "time_zone") or get_system_timezone()
-
-    def _session_discovery(self) -> None:
-        """Nothing to discover: the session never changes."""
-
-    def request(self, method=None, url=None, headers=None, json=None, return_json=True, **kwargs) -> dict:
-        responses = []
-        for name, arguments, call_id in (json or {}).get("methodCalls") or []:
-            handler = HANDLERS.get(name)
-            if handler is None:
-                raise NotImplementedError(_("{0} needs a mail account.").format(name))
-            responses.append([name, handler(self, arguments or {}), call_id])
-        return {"methodResponses": responses, "sessionState": STATE}
 
     # calendars
 
@@ -1052,3 +1107,78 @@ HANDLERS = {
     "CalendarEvent/query": event_query,
     "ParticipantIdentity/get": participant_identity_get,
 }
+
+
+# --- the wire ---------------------------------------------------------------------------------------------------
+
+
+def dispatch(connection: LocalJMAPConnection, request: dict) -> dict:
+    """A JMAP request (RFC 8620 §3.3) answered from the account's records.
+
+    The calls are answered in order. A result reference (`#ids` naming an earlier call) is resolved the way a server
+    does it, with the library's own pointer evaluator; a method that is not in HANDLERS is answered `unknownMethod`
+    on its own, and the calls around it still run."""
+
+    from jmap.core.pointer import PointerError, resolve
+
+    responses: list[list] = []
+    answered: dict[str, tuple[str, dict]] = {}
+    for call in request.get("methodCalls") or []:
+        name, arguments, call_id = str(call[0]), dict(call[1] or {}), str(call[2])
+
+        try:
+            resolved = {}
+            for key, value in arguments.items():
+                if not key.startswith("#"):
+                    resolved[key] = value
+                    continue
+                source_name, source = answered.get(str(value.get("resultOf"))) or (None, None)
+                if source is None or source_name != value.get("name"):
+                    raise PointerError(str(value.get("path")), "no such earlier call")
+                resolved[key[1:]] = resolve(source, str(value.get("path")))
+        except PointerError:
+            responses.append(["error", {"type": "invalidResultReference"}, call_id])
+            continue
+
+        handler = HANDLERS.get(name)
+        if handler is None:
+            responses.append(["error", {"type": "unknownMethod"}, call_id])
+            continue
+
+        result = handler(connection, resolved)
+        answered[call_id] = (name, result)
+        responses.append([name, result, call_id])
+
+    return {"methodResponses": responses, "sessionState": STATE}
+
+
+class LocalTransport(httpx.BaseTransport):
+    """What a local account's jmaplib client sends its requests to, in place of a network: the API endpoint answers
+    from Frappe records (dispatch). The session, blobs and the event source are not served: a 404 problem, as the
+    server's own would be for an endpoint it lacks."""
+
+    def __init__(self, connection: LocalJMAPConnection) -> None:
+        self.connection = connection
+
+    def handle_request(self, request: httpx.Request) -> httpx.Response:
+        from jmap.core.ijson import dumps, loads
+
+        if request.method == "POST" and request.url.path.rstrip("/") == "/jmap":
+            body = loads(request.content)
+            if isinstance(body, dict):
+                return httpx.Response(
+                    200,
+                    content=dumps(dispatch(self.connection, body)).encode(),
+                    headers={"Content-Type": "application/json"},
+                )
+            return _problem("urn:ietf:params:jmap:error:notRequest", 400)
+
+        return _problem("about:blank", 404)
+
+
+def _problem(problem_type: str, status: int) -> httpx.Response:
+    return httpx.Response(
+        status,
+        content=jsonlib.dumps({"type": problem_type, "status": status}).encode(),
+        headers={"Content-Type": "application/problem+json"},
+    )

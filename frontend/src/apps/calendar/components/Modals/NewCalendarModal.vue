@@ -8,7 +8,7 @@
      apps/drive/components/Settings/WebDAVSettings.vue still passes the old shape
      and has the same bug; worth reporting. //// -->
 <!-- //// Neoffice: create a calendar from the SPA. Two modes: a plain new Suite
-     calendar (name + colour -> add_calendar), OR subscribe an EXTERNAL calendar
+     calendar (name + colour -> create_calendar), OR subscribe an EXTERNAL calendar
      (Google / iCloud / Outlook) by its secret iCal URL -> neoffice_theme
      calendar_connectors.add_external_source (read-only aggregation). //// -->
 <template>
@@ -170,8 +170,11 @@ watch(show, (open) => {
 	nextTick(() => nameInput.value?.$el?.querySelector('input')?.focus())
 })
 
+//// Neoffice — upstream's own `create_calendar`, which `add_calendar` is behind: it also has the next listing seed
+//// the new calendar's default reminders. Through `add_calendar` alone the seeded mark of the account (a day long)
+//// stays up and the new calendar has no default reminder for a day.
 const createCalendar = createResource({
-	url: 'suite.calendar.doctype.calendar.calendar.add_calendar',
+	url: 'suite.calendar.api.create_calendar',
 	makeParams: () => ({ account, name: name.value.trim(), color: color.value }),
 	onSuccess: () => {
 		raiseToast(__('Calendar “{0}” created.', [name.value.trim()]))

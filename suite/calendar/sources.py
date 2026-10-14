@@ -115,6 +115,9 @@ def virtual_calendars(account: str) -> list[dict]:
             calendars.append(
                 {
                     "name": f"{account}|{PREFIX}{source['id']}",
+                    # The account the row is read in: upstream's screens tell a calendar of another account (a
+                    # shared one) by `account !== the account in use`, and a row without it would be taken for one.
+                    "account": account,
                     "_name": source.get("title") or source["id"],
                     "id": f"{PREFIX}{source['id']}",
                     "color": None,

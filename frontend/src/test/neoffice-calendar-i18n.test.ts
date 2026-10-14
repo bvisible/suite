@@ -64,15 +64,26 @@ describe("frappe-ui's calendar in the reader's language", () => {
     delete (window as unknown as Record<string, unknown>).first_day_of_the_week
   })
 
-  it("says the phone's empty day and the days of a stay in the reader's language (#1392)", () => {
-    const { code } = rewriteCalendarFile(
-      'CalendarMonthStack.vue',
-      fs.readFileSync(path.join(calendarDir, 'CalendarMonthStack.vue'), 'utf8'),
-    )
-    expect(code).toContain("{{ __('No events') }}")
-    expect(code).not.toMatch(/>\s*No events\s*</)
-    expect(code).toContain("__('Day {0} of {1}', [String(day), String(total)])")
-    expect(code).not.toContain('· all day`')
+  it("says the Agenda's words in the reader's language (#1392)", () => {
+    const read = (file: string) =>
+      rewriteCalendarFile(file, fs.readFileSync(path.join(calendarDir, file), 'utf8')).code
+
+    // what a listed event says about itself
+    const row = read('eventRow.ts')
+    expect(row).toContain("__('Ends {0}', [formatTime(ends, format)])")
+    expect(row).toContain("__('From {0}', [formatTime(begins, format)])")
+    expect(row).toContain("__('Day {0}/{1}', [String(day), String(total)])")
+    expect(row).toContain("__('Now')")
+    expect(row).toContain("__('Soon')")
+    expect(row).not.toMatch(/return 'All day'|: 'All day'/)
+
+    // the weeks of the list and the day that is today
+    const agenda = read('CalendarAgenda.vue')
+    expect(agenda).toContain("row.isToday ? __('Today')")
+    for (const week of ['This week', 'Next week', 'Last week']) expect(agenda).toContain(`__('${week}')`)
+
+    // the fourth view of the picker
+    expect(read('Calendar.vue')).toContain("{ label: __('Agenda'), value: 'Agenda',")
   })
 
   it("leaves the Vue plugin's compiled parts of a file alone, and fails a file whose text moved", () => {
@@ -151,6 +162,16 @@ describe("frappe-ui's calendar starts the week on the site's first day", () => {
     expect(format('09:30', '24h')).toBe('09:30')
     expect(format('14:30:00', '12h')).toBe('2:30 pm')
     expect(format('14:00:00', '12h')).toBe('2 pm')
+  })
+
+  it('abbreviates the months as the reader writes them, not by their first three letters', () => {
+    document.documentElement.lang = 'fr'
+    const short = strip.shortMonth as (d: Date) => string
+    // « jui » would have been both June and July
+    expect(short(new Date(2026, 5, 1))).toBe('juin')
+    expect(short(new Date(2026, 6, 1))).toBe('juil.')
+    document.documentElement.lang = ''
+    expect(short(new Date(2026, 6, 1))).toBe('Jul')
   })
 
   it("an event's column in the week counts from that day", () => {

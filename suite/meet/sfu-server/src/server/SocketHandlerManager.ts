@@ -1,8 +1,13 @@
 import type { Server } from 'socket.io';
 import type { SFUConfig } from '../config';
 import type { MediasoupManager } from '../mediasoup/MediasoupManager';
+import type { SttManager } from '../stt/SttManager';
 import type { Telemetry } from '../telemetry/Telemetry';
-import type { ClientToServerEvents, ServerToClientEvents } from '../types';
+import type {
+	ClientToServerEvents,
+	RecordingProofRequest,
+	ServerToClientEvents,
+} from '../types';
 import { loggers } from '../utils/logger';
 import { RateLimiter } from '../utils/rateLimiter';
 import type { AuthManager } from './AuthManager';
@@ -25,12 +30,15 @@ import { registerReactionHandlers } from './handlers/ReactionHandlers';
 import { registerRoomJoinHandlers } from './handlers/RoomJoinHandlers';
 import { registerRoomQueryHandlers } from './handlers/RoomQueryHandlers';
 import { registerScreenShareHandlers } from './handlers/ScreenShareHandlers';
+import { registerSttHandlers } from './handlers/SttHandlers';
 import { registerWebRtcTransportHandlers } from './handlers/WebRtcTransportHandlers';
+import { ParticipantConnectionLifecycle } from './ParticipantConnectionLifecycle';
 import type { RecordingGrantManager } from './RecordingGrantManager';
 import { RoomLifecycleCoordinator } from './RoomLifecycleCoordinator';
 import { RoomRegistry } from './RoomRegistry';
 
 const RECORDING_PROOF_TIMEOUT_MS = 10_000;
+const RECORDING_PROOF_KEYS = ['protocol_version', 'signature'] as const;
 
 export class SocketHandlerManager {
 	private io: Server<ClientToServerEvents, ServerToClientEvents>;
@@ -40,6 +48,7 @@ export class SocketHandlerManager {
 	private rateLimiter: RateLimiter;
 	private e2eeEpochRelay: E2EEEpochRelay;
 	private roomLifecycle: RoomLifecycleCoordinator;
+	private participantConnections: ParticipantConnectionLifecycle;
 	private telemetry: Telemetry;
 	private registerHandlers: ((socket: import('socket.io').Socket) => void)[];
 	private idleExpirySweep: NodeJS.Timeout | null = null;
@@ -53,6 +62,7 @@ export class SocketHandlerManager {
 		private readonly runtime: SFUConfig['runtime'],
 		coordinatorPersistence?: E2eeCoordinatorPersistence,
 		private readonly recordingGrantManager?: RecordingGrantManager,
+		sttManager?: SttManager,
 	) {
 		this.io = io;
 		this.mediasoup = mediasoup;
@@ -70,11 +80,21 @@ export class SocketHandlerManager {
 			this.runtime.bypassRateLimits,
 		);
 		this.e2eeEpochRelay.setRoster(roster);
+		sttManager?.setEmitToSubscribers((roomId, socketIds, event, data) => {
+			this.registry.emitToFullAccessSockets(roomId, socketIds, event, data);
+		});
 		this.roomLifecycle = new RoomLifecycleCoordinator(
 			this.registry,
 			this.e2eeEpochRelay,
 			roster,
 			this.mediasoup,
+		);
+		this.participantConnections = new ParticipantConnectionLifecycle(
+			this.registry,
+			this.roomLifecycle,
+			this.mediasoup,
+			this.e2eeEpochRelay,
+			roster,
 		);
 
 		const deps: HandlerDeps = {
@@ -84,8 +104,10 @@ export class SocketHandlerManager {
 			mediasoup,
 			authManager,
 			rateLimiter: this.rateLimiter,
+			sttManager,
 			e2eeEpochRelay: this.e2eeEpochRelay,
 			e2eeRoster: roster,
+			participantConnections: this.participantConnections,
 			telemetry,
 			runtime: this.runtime,
 		};
@@ -102,6 +124,7 @@ export class SocketHandlerManager {
 			registerHostControlHandlers(deps),
 			registerScreenShareHandlers(deps),
 			registerPollHandlers(deps),
+			registerSttHandlers(deps),
 			registerChatHandlers(deps),
 			registerReactionHandlers(deps),
 			registerRaiseHandHandlers(deps),
@@ -113,6 +136,7 @@ export class SocketHandlerManager {
 			this.registry.emitProducerClosed(event.roomId, {
 				participantId: event.participantId,
 				producerId: event.producerId,
+				kind: event.kind,
 				isScreen: event.isScreen,
 				reason: event.reason,
 				source: event.source,
@@ -222,7 +246,7 @@ export class SocketHandlerManager {
 				socket.once('recording:proof', async (data, callback) => {
 					try {
 						const claims = socket.recordingClaims;
-						if (!claims || !challenge || typeof data?.signature !== 'string')
+						if (!claims || !challenge || !isRecordingProofRequest(data))
 							throw new Error('Invalid recording proof');
 						const expiresAt = await manager.verifyProofAndConsume(
 							claims,
@@ -239,10 +263,15 @@ export class SocketHandlerManager {
 						clearProofTimeout();
 						socket.tokenExpiresAt = expiresAt * 1000;
 						challenge = undefined;
-						callback({ success: true });
+						callback({ protocol_version: 1, success: true });
 					} catch (error) {
 						clearProofTimeout();
-						callback({ success: false, error: (error as Error).message });
+						callback({
+							protocol_version: 1,
+							success: false,
+							reason_code: 'invalid_proof',
+							diagnostic: (error as Error).message.slice(0, 256),
+						});
 						socket.disconnect(true);
 					}
 				});
@@ -286,4 +315,20 @@ export class SocketHandlerManager {
 			this.idleExpirySweep = null;
 		}
 	}
+}
+
+export function isRecordingProofRequest(
+	value: unknown,
+): value is RecordingProofRequest {
+	if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+	const keys = Object.keys(value);
+	return (
+		keys.length === RECORDING_PROOF_KEYS.length &&
+		RECORDING_PROOF_KEYS.every((key) => keys.includes(key)) &&
+		'protocol_version' in value &&
+		value.protocol_version === 1 &&
+		'signature' in value &&
+		typeof value.signature === 'string' &&
+		value.signature.length > 0
+	);
 }

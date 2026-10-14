@@ -144,27 +144,19 @@ no role but System Manager has a permission on them. Each JSON's `description` c
 the marker. A merge leaves them alone: nothing upstream has these paths.
 
 #### `suite/mail/doctype/user_account/user_account.py`, `suite/mail/api/account.py`
-Ours (maintenance#1579): which of a user's accounts is their OWN mailbox. Upstream reads `JMAP Account.is_personal`, a
-flag of the shared document written once, from the first session that saw the account: a mailbox its owner shares
-with a colleague stays « personal » for the colleague, who then has two. The calendar and the mail open the owner's,
-and `get_user_personal_jmap_account` finds none (no dates of the ERP, no iCal address, no mail API).
-`get_personal_accounts_of_user` reads it from the user's own JMAP session (the cache `jmap:sessions`, which the JMAP
-layer fills; `warm_user_jmap_session` connects once so that it is there); the document's flag stays the fallback.
-At a merge: keep both helpers and the lines that call them in `get_user_info` and `get_user_personal_jmap_account`.
-Drop them when upstream keeps the flag per user.
+Ours (maintenance#1387): the account of a desk user without a mailbox is a *Local Calendar Account*, not a JMAP
+account. `get_user_for_jmap_account` and `is_jmap_account_belongs_to_user` answer for it (the owner's rules are the
+mail account's), and `get_user_info` hands it over on its own key, `local_calendar_account`, not in `accounts`: the
+Mail app would take it for a mailbox. What maintenance#1579 added here (the personal account read from the user's own
+session) is gone: upstream's `pick_personal_account` and `_account_owner` solve the same thing.
+At a merge: keep the two branches in `user_account.py` and the line in `account.py`.
 
 #### `suite/fixtures/role.json`
-Ours, one field on one row (`e20b2ac06 fix(security): frontend signups must stay
-Website Users`):
-
-| Row | Field | Upstream | Ours | Why |
-|---|---|---|---|---|
-| `Suite User` | `desk_access` | `1` | **`0`** | A Suite portal account must not be able to reach `/app`. With `desk_access: 1` a self-service signup became a desk user: it lands on the desk after login (a dead end for someone with no desk role) and it counts against the instance's user quota. |
-| `Suite User` | `modified` | `2026-07-21` | `2026-08-31` | fixture bump so the change re-imports |
-
-**This one WILL come back at every merge** — it is a fixture upstream owns and
-keeps at `1`. Re-apply `desk_access: 0` after each merge, and re-test the
-Website-User pass (`CLAUDE.md` rule 1b).
+No longer diverges. Upstream's `81975f23f` (07.10.2026, « Suite User and Suite Admin no longer open Desk ») puts both
+roles at `desk_access: 0` and demotes whoever held the desk only through them (`remove_desk_access_from_suite_roles`).
+What stays ours is the backstop `suite/suite_core/patches/keep_portal_accounts_off_the_desk.py`, which runs *ahead* of
+upstream's patch: a portal account must never hold « Suite Admin » (a Drive super-reader), and the staff whose only
+desk role was a Suite role are still System Users at that point, so they are demoted afterwards with their role.
 
 #### `frontend/package.json`
 Ours (`2c44b2064 fix(build): rendre le build reproductible hors de mon poste`),
@@ -191,6 +183,48 @@ try to rebuild them.
 | `suite/templates/files/*` | The three blank OOXML documents described above (`f20a6f284`). The heading names only the first one with its directory; this table lets the check match all three (neoffice-maintenance#414). |
 
 ---
+
+#### `suite/calendar/local.py`, `suite/mail/jmap.py` (`get_account_client`)
+Ours (maintenance#1387). Upstream speaks JMAP through jmaplib on httpx. A Local Calendar Account gets a real
+jmaplib client (`get_local_client`) whose transport (`LocalTransport`) answers the request from Frappe records
+(`dispatch`, the handlers of `HANDLERS`): the server's end of the wire, not a copy of the service layer. The only
+line in upstream's code is the hook at the top of `get_account_client`. At a merge: keep the hook; if jmaplib's
+`SuiteJMAPClient` constructor or `Session.from_wire` change, `get_local_client` is the one place to follow.
+
+#### `suite/mail/neoffice_stalwart.py`, `suite/mail/events.py`
+Ours (added file). Upstream's mail directory is Suite Cloud only (`suite/mail/directory.py`): a site holds no
+administrator credentials of its mail server and `suite/mail/stalwart/` is gone. Neoffice runs its own Stalwart and
+gives every desk user a mailbox when the user is created: this module is the three calls that needs (domains,
+account, app password) of Stalwart's management API, read from the site config's `mail` key or the remains of Mail
+Settings. `events.py` keeps `provision_mail_account` and friends on it.
+
+#### `suite/calendar/neoffice_compat.py`, `suite/mail/jmap.py` (`get_calendar_event_service`), `suite/mail/utils/__init__.py` (`is_stalwart_configured`)
+Ours. Upstream's jmaplib layer has no calendar event service and its Stalwart client is gone, and neoffice_theme's
+calendar bridge (`calendar_bridge.py`: Event <-> Suite) and ICS subscriptions (`calendar_connectors.py`) still ask for
+both, by name. `CalendarEventServiceCompat` keeps the old shape (`get`, `get_master_ids`, `max_objects_in_set`, raw
+`_create` / `_get` / `changes`) on top of the new client, so the theme needs no change and deploys in any order.
+Check after each merge: `suite/claude_consumers_check`-style scan of the other apps' `from suite…` imports (the 14.10
+one found exactly these two names). Retire when the theme calls `suite.calendar.jmap_events` itself.
+
+#### `suite/utils/__init__.py` (`parse_filters`), `suite/suite_core/neoffice.py` + `suite/hooks.py` (`before_migrate`)
+Ours, small. `parse_filters` read a dict of filters (what Frappe v15 hands a virtual doctype's `get_list`) as a list of
+filters and answered HTTP 500 on `Calendar`, `Calendar Event` and `Mail Message`; `drop_orphan_suite_role_assignments`
+runs before the fixtures sync because one orphan `Has Role` row makes Frappe skip `role.json` silently, at every migrate.
+
+#### `frontend/vite.config.ts` (the `dayjs` alias)
+Ours. The frappe-ui submodule is built from its own folder, whose `node_modules` carries a second dayjs: its date
+pickers formatted with a copy whose locale `boot/dateLocale.ts` never sets (« Oct 14, 2026 » in a French account).
+One regex alias lands every `dayjs` and `dayjs/…` import on the app's package. With `format="ll"` on the date inputs.
+
+#### `frontend/neoffice-calendar-i18n.ts`
+Ours. frappe-ui's experimental calendar writes English by hand; the plugin rewrites its files as Vite loads them
+(names from Intl, words through `__()`, week start from the site). Each rewrite must find its text: an update of
+frappe-ui that moves one fails the build, by design. Rewritten on 14.10.2026 for the Agenda release (`4fede41ae`):
+`CalendarAgenda.vue`, `agendaDays.ts`, `eventRow.ts`. Its test reads the installed frappe-ui.
+
+#### `suite/mail/directory.py`
+One line: PEP 758's `except A, B:` (Python 3.14) written with parentheses. Upstream's formatter targets py314 and
+strips them again at every file it reformats: put them back at each merge (`python -m compileall` on 3.12 finds it).
 
 ### Build outputs committed on purpose
 
@@ -262,46 +296,19 @@ substantive.
 
 ---
 
-### Merge forecast
+### The merge of 14.10.2026 (697 upstream commits, base `0dbe56563`)
 
-Upstream moved **404 files** since `BASE`. **86** of them are files we also
-touched:
+88 files conflicted only through the Python 3.12 graft (taken from upstream, header re-applied by
+`py312-futurize`); 46 carried real work of ours on both sides, resolved by taking upstream's file and re-applying
+our intent. Dropped as obsolete: everything maintenance#1579 had added to the calendar (upstream has shared calendars
+and the account picker of the event form), the old `suite/mail/jmap/` service layer and `suite/mail/stalwart/`.
+Checks that caught the rest: `compile()` of every module on 3.12 (a PEP 758 clause), the import scan of removed
+names, `fork_markers.py check` from the upstream side (0 unmarked), the vitest suite, the build with the
+plugin above.
 
-* **69** diverge *only* by the `from __future__ import annotations` graft —
-  trivial (take upstream's file, re-run `py312-futurize.py`).
-* **17** carry real divergence on both sides and need a human:
-
-  | File | ours (+/−) |
-  |---|---|
-  | `suite/mail/events.py` | +164 / −0 |
-  | `suite/hooks.py` | +63 / −2 |
-  | `frontend/src/apps/calendar/router.ts` | +34 / −0 |
-  | `frontend/src/apps/calendar/pages/CalendarView.vue` | +30 / −8 |
-  | `frontend/src/apps/drive/utils/files.js` | +28 / −1 |
-  | `suite/calendar/api/__init__.py` | +27 / −5 |
-  | `frontend/src/apps/drive/ui/drive/js/utils.js` | +15 / −1 |
-  | `suite/calendar/doctype/calendar_event/calendar_event.py` | +15 / −2 |
-  | `frontend/src/apps/drive/pages/File.vue` | +12 / −1 |
-  | `suite/patches.txt` | +11 / −0 |
-  | `suite/drive/utils/__init__.py` | +10 / −0 |
-  | `suite/meet/api/meeting.py` | +8 / −1 |
-  | `pyproject.toml` | +7 / −1 |
-  | `frontend/src/apps/meet/pages/Home.vue` | +7 / −3 |
-  | `frontend/src/apps/calendar/routes.ts` | +6 / −0 |
-  | `suite/mail/jmap/__init__.py` | +6 / −1 |
-  | `frontend/package.json` | +2 / −1 |
-
-**DocType JSON.** We modified **no** upstream DocType schema — the only DocType
-JSON in our diff is `wopi_settings.json`, which is entirely ours. There is
-therefore nothing here to convert into Custom Fields. The one schema-shaped
-divergence that *will* fight the merge is the `role.json` fixture above, and a
-fixture cannot become a Custom Field: it has to be re-applied by hand (or moved
-into an `after_migrate` hook, which would be the durable fix).
-
-**Ordering.** `suite/patches.txt` gains 11 lines of ours. Every entry listed
-there must ship with its module — a listed patch whose `.py` is missing kills
-`bench migrate` on the whole fleet (see `neoffice-devops/CLAUDE.md` §6).
-Re-check that after the merge.
+**Ordering.** Every entry of `suite/patches.txt` must ship with its module — a listed patch whose `.py` is missing
+kills `bench migrate` on the whole fleet (see `neoffice-devops/CLAUDE.md` §6). `keep_portal_accounts_off_the_desk`
+must stay *before* `remove_desk_access_from_suite_roles`.
 
 ---
 

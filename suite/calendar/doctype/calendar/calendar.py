@@ -1,10 +1,10 @@
 # Copyright (c) 2025, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+# //// Neoffice — json, for the sharing endpoints added at the end of this file.
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
-
 import json
 from typing import Literal
 from uuid import uuid7
@@ -13,14 +13,20 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, today
+from jmap import MethodError
 
-# //// Neoffice — the calendars other people shared with the person (maintenance#1579).
-from suite.calendar.shared import resolves_shared
 from suite.mail.doctype.user_account.user_account import get_user_for_jmap_account
-from suite.mail.jmap import get_calendar_service
+from suite.mail.jmap import (
+    CALENDAR_PROPERTIES,
+    chunked_set,
+    format_method_error,
+    format_set_error,
+    get_account_client,
+)
 from suite.mail.utils import log_mail_error
 from suite.utils import parse_filters
 from suite.utils.rate_limiter import dynamic_rate_limit
+from suite.utils.validation import JSONList
 
 
 class Calendar(Document):
@@ -152,11 +158,8 @@ def validate_calendar_name_format(name: str) -> None:
 
 
 @frappe.whitelist()
-def bulk_delete(names: str | list[str]) -> None:
+def bulk_delete(names: JSONList[str]) -> None:
     """Deletes multiple calendars given their names."""
-
-    if isinstance(names, str):
-        names = json.loads(names)
 
     accounts_map = {}
     for name in names:
@@ -186,38 +189,40 @@ def add_calendar(
     """Adds a calendar for the given account with the specified parameters."""
 
     creation_id = str(uuid7())
-    calendar = {
-        "creation_id": creation_id,
-        "name": name,
-        "color": color,
-        "description": description,
-        "sort_order": sort_order,
-        "include_in_availability": include_in_availability.lower(),
-        "time_zone": time_zone,
-        "is_subscribed": subscribed,
-        "is_visible": visible,
-        "is_default": default,
-    }
+    payload = _calendar_payload(
+        name, color, description, sort_order, include_in_availability, time_zone, subscribed, visible
+    )
+    kwargs = {"onSuccessSetIsDefault": f"#{creation_id}"} if default else {}
 
-    service = get_calendar_service(account)
-    response = service.create([calendar])
-
+    client = get_account_client(account)
     title = _("Calendar Creation Error")
-    if response.get("created"):
-        return response["created"][creation_id]["id"]
-    elif response.get("notCreated"):
-        frappe.throw(_(response["notCreated"][creation_id]["description"]), title=title)
-    else:
-        frappe.throw(_(response["description"]), title=title)
+    try:
+        with client.batch() as b:
+            h = b.calendars.calendar.set(create={creation_id: payload}, **kwargs)
+        response = h.result
+    except MethodError as e:
+        frappe.throw(_(format_method_error(e)), title=title)
+
+    if created := response.created.get(creation_id):
+        return created.id
+
+    frappe.throw(_(format_set_error(response.not_created.get(creation_id))), title=title)
 
 
 @frappe.whitelist()
 def get_calendar(account: str, id: str) -> dict:
     """Returns calendar details for the given account and id."""
 
-    service = get_calendar_service(account)
-    if calendars := service.get([id]):
-        return format_calendar(account, calendars[0])
+    client = get_account_client(account)
+    try:
+        with client.batch() as b:
+            h = b.calendars.calendar.get(ids=[id], properties=CALENDAR_PROPERTIES)
+        calendars = h.result.items
+    except MethodError as e:
+        frappe.throw(_(format_method_error(e)), title=_("Calendar Fetch Error"))
+
+    if calendars:
+        return format_calendar(account, calendars[0].to_wire())
 
     frappe.throw(
         _("Calendar with ID {0} not found for account {1}").format(frappe.bold(id), frappe.bold(account)),
@@ -242,28 +247,22 @@ def update_calendar(
 ) -> None:
     """Updates an existing calendar with the given parameters."""
 
-    calendar = {
-        "id": id,
-        "name": name,
-        "color": color,
-        "description": description,
-        "sort_order": sort_order,
-        "include_in_availability": include_in_availability.lower(),
-        "time_zone": time_zone,
-        "is_subscribed": subscribed,
-        "is_visible": visible,
-        "is_default": default,
-    }
+    payload = _calendar_payload(
+        name, color, description, sort_order, include_in_availability, time_zone, subscribed, visible
+    )
+    kwargs = {"onSuccessSetIsDefault": id} if default else {}
 
-    service = get_calendar_service(account)
-    response = service.update([calendar])
-
+    client = get_account_client(account)
     title = _("Calendar Update Error")
-    if not response.get("updated"):
-        if response.get("notUpdated"):
-            frappe.throw(_(response["notUpdated"][id]["description"]), title=title)
-        else:
-            frappe.throw(_(response["description"]), title=title)
+    try:
+        with client.batch() as b:
+            h = b.calendars.calendar.set(update={id: payload}, **kwargs)
+        response = h.result
+    except MethodError as e:
+        frappe.throw(_(format_method_error(e)), title=title)
+
+    if id not in response.updated:
+        frappe.throw(_(format_set_error(response.not_updated.get(id))), title=title)
 
 
 @frappe.whitelist()
@@ -271,17 +270,22 @@ def update_calendar(
 def delete_calendars(account: str, ids: list[str], remove_events: bool = True) -> None:
     """Deletes calendars for the specified account and ID(s)."""
 
-    service = get_calendar_service(account)
-    response = service.delete(ids, remove_events=remove_events)
-
-    if response.get("notDestroyed"):
-        error_messages = []
-        for id, error in response["notDestroyed"].items():
-            error_messages.append(f"{id}: {error['description']}")
-        frappe.throw(
-            _("Calendar Deletion Error(s):<br>{0}").format("<br>".join(error_messages)),
-            title=_("Calendar Deletion Error"),
+    client = get_account_client(account)
+    title = _("Calendar Deletion Error")
+    try:
+        result = chunked_set(
+            client,
+            lambda b, chunk: b.calendars.calendar.set(destroy=chunk, onDestroyRemoveEvents=remove_events),
+            ids,
         )
+    except MethodError as e:
+        frappe.throw(_(format_method_error(e)), title=title)
+
+    if result.not_destroyed:
+        error_messages = []
+        for id, error in result.not_destroyed.items():
+            error_messages.append(f"{id}: {format_set_error(error)}")
+        frappe.throw(_("Calendar Deletion Error(s):<br>{0}").format("<br>".join(error_messages)), title=title)
 
 
 # What a calendar reminds about when an event carries no alerts of its own
@@ -304,25 +308,35 @@ DEFAULT_ALERTS_WITHOUT_TIME = {
 }
 
 
+# How long a seeding stays marked as done, and how long one that failed is left alone.
+DEFAULT_ALERTS_SEEDED_FOR = 24 * 60 * 60
+DEFAULT_ALERTS_BACK_OFF = 60 * 60
+
+
 def ensure_default_alerts(account: str) -> None:
     """Seeds the account's calendars with default alerts, where they have none.
 
     Idempotent, and deliberately only fills emptiness: a calendar whose defaults were set —
     by this, by another client, by a future settings page — is left alone. Until there is a
     place to clear defaults on purpose, empty always means unseeded. A day-long cache mark
-    keeps the extra round-trip off every sidebar load."""
+    keeps the extra round-trip off every sidebar load. A seeding that failed is marked too,
+    for an hour: a calendar that refuses every time is not asked, and logged, on every load."""
 
-    cache_key = f"calendar|default_alerts_seeded|{account}"
-    if frappe.cache.get_value(cache_key):
+    cache_key = _default_alerts_cache_key(account)
+    back_off_key = _default_alerts_back_off_key(account)
+    if frappe.cache.get_value(cache_key) or frappe.cache.get_value(back_off_key):
         return
 
+    # Not part of the best-effort below: a caller the account does not belong to is refused
+    # here, as the listing refuses them, rather than leaving a mark on someone else's account.
+    client = get_account_client(account)
+
     try:
-        service = get_calendar_service(account)
-        response = service._get(
-            properties=["id", "myRights", "defaultAlertsWithTime", "defaultAlertsWithoutTime"]
-        )
-        method_responses = response.get("methodResponses") or []
-        calendars = method_responses[0][1].get("list", []) if method_responses else []
+        with client.batch() as b:
+            h = b.calendars.calendar.get(
+                properties=["id", "myRights", "defaultAlertsWithTime", "defaultAlertsWithoutTime"]
+            )
+        calendars = [c.to_wire() for c in h.result.items]
 
         update = {}
         for calendar in calendars:
@@ -337,22 +351,56 @@ def ensure_default_alerts(account: str) -> None:
                 update[calendar["id"]] = patch
 
         if update:
-            service._update(update)
+            with client.batch() as b:
+                h = b.calendars.calendar.set(update=update)
+            # a refused write is a failure to log, not a seeding to mark
+            if not_updated := h.result.not_updated:
+                log_mail_error(
+                    "Calendar Default Alerts Seeding",
+                    "\n".join(f"{id}: {format_set_error(error)}" for id, error in not_updated.items()),
+                )
+                frappe.cache.set_value(back_off_key, True, expires_in_sec=DEFAULT_ALERTS_BACK_OFF)
+                return
     except Exception:
-        # Best-effort: a seeding failure must never break calendar listing. The mark
-        # stays unset, so the next load retries.
+        # Best-effort: a seeding failure must never break calendar listing. The seeded mark
+        # stays unset, so it is retried once the back-off is over.
         log_mail_error("Calendar Default Alerts Seeding")
+        frappe.cache.set_value(back_off_key, True, expires_in_sec=DEFAULT_ALERTS_BACK_OFF)
         return
 
-    frappe.cache.set_value(cache_key, True, expires_in_sec=24 * 60 * 60)
+    frappe.cache.set_value(cache_key, True, expires_in_sec=DEFAULT_ALERTS_SEEDED_FOR)
+
+
+def _default_alerts_cache_key(account: str) -> str:
+    return f"calendar|default_alerts_seeded|{account}"
+
+
+def _default_alerts_back_off_key(account: str) -> str:
+    return f"calendar|default_alerts_back_off|{account}"
+
+
+def forget_default_alerts_seeded(account: str) -> None:
+    """Has the next listing seed again, for a calendar created since the last one — whether
+    that one seeded or failed: the new calendar should not wait out another's refusal."""
+
+    frappe.cache.delete_value(_default_alerts_cache_key(account))
+    frappe.cache.delete_value(_default_alerts_back_off_key(account))
 
 
 @frappe.whitelist()
 def fetch_calendars(account: str, page: int = 1, limit: int = 10) -> list:
     """Returns a list of calendars for the given account."""
 
-    service = get_calendar_service(account)
-    calendars = service.get()
+    client = get_account_client(account)
+    with client.batch() as b:
+        h = b.calendars.calendar.get(properties=CALENDAR_PROPERTIES)
+
+    if h.error:
+        # A listing the server refuses is an empty one, not a failed page. It says nothing of how
+        # many calendars there are, so the cached total is left as the last listing set it.
+        return []
+
+    calendars = [c.to_wire() for c in h.result.items]
     formatted_calendars = [format_calendar(account, calendar) for calendar in calendars]
     frappe.cache.set_value(_get_total_cache_key(account), len(calendars), expires_in_sec=600)
 
@@ -362,18 +410,35 @@ def fetch_calendars(account: str, page: int = 1, limit: int = 10) -> list:
     return formatted_calendars[start:end]
 
 
+def _calendar_payload(
+    name: str,
+    color: str | None,
+    description: str | None,
+    sort_order: int,
+    include_in_availability: str,
+    time_zone: str | None,
+    subscribed: bool,
+    visible: bool,
+) -> dict:
+    """Calendar/set object for a create or update."""
+
+    return {
+        "name": name,
+        "color": color,
+        "description": description,
+        "sortOrder": int(sort_order or 0),
+        "timeZone": time_zone,
+        "isSubscribed": bool(subscribed or False),
+        "isVisible": bool(visible),
+        "includeInAvailability": include_in_availability.lower(),
+    }
+
+
 def format_calendar(account: str, calendar: dict) -> dict:
     """Formats calendar data for display."""
 
     share_with = []
-    # //// Neoffice — `or {}`, not a `.get` default. A calendar that is not shared
-    # //// comes back with shareWith explicitly NULL, not absent, so the default
-    # //// never applies and `.items()` raises on None — taking fetch_calendars down
-    # //// for that account. It only surfaced once we started requesting shareWith
-    # //// by name (see GET_PROPERTIES in the JMAP calendar service); upstream never
-    # //// asks for it, so the key is simply missing there and the bug stays hidden.
-    # //// Same shape as the `myRights` line below, which upstream already writes
-    # //// this way.
+    # Null, not empty, on a calendar shared with the account: only its owner sees who it is shared with.
     for pid, r in (calendar.get("shareWith") or {}).items():
         share_with.append(
             {
@@ -427,26 +492,29 @@ def has_permission(doc: Document, ptype: str, user: str | None = None) -> bool:
 
 # //// Neoffice — added endpoints (no upstream equivalent), carried over from
 # //// suite/mail/doctype/calendar/calendar.py when b8df8ca9e moved the calendar
-# //// doctypes from the Mail module to the Calendar module.
+# //// doctypes from the Mail module to the Calendar module, and ported to the
+# //// jmaplib client when upstream replaced the JMAP service layer (14.10.2026).
 # ////
-# //// Upstream still has no calendar sharing at all, and its only CalDAV surface
-# //// is one account-level URL (suite/mail/api/account.py: /dav/cal/{username}),
-# //// with no credentials and no per-calendar path. Our SPA exposes sharing and
-# //// a ready-to-paste CalDAV subscription per calendar, so these four stay.
+# //// Upstream has no calendar sharing endpoint, and its only CalDAV surface is one
+# //// account-level URL (suite/mail/api/account.py: /dav/cal/{username}), with no
+# //// credentials and no per-calendar path. Our SPA exposes sharing and a
+# //// ready-to-paste CalDAV subscription per calendar, so these four stay.
 # //// Drop each one the day upstream ships an equivalent.
 
 
-# //// Neoffice: sharing write-path + colleague lookup. The doctype/JMAP already
-# READ shareWith (format_calendar), but there was no way to WRITE it and no way
-# to list who you could share with — so the SPA could never expose sharing. ////
 @frappe.whitelist()
 def share_calendar(account: str, id: str, share_with: list | str) -> None:
-    """Sets who a calendar is shared with (and their rights).
+    """//// Neoffice: sets who a calendar is shared with (and their rights).
 
     share_with: list of {principal_id, may_read_free_busy, may_read_items,
     may_write_all, may_write_own, may_update_private, may_rsvp}. Passing an
     empty list unshares the calendar.
     """
+
+    from suite.calendar.local import is_local_account
+
+    if is_local_account(account):
+        frappe.throw(_("Sharing needs a mail account."), title=_("Calendar Sharing Error"))
 
     if isinstance(share_with, str):
         share_with = json.loads(share_with)
@@ -465,14 +533,7 @@ def share_calendar(account: str, id: str, share_with: list | str) -> None:
             "mayRSVP": bool(r.get("may_rsvp")),
         }
 
-    service = get_calendar_service(account)
-    response = service.set_sharing(id, jmap_share)
-
-    title = _("Calendar Sharing Error")
-    if not response.get("updated"):
-        if response.get("notUpdated"):
-            frappe.throw(_(response["notUpdated"][id]["description"]), title=title)
-        frappe.throw(_("Could not update calendar sharing."), title=title)
+    _update_calendar(account, id, {"shareWith": jmap_share}, _("Calendar Sharing Error"))
 
 
 @frappe.whitelist()
@@ -484,11 +545,8 @@ def get_caldav_url(account: str, id: str) -> dict:
 
     from urllib.parse import quote
 
-    from suite.mail.doctype.user_account.user_account import get_user_for_jmap_account
-
     user = get_user_for_jmap_account(account)
     settings_name = frappe.db.get_value("User Settings", {"user": user}, "name") if user else None
-    # //// Neoffice — see the block marker above: CalDAV username lookup (470740fd7 "style(fork): ruff format")
     username = (
         frappe.db.get_value("User Settings", settings_name, "username") if settings_name else ""
     ) or ""
@@ -516,7 +574,7 @@ def get_caldav_url(account: str, id: str) -> dict:
         # One-shot link with the token embedded (user + app_password) so the
         # client connects from a single URL — no separate login to type.
         if app_password:
-            scheme, _, hostpart = host.partition("://")
+            scheme, _separator, hostpart = host.partition("://")
             result["link"] = (
                 f"{scheme}://{user_path}:{quote(app_password, safe='')}@{hostpart}/dav/cal/{user_path}/"
             )
@@ -525,13 +583,11 @@ def get_caldav_url(account: str, id: str) -> dict:
 
 
 @frappe.whitelist()
-# //// Neoffice — an id that names another account's object makes the call on that account (maintenance#1579, suite/calendar/shared.py).
-@resolves_shared("id")
 def set_calendar_visibility(account: str, id: str, visible: int = 1) -> None:
     """//// Neoffice: persist a calendar's show/hide state (isVisible) so the
-    sidebar toggle survives reloads. Upstream only toggled it in local state.
-    `visible` is int (0/1) — a `int | bool` Union annotation made Frappe fail to
-    coerce the string the HTTP layer sends → ValidationError. ////"""
+    sidebar toggle survives reloads. `visible` is int (0/1) — a `int | bool`
+    Union annotation made Frappe fail to coerce the string the HTTP layer
+    sends → ValidationError. ////"""
 
     # //// Neoffice — a date source of the ERP is not a calendar of the mail server: its switch is kept by the app
     # //// that provides it (maintenance#1428, suite/calendar/sources.py).
@@ -540,31 +596,55 @@ def set_calendar_visibility(account: str, id: str, visible: int = 1) -> None:
     if is_virtual(id):
         return set_visibility(account, id, visible)
 
-    service = get_calendar_service(account)
-    response = service.set_visibility(id, cint(visible))
-
-    if not response.get("updated") and response.get("notUpdated"):
-        frappe.throw(_(response["notUpdated"][id]["description"]), title=_("Calendar Update Error"))
+    _update_calendar(account, id, {"isVisible": bool(cint(visible))}, _("Calendar Update Error"))
 
 
 @frappe.whitelist()
 def get_shareable_principals(account: str) -> list[dict]:
-    """Lists the principals (colleagues) a calendar can be shared with."""
+    """//// Neoffice: lists the principals (colleagues) a calendar can be shared with."""
 
-    from suite.mail.jmap import get_principal_service
+    from suite.calendar.local import is_local_account
 
-    try:
-        service = get_principal_service(account)
-    except NotImplementedError:
+    if is_local_account(account):
         return []
 
-    ids = service.query(limit=200).get("ids", [])
-    own = getattr(service, "primary_account_id", None)
+    client = get_account_client(account)
+    if "principals" not in client.capabilities.attrs:
+        return []
+
+    try:
+        with client.batch() as b:
+            h = b.principals.principal.query(limit=200)
+        ids = [str(i) for i in h.result.ids]
+        if not ids:
+            return []
+        with client.batch() as b:
+            h = b.principals.principal.get(ids=ids)
+        principals = h.result.items
+    except MethodError:
+        return []
 
     people = []
-    for p in service.get(ids):
-        if own and p["id"] == own:
+    for principal in principals:
+        wire = principal.to_wire()
+        # Stalwart's principal id is the id of its account: the person's own is not offered.
+        if str(wire.get("id")) == str(account):
             continue
-        email = p.get("email") or p.get("name")
-        people.append({"id": p["id"], "name": p.get("name") or email, "email": email})
+        email = wire.get("email") or wire.get("name")
+        people.append({"id": wire["id"], "name": wire.get("name") or email, "email": email})
     return people
+
+
+def _update_calendar(account: str, id: str, patch: dict, title: str) -> None:
+    """One `Calendar/set` update, raised as a message when the server refuses it."""
+
+    client = get_account_client(account)
+    try:
+        with client.batch() as b:
+            h = b.calendars.calendar.set(update={id: patch})
+        response = h.result
+    except MethodError as e:
+        frappe.throw(_(format_method_error(e)), title=title)
+
+    if id not in response.updated:
+        frappe.throw(_(format_set_error(response.not_updated.get(id))), title=title)

@@ -67,6 +67,7 @@ class TestRecordingGrants(unittest.TestCase):
         self.assertEqual(
             claims,
             {
+                "protocol_version": 1,
                 "iss": "frappe-site:meet.example.test",
                 "aud": "meet-sfu-recorder",
                 "scope": "recording",

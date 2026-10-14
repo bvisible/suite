@@ -93,7 +93,7 @@
 								:tooltip="isVisible ? __('More options') : undefined"
 							>
 								<template #icon>
-									<MeetSettingsIcon />
+									<MeetMoreIcon />
 								</template>
 							</Button>
 						</template>
@@ -121,6 +121,7 @@
 				@mouseleave="onMouseLeave"
 			>
 				<MeetingInfoPopover
+					v-if="!isMobile"
 					v-model:open="showMeetingInfo"
 					:meeting-id="meetingId"
 					:show-tooltip="isVisible"
@@ -165,26 +166,40 @@
 	</div>
 
 	<SettingsDialog
-		v-model="showSettingsDialog"
+		v-model:open="showSettingsDialog"
 		:meetingId="meetingId"
 		:isPreview="false"
 		@device-changed="$emit('device-changed', $event)"
 	/>
+	<!-- //// Neoffice — i18n: text a person reads goes through __() (#1316) -->
+	<Dialog
+		v-if="isMobile"
+		v-model:open="showMeetingInfo"
+		:title="__('Meeting information')"
+		size="sm"
+	>
+		<template #default>
+			<MeetingInfoContent :meeting-id="meetingId" :show-heading="false" />
+		</template>
+	</Dialog>
 </template>
 
 <script setup lang="ts">
-import { Button, Dropdown } from "frappe-ui";
+import { Button, Dialog, Dropdown } from "frappe-ui";
 import {
 	type Component,
 	computed,
 	onMounted,
+	onScopeDispose,
 	onUnmounted,
 	ref,
 	watch,
 } from "vue";
+import { useRootStore } from "@/stores/root";
 import LucideBug from "~icons/lucide/bug";
+import LucideCaptions from "~icons/lucide/captions";
+import LucideCaptionsOff from "~icons/lucide/captions-off";
 import { useE2EEState } from "../composables/useE2EEState";
-import { usePlatform } from "../composables/usePlatform";
 import { useResponsiveGrid } from "../composables/useResponsiveGrid";
 import { autoHideToolbar } from "../data/mediaPreferences";
 import MeetCameraIcon from "../icons/MeetCameraIcon.vue";
@@ -193,19 +208,20 @@ import MeetChatIcon from "../icons/MeetChatIcon.vue";
 import MeetMicIcon from "../icons/MeetMicIcon.vue";
 import MeetHandIcon from "../icons/MeetHandIcon.vue";
 import MeetMicOffIcon from "../icons/MeetMicOffIcon.vue";
+import MeetMoreIcon from "../icons/MeetMoreIcon.vue";
 import MeetPeopleIcon from "../icons/MeetPeopleIcon.vue";
 import MeetPhoneOffIcon from "../icons/MeetPhoneOffIcon.vue";
 import MeetPresentIcon from "../icons/MeetPresentIcon.vue";
 import MeetPresentPauseIcon from "../icons/MeetPresentPauseIcon.vue";
-import MeetSettingsIcon from "../icons/MeetSettingsIcon.vue";
 import MeetSmileIcon from "../icons/MeetSmileIcon.vue";
-import { canScreenShare } from "../utils/device";
+import { canScreenShare, getPlatform } from "../utils/device";
 import MeetingInfoPopover from "./MeetingInfoPopover.vue";
+import MeetingInfoContent from "./MeetingInfoContent.vue";
 import ReactionPicker from "./ReactionPicker.vue";
 import SettingsDialog from "./settings/SettingsDialog.vue";
 import ToolbarButton from "./ToolbarButton.vue";
 
-const $platform = usePlatform();
+const $platform = getPlatform();
 
 interface MoreOption {
 	icon: string | Component;
@@ -230,6 +246,8 @@ const props = defineProps<{
 	statsVisible?: boolean;
 	cameraPermissionGranted?: boolean;
 	microphonePermissionGranted?: boolean;
+	isCaptionsEnabled?: boolean;
+	areCaptionsAvailable: boolean;
 	canManageRecording?: boolean;
 	recordingStatus?: string;
 	recordingLoading?: boolean;
@@ -244,6 +262,7 @@ const emit = defineEmits<{
 	"toggle-screen-share": [];
 	"toggle-fullscreen": [];
 	"toggle-raise-hand": [];
+	"toggle-captions": [];
 	"report-problem": [];
 	"toggle-stats": [];
 	"end-call": [];
@@ -284,6 +303,21 @@ const moreOptions = computed(() => [
 				},
 			]
 		: []),
+	...(props.areCaptionsAvailable
+		? [
+				{
+					icon: props.isCaptionsEnabled ? LucideCaptionsOff : LucideCaptions,
+					label: props.isCaptionsEnabled
+						// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+						? __("Disable captions")
+						: __("Enable captions"),
+					onClick: () => {
+						emit("toggle-captions");
+						resetHideTimer();
+					},
+				},
+			]
+		: []),
 	{
 		icon: "lucide-activity",
 		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
@@ -314,6 +348,15 @@ const moreOptions = computed(() => [
 	...(isMobile.value
 		? [
 				{
+					icon: "lucide-info",
+					// //// Neoffice — i18n: text a person reads goes through __() (#1316)
+					label: __("Meeting information"),
+					onClick: () => {
+						showMeetingInfo.value = true;
+						resetHideTimer();
+					},
+				},
+				{
 					icon: "lucide-users",
 					// //// Neoffice — i18n: text a person reads goes through __() (#1316)
 					label: __("People"),
@@ -335,10 +378,7 @@ const moreOptions = computed(() => [
 		icon: "lucide-settings",
 		// //// Neoffice — i18n: text a person reads goes through __() (#1316)
 		label: __("Settings"),
-		onClick: () => {
-			showSettingsDialog.value = true;
-			resetHideTimer();
-		},
+		onClick: openSettings,
 	},
 ]);
 
@@ -375,6 +415,31 @@ const resetHideTimer = (force = false) => {
 		isVisible.value = false;
 	}, 10000);
 };
+
+function openSettings() {
+	showSettingsDialog.value = true;
+	resetHideTimer();
+}
+
+const unregisterPaletteGroups = useRootStore().registerPaletteGroups(
+	"meet-meeting-toolbar",
+	[
+		{
+			commands: [
+				{
+					id: "meet-settings",
+					label: "Settings",
+					shortcut: "Mod+Shift+Comma",
+					enterHint: "open meet settings",
+					icon: "lucide-settings",
+					keywords: ["audio", "video", "camera", "microphone", "devices"],
+					run: openSettings,
+				},
+			],
+		},
+	],
+);
+onScopeDispose(unregisterPaletteGroups);
 
 const handleActivity = () => {
 	showControls();

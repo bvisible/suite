@@ -19,12 +19,6 @@ def execute() -> None:
     """
 
     if not frappe.db.exists("Role", NEW_ROLE):
-        # //// Neoffice — "Suite User" is created with desk_access=0 here, where
-        # //// upstream hardcodes 1. `User.set_system_user` keys `user_type` off
-        # //// whether any assigned role carries desk access, so a desk-access
-        # //// "Suite User" turns every portal account on the site into a System
-        # //// User with access to /app. See suite/utils/user.py::assign_suite_role
-        # //// and the desk_access=0 fixture in suite/fixtures/role.json.
         frappe.get_doc({"doctype": "Role", "role_name": NEW_ROLE, "desk_access": 0}).insert(
             ignore_permissions=True
         )
@@ -46,12 +40,10 @@ def execute() -> None:
 def _grant_suite_role(users: set[str]) -> None:
     """Grant NEW_ROLE to ``users`` with one bulk insert into ``Has Role``.
 
-    NEW_ROLE carries desk access, and the bulk insert does not recompute
-    ``user_type``; that is fine because every enabled user already holds a
-    desk-access role (Drive/Suite) and is therefore already a System User.
-    Inserting the child rows directly avoids the N+1 of ``User.add_roles`` on
-    migrate. Users who already hold the role are skipped, and the next ``idx``
-    per user is derived from their existing rows.
+    NEW_ROLE has ``desk_access = 0``, so it never changes a user's ``user_type`` —
+    inserting the child rows directly (rather than via ``User.add_roles``, an N+1
+    on migrate) is safe. Users who already hold the role are skipped, and the next
+    ``idx`` per user is derived from their existing rows.
     """
 
     if not users:

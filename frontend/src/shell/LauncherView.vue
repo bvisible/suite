@@ -53,21 +53,21 @@
       <!-- //// Neoffice — one indent level deeper and an extra </div>: the page is now
            //// split into the cockpit rail and a content column (see the top of the
            //// template), so the dialog closes the column, not the page. //// -->
-      <SuiteSettingsDialog />
+      <SuiteSettingsDialog v-model:open="showSettings" v-model:tab="settingsTab" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-//// Neoffice — ref and useRouter added for the Office-file tiles below
-//// (createOfficeFile navigates to the new document once Drive has created it).
+//// Neoffice — `ref` added for the Office-file tiles below (createOfficeFile keeps which tile is busy).
 import { h, onMounted, onUnmounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { Avatar, Dropdown } from 'frappe-ui'
+import { Avatar, Dropdown, toast } from 'frappe-ui'
 import { CircleUser, LogOut } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
 
+//// Neoffice — SUITE_LOGO too: the hub's mark in the cockpit's module switcher (surfaceApp below).
 import { SUITE_APPS, SUITE_LOGO } from '@/apps/registry'
-import type { SuiteApp } from '@/apps/registry'
+import { useStartMeeting } from '@/apps/meet/composables/useStartMeeting'
 //// Neoffice — the shared cockpit rail (see the template).
 import NeoCockpitBridge from '@/shell/NeoCockpitBridge.vue'
 import settingsLogo from '@/assets/app-logos/settings.svg'
@@ -75,18 +75,94 @@ import { useCurrentUser, useSessionStore } from '@/boot/session'
 import { useThemeMenuOption } from '@/composables/useThemeMenuOption'
 import LauncherTile from '@/shell/LauncherTile.vue'
 import SuiteSettingsDialog from '@/shell/settings/SuiteSettingsDialog.vue'
-import { openSettings } from '@/shell/settings/useSettingsDialog'
+import { openSettings, settingsTab, showSettings } from '@/shell/settings/useSettingsDialog'
 import { useWorkspace } from '@/shell/useWorkspace'
 import { useRootStore } from '@/stores/root'
 import { setupTheme } from '@/utils/setupTheme'
 
 const apps = SUITE_APPS
-//// Neoffice — used by createOfficeFile and by the cockpit rail's navigate prop.
 const router = useRouter()
+const root = useRootStore()
+const { fullName, imageURL } = useCurrentUser()
+const { startMeeting } = useStartMeeting()
+
+const composeMail = () => router.push({ path: '/mail', query: { compose: '1' } })
+
+const startInstantMeeting = () => startMeeting('open')
+
+const createCalendarEvent = async () => {
+  const { userStore } = await import('@/apps/calendar/stores/user')
+  const calendarStore = userStore()
+  try {
+    if (!calendarStore.userResource.data) await calendarStore.userResource.fetch()
+    if (!calendarStore.accountId) {
+      toast.error('Set up Calendar before creating an event.')
+      return
+    }
+    await router.push({ path: '/calendar', query: { new: '1' } })
+  } catch {
+    toast.error('Could not load Calendar account.')
+  }
+}
+
+const unregisterPaletteGroups = root.registerPaletteGroups('suite-launcher', () => [
+  {
+    commands: [
+      {
+        id: 'suite-compose-mail',
+        label: 'Compose mail',
+        enterHint: 'compose mail',
+        icon: 'lucide-pencil',
+        keywords: ['new', 'email', 'message'],
+        run: composeMail,
+      },
+      {
+        id: 'suite-start-instant-meet',
+        label: 'Start instant meet',
+        enterHint: 'start instant meet',
+        icon: 'lucide-zap',
+        keywords: ['new', 'open', 'meeting'],
+        run: startInstantMeeting,
+      },
+      {
+        id: 'suite-new-event',
+        label: 'New event',
+        enterHint: 'create event',
+        icon: 'lucide-calendar-plus',
+        keywords: ['create', 'calendar'],
+        run: createCalendarEvent,
+      },
+      {
+        id: 'suite-new-sheet',
+        label: 'New sheet',
+        enterHint: 'create sheet',
+        icon: 'lucide-table-2',
+        keywords: ['create', 'spreadsheet', 'sheets'],
+        run: () => router.push('/sheets/new'),
+      },
+      {
+        id: 'suite-new-presentation',
+        label: 'New presentation',
+        enterHint: 'create presentation',
+        icon: 'lucide-presentation',
+        keywords: ['create', 'slides'],
+        run: () => router.push('/slides/presentation/new'),
+      },
+      {
+        id: 'suite-settings',
+        label: 'Settings',
+        shortcut: 'Mod+Shift+Comma',
+        enterHint: 'open settings',
+        icon: 'lucide-settings',
+        keywords: ['account', 'personal', 'preferences', 'workspace'],
+        run: () => openSettings(),
+      },
+    ],
+  },
+])
 
 const { workspaceName, workspaceLogo } = useWorkspace()
 
-const { fullName, imageURL } = useCurrentUser()
 const sessionStore = useSessionStore()
 
 const userMenuOptions = [
@@ -105,16 +181,20 @@ const userMenuOptions = [
 
 onMounted(() => {
   setupTheme()
-  useRootStore().setActiveApp(null)
   document.documentElement.style.overscrollBehavior = 'none'
 })
 
 onUnmounted(() => {
   document.documentElement.style.overscrollBehavior = ''
+  unregisterPaletteGroups()
 })
 
 // //// Neoffice: identity of the hub in the cockpit module switcher ////
 const surfaceApp = { name: 'suite', title: 'Suite', logo: SUITE_LOGO }
+
+//// Neoffice — upstream's registry no longer exports the `SuiteApp` interface (unused-export cleanup, #834): the
+//// type of a tile is read off the list instead, so the registry keeps no extra export.
+type SuiteApp = (typeof SUITE_APPS)[number]
 
 // //// Neoffice: create a blank Office file (opened in a Craft editor) from a tile.
 // Falls back to the Drive home when the user has no team yet (onboarding). ////

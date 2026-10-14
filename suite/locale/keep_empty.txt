@@ -4,3 +4,16 @@
 //// Neoffice — added DocType (no upstream equivalent): a calendar of a Local Calendar Account, kept as the mail server would answer it (JMAP Calendar object in `data`), maintenance#1387.
 //// Neoffice — added DocType (no upstream equivalent): an event of a Local Calendar Account, kept as the mail server would answer it (JMAP CalendarEvent object in `data`, series and their exceptions included), with the span it covers in UTC for the period queries (maintenance#1387).
 //// Neoffice — added DocType (no upstream equivalent): the calendar account of a desk user who has no mailbox, whose calendars and events are kept in Frappe instead of the mail server (maintenance#1387, suite/calendar/local.py).
+
+# Same word in French (or a protocol, a colour name, an address pattern): nothing to translate (14.10.2026, the merge's pass).
+Contact
+Cyan
+DANE
+Messages
+minute
+MTA-STS
+Sources
+Suite Cloud
+Version
+Violet
+inbox@{0}

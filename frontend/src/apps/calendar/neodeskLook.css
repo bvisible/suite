@@ -17,8 +17,9 @@
 	letter-spacing: -0.2px;
 }
 
-/* frappe-ui marks today with « bg-surface-gray-10 … rounded-4 size-[25px] »: clay, its ink light */
-.neo-calendar .bg-surface-gray-10.rounded-4[class~='size-[25px]'] {
+/* frappe-ui marks today with a disc (« bg-surface-gray-10 … rounded-full », in the week and the month since its
+   Agenda release, 4fede41ae; it was a rounded square « rounded-4 size-[25px] » before): clay, its ink light */
+.neo-calendar .bg-surface-gray-10.rounded-full {
 	background-color: #d68a59;
 	color: #fffdf8;
 }

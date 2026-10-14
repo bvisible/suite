@@ -1,24 +1,22 @@
-import type { RouteLocationNormalized, Router } from 'vue-router'
+import type { RouteLocationNormalized } from 'vue-router'
 
 //// Neoffice — added for the on-demand mailbox provisioning in the guard below
 //// (a desk user must always end up with a calendar). Upstream just bounces to
 //// the no-account page.
 import { frappeRequest } from 'frappe-ui'
 
-import suiteRouter from '@/router'
+import '@/router'
+import { useScreenSize } from '@/composables/useScreenSize'
 
 import { userStore } from '@/apps/calendar/stores/user'
+import { lastCalendarView } from '@/apps/calendar/utils/lastView'
 
 /**
  * Calendar-local guard on the shared suite router: setup-wizard escape,
  * user-data wait, account resolution and shortcut-route expansion.
  * Early-returns for any route whose name doesn't start with `calendar-`;
  * auth itself is the suite router's `beforeEach`.
- *
- * Re-exports the suite router instance as `router` for calendar views.
  */
-export const router = suiteRouter
-
 type Params = Record<string, string | string[]>
 
 const resolveShortcut = (
@@ -26,7 +24,15 @@ const resolveShortcut = (
 	params: Params,
 	accountId: string,
 ) => {
-	const defaultRoute = { name: 'calendar-month', params: { accountId } }
+	// Home is the view the calendar was last left in. Failing that, the month grid
+	// on a desktop and the agenda on a phone, which is where each device starts.
+	// The phone draws all four views on the same routes the desktop uses, at phone
+	// width, so a remembered view opens wherever it was remembered.
+	const { isMobile } = useScreenSize()
+	const defaultRoute = {
+		name: lastCalendarView() ?? (isMobile.value ? 'calendar-agenda' : 'calendar-month'),
+		params: { accountId },
+	}
 
 	switch (name) {
 		case 'calendar-month-shortcut':
@@ -35,86 +41,91 @@ const resolveShortcut = (
 			return { name: 'calendar-week', params: { accountId, ...params } }
 		case 'calendar-day-shortcut':
 			return { name: 'calendar-day', params: { accountId, ...params } }
+		case 'calendar-agenda-shortcut':
+			return { name: 'calendar-agenda', params: { accountId, ...params } }
+		case 'calendar-search-shortcut':
+			return { name: 'calendar-search', params: { accountId } }
 		default:
 			return defaultRoute
 	}
 }
 
-function installCalendarGuard(r: Router) {
-	r.beforeEach(async (to: RouteLocationNormalized) => {
-		// Only act on calendar routes; let the suite handle everything else.
-		if (typeof to.name !== 'string' || !to.name.startsWith('calendar-')) return
+export const calendarGuard = async (to: RouteLocationNormalized) => {
+	// Only act on calendar routes; let the suite handle everything else.
+	if (typeof to.name !== 'string' || !to.name.startsWith('calendar-')) return
 
-		// Wait for user data, then resolve the active account.
-		const store = userStore()
-		await store.userResource.promise
-		const user = store.userResource.data
+	// Wait for user data, then resolve the active account.
+	const store = userStore()
+	await store.userResource.promise
+	const user = store.userResource.data
 
-		//// Neoffice — the calendar kept in Neoffice for a desk user without a mailbox (maintenance#1387) arrives
-		//// apart from the mail accounts.
-		store.resolveAccount(
-			user?.accounts,
-			to.params.accountId as string | undefined,
-			user?.local_calendar_account,
-		)
-		const accountId = store.accountId
+	//// Neoffice — the calendar kept in Neoffice for a desk user without a mailbox (maintenance#1387) arrives
+	//// apart from the mail accounts.
+	store.resolveAccount(
+		user?.accounts,
+		to.params.accountId as string | undefined,
+		user?.local_calendar_account,
+	)
+	const accountId = store.accountId
 
-		// //// Neoffice: a desk user must ALWAYS have a calendar. If they arrive
-		// without a JMAP account, provision their mailbox on demand (covers the
-		// brief async window after signup / a missed backfill) BEFORE falling
-		// back to the informational page. Website (client) users get no mailbox
-		// and land on calendar-no-account. Guard against a re-entry loop by only
-		// trying when we're not already on the no-account page. ////
-		if (!accountId) {
-			if (to.name !== 'calendar-no-account') {
-				try {
-					const ok = await frappeRequest({
-						url: 'suite.mail.events.ensure_personal_mail_account',
-					})
-					if (ok) {
-						await store.userResource.reload()
-						store.resolveAccount(
-							store.userResource.data?.accounts,
-							to.params.accountId as string | undefined,
-						)
-						if (store.accountId) {
-							return to.meta.shortcut
-								? resolveShortcut(to.name, to.params, store.accountId)
-								: undefined
-						}
+	// //// Neoffice: a desk user must ALWAYS have a calendar. If they arrive
+	// without a JMAP account, provision their mailbox on demand (covers the
+	// brief async window after signup / a missed backfill) BEFORE falling
+	// back to the informational page. Website (client) users get no mailbox
+	// and land on calendar-no-account. Guard against a re-entry loop by only
+	// trying when we're not already on the no-account page. ////
+	if (!accountId) {
+		if (to.name !== 'calendar-no-account') {
+			try {
+				const ok = await frappeRequest({
+					url: 'suite.mail.events.ensure_personal_mail_account',
+				})
+				if (ok) {
+					await store.userResource.reload()
+					store.resolveAccount(
+						store.userResource.data?.accounts,
+						to.params.accountId as string | undefined,
+					)
+					if (store.accountId) {
+						//// Neoffice — the query rides along here too: it carries the open event's deep link (?event=).
+						return to.meta.shortcut
+							? {
+									...resolveShortcut(to.name, to.params, store.accountId),
+									query: to.query,
+								}
+							: undefined
 					}
-				} catch (e) {
-					// fall through to the informational page
 				}
-				//// Neoffice — still no mailbox (none can be made here, or making it failed): the calendar kept in
-				//// Neoffice rather than the dead end (maintenance#1387). A portal user gets none and stays below.
-				try {
-					const local = await frappeRequest({ url: 'suite.calendar.local.ensure_local_calendar_account' })
-					if (local) {
-						store.resolveAccount([], undefined, local)
-						if (store.accountId) {
-							return to.meta.shortcut
-								? resolveShortcut(to.name, to.params, store.accountId)
-								: { name: 'calendar-month', params: { accountId: store.accountId } }
-						}
-					}
-				} catch (e) {
-					// the informational page
-				}
-				return { name: 'calendar-no-account' }
+			} catch (e) {
+				// fall through to the informational page
 			}
-			return undefined // already on no-account, stay
+			//// Neoffice — still no mailbox (none can be made here, or making it failed): the calendar kept in
+			//// Neoffice rather than the dead end (maintenance#1387). A portal user gets none and stays below.
+			try {
+				const local = await frappeRequest({ url: 'suite.calendar.local.ensure_local_calendar_account' })
+				if (local) {
+					store.resolveAccount([], undefined, local)
+					if (store.accountId) {
+						return to.meta.shortcut
+							? {
+									...resolveShortcut(to.name, to.params, store.accountId),
+									query: to.query,
+								}
+							: { name: 'calendar-month', params: { accountId: store.accountId } }
+					}
+				}
+			} catch (e) {
+				// the informational page
+			}
+			return { name: 'calendar-no-account' }
 		}
+		return undefined // already on no-account, stay
+	}
 
-		//// Neoffice — whoever has a calendar does not stay on the no-account page (a bookmark, a reload).
-		if (to.name === 'calendar-no-account') return { name: 'calendar-month', params: { accountId } }
+	//// Neoffice — whoever has a calendar does not stay on the no-account page (a bookmark, a reload).
+	if (to.name === 'calendar-no-account') return { name: 'calendar-month', params: { accountId } }
 
-		// Expand shortcut routes to their full account-scoped equivalents. The
-		// query rides along — it carries the open event's deep link (?event=).
-		if (to.meta.shortcut) return { ...resolveShortcut(to.name, to.params, accountId), query: to.query }
-	})
+	// Expand shortcut routes to their full account-scoped equivalents. The
+	// query rides along — it carries the open event's deep link (?event=).
+	if (to.meta.shortcut) return { ...resolveShortcut(to.name, to.params, accountId), query: to.query }
 }
-
-installCalendarGuard(router)
-
-export default router

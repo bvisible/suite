@@ -7,7 +7,9 @@ from __future__ import annotations
 import frappe
 
 from suite.mail.events import _should_provision_mail
-from suite.mail.utils import is_stalwart_configured
+# //// Neoffice — upstream removed is_stalwart_configured with its Stalwart client: ours is in
+# //// suite/mail/neoffice_stalwart.py.
+from suite.mail.neoffice_stalwart import is_stalwart_configured
 
 
 def execute():
