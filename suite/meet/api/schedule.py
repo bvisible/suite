@@ -6,11 +6,16 @@ import frappe
 from frappe.utils import get_url
 
 from suite.calendar.doctype.calendar_event.calendar_event import add_calendar_event
+
+# //// Neoffice — the calendars other people shared with the person (maintenance#1579).
+from suite.calendar.shared import resolves_shared
 from suite.mail.doctype.user_account.user_account import is_jmap_account_belongs_to_user
 from suite.meet.api.meeting import create as create_meeting
 
 
 @frappe.whitelist()
+# //// Neoffice — an id that names another account's object makes the call on that account (maintenance#1579, suite/calendar/shared.py).
+@resolves_shared(lists=("calendar_ids",))
 def create_scheduled_meeting(
     account: str,
     user: str | None = None,

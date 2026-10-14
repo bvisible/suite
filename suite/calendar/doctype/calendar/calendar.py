@@ -14,6 +14,8 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, today
 
+# //// Neoffice — the calendars other people shared with the person (maintenance#1579).
+from suite.calendar.shared import resolves_shared
 from suite.mail.doctype.user_account.user_account import get_user_for_jmap_account
 from suite.mail.jmap import get_calendar_service
 from suite.mail.utils import log_mail_error
@@ -523,6 +525,8 @@ def get_caldav_url(account: str, id: str) -> dict:
 
 
 @frappe.whitelist()
+# //// Neoffice — an id that names another account's object makes the call on that account (maintenance#1579, suite/calendar/shared.py).
+@resolves_shared("id")
 def set_calendar_visibility(account: str, id: str, visible: int = 1) -> None:
     """//// Neoffice: persist a calendar's show/hide state (isVisible) so the
     sidebar toggle survives reloads. Upstream only toggled it in local state.

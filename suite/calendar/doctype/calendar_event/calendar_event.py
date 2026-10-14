@@ -28,6 +28,9 @@ from suite.calendar.doctype.calendar_event.mailing_lists import expand_mailing_l
 
 # //// Neoffice — the local calendar of a desk user without a mailbox (maintenance#1387).
 from suite.calendar.local import is_local_account
+
+# //// Neoffice — the calendars other people shared with the person (maintenance#1579).
+from suite.calendar.shared import resolves_shared
 from suite.mail.doctype.user_account.user_account import get_user_for_jmap_account
 from suite.mail.jmap import get_calendar_event_service, get_jmap_connection
 from suite.mail.jmap.services.calendars.calendar_event import CalendarEventService
@@ -353,6 +356,8 @@ def bulk_delete(names: str | list[str]) -> None:
 
 @frappe.whitelist()
 @dynamic_rate_limit()
+# //// Neoffice — an id that names another account's object makes the call on that account (maintenance#1579, suite/calendar/shared.py).
+@resolves_shared(lists=("calendar_ids",))
 def add_calendar_event(
     account: str,
     organizer: str | None = None,
@@ -477,6 +482,8 @@ def get_calendar_events(account: str, ids: list[str]) -> list[dict]:
 
 @frappe.whitelist()
 @dynamic_rate_limit()
+# //// Neoffice — an id that names another account's object makes the call on that account (maintenance#1579, suite/calendar/shared.py).
+@resolves_shared("id", lists=("calendar_ids",))
 def update_calendar_event(
     account: str,
     id: str,
@@ -558,6 +565,8 @@ def update_calendar_event(
 
 @frappe.whitelist()
 @dynamic_rate_limit()
+# //// Neoffice — an id that names another account's object makes the call on that account (maintenance#1579, suite/calendar/shared.py).
+@resolves_shared("master_id")
 def update_calendar_event_instance(
     account: str,
     master_id: str,
@@ -605,6 +614,8 @@ def update_calendar_event_instance(
 
 @frappe.whitelist()
 @dynamic_rate_limit()
+# //// Neoffice — an id that names another account's object makes the call on that account (maintenance#1579, suite/calendar/shared.py).
+@resolves_shared(lists=("ids",))
 def delete_calendar_events(account: str, ids: list[str], send_scheduling_messages: bool = False) -> None:
     """Deletes a calendar event for the given account by its ID."""
     # //// Neoffice — a local calendar sends no invitation: e-mailing participants needs a mail account
@@ -638,6 +649,8 @@ def delete_calendar_events(account: str, ids: list[str], send_scheduling_message
 
 @frappe.whitelist()
 @dynamic_rate_limit()
+# //// Neoffice — an id that names another account's object makes the call on that account (maintenance#1579, suite/calendar/shared.py).
+@resolves_shared("master_id")
 def delete_calendar_event_instance(
     account: str, master_id: str, recurrence_id: str, send_scheduling_messages: bool = False
 ) -> None:

@@ -21,6 +21,9 @@ from suite.calendar.doctype.calendar_event.calendar_event import (
 from suite.calendar.doctype.calendar_event.calendar_event import (
     get_calendar_events as get_calendar_events_by_ids,
 )
+
+# //// Neoffice — the calendars other people shared with the person, in their own calendar (maintenance#1579).
+from suite.calendar.shared import resolves_shared, shared_calendars, shared_events
 from suite.mail.jmap import get_calendar_event_service
 from suite.mail.utils.dt import normalize_utc_z
 from suite.utils.rate_limiter import dynamic_rate_limit
@@ -30,7 +33,8 @@ from suite.utils.rate_limiter import dynamic_rate_limit
 # //// Neoffice — widened return. Upstream hands the SPA only {name, _name};
 # //// our sidebar needs colour, visibility and rights, and every calendar rather
 # //// than the first page. Full reason in the docstring below.
-def get_calendars(account: str, erp_dates: int = 0) -> list[dict]:
+# //// Neoffice — `shared`: the calendars other people shared with the person too (maintenance#1579).
+def get_calendars(account: str, erp_dates: int = 0, shared: int = 0) -> list[dict]:
     """Returns the account's calendars with the display + permission info the UI needs.
 
     #//// Neoffice — upstream returns only {name, _name}, so the SPA sidebar had no
@@ -60,6 +64,10 @@ def get_calendars(account: str, erp_dates: int = 0) -> list[dict]:
     )
     calendars = fetch_calendars(account, limit=100)
     listed = [{key: cal.get(key) for key in fields} for cal in calendars]
+    # //// Neoffice — then the calendars that other people shared with the person, which live in their account
+    # //// (maintenance#1579). Asked by the calendar page and Neodesk, which draw them with a shared mark.
+    if cint(shared):
+        listed += shared_calendars(account)
     # //// Neoffice — the dates of the ERP follow the person's own calendars, as calendars of their own. Only the
     # //// calendar page asks (`erp_dates`): the mail sidebar and Meet read the same calls for today's events.
     if cint(erp_dates):
@@ -70,7 +78,7 @@ def get_calendars(account: str, erp_dates: int = 0) -> list[dict]:
 @frappe.whitelist()
 # //// Neoffice — `erp_dates`: the dates of the ERP too, for the calendar page only (maintenance#1428).
 def get_calendar_events(
-    account: str, from_date: str, to_date: str, time_zone: str, erp_dates: int = 0
+    account: str, from_date: str, to_date: str, time_zone: str, erp_dates: int = 0, shared: int = 0
 ) -> list[dict]:
     """Fetches calendar events between from_date and to_date for the specified account."""
 
@@ -84,6 +92,11 @@ def get_calendar_events(
     )[0]
 
     enrich_events_with_master_data(account, events)
+    # //// Neoffice — the events of the calendars other people shared with the person, under ids that name their
+    # //// account; an event the person already has in their own account is not shown twice (maintenance#1579).
+    if cint(shared):
+        own_uids = {event.get("uid") for event in events if event.get("uid")}
+        events += shared_events(account, from_date, to_date, time_zone, own_uids)
     enrich_participants_with_avatars(events)
 
     # //// Neoffice — then the entries of the ERP's date sources that are switched on (read-only, no master data
@@ -175,6 +188,8 @@ def _with_name(items: list[dict] | None) -> list[dict] | None:
 
 @frappe.whitelist()
 @dynamic_rate_limit()
+# //// Neoffice — an id that names another account's object makes the call on that account (maintenance#1579, suite/calendar/shared.py).
+@resolves_shared("id")
 def rsvp_calendar_event(account: str, id: str, response: str) -> None:
     """Records the logged-in user's RSVP (accepted / declined / tentative) on the event.
 
@@ -187,6 +202,8 @@ def rsvp_calendar_event(account: str, id: str, response: str) -> None:
 
 @frappe.whitelist()
 @dynamic_rate_limit()
+# //// Neoffice — an id that names another account's object makes the call on that account (maintenance#1579, suite/calendar/shared.py).
+@resolves_shared("id", lists=("calendar_ids",))
 def edit_calendar_event(account: str, id: str, **kwargs) -> None:
     events = get_calendar_events_by_ids(account, [id])
     if not events:
