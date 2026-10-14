@@ -24693,3 +24693,18 @@ msgstr "Vous avez des modifications non enregistrées. Quitter sans enregistrer 
 #: suite/public/frontend/assets/PdfWithEditor-BvmdG42s.js:1
 msgid "Edit PDF"
 msgstr "Modifier le PDF"
+
+#: frontend/src/apps/drive/components/NewOfficeFileDialog.vue:54
+#: frontend/src/apps/drive/components/NewOfficeFileDialog.vue:59
+#: suite/public/frontend/assets/GenericPage-BKjW-7o6.js:1
+msgid "Create a Document"
+msgstr "Créer un document"
+
+#: suite/calendar/shared.py:237
+msgid "One call can only touch the calendars of one account."
+msgstr "Une même opération ne peut porter que sur les calendriers d'un seul compte."
+
+#: suite/calendar/tests/test_local_calendar.py:456
+msgctxt "fr"
+msgid "{0} at {1}"
+msgstr "{0} à {1}"
