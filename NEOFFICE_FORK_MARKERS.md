@@ -125,8 +125,8 @@ Fields, all ours:
 At a merge: keep the file whole. Nothing upstream collides with it.
 
 #### `suite/drive/wopi/craft_editors.json`
-**Entirely ours — no upstream equivalent.** The list of the Craft editors' browser builds (Word, Excel,
-PowerPoint, PDF: Neoffice's forks of storytold's Craft apps) that `suite/drive/wopi/craft_install.py` installs
+**Entirely ours — no upstream equivalent.** The list of the Craft editors' browser builds (NeoWrite, NeoSheet,
+NeoSlides, NeoPDF: Neoffice's forks of storytold's Craft apps) that `suite/drive/wopi/craft_install.py` installs
 under `suite/public/craft/` after every migrate: per editor folder, the `version`, the release asset `url`
 (only `https://github.com/bvisible/…` is accepted) and its `sha256`. The Drive opens Office documents in them
 (`suite/drive/wopi/craft.py`, `CraftEditor.vue`), and NeoDesk reads the same file from GitHub to know which build
@@ -174,7 +174,7 @@ is marked.
 #### `suite/templates/files/blank.docx` · `blank.xlsx` · `blank.pptx`
 **Added files, ours, binary** (`f20a6f284`). Empty OOXML documents copied
 verbatim by `suite.drive.wopi.editor.create_office_file` when a user creates a
-blank Word / Excel / PowerPoint file from the launcher or the Drive Create menu.
+blank docx / xlsx / pptx file from the launcher or the Drive Create menu.
 No upstream equivalent — upstream has no Office editing. Not generated: do not
 try to rebuild them.
 

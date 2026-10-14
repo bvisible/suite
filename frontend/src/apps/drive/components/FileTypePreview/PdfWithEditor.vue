@@ -1,5 +1,5 @@
 <!-- //// Neoffice — added file (no upstream equivalent): the PDF preview. A PDF opens in the PDF editor (PdfCraft, a browser
-     build served by this site, see suite/drive/wopi/craft.py) as a Word, Excel or PowerPoint document opens in its own
+     build served by this site, see suite/drive/wopi/craft.py) as a NeoWrite, NeoSheet or NeoSlides document opens in its own
      editor: directly, with no button to click first (Jérémy, 14.10: « tu fais directement dans le système PDF »).
      A site that has no build of the editor, or a question that failed, previews the PDF as upstream does, and says
      nothing about it: a PDF is never sent anywhere either way. //// -->

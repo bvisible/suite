@@ -1,6 +1,6 @@
 <template>
-  <!-- //// Neoffice — an Office document opens in one of our Craft editors (suite/drive/wopi/craft.py): Word, Excel and
-       PowerPoint here, the PDF editor on request. They are browser builds served by this site, so the document never
+  <!-- //// Neoffice — an Office document opens in one of our Craft editors (suite/drive/wopi/craft.py): NeoWrite, NeoSheet,
+       NeoSlides and NeoPDF (the PDF editor). They are browser builds served by this site, so the document never
        leaves it. Collabora Online, which this page used before them, is gone (maintenance#1570).
        Three other outcomes, none of which sends a document anywhere on its own:
        - the type has no editor (.doc, .odt…): upstream's Microsoft viewer below, behind its consent card;
