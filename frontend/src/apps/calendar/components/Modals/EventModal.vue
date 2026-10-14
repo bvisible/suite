@@ -1,6 +1,18 @@
 <script setup lang="ts">
 import { computed, inject, nextTick, reactive, ref, watch } from 'vue'
-import { AlignLeft, Bell, Briefcase, ChevronDown, Clock, Copy, MapPin, Users, X } from 'lucide-vue-next'
+//// Neoffice — CalendarDays, for the calendar the event goes to (maintenance#1579).
+import {
+	AlignLeft,
+	Bell,
+	Briefcase,
+	CalendarDays,
+	ChevronDown,
+	Clock,
+	Copy,
+	MapPin,
+	Users,
+	X,
+} from 'lucide-vue-next'
 import { Button, Dialog, Dropdown, FormControl, Switch, createResource, toast } from 'frappe-ui'
 
 import meetLogo from '@/assets/app-logos/meet.png'
@@ -15,7 +27,9 @@ import ParticipantSelector from '@/apps/calendar/components/ParticipantSelector.
 import EventRepeatSettingsModal from '@/apps/calendar/components/Modals/EventRepeatSettingsModal.vue'
 
 const show = defineModel<boolean>()
-const { selectedEvent } = defineProps<{ selectedEvent: any }>()
+//// Neoffice — `calendars`: the person's calendars, for the one an event goes to (maintenance#1579). Upstream's
+//// form never sent one, so every event went to the default calendar and could not be put elsewhere.
+const { selectedEvent, calendars = [] } = defineProps<{ selectedEvent: any; calendars?: any[] }>()
 const emit = defineEmits(['reloadEvents'])
 
 const user = inject('$user')
@@ -26,6 +40,27 @@ const store = userStore()
 const { participantIdentities } = store
 
 const isNew = computed(() => !selectedEvent?.calendarEvent)
+
+//// Neoffice — the calendars an event may go to: the person's own that they may write, not a date of the ERP
+//// (maintenance#1579). A new event takes the default one; an event that exists keeps its own.
+const writableCalendars = computed(() =>
+	(calendars || []).filter((c: any) => !c.virtual && (c.may_write_all || c.default)),
+)
+const calendarOptions = computed(() =>
+	writableCalendars.value.map((c: any) => ({ label: c._name, value: c.id })),
+)
+const defaultCalendarId = () =>
+	writableCalendars.value.find((c: any) => c.default)?.id || writableCalendars.value[0]?.id || ''
+const ownCalendarId = computed(() => selectedEvent?.calendarEvent?.calendars?.[0]?.calendar_id || '')
+// A series is moved from its own screen: which occurrence goes where is not asked here.
+const isSeries = computed(
+	() =>
+		!!selectedEvent?.calendarEvent?.recurrence_id ||
+		!!selectedEvent?.calendarEvent?.recurrence_rule?.frequency,
+)
+const showCalendarPicker = computed(
+	() => calendarOptions.value.length > 1 && (isNew.value || !isSeries.value),
+)
 // A saved draft: the server holds it but has sent nothing. Only a new event can become
 // one (the server refuses to turn a published event back into a draft), and saving it
 // as a draft again or publishing it are the two ways out of the modal.
@@ -63,6 +98,8 @@ const getEventData = () => {
 		participants: [...ev.participants],
 		recurrence_rule: ev.recurrence_rule,
 		addMeetLink: hasMeetLink(ev),
+		//// Neoffice — the calendar it is in (maintenance#1579).
+		calendarId: ownCalendarId.value,
 	}
 }
 
@@ -101,6 +138,8 @@ const getDefaultEventData = () => {
 		],
 		recurrence_rule: {},
 		addMeetLink: false,
+		//// Neoffice — a new event goes to the default calendar, or to the one picked (maintenance#1579).
+		calendarId: defaultCalendarId(),
 	}
 }
 
@@ -152,6 +191,9 @@ const eventParams = computed(() => {
 	}
 
 	if (event.title) params.title = event.title
+	//// Neoffice — where the event goes: a new one, or one that is moved to another calendar (maintenance#1579).
+	if (event.calendarId && (isNew.value || event.calendarId !== ownCalendarId.value))
+		params.calendar_ids = [event.calendarId]
 	if (dayjs?.tz) params.time_zone = dayjs.tz.guess()
 
 	if (selectedEvent.calendarEvent?.recurrence_id && !isUpdateInstance.value) {
@@ -780,6 +822,18 @@ const SHOW_RECURRING_EVENT_MODAL_OPTIONS = {
 
 
 						<div class="mt-4 flex flex-col gap-4">
+							<!-- //// Neoffice — the calendar the event goes to (maintenance#1579). -->
+							<div v-if="showCalendarPicker" class="flex gap-3">
+								<CalendarDays :size="18" class="icon mt-7 shrink-0 text-ink-gray-5" />
+								<FormControl
+									v-model="event.calendarId"
+									type="select"
+									:label="__('Calendar')"
+									:options="calendarOptions"
+									class="min-w-0 flex-1"
+								/>
+							</div>
+
 							<!-- locations -->
 							<div class="flex gap-3">
 								<MapPin

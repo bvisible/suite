@@ -663,7 +663,14 @@ const NOTIFY_MODAL_OPTIONS = {
 			/>
 		</div>
 	</div>
-	<EventModal v-model="showEditEvent" :selected-event="event" @reload-events="events.reload()" />
+	<!-- //// Neoffice — `calendars`: the person's calendars, so the form can say which one the event goes to
+	     (maintenance#1579). -->
+	<EventModal
+		v-model="showEditEvent"
+		:selected-event="event"
+		:calendars="calendars.data || []"
+		@reload-events="events.reload()"
+	/>
 	<Dialog v-model:open="showRecurringEventModal" v-bind="RECURRING_EVENT_MODAL_OPTIONS">
 		<template #actions>
 			<div class="flex justify-end space-x-2">
