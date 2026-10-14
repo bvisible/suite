@@ -1,1 +1,0 @@
-import{t as e}from"./realtime-2vZ_2gHA.js";var t=null;function n(){return t||(t=e(),t.on(`connect_error`,e=>{console.log(e)}),t)}function r(){return t}export{n,r as t};
