@@ -52,13 +52,7 @@
         { label: __('Replace their version'), variant: 'subtle', theme: 'red', onClick: replaceTheirs },
       ]"
     >
-      <p class="text-p-base text-ink-gray-7">
-        {{
-          __(
-            'Someone else saved a new version of this document since you opened it. You can keep yours as a copy next to it, or replace theirs with yours.'
-          )
-        }}
-      </p>
+      <p class="text-p-base text-ink-gray-7">{{ conflictMessage }}</p>
     </Dialog>
   </div>
 </template>
@@ -110,6 +104,9 @@ const src = computed(() => {
 })
 
 class Conflict extends Error {}
+
+// One line, with its string right after `__(`: the extractor of the translation catalogs misses the others.
+const conflictMessage = __('Someone else saved a new version of this document since you opened it. You can keep yours as a copy next to it, or replace theirs with yours.')
 
 const extension = (name) => (name.includes('.') ? name.split('.').pop().toLowerCase() : '')
 
