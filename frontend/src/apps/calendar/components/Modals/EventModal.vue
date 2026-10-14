@@ -58,8 +58,9 @@ const isSeries = computed(
 		!!selectedEvent?.calendarEvent?.recurrence_id ||
 		!!selectedEvent?.calendarEvent?.recurrence_rule?.frequency,
 )
+//// Neoffice — always there, even with one calendar: the person sees where the event goes (maintenance#1579).
 const showCalendarPicker = computed(
-	() => calendarOptions.value.length > 1 && (isNew.value || !isSeries.value),
+	() => calendarOptions.value.length > 0 && (isNew.value || !isSeries.value),
 )
 // A saved draft: the server holds it but has sent nothing. Only a new event can become
 // one (the server refuses to turn a published event back into a draft), and saving it
@@ -830,6 +831,7 @@ const SHOW_RECURRING_EVENT_MODAL_OPTIONS = {
 									type="select"
 									:label="__('Calendar')"
 									:options="calendarOptions"
+									:disabled="calendarOptions.length < 2"
 									class="min-w-0 flex-1"
 								/>
 							</div>
