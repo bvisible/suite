@@ -190,7 +190,8 @@ const getEventRole = (event) => {
 const calendars = createResource({
 	url: 'suite.calendar.api.get_calendars',
 	//// Neoffice — `erp_dates`: the dates of the ERP follow the person's calendars (maintenance#1428).
-	makeParams: () => ({ account: store.accountId, erp_dates: 1 }),
+	//// Neoffice — `shared`: the calendars other people shared with the person, like their own (maintenance#1579).
+	makeParams: () => ({ account: store.accountId, erp_dates: 1, shared: 1 }),
 	auto: true,
 	// //// Neoffice: respect each calendar's persisted isVisible state instead of
 	// showing them all — the hidden ones stay hidden across reloads. ////
@@ -219,7 +220,8 @@ function toggleCalendarVisibility(name: string) {
 	setVisibility.submit(
 		{
 			account: store.accountId,
-			id: name.split('|').pop(),
+			//// Neoffice — the calendar's own id: one of another account's names its account (maintenance#1579).
+			id: calendars.data?.find((cal) => cal.name === name)?.id ?? name.split('|').pop(),
 			visible: wasVisible ? 0 : 1,
 		},
 		{ onSuccess: () => erp && events.reload() },
@@ -263,8 +265,10 @@ const events = createResource({
 			from_date: date.startOf('month').subtract(37, 'day').utc().format('YYYY-MM-DD[T]HH:mm:ss[Z]'),
 			to_date: date.endOf('month').add(37, 'day').utc().format('YYYY-MM-DD[T]HH:mm:ss[Z]'),
 			time_zone: dayjs.tz.guess(),
-			//// Neoffice — with the dates of the ERP that are switched on (maintenance#1428).
+			//// Neoffice — with the dates of the ERP that are switched on (maintenance#1428), and the events of the
+			//// calendars other people shared with the person (maintenance#1579).
 			erp_dates: 1,
+			shared: 1,
 		}
 	},
 	transform: (data) => data.map(transformEvent),

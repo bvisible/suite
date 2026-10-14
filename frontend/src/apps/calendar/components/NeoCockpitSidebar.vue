@@ -119,13 +119,17 @@ const contextNav = computed(() => [
 					//// Neoffice — swatch(): a palette name drawn with the ink variable the grid uses (maintenance#1428).
 					color: swatch(c.color) || '#9BA3AF',
 					dim: !visibleCalendars.includes(c.name),
-					shared: sharedCount > 0,
-					sharedTitle: !sharedCount
-						? undefined
-						: sharedCount === 1
-							? __('Shared with 1 person')
-							: __('Shared with {0} people', [sharedCount]),
-					onGear: () => openSettings(c),
+					//// Neoffice — a calendar another person shared with this one is drawn like their own, with the
+					//// shared mark and its owner; no gear, it is the owner's to rename, share or delete (maintenance#1579).
+					shared: sharedCount > 0 || !!c.shared_with_me,
+					sharedTitle: c.shared_with_me
+						? __('Shared by {0}', [c.owner])
+						: !sharedCount
+							? undefined
+							: sharedCount === 1
+								? __('Shared with 1 person')
+								: __('Shared with {0} people', [sharedCount]),
+					onGear: c.shared_with_me ? undefined : () => openSettings(c),
 					onClick: () => emit('update:visibleCalendars', c.name),
 				}
 			}),

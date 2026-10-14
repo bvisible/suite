@@ -51,7 +51,13 @@ const calendarOptions = computed(() =>
 )
 const defaultCalendarId = () =>
 	writableCalendars.value.find((c: any) => c.default)?.id || writableCalendars.value[0]?.id || ''
-const ownCalendarId = computed(() => selectedEvent?.calendarEvent?.calendars?.[0]?.calendar_id || '')
+//// Neoffice — a calendar of another account is named by its id composed with the account, as `get_calendars` hands it
+//// out (maintenance#1579).
+const ownCalendarId = computed(() => {
+	const calendar = selectedEvent?.calendarEvent?.calendars?.[0]
+	const [account, id] = String(calendar?.calendar || '').split('|')
+	return account && id && account !== store.accountId ? `${account}~${id}` : calendar?.calendar_id || ''
+})
 // A series is moved from its own screen: which occurrence goes where is not asked here.
 const isSeries = computed(
 	() =>
