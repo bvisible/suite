@@ -7,17 +7,16 @@
       :class="[collapsed ? 'cursor-pointer' : 'mb-4']"
       @click="collapsed = false"
     >
+      <!-- //// Neoffice — the counts in the reader's language: upstream builds the English sentence by hand, a
+           singular and a plural out of one string, which no catalogue can translate. -->
       <div v-if="uploadsInProgress.length > 0" class=" truncate text-lg-medium">
-        Uploading {{ uploadsInProgress.length }}
-        {{ uploadsInProgress.length == 1 ? 'file' : 'files' }}
+        {{ uploadsInProgress.length == 1 ? __('Uploading 1 file') : __('Uploading {0} files', [uploadsInProgress.length]) }}
       </div>
       <div v-else-if="uploadsCompleted.length > 0" class=" truncate text-lg-medium">
-        {{ uploadsCompleted.length }}
-        {{ uploadsCompleted.length == 1 ? 'file' : 'files' }} uploaded
+        {{ uploadsCompleted.length == 1 ? __('1 file uploaded') : __('{0} files uploaded', [uploadsCompleted.length]) }} <!-- //// Neoffice — see the block above -->
       </div>
       <div v-else-if="uploadsFailed.length > 0" class=" truncate text-lg-medium">
-        {{ uploadsFailed.length }}
-        {{ uploadsFailed.length == 1 ? 'upload' : 'uploads' }} failed
+        {{ uploadsFailed.length == 1 ? __('1 upload failed') : __('{0} uploads failed', [uploadsFailed.length]) }} <!-- //// Neoffice — see the block above -->
       </div>
       <div class="ml-auto flex items-center gap-4">
         <Button variant="ghost" :icon="collapsed ? LucidePlus : LucideMinus" @click.stop="collapsed = !collapsed" />
@@ -67,10 +66,11 @@
         </div>
       </div>
     </div>
+    <!-- //// Neoffice — the title in the reader's language (upstream hardcodes English) -->
     <Dialog
       v-if="showErrorDialog"
       v-model:open="showErrorDialog"
-      title="Upload failed"
+      :title="__('Upload failed')"
       :message="selectedUpload.error"
       size="sm"
       :actions="[

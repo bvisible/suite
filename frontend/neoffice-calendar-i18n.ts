@@ -77,7 +77,12 @@ export const CALENDAR_REWRITES: Record<string, Rewrite[]> = {
     { find: "{ label: 'Day', value: 'Day',", replace: "{ label: __('Day'), value: 'Day'," },
     { find: "{ label: 'Week', value: 'Week',", replace: "{ label: __('Week'), value: 'Week'," },
     { find: "{ label: 'Month', value: 'Month',", replace: "{ label: __('Month'), value: 'Month'," },
-    { find: "{ label: 'Agenda', value: 'Agenda',", replace: "{ label: __('Agenda'), value: 'Agenda'," },
+    // The name of the view, with its context: a bare « Agenda » is already translated by ERPNext (« Ordre du jour »,
+    // the agenda of a quality meeting), and every app's French lands in one dictionary.
+    {
+      find: "{ label: 'Agenda', value: 'Agenda',",
+      replace: "{ label: __('Agenda', null, 'Calendar view'), value: 'Agenda',",
+    },
   ],
   // The Agenda: the list of weeks of the phone, and of the desktop's fourth view (#1392).
   'CalendarAgenda.vue': [

@@ -26327,3 +26327,264 @@ msgstr "{file_url} n'est pas un fichier du site ; il doit commencer par /files/ 
 #: suite/mail/doctype/mail_queue/payload.py
 msgid "{header} is a standard email header and cannot be overridden; use a custom X- header"
 msgstr "{header} est un en-tête e-mail standard et ne peut pas être remplacé ; utilisez un en-tête X- personnalisé"
+
+#: frontend/src/apps/drive/components/UploadTracker.vue
+msgid "1 file uploaded"
+msgstr "1 fichier téléversé"
+
+#: frontend/src/apps/drive/components/UploadTracker.vue
+msgid "1 upload failed"
+msgstr "1 téléversement échoué"
+
+#: suite/mail/api/admin.py
+msgid "Account not found"
+msgstr "Compte introuvable"
+
+#: frontend/src/apps/mail/components/Modals/AddAccountModal.vue
+#: frontend/src/apps/mail/pages/dashboard/AccountsView.vue
+msgid "Add Account"
+msgstr "Ajouter un compte"
+
+#: frontend/src/apps/calendar/components/CommandPalette/CalendarFilterBadges.vue
+msgid "Clear all filters"
+msgstr "Effacer tous les filtres"
+
+#: frontend/neoffice-calendar-i18n.ts:85
+#: frontend/src/test/neoffice-calendar-i18n.test.ts:74
+#: suite/public/frontend/assets/CalendarView-yDyy4Gd0.js:2
+msgid "Day {0} of {1}"
+msgstr "Jour {0} sur {1}"
+
+#: frontend/src/apps/mail/pages/dashboard/AccountView.vue
+msgid "Delete Account"
+msgstr "Supprimer le compte"
+
+#: frontend/src/apps/calendar/components/Modals/DeleteCalendarModal.vue
+msgid "Delete {0}?"
+msgstr "Supprimer {0} ?"
+
+#: frontend/src/apps/drive/components/GenericPage.vue
+msgid "Drop to upload"
+msgstr "Déposer pour téléverser"
+
+#: frontend/src/apps/mail/components/Modals/EditDomainModal.vue
+msgid "Edit Domain"
+msgstr "Modifier le domaine"
+
+#: frontend/src/apps/mail/utils/dmarc.ts
+msgid "Fail"
+msgstr "Échec"
+
+#: frontend/neoffice-calendar-i18n.ts
+msgid "From {0}"
+msgstr "De {0}"
+
+#: frontend/src/apps/calendar/components/Modals/ShortcutsModal.vue
+#: frontend/src/apps/mail/components/Modals/ShortcutsModal.vue
+msgid "Keyboard Shortcuts"
+msgstr "Raccourcis clavier"
+
+#: frontend/src/apps/mail/utils/reports.ts
+msgid "Last 30 days"
+msgstr "30 derniers jours"
+
+#: frontend/src/apps/mail/utils/reports.ts
+msgid "Last 7 days"
+msgstr "7 derniers jours"
+
+#: frontend/src/apps/mail/utils/reports.ts
+msgid "Last 90 days"
+msgstr "90 derniers jours"
+
+#: frontend/neoffice-calendar-i18n.ts
+msgid "Last week"
+msgstr "La semaine dernière"
+
+#: frontend/src/apps/calendar/components/ErpDateDetail.vue
+#: frontend/src/apps/calendar/components/ErpDateDetail.vue:55
+#: suite/calendar/feed.py suite/calendar/feed.py:319
+msgid "Late"
+msgstr "En retard"
+
+#: frontend/src/apps/drive/components/GenericPage.vue
+msgid "List"
+msgstr "Liste"
+
+#: frontend/src/apps/mail/components/DashboardPager.vue
+msgid "Load More"
+msgstr "Charger davantage"
+
+#: frontend/src/apps/mail/components/Controls/RecipientInput.vue
+msgid "Move to {0}"
+msgstr "Déplacer vers {0}"
+
+#: frontend/src/apps/calendar/components/Modals/CalendarFeedModal.vue
+#: frontend/src/apps/calendar/components/Modals/CalendarFeedModal.vue:52
+msgid "New address"
+msgstr "Nouvelle adresse"
+
+#: frontend/src/apps/calendar/components/Modals/EventModal.vue
+msgid "New Event"
+msgstr "Nouvel événement"
+
+#: frontend/src/apps/calendar/components/mobile/MobileSearch.vue
+msgid "No results for \"{0}\""
+msgstr "Aucun résultat pour \"{0}\""
+
+#: frontend/neoffice-calendar-i18n.ts
+msgid "Now"
+msgstr "Maintenant"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "of {0}"
+msgstr "sur {0}"
+
+#: frontend/src/apps/calendar/utils/format.ts
+msgid "on {0} at {1}"
+msgstr "le {0} à {1}"
+
+#: frontend/src/apps/mail/utils/dmarc.ts
+msgid "Pass"
+msgstr "Réussite"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "pending"
+msgstr "en attente"
+
+#: frontend/src/apps/mail/utils/domainStatus.ts
+msgid "Pending Verification"
+msgstr "En attente de vérification"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportsView.vue
+#: frontend/src/apps/mail/pages/dashboard/TlsReportsView.vue
+msgid "Period"
+msgstr "Période"
+
+#: frontend/src/apps/calendar/components/Modals/CalendarModal.vue
+msgid "Pink"
+msgstr "Rose"
+
+#: frontend/src/apps/calendar/components/mobile/MobileCalendar.vue
+msgid "Previous"
+msgstr "Précédent"
+
+#: frontend/src/apps/calendar/components/Settings/CalendarsSettings.vue
+msgid "Read-only"
+msgstr "Lecture seule"
+
+#: frontend/src/apps/mail/utils/dmarc.ts
+msgid "Rejected"
+msgstr "Rejeté"
+
+#: frontend/src/apps/calendar/components/mobile/MobileEventForm.vue
+msgid "Relative"
+msgstr "Relatif"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "Review"
+msgstr "À examiner"
+
+#: suite/mail/jmap.py
+msgid "seconds"
+msgstr "secondes"
+
+#: frontend/src/apps/calendar/components/EventAlertList.vue
+#: frontend/src/apps/calendar/components/Modals/EventModal.vue
+#: frontend/src/apps/meet/pages/Home.vue
+msgid "Select date"
+msgstr "Choisir la date"
+
+#: frontend/src/apps/calendar/components/EventAlertList.vue
+#: frontend/src/apps/calendar/components/Modals/EventModal.vue
+#: frontend/src/apps/meet/pages/Home.vue
+msgid "Select time"
+msgstr "Choisir l'heure"
+
+#: frontend/src/apps/mail/pages/dashboard/DmarcReportView.vue
+#: frontend/src/apps/mail/pages/dashboard/TlsReportView.vue
+msgid "Sent to"
+msgstr "Envoyé à"
+
+#: frontend/src/apps/calendar/components/NeoCockpitSidebar.vue
+#: frontend/src/apps/calendar/components/NeoCockpitSidebar.vue:126
+#: suite/public/frontend/assets/CalendarView-yDyy4Gd0.js:2
+msgid "Shared by {0}"
+msgstr "Partagé par {0}"
+
+#: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue
+#: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue:145
+#: suite/public/frontend/assets/CraftEditor-WLQdjnkK.js:1
+msgid "This document no longer exists."
+msgstr "Ce document n'existe plus."
+
+#: frontend/neoffice-calendar-i18n.ts
+msgid "This week"
+msgstr "Cette semaine"
+
+#: frontend/src/apps/calendar/components/mobile/MobileEventForm.vue
+msgid "Time"
+msgstr "Heure"
+
+#: frontend/src/apps/calendar/components/mobile/MobileEventForm.vue
+msgid "Timing"
+msgstr "Délai"
+
+#: frontend/src/apps/calendar/components/mobile/MobileEventForm.vue
+msgid "Unit"
+msgstr "Unité"
+
+#: frontend/src/apps/calendar/components/Modals/EventModal.vue
+#: frontend/src/apps/calendar/pages/CalendarView.vue
+msgid "Update"
+msgstr "Mettre à jour"
+
+#: frontend/src/apps/drive/components/UploadTracker.vue
+msgid "Uploading 1 file"
+msgstr "Téléversement de 1 fichier en cours"
+
+#: frontend/src/apps/drive/components/UploadTracker.vue
+msgid "Uploading {0} files"
+msgstr "Téléversement de {0} fichiers en cours"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue
+msgid "View All"
+msgstr "Tout voir"
+
+#: frontend/src/apps/mail/components/DNSRecords.vue
+msgid "Weight"
+msgstr "Poids"
+
+#: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue
+#: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue:235
+#: suite/public/frontend/assets/CraftEditor-WLQdjnkK.js:1
+msgid "{0} (copy)"
+msgstr "{0} (copie)"
+
+#: frontend/src/apps/mail/components/MailThread.vue
+msgid "{0} attachments"
+msgstr "{0} pièces jointes"
+
+#: frontend/src/apps/mail/components/DmarcBreakdownRows.vue
+#: frontend/src/apps/mail/components/DmarcStatTiles.vue
+#: frontend/src/apps/mail/components/TlsBreakdownRows.vue
+msgid "{0} failed"
+msgstr "{0} en échec"
+
+#: frontend/src/apps/drive/components/UploadTracker.vue
+msgid "{0} files uploaded"
+msgstr "{0} fichiers téléversés"
+
+#: frontend/src/apps/mail/components/AttachmentViewer.vue
+#: frontend/src/apps/mail/components/DashboardPager.vue
+msgid "{0} of {1}"
+msgstr "{0} sur {1}"
+
+#: frontend/src/apps/drive/components/UploadTracker.vue
+msgid "{0} uploads failed"
+msgstr "{0} téléversements échoués"
+
+#: frontend/neoffice-calendar-i18n.ts
+#: frontend/src/apps/calendar/utils/mobileView.ts
+msgctxt "Calendar view"
+msgid "Agenda"
+msgstr "Agenda"

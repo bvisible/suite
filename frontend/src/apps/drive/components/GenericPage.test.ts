@@ -125,6 +125,8 @@ function mountPage(grouper: (rows: unknown[]) => unknown) {
   app.config.warnHandler = (msg) => errors.push(msg)
   //// Neoffice — the page also joins and leaves the room of its folder (maintenance#1532)
   app.provide('socket', { on: vi.fn(), off: vi.fn(), emit: vi.fn() })
+  //// Neoffice — a template reads `__()` on the instance (« Drop to upload », maintenance#1592)
+  app.config.globalProperties.__ = (message: string) => message
   app.mount(document.createElement('div'))
   return { app, errors }
 }
@@ -215,6 +217,8 @@ function mountPaginated(firstPage: {
   )
   //// Neoffice — the page also joins and leaves the room of its folder (maintenance#1532)
   app.provide('socket', { on: vi.fn(), off: vi.fn(), emit: vi.fn() })
+  //// Neoffice — a template reads `__()` on the instance (« Drop to upload », maintenance#1592)
+  app.config.globalProperties.__ = (message: string) => message
   app.mount(document.createElement('div'))
   return { app, getEntities }
 }
@@ -458,6 +462,8 @@ describe('GenericPage folder room', () => {
       defineComponent({ setup: () => () => h(GenericPage, { getEntities, showSort: false }) })
     )
     app.provide('socket', socket)
+    //// Neoffice — a template reads `__()` on the instance (« Drop to upload », maintenance#1592)
+    app.config.globalProperties.__ = (message: string) => message
     app.mount(document.createElement('div'))
     return { app, socket, handlers, getEntities }
   }

@@ -17,4 +17,11 @@ Suite Cloud
 Version
 Violet
 inbox@{0}
+minutes
+NeoSheet
+NeoSlides
+NeoWrite
+Orange
+Sessions
+{0} sessions
 //// Neoffice — the signing secret and the token life of the Drive's Office editors (the Craft editors). Collabora's server address, the connection test and the master switch went with Collabora (maintenance#1570).

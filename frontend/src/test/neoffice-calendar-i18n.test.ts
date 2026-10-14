@@ -83,7 +83,7 @@ describe("frappe-ui's calendar in the reader's language", () => {
     for (const week of ['This week', 'Next week', 'Last week']) expect(agenda).toContain(`__('${week}')`)
 
     // the fourth view of the picker
-    expect(read('Calendar.vue')).toContain("{ label: __('Agenda'), value: 'Agenda',")
+    expect(read('Calendar.vue')).toContain("{ label: __('Agenda', null, 'Calendar view'), value: 'Agenda',")
   })
 
   it("leaves the Vue plugin's compiled parts of a file alone, and fails a file whose text moved", () => {

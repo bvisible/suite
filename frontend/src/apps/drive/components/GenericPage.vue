@@ -20,8 +20,9 @@
       :folder-contents="rows" :action-items="actionItems"
       :loading-more="loadingMore" @dropped="onDrop" />
   </div>
+  <!-- //// Neoffice — the drop hint in the reader's language (upstream hardcodes English) -->
   <p class="hidden absolute text-center top-1/2 left-[calc(50%-4rem)] w-32 z-10 font-bold">
-    Drop to upload
+    {{ __('Drop to upload') }}
   </p>
   <Transition v-if="uploads.length > 0"
     enter-active-class="transition duration-[150ms] ease-[cubic-bezier(.21,1.02,.73,1)]"

@@ -35,7 +35,9 @@ const VIEWS: Record<
 	day: { mode: 'Day', route: 'calendar-day', icon: SquareSquare, label: () => __('Day') },
 	week: { mode: 'Week', route: 'calendar-week', icon: Columns3, label: () => __('Week') },
 	month: { mode: 'Month', route: 'calendar-month', icon: Grid3x3, label: () => __('Month') },
-	agenda: { mode: 'Agenda', route: 'calendar-agenda', icon: Rows3, label: () => __('Agenda') },
+	//// Neoffice — the context of the view's name: a bare « Agenda » is « Ordre du jour » in ERPNext's French, and every
+	//// app's translations land in one dictionary (the same context as the desktop's picker, neoffice-calendar-i18n.ts).
+	agenda: { mode: 'Agenda', route: 'calendar-agenda', icon: Rows3, label: () => __('Agenda', null, 'Calendar view') },
 }
 
 export const MOBILE_VIEWS = Object.keys(VIEWS) as MobileView[]

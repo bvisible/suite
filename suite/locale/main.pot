@@ -25097,6 +25097,7 @@ msgstr ""
 
 #: frontend/neoffice-calendar-i18n.ts
 #: frontend/src/apps/calendar/utils/mobileView.ts
+msgctxt "Calendar view"
 msgid "Agenda"
 msgstr ""
 
@@ -26990,4 +26991,35 @@ msgstr ""
 #: suite/mail/doctype/mail_queue/payload.py
 #, python-brace-format
 msgid "{header} is a standard email header and cannot be overridden; use a custom X- header"
+msgstr ""
+
+#: frontend/src/apps/drive/components/GenericPage.vue
+msgid "Drop to upload"
+msgstr ""
+
+#: frontend/src/apps/drive/components/UploadTracker.vue
+msgid "Uploading 1 file"
+msgstr ""
+
+#: frontend/src/apps/drive/components/UploadTracker.vue
+#, python-brace-format
+msgid "Uploading {0} files"
+msgstr ""
+
+#: frontend/src/apps/drive/components/UploadTracker.vue
+msgid "1 file uploaded"
+msgstr ""
+
+#: frontend/src/apps/drive/components/UploadTracker.vue
+#, python-brace-format
+msgid "{0} files uploaded"
+msgstr ""
+
+#: frontend/src/apps/drive/components/UploadTracker.vue
+msgid "1 upload failed"
+msgstr ""
+
+#: frontend/src/apps/drive/components/UploadTracker.vue
+#, python-brace-format
+msgid "{0} uploads failed"
 msgstr ""
