@@ -127,14 +127,80 @@ def is_jmap_account_belongs_to_user(
     return exists
 
 
+# //// Neoffice — which of a user's accounts are THEIR OWN mailbox, as the mail server says it for that user
+# //// (maintenance#1579). Upstream reads the flag of the shared « JMAP Account » document, written once from the
+# //// session of the first user who got the account: a mailbox its owner shares with a colleague stays « personal »
+# //// for the colleague too. He then has two personal accounts: the calendar and the mail open the owner's, and
+# //// get_user_personal_jmap_account finds none (no dates of the ERP, no iCal address, no mail API). The session of
+# //// each user says it per user (isPersonal). It is read here from the cache the JMAP layer keeps, with no call
+# //// to the mail server; the document's flag stays the answer where that session does not say (cold cache, no
+# //// JMAP settings, a session that names no personal account, an account it does not list). To drop when
+# //// upstream keeps the flag per user.
+def get_personal_accounts_of_user(user: str, accounts: list[str]) -> list[str]:
+    """The accounts among `accounts` that are the user's own mailbox."""
+
+    if not accounts:
+        return []
+
+    flags = _session_personal_flags(user)
+    if flags is None:
+        return frappe.db.get_all(
+            "JMAP Account", {"is_personal": True, "name": ("in", accounts)}, pluck="name"
+        )
+
+    personal = {account for account in accounts if flags.get(account)}
+    unlisted = [account for account in accounts if account not in flags]
+    if unlisted:
+        personal.update(
+            frappe.db.get_all("JMAP Account", {"is_personal": True, "name": ("in", unlisted)}, pluck="name")
+        )
+    return [account for account in accounts if account in personal]
+
+
+def _session_personal_flags(user: str) -> dict[str, bool] | None:
+    """`isPersonal` of each account in the user's cached JMAP session, or None when the session is absent or
+    names no personal account."""
+
+    from suite.mail.jmap import get_jmap_session_manager
+
+    try:
+        session = get_jmap_session_manager(user).get_session()
+    except Exception:
+        return None
+
+    accounts = session.get("accounts") if isinstance(session, dict) else None
+    if not isinstance(accounts, dict):
+        return None
+
+    flags = {
+        account: bool(details.get("isPersonal"))
+        for account, details in accounts.items()
+        if isinstance(details, dict)
+    }
+    return flags if any(flags.values()) else None
+
+
+def warm_user_jmap_session(user: str) -> None:
+    """Connects once as the user, so that the session the mail server holds for them is in the cache."""
+
+    from suite.mail.jmap import get_jmap_connection
+
+    # A refusal is for the calls that follow to say: what it puts in the message log is not wanted here.
+    messages = list(frappe.local.message_log)
+    try:
+        get_jmap_connection(user)
+    except Exception:
+        frappe.local.message_log = messages
+
+
 def get_user_personal_jmap_account(user: str | None = None, raise_exception: bool = False) -> str | None:
     """Returns the personal JMAP account ID for the given user. If no user is provided, it defaults to the current session user."""
 
     user = user or frappe.session.user
     user_accounts = get_user_jmap_accounts(user, raise_exception=raise_exception)
-    personal_accounts = frappe.db.get_all(
-        "JMAP Account", {"is_personal": True, "name": ("in", user_accounts)}, pluck="name"
-    )
+    # //// Neoffice — the user's own mailbox as the mail server says it for them, not the flag of the shared
+    # //// document (maintenance#1579, get_personal_accounts_of_user above).
+    personal_accounts = get_personal_accounts_of_user(user, user_accounts)
 
     if personal_accounts:
         if len(personal_accounts) > 1:

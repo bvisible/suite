@@ -16,6 +16,12 @@ from suite.mail.doctype.identity.identity import fetch_identities
 from suite.mail.doctype.mail_account_request.mail_account_request import otp_cache_key
 from suite.mail.doctype.mail_settings.mail_settings import get_signup_domains
 from suite.mail.doctype.participant_identity.participant_identity import fetch_participant_identities
+
+# //// Neoffice — the user's own mailbox as the mail server says it for them (maintenance#1579).
+from suite.mail.doctype.user_account.user_account import (
+    get_personal_accounts_of_user,
+    warm_user_jmap_session,
+)
 from suite.mail.stalwart import get_domains
 from suite.mail.utils import get_config, is_stalwart_configured, log_mail_error
 from suite.mail.utils.dns import parse_dns_zone_file
@@ -247,11 +253,18 @@ def get_user_info() -> dict | None:
             ],
         )
     }
+    # //// Neoffice — « personal » is the user's own mailbox as the mail server says it for THEM, not the flag of the
+    # //// shared JMAP Account document: a mailbox a colleague shares with them is not theirs, and the calendar and
+    # //// the mail open the first personal account (maintenance#1579, suite.mail.doctype.user_account).
+    if data.is_jmap_configured:
+        warm_user_jmap_session(user)
+    personal_accounts = set(get_personal_accounts_of_user(user, [row["account"] for row in data.accounts]))
     for account in data.accounts:
         settings = settings_by_account.get(account["account"])
         account["id"] = account["account"]
         account["_name"] = settings["_name"] if settings else None
-        account["is_personal"] = bool(settings["is_personal"]) if settings else False
+        # //// Neoffice — his own mailbox as the server says it, not the flag of the shared document (maintenance#1579).
+        account["is_personal"] = bool(settings) and account["account"] in personal_accounts
         account["jmap_account"] = settings["name"] if settings else None
         account["default_outgoing_email"] = settings["default_outgoing_email"] if settings else None
         account["on_mark_as_junk"] = settings["on_mark_as_junk"] if settings else "Junk Sender's Mail"

@@ -143,6 +143,16 @@ queries. Only `suite/calendar/local.py` reads or writes them, after checking the
 no role but System Manager has a permission on them. Each JSON's `description` carries
 the marker. A merge leaves them alone: nothing upstream has these paths.
 
+#### `suite/mail/doctype/user_account/user_account.py`, `suite/mail/api/account.py`
+Ours (maintenance#1579): which of a user's accounts is their OWN mailbox. Upstream reads `JMAP Account.is_personal`, a
+flag of the shared document written once, from the first session that saw the account: a mailbox its owner shares
+with a colleague stays « personal » for the colleague, who then has two. The calendar and the mail open the owner's,
+and `get_user_personal_jmap_account` finds none (no dates of the ERP, no iCal address, no mail API).
+`get_personal_accounts_of_user` reads it from the user's own JMAP session (the cache `jmap:sessions`, which the JMAP
+layer fills; `warm_user_jmap_session` connects once so that it is there); the document's flag stays the fallback.
+At a merge: keep both helpers and the lines that call them in `get_user_info` and `get_user_personal_jmap_account`.
+Drop them when upstream keeps the flag per user.
+
 #### `suite/fixtures/role.json`
 Ours, one field on one row (`e20b2ac06 fix(security): frontend signups must stay
 Website Users`):
