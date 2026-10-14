@@ -41,7 +41,7 @@
 				variant="subtle"
 				size="sm"
 				:disabled="busy"
-				:label="__('Not for me')"
+				:label="__('Not for me', null, 'Meet notes')"
 				data-testid="seance-decline"
 				@click="emit('decline')"
 			/>

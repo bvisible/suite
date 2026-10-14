@@ -36,14 +36,16 @@
 				{{ __('Guest') }}
 			</span>
 			<!-- //// Neoffice — while notes are being taken of the call, who agreed to them (their voice is captured) -->
+			<!-- a clay dot, like the pill of the header (a chip with words squeezed the name of the host to a letter) -->
 			<span
 				v-if="isCaptured"
-				class="inline-flex items-center gap-1 rounded-full bg-surface-gray-4 px-1.5 py-px text-xs text-ink-gray-6 tracking-[0.24px]"
+				class="inline-flex shrink-0 items-center p-1"
 				:title="__('{0} agreed to the notes', [participant.user_name || participant.user_id])"
 				data-testid="people-seance-chip"
 			>
-				<span class="size-1.5 rounded-full bg-[#D68A59]" aria-hidden="true" />
-				{{ __('Agreed') }}
+				<!-- //// Neoffice — the dot and its words for a screen reader -->
+				<span class="size-2 rounded-full bg-[#D68A59]" aria-hidden="true" />
+				<span class="sr-only">{{ __('Agreed', null, 'Meet notes') }}</span>
 			</span>
 		</div>
 

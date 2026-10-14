@@ -61,11 +61,11 @@ describe("SeanceIndicator", () => {
 	it("tells a person who agreed what is recorded, and lets them take it back", async () => {
 		const { root, withdraw } = mount({ you: "consented" });
 		await open(root);
-		expect(root.querySelector("[data-testid=seance-status]")?.textContent).toContain("You agreed");
-		(root.querySelector("[data-testid=seance-withdraw]") as HTMLElement).click();
+		expect(document.body.querySelector("[data-testid=seance-status]")?.textContent).toContain("You agreed");
+		(document.body.querySelector("[data-testid=seance-withdraw]") as HTMLElement).click();
 		expect(withdraw).toHaveBeenCalledWith(false);
 		await open(root);
-		(root.querySelector("[data-testid=seance-erase]") as HTMLElement).click();
+		(document.body.querySelector("[data-testid=seance-erase]") as HTMLElement).click();
 		expect(withdraw).toHaveBeenLastCalledWith(true);
 	});
 
@@ -73,9 +73,9 @@ describe("SeanceIndicator", () => {
 		for (const you of ["declined", "withdrawn"] as const) {
 			const { root, agree } = mount({ you });
 			await open(root);
-			expect(root.querySelector("[data-testid=seance-status]")?.textContent).toContain("not being recorded");
-			expect(root.querySelector("[data-testid=seance-withdraw]")).toBeNull();
-			(root.querySelector("[data-testid=seance-join]") as HTMLElement).click();
+			expect(document.body.querySelector("[data-testid=seance-status]")?.textContent).toContain("not being recorded");
+			expect(document.body.querySelector("[data-testid=seance-withdraw]")).toBeNull();
+			(document.body.querySelector("[data-testid=seance-join]") as HTMLElement).click();
 			expect(agree).toHaveBeenCalledOnce();
 		}
 	});
@@ -83,27 +83,35 @@ describe("SeanceIndicator", () => {
 	it("offers to end the notes to the host and to nobody else", async () => {
 		const host = mount({ canEnd: true });
 		await open(host.root);
-		(host.root.querySelector("[data-testid=seance-end]") as HTMLElement).click();
+		(document.body.querySelector("[data-testid=seance-end]") as HTMLElement).click();
 		expect(host.end).toHaveBeenCalledOnce();
 
 		const guest = mount({ canEnd: false });
 		await open(guest.root);
-		expect(guest.root.querySelector("[data-testid=seance-end]")).toBeNull();
+		expect(document.body.querySelector("[data-testid=seance-end]")).toBeNull();
+	});
+
+	it("hangs its menu outside the header: the header of Meet clips what falls below it", async () => {
+		const { root } = mount();
+		await open(root);
+		const menu = document.body.querySelector("[data-testid=seance-menu]") as HTMLElement;
+		expect(menu).not.toBeNull();
+		expect(root.contains(menu)).toBe(false);
+		expect(menu.style.top).not.toBe("");
+		expect(menu.className).toContain("fixed");
 	});
 
 	it("closes when the person clicks away or presses escape", async () => {
 		const { root } = mount();
 		await open(root);
-		expect(root.querySelector("[data-testid=seance-menu]")).not.toBeNull();
+		expect(document.body.querySelector("[data-testid=seance-menu]")).not.toBeNull();
 		document.body.click();
 		await nextTick();
-		expect(root.querySelector("[data-testid=seance-menu]")).toBeNull();
+		expect(document.body.querySelector("[data-testid=seance-menu]")).toBeNull();
 
 		await open(root);
-		root
-			.querySelector("[data-testid=seance-menu]")
-			?.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+		document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
 		await nextTick();
-		expect(root.querySelector("[data-testid=seance-menu]")).toBeNull();
+		expect(document.body.querySelector("[data-testid=seance-menu]")).toBeNull();
 	});
 });
