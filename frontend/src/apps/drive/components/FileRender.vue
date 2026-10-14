@@ -19,6 +19,8 @@ import { computed, defineAsyncComponent } from 'vue'
 const MSOfficePreview = defineAsyncComponent(() => import('@/apps/drive/components/FileTypePreview/MSOfficePreview.vue'))
 const ImagePreview = defineAsyncComponent(() => import('@/apps/drive/components/FileTypePreview/ImagePreview.vue'))
 const PDFPreview = defineAsyncComponent(() => import('./FileTypePreview/PDFPreview.vue'))
+//// Neoffice — a PDF is previewed as upstream does, with a way into the PDF editor when the site has one.
+const PdfWithEditor = defineAsyncComponent(() => import('./FileTypePreview/PdfWithEditor.vue'))
 const VideoPreview = defineAsyncComponent(() => import('./FileTypePreview/VideoPreview.vue'))
 const TextPreview = defineAsyncComponent(() => import('./FileTypePreview/TextPreview.vue'))
 const AudioPreview = defineAsyncComponent(() => import('@/apps/drive/components/FileTypePreview/AudioPreview.vue'))
@@ -52,7 +54,7 @@ const download = () => {
 }
 
 const RENDERS = {
-  PDF: PDFPreview,
+  PDF: PdfWithEditor, //// Neoffice — was PDFPreview, which PdfWithEditor wraps.
   Image: ImagePreview,
   Video: VideoPreview,
   Audio: AudioPreview,

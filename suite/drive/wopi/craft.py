@@ -85,6 +85,12 @@ def editor_for(file_name: str, requested: str | None = None) -> str | None:
     return None
 
 
+@frappe.whitelist()
+def get_installed_editors() -> dict:
+    """The Craft editors this site has a build of, with their versions: what the page can offer."""
+    return {editor: version for editor in EDITORS if (version := installed_version(editor))}
+
+
 # `requested` is `str = ""`, not `str | None`: v15's whitelist argument coercion breaks on union
 # types for values sent over HTTP (same note as editor.create_office_file). Empty = the default editor.
 @frappe.whitelist(allow_guest=True)

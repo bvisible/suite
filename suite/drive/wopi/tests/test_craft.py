@@ -99,6 +99,17 @@ class TestWhatThePageIsToldToOpen(IntegrationTestCase):
         mint.assert_not_called()
 
 
+class TestWhatTheSiteHas(IntegrationTestCase):
+    def test_only_the_installed_editors_are_listed_with_their_version(self):
+        versions = {"word": "0.6.1+abc", "pdf": "0.7.1+def"}
+        with patch.object(craft, "installed_version", side_effect=lambda editor: versions.get(editor)):
+            self.assertEqual(craft.get_installed_editors(), versions)
+
+    def test_a_site_with_none_lists_none(self):
+        with patch.object(craft, "installed_version", return_value=None):
+            self.assertEqual(craft.get_installed_editors(), {})
+
+
 class TestACopy(IntegrationTestCase):
     def test_a_name_is_cleaned_before_it_is_stored(self):
         self.assertEqual(craft.clean_file_name("../../etc/quote.docx"), "quote.docx")

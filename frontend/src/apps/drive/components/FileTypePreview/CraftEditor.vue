@@ -96,6 +96,13 @@ const conflictOpen = computed({
 let baseVersion = ''
 // Saves go one at a time, in the order the editor made them.
 let saving = Promise.resolve()
+// The build is 20 to 40 MB of WebAssembly: a page that has heard nothing of the editor after this long is
+// not waiting for a slow network, its build is missing or cannot start (no WebGL2, a blocked script).
+const READY_TIMEOUT_MS = 60000
+let readyTimer = null
+
+// The page that frames the editor in its own way (the PDF editor's overlay) asks before it throws it away.
+defineExpose({ dirty })
 
 const src = computed(() => {
   const query = new URLSearchParams({ host: 'parent', v: session.version })
@@ -109,6 +116,15 @@ class Conflict extends Error {}
 const conflictMessage = __('Someone else saved a new version of this document since you opened it. You can keep yours as a copy next to it, or replace theirs with yours.')
 
 const extension = (name) => (name.includes('.') ? name.split('.').pop().toLowerCase() : '')
+
+function waitForEditor() {
+  clearTimeout(readyTimer)
+  readyTimer = setTimeout(() => {
+    if (!loading.value || error.value) return
+    loading.value = false
+    error.value = __('The document editor did not start. Your document has not left this server.')
+  }, READY_TIMEOUT_MS)
+}
 
 function post(type, fields = {}, transfer = []) {
   frame.value?.contentWindow?.postMessage({ type: `${prefix}:${type}`, ...fields }, window.location.origin, transfer)
@@ -215,16 +231,21 @@ function exportFile(name, bytes) {
   setTimeout(() => URL.revokeObjectURL(url), 10000)
 }
 
-async function store(name, bytes) {
+// The name of a copy kept next to the document ("Quote (copy).docx").
+const copyName = (name) => `${__('{0} (copy)', [name.replace(/\.[^.]+$/, '')])}.${extension(name)}`
+
+async function store(name, bytes, saveAs) {
+  // PdfCraft says when the user asked for Save As (it keeps the document's name); the others carry the new name.
+  if (saveAs) return saveCopy(copyName(name), bytes)
   if (name.toLowerCase() === session.file_name.toLowerCase()) return overwrite(bytes)
   if (extension(name) === extension(session.file_name)) return saveCopy(name, bytes)
   exportFile(name, bytes)
 }
 
-function save(name, bytes) {
+function save(name, bytes, saveAs = false) {
   saving = saving.then(async () => {
     try {
-      await store(name, bytes)
+      await store(name, bytes, saveAs)
       post('saved', { name, ok: true })
     } catch (e) {
       if (e instanceof Conflict) {
@@ -243,9 +264,8 @@ function save(name, bytes) {
 async function keepAsCopy() {
   const { name, bytes } = conflict.value
   conflict.value = null
-  const stem = name.replace(/\.[^.]+$/, '')
   try {
-    await saveCopy(`${__('{0} (copy)', [stem])}.${extension(name)}`, bytes)
+    await saveCopy(copyName(name), bytes)
     post('saved', { name, ok: true })
   } catch (e) {
     toast.error(e.message)
@@ -269,19 +289,45 @@ function onMessage(event) {
   if (!data || typeof data.type !== 'string' || !data.type.startsWith(`${prefix}:`)) return
   switch (data.type.slice(prefix.length + 1)) {
     case 'ready':
+      clearTimeout(readyTimer)
       openDocument()
       break
     case 'dirty':
       dirty.value = !!data.dirty
       break
     case 'save':
-      save(data.name, data.bytes)
+      save(data.name, data.bytes, data.saveAs === true)
       break
     case 'failed':
+      clearTimeout(readyTimer)
       loading.value = false
       error.value = data.error || __('The editor could not start.')
       break
   }
+}
+
+// Cmd/Ctrl+S with the keyboard on the Drive page (after a click on its own chrome, the editor having lost the focus)
+// would offer to save THE PAGE. The editor saves its document: this gives it the key. The events reach the page only
+// when the editor does not have the focus, and the editor reads a keydown from its canvas once that has the focus.
+function onKeydown(event) {
+  if (!(event.metaKey || event.ctrlKey) || event.altKey || event.key.toLowerCase() !== 's') return
+  event.preventDefault()
+  const canvas = frame.value?.contentDocument?.querySelector('canvas')
+  if (!canvas) return
+  canvas.focus()
+  const init = {
+    key: event.shiftKey ? 'S' : 's',
+    code: 'KeyS',
+    keyCode: 83,
+    which: 83,
+    metaKey: event.metaKey,
+    ctrlKey: event.ctrlKey,
+    shiftKey: event.shiftKey,
+    bubbles: true,
+    cancelable: true,
+  }
+  canvas.dispatchEvent(new frame.value.contentWindow.KeyboardEvent('keydown', init))
+  canvas.dispatchEvent(new frame.value.contentWindow.KeyboardEvent('keyup', init))
 }
 
 function reload() {
@@ -289,6 +335,7 @@ function reload() {
   loading.value = true
   dirty.value = false
   reloads.value += 1
+  waitForEditor()
 }
 
 async function downloadOriginal() {
@@ -307,9 +354,15 @@ const leave = () => !dirty.value || window.confirm(__('You have unsaved changes.
 onBeforeRouteLeave(leave)
 onBeforeRouteUpdate(leave)
 
-onMounted(() => window.addEventListener('message', onMessage))
+onMounted(() => {
+  window.addEventListener('message', onMessage)
+  window.addEventListener('keydown', onKeydown)
+  waitForEditor()
+})
 onBeforeUnmount(() => {
+  clearTimeout(readyTimer)
   window.removeEventListener('message', onMessage)
+  window.removeEventListener('keydown', onKeydown)
   // Let the editor free its memory (a document, a 40 MB module) at once.
   if (frame.value) frame.value.src = 'about:blank'
 })
