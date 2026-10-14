@@ -26588,3 +26588,210 @@ msgstr "{0} téléversements échoués"
 msgctxt "Calendar view"
 msgid "Agenda"
 msgstr "Agenda"
+
+#: frontend/src/apps/meet/components/PeopleParticipantTile.vue:48
+msgctxt "Meet notes"
+msgid "Agreed"
+msgstr "D'accord"
+
+#: frontend/src/apps/meet/components/SeanceStartDialog.vue:25
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgid "Ask the participants"
+msgstr "Demander l'accord des participants"
+
+#: frontend/src/apps/meet/components/SeanceStopDialog.vue:4
+msgid "End the notes?"
+msgstr "Terminer les notes ?"
+
+#: frontend/src/apps/meet/components/SeanceStartDialog.vue:7
+msgid "Everybody will be asked for their agreement. Nobody is recorded without saying yes."
+msgstr "Chacun sera invité à donner son accord. Personne n'est enregistré sans avoir dit oui."
+
+#: frontend/src/apps/meet/components/SeanceConsentCard.vue:35
+msgid "I agree"
+msgstr "D'accord"
+
+#: frontend/src/apps/meet/components/SeanceConsentCard.vue:24
+msgid "If other people are with you, please let them know."
+msgstr "Si d'autres personnes sont avec vous, merci de les en informer."
+
+#: frontend/src/apps/meet/components/SeanceIndicator.vue:57
+msgid "Join the notes"
+msgstr "Rejoindre les notes"
+
+#: frontend/src/apps/meet/components/SeanceConsentCard.vue:52
+msgid "More about the notes"
+msgstr "En savoir plus sur les notes"
+
+#: frontend/src/apps/meet/components/SeanceStartDialog.vue:10
+msgid "Neoffice will write the minutes. You are recorded too, while your microphone is on."
+msgstr "Neoffice rédigera le procès-verbal. Votre voix est aussi enregistrée, tant que votre micro est activé."
+
+#: frontend/src/apps/meet/components/SeanceConsentCard.vue:18
+msgid "Neoffice will write the minutes. Your voice is recorded while your microphone is on."
+msgstr "Neoffice rédigera le procès-verbal. Votre voix est enregistrée tant que votre micro est activé."
+
+#: frontend/src/apps/meet/utils/seancePresentation.ts:34
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgid "Nobody is taking notes of this meeting any more."
+msgstr "Personne ne prend plus de notes de cette réunion."
+
+#: frontend/src/apps/meet/components/SeanceConsentCard.vue:44
+msgctxt "Meet notes"
+msgid "Not for me"
+msgstr "Pas pour moi"
+
+#: frontend/src/apps/meet/components/SeanceConsentCard.vue:94
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgid "Notes are being taken of this meeting"
+msgstr "Des notes sont prises pendant cette réunion"
+
+#: frontend/src/apps/meet/components/SeanceIndicator.vue:114
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgid "Notes are being taken. You have not answered yet."
+msgstr "Des notes sont prises. Vous n'avez pas encore répondu."
+
+#: frontend/src/apps/meet/utils/seancePresentation.ts:26
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgid "Notes cannot be taken in an end-to-end encrypted meeting."
+msgstr "Les notes ne peuvent pas être prises dans une réunion chiffrée de bout en bout."
+
+#: frontend/src/apps/meet/components/SeanceConsentCard.vue:8
+#: frontend/src/apps/meet/components/SeanceIndicator.vue:28
+msgid "Notes of this meeting"
+msgstr "Notes de cette réunion"
+
+#: frontend/src/apps/meet/utils/seancePresentation.ts:30
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgid "Only the host or a co-host can take notes of the meeting."
+msgstr "Seuls l'hôte ou un co-hôte peuvent prendre des notes de la réunion."
+
+#: frontend/src/apps/meet/utils/seancePresentation.ts:32
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgid "Somebody else is already taking notes of this meeting."
+msgstr "Quelqu'un d'autre prend déjà des notes de cette réunion."
+
+#: frontend/src/apps/meet/utils/seancePresentation.ts:40
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgid "Something went wrong with the notes. Please try again."
+msgstr "Une erreur est survenue avec les notes. Veuillez réessayer."
+
+#: frontend/src/apps/meet/components/SeanceIndicator.vue:39
+msgid "Take back my agreement"
+msgstr "Reprendre mon accord"
+
+#: frontend/src/apps/meet/components/SeanceIndicator.vue:47
+msgid "Take it back and erase what I said"
+msgstr "Reprendre mon accord et effacer ce que j'ai dit"
+
+#: frontend/src/apps/meet/components/MeetingToolbar.vue:90
+msgid "Take notes"
+msgstr "Prendre des notes"
+
+#: frontend/src/apps/meet/components/SeanceStartDialog.vue:4
+msgid "Take notes of this meeting?"
+msgstr "Prendre des notes de cette réunion ?"
+
+#: frontend/src/apps/meet/utils/seancePresentation.ts:72
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgid "The audio is deleted {0} days after the minutes are approved or, if nobody approves them, after they are ready."
+msgstr "L'enregistrement audio est effacé {0} jours après l'approbation du procès-verbal ou, à défaut, après sa rédaction."
+
+#: frontend/src/apps/meet/utils/seancePresentation.ts:71
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgid "The audio is kept with the minutes."
+msgstr "L'enregistrement audio est conservé avec le procès-verbal."
+
+#: frontend/src/apps/meet/utils/seancePresentation.ts:36
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgid "The call server cannot take more notes right now."
+msgstr "Le serveur d'appels ne peut pas prendre en charge de nouvelles notes pour le moment."
+
+#: frontend/src/apps/meet/utils/seancePresentation.ts:56
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgid "The call server restarted: the notes were interrupted. The host can start them again."
+msgstr "Le serveur d'appels a redémarré : les notes ont été interrompues. L'hôte peut les relancer."
+
+#: frontend/src/apps/meet/utils/seancePresentation.ts:52
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgid "The meeting is over, and so are the notes."
+msgstr "La réunion est terminée, et les notes aussi."
+
+#: frontend/src/apps/meet/utils/seancePresentation.ts:49
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgid "The notes are over. The minutes will arrive in a few minutes."
+msgstr "Les notes sont terminées. Le procès-verbal arrivera dans quelques minutes."
+
+#: frontend/src/apps/meet/components/SeanceStopDialog.vue:6
+msgid "The notes end for everybody. The minutes will be written from what was said, and they will arrive in a few minutes."
+msgstr "Les notes s'arrêtent pour tout le monde. Le procès-verbal sera rédigé à partir de ce qui a été dit, et il arrivera dans quelques minutes."
+
+#: frontend/src/apps/meet/utils/seancePresentation.ts:50
+#: frontend/src/apps/meet/utils/seancePresentation.ts:61
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgid "The notes of this meeting are over."
+msgstr "Les notes de cette réunion sont terminées."
+
+#: frontend/src/apps/meet/utils/seancePresentation.ts:54
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgid "The notes reached their maximum length and were ended."
+msgstr "Les notes ont atteint leur durée maximale et se sont arrêtées."
+
+#: frontend/src/apps/meet/utils/seancePresentation.ts:59
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgid "The notes were interrupted by the call server. What was taken is kept."
+msgstr "Les notes ont été interrompues par le serveur d'appels. Ce qui a été noté est conservé."
+
+#: frontend/src/apps/meet/components/SeanceConsentCard.vue:64
+msgid "The people who agreed, and the people {0} chooses. You can take your agreement back at any time: your voice then stops being recorded, and you can ask for it to be erased."
+msgstr "Les personnes qui ont donné leur accord, et celles que {0} choisit. Vous pouvez reprendre votre accord à tout moment : votre voix cesse alors d'être enregistrée, et vous pouvez demander qu'elle soit effacée."
+
+#: frontend/src/apps/meet/utils/seancePresentation.ts:28
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgid "This call server does not take notes yet."
+msgstr "Ce serveur d'appels ne prend pas encore en charge les notes."
+
+#: frontend/src/apps/meet/utils/seancePresentation.ts:38
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgid "Too many requests. Please try again in a moment."
+msgstr "Trop de requêtes. Veuillez réessayer dans un instant."
+
+#: frontend/src/apps/meet/components/SeanceConsentCard.vue:61
+msgid "Who sees the minutes?"
+msgstr "Qui voit le procès-verbal ?"
+
+#: frontend/src/apps/meet/components/SeanceIndicator.vue:109
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgid "You agreed to the notes. Your voice is recorded while your microphone is on."
+msgstr "Vous avez donné votre accord pour les notes. Votre voix est enregistrée tant que votre micro est activé."
+
+#: frontend/src/apps/meet/composables/useSeance.ts:345
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgid "You are no longer recorded, and what you said is being erased."
+msgstr "Votre voix n'est plus enregistrée, et ce que vous avez dit est en cours d'effacement."
+
+#: frontend/src/apps/meet/composables/useSeance.ts:346
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgid "You are no longer recorded."
+msgstr "Votre voix n'est plus enregistrée."
+
+#: frontend/src/apps/meet/components/SeanceIndicator.vue:112
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgid "You are not being recorded."
+msgstr "Votre voix n'est pas enregistrée."
+
+#: frontend/src/apps/meet/components/PeopleParticipantTile.vue:43
+msgid "{0} agreed to the notes"
+msgstr "{0} a donné son accord pour les notes"
+
+#: frontend/src/apps/meet/components/SeanceConsentCard.vue:93
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgid "{0} is taking notes of this meeting"
+msgstr "{0} prend des notes de cette réunion"
+
+#: frontend/src/apps/meet/components/SeanceIndicator.vue:16
+#: frontend/src/apps/meet/components/SeanceIndicator.vue:118
+#: suite/public/frontend/assets/Meeting-pj_JhMZM.js:209
+msgctxt "Meet notes"
+msgid "Notes"
+msgstr "Notes en cours"
