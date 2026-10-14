@@ -1,0 +1,1 @@
+import{t as e}from"./realtime-D-M9gW17.js";var t=null;function n(){return t||(t=e(),t.on(`connect_error`,e=>{console.log(e)}),t)}function r(){return t}export{n,r as t};
