@@ -46,8 +46,10 @@ EDITORS = {
     "pdf": {"folder": "pdfcraft", "extensions": ("pdf",)},
 }
 
-# What the Drive opens in an editor on its own. PDFs have their own viewer: the PDF editor is asked for.
-DEFAULT_EDITORS = ("word", "sheet", "deck")
+# What the Drive opens in an editor on its own: every type an editor writes back, the PDF editor included (a PDF
+# opens in it directly, as a Word document opens in Word; the preview upstream has is the fallback of a site without
+# the build, see PdfWithEditor.vue).
+DEFAULT_EDITORS = ("word", "sheet", "deck", "pdf")
 
 # Where Frappe serves the public folder of this app from.
 ASSETS_URL = "/assets/suite/craft/"

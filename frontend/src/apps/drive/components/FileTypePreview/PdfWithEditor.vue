@@ -1,65 +1,45 @@
-<!-- //// Neoffice — added file (no upstream equivalent): the PDF preview, and the way into the PDF editor.
-     Upstream previews a PDF and nothing more. When this site has the PDF editor (see suite/drive/wopi/craft.py) and the
-     user may change the file, "Edit PDF" opens it in PdfCraft, over the page. The preview stays what it was. //// -->
+<!-- //// Neoffice — added file (no upstream equivalent): the PDF preview. A PDF opens in the PDF editor (PdfCraft, a browser
+     build served by this site, see suite/drive/wopi/craft.py) as a Word, Excel or PowerPoint document opens in its own
+     editor: directly, with no button to click first (Jérémy, 14.10: « tu fais directement dans le système PDF »).
+     A site that has no build of the editor, or a question that failed, previews the PDF as upstream does, and says
+     nothing about it: a PDF is never sent anywhere either way. //// -->
 <template>
-  <PDFPreview :key="previews" :preview-entity="previewEntity" />
-  <Button v-if="canEdit" class="absolute right-4 top-4 z-10 shadow-md" variant="solid" :loading="starting" @click="start">
-    <template #prefix><LucidePencil class="size-4" /></template>
-    {{ __('Edit PDF') }}
-  </Button>
-  <Teleport to="body">
-    <div v-if="config" class="fixed inset-0 z-40 flex flex-col bg-surface-base">
-      <div class="flex items-center justify-between gap-3 border-b border-outline-gray-2 px-4 py-2">
-        <span class="truncate text-p-base text-ink-gray-8">{{ previewEntity.file_name }}</span>
-        <Button variant="subtle" @click="close">{{ __('Close') }}</Button>
-      </div>
-      <CraftEditor ref="editor" class="min-h-0 grow" :config="config" :preview-entity="previewEntity" />
-    </div>
-  </Teleport>
+  <CraftEditor v-if="craftConfig" :config="craftConfig" :preview-entity="previewEntity" />
+  <div v-else-if="state === 'probing'" class="w-full h-full flex flex-col items-center justify-center gap-3">
+    <LucideLoaderCircle class="size-7 animate-spin text-ink-gray-6" />
+  </div>
+  <PDFPreview v-else :preview-entity="previewEntity" />
 </template>
 
 <script setup>
-import { Button, call, createResource, toast } from 'frappe-ui'
-import { computed, ref } from 'vue'
+import { createResource } from 'frappe-ui'
+import { onMounted, ref } from 'vue'
 import CraftEditor from '@/apps/drive/components/FileTypePreview/CraftEditor.vue'
 import PDFPreview from '@/apps/drive/components/FileTypePreview/PDFPreview.vue'
-import LucidePencil from '~icons/lucide/pencil'
+import LucideLoaderCircle from '~icons/lucide/loader-circle'
 
 const props = defineProps({ previewEntity: Object })
 
-const editor = ref(null)
-const config = ref(null)
-const starting = ref(false)
-// The preview is built again after an editing session: it shows what was saved.
-const previews = ref(0)
-
-// Which editors the site has: one cheap call, the answer does not change within a visit.
-const installed = createResource({
-  url: 'suite.drive.wopi.craft.get_installed_editors',
-  cache: 'craft-installed-editors',
-  auto: true,
+// What the server said about this document's editor (get_craft_editor_config): `probing` while asking; `editor`
+// when the PDF editor opens it (craftConfig holds its session); `viewer` when this site has no build of it or the
+// answer did not come: upstream's preview.
+const craftConfig = ref(null)
+const state = ref('probing')
+const probe = createResource({
+  url: 'suite.drive.wopi.craft.get_craft_editor_config',
+  onSuccess(data) {
+    if (data?.available) {
+      craftConfig.value = data
+      state.value = 'editor'
+    } else {
+      state.value = 'viewer'
+    }
+  },
+  onError() {
+    state.value = 'viewer'
+  },
 })
-const canEdit = computed(() => !!installed.data?.pdf && !!props.previewEntity?.write)
 
-async function start() {
-  starting.value = true
-  try {
-    const answer = await call('suite.drive.wopi.craft.get_craft_editor_config', {
-      file_id: props.previewEntity.name,
-      requested: 'pdf',
-    })
-    if (!answer?.available) throw new Error(answer?.reason || __('The editor is unavailable'))
-    config.value = answer
-  } catch (e) {
-    toast.error(e.messages?.[0] || e.message)
-  } finally {
-    starting.value = false
-  }
-}
-
-function close() {
-  if (editor.value?.dirty && !window.confirm(__('You have unsaved changes. Leave without saving?'))) return
-  config.value = null
-  previews.value += 1
-}
+// `requested` names the editor, as before the server took the PDF editor by default: an older server answers too.
+onMounted(() => probe.submit({ file_id: props.previewEntity.name, requested: 'pdf' }))
 </script>

@@ -28,8 +28,10 @@ class TestWhichEditorTakesWhichFile(IntegrationTestCase):
         for name in ("old.doc", "old.xls", "old.ppt", "text.odt", "notes", "notes."):
             self.assertIsNone(craft.editor_for(name), name)
 
-    def test_a_pdf_opens_in_the_pdf_editor_only_when_asked(self):
-        self.assertIsNone(craft.editor_for("scan.pdf"))
+    def test_a_pdf_opens_in_the_pdf_editor_by_default_as_the_other_types_do(self):
+        self.assertEqual(craft.editor_for("scan.pdf"), "pdf")
+        self.assertEqual(craft.editor_for("SCAN.PDF"), "pdf")
+        # Asking for it names the same editor (an older page asked).
         self.assertEqual(craft.editor_for("scan.pdf", "pdf"), "pdf")
         # Asking for an editor does not make it take a type it cannot write.
         self.assertIsNone(craft.editor_for("quote.docx", "pdf"))
