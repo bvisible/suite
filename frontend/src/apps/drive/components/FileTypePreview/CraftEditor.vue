@@ -1,4 +1,4 @@
-<!-- //// Neoffice: new file — a Craft editor (Word, Excel, PowerPoint, PDF) framed in the Drive page.
+<!-- //// Neoffice — added file (no upstream equivalent): a Craft editor (Word, Excel, PowerPoint, PDF) framed in the Drive page.
      The editor is a browser build served from this site (suite/public/craft/, see suite/drive/wopi/craft.py): it
      speaks `postMessage` to this page (`?host=parent`), which gives it the file and stores what it saves, through the
      WOPI endpoints, with a token and no session cookie, the way Collabora's server does. //// -->
