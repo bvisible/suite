@@ -1,26 +1,19 @@
 <template>
-  <!-- //// Neoffice — when the on-prem Collabora (WOPI) backend is available, Office
-       files open straight in the collaborative editor (read-only iframe when the
-       user lacks write access).
-       Upstream's Microsoft viewer stays as the fallback, but ONLY on an instance
-       that has no Collabora at all: it ships the document to
-       view.officeapps.live.com. When WOPI is enabled here, a document must never
-       leave for Microsoft just because coolwsd is still waking up — it is stopped
-       after 15 idle minutes, and a cold start can outrun the 20 s probe. We keep
-       waiting instead, and offer a download if it truly never comes up. //// -->
-  <!-- //// Neoffice — a document one of our Craft editors opens and writes back (suite/drive/wopi/craft.py) opens
-       there, and Collabora is never woken. The editors are the Drive's own: browser builds served by this site.
-       A site without the build, or a type no editor writes back (.doc, .odt…), goes on to Collabora below. //// -->
+  <!-- //// Neoffice — an Office document opens in one of our Craft editors (suite/drive/wopi/craft.py): Word, Excel and
+       PowerPoint here, the PDF editor on request. They are browser builds served by this site, so the document never
+       leaves it. Collabora Online, which this page used before them, is gone (maintenance#1570).
+       Three other outcomes, none of which sends a document anywhere on its own:
+       - the type has no editor (.doc, .odt…): upstream's Microsoft viewer below, behind its consent card;
+       - this site has no build of the editor, or the question failed: say so and offer the file;
+       - still asking: a spinner. //// -->
   <CraftEditor v-if="craftConfig" :config="craftConfig" :preview-entity="previewEntity" />
-  <CollaboraEditor v-else-if="collabora === true" :preview-entity="previewEntity" @error="collabora = false" />
-  <div v-else-if="collabora === null" class="w-full h-full flex flex-col items-center justify-center gap-3">
+  <div v-else-if="state === 'probing'" class="w-full h-full flex flex-col items-center justify-center gap-3">
+    <!-- //// Neoffice — only a spinner: nothing is started any more, the editor is a page of this site. //// -->
     <LucideLoaderCircle class="size-7 animate-spin text-ink-gray-6" />
-    <span v-if="waking" class="text-p-sm text-ink-gray-6">{{ __('Starting the editor…') }}</span>
   </div>
-  <!-- //// Neoffice — WOPI is on but Collabora never answered: say so and offer the
-       file, rather than routing it to an external service behind the user's back. -->
+  <!-- //// Neoffice — no build of the editor on this site, or the question failed: say so, offer the file. //// -->
   <div
-    v-else-if="wopiEnabled"
+    v-else-if="state === 'unavailable'"
     class="max-w-[450px] h-fit self-center p-10 bg-surface-base rounded-4 text-2xl-medium text-center shadow-xl flex flex-col justify-center items-center gap-4"
   >
     <LucideAlertCircle class="size-10" />
@@ -29,14 +22,15 @@
       {{ __('The document editor did not start. Your document has not left this server.') }}
     </span>
     <div class="flex flex-col gap-2 w-full">
-      <Button class="w-full" variant="subtle" @click="retry">{{ __('Try again') }}</Button>
+      <!-- //// Neoffice — asks again: the build may have been installed meanwhile. //// -->
+      <Button class="w-full" variant="subtle" @click="probe">{{ __('Try again') }}</Button>
       <Button class="w-full" variant="solid" @click="download">{{ __('Download') }}</Button>
     </div>
   </div>
   <!-- //// Neoffice — v-if became v-else-if: this Microsoft viewer is now the LAST
-       //// branch, reached only on an instance with no Collabora at all (see the
-       //// WOPI branches above). A document must never leave for
-       //// view.officeapps.live.com just because coolwsd is still starting. //// -->
+       //// branch, reached only for a type no editor of ours opens. The person is asked
+       //// first (the card below): a document leaves for view.officeapps.live.com only
+       //// on a click. //// -->
   <iframe
     v-else-if="warned && jwt_token"
     :src="'https://view.officeapps.live.com/op/embed.aspx?src=' + srcUrl"
@@ -71,12 +65,10 @@
   </div>
 </template>
 <script setup>
-//// Neoffice — createResource / onMounted / CollaboraEditor / the spinner icon are
-//// ours: they drive the WOPI probe and the on-prem editor added above.
+//// Neoffice — createResource / onMounted / CraftEditor / the spinner icon are ours: they ask which editor
+//// opens this document (see the template).
 import { Button, createResource } from 'frappe-ui'
 import { computed, onMounted, ref, watch } from 'vue'
-import CollaboraEditor from '@/apps/drive/components/FileTypePreview/CollaboraEditor.vue'
-//// Neoffice — the Craft editors come first (see the template).
 import CraftEditor from '@/apps/drive/components/FileTypePreview/CraftEditor.vue'
 //// Neoffice — Drive's own download helper, for `download` below.
 import { entitiesDownload } from '@/apps/drive/utils/download.js'
@@ -85,65 +77,40 @@ const props = defineProps({
   previewEntity: Object,
 })
 
-//// Neoffice — null = probing, true = Collabora available, false = not available.
-//// `wopiEnabled` says whether this instance is SUPPOSED to have Collabora, which
-//// is what decides between "keep waiting / offer a download" and upstream's
-//// Microsoft viewer. A cold coolwsd is retried a few times before giving up:
-//// the daemon is stopped after 15 idle minutes, so the first document opened in
-//// a while routinely lands mid-start.
-const collabora = ref(null)
-const wopiEnabled = ref(false)
-const waking = ref(false)
-const MAX_PROBES = 6
-const PROBE_DELAY_MS = 2500
-let probes = 0
-
-const canEdit = createResource({
-  url: 'suite.drive.wopi.editor.can_edit_file',
+//// Neoffice — what the server said about this document's editor (get_craft_editor_config):
+//// `probing` while asking; `editor` when one opens it (craftConfig holds its session);
+//// `unavailable` when this site has no build of it, or the answer did not come;
+//// `viewer` when no editor opens the type (upstream's viewer, behind its consent card).
+const craftConfig = ref(null)
+const state = ref('probing')
+const craftProbe = createResource({
+  url: 'suite.drive.wopi.craft.get_craft_editor_config',
   onSuccess(data) {
-    wopiEnabled.value = !!data?.wopi_enabled
-    if (data?.can_edit) {
-      collabora.value = true
-      return
+    //// Neoffice — an editor opens it (`available`), this site lacks its build (`editor` is named), or none opens the type.
+    if (data?.available) {
+      craftConfig.value = data
+      state.value = 'editor'
+    } else if (data?.editor) {
+      state.value = 'unavailable'
+    } else {
+      //// Neoffice — no editor opens this type (.doc, .odt…): upstream's viewer, behind its consent card.
+      state.value = 'viewer'
     }
-    if (data?.retryable && probes < MAX_PROBES) {
-      probes += 1
-      waking.value = true
-      setTimeout(probe, PROBE_DELAY_MS)
-      return
-    }
-    collabora.value = false
   },
   onError() {
-    collabora.value = false
+    //// Neoffice — the question itself failed: say so and offer the file, never the outside viewer.
+    state.value = 'unavailable'
   },
 })
 
 function probe() {
-  canEdit.submit({ file_id: props.previewEntity.name })
+  //// Neoffice — asked when the preview opens and again from "Try again".
+  state.value = 'probing'
+  craftProbe.submit({ file_id: props.previewEntity.name })
 }
 
-function retry() {
-  probes = 0
-  collabora.value = null
-  probe()
-}
-
-//// Neoffice — asked before Collabora: `available` is false when this site has no build of the editor for the
-//// type, or cannot read the file; the Collabora probe then runs exactly as it did.
-const craftConfig = ref(null)
-const craftProbe = createResource({
-  url: 'suite.drive.wopi.craft.get_craft_editor_config',
-  onSuccess(data) {
-    if (data?.available) craftConfig.value = data
-    else probe()
-  },
-  onError() {
-    probe()
-  },
-})
-
-onMounted(() => craftProbe.submit({ file_id: props.previewEntity.name }))
+//// Neoffice — the editor is asked for as soon as the preview opens.
+onMounted(probe)
 
 const warned = ref(false)
 watch(warned, async () => {

@@ -71,11 +71,11 @@ correct base. It arrived through `42afbc164 merge: rattrapage upstream
 | Area | Files | What is ours |
 |---|---|---|
 | Repo-wide Python graft | 576 `.py` | `from __future__ import annotations` on every module (`573ca1486a`) |
-| `suite/drive` (WOPI/Collabora) | ~20 | `suite/drive/wopi/**` (new), `www/wopi_handler.py` (new), Office file creation, de-teamed storage fixes |
+| `suite/drive` (Office editors) | ~20 | `suite/drive/wopi/**` (new: the Craft editors' session, content endpoints, install; Collabora was removed, maintenance#1570), `www/wopi_handler.py` (new), Office file creation, de-teamed storage fixes |
 | `suite/calendar` | ~10 | sharing, per-calendar settings, visibility persistence, CalDAV link, degenerate-event guard, JMAP NULL guards |
 | `suite/mail` | ~8 | mailbox auto-provisioning (`events.py`, +164), JMAP property list, v15 `["is","set"]` filter idiom |
 | `suite/meet` | 2 | tenant claim for the shared central SFU |
-| `frontend/src` | ~24 | NeoCockpit chrome, the brand's Streamline icons (served by neoffice_theme, `src/neoffice/appIcons.ts`), external/`createsOffice` launcher tiles, Collabora preview, `__()` wraps |
+| `frontend/src` | ~24 | NeoCockpit chrome, the brand's Streamline icons (served by neoffice_theme, `src/neoffice/appIcons.ts`), external/`createsOffice` launcher tiles, the Office preview (Craft editors), `__()` wraps |
 | build / packaging | 6 | `pyproject.toml` Python pin, `pnpm-workspace.yaml`, `vite.config.ts`, `.gitignore`, `copy-noise-suppression-assets.mjs` |
 | `suite/hooks.py`, `suite/patches.txt` | 2 | route rules, hooks, our patches |
 
@@ -110,23 +110,17 @@ each now marked with a two-line `#////` comment.
 here.
 
 #### `suite/drive/doctype/wopi_settings/wopi_settings.json`
-**Entirely ours — a new Single DocType, no upstream equivalent.** Configuration
-of the on-prem Collabora Online (WOPI) backend used instead of shipping customer
-documents to `view.officeapps.live.com`. Ported from the standalone Neoffice
-`drive_wopi` app (`f20a6f284`). Module `Drive`, `issingle: 1`, permissions:
-`System Manager` (read/write/create) only. Fields, all ours:
+**Entirely ours — a new Single DocType, no upstream equivalent.** The signing secret and the token life of the
+Drive's Office editors (the Craft editors), which read and write a document through `suite/drive/wopi/endpoints.py`
+with a signed token. Ported from the standalone Neoffice `drive_wopi` app (`f20a6f284`), where it also held
+Collabora Online's server address, a connection test and a master switch: those went with Collabora
+(maintenance#1570). Module `Drive`, `issingle: 1`, permissions: `System Manager` (read/write/create) only.
+Fields, all ours:
 
 | Field | Type | Purpose |
 |---|---|---|
-| `enabled` | Check | master switch; off = fall back to upstream's viewer |
-| `section_collabora` | Section Break | — |
-| `collabora_server_url` | Data | empty = same host, proxied by nginx |
-| `column_break_1` | Column Break | — |
-| `jwt_secret` | Password | signs the WOPI callback tokens (see `wopi/token.py`) |
-| `jwt_expiry_hours` | Int | token TTL, default 10 |
-| `section_status` | Section Break | — |
-| `connection_status` | Data | last probe result |
-| `last_check` | Datetime | last probe timestamp |
+| `jwt_secret` | Password | signs the editors' access tokens (see `wopi/token.py`) |
+| `jwt_expiry_hours` | Int | token TTL, default 4 |
 
 At a merge: keep the file whole. Nothing upstream collides with it.
 
@@ -134,8 +128,9 @@ At a merge: keep the file whole. Nothing upstream collides with it.
 **Entirely ours — no upstream equivalent.** The list of the Craft editors' browser builds (Word, Excel,
 PowerPoint, PDF: Neoffice's forks of storytold's Craft apps) that `suite/drive/wopi/craft_install.py` installs
 under `suite/public/craft/` after every migrate: per editor folder, the `version`, the release asset `url`
-(only `https://github.com/bvisible/…` is accepted) and its `sha256`. The Drive opens Office documents in them,
-with no Collabora (`suite/drive/wopi/craft.py`, `CraftEditor.vue`). At a merge: keep the file whole.
+(only `https://github.com/bvisible/…` is accepted) and its `sha256`. The Drive opens Office documents in them
+(`suite/drive/wopi/craft.py`, `CraftEditor.vue`), and NeoDesk reads the same file from GitHub to know which build
+to fetch. At a merge: keep the file whole.
 
 #### `suite/calendar/doctype/local_calendar_account/local_calendar_account.json`
 #### `suite/calendar/doctype/local_calendar/local_calendar.json`
@@ -248,7 +243,7 @@ where neither an HTML comment nor a JS comment is legal. In each case the
 |---|---|---|
 | `frontend/src/apps/calendar/pages/CalendarView.vue` — `@update:visible-calendars`, `@reload` on `<NeoCockpitSidebar>` | the handler now **persists** the show/hide choice (`toggleCalendarVisibility` → `set_calendar_visibility`) instead of splicing a local array; `@reload` lets the settings dialog refresh the list | 7-line `<!-- //// -->` block above `<NeoCockpitSidebar` |
 | `frontend/src/shell/LauncherView.vue` — `:to` / `:href` on `<LauncherTile>` | a tile with `external` leaves the SPA (plain `<a>`, Mail → `/app/webmail`) | 6-line `<!-- //// -->` block above `<LauncherTile` |
-| `frontend/src/shell/LauncherView.vue` — `:label` / `@click` on `<LauncherTile>` | a tile with `createsOffice` creates a blank Office file in Drive and opens it in Collabora; the label shows “Creating…” meanwhile | same block |
+| `frontend/src/shell/LauncherView.vue` — `:label` / `@click` on `<LauncherTile>` | a tile with `createsOffice` creates a blank Office file in Drive and opens it in its Craft editor; the label shows “Creating…” meanwhile | same block |
 
 Whitespace-only divergence: `frontend/src/shell/LauncherView.vue` re-indents the
 launcher body by one level (the page is now split into the cockpit rail and a

@@ -74,7 +74,7 @@ export function isWriterDocument(entity) {
 }
 
 // //// Neoffice: binary Office files (docx/xlsx/pptx/odt/...) are edited in
-// Collabora via the Drive preview. List rows may lack mime_type, so also
+// the Craft editors via the Drive preview. List rows may lack mime_type, so also
 // match on the file extension. ////
 const OFFICE_BINARY_MIME = /officedocument|msword|ms-excel|ms-powerpoint|opendocument/
 const OFFICE_BINARY_EXT = /\.(docx?|xlsx?|pptx?|od[tsp])$/i
@@ -167,7 +167,7 @@ export const openEntity = (entity, new_tab = false) => {
       window.open(entity.file_url, '_blank')
   } else if (isOfficeBinary(entity)) {
     //// Neoffice — binary Office files (docx/xlsx/pptx/odt/...) open in the Drive
-    //// preview, which mounts the Collabora editor over WOPI. Upstream has no
+    //// preview, which mounts our Craft editor for the type. Upstream has no
     //// Office editing: its native Writer/Slides/Sheets editors cannot load these
     //// binaries at all, and they keep handling their own formats below.
     router.push({
@@ -520,8 +520,8 @@ export function getLink(entity, copy = true, withDomain = true) {
   let link
   if (entity.file_type === 'Link') link = entity.file_url
   else if (isOfficeBinary(entity)) {
-    //// Neoffice — binary Office files link to the Drive preview (Collabora over
-    //// WOPI), never to a native editor that cannot open them. Same guard as
+    //// Neoffice — binary Office files link to the Drive preview (the Craft
+    //// editors), never to a native editor that cannot open them. Same guard as
     //// openEntity above; keep the two in step.
     link = `${withDomain ? window.location.origin + '/drive' : ''}/${getLinkStem(entity)}`
   }

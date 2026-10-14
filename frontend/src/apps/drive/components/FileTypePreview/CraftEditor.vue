@@ -1,7 +1,7 @@
 <!-- //// Neoffice — added file (no upstream equivalent): a Craft editor (Word, Excel, PowerPoint, PDF) framed in the Drive page.
      The editor is a browser build served from this site (suite/public/craft/, see suite/drive/wopi/craft.py): it
      speaks `postMessage` to this page (`?host=parent`), which gives it the file and stores what it saves, through the
-     WOPI endpoints, with a token and no session cookie, the way Collabora's server does. //// -->
+     content endpoints (suite/drive/wopi/endpoints.py), with a token and no session cookie. //// -->
 <template>
   <div class="relative flex h-full w-full flex-col">
     <!-- Loading state: the build (WebAssembly) and the document -->
@@ -130,7 +130,7 @@ function post(type, fields = {}, transfer = []) {
   frame.value?.contentWindow?.postMessage({ type: `${prefix}:${type}`, ...fields }, window.location.origin, transfer)
 }
 
-// The token and not the cookie: the same authentication as Collabora's server, and no CSRF token to carry. It
+// The token and not the cookie: the same authentication as the NeoDesk shell, and no CSRF token to carry. It
 // goes in the URL, as the WOPI protocol has it: nginx's /wopi/ rule (snippets/wopi.conf) turns that query
 // argument into the header the endpoints read, and would overwrite one sent by the page.
 const wopi = (path, init = {}) =>

@@ -1,5 +1,5 @@
-# //// Neoffice — added file (no upstream equivalent). The Craft editors open the Drive's Office documents with
-# //// no Collabora: which editor takes which file, what the page is told to open it, and what a copy may be.
+# //// Neoffice — added file (no upstream equivalent). The Craft editors open the Drive's Office documents:
+# //// which editor takes which file, what the page is told to open it, and what a copy may be.
 from __future__ import annotations
 
 from types import SimpleNamespace
@@ -24,7 +24,7 @@ class TestWhichEditorTakesWhichFile(IntegrationTestCase):
         self.assertEqual(craft.editor_for("QUOTE.DOCX"), "word")
         self.assertEqual(craft.editor_for("report.final.docx"), "word")
 
-    def test_a_type_no_editor_writes_back_stays_with_collabora(self):
+    def test_a_type_no_editor_writes_back_has_no_editor(self):
         for name in ("old.doc", "old.xls", "old.ppt", "text.odt", "notes", "notes."):
             self.assertIsNone(craft.editor_for(name), name)
 
@@ -86,15 +86,19 @@ class TestWhatThePageIsToldToOpen(IntegrationTestCase):
             self.assertEqual(answer, {"available": False, "reason": "File not found"}, kwargs)
             mint.assert_not_called()
 
-    def test_a_site_without_the_build_falls_back(self):
+    def test_a_site_without_the_build_names_the_editor_it_lacks(self):
+        # The page tells the person the editor is unavailable and offers the file: it never sends it elsewhere.
         answer, mint = self.ask(version=None)
         self.assertFalse(answer["available"])
+        self.assertEqual(answer["editor"], "word")
         self.assertIn("not installed", answer["reason"])
         mint.assert_not_called()
 
-    def test_a_type_without_an_editor_falls_back(self):
+    def test_a_type_without_an_editor_names_none(self):
+        # The page goes on to upstream's viewer, which asks the person before anything leaves the site.
         answer, mint = self.ask(file_name="old.doc")
         self.assertFalse(answer["available"])
+        self.assertNotIn("editor", answer)
         self.assertEqual(answer["reason"], "File type not supported")
         mint.assert_not_called()
 

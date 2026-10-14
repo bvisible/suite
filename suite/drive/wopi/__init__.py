@@ -1,3 +1,3 @@
-# //// Neoffice: new file — Collabora/WOPI port (from drive_wopi), maintained by Neoffice ////
+# //// Neoffice — added file (no upstream equivalent): the Drive's Office editors (the Craft editors), maintained by Neoffice ////
 
 from __future__ import annotations

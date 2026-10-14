@@ -15,7 +15,7 @@ export function dynamicList(k) {
 }
 
 // //// Neoffice: binary Office mimetypes (docx/xlsx/pptx/odt/...) must open in
-// the Drive preview -> Collabora editor, never in the native Writer/Slides. ////
+// the Drive preview -> Craft editor, never in the native Writer/Slides. ////
 const OFFICE_BINARY_MIME = /officedocument|msword|ms-excel|ms-powerpoint|opendocument/
 const OFFICE_BINARY_EXT = /\.(docx?|xlsx?|pptx?|od[tsp])$/i
 const isOfficeBinary = (e) => !!e && !e.is_folder && ((e.mime_type && OFFICE_BINARY_MIME.test(e.mime_type)) || OFFICE_BINARY_EXT.test(e.file_name || e.title || ''))
@@ -24,7 +24,7 @@ export function getFileLink(entity, copy = true) {
   let link
   if (entity.file_type === 'Link') link = entity.file_url
   else if (isOfficeBinary(entity)) {
-    //// Neoffice — link to the Drive preview (Collabora over WOPI), not to a
+    //// Neoffice — link to the Drive preview (the Craft editors), not to a
     //// native editor that cannot open the binary. See utils/files.js.
     link = `${window.location.origin}/drive/${getLinkStem(entity)}`
   }
@@ -130,7 +130,7 @@ export const openEntity = (entity, new_tab = false) => {
     )
       window.open(entity.file_url, '_blank')
   } else if (isOfficeBinary(entity)) {
-    // //// Neoffice: Collabora-backed preview ////
+    // //// Neoffice: the preview with our Craft editors ////
     window.location.href = '/drive/' + getLinkStem(entity)
   } else if (entity.file_type === 'Presentation') {
     window.location.href = '/slides/presentation/' + entity.name

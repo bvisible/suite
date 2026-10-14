@@ -24,11 +24,11 @@ PORTAL_ROLE = "Suite User"
 def ensure_wopi_secret() -> bool:
     """Provision the WOPI JWT signing secret once, so no request has to invent one.
 
-    ``suite.drive.wopi.token`` signs and verifies Collabora's access tokens with
+    ``suite.drive.wopi.token`` signs and verifies the editors' access tokens with
     this value. It used to be generated on the fly by the first call that found it
     missing, inside a ``try/except: pass`` that silently failed on the read-only
     transaction of a GET — so each request signed with a different random secret
-    and Collabora answered "Invalid WOPI token" forever.
+    and every save answered "Invalid WOPI token" forever.
 
     ``save()`` rather than ``db_set()``: WOPISettings.validate() mints the secret
     and Frappe's ``_save_passwords`` then encrypts it into ``__Auth``, which is
@@ -53,7 +53,7 @@ def ensure_wopi_secret() -> bool:
     frappe.log_error(
         "WOPI: JWT signing secret provisioned",
         "WOPI Settings had no usable JWT secret; one was generated at migrate time. "
-        "Collabora sessions opened before this point are invalid and must be reopened.",
+        "Editor sessions opened before this point are invalid and must be reopened.",
     )
     return True
 

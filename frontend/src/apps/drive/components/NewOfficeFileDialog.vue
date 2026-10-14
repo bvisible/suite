@@ -1,5 +1,5 @@
 <!-- //// Neoffice: new file — blank Office files (docx/xlsx/pptx, opened in
-     Collabora), port of drive_wopi's NewOfficeFileDialog to the suite. //// -->
+     the Craft editors), port of drive_wopi's NewOfficeFileDialog to the suite. //// -->
 <template>
   <Dialog v-model:open="open" :title="dialogTitle" size="xs" :actions="[
     {
@@ -71,7 +71,7 @@ const createFile = createResource({
   onSuccess(data) {
     open.value = false
     emit('success', data)
-    // Open the new file in the Collabora editor right away
+    // Open the new file in its Craft editor right away
     if (data.file_id) {
       router.push({ name: 'drive-File', params: { entityName: data.file_id } })
     }

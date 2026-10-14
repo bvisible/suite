@@ -11,7 +11,7 @@
     :parent="folderParent"
     @success="(data) => addToList(data, 'Link')"
   />
-  <!-- //// Neoffice: blank Office files, opened in Collabora on success //// -->
+  <!-- //// Neoffice: blank Office files, opened in the Craft editors on success //// -->
   <NewOfficeFileDialog
     v-else-if="dialog === 'word'"
     v-model="dialog"
@@ -61,7 +61,7 @@ import { useRoute } from 'vue-router'
 import NewFolderDialog from '@/apps/drive/components/NewFolderDialog.vue'
 import NewLinkDialog from '@/apps/drive/components/NewLinkDialog.vue'
 //// Neoffice — added: the "New Word/Excel/PowerPoint document" dialog. Creates a
-//// blank Office binary in Drive and opens it in Collabora; upstream's Create menu
+//// blank Office binary in Drive and opens it in the Craft editor; upstream's Create menu
 //// only offers its own native formats.
 import NewOfficeFileDialog from '@/apps/drive/components/NewOfficeFileDialog.vue'
 import { ShareDialog, MoveDialog, InfoDialog } from '@/apps/drive/ui/drive'

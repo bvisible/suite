@@ -63,11 +63,10 @@ website_route_rules = [
     {"from_route": "/meet/<path:app_path>", "to_route": "suite"},
     {"from_route": "/calendar", "to_route": "suite"},
     {"from_route": "/calendar/<path:app_path>", "to_route": "suite"},
-    # //// Neoffice — WOPI callbacks for Collabora Online. Upstream has no
-    # //// Office-document editing at all; we route documents to a Collabora
-    # //// server over the WOPI protocol, which needs these two public routes
-    # //// (the host calls them back with a token). See suite/drive/wopi/.
-    {"from_route": "/wopi/files/<file_id>", "to_route": "wopi_handler"},
+    # //// Neoffice — the content route of the Drive's Office editors. Upstream has no
+    # //// Office-document editing at all; our Craft editors read and write the document
+    # //// through this public route (they call it back with a signed token, no session).
+    # //// See suite/drive/wopi/. The CheckFileInfo route of Collabora's protocol is gone.
     {"from_route": "/wopi/files/<file_id>/contents", "to_route": "wopi_handler"},
 ]
 
@@ -321,23 +320,14 @@ user_invitation = {
 # Suite's onboarding replaces the built-in desk setup wizard
 setup_wizard_url = "/suite/setup"
 
-# //// Neoffice — added: `bench clear-cache` (every deploy, every translation compile)
-# //// deletes every Redis key of the site except these. The idle watchdog then read the
-# //// erased stamp of the last Collabora use as "never used" and stopped a daemon that
-# //// someone had just started (suite/drive/wopi/lifecycle.py, stop_if_idle).
-persistent_cache_keys = ["collabora:last_activity"]
+# //// Neoffice — no `persistent_cache_keys` any more: its only key was the stamp of the last Collabora use,
+# //// which the idle watchdog of coolwsd read; both went with Collabora (maintenance#1570).
 
 # ============================================================================
 # Scheduled Tasks (per-frequency lists combined; cron keys de-duplicated)
 # ============================================================================
 scheduler_events = {
-    # //// Neoffice — added: shut coolwsd (Collabora Online) down after 15 minutes
-    # //// with no editing session. Upstream ships no Office editing, so it has no
-    # //// such daemon; ours idles at ~400 MB per instance and the fleet runs many
-    # //// instances per host. See suite/drive/wopi/lifecycle.py.
-    "all": [
-        "suite.drive.wopi.lifecycle.stop_if_idle",
-    ],
+    # //// Neoffice — no "all" entry any more: it only ran Collabora's idle watchdog (maintenance#1570).
     "daily": [
         # meet
         "suite.meet.api.recording.cleanup_failed_recordings",

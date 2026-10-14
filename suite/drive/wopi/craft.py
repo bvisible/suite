@@ -1,14 +1,15 @@
 # //// Neoffice — added file (no upstream equivalent): the Craft editors, the Drive's Office editors.
-"""Open an Office document in a Craft editor (Word, Excel, PowerPoint, PDF), with no Collabora.
+"""Open an Office document in a Craft editor (Word, Excel, PowerPoint, PDF): the Drive's Office editors.
 
 The browser builds of the editors (Neoffice's forks of storytold's Craft apps, built in their own
 repositories) are static files under ``suite/public/craft/<folder>/``, put there by
 ``craft_install`` from the list pinned in ``craft_editors.json``. The Drive page frames an editor in
 an iframe of its own origin and hands it the file (``postMessage``, ``?host=parent``). What the
 editor saves goes back through the WOPI endpoints of this package (``endpoints.py``), with the token
-minted here, so the live permission check and the storage code are the ones Collabora uses.
+minted here, and the live permission check is made on every read and every write.
 
-Nothing here needs coolwsd: a site without Collabora opens its documents through this module.
+Nothing here needs a server beside this site: Collabora Online, which the Drive used before these
+editors, is gone (maintenance#1570).
 """
 
 from __future__ import annotations
@@ -19,14 +20,21 @@ import re
 import frappe
 from frappe import _
 
-# //// Neoffice — the same budget as the Collabora editor pre-flight: one call per document open.
+# //// Neoffice — one call per document open.
 from frappe.rate_limiter import rate_limit
 
 from suite.drive.utils import create_drive_file, get_file_type, get_new_file_name
 from suite.drive.utils.files import FileManager, get_s3_key, get_s3_url, storage_key
 
-from .discovery import EDITOR_RATE
 from .token import generate_wopi_token
+
+# //// Neoffice — the budget of the editor pre-flight, kept from the endpoint that used to share it with Collabora's.
+# ////
+# //// Keyed on `file_id`, so the identity frappe.rate_limiter counts is "<ip>:<document>" and not the bare IP: a
+# //// whole office sits behind one public address, and a per-IP budget would be spent by whoever opened a
+# //// document first. Per document it stays generous for people (opening the same file 20 times a minute is not
+# //// something anybody does) while a loop hammering one document, which mints a token per call, runs out at once.
+EDITOR_RATE = {"key": "file_id", "limit": 20, "seconds": 60}
 
 # Editor -> the folder of its build under suite/public/craft/, and the extensions it opens AND writes
 # back in the same format. A format an editor can only read would come back under another name: that
@@ -98,10 +106,12 @@ def get_installed_editors() -> dict:
 def get_craft_editor_config(file_id: str, requested: str = "") -> dict:
     """What the Drive page needs to open ``file_id`` in a Craft editor, or why it cannot.
 
-    ``available`` is false, with a ``reason``, when this site has no build of the editor for the type
-    or the file cannot be read: the page then falls back to Collabora. A file the caller cannot read
-    answers exactly like a missing one. ``requested`` names an editor to use instead of the default
-    one for the type (``pdf``: the PDF editor, which the Drive does not open on its own).
+    ``available`` is false, with a ``reason``, when the file cannot be read, when no editor opens its
+    type (the page then goes on to upstream's viewer, which asks the person first), or when this site
+    has no build of the editor (``editor`` is then named: the page says so and offers the file, and
+    never sends it to an outside service). A file the caller cannot read answers exactly like a
+    missing one. ``requested`` names an editor to use instead of the default one for the type
+    (``pdf``: the PDF editor, which the Drive does not open on its own).
     """
     from suite.drive.api.permissions import user_has_permission
 
@@ -117,7 +127,7 @@ def get_craft_editor_config(file_id: str, requested: str = "") -> dict:
         return {"available": False, "reason": _("File type not supported")}
     version = installed_version(editor)
     if not version:
-        return {"available": False, "reason": _("The editor is not installed on this site")}
+        return {"available": False, "editor": editor, "reason": _("The editor is not installed on this site")}
 
     can_write = bool(user_has_permission(file, "write"))
     token = generate_wopi_token(file_id, can_write=can_write)

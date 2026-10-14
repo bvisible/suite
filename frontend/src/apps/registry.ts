@@ -31,7 +31,7 @@ export interface SuiteApp {
   // plain <a>). Used to point the Mail tile at our frappe_webmail app. ////
   external?: string
   // //// Neoffice: launcher tile creates a blank Office file (docx/xlsx/pptx)
-  // in the Drive and opens it in Collabora, replacing the native editors. ////
+  // in the Drive and opens it in a Craft editor, replacing the native editors. ////
   createsOffice?: 'docx' | 'xlsx' | 'pptx'
 }
 
@@ -48,8 +48,8 @@ export const SUITE_LOGO = suiteLogo
 // //// Neoffice: every tile's logo is the brand's icon of the app (NEOFFICE_APP_ICONS, see the header) ////
 export const SUITE_APPS: SuiteApp[] = [
   { id: 'drive', name: 'Drive', prefix: '/drive', logo: NEOFFICE_APP_ICONS.drive },
-  // //// Neoffice: Slides/Writer/Sheets tiles create a Collabora-backed Office
-  // file in the Drive (pptx/docx/xlsx) instead of opening the native editors.
+  // //// Neoffice: Slides/Writer/Sheets tiles create an Office file (opened in
+  // its Craft editor) in the Drive (pptx/docx/xlsx) instead of opening the native editors.
   // The native SPAs stay reachable at their /slides /writer /sheets URLs. ////
   { id: 'slides', name: 'Slides', prefix: '/slides', logo: NEOFFICE_APP_ICONS.slides, createsOffice: 'pptx' },
   { id: 'writer', name: 'Writer', prefix: '/writer', logo: NEOFFICE_APP_ICONS.writer, createsOffice: 'docx' },

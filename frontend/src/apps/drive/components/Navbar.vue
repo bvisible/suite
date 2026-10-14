@@ -109,7 +109,7 @@ import LucideFileUp from '~icons/lucide/file-up'
 import LucideFolderUp from '~icons/lucide/folder-up'
 import LucideFilePlus2 from '~icons/lucide/file-plus-2'
 //// Neoffice — icons for the Word / Excel / PowerPoint entries added to the
-//// Create menu below (Collabora-backed Office files).
+//// Create menu below (blank Office files, opened in the Craft editors).
 import LucideFileText from '~icons/lucide/file-text'
 import LucideFileSpreadsheet from '~icons/lucide/file-spreadsheet'
 import LucidePresentation from '~icons/lucide/presentation'
@@ -358,7 +358,7 @@ const newEntityOptions = computed(() => [
         icon: LucideFilePlus2,
         onClick: () => newExternal('Document'),
       },
-      // //// Neoffice: blank Office files (Collabora-backed), port of the
+      // //// Neoffice: blank Office files (Craft editors), port of the
       // standalone drive's Word/Excel/PowerPoint entries. ////
       {
         label: __('Word'),

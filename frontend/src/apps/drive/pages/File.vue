@@ -3,7 +3,7 @@
     <div class="w-full h-full flex flex-col">
       <Navbar v-if="!file?.error" :root-resource="file" :breadcrumbs="pageBreadcrumbs" />
       <ErrorPage v-if="file.error" :error="file.error" />
-      <!-- //// Neoffice: Office files open in the Collabora editor which must be
+      <!-- //// Neoffice: Office files open in the Craft editor which must be
            full-bleed (no padding / no centering); everything else keeps the
            padded, centered preview frame. //// -->
       <div
@@ -13,7 +13,7 @@
         class="flex-grow w-full relative"
         :class="
           // //// Neoffice — the padding/centering moved from `class` to this `:class`:
-          // //// an Office file opens in the Collabora editor, which must be full-bleed;
+          // //// an Office file opens in the Craft editor, which must be full-bleed;
           // //// every other preview keeps upstream's padded, centered frame.
           isOfficeBinary(file.data)
             ? 'flex'
@@ -58,7 +58,7 @@ import { ref, computed, onMounted, onUnmounted, defineProps } from 'vue'
 import { Button } from 'frappe-ui'
 import FileRender from '@/apps/drive/components/FileRender.vue'
 import FilePreviewSkeleton from '@/apps/drive/components/FileTypePreview/FilePreviewSkeleton.vue'
-//// Neoffice — detect Office binaries so the Collabora editor renders full-bleed
+//// Neoffice — detect Office binaries so the Craft editor renders full-bleed
 //// (no Drive chrome around it). Upstream ships no Office editing.
 import { isOfficeBinary } from '@/apps/drive/utils/files'
 import { createResource } from 'frappe-ui'

@@ -1,5 +1,5 @@
-# //// Neoffice: new file — Collabora/WOPI port (from drive_wopi), maintained by Neoffice ////
-"""API endpoints for the Collabora editor integration (native File backend)."""
+# //// Neoffice — added file (no upstream equivalent): the blank Office documents of the Drive, opened by the Craft editors ////
+"""API endpoint creating a blank Office document (native File backend)."""
 
 from __future__ import annotations
 
@@ -9,15 +9,8 @@ import shutil
 import frappe
 from frappe import _
 
-# //// Neoffice — rate limiting for can_edit_file, which may start coolwsd.
-from frappe.rate_limiter import rate_limit
-
 from suite.drive.utils import create_drive_file, get_file_type, get_user_folder
 from suite.drive.utils.files import FileManager, get_s3_key, get_s3_url
-
-# //// Neoffice — collabora_status replaces the whitelisted check_collabora_status:
-# //// the endpoint is read-only now, this callable is what may wake the daemon.
-from .discovery import EDITOR_RATE, collabora_status, is_file_supported
 
 OFFICE_MIME_TYPES = {
     "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -26,82 +19,8 @@ OFFICE_MIME_TYPES = {
 }
 
 
-# //// Neoffice — rate limited, and it now requires read access on the document.
-# //// This is the editor pre-flight the Drive preview calls, so it is one of the two
-# //// endpoints allowed to wake coolwsd (see discovery.get_discovery_xml); without a
-# //// limit it was a free "hold a web worker for 20 s" primitive. The read check
-# //// closes the smaller half of the same hole: the reply used to tell any signed-in
-# //// user whether an arbitrary File id existed and whether it was an Office document.
-# //// An unreadable id answers exactly like a missing one, so the difference leaks
-# //// nothing either.
 @frappe.whitelist()
-@rate_limit(key=EDITOR_RATE["key"], limit=EDITOR_RATE["limit"], seconds=EDITOR_RATE["seconds"])
-def can_edit_file(file_id: str) -> dict:
-    """Check if a file can be edited with Collabora."""
-    # //// Neoffice — read access required; see the block above the decorators.
-    from suite.drive.api.permissions import user_has_permission
-
-    if not frappe.db.exists("File", file_id) or not user_has_permission(file_id, "read"):
-        return {"can_edit": False, "reason": _("File not found")}
-
-    file_name = frappe.db.get_value("File", file_id, "file_name") or ""
-
-    # //// Neoffice — the server first, the file type second. The type is read from the
-    # //// discovery the RUNNING server publishes: asked first, while coolwsd was still
-    # //// waking up, it answered "File type not supported" with no `retryable`, so the
-    # //// preview gave up and offered Microsoft's viewer, and the waiting branch below
-    # //// never ran in the very case it was written for. Measured on osiris 05.10.2026:
-    # //// an .xlsx opened from Drive, coolwsd ready 24 s after its start, the probe gave
-    # //// up at 20 s. It also woke the daemon twice per click.
-    # //// `start_if_down=True`: the user has opened an Office document and is waiting on
-    # //// the answer, so this is the moment to wake the daemon.
-    status = collabora_status(start_if_down=True)
-    if status.get("status") != "ok":
-        # //// Neoffice — tell the caller WHETHER COLLABORA IS SUPPOSED TO BE THERE.
-        # ////
-        # //// The frontend falls back to Microsoft's Office viewer when it cannot
-        # //// edit, which ships the document to view.officeapps.live.com. That is
-        # //// acceptable when this instance has no Collabora at all; it is NOT when
-        # //// Collabora is deployed and merely waking up: coolwsd is stopped after
-        # //// 15 idle minutes (lifecycle.stop_if_idle), and a cold start under swap
-        # //// pressure can outrun COLLABORA_START_TIMEOUT_SECONDS. Measured on osiris
-        # //// 31.08.2026: the first click after two idle weeks offered to send the
-        # //// document to Microsoft. On a client instance that would happen several
-        # //// times a day, on their documents. Same intent as 850e41c0c.
-        # ////
-        # //// `wopi_enabled` lets the caller keep waiting instead of leaving the
-        # //// site; `retryable` says the daemon is on its way up.
-        return {
-            "can_edit": False,
-            "reason": status.get("message", _("Collabora server not available")),
-            "wopi_enabled": status.get("status") != "disabled",
-            "retryable": status.get("status") != "disabled",
-        }
-
-    # //// Neoffice — `start_if_down=False`: the status check above has just woken the
-    # //// daemon and cached its discovery; this reads it without a second start. Collabora
-    # //// is there, it just does not edit this type: no waiting, and no Microsoft either.
-    if not is_file_supported(file_name, start_if_down=False):
-        return {
-            "can_edit": False,
-            "reason": _("File type not supported"),
-            "wopi_enabled": True,
-            "retryable": False,
-        }
-
-    return {"can_edit": True, "reason": None, "wopi_enabled": True, "retryable": False}
-
-
-@frappe.whitelist()
-def get_supported_extensions() -> list:
-    """Get the list of file extensions supported by Collabora."""
-    # //// Neoffice — read-only: listing the formats is not a reason to boot a daemon.
-    status = collabora_status(start_if_down=False)
-    return status.get("supported_formats", [])
-
-
-@frappe.whitelist()
-def create_office_file(file_type: str, title: str, parent: str = None) -> dict:
+def create_office_file(file_type: str, title: str, parent: str = None) -> dict:  # noqa: RUF013 (see the note below)
     """Create a new blank Office file in the Drive.
 
     Args:

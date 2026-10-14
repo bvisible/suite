@@ -1,11 +1,10 @@
-# //// Neoffice — added file (no upstream equivalent): Collabora/WOPI port (from drive_wopi), maintained by Neoffice ////
-"""WOPI REST endpoints for Collabora Online, backed by the native File doctype.
+# //// Neoffice — added file (no upstream equivalent): the content endpoints of the Drive's Office editors ////
+"""WOPI-style content endpoints of the Craft editors, backed by the native File doctype.
 
-Ported from the Neoffice `drive_wopi` app (which targeted the standalone
-drive app's "Drive File" doctype). Storage goes through suite's FileManager
-so both local disk and S3 backends work.
-
-Documentation: https://learn.microsoft.com/en-us/microsoft-365/cloud-storage-partner-program/rest/
+Ported from the Neoffice `drive_wopi` app, which served Collabora Online. Collabora is gone (maintenance#1570)
+and what is left is what the Craft editors call: read the document, write it back, each with the signed token
+that ``craft.get_craft_editor_config`` hands out and a live permission check. Storage goes through suite's
+FileManager so both local disk and S3 backends work.
 """
 
 from __future__ import annotations
@@ -17,7 +16,6 @@ from frappe import _
 
 from suite.drive.utils.files import FileManager, storage_key
 
-from .lock_manager import acquire_lock, get_lock, refresh_lock, release_lock, unlock_expired
 from .token import validate_wopi_token
 
 CONTENT_TYPES = {
@@ -61,7 +59,7 @@ def get_wopi_file(file_id: str):
 # //// and SAVING for the whole life of the token. Revocation has to be immediate to
 # //// mean anything, so every read and every write re-checks the live permission of
 # //// the user the token names. The token remains what authenticates the caller
-# //// (Collabora holds no session); it is no longer what authorises the operation.
+# //// (the request carries no session); it is no longer what authorises the operation.
 def check_token_permission(file, token_data: dict, ptype: str) -> bool:
     """True if the token's user still holds `ptype` on `file` right now."""
     from suite.drive.api.permissions import user_has_permission
@@ -99,7 +97,7 @@ def write_file_content(file, content: bytes) -> None:
             f.write(content)
 
 
-# //// Neoffice — what the content of a file is at this moment, for the editors that are not Collabora (craft.py).
+# //// Neoffice — what the content of a file is at this moment, for the editors' optimistic concurrency (craft.py).
 # //// `modified` moves for any change of the row, a rename or a share included: a document somebody else only
 # //// renamed would read as "changed since you opened it". The content's own time and size move only when the
 # //// bytes do (PutFile, an upload, a WebDAV PUT).
@@ -134,59 +132,6 @@ def validate_access_token(file_id: str) -> dict:
     return token_data
 
 
-@frappe.whitelist(allow_guest=True)
-def check_file_info(file_id: str):
-    """WOPI CheckFileInfo endpoint — GET /wopi/files/{file_id}."""
-    token_data = validate_access_token(file_id)
-
-    file = get_wopi_file(file_id)
-
-    # //// Neoffice — see check_token_permission above. Collabora asks this first and
-    # //// builds its whole UI from the answer, so re-deciding `UserCanWrite` here is
-    # //// what turns a revoked share into a read-only editor rather than into a save
-    # //// that fails minutes later on a document the user believed was theirs.
-    require_token_permission(file, token_data, "read")
-
-    user_id = token_data.get("user_id", "anonymous")
-    # //// Neoffice — the token's `can_write` AND the live permission, not either one.
-    can_write = bool(token_data.get("can_write", False)) and check_token_permission(file, token_data, "write")
-
-    user_name = user_id
-    if user_id and user_id != "Guest" and frappe.db.exists("User", user_id):
-        user_name = frappe.db.get_value("User", user_id, "full_name") or user_id
-
-    file_size = file.file_size
-    if not file_size:
-        file_size = len(read_file_content(file))
-
-    response = {
-        # Identifiers
-        "BaseFileName": file.file_name or file.name,
-        "OwnerId": file.owner,
-        "Size": file_size,
-        "Version": str(file.modified),
-        # Current user
-        "UserId": user_id,
-        "UserFriendlyName": user_name,
-        "UserCanWrite": can_write,
-        "UserCanNotWriteRelative": True,
-        # Capabilities
-        "SupportsLocks": True,
-        "SupportsUpdate": True,
-        "SupportsGetLock": True,
-        "SupportsExtendedLockLength": True,
-        # UI options
-        "DisablePrint": False,
-        "DisableExport": False,
-        "DisableCopy": False,
-        "HideSaveOption": False,
-        "HideExportOption": False,
-        "HidePrintOption": False,
-    }
-
-    frappe.response.update(response)
-
-
 @frappe.whitelist(allow_guest=True, methods=["GET"])
 def get_file(file_id: str):
     """WOPI GetFile endpoint — GET /wopi/files/{file_id}/contents."""
@@ -208,7 +153,7 @@ def get_file(file_id: str):
     frappe.response.type = "binary"
     set_response_header("Content-Type", CONTENT_TYPES.get(extension, "application/octet-stream"))
     set_response_header("X-WOPI-ItemVersion", str(file.modified))
-    # //// Neoffice — the version an editor without a lock says it opened (see put_file).
+    # //// Neoffice — the version the editor says it opened when it saves (see put_file).
     send_content_version(file)
 
 
@@ -227,20 +172,11 @@ def put_file(file_id: str):
     # //// what is true now, and it is the one that decides whether bytes land.
     require_token_permission(file, token_data, "write")
 
-    # Verify lock
-    wopi_lock = frappe.request.headers.get("X-WOPI-Lock", "")
-    current_lock = get_lock(file_id)
-
-    if current_lock and current_lock.get("lock_id") != wopi_lock:
-        frappe.local.response.http_status_code = 409
-        set_response_header("X-WOPI-Lock", current_lock.get("lock_id", ""))
-        return {"error": "Lock mismatch"}
-
-    # //// Neoffice — optimistic concurrency for the editors that hold no lock (craft.py). Collabora locks the
-    # //// document; an editor saving from the Drive page does not, so two people editing the same document would
-    # //// overwrite each other without a word. It says which content it opened in X-Neoffice-Base-Version: when the
-    # //// file has changed since, nothing is written (409) and the page offers a copy. Collabora sends no such
-    # //// header and is unaffected.
+    # //// Neoffice — optimistic concurrency (craft.py). The editor saving from the Drive page holds no lock, so two
+    # //// people editing the same document would overwrite each other without a word. It says which content it
+    # //// opened in X-Neoffice-Base-Version: when the file has changed since, nothing is written (409) and the page
+    # //// offers a copy. A save that names no version (the person chose to replace) writes without the check.
+    # //// The lock calls of the WOPI protocol (LOCK, UNLOCK…) went with Collabora, the only client that used them.
     base_version = frappe.request.headers.get("X-Neoffice-Base-Version")
     if base_version and base_version != content_version(file):
         frappe.local.response.http_status_code = 409
@@ -277,57 +213,10 @@ def put_file(file_id: str):
     return {}
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
-def handle_lock(file_id: str):
-    """Handle WOPI lock operations — POST /wopi/files/{file_id}.
-
-    Headers: X-WOPI-Override: LOCK | UNLOCK | REFRESH_LOCK | GET_LOCK | UNLOCK_AND_RELOCK
-    """
-    token_data = validate_access_token(file_id)
-
-    operation = frappe.request.headers.get("X-WOPI-Override", "").upper()
-    lock_id = frappe.request.headers.get("X-WOPI-Lock", "")
-    old_lock_id = frappe.request.headers.get("X-WOPI-OldLock", "")
-    user = token_data.get("user_id", "anonymous")
-
-    result = {"success": True, "status": 200}
-
-    if operation == "LOCK":
-        result = acquire_lock(file_id, lock_id, user)
-    elif operation == "UNLOCK":
-        result = release_lock(file_id, lock_id)
-    elif operation == "REFRESH_LOCK":
-        result = refresh_lock(file_id, lock_id)
-    elif operation == "GET_LOCK":
-        current = get_lock(file_id)
-        set_response_header("X-WOPI-Lock", current.get("lock_id", "") if current else "")
-        return {"status": 200}
-    elif operation == "UNLOCK_AND_RELOCK":
-        result = unlock_expired(file_id, old_lock_id, lock_id, user)
-    else:
-        frappe.throw(_("Unsupported WOPI operation: {0}").format(operation), frappe.ValidationError)
-
-    if not result.get("success"):
-        frappe.local.response.http_status_code = result.get("status", 409)
-        if result.get("current_lock"):
-            set_response_header("X-WOPI-Lock", result["current_lock"])
-
-    return result
-
-
 # =============================================================================
-# Nginx-routable wrapper endpoints — the nginx wopi.conf snippet rewrites
-# /wopi/files/{id}[/contents] onto these two methods.
+# Nginx-routable wrapper endpoint — the nginx wopi.conf snippet rewrites
+# /wopi/files/{id}/contents onto this method.
 # =============================================================================
-
-
-@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
-def handle_file_info(file_id: str):
-    """Handle /wopi/files/{file_id} — GET = CheckFileInfo, POST = lock ops."""
-    if frappe.request.method == "GET":
-        return check_file_info(file_id)
-    elif frappe.request.method == "POST":
-        return handle_lock(file_id)
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET", "POST"])

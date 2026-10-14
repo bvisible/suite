@@ -100,7 +100,7 @@ def after_migrate():
 
     _run("mail.after_migrate", mail_after_migrate)
     # //// Neoffice — the Craft editors' browser builds (suite/drive/wopi/craft_install.py). It never raises: a
-    # //// download that fails leaves the site on the build it had, or on Collabora, and must not fail a migrate.
+    # //// download that fails leaves the site on the build it had, or with none, and must not fail a migrate.
     from suite.drive.wopi.craft_install import after_migrate as craft_after_migrate
 
     _run("craft.after_migrate", craft_after_migrate)

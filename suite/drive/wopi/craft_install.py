@@ -6,8 +6,8 @@ release asset to download and its SHA-256; ``ensure_installed`` fetches what is 
 checks the hash, unpacks it with the same suspicion as any download, and swaps the folder in one rename.
 
 It runs after every migrate and never fails one: an editor that cannot be fetched leaves the site on
-the build it had (or on Collabora, which the Drive falls back to), and says so in the error log. A site
-that sets ``craft_editors_install`` to 0 in its config is left alone.
+the build it had (or with none: the Drive then says the editor is unavailable and offers the download),
+and says so in the error log. A site that sets ``craft_editors_install`` to 0 in its config is left alone.
 
 By hand: ``bench --site <site> execute suite.drive.wopi.craft_install.ensure_installed``.
 """

@@ -1,24 +1,25 @@
-# //// Neoffice: new file — Collabora/WOPI port (from drive_wopi), maintained by Neoffice ////
+# //// Neoffice — added file (no upstream equivalent): the signed tokens of the Drive's Office editors ////
 """
 JWT token management for WOPI authentication.
 """
 
 from __future__ import annotations
-import jwt
-import frappe
-from frappe import _
 
-# //// Neoffice — `timezone` for the aware expiry below; the rest of this block
+# //// Neoffice — `UTC` for the aware expiry below; the rest of this block
 # //// (the default lifetime, and the helper that refuses to hand out a secret it
 # //// could not persist) is new. See the commit and the notes on each.
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+
+import frappe
+import jwt
+from frappe import _
 
 # Lifetime of a WOPI access token, in hours, when WOPI Settings says nothing.
 #
 # `access_token_ttl` is an absolute expiry instant in milliseconds since the
-# epoch, not a duration (Microsoft's WOPI spec, which Collabora implements). The
-# spec suggests 10 hours; Collabora warns the user 15 minutes before expiry and
-# refuses to save afterwards, and reloading the document mints a fresh token.
+# epoch, not a duration (Microsoft's WOPI spec, which the editors' tokens keep).
+# The spec suggests 10 hours; a save after the expiry is refused, and reopening
+# the document mints a fresh token (NeoDesk renews it on its own).
 #
 # We ship 4 hours instead. The token freezes `file_id` and `can_write` at the
 # moment the editor opened, so its lifetime is the window in which a leaked or
@@ -54,7 +55,7 @@ def _read_jwt_secret(settings) -> str | None:
 
     That is recoverable here, unlike most secrets. This one is not shared with
     anybody — it only signs the WOPI tokens this site hands to its own
-    Collabora — so minting a fresh one costs nothing beyond invalidating tokens
+    editors — so minting a fresh one costs nothing beyond invalidating tokens
     issued in the last few hours, and it is written back so every later call
     agrees on the same value.
 
@@ -63,7 +64,9 @@ def _read_jwt_secret(settings) -> str | None:
     could not be decrypted therefore surfaced as "WOPI/Collabora is disabled",
     and Drive quietly fell back to the Microsoft Office viewer — sending
     customer documents to a third party because of an unreadable local secret.
-    Measured on the Neoffice Lite tenants, 2026-08-04.
+    Measured on the Neoffice Lite tenants, 2026-08-04. (The switch and the
+    fallback are gone since the Drive opens its documents in its own editors;
+    the point stands: an unreadable secret must be reported, never worked around.)
     """
     if not settings.jwt_secret:
         return None
@@ -92,7 +95,7 @@ def _read_jwt_secret(settings) -> str | None:
             "WOPI: JWT secret re-minted",
             "The stored WOPI JWT secret could not be decrypted with this site's encryption "
             "key (usual cause: the site was restored from another site's backup). A new "
-            "secret was generated and saved so Collabora keeps working.",
+            "secret was generated and saved so the editors keep working.",
         )
         return secret
 
@@ -102,18 +105,14 @@ def get_wopi_settings():
     try:
         settings = frappe.get_single("WOPI Settings")
     except Exception:
-        # No WOPI Settings at all (doctype not installed): genuinely off.
+        # No WOPI Settings at all (doctype not installed): no secret to sign with.
         return {
-            "enabled": False,
-            "collabora_server_url": None,
             "jwt_secret": None,
             # //// Neoffice — see DEFAULT_JWT_EXPIRY_HOURS above (was a bare 10).
             "jwt_expiry_hours": DEFAULT_JWT_EXPIRY_HOURS,
         }
 
     return {
-        "enabled": settings.enabled,
-        "collabora_server_url": settings.collabora_server_url,
         "jwt_secret": _read_jwt_secret(settings),
         # //// Neoffice — see DEFAULT_JWT_EXPIRY_HOURS above (was a bare 10).
         "jwt_expiry_hours": settings.jwt_expiry_hours or DEFAULT_JWT_EXPIRY_HOURS,
@@ -143,9 +142,9 @@ def get_wopi_secret() -> str:
     return secret
 
 
-def generate_wopi_token(file_id: str, user: str = None, can_write: bool = True) -> dict:
+def generate_wopi_token(file_id: str, user: str | None = None, can_write: bool = True) -> dict:
     """
-    Generate a JWT token for WOPI access.
+    Generate a JWT token for the content endpoints of the editors (endpoints.py).
 
     Args:
         file_id: File ID
@@ -166,7 +165,7 @@ def generate_wopi_token(file_id: str, user: str = None, can_write: bool = True) 
     # //// EARLIER than the moment the token really expired, so Collabora warned about
     # //// and then refused a session that was still perfectly valid. The two now agree.
     # //// utcnow() is also deprecated since Python 3.12.
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     expiry = now + timedelta(hours=expiry_hours)
 
     payload = {

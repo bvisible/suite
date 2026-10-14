@@ -30,7 +30,7 @@
         <div class="mx-auto grid grid-cols-3 gap-x-10 gap-y-10 min-[480px]:grid-cols-4 min-[480px]:gap-x-20">
           <!-- //// Neoffice — two tile kinds upstream does not have: `external` leaves
                the SPA entirely (plain <a>, e.g. Mail -> /app/webmail) and `createsOffice`
-               creates a blank Office file in Drive and opens it in Collabora, in place of
+               creates a blank Office file in Drive and opens it in its Craft editor, in place of
                the native Writer/Sheets/Slides editors. Upstream's LauncherTile already
                renders a RouterLink, an <a> or a <button> depending on which of to/href is
                set, so the three cases share one component. The label goes through __():
@@ -116,7 +116,7 @@ onUnmounted(() => {
 // //// Neoffice: identity of the hub in the cockpit module switcher ////
 const surfaceApp = { name: 'suite', title: 'Suite', logo: SUITE_LOGO }
 
-// //// Neoffice: create a blank Office file (Collabora-backed) from a tile.
+// //// Neoffice: create a blank Office file (opened in a Craft editor) from a tile.
 // Falls back to the Drive home when the user has no team yet (onboarding). ////
 const creating = ref<string | null>(null)
 async function createOfficeFile(app: SuiteApp) {
@@ -136,7 +136,7 @@ async function createOfficeFile(app: SuiteApp) {
     if (res.ok && message?.file_id) {
       router.push(`/drive/g/${message.file_id}`)
     } else {
-      // No team yet (or Collabora off): let the Drive onboarding take over
+      // No team yet (or the creation failed): let the Drive onboarding take over
       router.push('/drive')
     }
   } catch {
