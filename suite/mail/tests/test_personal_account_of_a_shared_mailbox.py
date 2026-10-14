@@ -21,18 +21,19 @@ SESSIONS = "jmap:sessions"
 
 
 def _user(email: str) -> None:
-    if frappe.db.exists("User", email):
-        return
-    with mock.patch("suite.mail.events._should_provision_mail", return_value=False):
-        frappe.get_doc(
-            {
-                "doctype": "User",
-                "email": email,
-                "first_name": "Shared box",
-                "send_welcome_email": 0,
-                "user_type": "System User",
-            }
-        ).insert(ignore_permissions=True)
+    if not frappe.db.exists("User", email):
+        with mock.patch("suite.mail.events._should_provision_mail", return_value=False):
+            frappe.get_doc(
+                {
+                    "doctype": "User",
+                    "email": email,
+                    "first_name": "Shared box",
+                    "send_welcome_email": 0,
+                    "user_type": "System User",
+                }
+            ).insert(ignore_permissions=True)
+    # A user with no role is made a Website User on insert: the dates of the ERP are a desk user's.
+    frappe.db.set_value("User", email, "user_type", "System User")
 
 
 def _account(account_id: str, name: str) -> None:
