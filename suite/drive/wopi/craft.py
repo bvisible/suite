@@ -1,5 +1,5 @@
 # //// Neoffice — added file (no upstream equivalent): the Craft editors, the Drive's Office editors.
-"""Open an Office document in a Craft editor (Word, Excel, PowerPoint, PDF): the Drive's Office editors.
+"""Open an Office document in a Craft editor (NeoWrite, NeoSheet, NeoSlides, NeoPDF): the Drive's Office editors.
 
 The browser builds of the editors (Neoffice's forks of storytold's Craft apps, built in their own
 repositories) are static files under ``suite/public/craft/<folder>/``, put there by
@@ -47,7 +47,7 @@ EDITORS = {
 }
 
 # What the Drive opens in an editor on its own: every type an editor writes back, the PDF editor included (a PDF
-# opens in it directly, as a Word document opens in Word; the preview upstream has is the fallback of a site without
+# opens in it directly, as a document opens in its own editor; the preview upstream has is the fallback of a site without
 # the build, see PdfWithEditor.vue).
 DEFAULT_EDITORS = ("word", "sheet", "deck", "pdf")
 
@@ -163,8 +163,8 @@ def clean_file_name(file_name: str) -> str:
 def save_copy(file_id: str, file_name: str) -> dict:
     """Store the body of the request as a new file next to ``file_id``: Save As in an editor.
 
-    The name is made unique in the folder, and the type stays the one of the source: a Word document
-    saved as ``other.docx`` is a new Word document, never a way to put anything else in the Drive.
+    The name is made unique in the folder, and the type stays the one of the source: a docx document
+    saved as ``other.docx`` is a new docx document, never a way to put anything else in the Drive.
     """
     from suite.drive.api.permissions import user_has_permission
 

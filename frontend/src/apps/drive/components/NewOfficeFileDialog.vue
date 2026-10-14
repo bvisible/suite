@@ -50,11 +50,13 @@ const fileName = ref('')
 
 const dialogTitle = computed(() => {
   const titles = {
-    docx: __('Create a Word Document'),
+    // //// Neoffice — no product name in the titles: the Create menu's entry says which editor opens the file. ////
+    docx: __('Create a Document'),
     xlsx: __('Create a Spreadsheet'),
     pptx: __('Create a Presentation'),
   }
-  return titles[props.fileType] || __('Create a Word Document')
+  // //// Neoffice — the fallback is the first kind's title, which used to name the Office mark. ////
+  return titles[props.fileType] || __('Create a Document')
 })
 
 const fileIcon = computed(() => {

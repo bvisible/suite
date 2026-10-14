@@ -60,7 +60,7 @@ import { useRoute } from 'vue-router'
 
 import NewFolderDialog from '@/apps/drive/components/NewFolderDialog.vue'
 import NewLinkDialog from '@/apps/drive/components/NewLinkDialog.vue'
-//// Neoffice — added: the "New Word/Excel/PowerPoint document" dialog. Creates a
+//// Neoffice — added: the "New NeoWrite/NeoSheet/NeoSlides document" dialog. Creates a
 //// blank Office binary in Drive and opens it in the Craft editor; upstream's Create menu
 //// only offers its own native formats.
 import NewOfficeFileDialog from '@/apps/drive/components/NewOfficeFileDialog.vue'
