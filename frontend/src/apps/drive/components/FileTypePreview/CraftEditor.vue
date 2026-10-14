@@ -117,12 +117,13 @@ function post(type, fields = {}, transfer = []) {
   frame.value?.contentWindow?.postMessage({ type: `${prefix}:${type}`, ...fields }, window.location.origin, transfer)
 }
 
-// The token and not the cookie: the same authentication as Collabora's server, and no CSRF token to carry.
+// The token and not the cookie: the same authentication as Collabora's server, and no CSRF token to carry. It
+// goes in the URL, as the WOPI protocol has it: nginx's /wopi/ rule (snippets/wopi.conf) turns that query
+// argument into the header the endpoints read, and would overwrite one sent by the page.
 const wopi = (path, init = {}) =>
-  fetch(`${session.wopi_src}${path}`, {
+  fetch(`${session.wopi_src}${path}?access_token=${encodeURIComponent(session.access_token)}`, {
     credentials: 'omit',
     ...init,
-    headers: { 'X-WOPI-Access-Token': session.access_token, ...init.headers },
   })
 
 async function failure(response) {

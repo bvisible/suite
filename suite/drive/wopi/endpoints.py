@@ -107,6 +107,16 @@ def content_version(file) -> str:
     return f"{file.file_modified}|{file.file_size}"
 
 
+# //// Neoffice — an HTTP header the page can read. `set_response_header` above writes `frappe.response.headers`,
+# //// a key of the response dict that nothing turns into a header; the real ones are `frappe.local.response_headers`
+# //// (v16 natively, v15 through suite_core/v15_response_headers.py). Measured on osiris, 14.10.2026: the page read
+# //// `null` for the header set the first way.
+def send_content_version(file) -> None:
+    headers = getattr(frappe.local, "response_headers", None)
+    if headers is not None:
+        headers["X-Neoffice-Content-Version"] = content_version(file)
+
+
 def validate_access_token(file_id: str) -> dict:
     """Validate access token from request and return token data."""
     # Token comes via X-WOPI-Access-Token header or query param
@@ -199,7 +209,7 @@ def get_file(file_id: str):
     set_response_header("Content-Type", CONTENT_TYPES.get(extension, "application/octet-stream"))
     set_response_header("X-WOPI-ItemVersion", str(file.modified))
     # //// Neoffice — the version an editor without a lock says it opened (see put_file).
-    set_response_header("X-Neoffice-Content-Version", content_version(file))
+    send_content_version(file)
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
@@ -234,7 +244,7 @@ def put_file(file_id: str):
     base_version = frappe.request.headers.get("X-Neoffice-Base-Version")
     if base_version and base_version != content_version(file):
         frappe.local.response.http_status_code = 409
-        set_response_header("X-Neoffice-Content-Version", content_version(file))
+        send_content_version(file)
         return {"error": "The file changed since it was opened"}
 
     content = frappe.request.get_data()
@@ -254,7 +264,7 @@ def put_file(file_id: str):
         frappe.db.commit()
         set_response_header("X-WOPI-ItemVersion", str(file.modified))
         # //// Neoffice — the version the next save of the same editor builds on.
-        set_response_header("X-Neoffice-Content-Version", content_version(file))
+        send_content_version(file)
     except Exception as e:
         if previous is not None:
             try:
