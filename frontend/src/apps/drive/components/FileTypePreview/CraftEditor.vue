@@ -248,7 +248,7 @@ async function keepAsCopy() {
   conflict.value = null
   const stem = name.replace(/\.[^.]+$/, '')
   try {
-    await saveCopy(`${stem} (${__('copy')}).${extension(name)}`, bytes)
+    await saveCopy(`${__('{0} (copy)', [stem])}.${extension(name)}`, bytes)
     post('saved', { name, ok: true })
   } catch (e) {
     toast.error(e.message)
