@@ -1,1 +1,0 @@
-import{b as e}from"./files-BBCmWSce.js";export{e as translate};
