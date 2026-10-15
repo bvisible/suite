@@ -1,1 +1,0 @@
-import{b as e}from"./files-Q-Hms6X3.js";export{e as translate};
