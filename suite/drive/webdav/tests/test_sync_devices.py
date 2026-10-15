@@ -39,7 +39,7 @@ MANAGER = "webdav-device-manager@example.com"
 PASSWORD = "webdav-device-pw-9000"
 PROPFIND_OC = (
     b'<?xml version="1.0"?><D:propfind xmlns:D="DAV:" xmlns:oc="http://owncloud.org/ns">'
-    b"<D:prop><oc:fileid/><oc:size/><oc:checksums/><D:getetag/></D:prop></D:propfind>"
+    b"<D:prop><oc:fileid/><oc:size/><oc:checksums/><D:getetag/><D:getlastmodified/></D:prop></D:propfind>"
 )
 
 
@@ -315,3 +315,27 @@ class TestOwncloudProperties(IntegrationTestCase):
 
         self._move(f"{self.path}/after.txt", f"{self.path}/sub/moved.txt")
         self.assertEqual(self._text(self._props(f"{self.path}/sub/moved.txt"), "fileid"), before)
+
+    def test_a_move_or_a_rename_keeps_the_modification_time(self):
+        manager = FileManager()
+        with self.set_user(OWNER):
+            row = write_file_fixture(self.folder.name, "stamped.txt", b"x")
+            create_drive_file("sub", self.folder.name, "Folder", lambda f: manager.create_folder(f))
+        past = "2020-03-04 05:06:07"
+        frappe.db.set_value(
+            "File", row.name, {"file_modified": past, "modified": past}, update_modified=False
+        )
+
+        def stamps():
+            return frappe.db.get_value("File", row.name, ["file_modified", "modified"])
+
+        def shown(path: str) -> str:
+            return self._props(path).find(dav("getlastmodified")).text
+
+        before, announced = stamps(), shown(f"{self.path}/stamped.txt")
+        self._move(f"{self.path}/stamped.txt", f"{self.path}/renamed.txt")
+        self.assertEqual(stamps(), before)
+        self.assertEqual(shown(f"{self.path}/renamed.txt"), announced)
+        self._move(f"{self.path}/renamed.txt", f"{self.path}/sub/moved.txt")
+        self.assertEqual(stamps(), before)
+        self.assertEqual(shown(f"{self.path}/sub/moved.txt"), announced)

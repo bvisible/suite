@@ -132,11 +132,22 @@ def handle_move(ctx: DavContext) -> Response:
         overwrote = True
 
     doc = frappe.get_doc("File", source.entity.name)
+    # //// Neoffice — a move or a rename leaves the content as it was, and Drive's controllers stamp `file_modified`
+    # //// and `modified` with the time of the operation: a synchronising client (rclone compares size and
+    # //// modification time) read a renamed file as a changed one and sent or fetched it again. Put back below.
+    stamps = frappe.db.get_value("File", doc.name, ["file_modified", "modified"], as_dict=True)
     pathmap.reset_memo()
     if dest_parent.name != source.entity.folder:
         doc.move(dest_parent.name)
     if doc.file_name != dest_name:
         doc.rename(dest_name)
+    # //// Neoffice — see above
+    frappe.db.set_value(
+        "File",
+        doc.name,
+        {"file_modified": stamps.file_modified, "modified": stamps.modified},
+        update_modified=False,
+    )
 
     # RFC 4918 §7.5: locks do not move with the resource
     locks.drop_locks_under(source.entity.name)
