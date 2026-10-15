@@ -251,12 +251,18 @@ files stay upstream's byte for byte. Three things keep it honest:
 * `KEEP` (data the code compares with or stores) and `OVERRIDES` (sentences a template breaks around an element)
   in `neoffice-i18n-core.mjs`: each says why. A literal comparison with a message found, for every one of them, by
   looking: `label`s that were also action names, the default label of a Writer tab.
-frappe-ui's editor (Writer's toolbar, slash menu, table, link and media tools; Mail's composer shows the same module) is
-English only as well: the files of `node_modules/frappe-ui/src/molecules/editor/` listed in `FRAPPE_UI_EDITOR_FILES`
-are read the same way (a file not in the list is not read, and one of a later release is said only once somebody has
-looked at it). A command's label is read when it is shown (`menu.ts` builds them when the module loads, before the
-translations), so two `OVERRIDES` make `command()` and `tableCommand()` lazy. The rest of frappe-ui (its components:
-pickers, dialogs, list footers) is not read: a decision of its own.
+The reading is not limited to those four apps any more (15.10): all of `frontend/src` is read (Mail's settings and
+tabs, Meet, Calendar's filters, the shell, the shared components, the router titles) — a text already said through
+`__()` is never touched, a worker file (`sw.ts`, `*Worker.ts`) never read. `SCOPE` names OUR `frontend/src`; a library
+under `node_modules` or the repository's `frappe-ui/` submodule is read only through the lists of `neoffice-i18n-core.mjs`.
+frappe-ui's editor (Writer's toolbar, slash menu, table, link and media tools), its shared components (pickers, dialogs,
+sidebar, select), its `utils/dialog.ts`, and its experimental list footer, command palette and text editor (Mail's
+composer) are English only as well: each file is listed (`FRAPPE_UI_EDITOR_FILES`, `FRAPPE_UI_COMPONENT_FILES`,
+`FRAPPE_UI_EXPERIMENTAL_FILES`) and read the same way; a file not in the list is not read, and one of a later release is
+said only once somebody has looked at it. A command's label is read when it is shown (`menu.ts` builds them when the
+module loads, before the translations), so two `OVERRIDES` make `command()` and `tableCommand()` lazy. The pop-ups the
+library mounts with `createApp` (link, table size, gallery, embed, image viewer) are given the page's `__`
+(`OVERRIDES`; a test fails when a file that is read mounts an app of its own without it).
 At a merge: `node scripts/gen-i18n-registry.mjs`, translate what is new (the `translate` skill, Haiku), run the
 test. An override whose text moved from upstream fails the build with its file: say the sentence again (the same at
 a bump of the frappe-ui commit in `package.json`).

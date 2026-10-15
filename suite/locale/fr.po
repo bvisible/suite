@@ -30558,3 +30558,399 @@ msgstr "Impossible d'insérer l'intégration. Veuillez vérifier l'URL et réess
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "Generic"
 msgstr "Générique"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add Column After"
+msgstr "Ajouter une colonne après"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add Column Before"
+msgstr "Ajouter une colonne avant"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add Row After"
+msgstr "Ajouter une ligne après"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add Row Before"
+msgstr "Ajouter une ligne avant"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Back to launcher"
+msgstr "Retour au lanceur"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Bottom sheet"
+msgstr "Panneau inférieur"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Calendar dates"
+msgstr "Dates du calendrier"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Clear All"
+msgstr "Tout effacer"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Click to edit"
+msgstr "Cliquer pour modifier"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Click to edit {0}"
+msgstr "Cliquer pour modifier {0}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Click to invert"
+msgstr "Cliquer pour inverser"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Collapse"
+msgstr "Réduire"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Command palette"
+msgstr "Palette de commandes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Compose mail"
+msgstr "Nouveau message"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Copy meeting link"
+msgstr "Copier le lien de la réunion"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Could not load {0}"
+msgstr "Impossible de charger {0}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Dedent List"
+msgstr "Diminuer le retrait de la liste"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Delete Column"
+msgstr "Supprimer la colonne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Delete Row"
+msgstr "Supprimer la ligne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Delete Table"
+msgstr "Supprimer le tableau"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Doe"
+msgstr "Dupont"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Domain deleted."
+msgstr "Domaine supprimé."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Drop images anywhere"
+msgstr "Déposez les images n'importe où"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Edit {0}"
+msgstr "Modifier {0}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Email, Mailbox"
+msgstr "E-mail, boîte aux lettres"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Failed to disable captions"
+msgstr "Impossible de désactiver les sous-titres"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Failed to enable captions"
+msgstr "Impossible d'activer les sous-titres"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Float left"
+msgstr "Flottant à gauche"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Float right"
+msgstr "Flottant à droite"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Frappe Mail"
+msgstr "Neoffice Messagerie"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Frappe response did not contain data"
+msgstr "La réponse du serveur ne contenait aucune donnée"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Heading 1"
+msgstr "Titre 1"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Heading 2"
+msgstr "Titre 2"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Heading 3"
+msgstr "Titre 3"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Heading 4"
+msgstr "Titre 4"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Heading 5"
+msgstr "Titre 5"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Heading 6"
+msgstr "Titre 6"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Hide Password"
+msgstr "Masquer le mot de passe"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Important, Urgent, Follow Up"
+msgstr "Important, Urgent, À suivre"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Indent List"
+msgstr "Augmenter le retrait de la liste"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert Table"
+msgstr "Insérer un tableau"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Invert {0}"
+msgstr "Inverser {0}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "John"
+msgstr "Jean"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "john@example.com, jane@example.com, *@example.io"
+msgstr "jean@exemple.ch, marie@exemple.ch, *@exemple.io"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Leave meeting"
+msgstr "Quitter la réunion"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Leave meeting?"
+msgstr "Quitter la réunion ?"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Loading embed..."
+msgstr "Chargement de l'intégration…"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Manage your settings across the tabs in this dialog."
+msgstr "Gérez vos paramètres depuis les onglets de cette fenêtre."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Merge Cells"
+msgstr "Fusionner les cellules"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Navigate"
+msgstr "Naviguer"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No Data"
+msgstr "Aucune donnée"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No data available"
+msgstr "Aucune donnée disponible"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No icons available."
+msgstr "Aucune icône disponible."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No icons found for \"{0}\""
+msgstr "Aucune icône trouvée pour « {0} »"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No keyboard shortcuts available on this page."
+msgstr "Aucun raccourci clavier disponible sur cette page."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No options"
+msgstr "Aucune option"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No shortcuts match your search."
+msgstr "Aucun raccourci ne correspond à votre recherche."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Numbered List"
+msgstr "Liste numérotée"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Out of Office"
+msgstr "Absent du bureau"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Page not found"
+msgstr "Page introuvable"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Random"
+msgstr "Aléatoire"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Recent"
+msgstr "Récents"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Remove float"
+msgstr "Retirer le flottant"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Remove from recent searches"
+msgstr "Retirer des recherches récentes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Resize"
+msgstr "Redimensionner"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Search across Suite apps, commands, and content."
+msgstr "Rechercher dans les applications, les commandes et les contenus de la Suite."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Search shortcuts"
+msgstr "Rechercher un raccourci"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Search Suite"
+msgstr "Rechercher dans la Suite"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Search · {0} removes last filter"
+msgstr "Rechercher · {0} retire le dernier filtre"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Select an icon..."
+msgstr "Sélectionner une icône…"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Select date & time"
+msgstr "Sélectionner la date et l'heure"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Select month"
+msgstr "Sélectionner le mois"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Select month and year"
+msgstr "Sélectionner le mois et l'année"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Select option"
+msgstr "Sélectionner une option"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Select range"
+msgstr "Sélectionner une période"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Select year"
+msgstr "Sélectionner l'année"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Set up Calendar before creating an event."
+msgstr "Configurez l'agenda avant de créer un événement."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Some files failed to upload."
+msgstr "Certains fichiers n'ont pas pu être envoyés."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Split Cell"
+msgstr "Fractionner la cellule"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Start instant meet"
+msgstr "Démarrer une réunion instantanée"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Start restricted meet"
+msgstr "Démarrer une réunion restreinte"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Stay"
+msgstr "Rester"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Suggested"
+msgstr "Suggestions"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Switch apps"
+msgstr "Changer d'application"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "to switch apps"
+msgstr "pour changer d'application"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Toggle Header Cell"
+msgstr "Basculer la cellule d'en-tête"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Toggle Header Column"
+msgstr "Basculer la colonne d'en-tête"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Toggle Header Row"
+msgstr "Basculer la ligne d'en-tête"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Toggle settings"
+msgstr "Afficher les paramètres"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Untitled Document"
+msgstr "Document sans titre"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Upload failed: {0}"
+msgstr "Échec de l'envoi : {0}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Upload more images by dropping them anywhere in this window. Reorder images by dragging them. Hover over an image to edit caption."
+msgstr "Déposez d'autres images n'importe où dans cette fenêtre. Réorganisez les images en les faisant glisser. Survolez une image pour modifier sa légende."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Uploading image..."
+msgstr "Envoi de l'image…"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Uploading video..."
+msgstr "Envoi de la vidéo…"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Uploading {0}%"
+msgstr "Envoi en cours : {0} %"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Uploading: {0}/{1}"
+msgstr "Envoi : {0}/{1}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "View Details"
+msgstr "Voir les détails"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Without attachments"
+msgstr "Sans pièces jointes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "You will be disconnected from the meeting."
+msgstr "Vous serez déconnecté de la réunion."

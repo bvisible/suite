@@ -14,6 +14,14 @@ import { registrySource } from '../../scripts/gen-i18n-registry-source.mjs'
 const root = path.resolve(__dirname, '../..')
 const FILE = path.join(root, 'src/apps/sheets/components/Fixture.vue')
 
+// compileScript resolves the types of defineProps<…>() through the file system
+sfc.registerTS(() => ts)
+const fsApi = {
+  fileExists: (f: string) => fs.existsSync(f),
+  readFile: (f: string) => fs.readFileSync(f, 'utf8'),
+  realpath: (f: string) => fs.realpathSync(f),
+}
+
 function transform(source: string, file = FILE) {
   return transformSource(source, file) as { code: string; messages: string[]; left: { text: string }[] }
 }
@@ -79,13 +87,13 @@ export function done() {
 })
 
 describe('the apps as they are', () => {
-  it('lists every message of the build in src/neoffice/i18nRegistry.ts', () => {
+  it('lists every message of the build in src/neoffice/i18nRegistry.ts', { timeout: 120_000 }, () => {
     const { messages } = collectMessages(root)
     const registry = fs.readFileSync(path.join(root, 'src/neoffice/i18nRegistry.ts'), 'utf8')
     expect(registry, 'run node scripts/gen-i18n-registry.mjs').toBe(registrySource(messages))
   })
 
-  it('still parses after the rewrite, in every file of the four apps', { timeout: 120_000 }, () => {
+  it('still parses and compiles after the rewrite, in every file that is read', { timeout: 120_000 }, () => {
     const broken: string[] = []
     for (const file of scopedFiles(root)) {
       const source = fs.readFileSync(file, 'utf8')
@@ -105,6 +113,14 @@ describe('the apps as they are', () => {
           const bad = (out.diagnostics ?? []).find((d) => d.category === ts.DiagnosticCategory.Error)
           if (bad) broken.push(`${rel}: script ${ts.flattenDiagnosticMessageText(bad.messageText, ' ')}`)
         }
+        // what Vue makes of it: a getter in withDefaults() has to be a getter of the prop's default, not a failure
+        if (descriptor.script || descriptor.scriptSetup) {
+          try {
+            sfc.compileScript(descriptor, { id: 'x', inlineTemplate: true, fs: fsApi })
+          } catch (error) {
+            broken.push(`${rel}: compileScript ${String(error).slice(0, 140)}`)
+          }
+        }
       } else {
         const out = ts.transpileModule(code, { reportDiagnostics: true, fileName: file, compilerOptions: { target: ts.ScriptTarget.ESNext } })
         const bad = (out.diagnostics ?? []).find((d) => d.category === ts.DiagnosticCategory.Error)
@@ -123,8 +139,16 @@ describe("frappe-ui's editor", () => {
     expect(isInScope(`${lib}/molecules/editor/extensions/link/LinkEditorPopup.vue`)).toBe(true)
     // the title stored in the document is not a label
     expect(isInScope(`${lib}/molecules/editor/extensions/toc-node/toc-node-extension.ts`)).toBe(false)
-    // the components of the library are a decision of their own
-    expect(isInScope(`${lib}/components/Dialog/Dialog.vue`)).toBe(false)
+    // the components of the library that were looked at are read, the others are not
+    expect(isInScope(`${lib}/components/Dialog/Dialog.vue`)).toBe(true)
+    expect(isInScope(`${lib}/components/Badge/Badge.vue`)).toBe(false)
+    // the submodule of the repository: a src/components of its own, next to frontend/
+    expect(isInScope('/work/suite/frappe-ui/src/components/Badge/Badge.vue')).toBe(false)
+    expect(isInScope('/work/suite/frappe-ui/src/components/Dialog/Dialog.vue')).toBe(true)
+    expect(isInScope('/work/suite/frappe-ui/src/utils/call.ts')).toBe(false)
+    expect(isInScope('/x/frappe-ui/experimental/TextEditor/commands.js')).toBe(true)
+    // the experimental calendar is said by neoffice-calendar-i18n.ts, not here
+    expect(isInScope('/x/frappe-ui/experimental/Calendar/Calendar.vue')).toBe(false)
     // the helper of the confirmation dialogs is read: its defaults say « Cancel »
     expect(isInScope(`${lib}/utils/dialog.ts`)).toBe(true)
     expect(isInScope(`${lib}/utils/call.ts`)).toBe(false)
@@ -161,6 +185,17 @@ describe("frappe-ui's editor", () => {
     expect(code).toContain('get label() { return meta.label },')
     expect(code).toContain(`get label() { return typeof __ === 'function' ? __(label) : label },`)
     expect(messages).toEqual(expect.arrayContaining(['Insert column left', 'Delete table', 'Merge cells', 'Split cell']))
+  })
+})
+
+describe('what is read of the suite itself', () => {
+  it('reads the shell, Mail, Meet and Calendar, and nothing that runs in a worker or is our own', () => {
+    for (const f of ['src/shell/LauncherView.vue', 'src/apps/mail/components/Modals/SettingsModal.vue', 'src/apps/meet/pages/Home.vue',
+      'src/apps/calendar/pages/CalendarView.vue', 'src/utils/confirmLeave.ts', 'src/router/index.ts', 'src/apps/registry.ts'])
+      expect(isInScope(path.join(root, f)), f).toBe(true)
+    for (const f of ['src/apps/mail/sw.ts', 'src/apps/meet/utils/media/e2eeTransformWorker.ts', 'src/neoffice/i18nRegistry.ts',
+      'src/boot/translation.ts', 'src/test/translation-setup.ts', 'src/apps/slides/service-worker.js'])
+      expect(isInScope(path.join(root, f)), f).toBe(false)
   })
 })
 
