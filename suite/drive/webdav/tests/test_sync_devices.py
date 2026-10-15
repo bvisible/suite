@@ -19,7 +19,7 @@ from lxml import etree
 
 from suite.drive.api import sync
 from suite.drive.doctype.drive_sync_device.drive_sync_device import TOKEN_PREFIX, hash_token
-from suite.drive.utils import create_drive_file, get_user_folder
+from suite.drive.utils import create_drive_file, get_root_folder, get_user_folder
 from suite.drive.utils.files import FileManager
 from suite.drive.webdav import propfind, structure
 from suite.drive.webdav.properties import OC_NS
@@ -339,3 +339,57 @@ class TestOwncloudProperties(IntegrationTestCase):
         self._move(f"{self.path}/renamed.txt", f"{self.path}/sub/moved.txt")
         self.assertEqual(stamps(), before)
         self.assertEqual(shown(f"{self.path}/sub/moved.txt"), announced)
+
+
+class TestDavPath(IntegrationTestCase):
+    """The name a synchronising client gives a folder of the Drive."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        ensure_user_with_password(OWNER, PASSWORD)
+        ensure_user_with_password(OTHER, PASSWORD)
+        with cls.set_user(OWNER):
+            cls.home = get_user_folder(OWNER).name
+
+    def tearDown(self):
+        frappe.set_user("Administrator")
+        super().tearDown()
+
+    def _folder(self, name: str, parent: str):
+        manager = FileManager()
+        with self.set_user(OWNER):
+            return create_drive_file(name, parent, "Folder", lambda f: manager.create_folder(f))
+
+    def test_a_folder_below_the_home_folder_is_named_from_home(self):
+        top = self._folder(f"Projects-{frappe.generate_hash(length=6)}", self.home)
+        inner = self._folder("Plans 2026", top.name)
+        frappe.set_user(OWNER)
+        self.assertEqual(
+            sync.dav_path(inner.name), {"path": f"Home/{top.file_name}/Plans 2026", "mount": "Home"}
+        )
+        self.assertEqual(sync.dav_path(self.home), {"path": "Home", "mount": "Home"})
+
+    def test_the_shared_root_is_everyone(self):
+        frappe.set_user(OWNER)
+        self.assertEqual(sync.dav_path(get_root_folder().name), {"path": "Everyone", "mount": "Everyone"})
+
+    def test_a_file_is_not_a_folder_to_synchronise(self):
+        with self.set_user(OWNER):
+            row = write_file_fixture(self.home, f"lonely-{frappe.generate_hash(length=6)}.txt", b"x")
+        frappe.set_user(OWNER)
+        with self.assertRaises(frappe.ValidationError):
+            sync.dav_path(row.name)
+
+    def test_another_persons_folder_is_not_told_apart_from_one_that_does_not_exist(self):
+        private = self._folder(f"Private-{frappe.generate_hash(length=6)}", self.home)
+        frappe.set_user(OTHER)
+        with self.assertRaises(frappe.DoesNotExistError):
+            sync.dav_path(private.name)
+        with self.assertRaises(frappe.DoesNotExistError):
+            sync.dav_path("no-such-folder")
+
+    def test_a_guest_has_no_path(self):
+        frappe.set_user("Guest")
+        with self.assertRaises(frappe.PermissionError):
+            sync.dav_path(self.home)

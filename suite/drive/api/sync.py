@@ -24,6 +24,8 @@ from suite.drive.doctype.drive_sync_device.drive_sync_device import TOKEN_PREFIX
 # could pair
 MAX_DEVICES_PER_USER = 25
 NAME_LENGTH = 140
+# folders are walked upwards one by one: a loop in the adjacency list must end somewhere
+MAX_FOLDER_DEPTH = 64
 
 
 def _text(value, limit: int = NAME_LENGTH) -> str:
@@ -139,6 +141,47 @@ def revoke_device(device: str) -> dict:
             update_modified=True,
         )
     return {"id": row.name, "revoked": True}
+
+
+@frappe.whitelist()
+def dav_path(entity: str) -> dict:
+    """The path of a folder of the Drive as a synchronising client names it: `Home/...` below the person's own folder,
+    `Everyone/...` below the shared root (the two mounts of the WebDAV namespace, suite.drive.webdav.pathmap).
+
+    A folder under neither (another person's folder that was shared with this one) is not reachable through WebDAV:
+    `path` is then None. A folder the person cannot read is not told apart from one that does not exist."""
+    from suite.drive.api.permissions import user_has_permission
+    from suite.drive.utils import get_root_folder, get_user_folder
+    from suite.drive.webdav import pathmap
+    from suite.drive.webdav.context import validate_segments
+    from suite.drive.webdav.errors import BadRequest
+
+    user = _signed_in_user()
+    fields = ["name", "file_name", "folder", "is_folder"]
+    row = frappe.db.get_value("File", entity, fields, as_dict=True)
+    if not row or not user_has_permission(entity, "read"):
+        frappe.throw(_("This folder does not exist."), frappe.DoesNotExistError)
+    if not row.is_folder:
+        frappe.throw(_("Only a folder can be synchronised."))
+
+    mounts = {get_user_folder(user).name: pathmap.HOME_ALIAS, get_root_folder().name: pathmap.EVERYONE_ALIAS}
+    segments: list[str] = []
+    current = row
+    for _depth in range(MAX_FOLDER_DEPTH):
+        if current.name in mounts:
+            parts = list(reversed(segments))
+            try:
+                validate_segments(parts)
+            except BadRequest:
+                break
+            return {"path": "/".join([mounts[current.name], *parts]), "mount": mounts[current.name]}
+        if not current.folder:
+            break
+        segments.append(current.file_name)
+        current = frappe.db.get_value("File", current.folder, fields, as_dict=True)
+        if not current:
+            break
+    return {"path": None, "mount": None}
 
 
 def touch_device(name: str, ip: str | None) -> None:
