@@ -28938,7 +28938,7 @@ msgstr "Plage"
 
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "Redo"
-msgstr "Rétablir"
+msgstr "Refaire"
 
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "Redo (Ctrl+Y)"
