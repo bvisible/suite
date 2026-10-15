@@ -908,8 +908,15 @@ export function expressionEdits(code, offset, mode, filename = 'x.ts', wrapped =
             return r.code
           })
           const call = callKeepingSpaces(m.message, message, args)
-          // a getter in a script (read when it is used, not when the list was built); a plain value in a binding
-          const text = mode === 'script' ? `get ${key}() { return ${call} }` : `${key}: ${call}`
+          // a getter in a script (read when it is used, not when the list was built); a plain value in a binding.
+          // A getter can be read before the translations are loaded (vue-router copies a route's `meta` when it is
+          // installed, 15.10: « __ is not defined », the whole Suite blank): `__` is the global that boot/translation.ts sets
+          // once the catalogue is there, so until then the getter gives the text as the source wrote it.
+          const original = srcOf(n.initializer)
+          const text =
+            mode === 'script'
+              ? `get ${key}() { return typeof __ === 'function' ? ${call} : ${original} }`
+              : `${key}: ${call}`
           const ed = edit(s, e, text, message, `key:${key}`, nested)
           // the other keys of the object: a label with no value, handler or icon beside it may be the action's name
           ed.siblings = ts.isObjectLiteralExpression(n.parent)

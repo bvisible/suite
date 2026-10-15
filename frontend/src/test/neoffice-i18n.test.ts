@@ -65,11 +65,39 @@ export function done() {
 }`,
       path.join(root, 'src/apps/sheets/engine/x.js'),
     )
-    expect(code).toContain(`{ get label() { return __('Percent') }, value: 'percent' }`)
+    expect(code).toContain(`{ get label() { return typeof __ === 'function' ? __('Percent') : 'Percent' }, value: 'percent' }`)
     expect(code).toContain(`toast.success(__('Saved'))`)
     expect(code).toContain(`console.error('Load failed:', 1)`)
-    expect(code).toContain(`get description() { return __('Deleted {0}', [name]) }`)
+    expect(code).toContain(
+      `get description() { return typeof __ === 'function' ? __('Deleted {0}', [name]) : \`Deleted \${name}\` }`,
+    )
     expect(messages.sort()).toEqual(['Deleted {0}', 'Percent', 'Saved'])
+  })
+
+  it('gives the text as written when it is read before the catalogue is loaded', () => {
+    // vue-router copies a route's `meta` when it is installed, before boot/translation.ts has set window.__: a getter that
+    // called __ bare threw « __ is not defined » there and the whole Suite stayed blank (osiris, 15.10)
+    const { code } = transform(
+      `const menu = { label: 'Open', hint: \`Deleted \${name}\` }\nmenu`,
+      path.join(root, 'src/apps/sheets/engine/x.js'),
+    )
+    const run = (name: string) => new Function('name', `${code}\nreturn menu`)(name) as { label: string; hint: string }
+    const host = globalThis as unknown as { __?: unknown }
+    const before = host.__
+    try {
+      delete host.__
+      const early = run('A')
+      expect(early.label).toBe('Open')
+      expect(early.hint).toBe('Deleted A')
+      host.__ = (message: string, replace?: string[]) =>
+        `fr:${message}`.replace(/{(\d+)}/g, (_m, i) => String((replace ?? [])[Number(i)]))
+      const late = run('B')
+      expect(late.label).toBe('fr:Open')
+      expect(late.hint).toBe('fr:Deleted B')
+    } finally {
+      if (before === undefined) delete host.__
+      else host.__ = before
+    }
   })
 
   it('leaves what is not text alone', () => {
@@ -161,7 +189,7 @@ describe("frappe-ui's editor", () => {
       `export const commandMeta = {\n  bold: {\n    label: 'Bold',\n    icon: 'lucide-bold',\n  },\n}\n`,
       `${lib}/molecules/editor/commands.ts`,
     ) as { code: string; messages: string[] }
-    expect(code).toContain(`get label() { return __('Bold') },`)
+    expect(code).toContain(`get label() { return typeof __ === 'function' ? __('Bold') : 'Bold' },`)
     expect(messages).toEqual(['Bold'])
   })
 
@@ -225,6 +253,6 @@ describe('what an override says', () => {
     )
     expect(code).toContain(`__('Merge cells')`)
     expect(code).toContain(`__('Split cell')`)
-    expect(code).toContain(`get defaultLabel() { return __('Heading') }`)
+    expect(code).toContain(`get defaultLabel() { return typeof __ === 'function' ? __('Heading') : 'Heading' }`)
   })
 })

@@ -24,12 +24,17 @@ if (getSessionUser()) {
 
 const app = createApp(App)
 
+//// Neoffice — before the router: it copies a route's `meta` when it is installed, and the titles that the build says
+//// through __() (neoffice-i18n, #1592) read `window.__`, which this plugin sets: after the router, the whole Suite was
+//// blank on 15.10 (« __ is not defined » at install). Identity until the catalogue is loaded, as before.
+app.use(translationPlugin)
+
 await initSentry(app, router)
 
 app.use(createPinia())
 app.use(router)
 app.use(spritePlugin)
-app.use(translationPlugin)
+//// Neoffice — translationPlugin is installed above, before the router (a title read at install needs window.__).
 
 router.isReady().then(() => {
   app.mount('#app')
