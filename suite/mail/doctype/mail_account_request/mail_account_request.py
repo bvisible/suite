@@ -290,7 +290,8 @@ class MailAccountRequest(Document):
 
         frappe.sendmail(
             recipients=self.backup_email,
-            subject=_("Frappe Mail - Verification Code"),
+            # //// Neoffice — the product is Neoffice: these e-mails reach people who are not users of the framework.
+            subject=_("Neoffice - Verification Code"),
             template="generic",
             args={
                 "title": _("Your verification code is {0}.").format(self._signup_otp),
@@ -307,10 +308,12 @@ class MailAccountRequest(Document):
 
         frappe.sendmail(
             recipients=self.backup_email,
-            subject=_("You have been invited by {0} to join Frappe Mail").format(self.invited_by),
+            # //// Neoffice — the product is Neoffice, not Frappe (Jérémy, 15.10).
+            subject=_("You have been invited by {0} to join Neoffice").format(self.invited_by),
             template="generic",
             args={
-                "title": _("You have been invited by {0} to join Frappe Mail.").format(self.invited_by),
+                # //// Neoffice — the product is Neoffice, not Frappe (Jérémy, 15.10).
+                "title": _("You have been invited by {0} to join Neoffice.").format(self.invited_by),
                 "description": _("Please confirm your email address by clicking the button below."),
                 "button": _("Verify Account"),
                 "link": get_url("/mail/signup/" + self.request_key),

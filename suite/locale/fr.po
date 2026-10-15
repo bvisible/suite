@@ -167,18 +167,14 @@ msgstr "<blob binaire : {0} octets>"
 msgid ""
 "<p>This is the SSH public key generated for the Mail Cluster.</p>\n"
 "<p>Copy and add it to the <code>~/.ssh/authorized_keys</code> file of this Mail Server to allow Frappe Mail to securely provision and manage this server.</p>"
-msgstr ""
-"<p>Voici la clé publique SSH générée pour le cluster de messagerie.</p>\n"
-"<p>Copiez-la et ajoutez-la au fichier <code>~/.ssh/authorized_keys</code> de ce serveur de messagerie afin de permettre à Frappe Mail de provisionner et gérer ce serveur en toute sécurité.</p>"
+msgstr "<p>Voici la clé publique SSH générée pour le cluster de messagerie.</p>\n<p>Copiez-la et ajoutez-la au fichier <code>~/.ssh/authorized_keys</code> de ce serveur de messagerie afin de permettre à Neoffice Messagerie de provisionner et gérer ce serveur en toute sécurité.</p>"
 
 #. Description of the 'Public Key' (Code) field in DocType 'Mail Cluster'
 #: suite/mail/doctype/mail_cluster/mail_cluster.json
 msgid ""
 "<p>This is the SSH public key generated for this Mail Cluster.</p>\n"
 "<p>Copy and add it to the <code>~/.ssh/authorized_keys</code> file of the target server(s) to allow Frappe Mail to securely provision and manage this cluster.</p>"
-msgstr ""
-"<p>Voici la clé publique SSH générée pour ce cluster de messagerie.</p>\n"
-"<p>Copiez-la et ajoutez-la au fichier <code>~/.ssh/authorized_keys</code> du ou des serveurs cibles afin de permettre à Frappe Mail de provisionner et gérer ce cluster en toute sécurité.</p>"
+msgstr "<p>Voici la clé publique SSH générée pour ce cluster de messagerie.</p>\n<p>Copiez-la et ajoutez-la au fichier <code>~/.ssh/authorized_keys</code> du ou des serveurs cibles afin de permettre à Neoffice Messagerie de provisionner et gérer ce cluster en toute sécurité.</p>"
 
 #. Description of the 'Delivery Mode' (Select) field in DocType 'Mail Queue'
 #: suite/mail/doctype/mail_queue/mail_queue.json
@@ -7595,8 +7591,8 @@ msgid "Frappe Calendar"
 msgstr "Frappe Calendar"
 
 #: suite/mail/doctype/mail_account_request/mail_account_request.py:316
-msgid "Frappe Mail - Verification Code"
-msgstr "Frappe Mail - Code de vérification"
+msgid "Neoffice - Verification Code"
+msgstr "Neoffice - Code de vérification"
 
 # //// Neoffice — the French screen showed the upstream product name « Frappe Meet »; Neoffice only says « Meet ».
 # //// Drop this when the English source itself stops naming the upstream product.
@@ -7619,7 +7615,7 @@ msgstr "Lien Meet copié."
 
 #: frontend/src/shell/SetupView.vue:17
 msgid "Frappe Suite logo"
-msgstr "Logo Frappe Suite"
+msgstr "Logo Neoffice"
 
 #. Option for the 'Free Busy Status' (Select) field in DocType 'Calendar Event'
 #: frontend/src/apps/calendar/components/Modals/EventModal.vue:623
@@ -8391,7 +8387,7 @@ msgstr "Si activé, un lien d'invitation est envoyé par e-mail à l'adresse de 
 #. Request'
 #: suite/mail/doctype/mail_account_request/mail_account_request.json
 msgid "If enabled, the created user gets the Suite Admin role in Frappe."
-msgstr "Si activé, l'utilisateur créé obtient le rôle Administrateur Suite dans Frappe."
+msgstr "Si activé, l'utilisateur créé obtient le rôle Administrateur Suite dans Neoffice."
 
 #. Description of the 'Destroy After Submit' (Check) field in DocType 'Mail
 #. Queue'
@@ -8726,7 +8722,7 @@ msgstr "Installer Docker (Ansible Play)"
 #: frontend/src/apps/mail/components/InstallPrompt.vue:29
 #: suite/public/frontend/assets/MailLayout-VRO3RUiH.js:1
 msgid "Install Frappe Mail"
-msgstr "Installer Frappe Mail"
+msgstr "Installer Neoffice Messagerie"
 
 #: suite/mail/doctype/mail_server/mail_server.js:61
 msgid "Install Stalwart (Deployment)"
@@ -9503,7 +9499,7 @@ msgstr "Laisser vide pour utiliser le quota disque par défaut configuré."
 #. Settings'
 #: suite/drive/doctype/drive_disk_settings/drive_disk_settings.json
 msgid "Let WebDAV clients (Windows Explorer, Finder, rclone…) connect to Drive at /dav using Frappe login credentials."
-msgstr "Permettez aux clients WebDAV (Windows Explorer, Finder, rclone…) de se connecter à Drive sur /dav à l'aide des identifiants de connexion Frappe."
+msgstr "Permettez aux clients WebDAV (Windows Explorer, Finder, rclone…) de se connecter à Drive sur /dav à l'aide des identifiants de connexion Neoffice."
 
 #: frontend/src/apps/drive/components/Settings/WebDAVSettings.vue:12
 #: suite/public/frontend/assets/DriveLayout-B5cE04zG.js:1
@@ -15934,7 +15930,7 @@ msgstr "Envoyer le"
 #. 'Mail Settings'
 #: suite/mail/doctype/mail_settings/mail_settings.json
 msgid "Send calendar invitation, update, and cancellation emails from Frappe Mail using the templates below, with .ics attachments and HTTP RSVP links. When disabled, the JMAP server handles scheduling messages instead."
-msgstr "Envoyez les e-mails d'invitation, de mise à jour et d'annulation de calendrier depuis Frappe Mail à l'aide des modèles ci-dessous, avec pièces jointes .ics et liens RSVP HTTP. Si désactivé, le serveur JMAP gère à la place les messages de planification."
+msgstr "Envoyez les e-mails d'invitation, de mise à jour et d'annulation de calendrier depuis Neoffice Messagerie à l'aide des modèles ci-dessous, avec pièces jointes .ics et liens RSVP HTTP. Si désactivé, le serveur JMAP gère à la place les messages de planification."
 
 #: frontend/src/shell/SetupView.vue:112
 #: frontend/src/shell/settings/WorkspaceUsers.vue:102
@@ -16589,7 +16585,7 @@ msgstr "Connectez-vous avec le mot de passe existant de votre compte de messager
 #: frontend/src/apps/drive/components/Settings/WebDAVSettings.vue:44
 #: suite/public/frontend/assets/DriveLayout-B5cE04zG.js:1
 msgid "Sign in with your Frappe password, or with the API key and secret below in place of username and password."
-msgstr "Connectez-vous avec votre mot de passe Frappe, ou avec la clé API et le secret ci-dessous à la place du nom d'utilisateur et du mot de passe."
+msgstr "Connectez-vous avec votre mot de passe Neoffice, ou avec la clé API et le secret ci-dessous à la place du nom d'utilisateur et du mot de passe."
 
 #: frontend/src/apps/mail/components/Modals/AddOAuthClientModal.vue:46
 #: suite/public/frontend/assets/OAuthClientsView-lzipfnDh.js:1
@@ -17705,8 +17701,8 @@ msgid "Task {0} already exists in play {1}"
 msgstr "La tâche {0} existe déjà dans le play {1}"
 
 #: suite/templates/emails/generic.html:18
-msgid "Team Frappe"
-msgstr "Team Frappe"
+msgid "The Neoffice team"
+msgstr "L'équipe Neoffice"
 
 #: suite/drive/wopi/editor.py:91
 msgid "Template file not found"
@@ -18068,7 +18064,7 @@ msgstr "L'adresse e-mail associée au participant."
 #. Request'
 #: suite/mail/doctype/mail_account_request/mail_account_request.json
 msgid "The email address of the mail account to create; becomes the Frappe User and the Stalwart account's primary address."
-msgstr "L'adresse e-mail du compte de messagerie à créer ; devient l'utilisateur Frappe et l'adresse principale du compte Stalwart."
+msgstr "L'adresse e-mail du compte de messagerie à créer ; devient l'utilisateur Neoffice et l'adresse principale du compte Stalwart."
 
 #: suite/mail/doctype/screened_email_address/screened_email_address.py:104
 msgid "The email address {0} is already screened for this account."
@@ -20392,7 +20388,7 @@ msgstr "Semaines"
 
 #: frontend/src/shell/SetupView.vue:208
 msgid "Welcome to Frappe Suite"
-msgstr "Bienvenue sur Frappe Suite"
+msgstr "Bienvenue sur Neoffice"
 
 #. Description of the 'Include In Availability' (Select) field in DocType
 #. 'Calendar'
@@ -20832,12 +20828,12 @@ msgid "You don't have the permissions for this action."
 msgstr "Vous n'avez pas les autorisations nécessaires pour cette action."
 
 #: suite/mail/doctype/mail_account_request/mail_account_request.py:333
-msgid "You have been invited by {0} to join Frappe Mail"
-msgstr "{0} vous a invité à rejoindre Frappe Mail"
+msgid "You have been invited by {0} to join Neoffice"
+msgstr "{0} vous a invité à rejoindre Neoffice"
 
 #: suite/mail/doctype/mail_account_request/mail_account_request.py:336
-msgid "You have been invited by {0} to join Frappe Mail."
-msgstr "{0} vous a invité à rejoindre Frappe Mail."
+msgid "You have been invited by {0} to join Neoffice."
+msgstr "{0} vous a invité à rejoindre Neoffice."
 
 #: suite/public/frontend/assets/session-DAtz6v2j.js:1
 msgid "You have been signed out. Please sign in again."
@@ -24930,7 +24926,7 @@ msgstr "Impossible de s'authentifier pour {0} compte(s) ; ils sont ignorés pend
 
 #: suite/suite_core/boot.py
 msgid "Cannot install Frappe Suite because the following standalone app(s) are installed on this site: {0}. "
-msgstr "Impossible d'installer Frappe Suite, car la ou les applications autonomes suivantes sont installées sur ce site : {0}. "
+msgstr "Impossible d'installer Neoffice, car la ou les applications autonomes suivantes sont installées sur ce site : {0}. "
 
 #: frontend/src/apps/mail/components/Modals/EditDomainModal.vue
 msgid "Catch-All Address"
@@ -25283,7 +25279,7 @@ msgstr "Les métadonnées d'importation contiennent un e-mail sans boîte aux le
 
 #: frontend/src/shell/InstallPrompt.vue
 msgid "Install Frappe Suite"
-msgstr "Installer Frappe Suite"
+msgstr "Installer Neoffice"
 
 #: frontend/src/apps/mail/utils/tls.ts
 msgid "Invalid MTA-STS policy"

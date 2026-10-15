@@ -58,7 +58,7 @@
 {% endcall %}
 {%- endmacro -%}
 
-{#- The Frappe Meet card (logo + link + Join). Renders nothing when the event has no meet link.
+{#- //// Neoffice — « Meet », not « Frappe Meet » (Jérémy, 15.10). The Meet card (logo + link + Join). Renders nothing when the event has no meet link.
     Logo and label live in their own nested table so that when the outer cells stack on a phone
     (`evt-meet-info` / `evt-meet-action`), only the Join button moves — it becomes a full-width
     tap target under the label instead of a narrow one squeezed against it. -#}
@@ -71,10 +71,12 @@
 						<table role="presentation" cellpadding="0" cellspacing="0">
 							<tr>
 								<td width="24" style="vertical-align: middle; padding-right: 12px;">
-									<img src="cid:meetlogo" width="24" height="24" alt="Frappe Meet" style="display: block; border: 0; width: 24px; height: 24px;" />
+									{#- //// Neoffice — the product is Neoffice, not Frappe (Jérémy, 15.10). -#}
+									<img src="cid:meetlogo" width="24" height="24" alt="Meet" style="display: block; border: 0; width: 24px; height: 24px;" />
 								</td>
 								<td style="vertical-align: middle;">
-									<div style="font-size: 14px; font-weight: 600; color: #171717;">Frappe Meet</div>
+									{#- //// Neoffice — the product is Neoffice, not Frappe (Jérémy, 15.10). -#}
+									<div style="font-size: 14px; font-weight: 600; color: #171717;">Meet</div>
 									<div style="font-size: 13px; color: #7c7c7c; margin-top: 1px; word-break: break-word;">{{ meet.label }}</div>
 								</td>
 							</tr>

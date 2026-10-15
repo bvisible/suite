@@ -12,9 +12,11 @@
 					<tr>
 						<td class="px-8 pt-10 pb-8 text-center text-gray-900">
 							<div>
+								{#- //// Neoffice — the logo was a Frappe image hot-linked from a GitHub repository, and the
+								    //// footer named Frappe Mail: this e-mail reaches our customers (Jérémy, 15.10). -#}
 								<img
-									src="https://github.com/frappe/gameplan/assets/9355208/447035d0-0686-41d2-910a-a3d21928ab94"
-									alt="Frappe Logo"
+									src="{{ frappe.utils.get_url('/assets/suite/mail/images/neoffice-logo.png') }}"
+									alt="Neoffice"
 									class="h-6 mx-auto"
 								/>
 							</div>
@@ -25,7 +27,8 @@
 					</tr>
 					<tr>
 						<td class="py-8 text-center text-gray-500 text-sm">
-							This email was sent by Frappe Mail
+							{#- //// Neoffice — the product is Neoffice, not Frappe (Jérémy, 15.10). -#}
+							{{ _("This email was sent by Neoffice.") }}
 						</td>
 					</tr>
 				</tbody>

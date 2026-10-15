@@ -8455,7 +8455,7 @@ msgid "Framing unlocked"
 msgstr ""
 
 #: suite/mail/doctype/mail_account_request/mail_account_request.py:318
-msgid "Frappe Mail - Verification Code"
+msgid "Neoffice - Verification Code"
 msgstr ""
 
 #. Option for the 'Free Busy Status' (Select) field in DocType 'Calendar Event'
@@ -19860,7 +19860,7 @@ msgid "Task {0} already exists in play {1}"
 msgstr ""
 
 #: suite/templates/emails/generic.html:18
-msgid "Team Frappe"
+msgid "The Neoffice team"
 msgstr ""
 
 #: frontend/src/apps/meet/pages/Home.vue:115
@@ -23433,11 +23433,11 @@ msgid "You have been banned from this meeting by the host"
 msgstr ""
 
 #: suite/mail/doctype/mail_account_request/mail_account_request.py:335
-msgid "You have been invited by {0} to join Frappe Mail"
+msgid "You have been invited by {0} to join Neoffice"
 msgstr ""
 
 #: suite/mail/doctype/mail_account_request/mail_account_request.py:338
-msgid "You have been invited by {0} to join Frappe Mail."
+msgid "You have been invited by {0} to join Neoffice."
 msgstr ""
 
 #: frontend/src/apps/meet/composables/useSFUConnection.ts:499

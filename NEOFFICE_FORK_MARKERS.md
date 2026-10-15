@@ -187,6 +187,14 @@ The icons it names and the iOS launch screens beside it are in the `| Binary |` 
 `frontend/src/shell/InstallPrompt.vue` (« Install Neoffice »), and `apple-mobile-web-app-title` in `PWA_METAS`.
 At a merge: keep ours.
 
+#### E-mail templates and the invitation of Mail: « Neoffice », not « Frappe »
+Ours (neoffice-maintenance#1592, Jérémy 15.10: « c'est pas Frappe, c'est Neoffice »). These e-mails reach our customers
+and the people they invite, who do not use the framework: `templates/emails/base.html` (logo, footer),
+`generic.html` and `reset_password.html` (« The Neoffice team »), `_event_base.html`, `_event_macros.html`,
+`event_reminder.html`, `meet_recording.html`, `drive_invitation.html`, `www/event_rsvp.html` (wordmarks and footers), and the
+three subjects of `mail_account_request.py` (verification code, invitation). Each place carries its marker. At a merge,
+look for « Frappe » in `templates/emails/` and `www/`: upstream adds new ones with every e-mail it writes.
+
 #### `suite/templates/files/blank.docx` · `blank.xlsx` · `blank.pptx`
 **Added files, ours, binary** (`f20a6f284`). Empty OOXML documents copied
 verbatim by `suite.drive.wopi.editor.create_office_file` when a user creates a
@@ -197,6 +205,8 @@ try to rebuild them.
 | Binary | Why |
 |---|---|
 | `suite/templates/files/*` | The three blank OOXML documents described above (`f20a6f284`). The heading names only the first one with its directory; this table lets the check match all three (neoffice-maintenance#414). |
+| `suite/public/mail/images/neoffice-logo.png` | The wordmark at the head of the generic e-mails (`templates/emails/base.html`), rasterised from the design system's `neoffice.svg` at 48px high. Upstream hot-linked a Frappe image from a GitHub repository (neoffice-maintenance#1592, Jérémy 15.10). |
+| `suite/public/calendar/images/logo.png`, `suite/calendar/public/images/logo.png`, `suite/public/drive/images/logo.png`, `suite/public/meet/images/meet.png` | The marks that lead the calendar, Drive and Meet e-mails (`cid:eventlogo`, `drive-logo.png`, `cid:meetlogo`): the Neoffice app icon (design system `app-icon.png`) instead of upstream's three product logos. Same sizes as the files they replace (132, 132, 118, 256). At a merge keep ours. |
 | `frontend/public/pwa/suite/*` | The PWA's icons (192, 512 maskable, the 180 of iOS) and its 38 iOS launch screens: the Neoffice wordmark on white, rendered by `frontend/scripts/generate-pwa-assets.mjs` from `frontend/src/assets/brand/neoffice-wordmark.svg` (neoffice-maintenance#1592). Upstream draws the Frappe Suite mark. Regenerate, do not edit; at a merge keep ours. |
 
 ---
