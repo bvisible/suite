@@ -256,3 +256,28 @@ class TestWopiEndpointsRecheckPermission(IntegrationTestCase):
         path = FileManager().site_folder / storage_key(self.file.file_url)
         with open(path, "rb") as fh:
             self.assertEqual(fh.read(), b"NEW BYTES")
+
+    def test_a_saved_document_carries_the_hash_of_the_bytes_it_now_holds(self):
+        """The WebDAV's ETag and `oc:checksums` come from `content_hash`: after a save they must not be the old ones."""
+        import hashlib
+
+        from suite.drive.webdav.properties import compute_etag, sha256_of
+
+        before = hashlib.sha256(b"DOCX").hexdigest()
+        frappe.db.set_value("File", self.file.name, "content_hash", before, update_modified=False)
+        etag_before = compute_etag(
+            frappe.db.get_value(
+                "File", self.file.name, ["name", "content_hash", "file_size", "modified"], as_dict=True
+            )
+        )
+
+        token = generate_wopi_token(self.file.name, user=OWNER, can_write=True)
+        self._request(token["access_token"], method="POST", data=b"NEW BYTES")
+        endpoints.put_file(self.file.name)
+
+        row = frappe.db.get_value(
+            "File", self.file.name, ["name", "content_hash", "file_size", "modified"], as_dict=True
+        )
+        self.assertEqual(row.content_hash, hashlib.sha256(b"NEW BYTES").hexdigest())
+        self.assertEqual(sha256_of(row), hashlib.sha256(b"NEW BYTES").hexdigest())
+        self.assertNotEqual(compute_etag(row), etag_before)

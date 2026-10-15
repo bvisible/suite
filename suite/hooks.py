@@ -1,6 +1,7 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
 from . import __version__ as app_version
 
 # ============================================================================
@@ -356,6 +357,8 @@ scheduler_events = {
         # drive
         "suite.drive.api.scripts.clear_download_archives",
         "suite.drive.webdav.locks.purge_expired_locks",
+        # //// Neoffice — the SHA-256 of the files the Drive held before it stamped one (webdav/checksums.py)
+        "suite.drive.webdav.checksums.backfill",
         # mail
         "suite.mail.doctype.mail_exchange.mail_exchange.retry_stuck_mail_exchanges",
         "suite.calendar.doctype.calendar_exchange.calendar_exchange.retry_stuck_calendar_exchanges",

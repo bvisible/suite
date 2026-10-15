@@ -105,6 +105,11 @@ def upload_file(
 
     # Validate that file size is matching
     file_size = temp_path.stat().st_size
+    # //// Neoffice — the WebDAV reads `content_hash` for its strong ETag and its `oc:checksums` (webdav/properties.py), and
+    # //// a synchronising client compares files by it. An upload of the web page left the column empty (the framework
+    # //// would have put an MD5 there): the SHA-256 is taken here, from the assembled file, before it is moved.
+    with temp_path.open("rb") as assembled:
+        content_hash = hashlib.file_digest(assembled, "sha256").hexdigest()
     acquire_owner_storage_lock(frappe.session.user)
     try:
         validate_quota(incoming_size=file_size)
@@ -125,6 +130,9 @@ def upload_file(
         file_size,
         int(file_modified) / 1000 if file_modified else None,
     )
+
+    # //// Neoffice — see content_hash above.
+    drive_file.db_set("content_hash", content_hash, update_modified=False)
 
     # Upload and update parent folder size
     manager.upload_file(temp_path, drive_file, not embed)

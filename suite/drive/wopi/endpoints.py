@@ -9,6 +9,7 @@ FileManager so both local disk and S3 backends work.
 
 from __future__ import annotations
 
+import hashlib
 import os
 
 import frappe
@@ -194,7 +195,15 @@ def put_file(file_id: str):
     try:
         write_file_content(file, content)
         file.db_set(
-            {"file_size": len(content), "file_modified": frappe.utils.now()},
+            {
+                "file_size": len(content),
+                "file_modified": frappe.utils.now(),
+                # //// Neoffice — the WebDAV's strong ETag and its `oc:checksums` are built from this column
+                # //// (webdav/properties.py). Left as it was, a document an editor saved kept the ETag and the SHA-256
+                # //// of the bytes it had before: a client holding that ETag was told « unchanged », and a
+                # //// conditional PUT with it overwrote the editor's save (maintenance#1598).
+                "content_hash": hashlib.sha256(content).hexdigest(),
+            },
             update_modified=True,
         )
         frappe.db.commit()

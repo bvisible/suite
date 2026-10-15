@@ -595,6 +595,19 @@ class TestDriveFilesAPI(IntegrationTestCase):
             with FileManager().get_file(uploaded) as stored:
                 self.assertEqual(stored.read(), b"hello world")
 
+    # //// Neoffice — the WebDAV's ETag and `oc:checksums` read `content_hash`: an upload of the page stamps its SHA-256.
+    def test_upload_stamps_the_sha256_of_the_assembled_file(self):
+        import hashlib
+
+        session = "223e4567-e89b-42d3-a456-426614174001"
+        with self.set_user(OWNER):
+            self.assertIsNone(self.upload(b"hello ", session=session, chunk=(0, 2, 0), total_size=11))
+            uploaded = self.upload(b"world", session=session, chunk=(1, 2, 6), total_size=11)
+        self.assertEqual(
+            frappe.db.get_value("File", uploaded.name, "content_hash"),
+            hashlib.sha256(b"hello world").hexdigest(),
+        )
+
     def test_local_and_s3_file_manager_reads_have_the_same_boundary(self):
         with self.set_user(OWNER):
             uploaded = self.upload(b"storage boundary")
