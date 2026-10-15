@@ -20567,7 +20567,7 @@ msgstr "Avec pièces jointes"
 #: frontend/src/apps/drive/components/DriveToolBar.vue:22
 #: suite/public/frontend/assets/GenericPage-DckS4HFf.js:1
 msgid "With you"
-msgstr "Avec vous"
+msgstr "Partagés avec moi"
 
 #: suite/public/frontend/assets/constants-CY7xvlZb.js:1
 msgid "Without Attachments"
@@ -20925,7 +20925,7 @@ msgstr "Votre espace de travail est prêt. C'est parti."
 #: frontend/src/apps/drive/components/DriveToolBar.vue:18
 #: suite/public/frontend/assets/GenericPage-DckS4HFf.js:1
 msgid "Yours"
-msgstr "Le vôtre"
+msgstr "Mes fichiers"
 
 #: frontend/src/apps/mail/pages/dashboard/DomainView.vue:246
 #: suite/public/frontend/assets/DomainView-DYZXtyhQ.js:1
@@ -27070,7 +27070,7 @@ msgstr "Appliquer le rognage"
 
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "Apply to all slides"
-msgstr "Appliquer à toutes les diapositives"
+msgstr "Appliquer à toutes"
 
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "Apply to range: {0}"
@@ -30099,3 +30099,446 @@ msgstr "Un seul côté"
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "Workbook"
 msgstr "Classeur"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "(current)"
+msgstr "(actuel)"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "1 edit"
+msgstr "1 modification"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "1 item"
+msgstr "1 élément"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "1 slide"
+msgstr "1 diapositive"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add a caption"
+msgstr "Ajouter une légende"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add caption"
+msgstr "Ajouter une légende"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add caption..."
+msgstr "Ajouter une légende..."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add images"
+msgstr "Ajouter des images"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Align Center"
+msgstr "Centrer"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Align Left"
+msgstr "Aligner à gauche"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Align Right"
+msgstr "Aligner à droite"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Attachment"
+msgstr "Pièce jointe"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Background Color"
+msgstr "Couleur d'arrière-plan"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Blockquote"
+msgstr "Citation"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Bullet List"
+msgstr "Liste à puces"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Cancel upload"
+msgstr "Annuler l'envoi"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Cancel uploads"
+msgstr "Annuler les envois"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Caption"
+msgstr "Légende"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Cell color"
+msgstr "Couleur de cellule"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Change link"
+msgstr "Modifier le lien"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Choose another"
+msgstr "Choisir un autre"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Click to add caption"
+msgstr "Cliquer pour ajouter une légende"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Code Block"
+msgstr "Bloc de code"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Copied!"
+msgstr "Copié !"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Copy code"
+msgstr "Copier le code"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Delete table"
+msgstr "Supprimer le tableau"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Download image"
+msgstr "Télécharger l'image"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Drag & drop images here or click to select"
+msgstr "Glissez-déposez des images ici ou cliquez pour sélectionner"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Drag images to reorder · hover an image to caption or remove it · drop files anywhere to add more"
+msgstr "Faites glisser les images pour les réordonner · survolez une image pour y ajouter une légende ou la supprimer · déposez des fichiers n'importe où pour en ajouter d'autres"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Drop image to upload"
+msgstr "Déposez l'image pour l'envoyer"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Drop images here"
+msgstr "Déposez les images ici"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Drop images to create gallery"
+msgstr "Déposez des images pour créer une galerie"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Drop video to upload"
+msgstr "Déposez la vidéo pour l'envoyer"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Drop videos to upload"
+msgstr "Déposez les vidéos pour les envoyer"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Edit gallery"
+msgstr "Modifier la galerie"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Edit Images"
+msgstr "Modifier les images"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "edits"
+msgstr "modifications"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Embed"
+msgstr "Intégration"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Embeds"
+msgstr "Intégrations"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgctxt "Trash"
+msgid "Empty"
+msgstr "Vider la corbeille"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "empty"
+msgstr "vide"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Enter fullscreen"
+msgstr "Passer en plein écran"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Exit fullscreen"
+msgstr "Quitter le plein écran"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Font Color"
+msgstr "Couleur de police"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Fullscreen"
+msgstr "Plein écran"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Heading {0}"
+msgstr "Titre {0}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Highlight"
+msgstr "Surlignage"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Horizontal Rule"
+msgstr "Ligne horizontale"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Image / Gallery"
+msgstr "Image / Galerie"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Image caption"
+msgstr "Légende de l'image"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Image preview"
+msgstr "Aperçu de l'image"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert as separate images"
+msgstr "Insérer sous forme d'images séparées"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert Embed"
+msgstr "Insérer une intégration"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert image"
+msgstr "Insérer une image"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert table"
+msgstr "Insérer un tableau"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert {0} images"
+msgstr "Insérer {0} images"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Lists"
+msgstr "Listes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Loading embed…"
+msgstr "Chargement de l'intégration…"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgctxt "owner of a sheet"
+msgid "me"
+msgstr "moi"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Media options"
+msgstr "Options multimédias"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Merge or split cells"
+msgstr "Fusionner ou fractionner les cellules"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Milestone"
+msgstr "Jalon"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Muted"
+msgstr "Son coupé"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Named version"
+msgstr "Version nommée"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Next image"
+msgstr "Image suivante"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgctxt "pagination"
+msgid "of"
+msgstr "sur"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Ordered List"
+msgstr "Liste numérotée"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Please enter a supported URL or iframe embed code"
+msgstr "Veuillez saisir une URL prise en charge ou un code d'intégration iframe"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Preview not available (HEIC)"
+msgstr "Aperçu indisponible (HEIC)"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Previous image"
+msgstr "Image précédente"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Remove table of contents"
+msgstr "Supprimer la table des matières"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Replace image"
+msgstr "Remplacer l'image"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Replace video"
+msgstr "Remplacer la vidéo"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Resize embed"
+msgstr "Redimensionner l'intégration"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Resize media"
+msgstr "Redimensionner le média"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "row changed"
+msgstr "ligne modifiée"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "rows changed"
+msgstr "lignes modifiées"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Seek"
+msgstr "Position de lecture"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Select a theme for your new presentation. You can change this theme later."
+msgstr "Sélectionnez un thème pour votre nouvelle présentation. Vous pourrez modifier ce thème plus tard."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Select theme"
+msgstr "Sélectionner un thème"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Set theme"
+msgstr "Définir le thème"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Shape"
+msgstr "Forme"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Showing results for"
+msgstr "Résultats pour"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Some images failed to upload. Retry or remove the marked images to continue."
+msgstr "Certaines images n'ont pas pu être envoyées. Réessayez ou supprimez les images marquées pour continuer."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Strike"
+msgstr "Barré"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Table size, {0} rows by {1} columns"
+msgstr "Taille du tableau : {0} lignes sur {1} colonnes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Teal"
+msgstr "Sarcelle"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Text and background color"
+msgstr "Couleur du texte et de l'arrière-plan"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Text Color"
+msgstr "Couleur du texte"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Text color"
+msgstr "Couleur du texte"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "There are no headings in this document."
+msgstr "Ce document ne contient aucun titre."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "This image hasn't yet been uploaded."
+msgstr "Cette image n'a pas encore été envoyée."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "This video hasn't yet been uploaded."
+msgstr "Cette vidéo n'a pas encore été envoyée."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "to search"
+msgstr "pour rechercher"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Toggle header row"
+msgstr "Afficher ou masquer la ligne d'en-tête"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Unmute"
+msgstr "Rétablir le son"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Update Embed"
+msgstr "Mettre à jour l'intégration"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Update the theme for this presentation. All newly added slides will use this theme."
+msgstr "Mettez à jour le thème de cette présentation. Les diapositives nouvellement ajoutées utiliseront ce thème."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Upload cancelled"
+msgstr "Envoi annulé"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Upload Images"
+msgstr "Envoyer des images"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Uploading {0} of {1}…"
+msgstr "Envoi de {0} sur {1}…"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "URL or Embed Code"
+msgstr "URL ou code d'intégration"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Video preview"
+msgstr "Aperçu de la vidéo"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Yellow"
+msgstr "Jaune"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0} columns"
+msgstr "{0} colonnes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0} edits"
+msgstr "{0} modifications"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0} elements"
+msgstr "{0} éléments"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0} from {1} edge"
+msgstr "{0} depuis le bord {1}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0} slides"
+msgstr "{0} diapositives"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "✓ Valid {0} URL"
+msgstr "✓ URL {0} valide"

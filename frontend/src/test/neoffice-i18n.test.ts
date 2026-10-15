@@ -8,7 +8,7 @@ import ts from 'typescript'
 import { describe, expect, it } from 'vitest'
 
 // @ts-ignore the module is plain JS next to vite.config.ts, shared with scripts/gen-i18n-registry.mjs
-import { collectMessages, isText, scopedFiles, transformSource } from '../../neoffice-i18n-core.mjs'
+import { collectMessages, isInScope, isText, scopedFiles, transformSource } from '../../neoffice-i18n-core.mjs'
 import { registrySource } from '../../scripts/gen-i18n-registry-source.mjs'
 
 const root = path.resolve(__dirname, '../..')
@@ -112,5 +112,68 @@ describe('the apps as they are', () => {
       }
     }
     expect(broken).toEqual([])
+  })
+})
+
+describe("frappe-ui's editor", () => {
+  const lib = path.join(root, 'node_modules/frappe-ui/src')
+
+  it('reads the files of the editor that were looked at, and no other', () => {
+    expect(isInScope(`${lib}/molecules/editor/commands.ts`)).toBe(true)
+    expect(isInScope(`${lib}/molecules/editor/extensions/link/LinkEditorPopup.vue`)).toBe(true)
+    // the title stored in the document is not a label
+    expect(isInScope(`${lib}/molecules/editor/extensions/toc-node/toc-node-extension.ts`)).toBe(false)
+    // the components of the library are a decision of their own
+    expect(isInScope(`${lib}/components/Dialog/Dialog.vue`)).toBe(false)
+    // as pnpm lays them out
+    expect(isInScope('/x/node_modules/.pnpm/frappe-ui@1/node_modules/frappe-ui/src/molecules/editor/menu.ts')).toBe(true)
+  })
+
+  it('says the label of a command when it is shown, not when the module loads', () => {
+    const { code, messages } = transformSource(
+      `export const commandMeta = {\n  bold: {\n    label: 'Bold',\n    icon: 'lucide-bold',\n  },\n}\n`,
+      `${lib}/molecules/editor/commands.ts`,
+    ) as { code: string; messages: string[] }
+    expect(code).toContain(`get label() { return __('Bold') },`)
+    expect(messages).toEqual(['Bold'])
+  })
+
+  it('reads the commands of the real menu lazily, and says the table commands', () => {
+    const file = path.join(root, 'node_modules/frappe-ui/src/molecules/editor/menu.ts')
+    if (!fs.existsSync(file)) return
+    const { code, messages } = transformSource(fs.readFileSync(file, 'utf8'), file) as { code: string; messages: string[] }
+    expect(code).toContain('get label() { return meta.label },')
+    expect(code).toContain(`get label() { return typeof __ === 'function' ? __(label) : label },`)
+    expect(messages).toEqual(expect.arrayContaining(['Insert column left', 'Delete table', 'Merge cells', 'Split cell']))
+  })
+})
+
+describe('what an override says', () => {
+  it('names a message with a context, and the registry writes it as the catalogue keys it', () => {
+    expect(registrySource(['Empty\u0004Trash', 'Save'])).toContain(`__('Empty', null, 'Trash')`)
+    expect(registrySource(['Empty\u0004Trash', 'Save'])).toContain(`__('Save')`)
+    const file = path.join(root, 'src/apps/drive/components/Navbar.vue')
+    const { code, messages } = transformSource(fs.readFileSync(file, 'utf8'), file) as { code: string; messages: string[] }
+    expect(code).toContain(`label: __('Empty', null, 'Trash'),`)
+    expect(messages).toContain('Empty\u0004Trash')
+  })
+
+  it('says every occurrence of a text it is asked to say everywhere', () => {
+    const file = path.join(root, 'src/apps/drive/ui/drive/components/MoveDialog.vue')
+    const { code } = transformSource(fs.readFileSync(file, 'utf8'), file) as { code: string }
+    expect(code).not.toContain(`file_name: 'Home'`)
+    expect(code).not.toContain(`file_name: 'Site'`)
+    expect(code.match(/get file_name\(\) \{ return __\('Home'\) \}/g)).toHaveLength(3)
+    expect(code.match(/get file_name\(\) \{ return __\('Site'\) \}/g)).toHaveLength(1)
+  })
+
+  it('says what a function of an object returns when its key is one of the returning keys', () => {
+    const { code } = transform(
+      `export const items = [{ getLabel: (editor) => (editor.can() ? 'Merge cells' : 'Split cell'), defaultLabel: 'Heading' }]`,
+      path.join(root, 'src/apps/writer/components/x.js'),
+    )
+    expect(code).toContain(`__('Merge cells')`)
+    expect(code).toContain(`__('Split cell')`)
+    expect(code).toContain(`get defaultLabel() { return __('Heading') }`)
   })
 })

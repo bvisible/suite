@@ -24,6 +24,11 @@
 // ////
 // //// A text next to an element inside one sentence (« … see <a>the docs</a> for details ») is left alone: it cannot be
 // //// translated in pieces. neoffice-i18n.ts lists what it left, for a person to take by hand.
+// ////
+// //// frappe-ui's editor (the toolbar, the slash menu, the table, link and media tools and the dialogs of Writer's page,
+// //// which Mail's composer shows too) is English only upstream as well: its files are read the same way, one by one
+// //// (FRAPPE_UI_EDITOR_FILES), and the few texts that are passed as arguments are said by OVERRIDES. The rest of
+// //// frappe-ui (its components: pickers, dialogs, lists) is not read here: that is a decision of its own.
 import fs from 'node:fs'
 import path from 'node:path'
 import { createRequire } from 'node:module'
@@ -34,7 +39,52 @@ const ts = require('typescript')
 
 /** The apps this module reads. Anything else is somebody's own, already written with __(). */
 export const SCOPE = /[\\/]src[\\/]apps[\\/](sheets|slides|writer|drive)[\\/]/
-export const isInScope = (file) => SCOPE.test(file) && /\.(vue|js|ts)$/.test(file) && !/\.(test|spec)\.|\.d\.ts$/.test(file)
+
+/**
+ * The files of frappe-ui's editor that are read (path under frappe-ui/src/molecules/editor/). Listed one by one, not by
+ * folder: each was looked at, and a new file of a later release is not said until somebody has looked at it too.
+ * Left out on purpose: extensions/toc-node/toc-node-extension.ts (its 'Table of Contents' is the title stored in the
+ * document), extensions/iframe/iframe-embed-utils.ts (the names of the platforms are brands).
+ */
+const FRAPPE_UI_EDITOR_FILES = new Set([
+  'commands.ts',
+  'menu.ts',
+  'components/AttachmentNodeView.vue',
+  'components/EditorDropZone.vue',
+  'components/ImageViewerModal.vue',
+  'components/MediaNodeView.vue',
+  'components/MediaResizeHandle.vue',
+  'components/MediaToolbar.vue',
+  'components/UploadProgressIndicator.vue',
+  'components/VideoControls.vue',
+  'components/font-color/fontColorController.ts',
+  'components/font-color/swatches.ts',
+  'components/image-viewer/ImageViewerControlsBar.vue',
+  'components/table-color/tableCellColorController.ts',
+  'components/table-size-picker/TableSizePicker.vue',
+  'extensions/code-block/CodeBlockComponent.vue',
+  'extensions/iframe/IframeInsertDialog.vue',
+  'extensions/iframe/IframeNodeView.vue',
+  'extensions/iframe/useIframeDialog.ts',
+  'extensions/image-group/ImageGroupGridCell.vue',
+  'extensions/image-group/ImageGroupNodeView.vue',
+  'extensions/image-group/ImageGroupUploadDialog.vue',
+  'extensions/image-group/image-group-utils.ts',
+  'extensions/image-group/useImageGroupDialog.ts',
+  'extensions/link/LinkEditorPopup.vue',
+  'extensions/slash-commands/slash-commands-extension.ts',
+  'extensions/suggestion/SuggestionList.vue',
+  'extensions/toc-node/TocNodeView.vue',
+])
+const FRAPPE_UI_EDITOR = /[\\/]frappe-ui[\\/]src[\\/]molecules[\\/]editor[\\/](.+)$/
+/** Where the editor of frappe-ui sits under the frontend folder (the registry generator reads it from there). */
+export const FRAPPE_UI_EDITOR_DIR = ['node_modules', 'frappe-ui', 'src', 'molecules', 'editor']
+const isFrappeUiEditorFile = (file) => {
+  const m = FRAPPE_UI_EDITOR.exec(file)
+  return Boolean(m) && FRAPPE_UI_EDITOR_FILES.has(m[1].split('\\').join('/'))
+}
+export const isInScope = (file) =>
+  (SCOPE.test(file) || isFrappeUiEditorFile(file)) && /\.(vue|js|ts)$/.test(file) && !/\.(test|spec)\.|\.d\.ts$/.test(file)
 
 /** Attributes of a template whose value a person reads. */
 const ATTRS = new Set([
@@ -45,7 +95,7 @@ const ATTRS = new Set([
 const KEYS = new Set([
   'title', 'label', 'message', 'description', 'placeholder', 'text', 'tooltip', 'subtitle', 'hint', 'header',
   'emptyText', 'confirmLabel', 'cancelLabel', 'successMessage', 'errorMessage', 'loadingMessage', 'toastMessage',
-  'group',
+  'group', 'defaultLabel',
 ])
 /**
  * Functions whose returned literals are only ever shown (checked one by one: a function that returns a name the code
@@ -55,7 +105,7 @@ const DISPLAY_FUNCTIONS = new Set([
   'formatDate', 'commentTime', '_fillSummary', 'cfRuleLabel', 'dayLabel', 'entityLabel', 'itemString',
   '_validateName', '_validateRange',
 ])
-const RETURNING_KEYS = new Set(['validate', 'success', 'error', 'loading'])
+const RETURNING_KEYS = new Set(['validate', 'success', 'error', 'loading', 'getLabel'])
 const SKIP_TAGS = new Set(['script', 'style', 'code', 'pre', 'kbd', 'svg', 'textarea'])
 const TOAST_OBJECTS = new Set(['toast', 'nToast', 'toaster'])
 const TOAST_FUNCTIONS = new Set(['toast', 'raiseToast', 'showToast', 'notify'])
@@ -162,6 +212,288 @@ OVERRIDES.push(
     find: '      group: g,\n      collapsed: collapsedByLabel.get(g) ?? false,\n',
     replace: '      group: __(g),\n      collapsed: collapsedByLabel.get(__(g)) ?? false,\n',
     messages: ['Today', 'Previous 7 days', 'Previous 30 days', 'Earlier'],
+  },
+)
+
+// What the plugin cannot see by itself, said from the exact upstream text (maintenance#1592): a text that is the argument
+// of a function, a count built by concatenation, a title that is data shown as text, a layout the French text overflows.
+// `all: true` says every occurrence of the text; a message with a context is written 'msgid\u0004context'.
+const FRAPPE_UI_TABLE_LABELS = [
+  'Insert column left', 'Insert column right', 'Delete column', 'Insert row above', 'Insert row below', 'Delete row',
+  'Toggle header row', 'Merge or split cells', 'Delete table',
+]
+OVERRIDES.push(
+  // ---- Slides
+  {
+    file: /slides[\\/]components[\\/]ThemeDialog\.vue$/,
+    find: "(props.update ? 'Set theme' : 'Select theme')",
+    replace: "(props.update ? __('Set theme') : __('Select theme'))",
+    messages: ['Set theme', 'Select theme'],
+  },
+  {
+    file: /slides[\\/]components[\\/]ThemeDialog\.vue$/,
+    find: "\t\t? 'Update the theme for this presentation. All newly added slides will use this theme.'\n" +
+      "\t\t: 'Select a theme for your new presentation. You can change this theme later.',",
+    replace: "\t\t? __('Update the theme for this presentation. All newly added slides will use this theme.')\n" +
+      "\t\t: __('Select a theme for your new presentation. You can change this theme later.'),",
+    messages: [
+      'Update the theme for this presentation. All newly added slides will use this theme.',
+      'Select a theme for your new presentation. You can change this theme later.',
+    ],
+  },
+  {
+    // the title of a theme is data (the code tells Light and Dark apart by it): what is shown is said
+    file: /slides[\\/]components[\\/]ThemeDialog\.vue$/,
+    find: '{{ theme.title }}',
+    replace: '{{ __(theme.title) }}',
+    messages: ['Light', 'Dark'],
+  },
+  {
+    // the header of the properties panel names the kind of element, built from its type
+    file: /slides[\\/]components[\\/]PropertiesPanel\.vue$/,
+    find: "\tif (count > 1) return `${count} elements`\n" +
+      "\tconst type = activeElement.value?.type\n" +
+      "\treturn type ? type[0].toUpperCase() + type.slice(1) : ''",
+    replace: "\tif (count > 1) return __('{0} elements', [count])\n" +
+      "\tconst type = activeElement.value?.type\n" +
+      "\treturn type ? __(type[0].toUpperCase() + type.slice(1)) : ''",
+    messages: ['{0} elements', 'Text', 'Shape', 'Image', 'Video', 'Table'],
+  },
+  // ---- Sheets
+  {
+    // the owner column of the list of sheets says « me » for the person's own sheets
+    file: /sheets[\\/]pages[\\/]Home\.vue$/,
+    find: "if (sheet.is_owner) return 'me'",
+    replace: "if (sheet.is_owner) return __('me', null, 'owner of a sheet')",
+    messages: ['me\u0004owner of a sheet'],
+  },
+  {
+    // « Restaurer » and « Supprimer définitivement » do not fit the 220px that « Restore » and « Delete forever » did
+    file: /sheets[\\/]pages[\\/]Trash\.vue$/,
+    find: "{ label: '', key: '_actions', width: '220px', align: 'right' }",
+    replace: "{ label: '', key: '_actions', width: '320px', align: 'right' }",
+    messages: [],
+  },
+  {
+    // what the version list says about a snapshot (op_labels[0]); the kind itself stays what the code reads
+    file: /sheets[\\/]services[\\/]versions\.js$/,
+    find: "\tif (item.kind === 'milestone') return ['Milestone']\n" +
+      "\tif (item.kind === 'named')     return ['Named version']\n" +
+      "\tif (item.op_count > 0)         return [`${item.op_count} edit${item.op_count === 1 ? '' : 's'}`]",
+    replace: "\tif (item.kind === 'milestone') return [__('Milestone')]\n" +
+      "\tif (item.kind === 'named')     return [__('Named version')]\n" +
+      "\tif (item.op_count > 0)         return [item.op_count === 1 ? __('1 edit') : __('{0} edits', [item.op_count])]",
+    messages: ['Milestone', 'Named version', '1 edit', '{0} edits'],
+  },
+  // ---- Drive
+  {
+    // the size column: a count of items / slides built by concatenation (« 3 items »)
+    file: /drive[\\/]components[\\/]DriveListRow\.vue$/,
+    find: "      ? row.child_count + ' item' + (row.child_count === 1 ? '' : 's')\n" +
+      "      : 'empty'\n" +
+      "  if (row.slide_count != null)\n" +
+      "    return row.slide_count\n" +
+      "      ? row.slide_count + ' slide' + (row.slide_count === 1 ? '' : 's')\n" +
+      "      : 'empty'",
+    replace: "      ? (row.child_count === 1 ? __('1 item') : __('{0} items', [row.child_count]))\n" +
+      "      : __('empty')\n" +
+      "  if (row.slide_count != null)\n" +
+      "    return row.slide_count\n" +
+      "      ? (row.slide_count === 1 ? __('1 slide') : __('{0} slides', [row.slide_count]))\n" +
+      "      : __('empty')",
+    messages: ['1 item', '{0} items', 'empty', '1 slide', '{0} slides'],
+  },
+  {
+    file: /drive[\\/]components[\\/]GridItem\.vue$/,
+    find: "  if (!props.file.child_count) return 'empty'\n" +
+      "  return props.file.child_count + ' item' + (props.file.child_count === 1 ? '' : 's')",
+    replace: "  if (!props.file.child_count) return __('empty')\n" +
+      "  return props.file.child_count === 1 ? __('1 item') : __('{0} items', [props.file.child_count])",
+    messages: ['empty', '1 item', '{0} items'],
+  },
+  {
+    // the root of the folder tree is called « Home » in the breadcrumb: say it like the tab above it
+    file: /drive[\\/]ui[\\/]drive[\\/]components[\\/]MoveDialog\.vue$/,
+    find: "file_name: 'Home'",
+    replace: "get file_name() { return __('Home') }",
+    all: true,
+    messages: ['Home'],
+  },
+  {
+    file: /drive[\\/]ui[\\/]drive[\\/]components[\\/]MoveDialog\.vue$/,
+    find: "file_name: 'Site'",
+    replace: "get file_name() { return __('Site') }",
+    all: true,
+    messages: ['Site'],
+  },
+  {
+    file: /drive[\\/]ui[\\/]drive[\\/]components[\\/]MoveDialog\.vue$/,
+    find: "? 'Home' : k.file_name,",
+    replace: "? __('Home') : k.file_name,",
+    messages: ['Home'],
+  },
+  {
+    // emptying the trash is an action; the bare « Empty » is the state of a list (« Vide »)
+    file: /drive[\\/]components[\\/]Navbar\.vue$/,
+    find: "label: __('Empty'),",
+    replace: "label: __('Empty', null, 'Trash'),",
+    messages: ['Empty\u0004Trash'],
+  },
+  // ---- frappe-ui's editor (Writer's page, Mail's composer)
+  {
+    // the commands are built when the module loads, before the translations: the label is read when it is shown
+    file: /molecules[\\/]editor[\\/]menu\.ts$/,
+    find: '    label: meta.label,\n    icon: meta.icon,',
+    replace: '    get label() { return meta.label },\n    icon: meta.icon,',
+    messages: [],
+  },
+  {
+    // the table commands take their label as an argument; TableMergeOrSplit spreads one of them when the module loads,
+    // before __ is installed, hence the typeof (its getLabel is what is shown)
+    file: /molecules[\\/]editor[\\/]menu\.ts$/,
+    find: '  return {\n    label,\n    icon,\n    action,\n    isActive,',
+    replace: "  return {\n    get label() { return typeof __ === 'function' ? __(label) : label },\n    icon,\n    action,\n    isActive,",
+    messages: FRAPPE_UI_TABLE_LABELS,
+  },
+  {
+    // the headings of the groups of the slash menu
+    file: /molecules[\\/]editor[\\/]extensions[\\/]slash-commands[\\/]slash-commands-extension\.ts$/,
+    find: '  return items.map((item) => ({ ...item, group }))',
+    replace: '  return items.map((item) => ({ ...item, group: __(group) }))',
+    messages: ['Text', 'Lists', 'Media', 'Embeds', 'Insert'],
+  },
+  {
+    // the names of the colours of the palette (the value stored on the mark stays the lowercase name)
+    file: /molecules[\\/]editor[\\/]components[\\/]font-color[\\/]swatches\.ts$/,
+    find: '    label: capitalize(color.name),\n',
+    replace: '    get label() { return __(capitalize(color.name)) },\n',
+    messages: ['Red', 'Orange', 'Yellow', 'Green', 'Teal', 'Cyan', 'Blue', 'Indigo', 'Purple', 'Pink', 'Gray'],
+  },
+  {
+    file: /molecules[\\/]editor[\\/]components[\\/]font-color[\\/]fontColorController\.ts$/,
+    find: "dialogLabel: 'Text and background color',",
+    replace: "dialogLabel: __('Text and background color'),",
+    messages: ['Text and background color'],
+  },
+  {
+    file: /molecules[\\/]editor[\\/]components[\\/]font-color[\\/]fontColorController\.ts$/,
+    find: "h('div', { class: 'text-sm text-ink-gray-7' }, 'Text Color'),",
+    replace: "h('div', { class: 'text-sm text-ink-gray-7' }, __('Text Color')),",
+    messages: ['Text Color'],
+  },
+  {
+    file: /molecules[\\/]editor[\\/]components[\\/]font-color[\\/]fontColorController\.ts$/,
+    find: "                'Background Color',\n",
+    replace: "                __('Background Color'),\n",
+    messages: ['Background Color'],
+  },
+  {
+    file: /molecules[\\/]editor[\\/]components[\\/]table-color[\\/]tableCellColorController\.ts$/,
+    find: "{ dialogLabel: 'Cell color', contentClass: 'rounded-5 p-2.5' }",
+    replace: "{ dialogLabel: __('Cell color'), contentClass: 'rounded-5 p-2.5' }",
+    messages: ['Cell color'],
+  },
+  {
+    file: /molecules[\\/]editor[\\/]components[\\/]table-color[\\/]tableCellColorController\.ts$/,
+    find: "h('div', { class: 'text-sm text-ink-gray-7' }, 'Cell color'),",
+    replace: "h('div', { class: 'text-sm text-ink-gray-7' }, __('Cell color')),",
+    messages: ['Cell color'],
+  },
+  {
+    file: /molecules[\\/]editor[\\/]components[\\/]table-color[\\/]tableCellColorController\.ts$/,
+    find: "h('div', { class: 'mt-4 text-sm text-ink-gray-7' }, 'Text color'),",
+    replace: "h('div', { class: 'mt-4 text-sm text-ink-gray-7' }, __('Text color')),",
+    messages: ['Text color'],
+  },
+  {
+    file: /molecules[\\/]editor[\\/]components[\\/]MediaToolbar\.vue$/,
+    find: "      image: 'Replace image',\n      video: 'Replace video',\n      embed: 'Change link',",
+    replace: "      image: __('Replace image'),\n      video: __('Replace video'),\n      embed: __('Change link'),",
+    messages: ['Replace image', 'Replace video', 'Change link'],
+  },
+  {
+    file: /molecules[\\/]editor[\\/]components[\\/]EditorDropZone\.vue$/,
+    find: "    return videoCount === 1 ? 'Drop video to upload' : 'Drop videos to upload'\n" +
+      "  if (imageCount > 1) return 'Drop images to create gallery'\n" +
+      "  if (imageCount === 1) return 'Drop image to upload'",
+    replace: "    return videoCount === 1 ? __('Drop video to upload') : __('Drop videos to upload')\n" +
+      "  if (imageCount > 1) return __('Drop images to create gallery')\n" +
+      "  if (imageCount === 1) return __('Drop image to upload')",
+    messages: ['Drop video to upload', 'Drop videos to upload', 'Drop images to create gallery', 'Drop image to upload'],
+  },
+  {
+    // the noun inside the sentence is « video » or « image »: two sentences, so each can agree in gender
+    file: /molecules[\\/]editor[\\/]components[\\/]MediaNodeView\.vue$/,
+    find: "          This {{ isVideo ? 'video' : 'image' }} hasn't yet been uploaded.\n",
+    replace: "          {{ isVideo ? __('This video hasn\\'t yet been uploaded.') : __('This image hasn\\'t yet been uploaded.') }}\n",
+    messages: ["This video hasn't yet been uploaded.", "This image hasn't yet been uploaded."],
+  },
+  {
+    file: /molecules[\\/]editor[\\/]components[\\/]table-size-picker[\\/]TableSizePicker\.vue$/,
+    find: 'dialog-label="Insert table"',
+    replace: ':dialog-label="__(\'Insert table\')"',
+    messages: ['Insert table'],
+  },
+  {
+    file: /molecules[\\/]editor[\\/]extensions[\\/]image-group[\\/]useImageGroupDialog\.ts$/,
+    find: "        ? 'Upload cancelled'\n        : (error as Error)?.message || 'Upload failed'",
+    replace: "        ? __('Upload cancelled')\n        : (error as Error)?.message || __('Upload failed')",
+    messages: ['Upload cancelled', 'Upload failed'],
+  },
+  {
+    file: /molecules[\\/]editor[\\/]extensions[\\/]iframe[\\/]useIframeDialog\.ts$/,
+    find: "        ? 'Please enter a supported URL or iframe embed code'\n",
+    replace: "        ? __('Please enter a supported URL or iframe embed code')\n",
+    messages: ['Please enter a supported URL or iframe embed code'],
+  },
+  {
+    file: /molecules[\\/]editor[\\/]extensions[\\/]image-group[\\/]ImageGroupUploadDialog\.vue$/,
+    find: "  if (count > 1) return `Insert ${count} images`\n  return 'Insert image'",
+    replace: "  if (count > 1) return __('Insert {0} images', [count])\n  return __('Insert image')",
+    messages: ['Insert {0} images', 'Insert image'],
+  },
+
+  // the pagination of the list of sheets (« 1 of 1 »): « of » is a word on its own between two values, with a context
+  // because the bare word is « de » elsewhere
+  {
+    file: /sheets[\\/]pages[\\/]Home\.vue$/,
+    find: '<span>of</span>',
+    replace: "<span>{{ __('of', null, 'pagination') }}</span>",
+    messages: ['of\u0004pagination'],
+  },
+  {
+    // the banner of a version preview: a number then the noun, built with a plural
+    file: /sheets[\\/]components[\\/]SheetEditor[\\/]VersionPreviewBanner\.vue$/,
+    find: "<b>{{ diff.total_changed_cells }}</b> edit{{ diff.total_changed_cells === 1 ? '' : 's' }}",
+    replace: "<b>{{ diff.total_changed_cells }}</b> {{ diff.total_changed_cells === 1 ? __('edit') : __('edits') }}",
+    messages: ['edit', 'edits'],
+  },
+  {
+    file: /sheets[\\/]components[\\/]SheetEditor[\\/]VersionPreviewBanner\.vue$/,
+    find: "({{ diff.total_changed_rows }} row{{ diff.total_changed_rows === 1 ? '' : 's' }} changed)",
+    replace: "({{ diff.total_changed_rows }} {{ diff.total_changed_rows === 1 ? __('row changed') : __('rows changed') }})",
+    messages: ['row changed', 'rows changed'],
+  },
+  // ---- Writer
+  {
+    file: /writer[\\/]components[\\/]SearchDialog\.vue$/,
+    find: '><KeyboardShortcut combo="Enter" /> to search</span',
+    replace: "><KeyboardShortcut combo=\"Enter\" /> {{ __('to search') }}</span",
+    messages: ['to search'],
+  },
+  {
+    file: /writer[\\/]components[\\/]SearchDialog\.vue$/,
+    find: 'Showing results for "<span class="font-medium">{{ query }}</span',
+    replace: '{{ __(\'Showing results for\') }} "<span class="font-medium">{{ query }}</span',
+    messages: ['Showing results for'],
+  },
+  // ---- Drive
+  {
+    // the marker of the folder the item is in, in the tree of the Move dialog
+    file: /drive[\\/]ui[\\/]drive[\\/]components[\\/]MoveDialog\.vue$/,
+    find: '(current)</span></span>',
+    replace: "{{ __('(current)') }}</span></span>",
+    messages: ['(current)'],
   },
 )
 
@@ -529,7 +861,8 @@ export function transformSource(original, filename) {
   for (const o of OVERRIDES) {
     if (!o.file.test(filename)) continue
     if (!source.includes(o.find)) throw new Error(`the text of an override is gone from ${filename}: ${o.find.slice(0, 70)}`)
-    source = source.replace(o.find, o.replace)
+    // `all`: every occurrence (the same text said in several places); a function so that `$&` in a text stays a text
+    source = o.all ? source.split(o.find).join(o.replace) : source.replace(o.find, () => o.replace)
     overridden.push(...o.messages)
   }
   if (filename.endsWith('.vue')) {
@@ -557,7 +890,7 @@ export function transformSource(original, filename) {
   return { code, messages: all.map((e) => e.message), left, edits: all, changed: kept.length > 0 || overridden.length > 0 }
 }
 
-/** Every file of the scoped apps under `frontendDir`. */
+/** Every file of the scoped apps under `frontendDir`, and the files of frappe-ui's editor that are read. */
 export function* scopedFiles(frontendDir) {
   const walk = function* (dir) {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -568,6 +901,8 @@ export function* scopedFiles(frontendDir) {
     }
   }
   yield* walk(path.join(frontendDir, 'src', 'apps'))
+  const editor = path.join(frontendDir, ...FRAPPE_UI_EDITOR_DIR)
+  if (fs.existsSync(editor)) yield* walk(editor)
 }
 
 /** The sorted msgids of the scoped apps, with where each is asked for. */

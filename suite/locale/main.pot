@@ -30522,3 +30522,458 @@ msgstr ""
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "Workbook"
 msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "(current)"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0} columns"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0} edits"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0} elements"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0} from {1} edge"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0} slides"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "✓ Valid {0} URL"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "1 edit"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "1 item"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "1 slide"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add a caption"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add caption"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add caption..."
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add images"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Align Center"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Align Left"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Align Right"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Attachment"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Background Color"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Blockquote"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Bullet List"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Cancel upload"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Cancel uploads"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Caption"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Cell color"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Change link"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Choose another"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Click to add caption"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Code"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Code Block"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Copied!"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Copy code"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Delete table"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Download image"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Drag & drop images here or click to select"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Drag images to reorder · hover an image to caption or remove it · drop files anywhere to add more"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Drop image to upload"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Drop images here"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Drop images to create gallery"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Drop video to upload"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Drop videos to upload"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Edit gallery"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Edit Images"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "edits"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Embed"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Embeds"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "empty"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgctxt "Trash"
+msgid "Empty"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Enter fullscreen"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Exit fullscreen"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Font Color"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Fullscreen"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Heading {0}"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Highlight"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Horizontal Rule"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Image / Gallery"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Image caption"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Image preview"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Indigo"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert {0} images"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert as separate images"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert Embed"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert image"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert table"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Lists"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Loading embed…"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Media options"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Merge or split cells"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Milestone"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Muted"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Named version"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Next image"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgctxt "pagination"
+msgid "of"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Ordered List"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Pause"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Please enter a supported URL or iframe embed code"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Preview not available (HEIC)"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Previous image"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Remove table of contents"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Replace image"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Replace video"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Resize embed"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Resize media"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "row changed"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "rows changed"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Seek"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Select a theme for your new presentation. You can change this theme later."
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Select theme"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Set theme"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Shape"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Showing results for"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Some images failed to upload. Retry or remove the marked images to continue."
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Strike"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Table size, {0} rows by {1} columns"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Teal"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Text and background color"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Text color"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Text Color"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "There are no headings in this document."
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "to search"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Toggle header row"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Unmute"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Update Embed"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Update the theme for this presentation. All newly added slides will use this theme."
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Upload cancelled"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Upload Images"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Uploading {0} of {1}…"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "URL or Embed Code"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Video preview"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Yellow"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgctxt "owner of a sheet"
+msgid "me"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "This image hasn't yet been uploaded."
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "This video hasn't yet been uploaded."
+msgstr ""

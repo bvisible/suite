@@ -28,13 +28,16 @@ Administration
 Angle
 Auto
 Blog
+Code
 Condition
 Horizontal
+Indigo
 Information
 Magic Move
 Markdown
 Max
 Min
+Pause
 Rectangle
 Serif
 Sheets
