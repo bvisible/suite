@@ -30466,3 +30466,59 @@ msgstr ""
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "Uploaded"
 msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Apply to selection"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Cells"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Date + Time"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Editing"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Explore"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Format Text"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Formatting"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Horizontal"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Modify"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Numbers"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Selection"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Single side"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Vertical"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Workbook"
+msgstr ""

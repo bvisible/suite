@@ -30051,3 +30051,51 @@ msgstr "il y a {0} h"
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "{0}m ago"
 msgstr "il y a {0} min"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Apply to selection"
+msgstr "Appliquer à la sélection"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Cells"
+msgstr "Cellules"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Date + Time"
+msgstr "Date et heure"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Editing"
+msgstr "Édition"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Explore"
+msgstr "Explorer"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Format Text"
+msgstr "Mise en forme du texte"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Formatting"
+msgstr "Mise en forme"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Modify"
+msgstr "Modifier"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Numbers"
+msgstr "Nombres"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Selection"
+msgstr "Sélection"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Single side"
+msgstr "Un seul côté"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Workbook"
+msgstr "Classeur"

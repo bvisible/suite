@@ -29,6 +29,7 @@ Angle
 Auto
 Blog
 Condition
+Horizontal
 Information
 Magic Move
 Markdown
@@ -39,4 +40,5 @@ Serif
 Sheets
 Style
 Triangle
+Vertical
 //// Neoffice — the signing secret and the token life of the Drive's Office editors (the Craft editors). Collabora's server address, the connection test and the master switch went with Collabora (maintenance#1570).

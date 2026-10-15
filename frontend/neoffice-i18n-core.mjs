@@ -45,6 +45,7 @@ const ATTRS = new Set([
 const KEYS = new Set([
   'title', 'label', 'message', 'description', 'placeholder', 'text', 'tooltip', 'subtitle', 'hint', 'header',
   'emptyText', 'confirmLabel', 'cancelLabel', 'successMessage', 'errorMessage', 'loadingMessage', 'toastMessage',
+  'group',
 ])
 /**
  * Functions whose returned literals are only ever shown (checked one by one: a function that returns a name the code
@@ -130,6 +131,19 @@ const OVERRIDES = [
 // __(group), and the names the code builds are listed here so that the registry (and the catalogue) has them.
 const GROUPS_OF_TIME = ['Today', 'Yesterday', 'Last seven days', 'Earlier this week', 'Earlier this month', 'Earlier this year', 'Earlier', 'Older than a year']
 OVERRIDES.push(
+  {
+    // the styling of the Present button asks for the action by its English label: ask by its icon, so the label can be said
+    file: /slides[\\/]components[\\/]PresentationPreview\.vue$/,
+    find: '<div :class="getActionButtonClasses(action.label)" @click="action.onClick">',
+    replace: '<div :class="getActionButtonClasses(action.icon === Presentation ? \'Present\' : \'\')" @click="action.onClick">',
+    messages: [],
+  },
+  {
+    file: /slides[\\/]components[\\/]PresentationPreview\.vue$/,
+    find: ':class="getActionIconClasses(action.label)"',
+    replace: ':class="getActionIconClasses(action.icon === Presentation ? \'Present\' : \'\')"',
+    messages: [],
+  },
   {
     file: /writer[\\/]components[\\/]RoundedListView\.vue$/,
     find: '        <h2 class="text-sm font-medium text-ink-gray-5">\n          {{ group }}\n',
