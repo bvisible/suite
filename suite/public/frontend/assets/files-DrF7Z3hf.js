@@ -1,0 +1,1 @@
+import{b as e}from"./files-CpNm-tkc.js";export{e as translate};
