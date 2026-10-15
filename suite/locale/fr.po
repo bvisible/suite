@@ -1527,7 +1527,7 @@ msgstr "Ambre"
 #: suite/mail/doctype/contacts_exchange/contacts_exchange.json
 #: suite/mail/doctype/mail_exchange/mail_exchange.json
 msgid "Amended From"
-msgstr "Amendé depuis"
+msgstr "Modifié à partir de"
 
 #. Description of the 'Device Client ID' (Data) field in DocType 'Push
 #. Subscription'
@@ -5961,7 +5961,7 @@ msgstr "Délivrabilité des e-mails"
 #: frontend/src/apps/mail/components/OutboxFilters.vue:24
 #: suite/public/frontend/assets/OutboxView-V_l-MNBP.js:1
 msgid "Email ID"
-msgstr "ID e-mail"
+msgstr "Adresse e-mail"
 
 #: frontend/src/apps/mail/pages/dashboard/DomainView.vue:68
 #: suite/public/frontend/assets/DomainView-DYZXtyhQ.js:1
@@ -8686,7 +8686,7 @@ msgstr "Indique si ce script est actuellement actif."
 #: suite/public/frontend/assets/ContactView-KuHGBzRM.js:1
 #: suite/public/frontend/assets/ContactsView-CLXR3oy_.js:1
 msgid "Individual"
-msgstr "Individuel"
+msgstr "Particulier"
 
 #: frontend/src/apps/mail/components/Modals/AddRoleModal.vue:34
 #: frontend/src/apps/mail/pages/dashboard/RoleView.vue:13
@@ -9678,7 +9678,7 @@ msgstr "Localité"
 #: suite/calendar/doctype/event_participant/event_participant.json
 #: suite/mail/doctype/mail_message_part/mail_message_part.json
 msgid "Location"
-msgstr "Lieu"
+msgstr "Localisation"
 
 #. Label of a Table field in DocType 'Calendar Event'
 #. Label of a Tab Break field in DocType 'Calendar Event'
@@ -12546,7 +12546,7 @@ msgstr "Vue d'ensemble"
 #: suite/public/frontend/assets/GenericPage-DckS4HFf.js:1
 #: suite/public/frontend/assets/InfoDialog-L7Tj7CfO.js:1
 msgid "Owner"
-msgstr "Responsable"
+msgstr "Propriétaire"
 
 #. Label of a Link field in DocType 'Drive DAV Lock'
 #: suite/drive/doctype/drive_dav_lock/drive_dav_lock.json
@@ -15508,7 +15508,7 @@ msgstr "Nom du script"
 #: suite/public/frontend/assets/SearchModal-DfPLyiup.js:1
 #: suite/public/js/FileUploader.vue:12
 msgid "Search"
-msgstr "Recherche"
+msgstr "Rechercher"
 
 #: frontend/src/apps/mail/components/HeaderActions.vue:8
 #: suite/public/frontend/assets/HeaderActions-BV1ztQeB.js:1
@@ -15966,7 +15966,7 @@ msgstr "Expéditeur"
 #. Label of a Data field in DocType 'Mail Message'
 #: suite/mail/doctype/mail_message/mail_message.json
 msgid "Sender Email"
-msgstr "E-mail de l'expéditeur"
+msgstr "Email d'expéditeur"
 
 #. Label of a Data field in DocType 'Mail Message'
 #: suite/mail/doctype/mail_message/mail_message.json
@@ -17403,7 +17403,7 @@ msgstr "Soumettre"
 #. Option for the 'Status' (Select) field in DocType 'Mail Queue'
 #: suite/mail/doctype/mail_queue/mail_queue.json
 msgid "Submitted"
-msgstr "Soumis"
+msgstr "Validé"
 
 #. Label of a Float field in DocType 'Mail Queue'
 #: suite/mail/doctype/mail_queue/mail_queue.json
@@ -19926,7 +19926,7 @@ msgstr "Dossier utilisateur"
 #. Label of a Data field in DocType 'Meet Room User'
 #: suite/meet/doctype/meet_room_user/meet_room_user.json
 msgid "User ID"
-msgstr "ID utilisateur"
+msgstr "Identifiant utilisateur"
 
 #. Label of a Link field in DocType 'User Account'
 #. Name of a DocType
@@ -26894,7 +26894,7 @@ msgstr "Ajouter un champ"
 
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "Add item"
-msgstr "Ajouter un élément"
+msgstr "Ajouter un article"
 
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "Add line"
@@ -27502,7 +27502,7 @@ msgstr "Rogner l'image"
 
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "Currency"
-msgstr "Monnaie"
+msgstr "Devise"
 
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "Current Tab"
@@ -28234,11 +28234,11 @@ msgstr "Italique (Ctrl+I)"
 
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "Item"
-msgstr "Élément"
+msgstr "Article"
 
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "Items"
-msgstr "Éléments"
+msgstr "Articles"
 
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "Items are deleted forever after {0} days"
@@ -28970,7 +28970,7 @@ msgstr "Supprimer la copie"
 
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "Remove item"
-msgstr "Retirer l'élément"
+msgstr "Supprimer l'article"
 
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "Remove link"
@@ -30110,7 +30110,7 @@ msgstr "1 modification"
 
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "1 item"
-msgstr "1 élément"
+msgstr "1 article"
 
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "1 slide"
