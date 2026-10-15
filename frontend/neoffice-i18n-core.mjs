@@ -308,10 +308,11 @@ OVERRIDES.push(
     messages: ['1 item', '{0} items', 'empty', '1 slide', '{0} slides'],
   },
   {
-    // « 1 diapositive » and « 3 éléments » do not fit the 8% that « 1 slide » and « 3 items » did
+    // « Responsable », « Dernière modification », « 1 diapositive » and « 3 éléments » do not fit the 10%, 15% and 8%
+    // that « Owner », « Last Modified », « 1 slide » and « 3 items » did
     file: /drive[\\/]data[\\/]listColumns\.ts$/,
-    find: "route.name === 'drive-Attachments' ? '25%' : '8%',",
-    replace: "route.name === 'drive-Attachments' ? '25%' : '11%',",
+    find: "          '10%',\n          '15%',\n          route.name === 'drive-Attachments' ? '25%' : '8%',",
+    replace: "          '12%',\n          '18%',\n          route.name === 'drive-Attachments' ? '25%' : '11%',",
     messages: [],
   },
   {
