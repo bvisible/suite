@@ -146,3 +146,32 @@ class GetUsersOnSite(IntegrationTestCase):
         self.assertEqual(member.user_type, "Website User")
 
         self.assertIn(member.name, [user["name"] for user in account.get_users()])
+
+
+# //// Neoffice — added tests (#1594): the upstream merge's forget_logged_in_users called
+# //// delete_keys(key, user="*"), which Frappe v15 does not know: it raised, and killed `install-app suite`.
+class ForgetLoggedInUsers(IntegrationTestCase):
+    """What get_logged_in_user remembers per user goes at once, for every user (#1594: it raised TypeError on Frappe v15)."""
+
+    def test_the_answer_remembered_for_each_user_is_dropped(self):
+        key = f"{account.get_logged_in_user.__module__}.{account.get_logged_in_user.__qualname__}::probe"
+        users = ("alice@example.com", "bob@example.com", "Guest")
+        for user in users:
+            frappe.cache.set_value(key, {"for": user}, user=user, expires_in_sec=300)
+        self.addCleanup(lambda: [frappe.cache.delete_value(key, user=user) for user in users])
+        self.assertEqual(frappe.cache.get_value(key, user="bob@example.com"), {"for": "bob@example.com"})
+
+        account.forget_logged_in_users()
+
+        for user in users:
+            with self.subTest(user=user):
+                self.assertIsNone(frappe.cache.get_value(key, user=user))
+
+    def test_what_is_cached_for_something_else_stays(self):
+        other = "suite.api.account.somebody_elses_function::probe"
+        frappe.cache.set_value(other, "kept", user="alice@example.com", expires_in_sec=300)
+        self.addCleanup(lambda: frappe.cache.delete_value(other, user="alice@example.com"))
+
+        account.forget_logged_in_users()
+
+        self.assertEqual(frappe.cache.get_value(other, user="alice@example.com"), "kept")

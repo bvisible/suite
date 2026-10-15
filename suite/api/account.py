@@ -173,7 +173,11 @@ def forget_logged_in_users() -> None:
     """
 
     key = f"{get_logged_in_user.__module__}.{get_logged_in_user.__qualname__}"
-    frappe.cache.delete_keys(key, user="*")
+    # //// Neoffice — Frappe v15's RedisWrapper.delete_keys(key) takes no `user` (upstream develop does): the call
+    # //// raised TypeError, and with it every `bench install-app suite` (Mail Settings saves its server_url) and any
+    # //// change of the JMAP server (#1594). The copies of a `redis_cache(user=True)` function live under
+    # //// `user:<name>:<key>`: name them by that pattern. To remove when the fleet runs a Frappe whose delete_keys knows `user`.
+    frappe.cache.delete_keys(f"user:*:{key}")
 
 
 @frappe.whitelist()
