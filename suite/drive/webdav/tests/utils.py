@@ -1,6 +1,7 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
 import base64
 
 import frappe
@@ -65,6 +66,12 @@ def set_dav_request(
 def dispatch(*args, **kwargs) -> Response | None:
     """Run the before_request hook; return the DAV response, or None on passthrough."""
     set_dav_request(*args, **kwargs)
+    # //// Neoffice — v15 has no `frappe.local.response_headers`: the shim (suite_core/v15_response_headers.py) makes
+    # //// one per request from its own before_request hook, and this helper runs the DAV hook alone, so every refusal
+    # //// (a 401 challenge writes WWW-Authenticate there) raised AttributeError. Drop with the shim, at v16.
+    from werkzeug.datastructures import Headers
+
+    frappe.local.response_headers = Headers()
     try:
         handle_before_request()
     except DAVResponseException as e:
