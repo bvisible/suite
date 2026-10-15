@@ -34,7 +34,10 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const SCALE = Number(argValue('--scale') ?? 0.3)
 const BACKGROUND = argValue('--background') ?? '#ffffff'
 
-const LOGO = path.join(root, 'src/assets/app-logos/suite.svg')
+//// Neoffice — the Neoffice wordmark, not the Frappe Suite mark (#1592): a wordmark has no rounded square of its
+//// own to read a brand colour off, so the icons are the wordmark on white, smaller, inside the maskable safe zone.
+const LOGO = path.join(root, 'src/assets/brand/neoffice-wordmark.svg')
+const ICON_LOGO_SCALE = 0.7
 const OUT_DIR = path.join(root, 'public/pwa/suite')
 const SPLASH_DIR = path.join(OUT_DIR, 'splash')
 
@@ -73,10 +76,11 @@ function splashCanvases() {
   })
 }
 
-function iconCanvases(brandColor) {
+//// Neoffice — the icons take a background and draw the wordmark at ICON_LOGO_SCALE of their width, see LOGO above
+function iconCanvases(background) {
   return ICONS.map(({ name, size }) => ({
-    file: path.join(OUT_DIR, name), width: size, height: size, logo: size,
-    background: brandColor, label: 'icon',
+    file: path.join(OUT_DIR, name), width: size, height: size, logo: Math.round(size * ICON_LOGO_SCALE),
+    background, label: 'icon',
   }))
 }
 
@@ -166,7 +170,8 @@ const svg = fs.readFileSync(LOGO, 'utf8')
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pwa-assets-'))
 fs.mkdirSync(SPLASH_DIR, { recursive: true })
 
-const all = [...iconCanvases(brandColorOf(svg)), ...splashCanvases()]
+//// Neoffice — white, see LOGO above (upstream read the brand colour off the logo)
+const all = [...iconCanvases(BACKGROUND), ...splashCanvases()]
 console.log(`Rendering ${ICONS.length} icons and ${all.length - ICONS.length} launch screens at scale ${SCALE}...`)
 try {
   for (const canvas of all) {

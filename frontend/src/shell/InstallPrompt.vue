@@ -7,7 +7,8 @@
 	     attached (see setPwaTags), and the iOS hint follows the same gate. -->
 	<Dialog :open="showDialog && installable" @update:open="showDialog = $event">
 		<template #title>
-			<h2 class="text-lg-bold">{{ __('Install Frappe Suite') }}</h2>
+			<!-- //// Neoffice — Neoffice's name, not upstream's « Frappe Suite » (#1592). -->
+			<h2 class="text-lg-bold">{{ __('Install Neoffice') }}</h2>
 		</template>
 		<template #default>
 			<p>{{ __('Get the app on your device for easy access & a better experience!') }}</p>
@@ -37,8 +38,9 @@
 			@focusin.stop
 		>
 			<div class="mb-1 flex flex-row items-center justify-between px-3 text-center">
+				<!-- //// Neoffice — Neoffice's name, not upstream's « Frappe Suite » (#1592). -->
 				<span class="text-base-bold">
-					{{ __('Install Frappe Suite') }}
+					{{ __('Install Neoffice') }}
 				</span>
 				<span class="inline-flex items-baseline">
 					<FeatherIcon

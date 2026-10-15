@@ -318,6 +318,9 @@ const PWA_METAS: Array<[name: string, content: string]> = [
   // lets the app's own background show through instead — safe-area-inset-top
   // paddings on the full-screen surfaces keep content out from under it.
   ['apple-mobile-web-app-status-bar-style', 'black-translucent'],
+  //// Neoffice — the name under the home-screen icon on iOS, which would otherwise read the title of the page
+  //// the person was on (« octobre 2026 | Calendrier ») when they tapped Add to Home Screen (#1592).
+  ['apple-mobile-web-app-title', 'Neoffice'],
 ]
 
 
