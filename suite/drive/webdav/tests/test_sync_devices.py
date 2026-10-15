@@ -19,12 +19,15 @@ from lxml import etree
 
 from suite.drive.api import sync
 from suite.drive.doctype.drive_sync_device.drive_sync_device import TOKEN_PREFIX, hash_token
-from suite.drive.utils import get_user_folder
+from suite.drive.utils import create_drive_file, get_user_folder
+from suite.drive.utils.files import FileManager
+from suite.drive.webdav import propfind, structure
 from suite.drive.webdav.properties import OC_NS
 from suite.drive.webdav.tests.utils import (
     dispatch,
     enable_user_webdav,
     ensure_user_with_password,
+    make_ctx,
     write_file_fixture,
 )
 from suite.drive.webdav.xmlutil import dav
@@ -220,40 +223,41 @@ class TestSyncDevices(IntegrationTestCase):
 
 
 class TestOwncloudProperties(IntegrationTestCase):
-    """What rclone's `nextcloud` vendor and the engines of that family read to tell a rename from a new file."""
+    """What rclone's `nextcloud` vendor and the engines of that family read to tell a rename from a new file.
+
+    The handlers are called directly (as test_propfind and test_movecopy do), nothing is committed, and every test
+    works in a folder of its own: the dispatcher commits whatever it answers, which would leave the fixtures behind.
+    """
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         ensure_user_with_password(OWNER, PASSWORD)
-        enable_user_webdav(OWNER)
-        frappe.db.commit()
-        cls.home = get_user_folder(OWNER).name
+        with cls.set_user(OWNER):
+            cls.home = get_user_folder(OWNER).name
 
     def setUp(self):
-        frappe.db.set_single_value("Drive Disk Settings", "webdav_enabled", 1)
-        frappe.clear_document_cache("Drive Disk Settings", "Drive Disk Settings")
-        frappe.db.commit()
+        self.folder_name = f"OC-{frappe.generate_hash(length=6)}"
+        self.path = f"/dav/Home/{self.folder_name}"
+        manager = FileManager()
+        with self.set_user(OWNER):
+            self.folder = create_drive_file(
+                self.folder_name, self.home, "Folder", lambda f: manager.create_folder(f)
+            )
 
     def tearDown(self):
         frappe.set_user("Administrator")
-        frappe.db.set_single_value("Drive Disk Settings", "webdav_enabled", 0)
-        frappe.clear_document_cache("Drive Disk Settings", "Drive Disk Settings")
-        frappe.db.commit()
         super().tearDown()
 
     def _props(self, path: str) -> etree._Element:
-        from suite.drive.webdav import pathmap
-
-        pathmap.reset_memo()
-        response = dispatch(
+        ctx = make_ctx(
             "PROPFIND",
             path,
-            user=OWNER,
-            password=PASSWORD,
+            OWNER,
             headers={"Depth": "0", "Content-Type": "application/xml"},
             data=PROPFIND_OC,
         )
+        response = propfind.handle(ctx)
         self.assertEqual(response.status_code, 207)
         return etree.fromstring(response.get_data()).find(
             f"{dav('response')}/{dav('propstat')}/{dav('prop')}"
@@ -263,22 +267,24 @@ class TestOwncloudProperties(IntegrationTestCase):
         element = prop.find(f"{{{OC_NS}}}{name}")
         return None if element is None else "".join(element.itertext()).strip()
 
+    def _move(self, source: str, destination: str) -> None:
+        structure.handle_move(make_ctx("MOVE", source, OWNER, headers={"Destination": destination}))
+
     def test_a_file_has_a_stable_identifier_a_size_and_its_sha256(self):
         body = b"synchronised bytes"
         with self.set_user(OWNER):
-            row = write_file_fixture(self.home, "oc-props.txt", body)
+            row = write_file_fixture(self.folder.name, "props.txt", body)
         digest = hashlib.sha256(body).hexdigest()
         frappe.db.set_value("File", row.name, "content_hash", digest, update_modified=False)
-        frappe.db.commit()
 
-        prop = self._props("/dav/Home/oc-props.txt")
+        prop = self._props(f"{self.path}/props.txt")
         self.assertEqual(self._text(prop, "fileid"), row.name)
         self.assertEqual(self._text(prop, "size"), str(len(body)))
         self.assertEqual(self._text(prop, "checksums"), f"SHA256:{digest}")
 
     def test_a_hash_that_is_not_a_sha256_is_not_told_as_one(self):
         with self.set_user(OWNER):
-            row = write_file_fixture(self.home, "oc-md5.txt", b"bytes of a web upload")
+            row = write_file_fixture(self.folder.name, "md5.txt", b"bytes of a web upload")
         frappe.db.set_value(
             "File",
             row.name,
@@ -286,16 +292,26 @@ class TestOwncloudProperties(IntegrationTestCase):
             hashlib.md5(b"bytes of a web upload").hexdigest(),
             update_modified=False,
         )
-        frappe.db.commit()
-        prop = self._props("/dav/Home/oc-md5.txt")
+        prop = self._props(f"{self.path}/md5.txt")
         self.assertEqual(self._text(prop, "fileid"), row.name)
         # asked for, and not there: the property is in the 404 propstat, not in this one
         self.assertIsNone(prop.find(f"{{{OC_NS}}}checksums"))
 
-    def test_the_identifier_follows_a_rename(self):
+    def test_a_folder_has_an_identifier_and_no_checksum(self):
+        prop = self._props(self.path)
+        self.assertEqual(self._text(prop, "fileid"), self.folder.name)
+        self.assertIsNone(prop.find(f"{{{OC_NS}}}checksums"))
+
+    def test_the_identifier_survives_a_rename_and_a_move(self):
+        manager = FileManager()
         with self.set_user(OWNER):
-            row = write_file_fixture(self.home, "oc-before.txt", b"x")
-        before = self._text(self._props("/dav/Home/oc-before.txt"), "fileid")
-        frappe.db.set_value("File", row.name, "file_name", "oc-after.txt", update_modified=False)
-        frappe.db.commit()
-        self.assertEqual(self._text(self._props("/dav/Home/oc-after.txt"), "fileid"), before)
+            row = write_file_fixture(self.folder.name, "before.txt", b"x")
+            create_drive_file("sub", self.folder.name, "Folder", lambda f: manager.create_folder(f))
+        before = self._text(self._props(f"{self.path}/before.txt"), "fileid")
+        self.assertEqual(before, row.name)
+
+        self._move(f"{self.path}/before.txt", f"{self.path}/after.txt")
+        self.assertEqual(self._text(self._props(f"{self.path}/after.txt"), "fileid"), before)
+
+        self._move(f"{self.path}/after.txt", f"{self.path}/sub/moved.txt")
+        self.assertEqual(self._text(self._props(f"{self.path}/sub/moved.txt"), "fileid"), before)
