@@ -1,1 +1,0 @@
-import{b as e}from"./files-D39CR9BQ.js";export{e as translate};
