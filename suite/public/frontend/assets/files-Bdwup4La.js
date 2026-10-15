@@ -1,1 +1,0 @@
-import{z as e}from"./files-CpNm-tkc.js";export{e as openEntity};
