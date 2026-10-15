@@ -80,15 +80,25 @@ const FRAPPE_UI_EDITOR_FILES = new Set([
   'extensions/suggestion/SuggestionList.vue',
   'extensions/toc-node/TocNodeView.vue',
 ])
-const FRAPPE_UI_EDITOR = /[\\/]frappe-ui[\\/]src[\\/]molecules[\\/]editor[\\/](.+)$/
+const FRAPPE_UI_SRC = /[\\/]frappe-ui[\\/]src[\\/](.+)$/
 /** Where the editor of frappe-ui sits under the frontend folder (the registry generator reads it from there). */
 export const FRAPPE_UI_EDITOR_DIR = ['node_modules', 'frappe-ui', 'src', 'molecules', 'editor']
-const isFrappeUiEditorFile = (file) => {
-  const m = FRAPPE_UI_EDITOR.exec(file)
-  return Boolean(m) && FRAPPE_UI_EDITOR_FILES.has(m[1].split('\\').join('/'))
+/**
+ * Other files of the library that are read, path under frappe-ui/src/: the confirmation dialogs say « Cancel » and
+ * « Confirm » when the caller did not (every « Move to Trash » of the Drive has that Cancel button).
+ */
+const FRAPPE_UI_OTHER_FILES = new Set(['utils/dialog.ts'])
+export const FRAPPE_UI_OTHER_PATHS = [['node_modules', 'frappe-ui', 'src', 'utils', 'dialog.ts']]
+const EDITOR_PREFIX = 'molecules/editor/'
+const isFrappeUiFile = (file) => {
+  const m = FRAPPE_UI_SRC.exec(file)
+  if (!m) return false
+  const rel = m[1].split('\\').join('/')
+  if (FRAPPE_UI_OTHER_FILES.has(rel)) return true
+  return rel.startsWith(EDITOR_PREFIX) && FRAPPE_UI_EDITOR_FILES.has(rel.slice(EDITOR_PREFIX.length))
 }
 export const isInScope = (file) =>
-  (SCOPE.test(file) || isFrappeUiEditorFile(file)) && /\.(vue|js|ts)$/.test(file) && !/\.(test|spec)\.|\.d\.ts$/.test(file)
+  (SCOPE.test(file) || isFrappeUiFile(file)) && /\.(vue|js|ts)$/.test(file) && !/\.(test|spec)\.|\.d\.ts$/.test(file)
 
 /** Attributes of a template whose value a person reads. */
 const ATTRS = new Set([
@@ -350,6 +360,32 @@ OVERRIDES.push(
     find: "label: __('Empty'),",
     replace: "label: __('Empty', null, 'Trash'),",
     messages: ['Empty\u0004Trash'],
+  },
+  // ---- frappe-ui's confirmation dialogs (every confirm of the Drive and of Writer)
+  {
+    file: /frappe-ui[\\/]src[\\/]utils[\\/]dialog\.ts$/,
+    find: "args.confirmLabel || 'Confirm'",
+    replace: "args.confirmLabel || __('Confirm')",
+    messages: ['Confirm'],
+  },
+  {
+    file: /frappe-ui[\\/]src[\\/]utils[\\/]dialog\.ts$/,
+    find: "args.cancelLabel || 'Cancel'",
+    replace: "args.cancelLabel || __('Cancel')",
+    all: true,
+    messages: ['Cancel'],
+  },
+  {
+    file: /frappe-ui[\\/]src[\\/]utils[\\/]dialog\.ts$/,
+    find: "args.confirmLabel || 'Submit'",
+    replace: "args.confirmLabel || __('Submit')",
+    messages: ['Submit'],
+  },
+  {
+    file: /frappe-ui[\\/]src[\\/]utils[\\/]dialog\.ts$/,
+    find: "args.confirmLabel ?? 'Delete'",
+    replace: "args.confirmLabel ?? __('Delete')",
+    messages: ['Delete'],
   },
   // ---- frappe-ui's editor (Writer's page, Mail's composer)
   {
@@ -979,6 +1015,10 @@ export function* scopedFiles(frontendDir) {
   yield* walk(path.join(frontendDir, 'src', 'apps'))
   const editor = path.join(frontendDir, ...FRAPPE_UI_EDITOR_DIR)
   if (fs.existsSync(editor)) yield* walk(editor)
+  for (const parts of FRAPPE_UI_OTHER_PATHS) {
+    const file = path.join(frontendDir, ...parts)
+    if (fs.existsSync(file) && isInScope(file)) yield file
+  }
 }
 
 /** The sorted msgids of the scoped apps, with where each is asked for. */

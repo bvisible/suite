@@ -125,6 +125,9 @@ describe("frappe-ui's editor", () => {
     expect(isInScope(`${lib}/molecules/editor/extensions/toc-node/toc-node-extension.ts`)).toBe(false)
     // the components of the library are a decision of their own
     expect(isInScope(`${lib}/components/Dialog/Dialog.vue`)).toBe(false)
+    // the helper of the confirmation dialogs is read: its defaults say « Cancel »
+    expect(isInScope(`${lib}/utils/dialog.ts`)).toBe(true)
+    expect(isInScope(`${lib}/utils/call.ts`)).toBe(false)
     // as pnpm lays them out
     expect(isInScope('/x/node_modules/.pnpm/frappe-ui@1/node_modules/frappe-ui/src/molecules/editor/menu.ts')).toBe(true)
   })

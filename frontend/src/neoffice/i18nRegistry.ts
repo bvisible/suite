@@ -981,6 +981,7 @@ export function neofficeI18nRegistry(): void {
   __('Stroke Style')
   __('Stroke Width')
   __('Style')
+  __('Submit')
   __('Suggestions')
   __('Sum')
   __('Sum: {0}')
