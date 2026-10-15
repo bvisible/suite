@@ -144,8 +144,9 @@ describe("frappe-ui's editor", () => {
     for (const file of scopedFiles(root)) {
       const source = fs.readFileSync(file, 'utf8')
       if (!/\bcreateApp\(/.test(source)) continue
-      const { code } = transformSource(source, file) as { code: string }
-      if (!code.includes('globalProperties.__')) missing.push(path.relative(root, file))
+      // `changed` is what the plugin goes by: a file whose only rewrite is an override must count as changed
+      const { code, changed } = transformSource(source, file) as { code: string; changed: boolean }
+      if (!changed || !code.includes('globalProperties.__')) missing.push(path.relative(root, file))
     }
     expect(missing).toEqual([])
   })

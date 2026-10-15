@@ -917,7 +917,8 @@ export function transformSource(original, filename) {
     start: -1, end: -1, text: '', message, why: 'nested',
   }))
   const all = [...kept, ...synthetic]
-  return { code, messages: all.map((e) => e.message), left, edits: all, changed: kept.length > 0 || overridden.length > 0 }
+  // an override that says no message (a line added around a mount) is a change too: compare the text
+  return { code, messages: all.map((e) => e.message), left, edits: all, changed: code !== original }
 }
 
 /** Every file of the scoped apps under `frontendDir`, and the files of frappe-ui's editor that are read. */
