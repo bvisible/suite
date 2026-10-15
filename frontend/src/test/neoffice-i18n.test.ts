@@ -138,6 +138,18 @@ describe("frappe-ui's editor", () => {
     expect(messages).toEqual(['Bold'])
   })
 
+  it('gives every app a file mounts on its own the __ of the page', () => {
+    // a pop-up made with createApp() does not inherit the page's app: __ in its template would throw at render
+    const missing: string[] = []
+    for (const file of scopedFiles(root)) {
+      const source = fs.readFileSync(file, 'utf8')
+      if (!/\bcreateApp\(/.test(source)) continue
+      const { code } = transformSource(source, file) as { code: string }
+      if (!code.includes('globalProperties.__')) missing.push(path.relative(root, file))
+    }
+    expect(missing).toEqual([])
+  })
+
   it('reads the commands of the real menu lazily, and says the table commands', () => {
     const file = path.join(root, 'node_modules/frappe-ui/src/molecules/editor/menu.ts')
     if (!fs.existsSync(file)) return

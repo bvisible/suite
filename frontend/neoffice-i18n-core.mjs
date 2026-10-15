@@ -62,15 +62,19 @@ const FRAPPE_UI_EDITOR_FILES = new Set([
   'components/image-viewer/ImageViewerControlsBar.vue',
   'components/table-color/tableCellColorController.ts',
   'components/table-size-picker/TableSizePicker.vue',
+  'composables/useFloatingPopup.ts',
   'extensions/code-block/CodeBlockComponent.vue',
   'extensions/iframe/IframeInsertDialog.vue',
   'extensions/iframe/IframeNodeView.vue',
+  'extensions/iframe/iframeInsertDialogController.ts',
   'extensions/iframe/useIframeDialog.ts',
   'extensions/image-group/ImageGroupGridCell.vue',
   'extensions/image-group/ImageGroupNodeView.vue',
   'extensions/image-group/ImageGroupUploadDialog.vue',
   'extensions/image-group/image-group-utils.ts',
+  'extensions/image-group/imageGroupDialogController.ts',
   'extensions/image-group/useImageGroupDialog.ts',
+  'extensions/image-viewer/imageViewerController.ts',
   'extensions/link/LinkEditorPopup.vue',
   'extensions/slash-commands/slash-commands-extension.ts',
   'extensions/suggestion/SuggestionList.vue',
@@ -340,6 +344,32 @@ OVERRIDES.push(
     messages: ['Empty\u0004Trash'],
   },
   // ---- frappe-ui's editor (Writer's page, Mail's composer)
+  {
+    // The pop-ups and dialogs of the editor are apps of their own (createApp), not children of the page's: __ in a
+    // template is a property of the app, and they do not have it (« e.__ is not a function » at render).
+    file: /molecules[\\/]editor[\\/]composables[\\/]useFloatingPopup\.ts$/,
+    find: '  app.mount(floating)\n',
+    replace: "  app.config.globalProperties.__ = (...args: unknown[]) => (window as any).__(...args)\n  app.mount(floating)\n",
+    messages: [],
+  },
+  {
+    file: /molecules[\\/]editor[\\/]extensions[\\/]image-group[\\/]imageGroupDialogController\.ts$/,
+    find: '  app.mount(container)\n',
+    replace: "  app.config.globalProperties.__ = (...args: unknown[]) => (window as any).__(...args)\n  app.mount(container)\n",
+    messages: [],
+  },
+  {
+    file: /molecules[\\/]editor[\\/]extensions[\\/]iframe[\\/]iframeInsertDialogController\.ts$/,
+    find: '  app.mount(container)\n',
+    replace: "  app.config.globalProperties.__ = (...args: unknown[]) => (window as any).__(...args)\n  app.mount(container)\n",
+    messages: [],
+  },
+  {
+    file: /molecules[\\/]editor[\\/]extensions[\\/]image-viewer[\\/]imageViewerController\.ts$/,
+    find: '  app.mount(container)\n',
+    replace: "  app.config.globalProperties.__ = (...args: unknown[]) => (window as any).__(...args)\n  app.mount(container)\n",
+    messages: [],
+  },
   {
     // the commands are built when the module loads, before the translations: the label is read when it is shown
     file: /molecules[\\/]editor[\\/]menu\.ts$/,
