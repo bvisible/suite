@@ -30977,3 +30977,23 @@ msgstr ""
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "This video hasn't yet been uploaded."
 msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Edit Embed"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Embed {0}"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Failed to insert embed. Please check the URL and try again."
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Generic"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Suggestions"
+msgstr ""

@@ -30542,3 +30542,19 @@ msgstr "{0} diapositives"
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "✓ Valid {0} URL"
 msgstr "✓ URL {0} valide"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Edit Embed"
+msgstr "Modifier l'intégration"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Embed {0}"
+msgstr "Intégrer {0}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Failed to insert embed. Please check the URL and try again."
+msgstr "Impossible d'insérer l'intégration. Veuillez vérifier l'URL et réessayer."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Generic"
+msgstr "Générique"

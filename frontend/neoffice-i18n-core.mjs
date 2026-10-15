@@ -93,7 +93,7 @@ export const isInScope = (file) =>
 /** Attributes of a template whose value a person reads. */
 const ATTRS = new Set([
   'label', 'title', 'placeholder', 'description', 'aria-label', 'alt', 'tooltip', 'text', 'message', 'subtitle',
-  'confirm-label', 'cancel-label', 'header', 'hint', 'empty-text', 'no-results-text', 'helper-text',
+  'confirm-label', 'cancel-label', 'header', 'hint', 'empty-text', 'no-results-text', 'helper-text', 'dialog-label',
 ])
 /** Keys of an object whose string value a person reads. */
 const KEYS = new Set([
@@ -466,10 +466,47 @@ OVERRIDES.push(
     messages: ["This video hasn't yet been uploaded.", "This image hasn't yet been uploaded."],
   },
   {
-    file: /molecules[\\/]editor[\\/]components[\\/]table-size-picker[\\/]TableSizePicker\.vue$/,
-    find: 'dialog-label="Insert table"',
-    replace: ':dialog-label="__(\'Insert table\')"',
-    messages: ['Insert table'],
+    // the name a file has when it has none
+    file: /molecules[\\/]editor[\\/]components[\\/]AttachmentNodeView\.vue$/,
+    find: "props.node.attrs.fileName || 'Attachment')",
+    replace: "props.node.attrs.fileName || __('Attachment'))",
+    messages: ['Attachment'],
+  },
+  {
+    // the title of the embed dialog is the result of a function: a verb for the editing, a name for a platform
+    file: /molecules[\\/]editor[\\/]extensions[\\/]iframe[\\/]IframeInsertDialog\.vue$/,
+    find: "  if (isEditing.value) return 'Edit Embed'\n" +
+      "  return platformConfig.value\n" +
+      "    ? `Embed ${platformConfig.value.name}`\n" +
+      "    : 'Insert Embed'",
+    replace: "  if (isEditing.value) return __('Edit Embed')\n" +
+      "  return platformConfig.value\n" +
+      "    ? __('Embed {0}', [platformConfig.value.name])\n" +
+      "    : __('Insert Embed')",
+    messages: ['Edit Embed', 'Embed {0}', 'Insert Embed'],
+  },
+  {
+    // « Valid Generic URL »: the name of the platform when the address is none in particular
+    file: /molecules[\\/]editor[\\/]extensions[\\/]iframe[\\/]useIframeDialog\.ts$/,
+    find: "    if (!isValidUrl.value) return 'Generic'\n" +
+      "    return detectPlatform(processedUrl.value)?.name ?? 'Generic'",
+    replace: "    if (!isValidUrl.value) return __('Generic')\n" +
+      "    return detectPlatform(processedUrl.value)?.name ?? __('Generic')",
+    messages: ['Generic'],
+  },
+  {
+    file: /molecules[\\/]editor[\\/]extensions[\\/]iframe[\\/]useIframeDialog\.ts$/,
+    find: "        'Failed to insert embed. Please check the URL and try again.'\n",
+    replace: "        __('Failed to insert embed. Please check the URL and try again.')\n",
+    messages: ['Failed to insert embed. Please check the URL and try again.'],
+  },
+  {
+    // the text the « / » menu puts in the document before the link pop-up opens: a word of the reader's language, and
+    // the selection that the pop-up reads is as long as that word
+    file: /molecules[\\/]editor[\\/]extensions[\\/]slash-commands[\\/]slash-commands-extension\.ts$/,
+    find: "        .insertContent('Link')\n        .setTextSelection({ from, to: from + 4 })",
+    replace: "        .insertContent(__('Link'))\n        .setTextSelection({ from, to: from + __('Link').length })",
+    messages: ['Link'],
   },
   {
     file: /molecules[\\/]editor[\\/]extensions[\\/]image-group[\\/]useImageGroupDialog\.ts$/,
