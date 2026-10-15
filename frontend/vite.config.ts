@@ -9,6 +9,8 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { neofficeAppLogos } from './neoffice-app-logos'
 // //// Neoffice — frappe-ui's calendar in the reader's language (neoffice-calendar-i18n.ts, maintenance#1321).
 import { neofficeCalendarI18n } from './neoffice-calendar-i18n'
+// //// Neoffice — the text of Sheets, Slides, Writer and the Drive's pages through __() (neoffice-i18n.ts, #1592).
+import { neofficeI18n } from './neoffice-i18n'
 
 // Local frappe-ui work: when the submodule is checked out, public component
 // imports resolve to its source instead of the pinned package, so edits show up
@@ -91,6 +93,8 @@ export default defineConfig(({ mode }) => ({
     neofficeAppLogos(),
     // //// Neoffice — frappe-ui's calendar in the reader's language (neoffice-calendar-i18n.ts).
     neofficeCalendarI18n(),
+    // //// Neoffice — the English-only apps in the reader's language, without touching their files (neoffice-i18n.ts).
+    neofficeI18n(),
     // Noise-suppression worklet lives under suite/public/noise-suppression
     // (see scripts/copy-noise-suppression-assets.mjs + src/shims/...).
     // Do not reintroduce @workadventure/noise-suppression/vite — that path

@@ -26795,3 +26795,3131 @@ msgstr "{0} prend des notes de cette réunion"
 msgctxt "Meet notes"
 msgid "Notes"
 msgstr "Notes en cours"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "\"{0}\" and its full history will be permanently deleted. This can't be undone."
+msgstr "« {0} » et tout son historique seront définitivement supprimés. Cette action est irréversible."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "\"{0}\" will be moved to Trash. You can restore it from there before it's permanently deleted."
+msgstr "« {0} » sera mis à la corbeille. Vous pouvez le restaurer depuis la corbeille avant sa suppression définitive."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "\"{0}\" will be permanently deleted."
+msgstr "« {0} » sera supprimé définitivement."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "(first 6 rows)"
+msgstr "(6 premières lignes)"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "({0} row{1} changed)"
+msgstr "({0} modification{1})"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "A key is currently configured."
+msgstr "Une clé est actuellement configurée."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "A multiple of single spacing, like 1.15 or 1.5."
+msgstr "Un multiple de l'interligne simple, par ex. 1,15 ou 1,5."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "A slide could not be read. Its content is preserved but hidden; avoid saving over it."
+msgstr "Une diapositive n'a pas pu être lue. Son contenu est conservé mais masqué : évitez de l'écraser en enregistrant."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Above"
+msgstr "Au-dessus"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Access"
+msgstr "Accès"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Access Denied"
+msgstr "Accès refusé"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Accessible to all"
+msgstr "Accessible à tous"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Accessible to invited members"
+msgstr "Accessible aux membres invités"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Accessible to organization"
+msgstr "Accessible à l'organisation"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Active cell {0}"
+msgstr "Cellule active {0}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add \"{0}\""
+msgstr "Ajouter « {0} »"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add / edit comment"
+msgstr "Ajouter / modifier un commentaire"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add a comment…"
+msgstr "Ajouter un commentaire…"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add a line above the footer when printing."
+msgstr "Ajouter une ligne au-dessus du pied de page à l'impression."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add a line below the header when printing."
+msgstr "Ajouter une ligne sous l'en-tête à l'impression."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add a new presentation to get started!"
+msgstr "Créez une nouvelle présentation pour commencer !"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add connector"
+msgstr "Ajouter un connecteur"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add email"
+msgstr "Ajouter un e-mail"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add field"
+msgstr "Ajouter un champ"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add item"
+msgstr "Ajouter un élément"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add line"
+msgstr "Ajouter une ligne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add named range"
+msgstr "Ajouter une plage nommée"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add note to {0}"
+msgstr "Ajouter une note à {0}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add oval"
+msgstr "Ajouter un ovale"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add people"
+msgstr "Ajouter des personnes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add people or groups"
+msgstr "Ajouter des personnes ou des groupes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add people..."
+msgstr "Ajouter des personnes..."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add rectangle"
+msgstr "Ajouter un rectangle"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add sheet"
+msgstr "Ajouter une feuille"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add Slide"
+msgstr "Ajouter une diapositive"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add slide below"
+msgstr "Ajouter une diapositive en dessous"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add tab"
+msgstr "Ajouter un onglet"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Add text box"
+msgstr "Ajouter une zone de texte"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Advance"
+msgstr "Passage"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "After delay"
+msgstr "Après un délai"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Aggregate"
+msgstr "Agrégation"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Aggregate slices"
+msgstr "Agréger les secteurs"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "AI Assist"
+msgstr "Assistant IA"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "AI settings"
+msgstr "Paramètres de l'IA"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Align"
+msgstr "Aligner"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Align bottom"
+msgstr "Aligner en bas"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Align center"
+msgstr "Aligner au centre"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Align Horizontal"
+msgstr "Alignement horizontal"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Align left"
+msgstr "Aligner à gauche"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Align middle"
+msgstr "Aligner au milieu"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Align right"
+msgstr "Aligner à droite"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Align top"
+msgstr "Aligner en haut"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Align Vertical"
+msgstr "Alignement vertical"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Alignment"
+msgstr "Alignement"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "All borders"
+msgstr "Toutes les bordures"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "All favourites cleared"
+msgstr "Tous les favoris ont été effacés."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "All items in your Trash will be deleted forever. This is an irreversible process."
+msgstr "Tous les éléments de votre corbeille seront supprimés définitivement. Cette opération est irréversible."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "All slides advance {0}"
+msgstr "Toutes les diapositives passent {0}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "All Tabs"
+msgstr "Tous les onglets"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "All versions"
+msgstr "Toutes les versions"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "All your favourite items will be cleared."
+msgstr "Tous vos favoris seront effacés."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "All your recently viewed files will be cleared."
+msgstr "Tous vos fichiers consultés récemment seront effacés."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Allow, but show a warning"
+msgstr "Autoriser, mais afficher un avertissement"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Already have an account?"
+msgstr "Vous avez déjà un compte ?"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "And"
+msgstr "Et"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Anthropic API key"
+msgstr "Clé API Anthropic"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Applied to {0} cell{1}."
+msgstr "Appliqué à {0} cellule{1}."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Apply crop"
+msgstr "Appliquer le rognage"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Apply to all slides"
+msgstr "Appliquer à toutes les diapositives"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Apply to range: {0}"
+msgstr "Appliquer à la plage : {0}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Are you sure you want to preview?"
+msgstr "Voulez-vous vraiment afficher l'aperçu ?"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Are you sure?"
+msgstr "Êtes-vous certain ?"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Arrange"
+msgstr "Organiser"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Arrow"
+msgstr "Flèche"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Arrows (red/grey/green)"
+msgstr "Flèches (rouge/gris/vert)"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "As typed"
+msgstr "Tel que saisi"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Ask"
+msgstr "Demander"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Ask about {0}… e.g. “sum each column below”"
+msgstr "Posez une question sur {0}… p. ex. « additionner chaque colonne ci-dessous »"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Ask AI"
+msgstr "Demander à l'IA"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Ask AI to work on your selection"
+msgstr "Demandez à l'IA de travailler sur votre sélection"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Ask the owner to share it with you, then reload."
+msgstr "Demandez au propriétaire de le partager avec vous, puis rechargez la page."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Auto (locale)"
+msgstr "Auto (paramètres régionaux)"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Auto-fit height"
+msgstr "Ajuster la hauteur automatiquement"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Auto-fit width"
+msgstr "Ajuster la largeur automatiquement"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Autoplay"
+msgstr "Lecture automatique"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Available offline"
+msgstr "Disponible hors ligne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Average"
+msgstr "Moyenne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Avg: {0}"
+msgstr "Moy. : {0}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Back to Home"
+msgstr "Retour à l'accueil"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Back to home"
+msgstr "Retour à l'accueil"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Back to sheets"
+msgstr "Retour aux feuilles de calcul"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Backend Type"
+msgstr "Type de backend"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Band Color"
+msgstr "Couleur des bandes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Banded Rows"
+msgstr "Lignes alternées"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Bar colour"
+msgstr "Couleur des barres"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Below"
+msgstr "En dessous"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Between"
+msgstr "Entre"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Bold"
+msgstr "Gras"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Bold (Ctrl+B)"
+msgstr "Gras (Ctrl+B)"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Border"
+msgstr "Bordure"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Borders"
+msgstr "Bordures"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Both"
+msgstr "Les deux"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Bottom"
+msgstr "Bas"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Bottom border"
+msgstr "Bordure inférieure"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Bottom left"
+msgstr "En bas à gauche"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Bottom right"
+msgstr "En bas à droite"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Bring forward"
+msgstr "Avancer d'un plan"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Bring to front"
+msgstr "Mettre au premier plan"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Browse"
+msgstr "Parcourir"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Browser storage is full"
+msgstr "Le stockage du navigateur est plein"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Building pivot…"
+msgstr "Création du tableau croisé dynamique…"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Bulleted"
+msgstr "À puces"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Can edit"
+msgstr "Peut modifier"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Can upload"
+msgstr "Peut téléverser"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Can view"
+msgstr "Peut consulter"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Cannot open file"
+msgstr "Impossible d'ouvrir le fichier"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Case"
+msgstr "Casse"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Cell"
+msgstr "Cellule"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Center"
+msgstr "Centre"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Change presentation theme"
+msgstr "Changer le thème de la présentation"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Change slide"
+msgstr "Changer de diapositive"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Change Theme"
+msgstr "Changer de thème"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Changed elsewhere. Reloading discards your unsaved edits."
+msgstr "Modifié ailleurs. Recharger supprimera vos modifications non enregistrées."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Changes that never reached the server were discarded."
+msgstr "Les modifications qui n'ont jamais atteint le serveur ont été abandonnées."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Chart type"
+msgstr "Type de graphique"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Chart…"
+msgstr "Graphique…"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Check your connection and try again."
+msgstr "Vérifiez votre connexion et réessayez."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Checkbox"
+msgstr "Case à cocher"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Choose the default font family for {0}."
+msgstr "Choisissez la famille de police par défaut pour {0}."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Circles (empty → full)"
+msgstr "Cercles (vide → plein)"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Clear cell"
+msgstr "Vider la cellule"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Clear formatting"
+msgstr "Effacer la mise en forme"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Clear shown"
+msgstr "Effacer les éléments affichés"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Clear your Trash"
+msgstr "Vider votre corbeille"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Click here"
+msgstr "Cliquez ici"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Clip"
+msgstr "Découpage"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Colors"
+msgstr "Couleurs"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Colour scale"
+msgstr "Échelle de couleurs"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Column"
+msgstr "Colonne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Column left"
+msgstr "Colonne à gauche"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Column right"
+msgstr "Colonne à droite"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Column {0}"
+msgstr "Colonne {0}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Columns"
+msgstr "Colonnes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Comma"
+msgstr "Virgule"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Commit + move right"
+msgstr "Valider + aller à droite"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Conditional formatting"
+msgstr "Mise en forme conditionnelle"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Conditional format…"
+msgstr "Mise en forme conditionnelle…"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Confirm Password"
+msgstr "Confirmer le mot de passe"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Connector"
+msgstr "Connecteur"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Contains"
+msgstr "Contient"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Copied to clipboard"
+msgstr "Copié dans le presse-papiers"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Copied to your clipboard."
+msgstr "Copié dans votre presse-papiers."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Copy Color"
+msgstr "Copier la couleur"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Corner Radius"
+msgstr "Rayon des coins"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Could not enter fullscreen mode"
+msgstr "Impossible de passer en plein écran"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Could not move this file."
+msgstr "Impossible de déplacer ce fichier."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Could not remove the offline copy"
+msgstr "Impossible de supprimer la copie hors ligne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Could not save the document."
+msgstr "Impossible d'enregistrer le document."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Could not save the offline copy"
+msgstr "Impossible d'enregistrer la copie hors ligne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Could not start saving"
+msgstr "Impossible de démarrer l'enregistrement"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Could not update the theme. Please try again."
+msgstr "Impossible de mettre à jour le thème. Veuillez réessayer."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Couldn't load sheets"
+msgstr "Impossible de charger les feuilles de calcul"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Couldn't open this sheet"
+msgstr "Impossible d'ouvrir cette feuille de calcul"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Count"
+msgstr "Nombre"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Count: {0}"
+msgstr "Nombre : {0}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Create a folder"
+msgstr "Créer un dossier"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Create an account"
+msgstr "Créer un compte"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Create in the current Drive folder"
+msgstr "Créer dans le dossier Drive actuel"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Create one to get started"
+msgstr "Créez-en un pour commencer"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Create one to get started."
+msgstr "Créez-en un pour commencer."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Create pivot"
+msgstr "Créer un tableau croisé"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Create pivot table"
+msgstr "Créer un tableau croisé dynamique"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Create tab"
+msgstr "Créer un onglet"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Create Version"
+msgstr "Créer une version"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Crop"
+msgstr "Rogner"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Crop image"
+msgstr "Rogner l'image"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Currency"
+msgstr "Monnaie"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Current Tab"
+msgstr "Onglet actuel"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Custom colour"
+msgstr "Couleur personnalisée"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Custom format…"
+msgstr "Format personnalisé…"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Custom number format"
+msgstr "Format de nombre personnalisé"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Custom Spacing"
+msgstr "Espacement personnalisé"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Cut"
+msgstr "Couper"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Dashed"
+msgstr "Tirets"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Data bars"
+msgstr "Barres de données"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Data validation"
+msgstr "Validation des données"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Data validation…"
+msgstr "Validation des données…"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Decimal"
+msgstr "Décimal"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Decimal — Indian (1,23,456)"
+msgstr "Décimal — indien (1,23,456)"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Decrease decimal places"
+msgstr "Réduire le nombre de décimales"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Dedent"
+msgstr "Réduire le retrait"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Delay"
+msgstr "Délai"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Delay after video"
+msgstr "Délai après la vidéo"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Delete all"
+msgstr "Tout supprimer"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Delete chart"
+msgstr "Supprimer le graphique"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Delete column"
+msgstr "Supprimer la colonne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Delete element / slide"
+msgstr "Supprimer l'élément / la diapositive"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Delete forever"
+msgstr "Supprimer définitivement"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Delete forever?"
+msgstr "Supprimer définitivement ?"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Delete pivot"
+msgstr "Supprimer le tableau croisé"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Delete presentation"
+msgstr "Supprimer la présentation"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Delete row"
+msgstr "Supprimer la ligne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Delete rows / columns"
+msgstr "Supprimer les lignes / colonnes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Delete rule"
+msgstr "Supprimer la règle"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Deleted"
+msgstr "Supprimés"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Deleted sheets show up here."
+msgstr "Les feuilles de calcul supprimées apparaissent ici."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Deleted {0}."
+msgstr "Supprimé : {0}."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Deselect"
+msgstr "Désélectionner"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Detect"
+msgstr "Détecter"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Detect automatically"
+msgstr "Détecter automatiquement"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Detect fields"
+msgstr "Détecter les champs"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Diamond"
+msgstr "Losange"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Disconnect"
+msgstr "Déconnecter"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Disk"
+msgstr "Disque"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Disk path:"
+msgstr "Chemin du disque :"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Display text"
+msgstr "Texte affiché"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Displaying {0}"
+msgstr "Affichage de {0}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Distribute columns"
+msgstr "Répartir les colonnes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Document actions"
+msgstr "Actions sur le document"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Document editor"
+msgstr "Éditeur de document"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Document imported successfully."
+msgstr "Document importé avec succès."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Document imported, but some content could not be converted."
+msgstr "Document importé, mais certains contenus n'ont pas pu être convertis."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Document settings"
+msgstr "Paramètres du document"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Does not contain"
+msgstr "Ne contient pas"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Done"
+msgstr "Terminé"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Dotted"
+msgstr "Pointillés"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Double arrow"
+msgstr "Flèche double"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Duplicate"
+msgstr "Dupliquer"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Duplicate element / slide"
+msgstr "Dupliquer l'élément / la diapositive"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "e.g. Revenue"
+msgstr "p. ex. Chiffre d'affaires"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Edit cell"
+msgstr "Modifier la cellule"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Edit cell / commit + move down"
+msgstr "Modifier la cellule / valider + descendre"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Edit chart"
+msgstr "Modifier le graphique"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Edit here"
+msgstr "Modifier ici"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Edit history for {0}"
+msgstr "Historique des modifications pour {0}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Edit link"
+msgstr "Modifier le lien"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Edit named range"
+msgstr "Modifier la plage nommée"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Edit pivot"
+msgstr "Modifier le tableau croisé"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Edit pivot table"
+msgstr "Modifier le tableau croisé dynamique"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Edit text of selected element"
+msgstr "Modifier le texte de l'élément sélectionné"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Edited"
+msgstr "Modifié"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Edited {0}"
+msgstr "Modifié {0}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Editing in another tab"
+msgstr "Modification dans un autre onglet"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Editing is disabled until you exit."
+msgstr "La modification est désactivée jusqu'à ce que vous quittiez."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Edits are autosaved continuously — your data is safe. Versions appear here after each save (rapid edits are grouped)."
+msgstr "Les modifications sont enregistrées automatiquement en continu — vos données sont en sécurité. Les versions apparaissent ici après chaque enregistrement (les modifications rapprochées sont regroupées)."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Effect"
+msgstr "Effet"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Elbow"
+msgstr "Coudé"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Elbow connector"
+msgstr "Connecteur coudé"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Enter AWS Key"
+msgstr "Saisir la clé AWS"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Enter AWS Secret"
+msgstr "Saisir la clé secrète AWS"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Enter Endpoint URL"
+msgstr "Saisir l'URL du point de terminaison"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Enter value or formula"
+msgstr "Saisir une valeur ou une formule"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Equal to"
+msgstr "Égal à"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Equals"
+msgstr "Égal à"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Error message (optional)"
+msgstr "Message d'erreur (facultatif)"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Everywhere"
+msgstr "Partout"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Existing"
+msgstr "Existant"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Exit"
+msgstr "Quitter"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Exit crop mode"
+msgstr "Quitter le mode de rognage"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Exit version history"
+msgstr "Quitter l'historique des versions"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Export as CSV"
+msgstr "Exporter en CSV"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Export as PDF"
+msgstr "Exporter en PDF"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Export as XLSX"
+msgstr "Exporter en XLSX"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Export DOCX"
+msgstr "Exporter en DOCX"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Extend selection"
+msgstr "Étendre la sélection"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Fade"
+msgstr "Fondu"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Fade unmatched elements"
+msgstr "Estomper les éléments sans correspondance"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Failed to import DOCX file."
+msgstr "Échec de l'importation du fichier DOCX."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Failed to load the image."
+msgstr "Échec du chargement de l'image."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Failed to update favourite status"
+msgstr "Échec de la mise à jour du favori"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Family"
+msgstr "Famille"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Fill"
+msgstr "Remplissage"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Fill Color"
+msgstr "Couleur de remplissage"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Fill colour"
+msgstr "Couleur de remplissage"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Fill down"
+msgstr "Remplir vers le bas"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Fill right"
+msgstr "Remplir vers la droite"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Filter column"
+msgstr "Filtrer la colonne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Filter columns…"
+msgstr "Filtrer les colonnes…"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Filter mode"
+msgstr "Mode de filtrage"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Find & Replace"
+msgstr "Rechercher et remplacer"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Find & replace"
+msgstr "Rechercher et remplacer"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Find next"
+msgstr "Rechercher le suivant"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "First row is header"
+msgstr "La première ligne est un en-tête"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Fixed"
+msgstr "Fixe"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Flip"
+msgstr "Retourner"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Flip horizontal"
+msgstr "Retourner horizontalement"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Flip vertical"
+msgstr "Retourner verticalement"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Font"
+msgstr "Police"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Font family"
+msgstr "Famille de police"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Font size"
+msgstr "Taille de police"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Footer left"
+msgstr "Pied de page gauche"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Footer right"
+msgstr "Pied de page droit"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Footer separator line"
+msgstr "Ligne de séparation du pied de page"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Format as currency"
+msgstr "Format monétaire"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Format as date"
+msgstr "Format de date"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Format as number"
+msgstr "Format numérique"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Format as percent"
+msgstr "Format pourcentage"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Format as time"
+msgstr "Format d'heure"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Format code"
+msgstr "Code de format"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Format painter"
+msgstr "Reproduire la mise en forme"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Frame"
+msgstr "Cadre"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Frappe Sheets is built for desktop browsers — mobile and tablet support is on the roadmap. Please come back from a laptop or PC."
+msgstr "Sheets est conçu pour les navigateurs de bureau — la prise en charge des mobiles et des tablettes est prévue. Veuillez revenir depuis un ordinateur portable ou un PC."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Freeze cols to here"
+msgstr "Figer les colonnes jusqu'ici"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Freeze rows to here"
+msgstr "Figer les lignes jusqu'ici"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Freeze up to this column"
+msgstr "Figer jusqu'à cette colonne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Freeze up to this row"
+msgstr "Figer jusqu'à cette ligne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "From the start"
+msgstr "Depuis le début"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "General Access"
+msgstr "Accès général"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "General access"
+msgstr "Accès général"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Go"
+msgstr "Aller"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Go Back"
+msgstr "Retour"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Go back to Home"
+msgstr "Retour à l'accueil"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Go Home"
+msgstr "Aller à l'accueil"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Go to folder"
+msgstr "Aller au dossier"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Greater or equal"
+msgstr "Supérieur ou égal à"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Greater than"
+msgstr "Supérieur à"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Greater than or equal"
+msgstr "Supérieur ou égal à"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Grid"
+msgstr "Grille"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Grid view"
+msgstr "Vue en grille"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Grows with the text"
+msgstr "S'agrandit avec le texte"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Header & footer"
+msgstr "En-tête / Pied de page"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Header left"
+msgstr "En-tête gauche"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Header right"
+msgstr "En-tête droit"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Header separator line"
+msgstr "Ligne de séparation de l'en-tête"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Heading"
+msgstr "Titre"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Height"
+msgstr "Hauteur"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Hex color input"
+msgstr "Saisie de la couleur hexadécimale"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Hide column"
+msgstr "Masquer la colonne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Hide row"
+msgstr "Masquer la ligne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "I accept the"
+msgstr "J'accepte les"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Icon set"
+msgstr "Jeu d'icônes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Import / export"
+msgstr "Importer / exporter"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Import CSV"
+msgstr "Importer un CSV"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Import XLSX"
+msgstr "Importer un XLSX"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Increase decimal places"
+msgstr "Augmenter le nombre de décimales"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Indent"
+msgstr "Augmenter le retrait"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Inner borders"
+msgstr "Bordures intérieures"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert chart"
+msgstr "Insérer un graphique"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert chart…"
+msgstr "Insérer un graphique…"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert column left"
+msgstr "Insérer une colonne à gauche"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert column right"
+msgstr "Insérer une colonne à droite"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert columns"
+msgstr "Insérer des colonnes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert hyperlink"
+msgstr "Insérer un lien"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert hyperlink (Ctrl+L)"
+msgstr "Insérer un lien (Ctrl+L)"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert N columns…"
+msgstr "Insérer N colonnes…"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert N rows…"
+msgstr "Insérer N lignes…"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert pivot table…"
+msgstr "Insérer un tableau croisé dynamique…"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert row above"
+msgstr "Insérer une ligne au-dessus"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert row below"
+msgstr "Insérer une ligne en dessous"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert rows"
+msgstr "Insérer des lignes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert rows / columns"
+msgstr "Insérer des lignes / colonnes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Insert slicer"
+msgstr "Insérer un segment"
+
+#: frontend/src/shell/InstallPrompt.vue
+msgid "Install Neoffice"
+msgstr "Installer Neoffice"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Is empty"
+msgstr "Est vide"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Is not empty"
+msgstr "N'est pas vide"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Is there an issue with your configuration?"
+msgstr "Y a-t-il un problème avec votre configuration ?"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "It may have been deleted, or the link is wrong."
+msgstr "Il a peut-être été supprimé, ou le lien est incorrect."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Italic"
+msgstr "Italique"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Italic (Ctrl+I)"
+msgstr "Italique (Ctrl+I)"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Item"
+msgstr "Élément"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Items"
+msgstr "Éléments"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Items are deleted forever after {0} days"
+msgstr "Les éléments sont supprimés définitivement après {0} jours"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Jump to data-region edge"
+msgstr "Aller au bord de la zone de données"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Jump to start / end"
+msgstr "Aller au début / à la fin"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Justify"
+msgstr "Justifier"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Keep"
+msgstr "Conserver"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Keyboard shortcuts"
+msgstr "Raccourcis clavier"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Label colour"
+msgstr "Couleur de l'étiquette"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Labels"
+msgstr "Étiquettes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Large Files:"
+msgstr "Fichiers volumineux :"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Last seven days"
+msgstr "Les sept derniers jours"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Left"
+msgstr "Gauche"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Left border"
+msgstr "Bordure gauche"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Less or equal"
+msgstr "Inférieur ou égal à"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Less than"
+msgstr "Inférieur à"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Less than or equal"
+msgstr "Inférieur ou égal à"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Lets people describe what they want in plain words and have it applied to the grid. The API key is stored encrypted on the server and is never sent back to the browser."
+msgstr "Permet de décrire en termes simples ce que l'on souhaite et de l'appliquer à la grille. La clé API est stockée chiffrée sur le serveur et n'est jamais renvoyée au navigateur."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Letter Spacing"
+msgstr "Espacement des lettres"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Line"
+msgstr "Ligne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Line End"
+msgstr "Fin de la ligne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Line Height"
+msgstr "Hauteur de ligne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Line spacing"
+msgstr "Interligne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Line Start"
+msgstr "Début de la ligne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Line Type"
+msgstr "Type de ligne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Lines"
+msgstr "Lignes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Link name"
+msgstr "Nom du lien"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Link URL"
+msgstr "URL du lien"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "List of items"
+msgstr "Liste d'éléments"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "List Style"
+msgstr "Style de liste"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "List view"
+msgstr "Affichage en liste"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Load more"
+msgstr "Afficher plus"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Lock all"
+msgstr "Tout verrouiller"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Lock or unlock element"
+msgstr "Verrouiller ou déverrouiller l'élément"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Locked document."
+msgstr "Document verrouillé."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Log in"
+msgstr "Se connecter"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Login"
+msgstr "Connexion"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Loop"
+msgstr "Boucle"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Lost internet connection."
+msgstr "Connexion Internet perdue."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Lowercase"
+msgstr "Minuscules"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Make a copy"
+msgstr "Créer une copie"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Mark all as read"
+msgstr "Tout marquer comme lu"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Mark resolved"
+msgstr "Marquer comme résolu"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Max colour"
+msgstr "Couleur max"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Medium"
+msgstr "Moyen"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Merge / unmerge"
+msgstr "Fusionner / séparer"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Merge / unmerge cells"
+msgstr "Fusionner / séparer les cellules"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Merge cells"
+msgstr "Fusionner les cellules"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Mid"
+msgstr "Milieu"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Mid colour"
+msgstr "Couleur du milieu"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Middle"
+msgstr "Centre"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Min colour"
+msgstr "Couleur min"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Mon, 15 Jan 2025"
+msgstr "lun. 15 janv. 2025"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Mono"
+msgstr "Monospace"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "More actions for {0}"
+msgstr "Plus d'actions pour {0}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "more rows at the bottom"
+msgstr "plus de lignes en bas"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Move column left"
+msgstr "Déplacer la colonne vers la gauche"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Move column right"
+msgstr "Déplacer la colonne vers la droite"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Move element"
+msgstr "Déplacer l'élément"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Move element by 10px"
+msgstr "Déplacer l'élément de 10 px"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Move selection"
+msgstr "Déplacer la sélection"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Move to trash"
+msgstr "Mettre à la corbeille"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Move to trash?"
+msgstr "Mettre à la corbeille ?"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Move {0} to Trash"
+msgstr "Mettre {0} à la corbeille"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Moved {0} to Trash."
+msgstr "{0} mis à la corbeille."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Moving \"{0}\""
+msgstr "Déplacement de « {0} »"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Moving to:"
+msgstr "Déplacement vers :"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Moving {0} items"
+msgstr "Déplacement de {0} éléments"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "My sheets"
+msgstr "Mes feuilles de calcul"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Name this version"
+msgstr "Nommer cette version"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Name version"
+msgstr "Nommer la version"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Named ranges"
+msgstr "Plages nommées"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Named ranges…"
+msgstr "Plages nommées…"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Named versions only"
+msgstr "Versions nommées uniquement"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Names must start with a letter or \"_\" and contain only letters, digits, and \"_\". They can't look like cell references or collide with built-in functions."
+msgstr "Les noms doivent commencer par une lettre ou « _ » et ne contenir que des lettres, des chiffres et « _ ». Ils ne peuvent pas ressembler à des références de cellule ni entrer en conflit avec des fonctions intégrées."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Needs internet to open."
+msgstr "Une connexion Internet est requise pour l'ouvrir."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "New comments aren't supported on this doc."
+msgstr "Les nouveaux commentaires ne sont pas pris en charge sur ce document."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "New folder"
+msgstr "Nouveau dossier"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "New images are not saved offline yet."
+msgstr "Les nouvelles images ne sont pas encore enregistrées hors ligne."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "New line in cell"
+msgstr "Nouvelle ligne dans la cellule"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "New Link"
+msgstr "Nouveau lien"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "New name"
+msgstr "Nouveau nom"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "New Presentation"
+msgstr "Nouvelle présentation"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "New Sheet"
+msgstr "Nouvelle feuille de calcul"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "New sheet"
+msgstr "Nouvelle feuille"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "New title"
+msgstr "Nouveau titre"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Next change"
+msgstr "Modification suivante"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Next step"
+msgstr "Étape suivante"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No attachments yet"
+msgstr "Aucune pièce jointe pour l'instant"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No border"
+msgstr "Aucune bordure"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No changes to save"
+msgstr "Aucune modification à enregistrer"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No columns match \"{0}\""
+msgstr "Aucune colonne ne correspond à « {0} »"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No data"
+msgstr "Aucune donnée"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No documents found"
+msgstr "Aucun document trouvé"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No edits recorded for this cell yet."
+msgstr "Aucune modification enregistrée pour cette cellule pour l'instant."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No folders found"
+msgstr "Aucun dossier trouvé"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No matches for \"{0}\""
+msgstr "Aucun résultat pour « {0} »"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No matching fields"
+msgstr "Aucun champ correspondant"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No matching values"
+msgstr "Aucune valeur correspondante"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No named ranges defined yet."
+msgstr "Aucune plage nommée définie pour l'instant."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No named versions yet."
+msgstr "Aucune version nommée pour l'instant."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No notes yet."
+msgstr "Aucune note pour l'instant."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No notifications"
+msgstr "Aucune notification"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No presentations found"
+msgstr "Aucune présentation trouvée"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No presentations yet."
+msgstr "Aucune présentation pour l'instant."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No saved versions yet."
+msgstr "Aucune version enregistrée pour l'instant."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No sheets yet"
+msgstr "Aucune feuille de calcul pour l'instant"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No Storage Used"
+msgstr "Aucun espace de stockage utilisé"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No templates available"
+msgstr "Aucun modèle disponible"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No templates found"
+msgstr "Aucun modèle trouvé"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "No users found"
+msgstr "Aucun utilisateur trouvé"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "None (plot each row)"
+msgstr "Aucun (tracer chaque ligne)"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "None yet."
+msgstr "Aucun pour l'instant."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Not between"
+msgstr "Non compris entre"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Not equal to"
+msgstr "Différent de"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Notes{0} — Shift+F2 to add"
+msgstr "Notes{0} — Shift+F2 pour en ajouter"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Nothing here"
+msgstr "Rien ici"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Nothing shared with you yet"
+msgstr "Rien n'a encore été partagé avec vous"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Number format"
+msgstr "Format de nombre"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Number of columns"
+msgstr "Nombre de colonnes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Number of rows"
+msgstr "Nombre de lignes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Numbered"
+msgstr "Numérotée"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Numeric only"
+msgstr "Nombres uniquement"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Offline"
+msgstr "Hors ligne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Offline copies are turned off on this site"
+msgstr "Les copies hors ligne sont désactivées sur ce site"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Offline copy removed"
+msgstr "Copie hors ligne supprimée"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "On click"
+msgstr "Au clic"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "On loop"
+msgstr "En boucle"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Opacity"
+msgstr "Opacité"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Open on desktop"
+msgstr "Ouvrir sur ordinateur"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Open Sheets menu"
+msgstr "Ouvrir le menu Sheets"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Opens and presents without internet."
+msgstr "Peut être ouverte et présentée sans connexion Internet."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Opens and presents without internet. Videos still need a connection."
+msgstr "Peut être ouverte et présentée sans connexion Internet. Les vidéos nécessitent toujours une connexion."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Optional, only if using a custom endpoint."
+msgstr "Facultatif, uniquement si vous utilisez un point de terminaison personnalisé."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Optional. Some providers only support 's3'."
+msgstr "Facultatif. Certains fournisseurs ne prennent en charge que « s3 »."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Order"
+msgstr "Ordre"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Outdated"
+msgstr "Obsolète"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Outside borders"
+msgstr "Bordures extérieures"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Oval"
+msgstr "Ovale"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Overflow"
+msgstr "Débordement"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Owner (you)"
+msgstr "Propriétaire (vous)"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Page Break"
+msgstr "Saut de page"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Paint Styles"
+msgstr "Styles de mise en forme"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Paragraph"
+msgstr "Paragraphe"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Paragraph Spacing"
+msgstr "Espacement des paragraphes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Paragraph spacing"
+msgstr "Espacement des paragraphes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Paste"
+msgstr "Coller"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Paste formats only"
+msgstr "Coller uniquement la mise en forme"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Paste formulas only"
+msgstr "Coller uniquement les formules"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Paste values only"
+msgstr "Coller uniquement les valeurs"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Pentagon"
+msgstr "Pentagone"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Percent"
+msgstr "Pourcentage"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Percentage"
+msgstr "Pourcentage"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Permanently deleted {0} file{1}."
+msgstr "Suppression définitive de {0} fichier{1}."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Pick a column"
+msgstr "Choisir une colonne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Pick a series to see a preview"
+msgstr "Choisissez une série pour voir un aperçu"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Pick color from screen"
+msgstr "Prélever une couleur à l'écran"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Pivot table options"
+msgstr "Options du tableau croisé dynamique"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Pivot table…"
+msgstr "Tableau croisé dynamique…"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Plain text"
+msgstr "Texte brut"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Playback"
+msgstr "Lecture"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Please ask your site's administrator to set the access key in the Drive disk settings."
+msgstr "Demandez à l'administrateur de votre site de définir la clé d'accès dans les paramètres du disque Drive."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Present"
+msgstr "Présenter"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Present selected presentation"
+msgstr "Présenter la présentation sélectionnée"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Presentation options"
+msgstr "Options de la présentation"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Prev"
+msgstr "Préc."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Preview:"
+msgstr "Aperçu :"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Previewing"
+msgstr "Aperçu en cours"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Previous change"
+msgstr "Modification précédente"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Previous step"
+msgstr "Étape précédente"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Print settings"
+msgstr "Paramètres d'impression"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Protect range"
+msgstr "Protéger la plage"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Protect sheet"
+msgstr "Protéger la feuille"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Quick filter on column"
+msgstr "Filtre rapide sur la colonne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Radius"
+msgstr "Rayon"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Range"
+msgstr "Plage"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Redo"
+msgstr "Rétablir"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Redo (Ctrl+Y)"
+msgstr "Rétablir (Ctrl+Y)"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Refresh data"
+msgstr "Actualiser les données"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Reject the input"
+msgstr "Rejeter la saisie"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Reload"
+msgstr "Recharger"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Reload the page and try again."
+msgstr "Rechargez la page et réessayez."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Remove access"
+msgstr "Retirer l'accès"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Remove copy"
+msgstr "Supprimer la copie"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Remove item"
+msgstr "Retirer l'élément"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Remove link"
+msgstr "Supprimer le lien"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Remove other offline copies to make room."
+msgstr "Supprimez les autres copies hors ligne pour libérer de la place."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Remove protection"
+msgstr "Supprimer la protection"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Remove rule"
+msgstr "Supprimer la règle"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Remove slicer"
+msgstr "Supprimer le segment"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Removed invite"
+msgstr "Invitation retirée"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Rename presentation"
+msgstr "Renommer la présentation"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Rename sheet"
+msgstr "Renommer la feuille"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Rename this version"
+msgstr "Renommer cette version"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Reopen"
+msgstr "Rouvrir"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Repeat last action"
+msgstr "Répéter la dernière action"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Replace"
+msgstr "Remplacer"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Replace URL with its title?"
+msgstr "Remplacer l'URL par son titre ?"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Replace with"
+msgstr "Remplacer par"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Replay"
+msgstr "Rejouer"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Replying to:"
+msgstr "Réponse à :"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Reply…"
+msgstr "Répondre…"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Resend verification code{0}"
+msgstr "Renvoyer le code de vérification{0}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Reset"
+msgstr "Réinitialiser"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Reset crop"
+msgstr "Réinitialiser le rognage"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Reset zoom"
+msgstr "Réinitialiser le zoom"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Resolve"
+msgstr "Résoudre"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Resolved"
+msgstr "Résolu"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Restore this version"
+msgstr "Restaurer cette version"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Restore {0}"
+msgstr "Restaurer {0}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Restored a previous version - {0}"
+msgstr "Version précédente restaurée - {0}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Restored {0}."
+msgstr "{0} restauré."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Restricted"
+msgstr "Restreint"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Retry save"
+msgstr "Réessayer l'enregistrement"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Right"
+msgstr "Droite"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Right border"
+msgstr "Bordure droite"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Root Folder Name"
+msgstr "Nom du dossier racine"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Rotate"
+msgstr "Faire pivoter"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Row"
+msgstr "Ligne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Row above"
+msgstr "Ligne au-dessus"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Row below"
+msgstr "Ligne en dessous"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Rows"
+msgstr "Lignes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Rows sharing the same {0} are grouped and summarised."
+msgstr "Les lignes ayant la même valeur pour {0} sont regroupées et résumées."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Rule type"
+msgstr "Type de règle"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Rules on this sheet"
+msgstr "Règles de cette feuille"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "S3 Settings"
+msgstr "Paramètres S3"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "S3 settings updated successfully"
+msgstr "Paramètres S3 mis à jour avec succès"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Save copy"
+msgstr "Enregistrer une copie"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Save failed. Keep this tab open."
+msgstr "Échec de l'enregistrement. Conservez cet onglet ouvert."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Save offline copy"
+msgstr "Enregistrer une copie hors ligne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Saved"
+msgstr "Enregistré"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Saved document"
+msgstr "Document enregistré"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Saved images are kept."
+msgstr "Les images enregistrées sont conservées."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Saved in this browser. Opens and presents without internet."
+msgstr "Enregistré dans ce navigateur. Peut être ouverte et présentée sans connexion Internet."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Saving offline copy"
+msgstr "Enregistrement de la copie hors ligne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Saving stopped"
+msgstr "Enregistrement interrompu"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Saving…"
+msgstr "Enregistrement…"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Scroll one screen"
+msgstr "Défiler d'un écran"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Search fields…"
+msgstr "Rechercher des champs…"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Search sheets…"
+msgstr "Rechercher des feuilles de calcul…"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Search templates..."
+msgstr "Rechercher des modèles..."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Search through documents..."
+msgstr "Rechercher dans les documents..."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Search…"
+msgstr "Rechercher…"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Select a cell and press"
+msgstr "Sélectionnez une cellule et appuyez sur"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Select a layout"
+msgstr "Sélectionner une mise en page"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Select all elements"
+msgstr "Sélectionner tous les éléments"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Select column"
+msgstr "Sélectionner la colonne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Select data / all"
+msgstr "Sélectionner les données / tout"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Select entire sheet"
+msgstr "Sélectionner la feuille entière"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Select row"
+msgstr "Sélectionner la ligne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Select shown"
+msgstr "Sélectionner ce qui est affiché"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Semicolon"
+msgstr "Point-virgule"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Send backward"
+msgstr "Reculer d'un plan"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Send to back"
+msgstr "Mettre en arrière-plan"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Separator"
+msgstr "Séparateur"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Series"
+msgstr "Séries"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Set Color"
+msgstr "Définir la couleur"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Set the default spacing around paragraphs."
+msgstr "Définissez l'espacement par défaut autour des paragraphes."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Set the font size of the editor (px)."
+msgstr "Définissez la taille de police de l'éditeur (px)."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Set the text to appear in headers and footers when printing."
+msgstr "Définissez le texte qui apparaît dans les en-têtes et pieds de page à l'impression."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Shadow"
+msgstr "Ombre"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Shapes"
+msgstr "Formes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Share this sheet"
+msgstr "Partager cette feuille de calcul"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Share · {0}"
+msgstr "Partager · {0}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Shared ·"
+msgstr "Partagé ·"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Sharing \"{0}\""
+msgstr "Partage de « {0} »"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Sheet name"
+msgstr "Nom de la feuille"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Sheets others share with you show up here."
+msgstr "Les feuilles de calcul que d'autres partagent avec vous apparaissent ici."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Show data labels"
+msgstr "Afficher les étiquettes de données"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Show formulas"
+msgstr "Afficher les formules"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Show grid lines"
+msgstr "Afficher le quadrillage"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Show keyboard shortcuts"
+msgstr "Afficher les raccourcis clavier"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Show legend"
+msgstr "Afficher la légende"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Show page numbers"
+msgstr "Afficher les numéros de page"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Show the “Ask” entry point for everyone on this site."
+msgstr "Afficher le point d'entrée « Demander » à tous les utilisateurs de ce site."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Sign up"
+msgstr "S'inscrire"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Single colour rule"
+msgstr "Règle à couleur unique"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Slide copied to clipboard"
+msgstr "Diapositive copiée dans le presse-papiers"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Slide in"
+msgstr "Glissement"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Slideshow"
+msgstr "Diaporama"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Smart Fill (Ctrl+E)"
+msgstr "Remplissage intelligent (Ctrl+E)"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Smart Fill from examples"
+msgstr "Remplissage intelligent à partir d'exemples"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Smooth curves"
+msgstr "Courbes lissées"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Solid"
+msgstr "Continu"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Something has gone wrong - please contact support."
+msgstr "Une erreur s'est produite. Veuillez contacter le support."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Sort ascending"
+msgstr "Trier par ordre croissant"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Sort descending"
+msgstr "Trier par ordre décroissant"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Source range"
+msgstr "Plage source"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Space"
+msgstr "Espace"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Speed"
+msgstr "Vitesse"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Split cell"
+msgstr "Diviser la cellule"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Split text to columns"
+msgstr "Répartir le texte en colonnes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Stacked"
+msgstr "Empilé"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Start thinking..."
+msgstr "Commencer à réfléchir..."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Starting export..."
+msgstr "Démarrage de l'exportation..."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Stays the width you set"
+msgstr "Conserve la largeur que vous avez définie"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Stop saving"
+msgstr "Arrêter l'enregistrement"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Straight"
+msgstr "Droit"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Strikethrough"
+msgstr "Barré"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Strikethrough (Ctrl+Shift+X)"
+msgstr "Barré (Ctrl+Shift+X)"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Stroke Color"
+msgstr "Couleur du contour"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Stroke Style"
+msgstr "Style du contour"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Stroke Width"
+msgstr "Épaisseur du contour"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Sum"
+msgstr "Somme"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Sum: {0}"
+msgstr "Somme : {0}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Sync files from S3"
+msgstr "Synchroniser les fichiers depuis S3"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Tab"
+msgstr "Onglet"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Tab name"
+msgstr "Nom de l'onglet"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Tab options"
+msgstr "Options de l'onglet"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Table"
+msgstr "Tableau"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Table of Contents"
+msgstr "Table des matières"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Task List"
+msgstr "Liste de tâches"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Templates"
+msgstr "Modèles"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Terms and Policies"
+msgstr "Conditions et politiques"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Text colour"
+msgstr "Couleur du texte"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Text length"
+msgstr "Longueur du texte"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Text wrapping"
+msgstr "Renvoi à la ligne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "The document appears to be empty."
+msgstr "Le document semble être vide."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "There doesn't seem to be anything with \"{0}\"."
+msgstr "Il ne semble rien y avoir pour « {0} »."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "There is already a folder with this name here."
+msgstr "Un dossier portant ce nom existe déjà ici."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "There was an error while clearing recents."
+msgstr "Une erreur est survenue lors du vidage des récents."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "These items"
+msgstr "Ces éléments"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Thick"
+msgstr "Épais"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Thin"
+msgstr "Fin"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "This document"
+msgstr "Ce document"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "This document doesn't exist."
+msgstr "Ce document n'existe pas."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "This document has multiple tabs. Export just the current tab, or all of them?"
+msgstr "Ce document comporte plusieurs onglets. Exporter uniquement l'onglet actuel ou tous les onglets ?"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "This document uses an old schema. Collaborative editing is disabled."
+msgstr "Ce document utilise un ancien format. L'édition collaborative est désactivée."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "This is an automatic snapshot of this document from {0}."
+msgstr "Ceci est un instantané automatique de ce document, daté de {0}."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "This is an embedded Microsoft Office document, powered by Office Online>."
+msgstr "Ceci est un document Microsoft Office intégré, affiché avec Office Online."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "This is an old schema document - you cannot do collaborative editing."
+msgstr "Ce document est dans un ancien format : l'édition collaborative n'est pas possible."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "This is the current version."
+msgstr "Il s'agit de la version actuelle."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "This isn't shown after you submit it."
+msgstr "Ceci n'est pas affiché après l'envoi."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "This preview is generated by an external service (Microsoft), not by Drive. For extra privacy, we'd suggest downloading."
+msgstr "Cet aperçu est généré par un service externe (Microsoft), et non par Drive. Pour plus de confidentialité, nous vous conseillons de le télécharger."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "this sheet doesn't exist"
+msgstr "cette feuille de calcul n'existe pas"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "This value is not allowed"
+msgstr "Cette valeur n'est pas autorisée."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Thousands separator"
+msgstr "Séparateur des milliers"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Tip: set this to"
+msgstr "Astuce : définissez ceci sur"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "to close"
+msgstr "pour fermer"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "to insert"
+msgstr "pour insérer"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "to navigate"
+msgstr "pour naviguer"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Toggle filter"
+msgstr "Afficher/masquer le filtre"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Toggle navigation panel"
+msgstr "Afficher/masquer le panneau de navigation"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Top"
+msgstr "Haut"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Top border"
+msgstr "Bordure supérieure"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Top left"
+msgstr "En haut à gauche"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Top right"
+msgstr "En haut à droite"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Traffic lights"
+msgstr "Feux de circulation"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Try a different name."
+msgstr "Essayez un autre nom."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Try out Drive"
+msgstr "Essayer Drive"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Uh oh!"
+msgstr "Oups !"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Underline"
+msgstr "Souligné"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Underline (Ctrl+U)"
+msgstr "Souligné (Ctrl+U)"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Undo (Ctrl+Z)"
+msgstr "Annuler (Ctrl+Z)"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Unfreeze cols"
+msgstr "Ne plus figer les colonnes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Unfreeze columns"
+msgstr "Ne plus figer les colonnes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Unfreeze rows"
+msgstr "Ne plus figer les lignes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Unhide all columns"
+msgstr "Afficher toutes les colonnes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Unhide all rows"
+msgstr "Afficher toutes les lignes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Unlock"
+msgstr "Déverrouiller"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Unlock all"
+msgstr "Tout déverrouiller"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Unlocked document temporarily."
+msgstr "Document déverrouillé temporairement."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Unprotect sheet"
+msgstr "Supprimer la protection de la feuille"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Unresolve"
+msgstr "Rouvrir"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Untitled Sheet"
+msgstr "Feuille de calcul sans titre"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Update chart"
+msgstr "Mettre à jour le graphique"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Update copy"
+msgstr "Mettre à jour la copie"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Update offline copy"
+msgstr "Mettre à jour la copie hors ligne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Update pivot"
+msgstr "Mettre à jour le tableau croisé dynamique"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Upload file"
+msgstr "Téléverser un fichier"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Upload to the current Drive folder"
+msgstr "Téléverser dans le dossier Drive actuel"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Uppercase"
+msgstr "Majuscules"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Values"
+msgstr "Valeurs"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Values are split into three equal buckets across the range."
+msgstr "Les valeurs sont réparties en trois groupes égaux sur la plage."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Variant"
+msgstr "Variante"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Verification code"
+msgstr "Code de vérification"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Verification code sent to your email"
+msgstr "Code de vérification envoyé à votre adresse e-mail."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Version history"
+msgstr "Historique des versions"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "View anyway"
+msgstr "Afficher quand même"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "View mode"
+msgstr "Mode lecture"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "View only"
+msgstr "Lecture seule"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "We'll give you an update when it's done."
+msgstr "Nous vous informerons dès que ce sera terminé."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "When the value is invalid"
+msgstr "Lorsque la valeur n'est pas valide"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Where to store Drive files, defaults to the root folder."
+msgstr "Emplacement de stockage des fichiers Drive, par défaut le dossier racine."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Whether to store on disk or on an S3 bucket."
+msgstr "Stocker sur disque ou dans un compartiment S3."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Wide"
+msgstr "Large"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Width"
+msgstr "Largeur"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Width Mode"
+msgstr "Mode de largeur"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "will be moved to Trash.<br/><br/> Items in trash are deleted forever after 30 days."
+msgstr "sera mis à la corbeille.<br/><br/> Les éléments de la corbeille sont définitivement supprimés au bout de 30 jours."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "will be restored to {0}."
+msgstr "sera restauré dans {0}."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Wrap"
+msgstr "Renvoi à la ligne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Wrap text"
+msgstr "Renvoyer à la ligne"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "X axis"
+msgstr "Axe X"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "You are back online."
+msgstr "Vous êtes de nouveau en ligne."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "You are viewing the version history of"
+msgstr "Vous consultez l'historique des versions de"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "You do not have access to this."
+msgstr "Vous n'avez pas accès à ceci."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "You do not have permission to access this page."
+msgstr "Vous n'avez pas l'autorisation d'accéder à cette page."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "You don't have access to this sheet"
+msgstr "Vous n'avez pas accès à cette feuille de calcul."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "You don't own any sheets yet"
+msgstr "Vous n'êtes encore propriétaire d'aucune feuille de calcul."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "You have used {0} of your {1} ({2})"
+msgstr "Vous avez utilisé {0} sur vos {1} ({2})"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "You have view access. Ask the owner for edit access to make changes."
+msgstr "Vous avez un accès en lecture seule. Demandez au propriétaire un accès en modification pour pouvoir apporter des changements."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "You're offline"
+msgstr "Vous êtes hors connexion."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Zoom in"
+msgstr "Zoom avant"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Zoom out"
+msgstr "Zoom arrière"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0} items favourited"
+msgstr "{0} éléments ajoutés aux favoris"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0} items unfavourited"
+msgstr "{0} éléments retirés des favoris"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0} more people"
+msgstr "{0} autres personnes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0} more users"
+msgstr "{0} autres utilisateurs"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0} of {1} files saved"
+msgstr "{0} fichiers sur {1} enregistrés"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0} of {1} images not saved"
+msgstr "{0} images sur {1} non enregistrées"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0} will be deleted — you can no longer access it. This is an irreversible action."
+msgstr "{0} sera supprimé — vous n'y aurez plus accès. Cette action est irréversible."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0} will be moved to Trash. Items in trash are deleted forever after 30 days."
+msgstr "{0} sera mis à la corbeille. Les éléments de la corbeille sont définitivement supprimés au bout de 30 jours."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0} will be restored to {1}."
+msgstr "{0} sera restauré dans {1}."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0} — on {1}"
+msgstr "{0} — le {1}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "· {0} saves"
+msgstr "· {0} enregistrements"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "•••••••••• key on file — leave blank to keep"
+msgstr "•••••••••• clé enregistrée — laissez vide pour la conserver"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "in {0}s"
+msgstr "dans {0} s"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "its original location"
+msgstr "son emplacement d'origine"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "new documents"
+msgstr "les nouveaux documents"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "their original locations"
+msgstr "leurs emplacements d'origine"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "this document"
+msgstr "ce document"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "X value"
+msgstr "Valeur X"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "your selection"
+msgstr "votre sélection"

@@ -24,4 +24,19 @@ NeoWrite
 Orange
 Sessions
 {0} sessions
+Administration
+Angle
+Auto
+Blog
+Condition
+Information
+Magic Move
+Markdown
+Max
+Min
+Rectangle
+Serif
+Sheets
+Style
+Triangle
 //// Neoffice — the signing secret and the token life of the Drive's Office editors (the Craft editors). Collabora's server address, the connection test and the master switch went with Collabora (maintenance#1570).
