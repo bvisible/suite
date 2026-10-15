@@ -30324,3 +30324,145 @@ msgstr ""
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "your selection"
 msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+#, python-brace-format
+msgid "\"{0}\" conflicts with a built-in function"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+#, python-brace-format
+msgid "\"{0}\" is a reserved word"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+#, python-brace-format
+msgid "\"{0}\" looks like a cell reference"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+#, python-brace-format
+msgid "{0} · Colour scale"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+#, python-brace-format
+msgid "{0} · Data bars"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+#, python-brace-format
+msgid "{0} · Icon set"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+#, python-brace-format
+msgid "{0} items"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+#, python-brace-format
+msgid "{0}d ago"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+#, python-brace-format
+msgid "{0}h ago"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+#, python-brace-format
+msgid "{0}m ago"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "an item"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+#, python-brace-format
+msgid "Copied into {0} cell{1}"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Could not prepare this download"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Could not save presentation. Please try again."
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Earlier"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Earlier this month"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Earlier this week"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Earlier this year"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Failed to upload"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+#, python-brace-format
+msgid "Filled (no format) {0} cell{1}"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+#, python-brace-format
+msgid "Filled {0} cell{1}"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+#, python-brace-format
+msgid "Filled formats into {0} cell{1}"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "just now"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Name is required"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Name must start with a letter or \"_\" and use only letters, digits and \"_\""
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Older than a year"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Previous 30 days"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Previous 7 days"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Range is required"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Range must look like \"A1\" or \"A1:B5\""
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Title is required"
+msgstr ""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Uploaded"
+msgstr ""

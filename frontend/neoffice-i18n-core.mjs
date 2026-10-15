@@ -46,6 +46,15 @@ const KEYS = new Set([
   'title', 'label', 'message', 'description', 'placeholder', 'text', 'tooltip', 'subtitle', 'hint', 'header',
   'emptyText', 'confirmLabel', 'cancelLabel', 'successMessage', 'errorMessage', 'loadingMessage', 'toastMessage',
 ])
+/**
+ * Functions whose returned literals are only ever shown (checked one by one: a function that returns a name the code
+ * looks up again — recencyBucket in Sheets — must not be here), and the keys of an object whose value is such a function.
+ */
+const DISPLAY_FUNCTIONS = new Set([
+  'formatDate', 'commentTime', '_fillSummary', 'cfRuleLabel', 'dayLabel', 'entityLabel', 'itemString',
+  '_validateName', '_validateRange',
+])
+const RETURNING_KEYS = new Set(['validate', 'success', 'error', 'loading'])
 const SKIP_TAGS = new Set(['script', 'style', 'code', 'pre', 'kbd', 'svg', 'textarea'])
 const TOAST_OBJECTS = new Set(['toast', 'nToast', 'toaster'])
 const TOAST_FUNCTIONS = new Set(['toast', 'raiseToast', 'showToast', 'notify'])
@@ -115,6 +124,32 @@ const OVERRIDES = [
     messages: ['"{0}" and its full history will be permanently deleted. This can\'t be undone.'],
   },
 ]
+
+
+// The names of the groups of a list are the keys of an object, shown as headings: the heading says it through
+// __(group), and the names the code builds are listed here so that the registry (and the catalogue) has them.
+const GROUPS_OF_TIME = ['Today', 'Yesterday', 'Last seven days', 'Earlier this week', 'Earlier this month', 'Earlier this year', 'Earlier', 'Older than a year']
+OVERRIDES.push(
+  {
+    file: /writer[\\/]components[\\/]RoundedListView\.vue$/,
+    find: '        <h2 class="text-sm font-medium text-ink-gray-5">\n          {{ group }}\n',
+    replace: '        <h2 class="text-sm font-medium text-ink-gray-5">\n          {{ __(group) }}\n',
+    messages: GROUPS_OF_TIME,
+  },
+  {
+    file: /drive[\\/]components[\\/]ListView\.vue$/,
+    find: ':key="group.group" :label="group.group"',
+    replace: ':key="group.group" :label="__(group.group)"',
+    messages: GROUPS_OF_TIME,
+  },
+  {
+    // the bucket of a sheet by its date: the names stay what the code looks up, only what the list shows is said
+    file: /sheets[\\/]utils[\\/]recency-groups\.js$/,
+    find: '      group: g,\n      collapsed: collapsedByLabel.get(g) ?? false,\n',
+    replace: '      group: __(g),\n      collapsed: collapsedByLabel.get(__(g)) ?? false,\n',
+    messages: ['Today', 'Previous 7 days', 'Previous 30 days', 'Earlier'],
+  },
+)
 
 const WORDS = /\p{L}{2,}/u
 
@@ -255,7 +290,44 @@ export function expressionEdits(code, offset, mode, filename = 'x.ts', wrapped =
     return edit(s, e, callKeepingSpaces(m.message, collapse(m.message), args), collapse(m.message), why, nested)
   }
 
+  // the string literals a function returns (its expression body, or its return statements, not nested functions')
+  const literalsOf = (e) => {
+    if (ts.isStringLiteral(e) || ts.isNoSubstitutionTemplateLiteral(e) || ts.isTemplateExpression(e)) return [e]
+    if (ts.isParenthesizedExpression(e)) return literalsOf(e.expression)
+    if (ts.isConditionalExpression(e)) return [...literalsOf(e.whenTrue), ...literalsOf(e.whenFalse)]
+    if (ts.isBinaryExpression(e) && ['||', '??'].includes(e.operatorToken.getText(sf))) return [...literalsOf(e.left), ...literalsOf(e.right)]
+    return []
+  }
+  const returnedLiterals = (fn) => {
+    const out = []
+    if (ts.isArrowFunction(fn) && !ts.isBlock(fn.body)) return literalsOf(fn.body)
+    const walk = (n) => {
+      if (n !== fn && (ts.isFunctionLike(n))) return
+      if (ts.isReturnStatement(n) && n.expression) out.push(...literalsOf(n.expression))
+      ts.forEachChild(n, walk)
+    }
+    walk(fn)
+    return out
+  }
+  const isFunctionNode = (n) => n && (ts.isArrowFunction(n) || ts.isFunctionExpression(n))
+  const sayReturned = (fn, why) => {
+    for (const lit of returnedLiterals(fn)) {
+      const e = wrap(lit, why)
+      if (e && !edits.some((x) => x.start <= e.start && e.end <= x.end)) edits.push(e)
+    }
+  }
+
   const visit = (n) => {
+    if (mode === 'script') {
+      if (ts.isFunctionDeclaration(n) && n.name && DISPLAY_FUNCTIONS.has(n.name.text)) sayReturned(n, `returns:${n.name.text}`)
+      else if (ts.isMethodDeclaration(n) && n.name && DISPLAY_FUNCTIONS.has(n.name.getText(sf))) sayReturned(n, 'returns')
+      else if (ts.isVariableDeclaration(n) && ts.isIdentifier(n.name) && DISPLAY_FUNCTIONS.has(n.name.text) && isFunctionNode(n.initializer)) {
+        sayReturned(n.initializer, `returns:${n.name.text}`)
+      } else if (ts.isPropertyAssignment(n) && (ts.isIdentifier(n.name) || ts.isStringLiteral(n.name)) &&
+          RETURNING_KEYS.has(n.name.text) && isFunctionNode(n.initializer)) {
+        sayReturned(n.initializer, `returns:${n.name.text}`)
+      }
+    }
     if (ts.isCallExpression(n)) {
       const callee = n.expression
       if (ts.isIdentifier(callee) && ['__', 't', 'translate'].includes(callee.text)) return // already said

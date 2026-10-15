@@ -29923,3 +29923,131 @@ msgstr "Valeur X"
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "your selection"
 msgstr "votre sélection"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "\"{0}\" conflicts with a built-in function"
+msgstr "\"{0}\" est en conflit avec une fonction intégrée"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "\"{0}\" is a reserved word"
+msgstr "\"{0}\" est un mot réservé"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "\"{0}\" looks like a cell reference"
+msgstr "\"{0}\" ressemble à une référence de cellule"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "an item"
+msgstr "un élément"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Copied into {0} cell{1}"
+msgstr "Copié dans {0} cellule{1}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Could not prepare this download"
+msgstr "Impossible de préparer ce téléchargement"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Could not save presentation. Please try again."
+msgstr "Impossible d'enregistrer la présentation. Veuillez réessayer."
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Earlier"
+msgstr "Plus ancien"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Earlier this month"
+msgstr "Plus tôt ce mois-ci"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Earlier this week"
+msgstr "Plus tôt cette semaine"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Earlier this year"
+msgstr "Plus tôt cette année"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Failed to upload"
+msgstr "Échec du téléversement"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Filled (no format) {0} cell{1}"
+msgstr "Rempli (sans format) {0} cellule{1}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Filled formats into {0} cell{1}"
+msgstr "Formats remplis dans {0} cellule{1}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Filled {0} cell{1}"
+msgstr "Rempli {0} cellule{1}"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "just now"
+msgstr "à l'instant"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Name is required"
+msgstr "Le nom est obligatoire"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Name must start with a letter or \"_\" and use only letters, digits and \"_\""
+msgstr "Le nom doit commencer par une lettre ou \"_\" et ne contenir que des lettres, des chiffres et \"_\""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Older than a year"
+msgstr "Plus d'un an"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Previous 30 days"
+msgstr "30 derniers jours"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Previous 7 days"
+msgstr "7 derniers jours"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Range is required"
+msgstr "La plage est obligatoire"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Range must look like \"A1\" or \"A1:B5\""
+msgstr "La plage doit être de la forme \"A1\" ou \"A1:B5\""
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Title is required"
+msgstr "Le titre est obligatoire"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "Uploaded"
+msgstr "Téléversé"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0} items"
+msgstr "{0} éléments"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0} · Colour scale"
+msgstr "{0} · Échelle de couleurs"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0} · Data bars"
+msgstr "{0} · Barres de données"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0} · Icon set"
+msgstr "{0} · Jeu d'icônes"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0}d ago"
+msgstr "il y a {0} j"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0}h ago"
+msgstr "il y a {0} h"
+
+#: frontend/src/neoffice/i18nRegistry.ts
+msgid "{0}m ago"
+msgstr "il y a {0} min"
