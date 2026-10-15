@@ -124,6 +124,14 @@ Fields, all ours:
 
 At a merge: keep the file whole. Nothing upstream collides with it.
 
+#### `suite/drive/doctype/drive_sync_device/drive_sync_device.json`
+**Entirely ours — a new DocType, no upstream equivalent** (maintenance#1598). A computer paired to keep a folder in
+step with the Drive (Neodesk, rclone first): its owner, its name, the SHA-256 of its token (the token itself is given
+once by `suite/drive/api/sync.py` and never stored), when it was last seen, whether it was revoked. The Drive's WebDAV
+accepts the token as `Authorization: Bearer` (`suite/drive/webdav/auth.py`, marked) and nothing else does. Module
+`Drive`, random names, permissions: `System Manager` only (people go through the whitelisted methods of `sync.py`,
+which check the owner). At a merge: keep the file whole. Nothing upstream collides with it.
+
 #### `suite/drive/wopi/craft_editors.json`
 **Entirely ours — no upstream equivalent.** The list of the Craft editors' browser builds (NeoWrite, NeoSheet,
 NeoSlides, NeoPDF: Neoffice's forks of storytold's Craft apps) that `suite/drive/wopi/craft_install.py` installs

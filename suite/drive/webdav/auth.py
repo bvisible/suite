@@ -1,4 +1,4 @@
-"""HTTP Basic authentication against Frappe credentials.
+"""HTTP Basic authentication against Frappe credentials (and, for a paired computer, its Bearer token).
 
 The Basic pair is either the Frappe username and password, or the user's
 api_key:api_secret — tried in that order of specificity: a key lookup first
@@ -37,6 +37,11 @@ LOCKOUT_KEY_NS = "webdav:"
 
 def authenticate(request: Request) -> str:
     """Return the canonical user for this request's Basic credentials, or raise 401/403."""
+    # //// Neoffice — a computer paired to synchronise a folder (suite.drive.api.sync) holds a token of its own and
+    # //// sends it as `Authorization: Bearer`; upstream knows only Basic. The token opens /dav and nothing else.
+    bearer = _parse_bearer(request.headers.get("Authorization"))
+    if bearer is not None:
+        return _authenticate_device(bearer)
     credentials = _parse_basic(request.headers.get("Authorization"))
     if not credentials:
         # Windows always probes unauthenticated first: challenge without
@@ -128,6 +133,58 @@ def _parse_basic(header: str | None) -> tuple[str, str] | None:
         return None
     user, _, password = decoded.partition(":")
     return user.strip(), password
+
+
+def _parse_bearer(header: str | None) -> str | None:
+    """The token of an `Authorization: Bearer <token>` header; None when the header is something else."""
+    # //// Neoffice — see authenticate()
+    if not header:
+        return None
+    scheme, _, token = header.partition(" ")
+    if scheme.lower() != "bearer":
+        return None
+    return token.strip()
+
+
+def _authenticate_device(token: str) -> str:
+    """The user of a paired computer's token, or 401/403. A token that is unknown, malformed, revoked, or of a
+    disabled account is told as one thing: « Incorrect or revoked token »."""
+    # //// Neoffice — see authenticate()
+    from suite.drive.api.sync import touch_device
+    from suite.drive.doctype.drive_sync_device.drive_sync_device import TOKEN_PREFIX, hash_token
+
+    trackers = _device_trackers()
+    if _locked_out(trackers):
+        raise Forbidden(
+            "Too many failed login attempts. Try again later.",
+            headers={"Retry-After": str(_lock_interval())},
+        )
+    row = None
+    if token.startswith(TOKEN_PREFIX) and len(token) <= 256:
+        row = frappe.db.get_value(
+            "Drive Sync Device",
+            {"token_hash": hash_token(token)},
+            ["name", "user", "revoked"],
+            as_dict=True,
+        )
+    if not row or cint(row.revoked) or not cint(frappe.db.get_value("User", row.user, "enabled")):
+        _record_failure(trackers)
+        raise _challenge("Incorrect or revoked token.")
+
+    for tracker in trackers:
+        tracker.add_success_attempt()
+    touch_device(row.name, getattr(frappe.local, "request_ip", None))
+    return row.user
+
+
+def _device_trackers() -> list[LoginAttemptTracker]:
+    # //// Neoffice — see authenticate(): the user is not known before the token is, so the address is what counts
+    ip = getattr(frappe.local, "request_ip", None) or "unknown"
+    key = f"{LOCKOUT_KEY_NS}token:{ip}"
+    attempts = _max_attempts()
+    if attempts:
+        return [LoginAttemptTracker(key, attempts, _lock_interval())]
+    return [LoginAttemptTracker(key)]
 
 
 def _challenge(message: str) -> AuthRequired:

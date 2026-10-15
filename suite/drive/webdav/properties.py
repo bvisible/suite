@@ -19,6 +19,34 @@ from werkzeug.http import http_date
 
 from suite.drive.webdav.xmlutil import dav, dav_element
 
+# //// Neoffice — the properties a synchronising client reads (owncloud / nextcloud namespace, which rclone's
+# //// `nextcloud` vendor and the clients of that family ask for by name): the stable identifier of a file, so that a
+# //// rename is told from a deletion and a new file, its size, and its checksum when a SHA-256 is known.
+OC_NS = "http://owncloud.org/ns"
+
+
+def oc(name: str) -> str:
+    """Clark notation for an owncloud-namespace name."""
+    return f"{{{OC_NS}}}{name}"
+
+
+def oc_element(name: str, *children: etree._Element, text: str | None = None) -> etree._Element:
+    element = etree.Element(oc(name), nsmap={"oc": OC_NS})
+    if text is not None:
+        element.text = text
+    for child in children:
+        element.append(child)
+    return element
+
+
+def sha256_of(row: frappe._dict) -> str | None:
+    """The row's SHA-256 when it holds one: `content_hash` also holds MD5 (uploads of the framework) and nothing for
+    the uploads of the web site, so a value is a SHA-256 only at 64 hexadecimal characters."""
+    value = (row.get("content_hash") or "").strip().lower()
+    if len(value) == 64 and all(char in "0123456789abcdef" for char in value):
+        return value
+    return None
+
 
 def compute_etag(row: frappe._dict) -> str:
     if row.get("content_hash"):
@@ -70,11 +98,18 @@ def live_properties(
         dav("creationdate"): None,
         dav("quota-used-bytes"): None,
         dav("quota-available-bytes"): None,
+        # //// Neoffice — see OC_NS: the three names a sync client asks for, filled below when the row has them
+        oc("fileid"): None,
+        oc("size"): None,
+        oc("checksums"): None,
     }
 
     if row is not None:
         props[dav("getlastmodified")] = dav_element("getlastmodified", text=rfc1123(row.modified))
         props[dav("creationdate")] = dav_element("creationdate", text=iso8601(row.creation))
+        # //// Neoffice — see OC_NS: the identifier survives a rename and a move (File.name is what MOVE keeps)
+        props[oc("fileid")] = oc_element("fileid", text=str(row.name))
+        props[oc("size")] = oc_element("size", text=str(row.file_size or 0))
 
     if row is not None and not is_collection:
         # folders carry rolled-up subtree sizes; clients misrender them as content-length
@@ -83,6 +118,9 @@ def live_properties(
             "getcontenttype", text=row.mime_type or "application/octet-stream"
         )
         props[dav("getetag")] = dav_element("getetag", text=compute_etag(row))
+        if digest := sha256_of(row):
+            # //// Neoffice — see OC_NS: « ALGORITHM:hex », one per algorithm, space separated
+            props[oc("checksums")] = oc_element("checksums", oc_element("checksum", text=f"SHA256:{digest}"))
 
     if is_collection and quota is not None:
         used, limit = quota

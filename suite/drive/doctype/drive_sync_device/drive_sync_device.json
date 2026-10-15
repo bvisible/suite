@@ -1,0 +1,148 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-10-15 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "device_section",
+  "user",
+  "device_name",
+  "platform",
+  "app",
+  "device_column_break",
+  "token_hint",
+  "token_hash",
+  "activity_section",
+  "last_seen",
+  "last_ip",
+  "activity_column_break",
+  "revoked",
+  "revoked_at"
+ ],
+ "fields": [
+  {
+   "description": "A computer whose Neodesk keeps a folder in step with the Drive. It holds a token of its own, shown once when the computer is paired; revoking the device is what stops it, without touching the account's password or its API keys.",
+   "fieldname": "device_section",
+   "fieldtype": "Section Break",
+   "label": "Device"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "User",
+   "options": "User",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "device_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Device Name",
+   "length": 140,
+   "reqd": 1
+  },
+  {
+   "description": "Operating system and architecture, as the computer reported them.",
+   "fieldname": "platform",
+   "fieldtype": "Data",
+   "label": "Platform",
+   "length": 140
+  },
+  {
+   "description": "The application that paired it, with its version.",
+   "fieldname": "app",
+   "fieldtype": "Data",
+   "label": "Application",
+   "length": 140
+  },
+  {
+   "fieldname": "device_column_break",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "The last characters of the token, to tell two devices apart on a list. The token itself is never stored: only its SHA-256.",
+   "fieldname": "token_hint",
+   "fieldtype": "Data",
+   "label": "Token Ends With",
+   "read_only": 1
+  },
+  {
+   "fieldname": "token_hash",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Token Hash",
+   "no_copy": 1,
+   "read_only": 1,
+   "search_index": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "activity_section",
+   "fieldtype": "Section Break",
+   "label": "Activity"
+  },
+  {
+   "description": "Updated at most once a minute, whatever the number of requests.",
+   "fieldname": "last_seen",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Last Seen",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_ip",
+   "fieldtype": "Data",
+   "label": "Last IP Address",
+   "read_only": 1
+  },
+  {
+   "fieldname": "activity_column_break",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "A revoked device is refused by the Drive's WebDAV at once. The row stays, as a record of what had access.",
+   "fieldname": "revoked",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Revoked"
+  },
+  {
+   "fieldname": "revoked_at",
+   "fieldtype": "Datetime",
+   "label": "Revoked At",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-15 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Drive",
+ "name": "Drive Sync Device",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}
