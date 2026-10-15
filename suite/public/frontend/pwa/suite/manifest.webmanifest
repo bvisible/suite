@@ -1,8 +1,8 @@
 {
   "id": "/mail",
-  "name": "Frappe Suite",
-  "short_name": "Frappe Suite",
-  "description": "Mail, calendar and more, powered by Frappe",
+  "name": "Neoffice",
+  "short_name": "Neoffice",
+  "description": "Mail, calendar, drive, meetings and documents, by Neoffice",
   "display": "standalone",
   "start_url": "/suite/start",
   "scope": "/",
