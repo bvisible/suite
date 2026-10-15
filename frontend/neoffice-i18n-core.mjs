@@ -308,6 +308,13 @@ OVERRIDES.push(
     messages: ['1 item', '{0} items', 'empty', '1 slide', '{0} slides'],
   },
   {
+    // « 1 diapositive » and « 3 éléments » do not fit the 8% that « 1 slide » and « 3 items » did
+    file: /drive[\\/]data[\\/]listColumns\.ts$/,
+    find: "route.name === 'drive-Attachments' ? '25%' : '8%',",
+    replace: "route.name === 'drive-Attachments' ? '25%' : '11%',",
+    messages: [],
+  },
+  {
     file: /drive[\\/]components[\\/]GridItem\.vue$/,
     find: "  if (!props.file.child_count) return 'empty'\n" +
       "  return props.file.child_count + ' item' + (props.file.child_count === 1 ? '' : 's')",
