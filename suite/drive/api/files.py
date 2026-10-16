@@ -128,7 +128,8 @@ def upload_file(
         temp_path.unlink(missing_ok=True)
         raise
 
-    file_name = free_file_name(file.filename, parent)
+    # //// Neoffice — a plain read: this request committed once it held the folder's names (hold_folder_names)
+    file_name = free_file_name(file.filename, parent, locking=False)
 
     mime_type = mimemapper.get_mime_type(str(temp_path), native_first=False)
     file_type = get_file_type(mime_type)
@@ -268,7 +269,7 @@ def ensure_path(fullpath, parent=None):
             # //// this loop made stay anyway), and every plain read that follows, of that folder's own row among others
             # //// (its path on the disk), must see it.
             hold_folder_names(current_parent, commit=True)
-            made = taken_in_folder(current_parent, folder)
+            made = taken_in_folder(current_parent, folder, locking=False)
             if made is not None and made.is_folder:
                 current_parent = made.name
                 continue

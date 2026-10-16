@@ -46,6 +46,8 @@ from suite.drive.utils import (
     STATUS_TRASHED,
     create_drive_file,
     get_user_folder,
+    # //// Neoffice — see upload_request
+    hold_folder_names,
 )
 from suite.drive.utils.files import FileManager, get_s3_url
 from suite.tests.utils import ensure_user
@@ -142,7 +144,15 @@ class TestDriveFilesAPI(IntegrationTestCase):
         }
         frappe.form_dict.update(values)
         try:
-            yield
+            # //// Neoffice — an upload commits its request's transaction once it holds the folder's names
+            # //// (suite/drive/utils, hold_folder_names; its own tests: drive/tests/test_folder_names.py). Here that
+            # //// transaction is the test class's: a commit kept what the tests before it made, and the next run of
+            # //// test_owner_can_list_attachment found an attachment of the last one. The names are held, not committed.
+            with patch(
+                "suite.drive.api.files.hold_folder_names",
+                new=lambda folder, commit=False: hold_folder_names(folder, commit=False),
+            ):
+                yield
         finally:
             for key in values:
                 frappe.form_dict.pop(key, None)

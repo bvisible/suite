@@ -64,7 +64,7 @@ def handle_mkcol(ctx: DavContext) -> Response:
     # //// (maintenance#1598). With the commit (nothing is written yet but the bookkeeping of the authentication): the
     # //// read of a sibling that follows must see one a concurrent request has just committed.
     hold_folder_names(parent.name, commit=True)
-    if (taken := taken_in_folder(parent.name, name)) is not None:
+    if (taken := taken_in_folder(parent.name, name, locking=False)) is not None:
         # as above: an unreadable sibling looks absent, not "already here"
         if not user_has_permission(taken.name, "read"):
             raise NotFoundError("Resource not found.")

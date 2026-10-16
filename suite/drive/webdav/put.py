@@ -166,7 +166,7 @@ def _create(ctx: DavContext, resolved, scratch: Path, size: int, sha256: str) ->
     # //// storage lock, which the commit would release.
     hold_folder_names(parent.name, commit=True)
     acquire_owner_storage_lock(ctx.user)
-    current = taken_in_folder(parent.name, name)
+    current = taken_in_folder(parent.name, name, locking=False)
     if current is not None:
         # the gates of handle(), for the row it could not see: unreadable looks absent
         if not user_has_permission(current.name, "read"):

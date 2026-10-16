@@ -107,6 +107,8 @@ class TestFolderNamesAreGivenOutOneAtATime(IntegrationTestCase):
             url = "/" + str(relative)
         now = frappe.utils.now()
         with another_connection() as other:
+            # another request does not wait long here: a wait would be a lock this test's request keeps
+            other.sql("SET SESSION innodb_lock_wait_timeout = 5")
             other.sql(
                 """INSERT INTO `tabFile` (`name`, `creation`, `modified`, `owner`, `modified_by`, `file_name`,
                 `folder`, `file_url`, `is_private`, `is_folder`, `file_size`, `file_type`, `mime_type`, `status`,
@@ -189,6 +191,18 @@ class TestFolderNamesAreGivenOutOneAtATime(IntegrationTestCase):
         self.assertTrue(uploaded.file_url.endswith("/Photos/b.txt"), uploaded.file_url)
         with self.manager.get_file(uploaded) as stored:
             self.assertEqual(stored.read(), b"second")
+
+    def test_an_upload_keeps_no_lock_on_the_other_names_of_its_folder(self):
+        # Once it holds the folder's names and has committed, an upload reads them plainly. A locking read kept the range
+        # of names it looked at locked until the request's end, and another request writing in that folder waited on it:
+        # two uploads into one new folder at once waited on each other until a timeout.
+        with self.set_user(OWNER), self.upload_request(b"mine", "a.txt"):
+            upload_file(total_file_size=4, parent=self.folder.name)
+
+        # this request is still open: another one writes a name of the same folder at once
+        other = self.commit_elsewhere("a (2).txt", b"other")
+
+        self.assertEqual(self.active("a (2).txt"), [other])
 
     def test_a_folder_made_twice_at_once_is_refused_the_second_time(self):
         made = self.commit_elsewhere("Plans", is_folder=True)

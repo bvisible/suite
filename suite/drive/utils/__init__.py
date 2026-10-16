@@ -758,7 +758,9 @@ def get_new_file_name(file_name: str, parent_name: str, type: str = False, entit
 # //// taken before the request that held the lock last committed its row. Two ways past it:
 # ////   - the request owns its transaction (the upload endpoint, a WebDAV PUT or MKCOL, before they write): it commits once
 # ////     it holds the lock (`commit=True`), and every read from then on, plain ones included, sees the rows of the
-# ////     requests that held it before;
+# ////     requests that held it before; its lookups are plain reads (`locking=False`): a locking one would keep the row
+# ////     it found locked while the request waits for another folder's names, which the request holding those may need
+# ////     to update (a folder's size): two uploads into one new folder at once waited on each other until a timeout;
 # ////   - it may be inside someone else's transaction (create_folder, which other apps call from their own writes, and
 # ////     which must never commit it): the name is looked for by a LOCKING read, which sees past the snapshot. Through the
 # ////     index `drive_folder_file_name` (drive/patches/folder_file_name_index.py): without it a locking read would lock
@@ -793,7 +795,8 @@ def hold_folder_names(folder: str | None, commit: bool = False) -> None:
     if key in held:
         return
     lock = frappe.cache.lock(key, timeout=300)
-    if not lock.acquire(blocking=True, blocking_timeout=30):
+    # //// Neoffice — a minute, not 30 s: the request that holds the names may be moving a large file into storage
+    if not lock.acquire(blocking=True, blocking_timeout=60):
         frappe.throw(frappe._("This folder is being updated; try again"))
     if commit:
         frappe.db.commit()
@@ -811,9 +814,12 @@ def hold_folder_names(folder: str | None, commit: bool = False) -> None:
     frappe.db.after_rollback.add(release)
 
 
-def taken_in_folder(folder: str, file_name: str) -> frappe._dict | None:
-    """The Active entry of `folder` named exactly `file_name`, as committed right now (hold_folder_names first)."""
-    lock = " FOR UPDATE" if _folder_name_index_ready() else ""
+# //// Neoffice — added (maintenance#1598, see hold_folder_names); `locking`: a plain read for a request that committed
+# //// once it held the names, which a locking one would keep locked until its end
+def taken_in_folder(folder: str, file_name: str, locking: bool = True) -> frappe._dict | None:
+    """The Active entry of `folder` named exactly `file_name`, as committed right now (hold_folder_names first). `locking`
+    for a request that did not commit once it held the folder's names (create_folder): its snapshot may be older."""
+    lock = " FOR UPDATE" if locking and _folder_name_index_ready() else ""
     rows = frappe.db.sql(
         "SELECT `name`, `file_name`, `is_folder`, `owner`, `folder`, `file_size` FROM `tabFile`"
         " WHERE `folder` = %s AND `file_name` = %s AND `status` = %s" + lock,
@@ -824,10 +830,11 @@ def taken_in_folder(folder: str, file_name: str) -> frappe._dict | None:
     return next((row for row in rows if row.file_name == file_name), None)
 
 
-def free_file_name(file_name: str, folder: str) -> str:
+# //// Neoffice — added (maintenance#1598, see hold_folder_names); `locking` as for taken_in_folder
+def free_file_name(file_name: str, folder: str, locking: bool = True) -> str:
     """The name a new entry of `folder` gets: `file_name`, else `title (n).ext` as get_new_file_name numbers it, the
-    first one that is free (hold_folder_names first)."""
-    if taken_in_folder(folder, file_name) is None:
+    first one that is free (hold_folder_names first; `locking` as for taken_in_folder)."""
+    if taken_in_folder(folder, file_name, locking) is None:
         return file_name
     title, ext = os.path.splitext(file_name)
     alike = frappe.get_all(
@@ -838,7 +845,8 @@ def free_file_name(file_name: str, folder: str) -> str:
     number = max(1, len(alike))
     for _ in range(10_000):
         candidate = f"{title} ({number}){ext}"
-        if taken_in_folder(folder, candidate) is None:
+        # //// Neoffice — read as the first name was (`locking`)
+        if taken_in_folder(folder, candidate, locking) is None:
             return candidate
         number += 1
     frappe.throw(f"No free name for {file_name} in this folder.", frappe.ValidationError)
