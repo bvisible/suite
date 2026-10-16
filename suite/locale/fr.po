@@ -30950,3 +30950,13 @@ msgstr "Sans pièces jointes"
 #: frontend/src/neoffice/i18nRegistry.ts
 msgid "You will be disconnected from the meeting."
 msgstr "Vous serez déconnecté de la réunion."
+
+#: frontend/src/apps/drive/components/Settings/StorageSettings.vue:89
+#: suite/public/frontend/assets/DriveLayout-DMHGUfgU.js:1
+msgid "You have used {0}."
+msgstr "Vous avez utilisé {0} d'espace de stockage."
+
+#: frontend/src/apps/drive/components/Settings/StorageSettings.vue:92
+#: suite/public/frontend/assets/DriveLayout-DMHGUfgU.js:1
+msgid "You have used {0}. The Drive's disk: {1} used of {2}, {3} free."
+msgstr "Vous avez utilisé {0} d'espace de stockage. Le disque du Drive : {1} utilisés sur {2}, {3} libres."
