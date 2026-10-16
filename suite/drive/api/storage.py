@@ -1,6 +1,10 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
+# //// Neoffice — the disk the Drive writes to (drive_disk)
+import shutil
+
 import frappe
 from frappe import _
 from pypika import functions as fn
@@ -79,7 +83,25 @@ def storage_breakdown():
 
 @frappe.whitelist()
 def storage_bar_data():
-    return get_storage_usage()
+    usage = get_storage_usage()
+    # //// Neoffice — the volume the Drive writes its files to: a bar without a quota shows it (it showed « / 5 GB », a
+    # //// limit no server has, Jérémy 16.10.2026; maintenance#1598)
+    usage["disk"] = drive_disk()
+    return usage
+
+
+# //// Neoffice — added (no upstream equivalent), see storage_bar_data
+def drive_disk() -> dict | None:
+    """The volume the Drive's files are written to (the site's private files, an additional volume on our servers): its
+    size, what is used of it and what is free, in bytes. None when the Drive keeps its files elsewhere (S3), or when the
+    volume cannot be read."""
+    if frappe.db.get_single_value("Drive Disk Settings", "enabled"):
+        return None
+    try:
+        usage = shutil.disk_usage(frappe.get_site_path("private", "files"))
+    except OSError:
+        return None
+    return {"total": usage.total, "used": usage.used, "free": usage.free}
 
 
 def get_storage_usage(user: str | None = None):

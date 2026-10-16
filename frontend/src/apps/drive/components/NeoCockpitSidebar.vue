@@ -33,6 +33,7 @@ import emitter from '@/apps/drive/emitter'
 import { useRootStore } from '@/stores/root'
 //// Neoffice — rootInfo too: the native Sidebar fetched it, and the breadcrumbs wait for it (data/breadcrumbs.ts)
 import { rootInfo, storageBar } from '@/apps/drive/resources/files'
+import { storageGauge } from '@/apps/drive/utils/storageGauge'
 import { notifCount } from '@/apps/drive/resources/permissions'
 import { base2BlockSize, formatSize } from '@/apps/drive/utils/format'
 
@@ -111,12 +112,16 @@ const contextNav = computed(() => {
 
 const contextFooter = computed(() => {
   if (!storageBar.data) return null
-  const limit = storageBar.data.limit || 5368709120
-  const used = storageBar.data.total_size || 0
+  //// Neoffice — a quota, or the volume the Drive writes to, or the person's use alone (utils/storageGauge.js): the
+  //// bar no longer says « / 5 GB » where there is no quota (maintenance#1598)
+  const gauge = storageGauge(storageBar.data)
   return {
     label: __('Storage'),
-    sub: formatSize(used) + ' / ' + base2BlockSize(limit),
-    percent: Math.min(100, (100 * used) / limit),
+    //// Neoffice — the quota or the volume after the person's use, and the use alone without either
+    sub: gauge.limit
+      ? formatSize(gauge.used) + ' / ' + (gauge.volume ? formatSize(gauge.limit) : base2BlockSize(gauge.limit))
+      : formatSize(gauge.used),
+    percent: gauge.percent,
     onClick: () => emitter.emit('showSettings', 'statistics'),
   }
 })
