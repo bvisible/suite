@@ -1,6 +1,7 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
 import json
 from collections import Counter
 
@@ -231,10 +232,25 @@ def _get_general_files(names):
     return set(k[0] for k in query.run())
 
 
+# //// Neoffice — the files a computer's system or office suite writes beside the person's (the Finder's `.DS_Store` and
+# //// its AppleDouble `._<name>` that hold a file's tags and attributes, Windows' `Thumbs.db` and `desktop.ini`, the
+# //// lock files of Office `~$<name>` and LibreOffice `.~lock.<name>#`). A folder of the Drive mounted on a Mac by
+# //// Neodesk « à la demande » receives them as any network volume does, and the Mac needs them there; the web pages
+# //// do not show them. They stay in the Drive and in its WebDAV (maintenance#1598).
+SYSTEM_FILE_NAMES = (".DS_Store", "Thumbs.db", "ehthumbs.db", "desktop.ini", "Icon\r")
+# the beginnings of names, escaped below for LIKE (`_` and `%` are its wildcards, `\` its escape)
+SYSTEM_FILE_PREFIXES = ("._", "~$", ".~lock.")
+
+
 def _get_basic_query(search):
     query = frappe.qb.from_(DriveFile).where(DriveFile.status == STATUS_ACTIVE)
     if search:
         query = query.where(DriveFile.file_name.like(f"%{search}%"))
+    # //// Neoffice — see SYSTEM_FILE_NAMES
+    query = query.where(DriveFile.file_name.notin(SYSTEM_FILE_NAMES))
+    for prefix in SYSTEM_FILE_PREFIXES:
+        literal = prefix.replace("\\", "\\\\").replace("_", "\\_").replace("%", "\\%")
+        query = query.where(DriveFile.file_name.not_like(f"{literal}%"))
     return query
 
 

@@ -1,6 +1,7 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
 import frappe
 from frappe.tests import IntegrationTestCase
 
@@ -152,3 +153,48 @@ class TestDriveListPagination(IntegrationTestCase):
 
     def tearDown(self):
         frappe.flags.mute_drive_activity_log = False
+
+
+# //// Neoffice — the files a computer writes beside the person's are not listed (suite/drive/api/list.py,
+# //// SYSTEM_FILE_NAMES; maintenance#1598): a Drive folder mounted on a Mac receives the Finder's own.
+class TestDriveListLeavesOutSystemFiles(IntegrationTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        ensure_user(OWNER)
+        with cls.set_user(OWNER):
+            cls.home = get_user_folder(OWNER).name
+
+    def setUp(self):
+        frappe.flags.mute_drive_activity_log = True
+        with self.set_user(OWNER):
+            manager = FileManager()
+            self.folder = create_drive_file(
+                f"system-files-{frappe.generate_hash(length=6)}",
+                self.home,
+                "Folder",
+                lambda file: manager.create_folder(file),
+            )
+
+    def test_the_files_a_computer_writes_beside_the_person_s_are_not_listed(self):
+        system = [
+            "._report.docx",
+            "._",
+            ".DS_Store",
+            "~$report.docx",
+            ".~lock.report.odt#",
+            "Thumbs.db",
+            "desktop.ini",
+        ]
+        # what looks alike and is the person's: a dot file, an underscore after a dot further on, « _ » itself
+        kept = [".env", ".backup", "a._b.txt", "report_~$.docx", "x.DS_Store", "_notes.txt"]
+        with self.set_user(OWNER):
+            for name in system + kept:
+                create_drive_file(
+                    name, self.folder.name, "Text", f"{self.folder.file_url}{name}", "text/plain", 1
+                )
+            listed = {row["file_name"] for row in files(entity_name=self.folder.name)}
+            searched = {row["file_name"] for row in files(entity_name=self.folder.name, search="report")}
+
+        self.assertEqual(listed, set(kept))
+        self.assertEqual(searched, {"report_~$.docx"})
