@@ -6,6 +6,12 @@ import { blurInput, inputOf } from './blurField'
 const input = () => ({ tagName: 'INPUT', blur: vi.fn() }) as unknown as HTMLInputElement
 
 describe('blurInput', () => {
+	it('blurs the `inputElement` that frappe-ui\'s TextInput exposes now, which is what Drive\'s search field is', () => {
+		const field = input()
+		blurInput({ inputElement: field })
+		expect(field.blur).toHaveBeenCalledOnce()
+	})
+
 	it('blurs the element the ref still exposes as `el`', () => {
 		const field = input()
 		blurInput({ el: field })
@@ -31,5 +37,7 @@ describe('blurInput', () => {
 		expect(() => blurInput(null)).not.toThrow()
 		expect(() => blurInput({})).not.toThrow()
 		expect(inputOf({ $el: { tagName: 'DIV', querySelector: () => null } as unknown as HTMLElement })).toBeNull()
+		// a component with several root nodes: its root is a text node, which has no querySelector
+		expect(inputOf({ $el: { nodeType: 3 } as unknown as Node })).toBeNull()
 	})
 })
