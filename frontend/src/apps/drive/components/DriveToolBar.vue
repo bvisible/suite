@@ -102,6 +102,8 @@ import {
   onWatcherCleanup,
 } from 'vue'
 import { getIconUrl } from '@/apps/drive/utils/files'
+//// Neoffice — the search field found again without `el` (maintenance#1623)
+import { blurInput } from '@/apps/drive/utils/blurField'
 import { view, shareView } from '@/apps/drive/data/prefs'
 import { onKeyDown } from '@vueuse/core'
 import SortControl from '@/components/SortControl.vue'
@@ -175,7 +177,9 @@ function toggleTypeFilter(filter) {
 }
 
 onKeyDown('Escape', () => {
-  searchInput.value.el.blur()
+  //// Neoffice — `searchInput.value.el` is gone with the frappe-ui TextInput: Escape threw on every press and the line
+  //// below never ran, so the search was not cleared (maintenance#1623).
+  blurInput(searchInput.value)
   search.value = ''
 })
 
