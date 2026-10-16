@@ -1,5 +1,5 @@
 # //// Neoffice — added file (no upstream equivalent): the names of a folder are given out one request at a time
-# //// (suite/drive/utils, lock_folder_names; maintenance#1598). Each test plays the request that came second: the
+# //// (suite/drive/utils, hold_folder_names; maintenance#1598). Each test plays the request that came second: the
 # //// first one commits its entry from another connection while this test's transaction is open, after its snapshot
 # //// was taken, as a request finishes while another one runs. A plain read cannot see that entry, a locking read
 # //// does. Before, the second request took the same name, and the two rows shared one blob (or one directory):

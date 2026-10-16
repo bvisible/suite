@@ -39,7 +39,7 @@ from suite.drive.utils import (
     apply_file_size_delta,
     create_drive_file,
     get_file_type,
-    lock_folder_names,
+    hold_folder_names,
     taken_in_folder,
 )
 from suite.drive.utils.files import FileManager, get_s3_key, get_s3_url, storage_key, stored_on_disk
@@ -158,12 +158,14 @@ def _create(ctx: DavContext, resolved, scratch: Path, size: int, sha256: str) ->
     pathmap.validate_dav_name(name, parent)
     _run_upload_validators(scratch, name, parent.name)
 
+    # //// Neoffice — looked for again while this request holds the folder's names (suite/drive/utils, hold_folder_names):
+    # //// a PUT of this same new file may have committed while this one spooled its body (a client's retry while the
+    # //// first try still ran, two computers saving at once). It is overwritten, as a PUT does, instead of getting a
+    # //// second row that shares its blob (maintenance#1598). With the commit, so that the reads of that row which
+    # //// follow see it: this request has written nothing yet but the bookkeeping of its authentication; and before the
+    # //// storage lock, which the commit would release.
+    hold_folder_names(parent.name, commit=True)
     acquire_owner_storage_lock(ctx.user)
-    # //// Neoffice — looked for again under the folder's lock (suite/drive/utils, lock_folder_names): a PUT of this same
-    # //// new file may have committed while this one spooled its body (a client's retry while the first try still ran,
-    # //// two computers saving at once). It is overwritten, as a PUT does, instead of getting a second row that shares
-    # //// its blob (maintenance#1598).
-    lock_folder_names(parent.name)
     current = taken_in_folder(parent.name, name)
     if current is not None:
         # the gates of handle(), for the row it could not see: unreadable looks absent

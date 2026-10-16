@@ -32,7 +32,7 @@ from suite.drive.utils import (
     get_file_type,
     get_new_file_name,
     get_user_folder,
-    lock_folder_names,
+    hold_folder_names,
     taken_in_folder,
     update_file_size,
     validate_filename,
@@ -115,6 +115,12 @@ def upload_file(
     # //// would have put an MD5 there): the SHA-256 is taken here, from the assembled file, before it is moved.
     with temp_path.open("rb") as assembled:
         content_hash = hashlib.file_digest(assembled, "sha256").hexdigest()
+    # //// Neoffice — the name is given out here, while this request holds the folder's names, and after the commit that
+    # //// shows it what the requests before it made (suite/drive/utils, hold_folder_names): chosen when the request came
+    # //// in, two uploads of one name at once got the same one, and two rows shared one blob (maintenance#1598). Nothing
+    # //// of this request is written yet but the folders of ensure_path, which stay anyway; and before the storage
+    # //// lock, which that commit would release.
+    hold_folder_names(parent, commit=True)
     acquire_owner_storage_lock(frappe.session.user)
     try:
         validate_quota(incoming_size=file_size)
@@ -122,10 +128,6 @@ def upload_file(
         temp_path.unlink(missing_ok=True)
         raise
 
-    # //// Neoffice — the name is given out here, under the folder's lock (suite/drive/utils, lock_folder_names). Chosen
-    # //// when the request came in, two uploads of one name at once got the same one, and two rows shared one blob
-    # //// (maintenance#1598).
-    lock_folder_names(parent)
     file_name = free_file_name(file.filename, parent)
 
     mime_type = mimemapper.get_mime_type(str(temp_path), native_first=False)
@@ -210,10 +212,11 @@ def create_folder(file_name: str, parent: str | None = None):
             frappe.PermissionError,
         )
     validate_filename(file_name, parent, "Folder", error=f"Folder '{file_name}' already exists.")
-    # //// Neoffice — looked for again under the folder's lock (suite/drive/utils, lock_folder_names): two requests making
-    # //// one folder at once both passed the check above and made two folders sharing one directory. Any entry of that
-    # //// name counts, a file too: its blob and the folder's directory would be the same path.
-    lock_folder_names(parent)
+    # //// Neoffice — looked for again while this request holds the folder's names (suite/drive/utils, hold_folder_names):
+    # //// two requests making one folder at once both passed the check above and made two folders sharing one directory.
+    # //// Any entry of that name counts, a file too: its blob and the folder's directory would be the same path. Without a
+    # //// commit: other apps call this from their own writes.
+    hold_folder_names(parent)
     if taken_in_folder(parent, file_name) is not None:
         frappe.throw(f"'{file_name}' already exists in this folder.", frappe.ValidationError)
 
@@ -259,13 +262,12 @@ def ensure_path(fullpath, parent=None):
         )
         if not exists:
             # //// Neoffice — the uploads of one new folder's files arrive together, and each found the folder missing:
-            # //// it is looked for again under the parent's lock (suite/drive/utils, lock_folder_names), and the one a
-            # //// concurrent upload has just made is used, instead of a second folder sharing its directory. Committed
-            # //// first: upload_file calls this before it writes anything (the folders this loop made stay anyway), and
-            # //// every plain read that follows, of that folder's own row among others (its path on the disk), must see
-            # //// what was committed up to now, not this transaction's older snapshot.
-            frappe.db.commit()
-            lock_folder_names(current_parent)
+            # //// it is looked for again while this request holds the parent's names (suite/drive/utils,
+            # //// hold_folder_names), and the one a concurrent upload has just made is used, instead of a second folder
+            # //// sharing its directory. With the commit: upload_file calls this before it writes anything (the folders
+            # //// this loop made stay anyway), and every plain read that follows, of that folder's own row among others
+            # //// (its path on the disk), must see it.
+            hold_folder_names(current_parent, commit=True)
             made = taken_in_folder(current_parent, folder)
             if made is not None and made.is_folder:
                 current_parent = made.name

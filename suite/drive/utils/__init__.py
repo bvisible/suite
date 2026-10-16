@@ -751,12 +751,19 @@ def get_new_file_name(file_name: str, parent_name: str, type: str = False, entit
 # //// making the same name in one folder at once each read it as free (a plain read, before any lock) and each inserted
 # //// a row: two rows and ONE blob, since the disk path is the folder's path and the name (FileManager.get_disk_path).
 # //// Moving or trashing either one carried the blob away and left the other without content, which the WebDAV still
-# //// listed and could not give (maintenance#1598: one `test.xlsx` uploaded twice, 68 ms apart). The name is now looked
-# //// for under a row lock on the folder, by a LOCKING read: one sees the row a concurrent request has just committed,
-# //// past this transaction's snapshot (REPEATABLE READ), which a plain read does not. Without permission filters: a
-# //// sibling the uploader cannot read still owns its blob path. The locking read goes through the index
-# //// `drive_folder_file_name` (drive/patches/folder_file_name_index.py); without it, it would lock every row of the
-# //// table, so until a site has it (code pulled, migrate not run yet) names are given out as before.
+# //// listed and could not give (maintenance#1598: one `test.xlsx` uploaded twice, 68 ms apart).
+# ////
+# //// So a request first holds the folder's names (a Redis lock, released when its transaction ends, as the storage lock
+# //// of api/storage.py), then looks. Holding is not enough: the transaction reads a snapshot (REPEATABLE READ), possibly
+# //// taken before the request that held the lock last committed its row. Two ways past it:
+# ////   - the request owns its transaction (the upload endpoint, a WebDAV PUT or MKCOL, before they write): it commits once
+# ////     it holds the lock (`commit=True`), and every read from then on, plain ones included, sees the rows of the
+# ////     requests that held it before;
+# ////   - it may be inside someone else's transaction (create_folder, which other apps call from their own writes, and
+# ////     which must never commit it): the name is looked for by a LOCKING read, which sees past the snapshot. Through the
+# ////     index `drive_folder_file_name` (drive/patches/folder_file_name_index.py): without it a locking read would lock
+# ////     every row of the table, so until a site has the index, that read is a plain one, as before.
+# //// Without permission filters: a sibling the uploader cannot read still owns its blob path.
 FOLDER_NAME_INDEX = "drive_folder_file_name"
 # the sites of this process known to have the index (an index is not dropped: only « yes » is kept)
 _folder_name_index_sites: set[str] = set()
@@ -772,14 +779,40 @@ def _folder_name_index_ready() -> bool:
     return False
 
 
-def lock_folder_names(folder: str | None) -> None:
-    """Hold the folder's row until this transaction ends: its names are given out by one request at a time."""
-    if folder and _folder_name_index_ready():
-        frappe.db.sql("SELECT `name` FROM `tabFile` WHERE `name` = %s FOR UPDATE", folder)
+def hold_folder_names(folder: str | None, commit: bool = False) -> None:
+    """Give out the names of `folder` to this request alone until its transaction ends. With `commit`, the transaction is
+    committed once the lock is held, so that what the requests that held it before committed is seen by every read that
+    follows: only for a request that owns its transaction, before it writes, and before it takes any other Drive lock
+    (a commit releases the locks this request took before it, their release being an after-commit callback)."""
+    if not folder:
+        return
+    held = getattr(frappe.local, "drive_folder_name_locks", None)
+    if held is None:
+        held = frappe.local.drive_folder_name_locks = {}
+    key = f"drive-names:{frappe.local.site}:{folder}"
+    if key in held:
+        return
+    lock = frappe.cache.lock(key, timeout=300)
+    if not lock.acquire(blocking=True, blocking_timeout=30):
+        frappe.throw(frappe._("This folder is being updated; try again"))
+    if commit:
+        frappe.db.commit()
+    held[key] = lock
+
+    def release():
+        if held.pop(key, None) is not None:
+            try:
+                lock.release()
+            except Exception:
+                # expired meanwhile (after 300 s), which is what releasing was for
+                pass
+
+    frappe.db.after_commit.add(release)
+    frappe.db.after_rollback.add(release)
 
 
 def taken_in_folder(folder: str, file_name: str) -> frappe._dict | None:
-    """The Active entry of `folder` named exactly `file_name`, as committed right now (call lock_folder_names first)."""
+    """The Active entry of `folder` named exactly `file_name`, as committed right now (hold_folder_names first)."""
     lock = " FOR UPDATE" if _folder_name_index_ready() else ""
     rows = frappe.db.sql(
         "SELECT `name`, `file_name`, `is_folder`, `owner`, `folder`, `file_size` FROM `tabFile`"
@@ -793,7 +826,7 @@ def taken_in_folder(folder: str, file_name: str) -> frappe._dict | None:
 
 def free_file_name(file_name: str, folder: str) -> str:
     """The name a new entry of `folder` gets: `file_name`, else `title (n).ext` as get_new_file_name numbers it, the
-    first one that is free (call lock_folder_names first)."""
+    first one that is free (hold_folder_names first)."""
     if taken_in_folder(folder, file_name) is None:
         return file_name
     title, ext = os.path.splitext(file_name)

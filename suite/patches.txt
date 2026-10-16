@@ -130,5 +130,5 @@ suite.drive.patches.webdav_property_index
 execute:frappe.db.set_single_value("WOPI Settings", "jwt_expiry_hours", 4) if frappe.db.exists("DocType", "WOPI Settings") and frappe.db.get_single_value("WOPI Settings", "jwt_expiry_hours") == 10 else None
 suite.patches.v1_0.restore_presentation_guest_read
 # //// Neoffice — added patch (no upstream equivalent): the index through which a folder's names are given out one
-# //// request at a time (suite/drive/utils, lock_folder_names; maintenance#1598).
+# //// request at a time (suite/drive/utils, hold_folder_names; maintenance#1598).
 suite.drive.patches.folder_file_name_index
