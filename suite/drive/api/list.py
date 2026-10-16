@@ -255,6 +255,12 @@ SYSTEM_FILE_PREFIXES = ("._", "~$", ".~lock.")
 
 
 # //// Neoffice — added function (no upstream equivalent): see SYSTEM_FILE_NAMES
+def is_system_file(file_name: str | None) -> bool:
+    """Whether a file of this name is one a computer writes beside the person's (SYSTEM_FILE_NAMES)."""
+    return bool(file_name) and (file_name in SYSTEM_FILE_NAMES or file_name.startswith(SYSTEM_FILE_PREFIXES))
+
+
+# //// Neoffice — added function (no upstream equivalent): see SYSTEM_FILE_NAMES
 def _system_file_patterns():
     """The LIKE patterns of SYSTEM_FILE_PREFIXES."""
     return [

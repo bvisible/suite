@@ -9,6 +9,8 @@ import frappe
 from frappe import _
 from pypika import functions as fn
 
+# //// Neoffice — the files a computer writes beside the person's (storage_breakdown)
+from suite.drive.api.list import is_system_file
 from suite.drive.utils import STATUS_ACTIVE
 
 MEGA_BYTE = 1024**2
@@ -63,6 +65,9 @@ def storage_breakdown():
         order_by="file_size desc",
         fields=["name", "file_name", "owner", "file_size", "file_type"],
     )
+    # //// Neoffice — the files a computer writes beside the person's (the Finder's ._<name>, …) are not offered as large
+    # //// files: no list of the Drive shows them (list.py, SYSTEM_FILE_NAMES; maintenance#1598)
+    entities = [entity for entity in entities if not is_system_file(entity.file_name)]
 
     query = (
         frappe.qb.from_(DriveFile)
@@ -78,6 +83,8 @@ def storage_breakdown():
         "limit": limit,
         "total": query.groupby(DriveFile.file_type).run(as_dict=True),
         "entities": entities,
+        # //// Neoffice — said by the statistics when there is no quota, where they said « of your 0 bytes (∞ %) »
+        "disk": drive_disk(),
     }
 
 
