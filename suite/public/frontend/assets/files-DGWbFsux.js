@@ -1,1 +1,0 @@
-import{b as e}from"./files-CZp-QOZ6.js";export{e as translate};

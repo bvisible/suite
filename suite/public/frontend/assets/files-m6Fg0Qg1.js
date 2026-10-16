@@ -1,0 +1,1 @@
+import{b as e}from"./files-BhnEC-YD.js";export{e as translate};
