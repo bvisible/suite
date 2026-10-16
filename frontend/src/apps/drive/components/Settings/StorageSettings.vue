@@ -20,13 +20,11 @@
       <template #content>
         {{ i.kind }} <br />{{ i.h_size }} ({{ i.percentageFormat }})
       </template>
+      <!-- //// Neoffice — the width in CSS units: percentageFormat is said in the reader's language (« 85,3 % » in
+           French), which CSS refuses, and every segment fell back to its padding (maintenance#1598) -->
       <div
         class="h-7"
-        :style="{
-          backgroundColor: i.color,
-          width: i.percentageFormat,
-          paddingRight: `${1 + i.percentageRaw}px`,
-        }"
+        :style="{ backgroundColor: i.color, width: `${i.percentageRaw}%`, paddingRight: `${1 + i.percentageRaw}px` }"
       />
     </Tooltip>
   </div>
