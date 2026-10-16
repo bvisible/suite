@@ -1,0 +1,1 @@
+import{b as e}from"./files-Dgrey3IK.js";export{e as translate};
