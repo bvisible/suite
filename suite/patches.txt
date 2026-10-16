@@ -132,3 +132,6 @@ suite.patches.v1_0.restore_presentation_guest_read
 # //// Neoffice — added patch (no upstream equivalent): the index through which a folder's names are given out one
 # //// request at a time (suite/drive/utils, hold_folder_names; maintenance#1598).
 suite.drive.patches.folder_file_name_index
+# //// Neoffice — added patch (no upstream equivalent): the rows that two uploads of one name at once left without
+# //// their file go to the Drive's trash when a twin holds it; the others are named in the Error Log (maintenance#1598).
+suite.drive.patches.trash_rows_without_content
