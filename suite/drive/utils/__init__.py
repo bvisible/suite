@@ -1,6 +1,7 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
 import os
 from datetime import datetime
 from pathlib import Path
@@ -744,6 +745,70 @@ def get_new_file_name(file_name: str, parent_name: str, type: str = False, entit
     ):
         return file_name
     return f"{entity_title} ({len(sibling_entity_titles)}){entity_ext}"
+
+
+# //// Neoffice — added (no upstream equivalent): the names of a folder are given out one request at a time. Two requests
+# //// making the same name in one folder at once each read it as free (a plain read, before any lock) and each inserted
+# //// a row: two rows and ONE blob, since the disk path is the folder's path and the name (FileManager.get_disk_path).
+# //// Moving or trashing either one carried the blob away and left the other without content, which the WebDAV still
+# //// listed and could not give (maintenance#1598: one `test.xlsx` uploaded twice, 68 ms apart). The name is now looked
+# //// for under a row lock on the folder, by a LOCKING read: one sees the row a concurrent request has just committed,
+# //// past this transaction's snapshot (REPEATABLE READ), which a plain read does not. Without permission filters: a
+# //// sibling the uploader cannot read still owns its blob path. The locking read goes through the index
+# //// `drive_folder_file_name` (drive/patches/folder_file_name_index.py); without it, it would lock every row of the
+# //// table, so until a site has it (code pulled, migrate not run yet) names are given out as before.
+FOLDER_NAME_INDEX = "drive_folder_file_name"
+# the sites of this process known to have the index (an index is not dropped: only « yes » is kept)
+_folder_name_index_sites: set[str] = set()
+
+
+def _folder_name_index_ready() -> bool:
+    site = getattr(frappe.local, "site", None)
+    if site in _folder_name_index_sites:
+        return True
+    if frappe.db.has_index("tabFile", FOLDER_NAME_INDEX):
+        _folder_name_index_sites.add(site)
+        return True
+    return False
+
+
+def lock_folder_names(folder: str | None) -> None:
+    """Hold the folder's row until this transaction ends: its names are given out by one request at a time."""
+    if folder and _folder_name_index_ready():
+        frappe.db.sql("SELECT `name` FROM `tabFile` WHERE `name` = %s FOR UPDATE", folder)
+
+
+def taken_in_folder(folder: str, file_name: str) -> frappe._dict | None:
+    """The Active entry of `folder` named exactly `file_name`, as committed right now (call lock_folder_names first)."""
+    lock = " FOR UPDATE" if _folder_name_index_ready() else ""
+    rows = frappe.db.sql(
+        "SELECT `name`, `file_name`, `is_folder`, `owner`, `folder`, `file_size` FROM `tabFile`"
+        " WHERE `folder` = %s AND `file_name` = %s AND `status` = %s" + lock,
+        (folder, file_name, STATUS_ACTIVE),
+        as_dict=True,
+    )
+    # the column compares without case (its collation); names on the disk do not
+    return next((row for row in rows if row.file_name == file_name), None)
+
+
+def free_file_name(file_name: str, folder: str) -> str:
+    """The name a new entry of `folder` gets: `file_name`, else `title (n).ext` as get_new_file_name numbers it, the
+    first one that is free (call lock_folder_names first)."""
+    if taken_in_folder(folder, file_name) is None:
+        return file_name
+    title, ext = os.path.splitext(file_name)
+    alike = frappe.get_all(
+        "File",
+        filters={"status": STATUS_ACTIVE, "folder": folder, "file_name": ["like", f"{title}%{ext}"]},
+        pluck="name",
+    )
+    number = max(1, len(alike))
+    for _ in range(10_000):
+        candidate = f"{title} ({number}){ext}"
+        if taken_in_folder(folder, candidate) is None:
+            return candidate
+        number += 1
+    frappe.throw(f"No free name for {file_name} in this folder.", frappe.ValidationError)
 
 
 def validate_filename(file_name, parent, type, error=None):

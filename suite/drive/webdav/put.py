@@ -39,6 +39,8 @@ from suite.drive.utils import (
     apply_file_size_delta,
     create_drive_file,
     get_file_type,
+    lock_folder_names,
+    taken_in_folder,
 )
 from suite.drive.utils.files import FileManager, get_s3_key, get_s3_url, storage_key, stored_on_disk
 from suite.drive.webdav import pathmap, perms
@@ -157,6 +159,25 @@ def _create(ctx: DavContext, resolved, scratch: Path, size: int, sha256: str) ->
     _run_upload_validators(scratch, name, parent.name)
 
     acquire_owner_storage_lock(ctx.user)
+    # //// Neoffice — looked for again under the folder's lock (suite/drive/utils, lock_folder_names): a PUT of this same
+    # //// new file may have committed while this one spooled its body (a client's retry while the first try still ran,
+    # //// two computers saving at once). It is overwritten, as a PUT does, instead of getting a second row that shares
+    # //// its blob (maintenance#1598).
+    lock_folder_names(parent.name)
+    current = taken_in_folder(parent.name, name)
+    if current is not None:
+        # the gates of handle(), for the row it could not see: unreadable looks absent
+        if not user_has_permission(current.name, "read"):
+            raise NotFoundError("Resource not found.")
+        if current.is_folder:
+            raise MethodNotAllowed("Cannot PUT to a collection.")
+        if not user_has_permission(current.name, "write"):
+            raise Forbidden("You cannot overwrite this file.")
+        from suite.drive.webdav import locks
+
+        locks.enforce(ctx, entity=current.name)
+        return _overwrite(ctx, current, scratch, size, sha256)
+
     with quota_guard():
         validate_quota(incoming_size=size)
 

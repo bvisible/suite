@@ -28,9 +28,12 @@ from suite.drive.utils import (
     STATUS_TRASHED,
     apply_file_size_delta,
     create_drive_file,
+    free_file_name,
     get_file_type,
     get_new_file_name,
     get_user_folder,
+    lock_folder_names,
+    taken_in_folder,
     update_file_size,
     validate_filename,
 )
@@ -90,13 +93,15 @@ def upload_file(
         total_chunks = 1
 
     file = frappe.request.files["file"]
-    file_name = get_new_file_name(file.filename, parent)
     upload_session = frappe.form_dict.uuid
     if not upload_session and total_chunks == 1:
         upload_session = frappe.generate_hash(12)
     if not isinstance(upload_session, str) or not re.fullmatch(r"[A-Za-z0-9-]{1,64}", upload_session):
         frappe.throw("Invalid upload session.", frappe.ValidationError)
-    temp_path = get_upload_path(f"{upload_session}_{secure_filename(file_name)}")
+    # //// Neoffice — the staging file is named after the upload, not after the name the file will get: that name is
+    # //// given out under the folder's lock once the last chunk is in (below), and every chunk of one upload must land
+    # //// in the same staging file even if a sibling takes the name meanwhile.
+    temp_path = get_upload_path(f"{upload_session}_{secure_filename(file.filename)}")
     with temp_path.open("ab") as f:
         f.seek(offset)
         f.write(file.stream.read())
@@ -116,6 +121,12 @@ def upload_file(
     except Exception:
         temp_path.unlink(missing_ok=True)
         raise
+
+    # //// Neoffice — the name is given out here, under the folder's lock (suite/drive/utils, lock_folder_names). Chosen
+    # //// when the request came in, two uploads of one name at once got the same one, and two rows shared one blob
+    # //// (maintenance#1598).
+    lock_folder_names(parent)
+    file_name = free_file_name(file.filename, parent)
 
     mime_type = mimemapper.get_mime_type(str(temp_path), native_first=False)
     file_type = get_file_type(mime_type)
@@ -199,6 +210,12 @@ def create_folder(file_name: str, parent: str | None = None):
             frappe.PermissionError,
         )
     validate_filename(file_name, parent, "Folder", error=f"Folder '{file_name}' already exists.")
+    # //// Neoffice — looked for again under the folder's lock (suite/drive/utils, lock_folder_names): two requests making
+    # //// one folder at once both passed the check above and made two folders sharing one directory. Any entry of that
+    # //// name counts, a file too: its blob and the folder's directory would be the same path.
+    lock_folder_names(parent)
+    if taken_in_folder(parent, file_name) is not None:
+        frappe.throw(f"'{file_name}' already exists in this folder.", frappe.ValidationError)
 
     manager = FileManager()
     path = manager.create_folder(
@@ -241,6 +258,18 @@ def ensure_path(fullpath, parent=None):
             "name",
         )
         if not exists:
+            # //// Neoffice — the uploads of one new folder's files arrive together, and each found the folder missing:
+            # //// it is looked for again under the parent's lock (suite/drive/utils, lock_folder_names), and the one a
+            # //// concurrent upload has just made is used, instead of a second folder sharing its directory. Committed
+            # //// first: upload_file calls this before it writes anything (the folders this loop made stay anyway), and
+            # //// every plain read that follows, of that folder's own row among others (its path on the disk), must see
+            # //// what was committed up to now, not this transaction's older snapshot.
+            frappe.db.commit()
+            lock_folder_names(current_parent)
+            made = taken_in_folder(current_parent, folder)
+            if made is not None and made.is_folder:
+                current_parent = made.name
+                continue
             # use the higher-level folder creation
             doc = create_folder(folder, parent=current_parent)
             current_parent = doc.name

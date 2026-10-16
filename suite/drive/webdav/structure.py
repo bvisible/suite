@@ -17,7 +17,7 @@ from werkzeug.wrappers import Response
 
 from suite.drive.api.files import toggle_entity_status
 from suite.drive.api.permissions import user_has_permission
-from suite.drive.utils import create_drive_file, generate_upward_path
+from suite.drive.utils import create_drive_file, generate_upward_path, lock_folder_names, taken_in_folder
 from suite.drive.utils.files import storage_key
 from suite.drive.webdav import locks, pathmap, perms
 from suite.drive.webdav.conditional import evaluate_preconditions
@@ -59,6 +59,14 @@ def handle_mkcol(ctx: DavContext) -> Response:
         raise Forbidden("Ask the folder owner for upload access.")
     pathmap.validate_dav_name(name, parent)
     locks.enforce(ctx, membership_parent=parent.name)
+    # //// Neoffice — looked for again under the folder's lock (suite/drive/utils, lock_folder_names): two MKCOLs of one
+    # //// name at once both resolved it as absent and made two folders sharing one directory (maintenance#1598).
+    lock_folder_names(parent.name)
+    if (taken := taken_in_folder(parent.name, name)) is not None:
+        # as above: an unreadable sibling looks absent, not "already here"
+        if not user_has_permission(taken.name, "read"):
+            raise NotFoundError("Resource not found.")
+        raise MethodNotAllowed("A resource already exists at this URL.")
 
     # create_folder minus validate_filename: exact-name collision was already
     # ruled out by resolution, and the LIKE-count heuristic both over- and
