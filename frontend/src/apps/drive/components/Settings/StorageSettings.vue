@@ -87,12 +87,9 @@ const disk = ref(null)
 const withoutQuota = computed(() => {
   const used = formatSize(usedSpace.value)
   if (!disk.value?.total) return __('You have used {0}.', [used])
-  return __("You have used {0}. The Drive's disk: {1} used of {2}, {3} free.", [
-    used,
-    formatSize(disk.value.used),
-    formatSize(disk.value.total),
-    formatSize(disk.value.free),
-  ])
+  //// Neoffice — each __() on one line: the extractor of the translations does not read a call whose arguments go on
+  const sizes = [used, formatSize(disk.value.used), formatSize(disk.value.total), formatSize(disk.value.free)]
+  return __("You have used {0}. The Drive's disk: {1} used of {2}, {3} free.", sizes)
 })
 
 const storageBreakdown = createResource({
