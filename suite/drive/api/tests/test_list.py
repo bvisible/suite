@@ -198,3 +198,15 @@ class TestDriveListLeavesOutSystemFiles(IntegrationTestCase):
 
         self.assertEqual(listed, set(kept))
         self.assertEqual(searched, {"report_~$.docx"})
+
+    # //// Neoffice — the count of a folder's items (list.py, _get_children_count) leaves them out too
+    def test_a_folder_counts_only_the_files_it_lists(self):
+        with self.set_user(OWNER):
+            # names without « report »: the search of the test above spans every folder of the owner
+            for name in ("._minutes.docx", ".DS_Store", "~$minutes.docx", "minutes.docx", ".env"):
+                create_drive_file(
+                    name, self.folder.name, "Text", f"{self.folder.file_url}{name}", "text/plain", 1
+                )
+            row = next(r for r in files(entity_name=self.home) if r["name"] == self.folder.name)
+
+        self.assertEqual(row["child_count"], 2)

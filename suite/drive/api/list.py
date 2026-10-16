@@ -118,11 +118,17 @@ def _get_children_count(files):
         return {}
     names = [k["name"] for k in files]
     principals = principal_list()
+    # //// Neoffice — the files a computer writes beside the person's are not counted, as they are not listed
+    # //// (SYSTEM_FILE_NAMES): a folder said « 4 items » and showed 3 (maintenance#1598)
+    patterns = _system_file_patterns()
+    system_like = "".join(f" and f.file_name not like %(system_{i})s" for i in range(len(patterns)))
     rows = frappe.db.sql(
         f"""
 		select f.folder, count(*)
 		from `tabFile` f
 		where f.folder in %(names)s and f.status = %(active)s
+		  -- //// Neoffice — see SYSTEM_FILE_NAMES
+		  and f.file_name not in %(system_names)s{system_like}
 		  and (
 			not exists (
 				select 1 from `tabDrive Permission` d
@@ -137,7 +143,13 @@ def _get_children_count(files):
 		  )
 		group by f.folder
 		""",
-        {"names": names, "active": STATUS_ACTIVE},
+        {
+            "names": names,
+            "active": STATUS_ACTIVE,
+            # //// Neoffice — see SYSTEM_FILE_NAMES
+            "system_names": SYSTEM_FILE_NAMES,
+            **{f"system_{i}": pattern for i, pattern in enumerate(patterns)},
+        },
     )
     return dict(rows)
 
@@ -242,15 +254,23 @@ SYSTEM_FILE_NAMES = (".DS_Store", "Thumbs.db", "ehthumbs.db", "desktop.ini", "Ic
 SYSTEM_FILE_PREFIXES = ("._", "~$", ".~lock.")
 
 
+# //// Neoffice — added function (no upstream equivalent): see SYSTEM_FILE_NAMES
+def _system_file_patterns():
+    """The LIKE patterns of SYSTEM_FILE_PREFIXES."""
+    return [
+        prefix.replace("\\", "\\\\").replace("_", "\\_").replace("%", "\\%") + "%"
+        for prefix in SYSTEM_FILE_PREFIXES
+    ]
+
+
 def _get_basic_query(search):
     query = frappe.qb.from_(DriveFile).where(DriveFile.status == STATUS_ACTIVE)
     if search:
         query = query.where(DriveFile.file_name.like(f"%{search}%"))
     # //// Neoffice — see SYSTEM_FILE_NAMES
     query = query.where(DriveFile.file_name.notin(SYSTEM_FILE_NAMES))
-    for prefix in SYSTEM_FILE_PREFIXES:
-        literal = prefix.replace("\\", "\\\\").replace("_", "\\_").replace("%", "\\%")
-        query = query.where(DriveFile.file_name.not_like(f"{literal}%"))
+    for pattern in _system_file_patterns():
+        query = query.where(DriveFile.file_name.not_like(pattern))
     return query
 
 
