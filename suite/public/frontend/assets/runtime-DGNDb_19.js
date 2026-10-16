@@ -1,1 +1,0 @@
-import{t as e}from"./resources-6XP6haKT.js";import{i as t}from"./user-Bx1ojBFZ.js";function n(){window.translatedMessages||e({url:`suite.mail.api.get_translations`,cache:`translations`,transform:e=>window.translatedMessages=e}).fetch()}var r=t;export{r as beforeEach,n as bootstrap};
