@@ -39,6 +39,7 @@ from suite.drive.utils import (
     apply_file_size_delta,
     create_drive_file,
     get_file_type,
+    # //// Neoffice — a folder's names given out one request at a time (suite/drive/utils, hold_folder_names; maintenance#1598)
     hold_folder_names,
     taken_in_folder,
 )

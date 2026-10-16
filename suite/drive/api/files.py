@@ -28,10 +28,12 @@ from suite.drive.utils import (
     STATUS_TRASHED,
     apply_file_size_delta,
     create_drive_file,
+    # //// Neoffice — a folder's names given out one request at a time (suite/drive/utils, hold_folder_names; maintenance#1598)
     free_file_name,
     get_file_type,
     get_new_file_name,
     get_user_folder,
+    # //// Neoffice — see free_file_name above
     hold_folder_names,
     taken_in_folder,
     update_file_size,
@@ -93,6 +95,7 @@ def upload_file(
         total_chunks = 1
 
     file = frappe.request.files["file"]
+    # //// Neoffice — the file's name is no longer chosen here: it is given out once the last chunk is in (below)
     upload_session = frappe.form_dict.uuid
     if not upload_session and total_chunks == 1:
         upload_session = frappe.generate_hash(12)

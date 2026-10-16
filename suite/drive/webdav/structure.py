@@ -17,6 +17,8 @@ from werkzeug.wrappers import Response
 
 from suite.drive.api.files import toggle_entity_status
 from suite.drive.api.permissions import user_has_permission
+
+# //// Neoffice — a folder's names given out one request at a time (suite/drive/utils, hold_folder_names; maintenance#1598)
 from suite.drive.utils import create_drive_file, generate_upward_path, hold_folder_names, taken_in_folder
 from suite.drive.utils.files import storage_key
 from suite.drive.webdav import locks, pathmap, perms
