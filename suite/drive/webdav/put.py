@@ -448,8 +448,26 @@ def _stage_disk_swap(
         if doc is not None and manager.can_create_thumbnail(doc):
             _enqueue_thumbnail(manager, doc, str(placed))
 
-    frappe.db.after_commit.add(swap)
+    # //// Neoffice — through _add_after_commit: a failing swap is logged, not raised from the commit (see there).
+    _add_after_commit(swap)
     frappe.db.after_rollback.add(lambda: staged.unlink(missing_ok=True))
+
+
+# //// Neoffice — added function (no upstream equivalent). Frappe develop runs the after-commit callbacks through
+# //// Database.run_after_transaction_callbacks, which logs a failing one instead of raising it (upstream 25be67d81c):
+# //// the transaction is already durable, and raising would only destroy the response of a request whose database
+# //// work is done. This module and its tests follow that contract (upstream #883), but frappe version-15 still
+# //// raises from commit(): a PUT whose swap or promotion failed answered 500 after its compensation had run, and 18
+# //// tests of test_put_get failed. The two callbacks of this module carry the contract themselves; to remove once
+# //// the fleet runs a frappe whose commit() has it.
+def _add_after_commit(callback) -> None:
+    def logged():
+        try:
+            callback()
+        except Exception:
+            frappe.log_error("Failed to run after transaction callback", defer_insert=True)
+
+    frappe.db.after_commit.add(logged)
 
 
 def _queue_swap_settlement(stamped, placed: Path) -> None:
@@ -644,7 +662,8 @@ def _stage_s3_generation(manager, doc, scratch: Path, key: str, replaces: str | 
     # armed the moment the object exists: anything that raises between here
     # and the commit — the thumbnail rename below included — must reap it on
     # rollback, or the failed PUT strands an unreferenced object forever
-    frappe.db.after_commit.add(promote)
+    # //// Neoffice — through _add_after_commit: a failing promotion is logged, not raised from the commit.
+    _add_after_commit(promote)
     frappe.db.after_rollback.add(discard)
 
     if manager.can_create_thumbnail(doc):

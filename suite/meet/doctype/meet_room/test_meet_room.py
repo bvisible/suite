@@ -4,6 +4,7 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
 import frappe
 from frappe.exceptions import ValidationError
 from frappe.tests import IntegrationTestCase
@@ -120,6 +121,14 @@ class IntegrationTestMeetRoom(IntegrationTestCase):
 
 class TestMeetRoomAPI(FrappeAPITestCase):
     version = "v2"
+
+    # //// Neoffice — frappe version-15 opens the test's session (login_as) with frappe.local.request_ip, which
+    # //// frappe.init sets; a test that ran before in the same process can leave the local without it, and both
+    # //// tests of this class died on « AttributeError: request_ip ». Their request comes from this machine.
+    def setUp(self):
+        super().setUp()
+        if getattr(frappe.local, "request_ip", None) is None:
+            frappe.local.request_ip = "127.0.0.1"
 
     def test_document_method_route(self):
         room = frappe.get_doc({"doctype": "Meet Room", "meeting_type": "open"}).insert()
