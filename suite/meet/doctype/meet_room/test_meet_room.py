@@ -133,21 +133,19 @@ class TestMeetRoomAPI(FrappeAPITestCase):
     # //// Neoffice — added method (no upstream equivalent). The session goes in the test client's cookie, as a
     # //// browser sends it: the v2 document-method route of frappe version-15 hands the whole body to the method, and
     # //// the `sid` these tests put in it answered 500 (« unexpected keyword argument 'sid' »; frappe develop takes it
-    # //// out of the arguments). A Cookie header given by hand is dropped by werkzeug's test client when its own jar
-    # //// has none for the host, so the cookie goes in the jar, and leaves it at the end of the test.
-    def _sign_in_by_cookie(self):
-        from urllib.parse import urlparse
-
-        host = urlparse(self.site_url).hostname or "localhost"
-        self.TEST_CLIENT.set_cookie("sid", self.sid, domain=host)
-        self.addCleanup(self.TEST_CLIENT.delete_cookie, "sid", domain=host)
+    # //// out of the arguments). werkzeug's test client replaces the Cookie header with its jar's cookies for the
+    # //// request's host, and that host is « localhost » whatever the URL says (a full URL's host is not used without
+    # //// a base_url): the cookie goes in the jar for localhost, werkzeug's default, and leaves it after the test.
+    def _post_signed_in(self, path, data):
+        self.TEST_CLIENT.set_cookie("sid", self.sid)
+        self.addCleanup(self.TEST_CLIENT.delete_cookie, "sid")
+        return self.post(path, data)
 
     def test_document_method_route(self):
         room = frappe.get_doc({"doctype": "Meet Room", "meeting_type": "open"}).insert()
 
-        # //// Neoffice — signed in by the test client's cookie (see _sign_in_by_cookie).
-        self._sign_in_by_cookie()
-        response = self.post(
+        # //// Neoffice — signed in by the test client's cookie (see _post_signed_in).
+        response = self._post_signed_in(
             self.resource("Meet Room", room.name, "method", "get_waiting_room_details"),
             {},  # //// Neoffice — no `sid` in the body.
         )
@@ -161,14 +159,17 @@ class TestMeetRoomAPI(FrappeAPITestCase):
         room.allow_controlled_update("waiting_room")
         room.save()
 
-        # //// Neoffice — signed in by the test client's cookie (see _sign_in_by_cookie).
-        self._sign_in_by_cookie()
-        response = self.post(
+        # //// Neoffice — signed in by the test client's cookie (see _post_signed_in).
+        response = self._post_signed_in(
             self.resource("Meet Room", room.name, "method", "approve_join_request"),
             {"user_id": "guest:test"},  # //// Neoffice — no `sid` in the body.
         )
 
         self.assertEqual(response.status_code, 200)
-        returned_room = response.json["docs"][0]
-        self.assertEqual(returned_room["waiting_room"], [])
-        self.assertIn("guest:test", [row["user"] for row in returned_room["members"]])
+        # //// Neoffice — the v2 route of frappe version-15 answers with the method's return value only (develop also
+        # //// sends the mutated document as `docs`, which the Meet lobby does not read: useLobby removes the person
+        # //// itself). The room is read back from the database, in a transaction begun after the request's commit.
+        frappe.db.rollback()
+        room.reload()
+        self.assertEqual(room.get_waiting_room(), [])
+        self.assertIn("guest:test", [row.user for row in room.members])
