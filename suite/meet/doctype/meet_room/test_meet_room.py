@@ -133,9 +133,13 @@ class TestMeetRoomAPI(FrappeAPITestCase):
     def test_document_method_route(self):
         room = frappe.get_doc({"doctype": "Meet Room", "meeting_type": "open"}).insert()
 
+        # //// Neoffice — the session goes in its cookie, as a browser sends it: the v2 document-method route of frappe
+        # //// version-15 hands the whole body to the method, and a `sid` in it answered 500 (« unexpected keyword
+        # //// argument 'sid' »). Frappe develop takes it out of the arguments; the Meet screens send the cookie anyway.
         response = self.post(
             self.resource("Meet Room", room.name, "method", "get_waiting_room_details"),
-            {"sid": self.sid},
+            {},
+            headers={"Cookie": f"sid={self.sid}"},
         )
 
         self.assertEqual(response.status_code, 200)
@@ -147,9 +151,11 @@ class TestMeetRoomAPI(FrappeAPITestCase):
         room.allow_controlled_update("waiting_room")
         room.save()
 
+        # //// Neoffice — the session in its cookie, for the same reason as above.
         response = self.post(
             self.resource("Meet Room", room.name, "method", "approve_join_request"),
-            {"sid": self.sid, "user_id": "guest:test"},
+            {"user_id": "guest:test"},
+            headers={"Cookie": f"sid={self.sid}"},
         )
 
         self.assertEqual(response.status_code, 200)
