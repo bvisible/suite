@@ -61,7 +61,9 @@ def get_admin_config() -> tuple[str | None, str | None, str | None, bool]:
     password = conf.get("password")
     if not password:
         try:
-            password = get_decrypted_password("Mail Settings", "Mail Settings", "password", raise_exception=False)
+            password = get_decrypted_password(
+                "Mail Settings", "Mail Settings", "password", raise_exception=False
+            )
         except Exception:
             password = None
     verify = conf.get("verify_ssl")

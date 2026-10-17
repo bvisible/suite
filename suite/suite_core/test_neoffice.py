@@ -139,7 +139,7 @@ class TestNullFiltersMeanTheSameOnV15(IntegrationTestCase):
                         if not line.lstrip().startswith("#") and pattern.search(line):
                             found.append(f"{os.path.relpath(path, root)}:{number}")
 
-        self.assertEqual(found, [], "use [\"is\", \"set\"] / [\"is\", \"not set\"], which v15 and v16 read alike")
+        self.assertEqual(found, [], 'use ["is", "set"] / ["is", "not set"], which v15 and v16 read alike')
 
     def test_a_user_whose_settings_carry_a_username_reaches_the_mail_server(self):
         """The real lookup, unmocked: the settings row is found once it has a username, not before."""

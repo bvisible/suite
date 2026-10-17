@@ -1,6 +1,7 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
 import json
 from collections import defaultdict
 from datetime import UTC, datetime, timedelta
@@ -833,7 +834,10 @@ def get_calendar_event_density_with_shared(
             "duration": event.get("duration"),
             "time_zone": event.get("time_zone"),
             "show_without_time": event.get("show_without_time"),
-            "calendars": [cal.get("calendar") for cal in (event.get("calendars") or []) if cal.get("calendar")],
+            # //// Neoffice — the calendars of the ERP date as ids, as the rows above carry them.
+            "calendars": [
+                cal.get("calendar") for cal in (event.get("calendars") or []) if cal.get("calendar")
+            ],
             "is_declined": False,
         }
         for event in _erp_events(account, from_date, to_date, erp_dates)
