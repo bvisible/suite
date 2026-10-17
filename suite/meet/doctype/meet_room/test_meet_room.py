@@ -130,16 +130,26 @@ class TestMeetRoomAPI(FrappeAPITestCase):
         if getattr(frappe.local, "request_ip", None) is None:
             frappe.local.request_ip = "127.0.0.1"
 
+    # //// Neoffice — added method (no upstream equivalent). The session goes in the test client's cookie, as a
+    # //// browser sends it: the v2 document-method route of frappe version-15 hands the whole body to the method, and
+    # //// the `sid` these tests put in it answered 500 (« unexpected keyword argument 'sid' »; frappe develop takes it
+    # //// out of the arguments). A Cookie header given by hand is dropped by werkzeug's test client when its own jar
+    # //// has none for the host, so the cookie goes in the jar, and leaves it at the end of the test.
+    def _sign_in_by_cookie(self):
+        from urllib.parse import urlparse
+
+        host = urlparse(self.site_url).hostname or "localhost"
+        self.TEST_CLIENT.set_cookie("sid", self.sid, domain=host)
+        self.addCleanup(self.TEST_CLIENT.delete_cookie, "sid", domain=host)
+
     def test_document_method_route(self):
         room = frappe.get_doc({"doctype": "Meet Room", "meeting_type": "open"}).insert()
 
-        # //// Neoffice — the session goes in its cookie, as a browser sends it: the v2 document-method route of frappe
-        # //// version-15 hands the whole body to the method, and a `sid` in it answered 500 (« unexpected keyword
-        # //// argument 'sid' »). Frappe develop takes it out of the arguments; the Meet screens send the cookie anyway.
+        # //// Neoffice — signed in by the test client's cookie (see _sign_in_by_cookie).
+        self._sign_in_by_cookie()
         response = self.post(
             self.resource("Meet Room", room.name, "method", "get_waiting_room_details"),
-            {},
-            headers={"Cookie": f"sid={self.sid}"},
+            {},  # //// Neoffice — no `sid` in the body.
         )
 
         self.assertEqual(response.status_code, 200)
@@ -151,11 +161,11 @@ class TestMeetRoomAPI(FrappeAPITestCase):
         room.allow_controlled_update("waiting_room")
         room.save()
 
-        # //// Neoffice — the session in its cookie, for the same reason as above.
+        # //// Neoffice — signed in by the test client's cookie (see _sign_in_by_cookie).
+        self._sign_in_by_cookie()
         response = self.post(
             self.resource("Meet Room", room.name, "method", "approve_join_request"),
-            {"user_id": "guest:test"},
-            headers={"Cookie": f"sid={self.sid}"},
+            {"user_id": "guest:test"},  # //// Neoffice — no `sid` in the body.
         )
 
         self.assertEqual(response.status_code, 200)
