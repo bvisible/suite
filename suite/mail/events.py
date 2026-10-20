@@ -217,6 +217,9 @@ def lock_own_mailbox(user: str) -> None:
     if "@" not in address:
         return
     if frappe.db.exists("User Settings", {"username": address, "user": ["!=", user]}):
+        # //// Neoffice — message no longer says "deleted": the same lock now covers a disabled user too (81a4be798
+        # //// "fix(mail): a disabled desk user's mailbox is locked too, and opened again with a new app password
+        # //// when enabled").
         frappe.log_error(
             "Mail account of a user left open",
             f"address={address}: another user's settings name it too",
@@ -230,6 +233,7 @@ def lock_own_mailbox(user: str) -> None:
         deduplicate=True,
         enqueue_after_commit=True,
         address=address,
+        # //// Neoffice — pass user through so the queued job can re-check them before locking (81a4be798).
         user=user,
     )
 
@@ -238,6 +242,10 @@ def lock_own_mailbox(user: str) -> None:
     clear_jmap_session(user)
 
 
+# //// Neoffice — lock_mailbox_now now also takes the user, and returns at once if they are enabled again by the
+# //// time the job runs: disabled then re-enabled before the lock fires must leave the mailbox open (81a4be798
+# //// "fix(mail): a disabled desk user's mailbox is locked too, and opened again with a new app password when
+# //// enabled").
 def lock_mailbox_now(address: str, user: str | None = None) -> None:
     """The job lock_own_mailbox queues: lock `address`, and say so in the error log, with the address, when it could
     not be done or the server has no such account. Nothing is done for a `user` who is enabled by the time it runs
@@ -251,12 +259,20 @@ def lock_mailbox_now(address: str, user: str | None = None) -> None:
     try:
         locked = lock_account(address)
     except Exception:
+        # //// Neoffice — message no longer says "deleted": the same lock now applies to a disabled user too
+        # //// (81a4be798).
         frappe.log_error(
             "Failed to lock the mail account of a user",
             f"address={address}\n{frappe.get_traceback()}",
         )
         return
     if not locked:
+        # //// Neoffice ▼▼▼ — message no longer says "deleted" (same lock covers a disabled user too), and
+        # //// unlock_own_mailbox / unlock_mailbox_now below are new: when a disabled user is enabled again, a new
+        # //// app password is made through the master-user login and kept in their settings, so the site reads
+        # //// their mail again; the app passwords the earlier lock revoked stay revoked. Nothing is done for a user
+        # //// gone, disabled again, or now on another mailbox by the time the job runs (81a4be798 "fix(mail): a
+        # //// disabled desk user's mailbox is locked too, and opened again with a new app password when enabled").
         frappe.log_error("Mail account of a user not found", f"address={address}")
 
 
@@ -307,6 +323,7 @@ def unlock_mailbox_now(address: str, user: str) -> None:
         )
         return
     clear_jmap_session(user)
+# //// Neoffice ▲▲▲
 
 
 @frappe.whitelist(methods=["POST"])
@@ -319,6 +336,10 @@ def lock_orphan_mailboxes(lock: int = 0) -> dict:
 
     frappe.only_for("System Manager")
     configured = is_stalwart_configured(raise_exception=False)
+    # //// Neoffice — removed the orphans-only user/account bookkeeping and replaced it with per-user enabled
+    # //// tracking below, so lock_orphan_mailboxes can also list the disabled users' mailboxes that no enabled
+    # //// user holds (81a4be798 "fix(mail): a disabled desk user's mailbox is locked too, and opened again with a
+    # //// new app password when enabled").
     address = lambda value: (value or "").strip().lower()  # noqa: E731
     users = {row.name: bool(row.enabled) for row in frappe.get_all("User", fields=["name", "enabled"])}
     enabled = {name for name, on in users.items() if on}
@@ -337,10 +358,13 @@ def lock_orphan_mailboxes(lock: int = 0) -> dict:
         {
             address(account._name)
             for account in accounts
+            # //// Neoffice — matches the renamed by_existing set above (81a4be798).
             if account.name not in by_existing and "@" in address(account._name)
         }
         - held
     )
+    # //// Neoffice — new: the disabled users' mailboxes no enabled user holds, listed alongside orphans in the
+    # //// result (81a4be798).
     disabled = sorted(
         {
             address(row.username)
@@ -362,15 +386,19 @@ def lock_orphan_mailboxes(lock: int = 0) -> dict:
 
     from suite.mail.neoffice_stalwart import lock_account
 
+    # //// Neoffice — the loop below also walks the disabled mailboxes now listed, so the loop variable is `target`,
+    # //// not `orphan` any more (81a4be798).
     for target in [*orphans, *disabled]:
         try:
             locked = lock_account(target)
         except Exception:
+            # //// Neoffice — see the marker above: target rename
             frappe.log_error(
                 "Failed to lock an orphan mailbox", f"address={target}\n{frappe.get_traceback()}"
             )
             result["failed"].append(target)
             continue
+        # //// Neoffice — see the marker above: target rename
         result["locked" if locked else "not_found"].append(target)
     return result
 
