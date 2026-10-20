@@ -201,12 +201,14 @@ def provision_existing_mail_accounts() -> dict:
     return {"provisioned": provisioned, "skipped": skipped}
 
 
-# //// Neoffice — the mailbox of a deleted desk user on our own Stalwart (maintenance#1743): kept with its mail,
-# //// nobody let in (suite/mail/neoffice_stalwart.py, lock_account). delete_account calls it first among the
-# //// User's on_trash hooks, while User Settings, which holds the mailbox's address, is still there; the lock
-# //// itself waits for the commit, since Frappe may still refuse the deletion after on_trash (a linked document).
+# //// Neoffice — the mailbox of a deleted or disabled desk user on our own Stalwart (maintenance#1743): kept with its
+# //// mail, nobody let in (suite/mail/neoffice_stalwart.py, lock_account); a user enabled again gets a new app
+# //// password. delete_account calls lock_own_mailbox first among the User's on_trash hooks, while User Settings,
+# //// which holds the mailbox's address, is still there; apply_disabled_account_role and remove_disabled_account_role
+# //// call it, and unlock_own_mailbox, on a change of `enabled`. The work itself waits for the commit (Frappe may still
+# //// refuse a deletion after on_trash: a linked document), and each job looks at the user again when it runs.
 def lock_own_mailbox(user: str) -> None:
-    """Have the mailbox of `user`, who is being deleted, locked once the deletion is committed, and forget their
+    """Have the mailbox of `user`, who is being deleted or disabled, locked once that is committed, and forget their
     JMAP session. A mailbox another user's settings name too (a team's) is theirs as well: it stays open."""
 
     if not is_stalwart_configured(raise_exception=False):
@@ -216,7 +218,7 @@ def lock_own_mailbox(user: str) -> None:
         return
     if frappe.db.exists("User Settings", {"username": address, "user": ["!=", user]}):
         frappe.log_error(
-            "Mail account of a deleted user left open",
+            "Mail account of a user left open",
             f"address={address}: another user's settings name it too",
         )
         return
@@ -228,6 +230,7 @@ def lock_own_mailbox(user: str) -> None:
         deduplicate=True,
         enqueue_after_commit=True,
         address=address,
+        user=user,
     )
 
     from suite.mail.jmap import clear_jmap_session
@@ -235,9 +238,13 @@ def lock_own_mailbox(user: str) -> None:
     clear_jmap_session(user)
 
 
-def lock_mailbox_now(address: str) -> None:
+def lock_mailbox_now(address: str, user: str | None = None) -> None:
     """The job lock_own_mailbox queues: lock `address`, and say so in the error log, with the address, when it could
-    not be done or the server has no such account."""
+    not be done or the server has no such account. Nothing is done for a `user` who is enabled by the time it runs
+    (disabled, then enabled again before the job came)."""
+
+    if user and frappe.db.get_value("User", user, "enabled"):
+        return
 
     from suite.mail.neoffice_stalwart import lock_account
 
@@ -245,59 +252,126 @@ def lock_mailbox_now(address: str) -> None:
         locked = lock_account(address)
     except Exception:
         frappe.log_error(
-            "Failed to lock the mail account of a deleted user",
+            "Failed to lock the mail account of a user",
             f"address={address}\n{frappe.get_traceback()}",
         )
         return
     if not locked:
-        frappe.log_error("Mail account of a deleted user not found", f"address={address}")
+        frappe.log_error("Mail account of a user not found", f"address={address}")
 
 
-# //// Neoffice — the mailboxes deleted users left before lock_own_mailbox (maintenance#1743): listed by default,
-# //// locked when asked, their mail kept. Only a mailbox no existing user holds in any way is one.
+def unlock_own_mailbox(user: str) -> None:
+    """Have the mailbox of `user`, who is enabled again, opened to them once that is committed: a new app password,
+    which the site uses for their mail. The app passwords the lock revoked stay revoked."""
+
+    if not is_stalwart_configured(raise_exception=False):
+        return
+    address = (frappe.db.get_value("User Settings", {"user": user}, "username") or "").strip().lower()
+    if "@" not in address:
+        return
+    frappe.enqueue(
+        "suite.mail.events.unlock_mailbox_now",
+        queue="short",
+        job_id=f"unlock-mail-{address}",
+        deduplicate=True,
+        enqueue_after_commit=True,
+        address=address,
+        user=user,
+    )
+
+
+def unlock_mailbox_now(address: str, user: str) -> None:
+    """The job unlock_own_mailbox queues: a new app password for `address`, kept in `user`'s settings, and their JMAP
+    session forgotten so that the next one signs in with it. Nothing is done for a user who is gone or disabled again
+    by the time it runs, or whose settings name another mailbox by then."""
+
+    if not frappe.db.get_value("User", user, "enabled"):
+        return
+    name = frappe.db.get_value("User Settings", {"user": user}, "name")
+    if not name:
+        return
+    settings = frappe.get_doc("User Settings", name)
+    if (settings.username or "").strip().lower() != address:
+        return
+
+    from suite.mail.jmap import clear_jmap_session
+    from suite.mail.neoffice_stalwart import create_app_password
+
+    try:
+        settings.app_password = create_app_password(address)
+        settings.save(ignore_permissions=True)
+    except Exception:
+        frappe.log_error(
+            "Failed to open the mail account of a user again",
+            f"address={address}\n{frappe.get_traceback()}",
+        )
+        return
+    clear_jmap_session(user)
+
+
 @frappe.whitelist(methods=["POST"])
 def lock_orphan_mailboxes(lock: int = 0) -> dict:
-    """The addresses of the mailboxes no existing user holds, and with `lock` what became of each: locked, not found
-    on the server, or failed (the error log says why, with the address). A mailbox is an orphan when no existing user
-    is linked to its JMAP Account and its address is neither another held account's nor named by any user's
-    settings."""
+    """The mailboxes no existing user holds (`orphans`: no existing user is linked to their JMAP Account, and no
+    user's settings name them) and those of disabled users (`disabled`) that no enabled user holds too; with `lock`,
+    what became of each: locked, not found on the server, or failed (the error log says why, with the address). A
+    mailbox an enabled user holds in any way is never in either list. For the mailboxes left open before
+    lock_own_mailbox existed."""
 
     frappe.only_for("System Manager")
     configured = is_stalwart_configured(raise_exception=False)
-    users = set(frappe.get_all("User", pluck="name"))
-    held_accounts = {
-        link.account
-        for link in frappe.get_all("User Account", fields=["user", "account"])
-        if link.user in users
-    }
-    accounts = frappe.get_all("JMAP Account", fields=["name", "_name"])
     address = lambda value: (value or "").strip().lower()  # noqa: E731
-    held = {address(name) for name in frappe.get_all("User Settings", pluck="username") if name}
-    held |= {address(account._name) for account in accounts if account.name in held_accounts}
+    users = {row.name: bool(row.enabled) for row in frappe.get_all("User", fields=["name", "enabled"])}
+    enabled = {name for name, on in users.items() if on}
+    links = frappe.get_all("User Account", fields=["user", "account"])
+    accounts = frappe.get_all("JMAP Account", fields=["name", "_name"])
+    settings = frappe.get_all("User Settings", fields=["user", "username"])
+
+    by_existing = {link.account for link in links if link.user in users}
+    by_enabled = {link.account for link in links if link.user in enabled}
+    held = {address(row.username) for row in settings if row.user in users and row.username}
+    held |= {address(account._name) for account in accounts if account.name in by_existing}
+    held_by_enabled = {address(row.username) for row in settings if row.user in enabled and row.username}
+    held_by_enabled |= {address(account._name) for account in accounts if account.name in by_enabled}
+
     orphans = sorted(
         {
             address(account._name)
             for account in accounts
-            if account.name not in held_accounts and "@" in address(account._name)
+            if account.name not in by_existing and "@" in address(account._name)
         }
         - held
     )
-    result: dict = {"configured": configured, "orphans": orphans, "locked": [], "not_found": [], "failed": []}
+    disabled = sorted(
+        {
+            address(row.username)
+            for row in settings
+            if row.user in users and row.user not in enabled and "@" in address(row.username)
+        }
+        - held_by_enabled
+    )
+    result: dict = {
+        "configured": configured,
+        "orphans": orphans,
+        "disabled": disabled,
+        "locked": [],
+        "not_found": [],
+        "failed": [],
+    }
     if not frappe.utils.cint(lock) or not configured:
         return result
 
     from suite.mail.neoffice_stalwart import lock_account
 
-    for orphan in orphans:
+    for target in [*orphans, *disabled]:
         try:
-            locked = lock_account(orphan)
+            locked = lock_account(target)
         except Exception:
             frappe.log_error(
-                "Failed to lock an orphan mailbox", f"address={orphan}\n{frappe.get_traceback()}"
+                "Failed to lock an orphan mailbox", f"address={target}\n{frappe.get_traceback()}"
             )
-            result["failed"].append(orphan)
+            result["failed"].append(target)
             continue
-        result["locked" if locked else "not_found"].append(orphan)
+        result["locked" if locked else "not_found"].append(target)
     return result
 
 
@@ -424,13 +498,14 @@ def apply_disabled_account_role(doc: Document, method: str | None = None) -> Non
     longer log in, send or read.
     """
 
-    if (
-        doc.flags.in_insert
-        or doc.enabled
-        or not doc.has_value_changed("enabled")
-        or not is_suite_cloud_configured()
-        or not is_jmap_configured(doc.name)
-    ):
+    if doc.flags.in_insert or doc.enabled or not doc.has_value_changed("enabled"):
+        return
+    # //// Neoffice — Suite Cloud locks the account of a disabled user; a self-hosted fleet has none, and the mailbox
+    # //// stayed open. Ours is locked the same way as a deleted user's, its mail kept (lock_own_mailbox; #1743).
+    if not is_suite_cloud_configured():
+        lock_own_mailbox(doc.name)
+        return
+    if not is_jmap_configured(doc.name):
         return
 
     execute_with_logging(
@@ -444,13 +519,14 @@ def apply_disabled_account_role(doc: Document, method: str | None = None) -> Non
 def remove_disabled_account_role(doc: Document, method: str | None = None) -> None:
     """Unlocks the user's mail account when the user is re-enabled."""
 
-    if (
-        doc.flags.in_insert
-        or not doc.enabled
-        or not doc.has_value_changed("enabled")
-        or not is_suite_cloud_configured()
-        or not is_jmap_configured(doc.name)
-    ):
+    if doc.flags.in_insert or not doc.enabled or not doc.has_value_changed("enabled"):
+        return
+    # //// Neoffice — the other half of the lock above on our own Stalwart: the user enabled again gets a new app
+    # //// password, which the site uses for their mail (unlock_own_mailbox; #1743).
+    if not is_suite_cloud_configured():
+        unlock_own_mailbox(doc.name)
+        return
+    if not is_jmap_configured(doc.name):
         return
 
     execute_with_logging(
