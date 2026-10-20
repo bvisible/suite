@@ -396,6 +396,7 @@ def lock_orphan_mailboxes(lock: int = 0) -> dict:
             frappe.log_error(
                 "Failed to lock an orphan mailbox", f"address={target}\n{frappe.get_traceback()}"
             )
+            # //// Neoffice — see the marker above: target rename
             result["failed"].append(target)
             continue
         # //// Neoffice — see the marker above: target rename
