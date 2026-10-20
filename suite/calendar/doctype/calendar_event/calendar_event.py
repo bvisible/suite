@@ -348,6 +348,24 @@ def parse_calendar_event_name(name: str) -> tuple[str, str]:
     return account, id
 
 
+# //// Neoffice — added (no upstream equivalent): the uid a JMAP client gives its new event, kept by add_calendar_event.
+# //// The longest one kept (the webmail's facade cuts it there too).
+MAX_CLIENT_UID = 255
+
+
+# //// Neoffice — added function (no upstream equivalent), see MAX_CLIENT_UID.
+def client_uid(uid: object) -> str | None:
+    """The uid a client gave its new event, when it is one to keep: text of 1 to MAX_CLIENT_UID characters, without
+    spaces at either end or control characters (iCalendar folds and splits on those). None otherwise, and the event
+    gets a uid of its own as upstream makes one."""
+
+    if not isinstance(uid, str) or not uid or len(uid) > MAX_CLIENT_UID or uid != uid.strip():
+        return None
+    if any(ord(c) < 32 or ord(c) == 127 for c in uid):
+        return None
+    return uid
+
+
 @frappe.whitelist()
 def bulk_delete(names: JSONList[str]) -> None:
     """Deletes calendar events for the given list of names."""
@@ -386,6 +404,8 @@ def add_calendar_event(
     alerts: list[dict] | None = None,
     use_default_alerts: bool = False,
     send_scheduling_messages: bool = False,
+    # //// Neoffice — the uid a JMAP client gives its new event (RFC 8984 lets it), kept by the webmail's facade.
+    uid: str | None = None,
 ) -> str:
     """Adds a calendar event for the given account and returns the event ID."""
 
@@ -393,7 +413,10 @@ def add_calendar_event(
     # //// (maintenance#1387, suite/calendar/local.py). Also keeps the custom invites below off.
     send_scheduling_messages = send_scheduling_messages and not is_local_account(account)
 
-    uid = uuid7().hex
+    # //// Neoffice — upstream always makes its own uid. A client that made the event knows it again by the uid it
+    # //// gave (an event whose answer was lost on the way is found in the next read, not shown twice): one that
+    # //// fits is kept, any other is replaced as before.
+    uid = client_uid(uid) or uuid7().hex
     creation_id = str(uuid7())
     fields = parse(
         EventFields,

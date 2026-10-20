@@ -230,6 +230,12 @@ maintenance#1743), and `remove_disabled_account_role` gives a user enabled again
 (`unlock_own_mailbox`, `unlock_mailbox_now`); `lock_orphan_mailboxes` lists, then locks when asked, the mailboxes
 deleted or disabled users left open before. At a merge: keep the branch at the top of those three hooks.
 
+#### `suite/calendar/doctype/calendar_event/calendar_event.py` (`add_calendar_event(uid=…)`, `client_uid`)
+Ours. Upstream always makes a new event's uid (`uuid7().hex`). The webmail's JMAP facade passes the uid its client
+gave (RFC 8984 lets a client set it), kept when iCalendar carries it as it is (`client_uid`), so that the client knows
+the event it made in its next read even when the answer to the create was lost. The facade checks the parameter is
+there before passing it (an older Suite keeps working). At a merge: keep the `uid` parameter and the line that reads it.
+
 #### `suite/calendar/neoffice_compat.py`, `suite/mail/jmap.py` (`get_calendar_event_service`), `suite/mail/utils/__init__.py` (`is_stalwart_configured`)
 Ours. Upstream's jmaplib layer has no calendar event service and its Stalwart client is gone, and neoffice_theme's
 calendar bridge (`calendar_bridge.py`: Event <-> Suite) and ICS subscriptions (`calendar_connectors.py`) still ask for
