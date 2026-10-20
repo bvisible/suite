@@ -6,6 +6,7 @@
 # //// every desk user a mailbox when the user is created (suite/mail/events.py: Mail and Calendar work out of the box,
 # //// without a Mail Account Request). This module is that, kept apart from upstream's code so that a merge cannot
 # //// reach it: the three calls it needs — the domains, an account, an app password — of Stalwart's management API.
+# //// When a desk user is deleted, their mailbox is locked here, its mail kept (lock_account, maintenance#1743).
 # ////
 # //// That API is a JMAP dialect: capability `urn:stalwart:jmap`, methods prefixed `x:`, calls scoped to the
 # //// administrator's own account, authenticated as the administrator (Mail Settings or the site config's `mail`
@@ -19,7 +20,6 @@ from urllib.parse import urljoin
 import frappe
 import httpx
 from frappe import _
-from frappe.utils import random_string
 
 from suite.utils.dt import utcnow
 
@@ -201,7 +201,9 @@ def create_account(
             "name": name,
             "domainId": domain_id,
             # credentials and memberGroupIds are id-keyed maps on the wire, not arrays
-            "credentials": {"0": {"@type": "Password", "secret": password or random_string(20)}},
+            "credentials": {
+                "0": {"@type": "Password", "secret": password or frappe.generate_hash(length=20)}
+            },
             "roles": (
                 {"@type": "Custom", "roleIds": {role_id: True for role_id in role_ids}}
                 if role_ids
@@ -233,3 +235,64 @@ def create_app_password(account: str, description: str | None = None) -> str:
     if not created.get("secret"):
         frappe.throw(_("The mail server did not return a generated app password."))
     return created["secret"]
+
+
+def account_id_of(management: Management, address: str) -> str | None:
+    """The id of the account whose address is `address`: its name and its domain, both exactly (in any case). None
+    when the server has no such account."""
+
+    local, _, domain = address.strip().lower().partition("@")
+    if not local or not domain:
+        return None
+    domain_id = management.find_id("Domain", {"name": domain})
+    if not domain_id:
+        return None
+    ids = management.call("Account/query", filter={"name": local}, limit=100).get("ids") or []
+    if not ids:
+        return None
+    found = management.call("Account/get", ids=ids, properties=["id", "name", "domainId"]).get("list") or []
+    return next(
+        (
+            account["id"]
+            for account in found
+            if account.get("domainId") == domain_id and (account.get("name") or "").strip().lower() == local
+        ),
+        None,
+    )
+
+
+def lock_account(address: str) -> bool:
+    """Shut every way into the mailbox `address` and keep its mail: its credentials become one password nobody
+    holds, which takes its app passwords and keys with them, and what the server still lists as an app password of
+    the account is revoked as the account itself. Only the administrator's own login opens it after that; the mail
+    it has stays, and so does the mail that still comes. The account is read back: anything left but that one
+    password is a failure. Returns False when the server has no such account."""
+
+    address = address.strip().lower()
+    with Management() as management:
+        admin = management.admin
+        if address in {admin.strip().lower(), f"{admin.strip().lower()}@{address.partition('@')[2]}"}:
+            frappe.throw(_("The mail server's administrator account is never locked."))
+        account_id = account_id_of(management, address)
+        if not account_id:
+            return False
+        management.call(
+            "Account/set",
+            update={
+                account_id: {
+                    "credentials": {"0": {"@type": "Password", "secret": frappe.generate_hash(length=40)}}
+                }
+            },
+        )
+        read = management.call("Account/get", ids=[account_id], properties=["credentials"]).get("list") or [
+            {}
+        ]
+        left = [(credential or {}).get("@type") for credential in (read[0].get("credentials") or {}).values()]
+        if left != ["Password"]:
+            management._fail(f"lock {address}: credentials left {left}")
+
+    with Management(f"{address}%{admin}") as mine:
+        ids = mine.call("AppPassword/query", limit=200).get("ids") or []
+        if ids:
+            mine.call("AppPassword/set", destroy=ids)
+    return True

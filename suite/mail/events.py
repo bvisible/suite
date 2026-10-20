@@ -1,6 +1,7 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
 from typing import Any
 
 import frappe
@@ -200,6 +201,106 @@ def provision_existing_mail_accounts() -> dict:
     return {"provisioned": provisioned, "skipped": skipped}
 
 
+# //// Neoffice — the mailbox of a deleted desk user on our own Stalwart (maintenance#1743): kept with its mail,
+# //// nobody let in (suite/mail/neoffice_stalwart.py, lock_account). delete_account calls it first among the
+# //// User's on_trash hooks, while User Settings, which holds the mailbox's address, is still there; the lock
+# //// itself waits for the commit, since Frappe may still refuse the deletion after on_trash (a linked document).
+def lock_own_mailbox(user: str) -> None:
+    """Have the mailbox of `user`, who is being deleted, locked once the deletion is committed, and forget their
+    JMAP session. A mailbox another user's settings name too (a team's) is theirs as well: it stays open."""
+
+    if not is_stalwart_configured(raise_exception=False):
+        return
+    address = (frappe.db.get_value("User Settings", {"user": user}, "username") or "").strip().lower()
+    if "@" not in address:
+        return
+    if frappe.db.exists("User Settings", {"username": address, "user": ["!=", user]}):
+        frappe.log_error(
+            "Mail account of a deleted user left open",
+            f"address={address}: another user's settings name it too",
+        )
+        return
+
+    frappe.enqueue(
+        "suite.mail.events.lock_mailbox_now",
+        queue="short",
+        job_id=f"lock-mail-{address}",
+        deduplicate=True,
+        enqueue_after_commit=True,
+        address=address,
+    )
+
+    from suite.mail.jmap import clear_jmap_session
+
+    clear_jmap_session(user)
+
+
+def lock_mailbox_now(address: str) -> None:
+    """The job lock_own_mailbox queues: lock `address`, and say so in the error log, with the address, when it could
+    not be done or the server has no such account."""
+
+    from suite.mail.neoffice_stalwart import lock_account
+
+    try:
+        locked = lock_account(address)
+    except Exception:
+        frappe.log_error(
+            "Failed to lock the mail account of a deleted user",
+            f"address={address}\n{frappe.get_traceback()}",
+        )
+        return
+    if not locked:
+        frappe.log_error("Mail account of a deleted user not found", f"address={address}")
+
+
+# //// Neoffice — the mailboxes deleted users left before lock_own_mailbox (maintenance#1743): listed by default,
+# //// locked when asked, their mail kept. Only a mailbox no existing user holds in any way is one.
+@frappe.whitelist(methods=["POST"])
+def lock_orphan_mailboxes(lock: int = 0) -> dict:
+    """The addresses of the mailboxes no existing user holds, and with `lock` what became of each: locked, not found
+    on the server, or failed (the error log says why, with the address). A mailbox is an orphan when no existing user
+    is linked to its JMAP Account and its address is neither another held account's nor named by any user's
+    settings."""
+
+    frappe.only_for("System Manager")
+    configured = is_stalwart_configured(raise_exception=False)
+    users = set(frappe.get_all("User", pluck="name"))
+    held_accounts = {
+        link.account
+        for link in frappe.get_all("User Account", fields=["user", "account"])
+        if link.user in users
+    }
+    accounts = frappe.get_all("JMAP Account", fields=["name", "_name"])
+    address = lambda value: (value or "").strip().lower()  # noqa: E731
+    held = {address(name) for name in frappe.get_all("User Settings", pluck="username") if name}
+    held |= {address(account._name) for account in accounts if account.name in held_accounts}
+    orphans = sorted(
+        {
+            address(account._name)
+            for account in accounts
+            if account.name not in held_accounts and "@" in address(account._name)
+        }
+        - held
+    )
+    result: dict = {"configured": configured, "orphans": orphans, "locked": [], "not_found": [], "failed": []}
+    if not frappe.utils.cint(lock) or not configured:
+        return result
+
+    from suite.mail.neoffice_stalwart import lock_account
+
+    for orphan in orphans:
+        try:
+            locked = lock_account(orphan)
+        except Exception:
+            frappe.log_error(
+                "Failed to lock an orphan mailbox", f"address={orphan}\n{frappe.get_traceback()}"
+            )
+            result["failed"].append(orphan)
+            continue
+        result["locked" if locked else "not_found"].append(orphan)
+    return result
+
+
 def delete_user_accounts(doc: Document, method: str | None = None) -> None:
     """Delete User Accounts when the user is deleted."""
 
@@ -361,7 +462,13 @@ def remove_disabled_account_role(doc: Document, method: str | None = None) -> No
 
 
 def delete_account(doc: Document, method: str | None = None) -> None:
-    if not is_suite_cloud_configured() or not is_jmap_configured(doc.name):
+    # //// Neoffice — a self-hosted fleet has no Suite Cloud to delete the account through: the check below
+    # //// returned at once, and every deleted desk user left a mailbox its app passwords still opened. The owner's
+    # //// choice (maintenance#1743): the mail is kept and every way into it is shut, on our own Stalwart.
+    if not is_suite_cloud_configured():
+        lock_own_mailbox(doc.name)
+        return
+    if not is_jmap_configured(doc.name):
         return
 
     user = doc.name

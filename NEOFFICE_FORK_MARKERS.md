@@ -223,7 +223,11 @@ Ours (added file). Upstream's mail directory is Suite Cloud only (`suite/mail/di
 administrator credentials of its mail server and `suite/mail/stalwart/` is gone. Neoffice runs its own Stalwart and
 gives every desk user a mailbox when the user is created: this module is the three calls that needs (domains,
 account, app password) of Stalwart's management API, read from the site config's `mail` key or the remains of Mail
-Settings. `events.py` keeps `provision_mail_account` and friends on it.
+Settings. `events.py` keeps `provision_mail_account` and friends on it. When a desk user is deleted, upstream's
+`delete_account` only works through Suite Cloud: ours locks the mailbox once the deletion is committed, its mail kept
+(`lock_own_mailbox`, `lock_mailbox_now`, `neoffice_stalwart.lock_account`; maintenance#1743), and
+`lock_orphan_mailboxes` lists, then locks when asked, the mailboxes deleted users left before. At a merge: keep the
+branch at the top of `delete_account`.
 
 #### `suite/calendar/neoffice_compat.py`, `suite/mail/jmap.py` (`get_calendar_event_service`), `suite/mail/utils/__init__.py` (`is_stalwart_configured`)
 Ours. Upstream's jmaplib layer has no calendar event service and its Stalwart client is gone, and neoffice_theme's
