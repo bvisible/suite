@@ -1,8 +1,13 @@
 name: Meet E2E Tests
 
 on:
-  schedule:
-    - cron: "7 2 * * *"
+  # //// Neoffice — the nightly schedule is switched off. This fork has no self-hosted runner labelled
+  # //// `suite-e2e-meet`, so each scheduled run waited in the queue for a day until the next one
+  # //// cancelled it, and none of them ever executed (maintenance#1510). The fork showed a check on
+  # //// Meet that checked nothing. Put the `schedule:` block back once a runner
+  # //// with that label is registered.
+  # schedule:
+  #   - cron: "7 2 * * *"
   push:
     branches:
       - develop
