@@ -20,8 +20,8 @@
     "sha256": "d10e081bb517fb30ae9836acc58e16554633304196653e0b84c3fa960bc1615e"
   },
   "mailcraft": {
-    "version": "0.6.0+13e26d8",
-    "url": "https://github.com/bvisible/mailcraft/releases/download/web-0.6.0-13e26d8/mailcraft-web-0.6.0.zip",
-    "sha256": "835333823a385430a07f67e19a414e71762e352ca89c1b5df8308f83e12717ca"
+    "version": "0.6.0+63dbcdc",
+    "url": "https://github.com/bvisible/mailcraft/releases/download/web-0.6.0-63dbcdc/mailcraft-web-0.6.0.zip",
+    "sha256": "e615897bb2d381d5f1fae1650f8fc53a93dd6b81e12a90b8fb3bc3006db187f6"
   }
 }
