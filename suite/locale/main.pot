@@ -12517,19 +12517,16 @@ msgstr ""
 msgid "Navigation"
 msgstr ""
 
-#: frontend/src/apps/drive/components/Navbar.vue:371
-#: suite/public/frontend/assets/ErrorPage-SvXZj30z.js:1
-msgid "NeoSheet"
+#: frontend/src/apps/drive/components/Navbar.vue:366
+msgid "NeoDoc"
 msgstr ""
 
-#: frontend/src/apps/drive/components/Navbar.vue:377
-#: suite/public/frontend/assets/ErrorPage-SvXZj30z.js:1
-msgid "NeoSlides"
+#: frontend/src/apps/drive/components/Navbar.vue:373
+msgid "NeoGrille"
 msgstr ""
 
-#: frontend/src/apps/drive/components/Navbar.vue:365
-#: suite/public/frontend/assets/ErrorPage-SvXZj30z.js:1
-msgid "NeoWrite"
+#: frontend/src/apps/drive/components/Navbar.vue:380
+msgid "NeoPrés"
 msgstr ""
 
 #: frontend/src/shell/SetupView.vue:18

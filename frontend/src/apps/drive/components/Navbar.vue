@@ -108,7 +108,7 @@ import LucideInfo from '~icons/lucide/info'
 import LucideFileUp from '~icons/lucide/file-up'
 import LucideFolderUp from '~icons/lucide/folder-up'
 import LucideFilePlus2 from '~icons/lucide/file-plus-2'
-//// Neoffice — icons for the NeoWrite / NeoSheet / NeoSlides entries added to the
+//// Neoffice — icons for the NeoDoc / NeoGrille / NeoPrés entries added to the
 //// Create menu below (blank Office files, opened in the Craft editors).
 import LucideFileText from '~icons/lucide/file-text'
 import LucideFileSpreadsheet from '~icons/lucide/file-spreadsheet'
@@ -349,7 +349,7 @@ const newEntityOptions = computed(() => [
   {
     // //// Neoffice — every label in this menu goes through __(). Upstream hardcodes
     // //// English; the fleet ships French and only __() strings reach suite/locale/fr.po.
-    // //// The NeoWrite / NeoSheet / NeoSlides entries below are ours as well.
+    // //// The NeoDoc / NeoGrille / NeoPrés entries below are ours as well.
     group: __('Create'),
     options: dynamicList([
       {
@@ -360,21 +360,24 @@ const newEntityOptions = computed(() => [
       },
       // //// Neoffice: blank Office files (Craft editors), port of the
       // standalone drive's Word/Excel/PowerPoint entries. ////
-      // //// Neoffice — NeoWrite: our name for the editor, not the Office mark. ////
+      // //// Neoffice — NeoDoc: our name for the editor, not the Office mark (NeoWrite until
+      // //// 21.10.2026; a brand name, the same in every language: suite/locale/keep_empty.txt). ////
       {
-        label: __('NeoWrite'),
+        label: __('NeoDoc'),
         icon: LucideFileText,
         onClick: () => openListDialog('word'),
       },
-      // //// Neoffice — NeoSheet: our name for the editor, not the Office mark. ////
+      // //// Neoffice — NeoGrille: our name for the editor, not the Office mark (NeoSheet until
+      // //// 21.10.2026; a brand name, the same in every language: suite/locale/keep_empty.txt). ////
       {
-        label: __('NeoSheet'),
+        label: __('NeoGrille'),
         icon: LucideFileSpreadsheet,
         onClick: () => openListDialog('excel'),
       },
-      // //// Neoffice — NeoSlides: our name for the editor, not the Office mark. ////
+      // //// Neoffice — NeoPrés: our name for the editor, not the Office mark (NeoSlides until
+      // //// 21.10.2026; a brand name, the same in every language: suite/locale/keep_empty.txt). ////
       {
-        label: __('NeoSlides'),
+        label: __('NeoPrés'),
         icon: LucidePresentation,
         onClick: () => openListDialog('powerpoint'),
       },

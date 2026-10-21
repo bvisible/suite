@@ -18,9 +18,9 @@ Version
 Violet
 inbox@{0}
 minutes
-NeoSheet
-NeoSlides
-NeoWrite
+NeoDoc
+NeoGrille
+NeoPrés
 Orange
 Sessions
 {0} sessions
