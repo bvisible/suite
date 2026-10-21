@@ -63,4 +63,10 @@ def apply(response=None, request=None) -> None:
 
     # //// Neoffice — see the block marker above: added file, v15 response_headers shim (470740fd7 "style(fork): ruff format")
     for key, value in headers.items():
+        # //// Neoffice — a second Content-Security-Policy is added, never put in place of the one the response carries:
+        # //// the Drive's `frame-ancestors` (drive/api/product.py) used to erase the `sandbox` of a file served in place
+        # //// (drive/api/files.py, passive_inline). A browser enforces every policy it receives.
+        if key.lower() == "content-security-policy" and key in response.headers:
+            response.headers.add(key, value)
+            continue
         response.headers[key] = value

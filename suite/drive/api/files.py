@@ -416,14 +416,50 @@ def get_file_internal(file, trigger_download=0):
     manager = FileManager()
     if trigger_download:
         return _serve_resumable(manager, storage_key(file.file_url), file.file_name, file.get("mime_type"))
-    return send_file(
-        manager.get_file(file),
-        as_attachment=False,
-        conditional=True,
-        max_age=3600,
-        download_name=file.file_name,
-        environ=frappe.request.environ,
+    # //// Neoffice — an inline file runs on the app's origin: anything not known to be passive is neutralized (below)
+    return passive_inline(
+        send_file(
+            manager.get_file(file),
+            as_attachment=False,
+            conditional=True,
+            max_age=3600,
+            download_name=file.file_name,
+            environ=frappe.request.environ,
+        ),
+        file.file_name,
     )
+
+
+# //// Neoffice — a file shown in place is untrusted content served from the app's origin: an HTML, SVG or XML file
+# //// opened from the Drive (or deposited there from a mail attachment) would run its scripts with the viewer's session.
+# //// Pictures, PDF, audio, video and plain text stay viewable in place; anything else is handed over as a download
+# //// with the sandbox WebDAV gives every file (webdav/get.py, _neutralize_active_content), and no type is ever sniffed.
+# //// The download is what protects: a later hook may rewrite the CSP (v15_response_headers), none rewrites it.
+PASSIVE_INLINE_TYPES = frozenset(
+    {
+        "image/png",
+        "image/jpeg",
+        "image/gif",
+        "image/webp",
+        "image/bmp",
+        "image/avif",
+        "image/heic",
+        "image/tiff",
+        "application/pdf",
+        "text/plain",
+    }
+)
+
+
+def passive_inline(response: Response, download_name: str) -> Response:
+    """`response` with the headers that keep an inline file passive: never sniffed, and, unless its type is one a browser
+    shows without running anything, a download (`download_name`) under a sandbox."""
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    kind = (response.mimetype or "").lower()
+    if not (kind in PASSIVE_INLINE_TYPES or kind.startswith(("audio/", "video/"))):
+        response.headers["Content-Security-Policy"] = "sandbox"
+        response.headers["Content-Disposition"] = content_disposition(download_name or "file")
+    return response
 
 
 @frappe.whitelist(allow_guest=True)
