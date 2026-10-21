@@ -1,1 +1,0 @@
-import{b as e}from"./files-Dy2_EPBN.js";export{e as translate};

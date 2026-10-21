@@ -1,0 +1,1 @@
+import{b as e}from"./files-ordOn7t-.js";export{e as translate};
