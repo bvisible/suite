@@ -1,7 +1,8 @@
 <!-- //// Neoffice — added file (no upstream equivalent): a Craft editor (NeoWrite, NeoSheet, NeoSlides, NeoPDF) framed in the Drive page.
      The editor is a browser build served from this site (suite/public/craft/, see suite/drive/wopi/craft.py): it
      speaks `postMessage` to this page (`?host=parent`), which gives it the file and stores what it saves, through the
-     content endpoints (suite/drive/wopi/endpoints.py), with a token and no session cookie. //// -->
+     content endpoints (suite/drive/wopi/endpoints.py), with a token and no session cookie. For staff, it also offers the
+     editor its way to Nora (`window.<editor>NoraCall`, utils/craftNora.js), with the desk session. //// -->
 <template>
   <div class="relative flex h-full w-full flex-col">
     <!-- Loading state: the build (WebAssembly) and the document -->
@@ -64,6 +65,7 @@ import { onBeforeRouteLeave, onBeforeRouteUpdate, useRouter } from 'vue-router'
 import LucideAlertCircle from '~icons/lucide/alert-circle'
 import LucideInfo from '~icons/lucide/info'
 import LucideLoaderCircle from '~icons/lucide/loader-circle'
+import { offerNora } from '@/apps/drive/utils/craftNora'
 
 const props = defineProps({
   // What `suite.drive.wopi.craft.get_craft_editor_config` answered for this file.
@@ -103,6 +105,12 @@ let readyTimer = null
 
 // The page that frames the editor in its own way (the PDF editor's overlay) asks before it throws it away.
 defineExpose({ dirty })
+
+// Nora's pane, for staff only: the server says so (`nora`, get_craft_editor_config), with the rule Nora's own endpoints
+// apply. The editor looks for its way to her once, as it starts, so it is put on this page before the frame loads; a
+// person without it gets no pane. The calls go to this page's origin with the desk session, never to an address read
+// from the URL (maintenance#1661).
+const withdrawNora = session.nora ? offerNora(window, prefix, { csrfToken: () => window.csrf_token }) : () => {}
 
 const src = computed(() => {
   const query = new URLSearchParams({ host: 'parent', v: session.version })
@@ -363,6 +371,7 @@ onBeforeUnmount(() => {
   clearTimeout(readyTimer)
   window.removeEventListener('message', onMessage)
   window.removeEventListener('keydown', onKeydown)
+  withdrawNora()
   // Let the editor free its memory (a document, a 40 MB module) at once.
   if (frame.value) frame.value.src = 'about:blank'
 })

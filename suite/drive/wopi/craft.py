@@ -95,6 +95,20 @@ def editor_for(file_name: str, requested: str | None = None) -> str | None:
     return None
 
 
+def nora_for_the_person() -> bool:
+    """Whether the editor gets Nora's pane: the site has Nora, and the person is staff (a System User).
+
+    The line is the one Nora's own endpoints draw: a portal account (Website User) is refused by every
+    nora method (nora/utils/portal_guard.py), her tools act for staff only, and a visitor has no session
+    to call her with. The page offers the pane on this answer alone, so a person whose every message
+    would be refused never sees it.
+    """
+    user = frappe.session.user
+    if not user or user == "Guest" or "nora" not in frappe.get_installed_apps():
+        return False
+    return frappe.db.get_value("User", user, "user_type") == "System User"
+
+
 @frappe.whitelist()
 def get_installed_editors() -> dict:
     """The Craft editors this site has a build of, with their versions: what the page can offer."""
@@ -146,6 +160,8 @@ def get_craft_editor_config(file_id: str, requested: str = "") -> dict:
         # Same origin as the Drive page: the endpoints of endpoints.py, by path.
         "wopi_src": f"/wopi/files/{file_id}",
         "author": frappe.utils.get_fullname(frappe.session.user) if frappe.session.user != "Guest" else "",
+        # Nora's pane in the editor, through this page's session (CraftEditor.vue, utils/craftNora.js).
+        "nora": nora_for_the_person(),
     }
 
 

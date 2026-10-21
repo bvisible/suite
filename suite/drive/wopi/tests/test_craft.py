@@ -13,6 +13,35 @@ from suite.drive.wopi import craft
 CONFIG = getattr(craft.get_craft_editor_config, "__wrapped__", craft.get_craft_editor_config)
 SAVE_COPY = getattr(craft.save_copy, "__wrapped__", craft.save_copy)
 
+# Accounts of these tests only: a desk one and a portal one, made here and removed after.
+STAFF = "drive-nora-staff@example.com"
+PORTAL = "drive-nora-portal@example.com"
+WITH_NORA = ["frappe", "suite", "nora"]
+WITHOUT_NORA = ["frappe", "suite"]
+
+
+def _user(email: str, user_type: str) -> str:
+    if not frappe.db.exists("User", email):
+        with patch("suite.mail.events._should_provision_mail", return_value=False):
+            frappe.get_doc(
+                {
+                    "doctype": "User",
+                    "email": email,
+                    "first_name": "Drive Nora",
+                    "send_welcome_email": 0,
+                    "user_type": user_type,
+                    "roles": [{"role": "Blogger"}] if user_type == "System User" else [],
+                }
+            ).insert(ignore_permissions=True)
+    frappe.db.set_value("User", email, {"user_type": user_type, "enabled": 1})
+    return email
+
+
+def _remove_user(email: str) -> None:
+    frappe.set_user("Administrator")
+    if frappe.db.exists("User", email):
+        frappe.delete_doc("User", email, force=True, ignore_permissions=True, delete_permanently=True)
+
 
 class TestWhichEditorTakesWhichFile(IntegrationTestCase):
     def test_the_office_types_open_in_their_own_editor(self):
@@ -103,6 +132,72 @@ class TestWhatThePageIsToldToOpen(IntegrationTestCase):
         self.assertNotIn("editor", answer)
         self.assertEqual(answer["reason"], "File type not supported")
         mint.assert_not_called()
+
+
+class TestNoraIsForStaff(IntegrationTestCase):
+    """The editor's Nora pane is offered on the rule Nora's own endpoints apply: staff (a System User), on a site
+    that has Nora. A portal account (Website User) is refused by every nora method, so it is never offered the pane."""
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        _user(STAFF, "System User")
+        _user(PORTAL, "Website User")
+        cls.addClassCleanup(_remove_user, PORTAL)
+        cls.addClassCleanup(_remove_user, STAFF)
+
+    def setUp(self):
+        self.addCleanup(frappe.set_user, "Administrator")
+
+    def offered(self, user, apps=WITH_NORA):
+        frappe.set_user(user)
+        with patch.object(craft.frappe, "get_installed_apps", return_value=list(apps)):
+            return craft.nora_for_the_person()
+
+    def test_staff_get_the_pane_where_the_site_has_nora(self):
+        self.assertTrue(self.offered(STAFF))
+        self.assertTrue(self.offered("Administrator"))
+
+    def test_a_portal_account_never_gets_it(self):
+        self.assertEqual(frappe.db.get_value("User", PORTAL, "user_type"), "Website User")
+        self.assertFalse(self.offered(PORTAL))
+
+    def test_a_visitor_never_gets_it(self):
+        self.assertFalse(self.offered("Guest"))
+
+    def test_nobody_gets_it_on_a_site_without_nora(self):
+        for user in (STAFF, "Administrator", PORTAL, "Guest"):
+            self.assertFalse(self.offered(user, apps=WITHOUT_NORA), user)
+
+    def test_staff_who_become_portal_accounts_lose_it(self):
+        frappe.db.set_value("User", STAFF, "user_type", "Website User")
+        try:
+            self.assertFalse(self.offered(STAFF))
+        finally:
+            frappe.db.set_value("User", STAFF, "user_type", "System User")
+
+    def config(self, user):
+        """What the page of `user` is told, through the endpoint (the file and the build stood in)."""
+        frappe.set_user(user)
+        with (
+            patch.object(craft.frappe.db, "exists", return_value=True),
+            patch.object(
+                craft.frappe, "get_doc", return_value=SimpleNamespace(file_name="quote.docx", is_folder=0)
+            ),
+            patch("suite.drive.api.permissions.user_has_permission", return_value=True),
+            patch.object(craft, "installed_version", return_value="0.7.0"),
+            patch.object(
+                craft, "generate_wopi_token", return_value={"access_token": "t", "access_token_ttl": 1}
+            ),
+            patch.object(craft.frappe, "get_installed_apps", return_value=WITH_NORA),
+        ):
+            return CONFIG("a-file-id")
+
+    def test_the_page_of_staff_is_told_to_offer_nora_and_a_portal_account_s_is_not(self):
+        staff, portal = self.config(STAFF), self.config(PORTAL)
+        self.assertTrue(staff["available"] and portal["available"], (staff, portal))
+        self.assertIs(staff["nora"], True)
+        self.assertIs(portal["nora"], False)
 
 
 class TestWhatTheSiteHas(IntegrationTestCase):
