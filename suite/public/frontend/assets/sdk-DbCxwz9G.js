@@ -1,1 +1,0 @@
-import"./InfoDialog-ik5XAVep.js";import{t as e}from"./call-CbCJk5VI.js";import"./utils-BIitC4vT.js";import"./resources-BZao0R7Q.js";var t=(t,n)=>e(`suite.drive.overrides.file.get_file_for_doc`,{doctype:t,docname:n});export{t};
