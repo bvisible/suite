@@ -3,6 +3,27 @@ name: Suite Linters
 on:
   schedule:
     - cron: "47 2 * * *"
+  # //// Neoffice — on every push to version-15 too: upstream lints the pull requests only
+  # //// (#950), but this fork pushes straight to version-15, so a file ruff format refused was
+  # //// seen by the nightly run only, the morning after (an upstream merge on 17.10, a marker
+  # //// commit on 21.10; neoffice-maintenance#1797). The marker bot pushes with [skip ci] and
+  # //// stays silent; the frontend build bot's artifacts are left out below.
+  push:
+    branches: [version-15]
+    paths:
+      - "suite/**"
+      - "frontend/**"
+      - "e2e/**"
+      - "package.json"
+      - "yarn.lock"
+      - "knip.json"
+      - "pyproject.toml"
+      - ".github/scripts/**"
+      - ".github/workflows/suite-linter.yml"
+      - "!suite/public/frontend/**"
+      - "!suite/www/suite.html"
+      - "!suite/www/event_rsvp.html"
+      - "!suite/www/service-worker.js"
   pull_request:
     paths:
       - "suite/**"
