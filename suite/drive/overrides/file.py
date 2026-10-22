@@ -6,11 +6,12 @@ from pathlib import Path
 
 import frappe
 import mimemapper
+from frappe import _
 from frappe.core.doctype.file.file import File as FrappeFile
 from frappe.utils import get_files_path, now
 
 from suite.drive.api.activity import create_new_activity_log
-from suite.drive.api.files import get_file_type
+from suite.drive.api.files import ARCHIVE_DIR, get_file_type
 from suite.drive.api.permissions import (
     exceeds_grant_ceiling,
     get_entity_with_permissions,
@@ -35,7 +36,23 @@ from suite.drive.utils import (
     update_file_size,
     validate_filename,
 )
-from suite.drive.utils.files import S3_URL_PREFIX, FileManager, get_s3_url, storage_key
+from suite.drive.utils.files import S3_URL_PREFIX, TRASH_PREFIX, FileManager, get_s3_url, storage_key
+
+
+# //// Neoffice — added (maintenance#1821, File._url_read_from_disk): the url frappe's check understands of the file a
+# //// storage key lands on, as FileManager.get_local_path reads it ("files/…" is the public folder).
+def _files_url(key: str) -> str | None:
+    """The url, "/private/files/…" or "/files/…", with dot segments, doubled slashes and links resolved; None outside
+    both folders."""
+    if key.startswith("files/"):
+        key = "public/" + key
+    site = Path(frappe.get_site_path()).resolve()
+    path = (site / key).resolve()
+    for folder, prefix in (("private", "/private/files/"), ("public", "/files/")):
+        root = (site / folder / "files").resolve()
+        if path != root and path.is_relative_to(root):
+            return prefix + path.relative_to(root).as_posix()
+    return None
 
 
 class File(FrappeFile):
@@ -210,6 +227,67 @@ class File(FrappeFile):
             self.content_doctype and self.content_doctype != WRITER_CONTENT_DOCTYPE
         )
         return self.file_type == "Link" or not self.file_url or content_without_storage
+
+    # //// Neoffice — added (maintenance#1821): frappe's check on private files (validate_private_file_access, frappe
+    # //// fork, #1738) compares this row's url with the urls of the private files on record, once brought back to the
+    # //// file it lands on, and brings back only the urls frappe itself reads: "/private/files/…", "/files/…", a full url
+    # //// of the site. The Drive reads a row by its storage key (storage_key, then FileManager.get_local_path), the same
+    # //// file for "/private/files/x", "private/files/x", "//private/files/x", "./private/files/x" or the Drive's S3 url
+    # //// of it. A row of one's own set to a colleague's file without the leading slash passed the check, and the Drive
+    # //// served the colleague's bytes. The check now receives the url as the Drive reads it too.
+    def _url_read_from_disk(self):
+        url = super()._url_read_from_disk()
+        if url or not self.file_url:
+            return url
+        return _files_url(storage_key(self.file_url))
+
+    # //// Neoffice — added (maintenance#1821): frappe's check only knows the urls on record, and the Drive keeps bytes that
+    # //// no row names in folders of its own: the thumbnails, the uploads being put together, the WebDAV bodies waiting
+    # //// for their swap, the folder downloads. A row of one's own pointed at a colleague's thumbnail, and the Drive served
+    # //// it. Such a url is refused, the way frappe refuses (same message). In the trash, the places are named by the
+    # //// trashed rows and the files of their folders (FileManager.get_trash_url, maintenance#1820), but bytes whose row
+    # //// went another way may stay there: only this row's own place and what lies under one of its folders' are let
+    # //// through. Administrator passes, as in frappe's check.
+    def validate_private_file_access(self):
+        super().validate_private_file_access()
+        if frappe.session.user == "Administrator" or not self.file_url:
+            return
+        local_url = self._url_read_from_disk()
+        # canonical (dot segments, doubled slashes and links resolved), and under the private folder only
+        local_url = local_url and _files_url(local_url.lstrip("/"))
+        if not local_url or not local_url.startswith("/private/files/"):
+            return
+        key = Path("private/files") / local_url[len("/private/files/") :]
+        manager = self.manager
+        root = Path(storage_key(manager.get_root_storage_key()))
+        trash = root / TRASH_PREFIX
+        if key.is_relative_to(trash):
+            place = key.relative_to(trash).parts
+            if place and place[0] in self._self_and_folders():
+                return
+        else:
+            from suite.drive.webdav.put import _PENDING_SWAP_PREFIX
+
+            own_folders = [
+                # api/files.py get_upload_path, and utils get_upload_path
+                Path("private/files") / (manager.settings.root_folder or "") / ".uploads",
+                root / ".uploads",
+                root / _PENDING_SWAP_PREFIX,
+                Path(ARCHIVE_DIR),
+            ]
+            if manager.settings.thumbnail_prefix:
+                own_folders.append(manager.get_thumbnail_path("").parent)
+            if not any(key.is_relative_to(folder) for folder in own_folders):
+                return
+        frappe.throw(_("You don't have permission to access this file"), frappe.PermissionError)
+
+    def _self_and_folders(self) -> set:
+        """This row's name and the names of the folders above it."""
+        names, folder = {self.name}, self.folder
+        while folder and folder not in names:
+            names.add(folder)
+            folder = frappe.db.get_value("File", folder, "folder")
+        return names
 
     # Drive methods
     def _update_modified(func):
