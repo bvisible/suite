@@ -454,6 +454,15 @@ def update_password(
     return result
 
 
+# //// Neoffice — added function (no upstream equivalent). Frappe 15.124.0 (User.on_update) empties the
+# //// private User.__new_password once the controller's on_update has run, and this app's on_update hook
+# //// runs after the controller: update_account_password read None and the mailbox kept the old password
+# //// while the answer of the API and the form said the password was changed. validate runs before, with
+# //// the value still there: it is kept in the document's flags, which a later frappe cannot take away.
+def remember_new_password(doc: Document, method: str | None = None) -> None:
+    doc.flags.suite_new_password = doc._User__new_password
+
+
 def update_account_password(doc: Document, method: str | None = None) -> None:
     """Updates the password on Stalwart server when the user updates their password."""
 
@@ -467,7 +476,8 @@ def update_account_password(doc: Document, method: str | None = None) -> None:
         return
 
     user = doc.name
-    new_password = doc._User__new_password
+    # //// Neoffice — the flag first, see remember_new_password (frappe 15.124.0 empties the private attribute).
+    new_password = doc.flags.get("suite_new_password") or doc._User__new_password
 
     if not new_password:
         return

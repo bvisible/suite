@@ -290,6 +290,10 @@ doc_events = {
             # //// TimestampMismatchError (HTTP 417) on 31.08.2026.
             "suite.mail.events.provision_mail_account",
         ],
+        # //// Neoffice — keeps the new password for update_account_password (see remember_new_password).
+        "validate": [
+            "suite.mail.events.remember_new_password",
+        ],
         "on_update": [
             # First: the disabled account role applied below may cut the JMAP access the
             # deletion needs.
