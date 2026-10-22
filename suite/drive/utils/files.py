@@ -408,6 +408,31 @@ class FileManager:
         to the storage root."""
         return self.__get_trash_path(entity)
 
+    # //// Neoffice — added (maintenance#1820): in the tree layout a row that leaves the tree (trashed, deleted) gives up
+    # //// its place there. Upstream kept its file_url on the folder's path and its name, where its bytes no longer are
+    # //// (move_to_trash took them to the trash, a deletion removed them), as « where a restore would put it back ». The
+    # //// next file of that name in that folder got the same url, and frappe's check on private files (File.before_save,
+    # //// validate_private_file_access) refused it as a row reaching another owner's bytes: a deposit, a sync, a mail
+    # //// saved to the Drive under the name of a colleague's trashed or deleted file failed with « You don't have
+    # //// permission to access this file ». Such a row now holds the key of its place in the trash, keyed by its id,
+    # //// where its bytes are, and a restore gives it back a place in the tree (api/files.py, toggle_entity_status).
+    # //// Flat storage keys every row by its id already: nothing changes there.
+    def get_trash_url(self, entity) -> str:
+        """The file_url of a row out of the tree: the key of its place in the trash (a folder's with its trailing slash,
+        the way create_folder writes it)."""
+        return str(self.__get_trash_path(entity)) + ("/" if entity.is_folder else "")
+
+    def holds_trash_url(self, entity) -> bool:
+        """Whether `entity`'s file_url is the key of its place in the trash (get_trash_url)."""
+        return bool(entity.file_url) and Path(storage_key(entity.file_url)) == self.__get_trash_path(entity)
+
+    def holds_tree_url(self, entity) -> bool:
+        """Whether `entity`'s file_url is its place in the tree: its folder's path and its name (get_disk_path). Not
+        an adopted framework upload, which keeps the url frappe gave it, nor an embed, nor anything in flat storage."""
+        if self.flat or not entity.file_url:
+            return False
+        return Path(storage_key(entity.file_url)) == Path(self.get_disk_path(entity))
+
     @_not_if_flat
     def rename(self, entity):
         if not entity.file_url or entity.mime_type == "frappe/slides":
@@ -446,11 +471,13 @@ class FileManager:
             pass
 
     @_not_if_flat
-    def restore(self, entity):
+    def restore(self, entity, destination: str | None = None):
         """
         Restore a file from the trash.
         """
-        self.move(frappe._dict(file_url=self.__get_trash_path(entity)), entity.file_url)
+        # //// Neoffice — `destination` added (maintenance#1820): a trashed row's file_url is its place in the trash now
+        # //// (get_trash_url), so the caller names the place in the tree it goes back to. Without it, as upstream.
+        self.move(frappe._dict(file_url=self.__get_trash_path(entity)), destination or entity.file_url)
 
     @_not_if_flat
     def move(self, entity, new_path: str | Path):

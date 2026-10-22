@@ -456,16 +456,30 @@ class File(FrappeFile):
 
         delete_blob = not self._not_in_disk()
         blob_is_trashed = self.status == STATUS_TRASHED and not self.manager.flat
+        # //// Neoffice — where the bytes are, read before the row gives up its url (below)
+        stored = frappe._dict(name=self.name, file_url=self.file_url)
         self.status = STATUS_REMOVED
         if self.is_folder:
             for child in self.get_children():
                 child.permanent_delete()
+        # //// Neoffice — a deleted row keeps no url where a file can be (maintenance#1820, FileManager.get_trash_url):
+        # //// upstream left it on the folder's path and its name for the 30 days the row stays (clear_deleted_files),
+        # //// and the next file of that name in that folder, getting the same url, was refused by frappe's check on
+        # //// private files as reaching this row's bytes. Its place in the trash names nothing a new file can take, and
+        # //// it is what after_delete clears. Any private url: a deleted row is never restored, so even an adopted
+        # //// framework upload's (/private/files/<name>) is let go. A public row is left as it is: frappe's check looks at
+        # //// private rows only, and validate() keeps a public framework file on /files/. Flat storage keys every row by
+        # //// its id already.
+        if delete_blob and self.is_private and not self.manager.flat:
+            self.file_url = self.manager.get_trash_url(self)
         self.save()
         if delete_blob:
-            self._delete_blob_after_commit(blob_is_trashed)
+            self._delete_blob_after_commit(blob_is_trashed, stored)
 
-    def _delete_blob_after_commit(self, blob_is_trashed: bool):
-        entity = frappe._dict(name=self.name, file_url=self.file_url)
+    # //// Neoffice — `entity` added (maintenance#1820): permanent_delete names where the bytes were before the row gave up
+    # //// its url; after_delete passes nothing, as upstream.
+    def _delete_blob_after_commit(self, blob_is_trashed: bool, entity: frappe._dict | None = None):
+        entity = entity or frappe._dict(name=self.name, file_url=self.file_url)
 
         def delete_blob():
             try:
@@ -512,6 +526,9 @@ class File(FrappeFile):
                 new_child_url = "/" + new_child_url
             # a trashed child's blob is in the trash, not at its file_url — that url is
             # only where a restore would put it back, so repoint it and move nothing
+            # //// Neoffice — since maintenance#1820 a trashed or deleted row holds its place in the trash
+            # //// (FileManager.get_trash_url), which is under no folder's url: it never gets here. Only a row
+            # //// trashed before that does, until the patch rows_out_of_the_tree_release_their_url ran.
             if manager.s3_enabled and child.status != STATUS_TRASHED:
                 manager.move(child, new_child_url)
             # //// Neoffice — a child follows its folder's authorised move or rename, whoever owns it: under

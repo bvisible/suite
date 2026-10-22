@@ -135,3 +135,6 @@ suite.drive.patches.folder_file_name_index
 # //// Neoffice — added patch (no upstream equivalent): the rows that two uploads of one name at once left without
 # //// their file go to the Drive's trash when a twin holds it; the others are named in the Error Log (maintenance#1598).
 suite.drive.patches.trash_rows_without_content
+# //// Neoffice — added patch (no upstream equivalent): the rows trashed or deleted before maintenance#1820 give up their
+# //// url in the tree, which the next file of their name in their folder takes (FileManager.get_trash_url).
+suite.drive.patches.rows_out_of_the_tree_release_their_url

@@ -733,7 +733,14 @@ def get_new_file_name(file_name: str, parent_name: str, type: str = False, entit
     if type:
         filters["file_type"] = type
 
-    sibling_entity_titles = frappe.db.get_list(
+    # //// Neoffice — every entry of the folder, not only those the caller may list (maintenance#1820): upstream read them
+    # //// through the permission filters (frappe.db.get_list), which leave out a colleague's file in a shared folder,
+    # //// readable through the folder only (suite.drive.utils.overrides.filter_file). Its name was handed out again:
+    # //// a restore from the trash, a move or a rename then moved the bytes over the colleague's file. A sibling the
+    # //// caller cannot read still owns its path on the disk (taken_in_folder reads them the same way). The callers check
+    # //// the right to write there first; the one that answers a client, get_new_title, asks `upload` on the folder, as
+    # //// does_entity_exist, which already reads the folder unfiltered.
+    sibling_entity_titles = frappe.get_all(
         "File",
         filters=filters,
         fields=["file_name", "name"],
