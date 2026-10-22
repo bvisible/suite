@@ -96,20 +96,10 @@ import { startRename } from '@/apps/drive/data/selection'
 const { systemUser } = useCurrentUser()
 import emitter from '@/apps/drive/emitter'
 import { useEmitter } from '@/apps/drive/utils/useEmitter'
-//// Neoffice — watch and onBeforeUnmount for « Ouvrir dans Neodesk » (below).
-import { ref, computed, inject, h, watch, onBeforeUnmount } from 'vue'
-//// Neoffice — « Ouvrir dans Neodesk » (utils/openInNeodesk.js).
+import { ref, computed, inject, h } from 'vue'
+//// Neoffice — « Ouvrir dans Neodesk » (utils/openInNeodesk.js, where its rules and their tests are).
 import { createResource } from 'frappe-ui'
-import {
-  NEODESK_DOWNLOAD_URL,
-  editorInstalledFor,
-  hideHint,
-  hintHidden,
-  isDesktopBrowser,
-  neodeskLink,
-  opensInNeodesk,
-  tryNeodesk,
-} from '@/apps/drive/utils/openInNeodesk'
+import { NEODESK_DOWNLOAD_URL, useOpenInNeodesk } from '@/apps/drive/utils/openInNeodesk'
 import LucideMonitorUp from '~icons/lucide/monitor-up'
 import LucideX from '~icons/lucide/x'
 import { entitiesDownload } from '@/apps/drive/utils/download'
@@ -480,64 +470,19 @@ const newEntityOptions = computed(() => [
 
 const inIframe = inject('inIframe')
 
-//// Neoffice — « Ouvrir dans Neodesk » (utils/openInNeodesk.js). Offered on a file's own page, to a person signed in, on
-//// a computer's browser, for a type Neodesk opens where it is and whose editor this site has (Neodesk asks the site
-//// for its editing session, which the site gives only then). The page is not framed (an iframe of another app).
+//// Neoffice — « Ouvrir dans Neodesk » (utils/openInNeodesk.js): offered on a file's own page, to a person signed in,
+//// on a computer's browser, for a type Neodesk opens where it is and whose editor this site has, the page not framed.
 const installedEditors = createResource({
   url: 'suite.drive.wopi.craft.get_installed_editors',
   cache: 'neoffice-craft-installed-editors',
 })
-watch(
-  () => route.name === 'drive-File' && isLoggedIn.value && !inIframe,
-  (asked) => {
-    if (asked && !installedEditors.data && !installedEditors.loading) installedEditors.fetch()
-  },
-  { immediate: true },
-)
-const neodesk = computed(() => {
-  const entity = rootEntity.value
-  if (route.name !== 'drive-File' || !isLoggedIn.value || inIframe || !entity) return null
-  if (!opensInNeodesk(entity) || !isDesktopBrowser(window.navigator)) return null
-  if (!editorInstalledFor(entity, installedEditors.data)) return null
-  return neodeskLink(window.location, entity.name)
-})
-const neodeskHint = ref(false)
-let stopNeodesk = null
-// The browser's storage, when it lets the page read it at all (a private window may not).
-const browserStorage = () => {
-  try {
-    return window.localStorage
-  } catch {
-    return null
-  }
-}
-function closeNeodeskHint() {
-  neodeskHint.value = false
-  window.removeEventListener('blur', closeNeodeskHint)
-}
-function neverShowNeodeskHint() {
-  hideHint(browserStorage())
-  closeNeodeskHint()
-}
-// No step before the address: a browser starts another program only within the click that asked.
-function openInNeodesk() {
-  const link = neodesk.value
-  if (!link) return
-  closeNeodeskHint()
-  stopNeodesk?.()
-  stopNeodesk = tryNeodesk(link, {
-    onNothing: () => {
-      if (hintHidden(browserStorage())) return
-      neodeskHint.value = true
-      // Neodesk may still come, once the person answered the browser's question about the link: the hint then goes.
-      window.addEventListener('blur', closeNeodeskHint)
-    },
-  })
-}
-onBeforeUnmount(() => {
-  stopNeodesk?.()
-  closeNeodeskHint()
-})
+const {
+  link: neodesk,
+  hint: neodeskHint,
+  open: openInNeodesk,
+  close: closeNeodeskHint,
+  never: neverShowNeodeskHint,
+} = useOpenInNeodesk({ route, entity: rootEntity, isLoggedIn, inIframe, installedEditors })
 
 const redirectLogin = () => {
   window.location.href =

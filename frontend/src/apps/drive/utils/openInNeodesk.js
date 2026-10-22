@@ -8,6 +8,8 @@
 //// refuse to start another program without one), and when the page neither lost the focus nor was hidden after a
 //// moment, a quiet « Nothing opened? » offers the download, with « Don't show again » kept in this browser.
 
+import { computed, onScopeDispose, ref, watch } from 'vue'
+
 /** What Neodesk opens where it is: the types the Drive's editors write back (suite/drive/wopi/craft.py, EDITORS). */
 export const NEODESK_EXTENSIONS = ['docx', 'xlsx', 'pptx', 'pdf']
 /** The editor of the Drive for each of them (get_installed_editors names them so). */
@@ -81,14 +83,27 @@ export function hideHint(storage) {
 }
 
 /**
+ * Whether this browser hands an address the page cannot open to an error page in its place: Firefox may, for an address
+ * no program takes (no Neodesk), when the page itself goes to it. Chrome, Edge and Safari keep the page and say nothing
+ * or ask; Firefox gets the address in a hidden frame of the page instead, whose error nobody sees.
+ */
+export function replacesPageOnUnknownAddress(nav) {
+  return /Firefox\//.test(String((nav && nav.userAgent) || ''))
+}
+
+/**
  * Hands `link` to the system, within the click that asked (no step before it), then watches for `waitMs` whether
  * the page lost the focus or was hidden, which is what Neodesk coming to the front does. When nothing of that
  * happened, `onNothing()` (the page says « Nothing opened? », unless the person asked not to be told). A guess, not a
  * proof: a browser's own question about the link does not always take the focus. Answers a function that stops the
  * watch (the page went away meanwhile).
  */
-export function tryNeodesk(link, { win = window, doc = document, onNothing = () => {}, waitMs = NOTHING_OPENED_AFTER_MS } = {}) {
+export function tryNeodesk(
+  link,
+  { win = window, doc = document, nav = win.navigator, onNothing = () => {}, waitMs = NOTHING_OPENED_AFTER_MS } = {},
+) {
   let left = false
+  let frame = null
   const leave = () => {
     left = true
   }
@@ -103,11 +118,87 @@ export function tryNeodesk(link, { win = window, doc = document, onNothing = () 
     win.removeEventListener('blur', leave)
     win.removeEventListener('pagehide', leave)
     doc.removeEventListener('visibilitychange', hidden)
+    frame?.remove()
+    frame = null
   }
   const timer = win.setTimeout(() => {
     stop()
     if (!left) onNothing()
   }, waitMs)
-  win.location.href = link
+  if (replacesPageOnUnknownAddress(nav)) {
+    frame = doc.createElement('iframe')
+    frame.setAttribute('aria-hidden', 'true')
+    frame.tabIndex = -1
+    frame.style.display = 'none'
+    frame.src = link
+    doc.body.appendChild(frame)
+  } else {
+    win.location.href = link
+  }
   return stop
+}
+
+/** The browser's storage, when it lets the page read it at all (a private window may not). */
+function browserStorage(win) {
+  try {
+    return win.localStorage
+  } catch {
+    return null
+  }
+}
+
+/**
+ * « Ouvrir dans Neodesk » as a file's page offers it (components/Navbar.vue, the bar's button and its menu): `link`, the
+ * address when the button is offered (a file's own page, a person signed in, a computer's browser, a type Neodesk opens
+ * where it is, whose editor the site has — `installedEditors`, get_installed_editors — and a page not framed), else
+ * null; `open()`, for the click; `hint`, whether « Nothing opened? » shows; `close()` and `never()` (« Don't show again »).
+ * The editors are asked once a file's page is shown. Everything stops with the component (onScopeDispose).
+ */
+export function useOpenInNeodesk({ route, entity, isLoggedIn, inIframe, installedEditors, win = window, doc = document }) {
+  watch(
+    () => route.name === 'drive-File' && isLoggedIn.value && !inIframe,
+    (asked) => {
+      if (asked && !installedEditors.data && !installedEditors.loading) installedEditors.fetch()
+    },
+    { immediate: true },
+  )
+  const link = computed(() => {
+    const shown = entity.value
+    if (route.name !== 'drive-File' || !isLoggedIn.value || inIframe || !shown) return null
+    if (!opensInNeodesk(shown) || !isDesktopBrowser(win.navigator)) return null
+    if (!editorInstalledFor(shown, installedEditors.data)) return null
+    return neodeskLink(win.location, shown.name)
+  })
+  const hint = ref(false)
+  let stop = null
+  function close() {
+    hint.value = false
+    win.removeEventListener('blur', close)
+  }
+  function never() {
+    hideHint(browserStorage(win))
+    close()
+  }
+  // No step before the address: a browser starts another program only within the click that asked.
+  function open() {
+    const address = link.value
+    if (!address) return
+    close()
+    stop?.()
+    stop = tryNeodesk(address, {
+      win,
+      doc,
+      onNothing: () => {
+        if (hintHidden(browserStorage(win))) return
+        hint.value = true
+        // Neodesk may still come, once the person answered the browser's question about the link: the hint then goes.
+        win.addEventListener('blur', close)
+      },
+    })
+  }
+  onScopeDispose(() => {
+    stop?.()
+    close()
+  })
+  return { link, hint, open, close, never }
 }
