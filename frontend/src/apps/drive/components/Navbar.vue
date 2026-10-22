@@ -17,6 +17,34 @@
 
       <LucideStar v-if="rootEntity?.is_favourite" width="16" height="16"
         class="my-auto text-ink-amber-6 stroke-current fill-current" />
+      <!-- //// Neoffice — « Ouvrir dans Neodesk » (utils/openInNeodesk.js): this file in the editor window of Neodesk, the
+           desktop app, where it is (no copy). Upstream has no desktop app. The address is tried within the click; when
+           nothing seemed to take it, a quiet « Nothing opened? » offers the download, or never again in this browser. -->
+      <div v-if="neodesk" class="relative flex items-center">
+        <Button variant="ghost" :label="__('Open in Neodesk')" @click="openInNeodesk">
+          <template #prefix>
+            <LucideMonitorUp class="size-4" />
+          </template>
+        </Button>
+        <div v-if="neodeskHint" role="status"
+          class="absolute right-0 top-full z-30 mt-2 w-72 rounded-md border border-outline-gray-2 bg-surface-modal p-3 text-p-sm text-ink-gray-7 shadow-xl">
+          <div class="flex items-start justify-between gap-2">
+            <p class="font-medium text-ink-gray-9">{{ __('Nothing opened?') }}</p>
+            <button type="button" class="text-ink-gray-5 hover:text-ink-gray-8" :aria-label="__('Close')"
+              @click="closeNeodeskHint">
+              <LucideX class="size-4" />
+            </button>
+          </div>
+          <p class="mt-1">{{ __('Neodesk may not be installed on this computer, or not up to date.') }}</p>
+          <div class="mt-3 flex items-center gap-3">
+            <a :href="NEODESK_DOWNLOAD_URL" target="_blank" rel="noopener noreferrer"
+              class="font-medium text-ink-gray-9 underline" @click="closeNeodeskHint">{{ __('Install Neodesk') }}</a>
+            <button type="button" class="text-ink-gray-6 hover:text-ink-gray-8" @click="neverShowNeodeskHint">
+              {{ __("Don't show again") }}
+            </button>
+          </div>
+        </div>
+      </div>
       <template v-if="!isLoggedIn && !inIframe">
         <Button variant="outline" @click="redirectLogin">Sign In</Button>
         <Button class="hidden md:block" variant="solid" label="Try out Drive"
@@ -68,7 +96,22 @@ import { startRename } from '@/apps/drive/data/selection'
 const { systemUser } = useCurrentUser()
 import emitter from '@/apps/drive/emitter'
 import { useEmitter } from '@/apps/drive/utils/useEmitter'
-import { ref, computed, inject, h } from 'vue'
+//// Neoffice — watch and onBeforeUnmount for « Ouvrir dans Neodesk » (below).
+import { ref, computed, inject, h, watch, onBeforeUnmount } from 'vue'
+//// Neoffice — « Ouvrir dans Neodesk » (utils/openInNeodesk.js).
+import { createResource } from 'frappe-ui'
+import {
+  NEODESK_DOWNLOAD_URL,
+  editorInstalledFor,
+  hideHint,
+  hintHidden,
+  isDesktopBrowser,
+  neodeskLink,
+  opensInNeodesk,
+  tryNeodesk,
+} from '@/apps/drive/utils/openInNeodesk'
+import LucideMonitorUp from '~icons/lucide/monitor-up'
+import LucideX from '~icons/lucide/x'
 import { entitiesDownload } from '@/apps/drive/utils/download'
 import { getRecents, getTrash, getFavourites, toggleFav, rootInfo } from '@/apps/drive/resources/files'
 import { apps } from '@/apps/drive/resources/permissions'
@@ -217,6 +260,13 @@ const defaultActions = computed(() => {
           icon: LucideMonitorCog,
           onClick: () => window.open('/desk/file/' + rootEntity.value.name, '_blank'),
           isEnabled: () => systemUser.value,
+        },
+        //// Neoffice — the same « Ouvrir dans Neodesk » as the bar's button, named in full: « Desk » above is the ERP.
+        {
+          label: __('Open in Neodesk'),
+          icon: LucideMonitorUp,
+          onClick: openInNeodesk,
+          isEnabled: () => Boolean(neodesk.value),
         },
         {
           label: __('Go to original'),
@@ -429,6 +479,66 @@ const newEntityOptions = computed(() => [
 ])
 
 const inIframe = inject('inIframe')
+
+//// Neoffice — « Ouvrir dans Neodesk » (utils/openInNeodesk.js). Offered on a file's own page, to a person signed in, on
+//// a computer's browser, for a type Neodesk opens where it is and whose editor this site has (Neodesk asks the site
+//// for its editing session, which the site gives only then). The page is not framed (an iframe of another app).
+const installedEditors = createResource({
+  url: 'suite.drive.wopi.craft.get_installed_editors',
+  cache: 'neoffice-craft-installed-editors',
+})
+watch(
+  () => route.name === 'drive-File' && isLoggedIn.value && !inIframe,
+  (asked) => {
+    if (asked && !installedEditors.data && !installedEditors.loading) installedEditors.fetch()
+  },
+  { immediate: true },
+)
+const neodesk = computed(() => {
+  const entity = rootEntity.value
+  if (route.name !== 'drive-File' || !isLoggedIn.value || inIframe || !entity) return null
+  if (!opensInNeodesk(entity) || !isDesktopBrowser(window.navigator)) return null
+  if (!editorInstalledFor(entity, installedEditors.data)) return null
+  return neodeskLink(window.location, entity.name)
+})
+const neodeskHint = ref(false)
+let stopNeodesk = null
+// The browser's storage, when it lets the page read it at all (a private window may not).
+const browserStorage = () => {
+  try {
+    return window.localStorage
+  } catch {
+    return null
+  }
+}
+function closeNeodeskHint() {
+  neodeskHint.value = false
+  window.removeEventListener('blur', closeNeodeskHint)
+}
+function neverShowNeodeskHint() {
+  hideHint(browserStorage())
+  closeNeodeskHint()
+}
+// No step before the address: a browser starts another program only within the click that asked.
+function openInNeodesk() {
+  const link = neodesk.value
+  if (!link) return
+  closeNeodeskHint()
+  stopNeodesk?.()
+  stopNeodesk = tryNeodesk(link, {
+    onNothing: () => {
+      if (hintHidden(browserStorage())) return
+      neodeskHint.value = true
+      // Neodesk may still come, once the person answered the browser's question about the link: the hint then goes.
+      window.addEventListener('blur', closeNeodeskHint)
+    },
+  })
+}
+onBeforeUnmount(() => {
+  stopNeodesk?.()
+  closeNeodeskHint()
+})
+
 const redirectLogin = () => {
   window.location.href =
     '/login?redirect-to=' + encodeURIComponent('/drive' + route.path)
