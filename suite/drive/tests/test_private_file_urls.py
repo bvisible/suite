@@ -201,3 +201,17 @@ class TestThePrivateFileCheckReadsUrlsAsTheDriveDoes(IntegrationTestCase):
                     frappe.client.set_value("File", self.mine.name, {"folder": kept.name, "file_url": url})
                 frappe.db.rollback()
                 self.assertEqual(self.served(), b"the other's note")
+
+    def test_an_empty_place_is_taken_in_one_spelling_only(self):
+        # a row of one's own pointed in advance at a place nobody names yet, in a spelling no row is written with, would
+        # escape the look for that place among the urls on record (FileManager.named_by_another_row)
+        folder_key = storage_key(self.folders[0].file_url).rstrip("/")
+        for url in (
+            f"//{folder_key}/later.pdf",
+            f"./{folder_key}/later.pdf",
+            f"{folder_key}/./later.pdf",
+            get_s3_url(f"{folder_key}/later.pdf"),
+        ):
+            self.assert_refused(url)
+        self.point_my_row_at(f"/{folder_key}/later.pdf")
+        frappe.db.rollback()

@@ -426,6 +426,36 @@ class FileManager:
         """Whether `entity`'s file_url is the key of its place in the trash (get_trash_url)."""
         return bool(entity.file_url) and Path(storage_key(entity.file_url)) == self.__get_trash_path(entity)
 
+    def named_by_another_row(self, key: str | Path, entity: str | None) -> bool:
+        """Whether a row other than `entity` (or one below it) names the place `key`, or a place under it, in either
+        spelling a row is written with ("private/files/…", "/private/files/…", a folder's with its trailing slash)."""
+        key = Path(storage_key(key)).as_posix()
+
+        def under(spelling):
+            # what lies below it, the LIKE wildcards of a name taken literally
+            return spelling.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "/%"
+
+        rows = frappe.db.sql(
+            """SELECT `name` FROM `tabFile` WHERE `file_url` IN %(exact)s
+            OR `file_url` LIKE %(under)s OR `file_url` LIKE %(under_slash)s""",
+            {
+                "exact": (key, "/" + key, key + "/", "/" + key + "/"),
+                "under": under(key),
+                "under_slash": under("/" + key),
+            },
+            pluck=True,
+        )
+        others = set(rows) - {entity}
+        if not others or not entity:
+            return bool(others)
+        # rows below `entity` are its own, not others: a trashed folder's files from before the patch still name its old place
+        mine, level = set(), [entity]
+        while level:
+            level = frappe.get_all("File", filters={"folder": ("in", level)}, pluck="name")
+            level = [name for name in level if name not in mine]
+            mine.update(level)
+        return bool(others - mine)
+
     def in_trash(self, url) -> bool:
         """Whether a file_url or storage key is in the trash: a row's own place there, or what lies under a trashed
         folder's."""
@@ -488,8 +518,12 @@ class FileManager:
         Restore a file from the trash.
         """
         # //// Neoffice — `destination` added (maintenance#1820): a trashed row's file_url is its place in the trash now
-        # //// (get_trash_url), so the caller names the place in the tree it goes back to. Without it, as upstream.
-        self.move(frappe._dict(file_url=self.__get_trash_path(entity)), destination or entity.file_url)
+        # //// (get_trash_url), so the caller names the place in the tree it goes back to. Without it, as upstream. The
+        # //// row's name goes along: move() checks that no other row names the place.
+        self.move(
+            frappe._dict(name=entity.name, file_url=self.__get_trash_path(entity)),
+            destination or entity.file_url,
+        )
 
     @_not_if_flat
     def move(self, entity, new_path: str | Path):
@@ -520,10 +554,15 @@ class FileManager:
                 if dest_path != cur_path and (dest_path.exists() or dest_path.is_symlink()):
                     raise FileExistsError(dest_path)
                 # //// Neoffice — nor into the trash (maintenance#1820): a place there is a trashed row's own, which no
-                # //// move gives (move_to_trash does). Moving into a trashed folder, or renaming inside one, would leave
-                # //// the bytes where no save may name them (File.validate_private_file_access).
-                if self.in_trash(dest_key):
+                # //// move gives (move_to_trash does). Moving into a trashed folder would leave the bytes where no save
+                # //// may name them (File.validate_private_file_access); a rename in place inside one stays.
+                if self.in_trash(dest_key) and Path(dest_key).parent != Path(src_key).parent:
                     raise IsADirectoryError(dest_path)
+                # //// Neoffice — nor onto a place another row names (maintenance#1821), even with nothing there yet: the
+                # //// bytes move before the row is saved, and frappe's check, refusing that save, rolled back the rows
+                # //// only. A colleague whose own row had been pointed at the empty place in advance then read them.
+                if dest_path != cur_path and self.named_by_another_row(dest_key, entity.get("name")):
+                    raise FileExistsError(dest_path)
                 if cur_path.is_dir():
                     shutil.move(cur_path, dest_path)
                 else:
@@ -531,7 +570,7 @@ class FileManager:
         except FileExistsError:
             frappe.throw(frappe._("A file is already there"), frappe.ValidationError)
         except IsADirectoryError:
-            frappe.throw(frappe._("Restore this file from the trash first"), frappe.ValidationError)
+            frappe.throw(frappe._("This folder is in the trash"), frappe.ValidationError)
         except BaseException:
             frappe.throw("This file doesn't exist on disk.")
         return new_path

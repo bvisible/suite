@@ -81,6 +81,10 @@ def upload_file(
 
     if not user_has_permission(parent, "upload"):
         frappe.throw("Ask the folder owner for upload access.", frappe.PermissionError)
+    # //// Neoffice — a folder in the trash takes no file (maintenance#1820): the file's place would be inside the trashed
+    # //// folder's, which the private-file check refuses after the upload, with a message about permissions.
+    if frappe.db.get_value("File", parent, "status") != STATUS_ACTIVE:
+        frappe.throw(frappe._("This folder is in the trash"), frappe.ValidationError)
 
     if fullpath:
         parent = ensure_path(fullpath, parent)
@@ -776,8 +780,31 @@ def remove_or_restore(entity_names: list[str] | str):
     manager = FileManager()
     locked_owners = set()
 
-    for entity in entity_names:
-        toggle_entity_status(frappe.get_doc("File", entity), manager, locked_owners)
+    # //// Neoffice — what toggle_entity_status refuses for a restore is refused here first, for all of them, before any
+    # //// byte moves (maintenance#1820): a refusal half-way rolled back the rows of the ones already restored, whose
+    # //// bytes stayed in the tree, and those could not be restored again.
+    # A folder restored with its files goes first.
+    docs = [frappe.get_doc("File", entity) for entity in entity_names]
+    restoring = {doc.name: doc for doc in docs if doc.status != STATUS_ACTIVE}
+
+    def depth(doc):
+        level, folder = 0, doc.folder
+        while folder in restoring and level < len(restoring):
+            level, folder = level + 1, restoring[folder].folder
+        return level
+
+    for doc in restoring.values():
+        parent = doc.folder
+        if (
+            parent
+            and parent not in restoring
+            and frappe.db.get_value("File", parent, "status") != STATUS_ACTIVE
+        ):
+            frappe.throw(frappe._("Restore its folder from the trash first"), frappe.ValidationError)
+    docs.sort(key=lambda doc: depth(doc) if doc.name in restoring else 0)
+
+    for doc in docs:
+        toggle_entity_status(doc, manager, locked_owners)
 
 
 def toggle_entity_status(doc, manager: FileManager, locked_owners: set):
@@ -821,10 +848,15 @@ def toggle_entity_status(doc, manager: FileManager, locked_owners: set):
         # //// trash (maintenance#1820) needs one too.
         if in_tree and (renamed or manager.holds_trash_url(doc)):
             new_url = str(manager.get_disk_path(doc)) + ("/" if doc.is_folder else "")
-        # //// Neoffice — never onto bytes already there (maintenance#1820): the place can hold a file that no Active row
-        # //// names, as a framework upload written at the url an adopted file kept while it was in the trash. Upstream
-        # //// moved the trashed bytes over it. The row takes a free place in its folder instead.
-        if in_tree and manager.get_local_path(new_url or doc.file_url).exists():
+        # //// Neoffice — its folder first: a file restored into a folder still in the trash would get a place inside the
+        # //// trashed folder's, which no save may name (File.validate_private_file_access).
+        if in_tree and manager.in_trash(new_url or doc.file_url) and not manager.holds_trash_url(doc):
+            frappe.throw(frappe._("Restore its folder from the trash first"), frappe.ValidationError)
+        # //// Neoffice — never onto a place taken (maintenance#1820, #1821): bytes already there that no Active row names,
+        # //// as a framework upload written at the url an adopted file kept while it was in the trash (upstream moved the
+        # //// trashed bytes over it), or a place another row names with nothing there yet (one pointed at it in advance
+        # //// would have read the bytes). The row takes a free place in its folder instead.
+        if in_tree and _place_taken(new_url or doc.file_url, doc, manager):
             new_url = _free_place_in_folder(doc, manager)
         manager.restore(doc, new_url)
         flag = STATUS_ACTIVE
@@ -844,17 +876,23 @@ def toggle_entity_status(doc, manager: FileManager, locked_owners: set):
         repoint_descendants(doc.name, old_url, new_url)
 
 
+# //// Neoffice — added (maintenance#1820, #1821, toggle_entity_status): whether the place `url` holds bytes or is named by
+# //// a row other than `doc`.
+def _place_taken(url: str, doc, manager: FileManager) -> bool:
+    return manager.get_local_path(url).exists() or manager.named_by_another_row(url, doc.name)
+
+
 # //// Neoffice — added (maintenance#1820, toggle_entity_status): a name of `doc`'s folder that no Active row holds and
-# //// whose place on the disk is empty: `title (n).ext`, the first n that is free.
+# //// whose place is free (_place_taken): its own name, else `title (n).ext`, the first n that is.
 def _free_place_in_folder(doc, manager: FileManager) -> str:
     title, extension = os.path.splitext(doc.file_name)
-    for number in range(1, 10_000):
-        candidate = f"{title} ({number}){extension}"
+    for number in range(10_000):
+        candidate = f"{title} ({number}){extension}" if number else doc.file_name
         if get_new_file_name(candidate, doc.folder, doc.file_type, doc.name) != candidate:
             continue
         doc.file_name = candidate
         url = str(manager.get_disk_path(doc)) + ("/" if doc.is_folder else "")
-        if not manager.get_local_path(url).exists():
+        if not _place_taken(url, doc, manager):
             doc.flags.drive_disk_rename = True
             return url
     frappe.throw(frappe._("No free name in this folder"), frappe.ValidationError)

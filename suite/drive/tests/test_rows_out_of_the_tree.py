@@ -51,6 +51,7 @@ class TestRowsOutOfTheTreeGiveUpTheirUrl(IntegrationTestCase):
         frappe.db.commit()
 
     def setUp(self):
+        self.planted = []
         self.manager = manager = FileManager()
         if manager.flat:
             self.skipTest("only the tree layout gives a row its place by its folder and its name")
@@ -88,6 +89,8 @@ class TestRowsOutOfTheTreeGiveUpTheirUrl(IntegrationTestCase):
         directory = self.manager.get_local_path(self.folder.file_url)
         if directory.is_dir() and self.folder.file_name in str(directory):
             shutil.rmtree(directory)
+        for path in self.planted:
+            path.unlink(missing_ok=True)
         frappe.db.delete("Drive Permission", {"entity": ("in", names)})
         frappe.db.delete("File", {"name": ("in", names)})
         frappe.db.commit()
@@ -407,30 +410,132 @@ class TestRowsOutOfTheTreeGiveUpTheirUrl(IntegrationTestCase):
             orphan.unlink(missing_ok=True)
 
     def test_a_restore_onto_bytes_already_there_takes_a_free_place(self):
-        # a row that keeps its url while trashed (an adopted framework upload), whose place a framework file took
-        kept_url = "/" + str(self.tree_path("adopted.pdf"))
+        # an adopted framework upload keeps frappe's url (/private/files/<name>) while trashed; a framework upload of that
+        # name, made meanwhile, wrote its bytes there: upstream's restore moved the trashed bytes over them
+        file_name = f"{self.folder.file_name}-adopted.pdf"
+        kept_url = f"/private/files/{file_name}"
+        kept = self.manager.site_folder / storage_key(kept_url)
+        self.planted.append(kept)
         with self.set_user(OWNER):
-            adopted = create_drive_file(
-                "Adopted.pdf", self.folder.name, "PDF", kept_url, "application/pdf", 8
-            )
-        (self.manager.site_folder / storage_key(kept_url)).write_bytes(b"adopted")
+            adopted = create_drive_file(file_name, self.folder.name, "PDF", kept_url, "application/pdf", 7)
+        kept.write_bytes(b"adopted")
         frappe.db.commit()
         with self.set_user(OWNER):
             remove_or_restore([adopted.name])
         frappe.db.commit()
         self.assertEqual(frappe.db.get_value("File", adopted.name, "file_url"), kept_url)
-        newcomer = self.manager.site_folder / storage_key(kept_url)
-        newcomer.write_bytes(b"the newcomer's")
+        self.assertFalse(kept.exists())
+        kept.write_bytes(b"the newcomer's")
 
         with self.set_user(OWNER):
             remove_or_restore([adopted.name])
         frappe.db.commit()
 
         restored = frappe.get_doc("File", adopted.name)
-        self.assertEqual((restored.status, restored.file_name), (STATUS_ACTIVE, "Adopted (1).pdf"))
+        self.assertEqual((restored.status, restored.file_name), (STATUS_ACTIVE, file_name))
+        self.assertEqual(Path(storage_key(restored.file_url)), self.tree_path(file_name))
         self.assertEqual(self.content(adopted.name), b"adopted")
-        self.assertEqual(newcomer.read_bytes(), b"the newcomer's")
-        newcomer.unlink()
+        self.assertEqual(kept.read_bytes(), b"the newcomer's")
+
+    def test_a_place_pointed_at_in_advance_does_not_receive_a_restored_file(self):
+        # once the trashed row gave up its url, a colleague points a row of their own at that empty place; upstream's
+        # order (bytes first, row after) put the owner's bytes under the colleague's row when the restore was refused
+        mine = self.upload(OWNER, b"the owner's contract", "contrat.pdf")
+        place = Path(storage_key(mine.file_url))
+        theirs = self.upload(COLLEAGUE, b"the colleague's note", "note.txt")
+        with self.set_user(OWNER):
+            remove_or_restore([mine.name])
+        frappe.db.commit()
+        with self.set_user(COLLEAGUE):
+            frappe.client.set_value("File", theirs.name, "file_url", "/" + place.as_posix())
+        frappe.db.commit()
+
+        with self.set_user(OWNER):
+            remove_or_restore([mine.name])
+        frappe.db.commit()
+
+        restored = frappe.get_doc("File", mine.name)
+        self.assertEqual((restored.status, restored.file_name), (STATUS_ACTIVE, "contrat (1).pdf"))
+        self.assertEqual(self.content(mine.name), b"the owner's contract")
+        self.assertFalse((self.manager.site_folder / place).exists())
+        with self.assertRaises(frappe.DoesNotExistError):
+            self.content(theirs.name)
+
+    def test_a_move_onto_a_place_another_row_names_is_refused_before_the_bytes_move(self):
+        mine = self.upload(OWNER, b"the owner's", "here.pdf")
+        theirs = self.upload(COLLEAGUE, b"the colleague's note", "note.txt")
+        target = self.tree_path("there.pdf")
+        with self.set_user(COLLEAGUE):
+            frappe.client.set_value("File", theirs.name, "file_url", "/" + target.as_posix())
+        frappe.db.commit()
+
+        with self.set_user(OWNER), self.assertRaisesRegex(frappe.ValidationError, "A file is already there"):
+            frappe.get_doc("File", mine.name).rename("there.pdf")
+        frappe.db.rollback()
+
+        self.assertEqual(self.content(mine.name), b"the owner's")
+        self.assertFalse((self.manager.site_folder / target).exists())
+
+    def test_a_file_restored_while_its_folder_is_in_the_trash_is_refused_before_anything_moves(self):
+        projects = self.make_folder(OWNER, "Projets")
+        inside = self.upload(OWNER, b"the plan", "plan.pdf", parent=projects.name)
+        with self.set_user(OWNER):
+            remove_or_restore([inside.name])
+            remove_or_restore([projects.name])
+        frappe.db.commit()
+
+        with self.set_user(OWNER), self.assertRaisesRegex(frappe.ValidationError, "Restore its folder"):
+            remove_or_restore([inside.name])
+        frappe.db.rollback()
+        trashed = frappe.get_doc("File", inside.name)
+        self.assertEqual(trashed.status, STATUS_TRASHED)
+        self.assertEqual(self.content(inside.name), b"the plan")
+
+        # both at once, the file first in the list: the folder is restored first
+        with self.set_user(OWNER):
+            remove_or_restore([inside.name, projects.name])
+        frappe.db.commit()
+        self.assertEqual(frappe.db.get_value("File", projects.name, "status"), STATUS_ACTIVE)
+        self.assertEqual(
+            Path(storage_key(frappe.db.get_value("File", inside.name, "file_url"))),
+            self.tree_path("plan.pdf", projects),
+        )
+        self.assertEqual(self.content(inside.name), b"the plan")
+
+    def test_a_file_renamed_inside_a_trashed_folder_comes_back_with_its_bytes(self):
+        projects = self.make_folder(OWNER, "Projets")
+        inside = self.upload(OWNER, b"the plan", "ancien.pdf", parent=projects.name)
+        with self.set_user(OWNER):
+            remove_or_restore([projects.name])
+        frappe.db.commit()
+
+        with self.set_user(OWNER):
+            frappe.get_doc("File", inside.name).rename("nouveau.pdf")
+        frappe.db.commit()
+        renamed = frappe.get_doc("File", inside.name)
+        self.assertEqual(Path(storage_key(renamed.file_url)).name, "nouveau.pdf")
+        self.assertEqual(self.content(inside.name), b"the plan")
+
+        # then trashed itself, the folder restored, and the file restored
+        with self.set_user(OWNER):
+            remove_or_restore([inside.name])
+            remove_or_restore([projects.name])
+            remove_or_restore([inside.name])
+        frappe.db.commit()
+        self.assertEqual(
+            Path(storage_key(frappe.db.get_value("File", inside.name, "file_url"))),
+            self.tree_path("nouveau.pdf", projects),
+        )
+        self.assertEqual(self.content(inside.name), b"the plan")
+
+    def test_nothing_is_dropped_into_a_trashed_folder(self):
+        projects = self.make_folder(OWNER, "Projets")
+        with self.set_user(OWNER):
+            remove_or_restore([projects.name])
+        frappe.db.commit()
+
+        with self.assertRaisesRegex(frappe.ValidationError, "This folder is in the trash"):
+            self.upload(COLLEAGUE, b"late", "late.pdf", parent=projects.name)
 
     def test_a_trashed_file_is_not_moved_and_a_rename_keeps_its_bytes_in_the_trash(self):
         mine = self.upload(OWNER, b"mine", "old-name.pdf")
@@ -466,7 +571,10 @@ class TestRowsOutOfTheTreeGiveUpTheirUrl(IntegrationTestCase):
             remove_or_restore([projects.name])
         frappe.db.commit()
 
-        with self.set_user(OWNER), self.assertRaisesRegex(frappe.ValidationError, "Restore this file"):
+        with (
+            self.set_user(OWNER),
+            self.assertRaisesRegex(frappe.ValidationError, "This folder is in the trash"),
+        ):
             frappe.get_doc("File", loose.name).move(projects.name)
         frappe.db.rollback()
         self.assertEqual(self.content(loose.name), b"loose")

@@ -1,6 +1,7 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+import posixpath
 import shutil
 from pathlib import Path
 
@@ -36,7 +37,15 @@ from suite.drive.utils import (
     update_file_size,
     validate_filename,
 )
-from suite.drive.utils.files import S3_URL_PREFIX, TRASH_PREFIX, FileManager, get_s3_url, storage_key
+from suite.drive.utils.files import (
+    S3_URL_PREFIX,
+    TRASH_PREFIX,
+    FileManager,
+    escape_component,
+    get_s3_url,
+    repoint_descendants,
+    storage_key,
+)
 
 
 # //// Neoffice — added (maintenance#1821, File._url_read_from_disk): the url frappe's check understands of the file a
@@ -258,14 +267,35 @@ class File(FrappeFile):
         if not local_url or not local_url.startswith("/private/files/"):
             return
         key = Path("private/files") / local_url[len("/private/files/") :]
+        # one place, one spelling: a url the Drive reads in the private folder is "private/files/<path>" or
+        # "/private/files/<path>" (a folder's with its trailing slash), nothing else. The Drive only writes those, and
+        # a check that looks for a place among the urls on record (FileManager.move) finds every row naming it.
         manager = self.manager
+        written = self.file_url[:-1] if self.file_url.endswith("/") else self.file_url
+        plain = storage_key(written)
+        if not manager.s3_enabled and (
+            written not in (plain, "/" + plain)
+            or not plain.startswith("private/files/")
+            or posixpath.normpath(plain) != plain
+        ):
+            frappe.throw(_("You don't have permission to access this file"), frappe.PermissionError)
         root = Path(storage_key(manager.get_root_storage_key()))
         trash = root / TRASH_PREFIX
         if key.is_relative_to(trash):
-            # its own place only: what lies under a trashed folder's place keeps its url through the Drive's own
-            # writes (repoint_descendants), never through a save, and a row's `folder` is whatever its writer set
+            # its own place, or a rename in place inside a trashed folder's (from a url there it already held, to its
+            # own name): what lies under a trashed folder's place is put there by the Drive (repoint_descendants), never
+            # by a save, and a row's `folder` is whatever its writer set
             place = key.relative_to(trash).parts
             if place and place[0] == self.name and len(place) == 1:
+                return
+            before = self.get_doc_before_save()
+            if (
+                before
+                and before.file_url
+                and manager.in_trash(before.file_url)
+                and Path(storage_key(before.file_url)).parent == key.parent
+                and key.name == escape_component(self.file_name)
+            ):
                 return
         else:
             from suite.drive.webdav.put import _PENDING_SWAP_PREFIX
@@ -468,9 +498,17 @@ class File(FrappeFile):
             # folder keys carry a trailing slash, the way create_folder writes them
             new_path = str(self.manager.get_disk_path(self)) + ("/" if self.is_folder else "")
             self.manager.move(self, new_path)
-            self.recursive_path_move(self.file_url, new_path)
+            # //// Neoffice — the folder's files follow by their url only (repoint_descendants, maintenance#1820):
+            # //// upstream saved each one (recursive_path_move) after the directory had moved, and a large folder
+            # //// outlasted the request, whose rollback left the rows on the old urls. The place they go to was
+            # //// checked free of other rows before the move (FileManager.move).
+            old_url = self.file_url
             self.file_url = new_path
-        self.save()
+            self.save()
+            if self.is_folder:
+                repoint_descendants(self.name, old_url, new_path)
+        else:
+            self.save()
 
         return frappe.get_value("File", new_parent, ["file_name", "name", "folder"], as_dict=True)
 
@@ -509,10 +547,11 @@ class File(FrappeFile):
         self.flags.drive_disk_rename = True
         self.file_name = new_file_name
         # Flat storage keys by id, so a name has no bearing on any path.
-        # //// Neoffice — nor for a row in the trash (maintenance#1820), trashed itself or in a trashed folder: its bytes
-        # //// stay where they are, which no save may name again (validate_private_file_access); a restore gives it the
-        # //// place of its new name.
-        if not self.manager.flat and not self.manager.in_trash(self.file_url):
+        # //// Neoffice — nor for a row out of the tree (maintenance#1820): a trashed row's bytes are in its own place in
+        # //// the trash, keyed by its id, and an adopted upload's url may since name a newer file; a restore gives it
+        # //// the place of its new name. A file inside a trashed folder is renamed in place there, as upstream.
+        old_url = new_url = None
+        if not self.manager.flat and self.status == STATUS_ACTIVE:
             path = self.manager.rename(self)
             if self.file_url and not self._not_in_disk():
                 # //// Neoffice (v15) — the storage key came back as a pathlib.Path and went into file_url as one.
@@ -520,9 +559,13 @@ class File(FrappeFile):
                 # //// had moved, so the row kept its old url while the file was under the new name — every later
                 # //// read, rename or trash failed with "This file doesn't exist on disk". Stored as a string, a
                 # //// folder's with its trailing slash, the way move() stores it.
-                self.recursive_path_move(self.file_url, f"{path}/" if self.is_folder else str(path))
+                # //// Neoffice — the folder's files follow by their url only (repoint_descendants), see move().
+                old_url, new_url = self.file_url, f"{path}/" if self.is_folder else str(path)
+                self.file_url = new_url
 
         self.save()
+        if self.is_folder and new_url and new_url != old_url:
+            repoint_descendants(self.name, old_url, new_url)
 
     def permanent_delete(self):
         write_access = user_has_permission(self, "write")
