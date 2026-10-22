@@ -246,8 +246,8 @@ class File(FrappeFile):
     # //// for their swap, the folder downloads. A row of one's own pointed at a colleague's thumbnail, and the Drive served
     # //// it. Such a url is refused, the way frappe refuses (same message). In the trash, the places are named by the
     # //// trashed rows and the files of their folders (FileManager.get_trash_url, maintenance#1820), but bytes whose row
-    # //// went another way may stay there: only this row's own place and what lies under one of its folders' are let
-    # //// through. Administrator passes, as in frappe's check.
+    # //// went another way may stay there, and an adopted framework upload keeps its url while its bytes are there:
+    # //// only a save of this row's own place is let through. Administrator passes, as in frappe's check.
     def validate_private_file_access(self):
         super().validate_private_file_access()
         if frappe.session.user == "Administrator" or not self.file_url:
@@ -262,8 +262,10 @@ class File(FrappeFile):
         root = Path(storage_key(manager.get_root_storage_key()))
         trash = root / TRASH_PREFIX
         if key.is_relative_to(trash):
+            # its own place only: what lies under a trashed folder's place keeps its url through the Drive's own
+            # writes (repoint_descendants), never through a save, and a row's `folder` is whatever its writer set
             place = key.relative_to(trash).parts
-            if place and place[0] in self._self_and_folders():
+            if place and place[0] == self.name and len(place) == 1:
                 return
         else:
             from suite.drive.webdav.put import _PENDING_SWAP_PREFIX
@@ -280,14 +282,6 @@ class File(FrappeFile):
             if not any(key.is_relative_to(folder) for folder in own_folders):
                 return
         frappe.throw(_("You don't have permission to access this file"), frappe.PermissionError)
-
-    def _self_and_folders(self) -> set:
-        """This row's name and the names of the folders above it."""
-        names, folder = {self.name}, self.folder
-        while folder and folder not in names:
-            names.add(folder)
-            folder = frappe.db.get_value("File", folder, "folder")
-        return names
 
     # Drive methods
     def _update_modified(func):
@@ -418,6 +412,10 @@ class File(FrappeFile):
         # row still pointed at the source (see webdav/put.py). Lock order
         # stays globally consistent: row first, folder rollups after.
         frappe.db.get_value("File", self.name, "name", for_update=True)
+        # //// Neoffice — a row out of the tree is not moved (maintenance#1820): its bytes are in its place in the trash,
+        # //// and a move would carry them into the tree while the row stays trashed. Restored first, it moves as any.
+        if self.status != STATUS_ACTIVE:
+            frappe.throw(frappe._("Restore this file from the trash first"), frappe.ValidationError)
         new_parent = new_parent or get_user_folder().name
 
         if new_parent == self.name:
@@ -511,7 +509,10 @@ class File(FrappeFile):
         self.flags.drive_disk_rename = True
         self.file_name = new_file_name
         # Flat storage keys by id, so a name has no bearing on any path.
-        if not self.manager.flat:
+        # //// Neoffice — nor for a row in the trash (maintenance#1820), trashed itself or in a trashed folder: its bytes
+        # //// stay where they are, which no save may name again (validate_private_file_access); a restore gives it the
+        # //// place of its new name.
+        if not self.manager.flat and not self.manager.in_trash(self.file_url):
             path = self.manager.rename(self)
             if self.file_url and not self._not_in_disk():
                 # //// Neoffice (v15) — the storage key came back as a pathlib.Path and went into file_url as one.

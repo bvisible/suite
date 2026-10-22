@@ -722,36 +722,18 @@ def _site_time(epoch):
 
 
 def get_new_file_name(file_name: str, parent_name: str, type: str = False, entity: str | None = None):
-    entity_title, entity_ext = os.path.splitext(file_name)
-
-    filters = {
-        "status": STATUS_ACTIVE,
-        "folder": parent_name,
-        "file_name": ["like", f"{entity_title}%{entity_ext}"],
-    }
-
-    if type:
-        filters["file_type"] = type
-
-    # //// Neoffice — every entry of the folder, not only those the caller may list (maintenance#1820): upstream read them
-    # //// through the permission filters (frappe.db.get_list), which leave out a colleague's file in a shared folder,
-    # //// readable through the folder only (suite.drive.utils.overrides.filter_file). Its name was handed out again:
-    # //// a restore from the trash, a move or a rename then moved the bytes over the colleague's file. A sibling the
-    # //// caller cannot read still owns its path on the disk (taken_in_folder reads them the same way). The callers check
-    # //// the right to write there first; the one that answers a client, get_new_title, asks `upload` on the folder, as
-    # //// does_entity_exist, which already reads the folder unfiltered.
-    sibling_entity_titles = frappe.get_all(
-        "File",
-        filters=filters,
-        fields=["file_name", "name"],
-    )
-    if (
-        not sibling_entity_titles
-        or (sibling_entity_titles[0].name == entity)
-        or not any(k["file_name"] == file_name for k in sibling_entity_titles)
-    ):
+    # //// Neoffice — rewritten (maintenance#1820). The name handed out must be free on the disk, where a folder's entries
+    # //// share one namespace whatever they are and whoever may see them. Upstream looked through the permission filters
+    # //// (frappe.db.get_list), which leave out a colleague's file readable through a shared folder only; it counted
+    # //// only the entries of the type it was given (`type`: a file type, or a bool for folders that matched no row, so
+    # //// a folder moved next to one of its name was never renamed); and it numbered `title (n)` by how many names
+    # //// looked alike without checking that one was free. A restore, a move or a rename then landed on a taken name,
+    # //// and its bytes went over the other entry's. Now: the exact name, any Active entry of the folder (`entity`
+    # //// itself excepted), and the first free `title (n).ext` (free_file_name). `type` is kept for the callers.
+    taken = taken_in_folder(parent_name, file_name, locking=False)
+    if taken is None or taken.name == entity:
         return file_name
-    return f"{entity_title} ({len(sibling_entity_titles)}){entity_ext}"
+    return free_file_name(file_name, parent_name, locking=False)
 
 
 # //// Neoffice — added (no upstream equivalent): the names of a folder are given out one request at a time. Two requests

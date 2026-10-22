@@ -46,6 +46,7 @@ from suite.drive.utils.files import (
     content_disposition,
     get_s3_key,
     get_s3_url,
+    repoint_descendants,
     storage_key,
     stored_on_disk,
 )
@@ -795,12 +796,14 @@ def toggle_entity_status(doc, manager: FileManager, locked_owners: set):
         locked_owners.add(doc.owner)
     # //// Neoffice — the place the row takes, when it changes (maintenance#1820, FileManager.get_trash_url): a row that
     # //// leaves the tree gives up its url there, which the next file of its name in its folder takes, and goes back
-    # //// to a place in the tree when it is restored. Its folder's files follow it (recursive_path_move, below).
+    # //// to a place in the tree when it is restored. Its folder's files follow it (repoint_descendants, below). Only in
+    # //// the tree on the site's disk: flat storage keys every row by its id, and a site on S3 is flat.
     new_url = None
+    in_tree = not manager.flat and not manager.s3_enabled and not doc._not_in_disk()
     if doc.status == STATUS_ACTIVE:
         flag = STATUS_TRASHED
         # //// Neoffice — read before the move: an adopted framework upload or an embed keeps its url, as upstream
-        leaves_tree_url = not doc._not_in_disk() and manager.holds_tree_url(doc)
+        leaves_tree_url = in_tree and manager.holds_tree_url(doc)
         manager.move_to_trash(doc)
         if leaves_tree_url:
             new_url = manager.get_trash_url(doc)
@@ -816,8 +819,13 @@ def toggle_entity_status(doc, manager: FileManager, locked_owners: set):
             doc.file_name = available
         # //// Neoffice — upstream gave a place in the tree only to a renamed row; a row that holds its place in the
         # //// trash (maintenance#1820) needs one too.
-        if not manager.flat and not doc._not_in_disk() and (renamed or manager.holds_trash_url(doc)):
+        if in_tree and (renamed or manager.holds_trash_url(doc)):
             new_url = str(manager.get_disk_path(doc)) + ("/" if doc.is_folder else "")
+        # //// Neoffice — never onto bytes already there (maintenance#1820): the place can hold a file that no Active row
+        # //// names, as a framework upload written at the url an adopted file kept while it was in the trash. Upstream
+        # //// moved the trashed bytes over it. The row takes a free place in its folder instead.
+        if in_tree and manager.get_local_path(new_url or doc.file_url).exists():
+            new_url = _free_place_in_folder(doc, manager)
         manager.restore(doc, new_url)
         flag = STATUS_ACTIVE
 
@@ -826,13 +834,30 @@ def toggle_entity_status(doc, manager: FileManager, locked_owners: set):
     if doc.folder and doc.file_size:
         apply_file_size_delta(doc.folder, doc.file_size * (1 if flag == STATUS_ACTIVE else -1))
 
-    # //// Neoffice — a folder's files follow its url (recursive_path_move saves the row too). Upstream rewrote a renamed
-    # //// folder's url on restore without its files': they kept pointing at the place the newcomer had taken, at its
-    # //// files' bytes.
-    if new_url is not None and new_url != doc.file_url:
-        doc.recursive_path_move(doc.file_url, new_url)
-    else:
-        doc.save()
+    # //// Neoffice — a folder's files follow its url (repoint_descendants). Upstream rewrote a renamed folder's url on
+    # //// restore without its files': they kept pointing at the place the newcomer had taken, at its files' bytes.
+    old_url = doc.file_url
+    if new_url is not None and new_url != old_url:
+        doc.file_url = new_url
+    doc.save()
+    if new_url is not None and new_url != old_url and doc.is_folder:
+        repoint_descendants(doc.name, old_url, new_url)
+
+
+# //// Neoffice — added (maintenance#1820, toggle_entity_status): a name of `doc`'s folder that no Active row holds and
+# //// whose place on the disk is empty: `title (n).ext`, the first n that is free.
+def _free_place_in_folder(doc, manager: FileManager) -> str:
+    title, extension = os.path.splitext(doc.file_name)
+    for number in range(1, 10_000):
+        candidate = f"{title} ({number}){extension}"
+        if get_new_file_name(candidate, doc.folder, doc.file_type, doc.name) != candidate:
+            continue
+        doc.file_name = candidate
+        url = str(manager.get_disk_path(doc)) + ("/" if doc.is_folder else "")
+        if not manager.get_local_path(url).exists():
+            doc.flags.drive_disk_rename = True
+            return url
+    frappe.throw(frappe._("No free name in this folder"), frappe.ValidationError)
 
 
 @frappe.whitelist()

@@ -426,10 +426,16 @@ class FileManager:
         """Whether `entity`'s file_url is the key of its place in the trash (get_trash_url)."""
         return bool(entity.file_url) and Path(storage_key(entity.file_url)) == self.__get_trash_path(entity)
 
+    def in_trash(self, url) -> bool:
+        """Whether a file_url or storage key is in the trash: a row's own place there, or what lies under a trashed
+        folder's."""
+        trash = Path(storage_key(self.get_root_storage_key())) / TRASH_PREFIX
+        return bool(url) and Path(storage_key(url)).is_relative_to(trash)
+
     def holds_tree_url(self, entity) -> bool:
         """Whether `entity`'s file_url is its place in the tree: its folder's path and its name (get_disk_path). Not
         an adopted framework upload, which keeps the url frappe gave it, nor an embed, nor anything in flat storage."""
-        if self.flat or not entity.file_url:
+        if self.flat or self.s3_enabled or not entity.file_url:
             return False
         return Path(storage_key(entity.file_url)) == Path(self.get_disk_path(entity))
 
@@ -457,11 +463,17 @@ class FileManager:
                 self.conn.delete_object(Bucket=bucket, Key=storage_key(entity.file_url))
             else:
                 full_trash_path = self.site_folder / trash_path
+                cur_path = self.get_local_path(entity.file_url)
+                # //// Neoffice — bytes already in the trash with nothing left at the row's url are this row's own,
+                # //// moved by an attempt whose transaction was rolled back afterwards (a folder trashed while its
+                # //// request timed out): upstream deleted that directory first and found nothing to move, and the
+                # //// folder's files were gone. They stay where they are (maintenance#1820).
+                if full_trash_path.exists() and not cur_path.exists():
+                    return
                 if full_trash_path.exists() and full_trash_path.is_dir():
                     shutil.rmtree(full_trash_path)
 
                 full_trash_path.parent.mkdir(exist_ok=True)
-                cur_path = self.get_local_path(entity.file_url)
                 if cur_path.is_dir():
                     shutil.move(cur_path, full_trash_path)
                 else:
@@ -500,10 +512,26 @@ class FileManager:
             else:
                 cur_path = self.get_local_path(src_key)
                 dest_path = self.get_local_path(dest_key)
+                # //// Neoffice — a move never lands on something already there (maintenance#1820): a file was replaced
+                # //// (rename() overwrites) and a folder went inside the folder in place (shutil.move), while the rows
+                # //// kept the urls of the place: two rows on the same bytes, or bytes of a live row lost. That happened
+                # //// whenever the name handed out was taken (get_new_file_name), or the place held bytes that no Active
+                # //// row names (a framework file written at a trashed row's url).
+                if dest_path != cur_path and (dest_path.exists() or dest_path.is_symlink()):
+                    raise FileExistsError(dest_path)
+                # //// Neoffice — nor into the trash (maintenance#1820): a place there is a trashed row's own, which no
+                # //// move gives (move_to_trash does). Moving into a trashed folder, or renaming inside one, would leave
+                # //// the bytes where no save may name them (File.validate_private_file_access).
+                if self.in_trash(dest_key):
+                    raise IsADirectoryError(dest_path)
                 if cur_path.is_dir():
                     shutil.move(cur_path, dest_path)
                 else:
                     cur_path.rename(dest_path)
+        except FileExistsError:
+            frappe.throw(frappe._("A file is already there"), frappe.ValidationError)
+        except IsADirectoryError:
+            frappe.throw(frappe._("Restore this file from the trash first"), frappe.ValidationError)
         except BaseException:
             frappe.throw("This file doesn't exist on disk.")
         return new_path
@@ -577,6 +605,36 @@ class FileManager:
             shutil.rmtree(local_path)
         else:
             local_path.unlink(missing_ok=True)
+
+
+# //// Neoffice — added (maintenance#1820): the files of a folder that changed its place on the disk follow its url, row by
+# //// row, without moving any byte (the folder's directory carried them) and without the save of each: no Version row,
+# //// no hook, a few milliseconds a row, where saving each one of a large folder's files outlasted the request, whose
+# //// rollback then left the directory moved and the rows on their old urls. Each url only changes its prefix, `old`
+# //// for `new`: no url is made up here. Only the rows whose url is under `old` (an adopted framework upload or a link
+# //// keeps its own); a row out of the tree is left alone, since its bytes are in its own place in the trash.
+def repoint_descendants(folder: str, old: str | Path, new: str | Path) -> int:
+    """Moves the urls of the Active rows below `folder` from under `old` to under `new` (storage keys); returns how many
+    changed."""
+    old_key, new_key = Path(storage_key(old)), Path(storage_key(new))
+    moved = 0
+    for child in frappe.get_all(
+        "File", filters={"folder": folder, "status": STATUS_ACTIVE}, fields=["name", "file_url"]
+    ):
+        if not child.file_url:
+            continue
+        key = Path(storage_key(child.file_url))
+        if not key.is_relative_to(old_key):
+            continue
+        new_child_key = new_key / key.relative_to(old_key)
+        url = (
+            ("/" if child.file_url.startswith("/") else "")
+            + new_child_key.as_posix()
+            + ("/" if child.file_url.endswith("/") else "")
+        )
+        frappe.db.set_value("File", child.name, "file_url", url, update_modified=False)
+        moved += 1 + repoint_descendants(child.name, key, new_child_key)
+    return moved
 
 
 # Utils

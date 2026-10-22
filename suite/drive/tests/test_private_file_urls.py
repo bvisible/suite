@@ -181,3 +181,23 @@ class TestThePrivateFileCheckReadsUrlsAsTheDriveDoes(IntegrationTestCase):
         frappe.db.rollback()
         with self.set_user(OTHER), self.assertRaisesRegex(frappe.PermissionError, REFUSAL):
             create_drive_file("copy.webp", self.folders[1].name, "Image", str(key), "image/webp", 1)
+
+    def test_the_trash_place_of_another_row_is_refused_whatever_folder_the_row_claims(self):
+        # a row that keeps its url while trashed (an adopted framework upload): no row names its place in the trash
+        kept_url = "/" + str(Path(storage_key(self.folders[0].file_url)) / "kept.pdf")
+        with self.set_user(OWNER):
+            kept = create_drive_file("Kept.pdf", self.folders[0].name, "PDF", kept_url, "application/pdf", 8)
+        (self.manager.site_folder / storage_key(kept_url)).write_bytes(b"the owner's kept file")
+        frappe.db.commit()
+        with self.set_user(OWNER):
+            remove_or_restore([kept.name])
+        frappe.db.commit()
+        place = str(self.manager.get_trash_path(kept))
+        self.assertTrue((self.manager.site_folder / place).is_file())
+
+        for url in (place, "/" + place):
+            with self.subTest(url=url):
+                with self.set_user(OTHER), self.assertRaisesRegex(frappe.PermissionError, REFUSAL):
+                    frappe.client.set_value("File", self.mine.name, {"folder": kept.name, "file_url": url})
+                frappe.db.rollback()
+                self.assertEqual(self.served(), b"the other's note")

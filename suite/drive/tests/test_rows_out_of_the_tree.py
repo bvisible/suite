@@ -31,7 +31,7 @@ from suite.drive.utils import (
     create_drive_file,
     get_user_folder,
 )
-from suite.drive.utils.files import FileManager, storage_key
+from suite.drive.utils.files import FileManager, repoint_descendants, storage_key
 from suite.tests.utils import ensure_user
 
 OWNER = "drive-out-of-tree-owner@example.com"
@@ -333,7 +333,7 @@ class TestRowsOutOfTheTreeGiveUpTheirUrl(IntegrationTestCase):
         modified = frappe.db.get_value("File", gone.name, "modified")
         counts = release(only=list(legacy))
 
-        self.assertEqual(counts, {"trashed": 2, "removed": 1, "followed": 1})
+        self.assertEqual(counts, {"trashed": 2, "removed": 1, "followed": 1, "failed": 0})
         for name in (loose.name, projects.name, gone.name):
             row = frappe.get_doc("File", name)
             self.assertEqual(row.file_url, self.manager.get_trash_url(row), name)
@@ -346,7 +346,7 @@ class TestRowsOutOfTheTreeGiveUpTheirUrl(IntegrationTestCase):
         # the purge of a deleted row is timed by `modified`: left as it was
         self.assertEqual(frappe.db.get_value("File", gone.name, "modified"), modified)
         # once is enough
-        self.assertEqual(release(only=list(legacy)), {"trashed": 0, "removed": 0, "followed": 0})
+        self.assertEqual(release(only=list(legacy)), {"trashed": 0, "removed": 0, "followed": 0, "failed": 0})
         frappe.db.commit()
 
         theirs = self.upload(COLLEAGUE, b"the colleague's quote")
@@ -354,3 +354,164 @@ class TestRowsOutOfTheTreeGiveUpTheirUrl(IntegrationTestCase):
         with self.set_user(OWNER):
             remove_or_restore([projects.name])
         self.assertEqual(self.content(inside.name), b"the owner's plan")
+
+    def test_a_name_handed_out_is_free_even_when_numbers_were_skipped(self):
+        # upstream numbered « title (n) » by how many names looked alike: with « x.pdf » and « x (2).pdf » in the
+        # folder, the next « x.pdf » got « x (2).pdf », taken, and a move or a restore went over its bytes
+        first = self.upload(COLLEAGUE, b"first", "x.pdf")
+        second = self.upload(COLLEAGUE, b"second", "x (2).pdf")
+        elsewhere = self.make_folder(OWNER, "Ailleurs-x")
+        mine = self.upload(OWNER, b"mine", "x.pdf", parent=elsewhere.name)
+
+        with self.set_user(OWNER):
+            frappe.get_doc("File", mine.name).move(self.folder.name)
+        frappe.db.commit()
+
+        self.assertEqual(frappe.db.get_value("File", mine.name, "file_name"), "x (3).pdf")
+        for name, content in ((first.name, b"first"), (second.name, b"second"), (mine.name, b"mine")):
+            self.assertEqual(self.content(name), content)
+
+    def test_a_folder_moved_next_to_a_folder_of_its_name_is_renamed_and_nothing_mixes(self):
+        # upstream compared folders by a type that matched no row: the moved folder went inside the other one on the
+        # disk while the rows kept the urls of the other one's files
+        theirs = self.make_folder(COLLEAGUE, "Docs")
+        their_file = self.upload(COLLEAGUE, b"their doc", "a.pdf", parent=theirs.name)
+        holder = self.make_folder(OWNER, "Holder")
+        with self.set_user(OWNER):
+            mine = create_folder("Docs", parent=holder.name)
+        frappe.db.commit()
+        my_file = self.upload(OWNER, b"my doc", "a.pdf", parent=mine.name)
+
+        with self.set_user(OWNER):
+            frappe.get_doc("File", mine.name).move(self.folder.name)
+        frappe.db.commit()
+
+        self.assertEqual(frappe.db.get_value("File", mine.name, "file_name"), "Docs (1)")
+        self.assertEqual(self.content(my_file.name), b"my doc")
+        self.assertEqual(self.content(their_file.name), b"their doc")
+
+    def test_a_move_never_lands_on_bytes_already_there(self):
+        mine = self.upload(OWNER, b"mine", "here.pdf")
+        # bytes that no Active row names, at the place the move would take
+        orphan = self.manager.site_folder / self.tree_path("there.pdf")
+        orphan.write_bytes(b"not mine")
+        try:
+            with (
+                self.set_user(OWNER),
+                self.assertRaisesRegex(frappe.ValidationError, "A file is already there"),
+            ):
+                self.manager.move(frappe.get_doc("File", mine.name), str(self.tree_path("there.pdf")))
+            self.assertEqual(orphan.read_bytes(), b"not mine")
+            self.assertEqual(self.content(mine.name), b"mine")
+        finally:
+            orphan.unlink(missing_ok=True)
+
+    def test_a_restore_onto_bytes_already_there_takes_a_free_place(self):
+        # a row that keeps its url while trashed (an adopted framework upload), whose place a framework file took
+        kept_url = "/" + str(self.tree_path("adopted.pdf"))
+        with self.set_user(OWNER):
+            adopted = create_drive_file(
+                "Adopted.pdf", self.folder.name, "PDF", kept_url, "application/pdf", 8
+            )
+        (self.manager.site_folder / storage_key(kept_url)).write_bytes(b"adopted")
+        frappe.db.commit()
+        with self.set_user(OWNER):
+            remove_or_restore([adopted.name])
+        frappe.db.commit()
+        self.assertEqual(frappe.db.get_value("File", adopted.name, "file_url"), kept_url)
+        newcomer = self.manager.site_folder / storage_key(kept_url)
+        newcomer.write_bytes(b"the newcomer's")
+
+        with self.set_user(OWNER):
+            remove_or_restore([adopted.name])
+        frappe.db.commit()
+
+        restored = frappe.get_doc("File", adopted.name)
+        self.assertEqual((restored.status, restored.file_name), (STATUS_ACTIVE, "Adopted (1).pdf"))
+        self.assertEqual(self.content(adopted.name), b"adopted")
+        self.assertEqual(newcomer.read_bytes(), b"the newcomer's")
+        newcomer.unlink()
+
+    def test_a_trashed_file_is_not_moved_and_a_rename_keeps_its_bytes_in_the_trash(self):
+        mine = self.upload(OWNER, b"mine", "old-name.pdf")
+        elsewhere = self.make_folder(OWNER, "Elsewhere")
+        with self.set_user(OWNER):
+            remove_or_restore([mine.name])
+        frappe.db.commit()
+
+        with self.set_user(OWNER), self.assertRaisesRegex(frappe.ValidationError, "Restore this file"):
+            frappe.get_doc("File", mine.name).move(elsewhere.name)
+        frappe.db.rollback()
+
+        with self.set_user(OWNER):
+            frappe.get_doc("File", mine.name).rename("new-name.pdf")
+        frappe.db.commit()
+        trashed = frappe.get_doc("File", mine.name)
+        self.assertEqual(trashed.file_url, self.manager.get_trash_url(trashed))
+        self.assertEqual(self.content(mine.name), b"mine")
+
+        with self.set_user(OWNER):
+            remove_or_restore([mine.name])
+        frappe.db.commit()
+        self.assertEqual(
+            Path(storage_key(frappe.db.get_value("File", mine.name, "file_url"))),
+            self.tree_path("new-name.pdf"),
+        )
+        self.assertEqual(self.content(mine.name), b"mine")
+
+    def test_nothing_is_moved_into_a_trashed_folder(self):
+        projects = self.make_folder(OWNER, "Projets")
+        loose = self.upload(OWNER, b"loose", "loose.pdf")
+        with self.set_user(OWNER):
+            remove_or_restore([projects.name])
+        frappe.db.commit()
+
+        with self.set_user(OWNER), self.assertRaisesRegex(frappe.ValidationError, "Restore this file"):
+            frappe.get_doc("File", loose.name).move(projects.name)
+        frappe.db.rollback()
+        self.assertEqual(self.content(loose.name), b"loose")
+        self.assertEqual(
+            Path(storage_key(frappe.db.get_value("File", loose.name, "file_url"))),
+            self.tree_path("loose.pdf"),
+        )
+
+    def test_a_trash_tried_again_after_a_rollback_keeps_the_folders_files(self):
+        # the first attempt moved the directory to the trash, then its transaction was rolled back: the row is Active on
+        # its old url with nothing there. Upstream deleted the directory in the trash first, and the files were gone.
+        projects = self.make_folder(OWNER, "Projets")
+        inside = self.upload(OWNER, b"the plan", "plan.pdf", parent=projects.name)
+        folder = frappe.get_doc("File", projects.name)
+        self.manager.move_to_trash(folder)
+        self.assertFalse(self.manager.get_local_path(folder.file_url).exists())
+
+        with self.set_user(OWNER):
+            remove_or_restore([projects.name])
+        frappe.db.commit()
+
+        self.assertEqual(frappe.db.get_value("File", projects.name, "status"), STATUS_TRASHED)
+        self.assertEqual(self.content(inside.name), b"the plan")
+        with self.set_user(OWNER):
+            remove_or_restore([projects.name])
+        frappe.db.commit()
+        self.assertEqual(self.content(inside.name), b"the plan")
+
+    def test_the_files_of_a_folder_follow_it_without_their_own_save(self):
+        projects = self.make_folder(OWNER, "Projets")
+        sub = None
+        with self.set_user(OWNER):
+            sub = create_folder("Sub", parent=projects.name)
+        frappe.db.commit()
+        deep = self.upload(OWNER, b"deep", "deep.pdf", parent=sub.name)
+        modified = frappe.db.get_value("File", deep.name, "modified")
+        old = frappe.db.get_value("File", projects.name, "file_url")
+
+        moved = repoint_descendants(projects.name, old, "private/files/somewhere-else/")
+
+        self.assertEqual(moved, 2)
+        self.assertEqual(
+            Path(storage_key(frappe.db.get_value("File", deep.name, "file_url"))),
+            Path("private/files/somewhere-else/Sub/deep.pdf"),
+        )
+        self.assertTrue(frappe.db.get_value("File", sub.name, "file_url").endswith("/Sub/"))
+        self.assertEqual(frappe.db.get_value("File", deep.name, "modified"), modified)
+        frappe.db.rollback()
