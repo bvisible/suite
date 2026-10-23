@@ -118,6 +118,8 @@ const withdrawNora = session.nora
 const src = computed(() => {
   const query = new URLSearchParams({ host: 'parent', v: session.version })
   if (session.author) query.set('author', session.author)
+  // The locale the editor shows numbers in (`fr-CH`: CHF 5'478.45), from the person and the system's country (craft.py).
+  if (session.locale) query.set('locale', session.locale)
   return `${session.base_url}index.html?${query}`
 })
 

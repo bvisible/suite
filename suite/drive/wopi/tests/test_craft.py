@@ -105,6 +105,27 @@ class TestWhatThePageIsToldToOpen(IntegrationTestCase):
         self.assertTrue(answer["can_write"])
         mint.assert_called_once_with("a-file-id", can_write=True)
 
+    def test_the_editor_is_told_the_locale_of_the_person_and_the_country(self):
+        """`fr-CH`: the editor shows `CHF 5'478.45` (GridCraft's number_locale), as Excel does with Swiss settings."""
+
+        def locale(lang, country, code):
+            with (
+                patch.object(craft.frappe.local, "lang", lang, create=True),
+                patch.object(craft.frappe.db, "get_single_value", return_value=country),
+                patch.object(craft.frappe.db, "get_value", return_value=code),
+            ):
+                return craft.editor_locale()
+
+        self.assertEqual(locale("fr", "Switzerland", "ch"), "fr-CH")
+        self.assertEqual(locale("de", "Switzerland", "ch"), "de-CH")
+        self.assertEqual(
+            locale("pt-BR", "Switzerland", "ch"), "pt-CH", "the country's numbers, the person's language"
+        )
+        self.assertEqual(locale("fr", None, None), "", "no country: the editor takes the browser's")
+        self.assertEqual(locale("fr", "Nowhere", ""), "")
+        answer, _mint = self.ask()
+        self.assertIn("locale", answer)
+
     def test_a_reader_gets_a_token_that_cannot_write(self):
         answer, mint = self.ask(writable=False)
         self.assertTrue(answer["available"], answer)

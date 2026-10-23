@@ -162,7 +162,20 @@ def get_craft_editor_config(file_id: str, requested: str = "") -> dict:
         "author": frappe.utils.get_fullname(frappe.session.user) if frappe.session.user != "Guest" else "",
         # Nora's pane in the editor, through this page's session (CraftEditor.vue, utils/craftNora.js).
         "nora": nora_for_the_person(),
+        # The locale the editor shows numbers in (`?locale=`, see editor_locale).
+        "locale": editor_locale(),
     }
+
+
+def editor_locale() -> str:
+    """The locale the editor shows numbers in, ``fr-CH``: the person's language and the country of the system's
+    settings, as Excel takes the separators of numbers from the regional settings (``CHF 5'478.45`` in
+    Switzerland). The editor reads it from ``?locale=`` (NeoSheet; an editor that does not know it ignores it).
+    ``""`` when no country is set: the editor then takes the browser's."""
+    country = frappe.db.get_single_value("System Settings", "country")
+    code = str((frappe.db.get_value("Country", country, "code") if country else "") or "")
+    language = str(getattr(frappe.local, "lang", "") or "en").replace("_", "-").split("-")[0]
+    return f"{language}-{code.upper()}" if len(code) == 2 and code.isalpha() and language.isalpha() else ""
 
 
 def clean_file_name(file_name: str) -> str:
