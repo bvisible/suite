@@ -29,7 +29,9 @@ class TestUpdateAccountPassword(IntegrationTestCase):
     def update(self, user, **cloud):
         configured = {"is_suite_cloud_configured": True, "is_jmap_configured": True} | cloud
         with (
-            patch.object(events, "is_suite_cloud_configured", return_value=configured["is_suite_cloud_configured"]),
+            patch.object(
+                events, "is_suite_cloud_configured", return_value=configured["is_suite_cloud_configured"]
+            ),
             patch.object(events, "is_jmap_configured", return_value=configured["is_jmap_configured"]),
             patch.object(events, "update_mail_password") as update_mail_password,
             patch.object(events, "execute_with_logging", side_effect=lambda fn, **kw: fn()),
