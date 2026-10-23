@@ -2,7 +2,8 @@
      The editor is a browser build served from this site (suite/public/craft/, see suite/drive/wopi/craft.py): it
      speaks `postMessage` to this page (`?host=parent`), which gives it the file and stores what it saves, through the
      content endpoints (suite/drive/wopi/endpoints.py), with a token and no session cookie. For staff, it also offers the
-     editor its way to Nora (`window.<editor>NoraCall`, utils/craftNora.js), with the desk session. //// -->
+     editor its way to Nora (`window.<editor>NoraCall`, utils/craftNora.js), with the desk session. It names the file
+     it sends (`id`, the Drive file's name), which the editor tells Nora; an editor that does not know `id` ignores it. //// -->
 <template>
   <div class="relative flex h-full w-full flex-col">
     <!-- Loading state: the build (WebAssembly) and the document -->
@@ -110,7 +111,9 @@ defineExpose({ dirty })
 // apply. The editor looks for its way to her once, as it starts, so it is put on this page before the frame loads; a
 // person without it gets no pane. The calls go to this page's origin with the desk session, never to an address read
 // from the URL (maintenance#1661).
-const withdrawNora = session.nora ? offerNora(window, prefix, { csrfToken: () => window.csrf_token }) : () => {}
+const withdrawNora = session.nora
+  ? offerNora(window, prefix, { csrfToken: () => window.csrf_token, fileId: () => props.previewEntity?.name })
+  : () => {}
 
 const src = computed(() => {
   const query = new URLSearchParams({ host: 'parent', v: session.version })
@@ -164,7 +167,8 @@ async function openDocument() {
     if (!response.ok) throw new Error(await failure(response))
     baseVersion = response.headers.get('X-Neoffice-Content-Version') || ''
     const bytes = await response.arrayBuffer()
-    post('open', { name: session.file_name, bytes }, [bytes])
+    // `id`: the Drive file this is, which the editor tells Nora with each message (the server reads it again).
+    post('open', { name: session.file_name, bytes, id: props.previewEntity.name }, [bytes])
     loading.value = false
     emit('loaded')
     frame.value?.contentWindow?.focus()

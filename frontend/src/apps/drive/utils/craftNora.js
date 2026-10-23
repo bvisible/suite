@@ -9,6 +9,11 @@
 //// Anything else is refused before it leaves, and so is a body that is not a plain JSON object or that names `cmd`
 //// (Frappe runs the method `cmd` names whatever the path says: with it, the editor could have any method run as the
 //// person, past the list below).
+////
+//// The editor tells Nora which Drive file its document is (`document.id` of the page context it sends with each
+//// message), the id this page gave it with the file (CraftEditor.vue's `open`). A message that names another file
+//// (an editor still on a file this page has left) leaves without it: never another file than the page's. The server
+//// reads the id again under the person's rights anyway (neoffice_theme.editor_document).
 
 /** The calls of the craft-nora protocol (craft-libs crates/nora/src/protocol.rs), and nothing else of the instance. */
 export const NORA_PATHS = new Set([
@@ -17,6 +22,12 @@ export const NORA_PATHS = new Set([
   '/api/method/nora.api.chat.get_messages',
   '/api/method/nora.api.chat.get_browser_actions',
   '/api/method/nora.api.page_observation.receive_observation',
+])
+
+/** The calls that carry the page context (`context`, a JSON text). */
+const MESSAGE_PATHS = new Set([
+  '/api/method/nora.api.chat.start_or_resume_thread',
+  '/api/method/nora.api.chat.post_message',
 ])
 
 /** The editors that have the pane, by the prefix of their messages (CraftEditor.vue's PREFIXES). */
@@ -45,6 +56,28 @@ export function plainArguments(body) {
 }
 
 /**
+ * The arguments of a message (JSON text) with the document's file id kept only when it is `fileId`, the page's own file;
+ * an id of any other file is taken out of the context, and none is ever added. Arguments that carry no context, or no
+ * id, are left as they came.
+ */
+export function keepThePagesFile(text, fileId) {
+  let args
+  let context
+  try {
+    args = JSON.parse(text)
+    context = typeof args.context === 'string' ? JSON.parse(args.context) : null
+  } catch {
+    return text
+  }
+  const document = context && typeof context === 'object' && !Array.isArray(context) ? context.document : null
+  if (!document || typeof document !== 'object' || Array.isArray(document) || !('id' in document)) return text
+  if (typeof fileId === 'string' && fileId && document.id === fileId) return text
+  const rest = { ...document }
+  delete rest.id
+  return JSON.stringify({ ...args, context: JSON.stringify({ ...context, document: rest }) })
+}
+
+/**
  * The function the editor calls: `(path, body) => Promise<{ status, body }>`. Status 0, with the reason, when nothing
  * came back; 403 for a path that is not the protocol's, 400 for a body that is not plain arguments, 413 for one too large.
  *
@@ -52,13 +85,21 @@ export function plainArguments(body) {
  * @param {typeof fetch} [options.fetch]
  * @param {() => string | undefined} [options.csrfToken] read at every call (the page's `window.csrf_token`)
  * @param {number} [options.timeoutMs]
+ * @param {() => string | undefined} [options.fileId] the Drive file the page shows, read at every call: a message names
+ *   that file or none (keepThePagesFile)
  */
-export function noraCall({ fetch = (...args) => globalThis.fetch(...args), csrfToken = () => '', timeoutMs = TIMEOUT_MS } = {}) {
+export function noraCall({
+  fetch = (...args) => globalThis.fetch(...args),
+  csrfToken = () => '',
+  timeoutMs = TIMEOUT_MS,
+  fileId,
+} = {}) {
   return async (path, body) => {
     if (!NORA_PATHS.has(String(path))) return { status: 403, body: '' }
     if (typeof body === 'string' && body.length > MAX_BODY) return { status: 413, body: '' }
-    const text = plainArguments(typeof body === 'string' ? body : '')
+    let text = plainArguments(typeof body === 'string' ? body : '')
     if (text === null) return { status: 400, body: '' }
+    if (fileId && MESSAGE_PATHS.has(String(path))) text = keepThePagesFile(text, fileId())
     const headers = { Accept: 'application/json', 'Content-Type': 'application/json' }
     const token = csrfToken()
     if (typeof token === 'string' && token && token !== UNRENDERED_TOKEN) headers['X-Frappe-CSRF-Token'] = token

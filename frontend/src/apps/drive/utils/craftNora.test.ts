@@ -1,7 +1,7 @@
 //// Neoffice — added file (no upstream equivalent): the way to Nora the Drive page offers a Craft editor (craftNora.js).
 import { describe, expect, it, vi } from 'vitest'
 
-import { MAX_BODY, NORA_PATHS, noraCall, offerNora, plainArguments } from './craftNora'
+import { MAX_BODY, NORA_PATHS, keepThePagesFile, noraCall, offerNora, plainArguments } from './craftNora'
 
 const SEND = '/api/method/nora.api.chat.start_or_resume_thread'
 const ARGS = JSON.stringify({ message: 'Bonjour', context: '{"surface":"editor","app":"word"}', block: 0 })
@@ -140,5 +140,51 @@ describe('offerNora', () => {
     page.gridcraftNoraCall = theirs
     withdraw()
     expect(page.gridcraftNoraCall).toBe(theirs)
+  })
+})
+
+describe('the file the page shows', () => {
+  const POST = '/api/method/nora.api.chat.post_message'
+  const message = (document: object) =>
+    JSON.stringify({ thread_id: 'nora-1', message: 'À qui est cette lettre ?', context: JSON.stringify({ surface: 'editor', app: 'word', document }) })
+  const sentDocument = (fetch: ReturnType<typeof server>) =>
+    JSON.parse(JSON.parse(fetch.mock.calls[0][1].body as string).context).document
+
+  it('goes with a message that names it', async () => {
+    const fetch = server()
+    await noraCall({ fetch, fileId: () => '3fcaa7893c' })(POST, message({ name: 'Lettre.docx', id: '3fcaa7893c' }))
+    expect(sentDocument(fetch)).toEqual({ name: 'Lettre.docx', id: '3fcaa7893c' })
+  })
+
+  it('is the only one a message may name: another file is taken out, none is added', async () => {
+    for (const [document, expected] of [
+      [{ name: 'Lettre.docx', id: 'a0b1c2d3e4' }, { name: 'Lettre.docx' }],
+      [{ name: 'Lettre.docx', id: null }, { name: 'Lettre.docx' }],
+      [{ name: 'Lettre.docx' }, { name: 'Lettre.docx' }],
+    ] as const) {
+      for (const path of [POST, SEND]) {
+        const fetch = server()
+        await noraCall({ fetch, fileId: () => '3fcaa7893c' })(path, message(document))
+        expect(sentDocument(fetch), JSON.stringify(document)).toEqual(expected)
+      }
+    }
+    // A page that shows no file (or has not said which) lets no id through.
+    const fetch = server()
+    await noraCall({ fetch, fileId: () => undefined })(POST, message({ name: 'x.docx', id: '3fcaa7893c' }))
+    expect(sentDocument(fetch)).toEqual({ name: 'x.docx' })
+  })
+
+  it('leaves what carries no context, or a page without the option, as it came', async () => {
+    expect(keepThePagesFile('{"thread_id":"nora-1"}', 'x')).toBe('{"thread_id":"nora-1"}')
+    expect(keepThePagesFile('{"context":"not json"}', 'x')).toBe('{"context":"not json"}')
+    expect(keepThePagesFile('{"context":"{\\"route\\":\\"app\\"}"}', 'x')).toBe('{"context":"{\\"route\\":\\"app\\"}"}')
+    const fetch = server()
+    const body = message({ name: 'Lettre.docx', id: 'a0b1c2d3e4' })
+    await noraCall({ fetch })(POST, body)
+    expect(fetch.mock.calls[0][1].body).toBe(body)
+    // Reading the conversation or the queue carries no context: untouched.
+    const read = server()
+    await noraCall({ fetch: read, fileId: () => '3fcaa7893c' })('/api/method/nora.api.chat.get_messages', '{"thread_id":"nora-1"}')
+    expect(read.mock.calls[0][1].body).toBe('{"thread_id":"nora-1"}')
   })
 })
