@@ -942,7 +942,7 @@ def toggle_entity_status(doc, manager: FileManager, locked_owners: set):
 
 # //// Neoffice — added (maintenance#1823, toggle_entity_status): whether `doc`'s bytes are at `url` rather than in its place
 # //// in the trash: nothing left there, no other row naming `url`, and at `url` a directory for a folder, for a file its
-# //// size and, when the row knows it, its SHA-256.
+# //// size and its SHA-256 (a row without one is not restored this way).
 def _own_bytes_put_back(url: str, doc, manager: FileManager) -> bool:
     if (manager.site_folder / manager.get_trash_path(doc)).exists():
         return False
@@ -953,8 +953,9 @@ def _own_bytes_put_back(url: str, doc, manager: FileManager) -> bool:
         return path.is_dir()
     if not path.is_file() or path.stat().st_size != (doc.file_size or 0):
         return False
-    if not doc.content_hash:
-        return True
+    # without the row's SHA-256 (an MD5 of a framework upload, or none), bytes of the same size could be anyone's
+    if not (len(doc.content_hash or "") == 64 and all(c in "0123456789abcdef" for c in doc.content_hash)):
+        return False
     with path.open("rb") as stored:
         return hashlib.file_digest(stored, "sha256").hexdigest() == doc.content_hash
 

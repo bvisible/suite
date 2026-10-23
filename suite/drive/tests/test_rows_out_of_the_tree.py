@@ -819,7 +819,8 @@ class TestRowsOutOfTheTreeGiveUpTheirUrl(IntegrationTestCase):
         frappe.db.sql("SELECT COUNT(*) FROM `tabFile` WHERE `folder` = %s", self.folder.name)
         theirs = self.commit_elsewhere("taken.pdf", b"theirs")
 
-        with self.set_user(OWNER), self.assertRaises(frappe.ValidationError):
+        # the name is seen as taken (« … exists »), not left to the storage's refusal of a place holding bytes
+        with self.set_user(OWNER), self.assertRaisesRegex(frappe.ValidationError, "taken.pdf exists"):
             frappe.get_doc("File", mine.name).rename("taken.pdf")
         frappe.db.rollback()
 
@@ -896,6 +897,40 @@ class TestRowsOutOfTheTreeGiveUpTheirUrl(IntegrationTestCase):
         self.assertFalse(place.exists())
         self.assertFalse(trash_entry.exists())
 
+        # a place another row names keeps its bytes (two rows on one place: the twins of maintenance#1598)
+        shared = self.upload(OWNER, b"shared", "shared.pdf")
+        theirs = self.upload(COLLEAGUE, b"theirs", "note.txt")
+        (self.manager.site_folder / storage_key(theirs.file_url)).unlink()
+        frappe.db.set_value("File", theirs.name, "file_url", shared.file_url, update_modified=False)
+        frappe.db.commit()
+        frappe.delete_doc("File", theirs.name, ignore_permissions=True, force=True)
+        frappe.db.commit()
+        self.assertEqual(self.content(shared.name), b"shared")
+
+    def test_a_trashed_adopted_upload_deleted_from_the_desk_takes_its_own_bytes(self):
+        # it kept frappe's « /private/files/<name> » while its bytes went to the trash; a framework upload of that name
+        # wrote there since: frappe's way of deleting the row deleted the newcomer's bytes
+        file_name = f"{self.folder.file_name}-adopted.pdf"
+        kept_url = f"/private/files/{file_name}"
+        kept = self.manager.site_folder / storage_key(kept_url)
+        self.planted.append(kept)
+        with self.set_user(OWNER):
+            adopted = create_drive_file(file_name, self.folder.name, "PDF", kept_url, "application/pdf", 7)
+        frappe.db.set_value("File", adopted.name, "content_hash", "f" * 32, update_modified=False)
+        kept.write_bytes(b"adopted")
+        frappe.db.commit()
+        with self.set_user(OWNER):
+            remove_or_restore([adopted.name])
+        frappe.db.commit()
+        trash_entry = self.manager.site_folder / self.manager.get_trash_path(frappe._dict(name=adopted.name))
+        kept.write_bytes(b"the newcomer's")
+
+        frappe.delete_doc("File", adopted.name, ignore_permissions=True, force=True)
+        frappe.db.commit()
+
+        self.assertEqual(kept.read_bytes(), b"the newcomer's")
+        self.assertFalse(trash_entry.exists())
+
     def test_a_restore_tried_again_after_a_rollback_finds_its_bytes(self):
         # the first attempt moved the bytes out of the trash, then its transaction was rolled back: the row is still in
         # the trash, its bytes at the place it goes back to (maintenance#1823)
@@ -922,9 +957,10 @@ class TestRowsOutOfTheTreeGiveUpTheirUrl(IntegrationTestCase):
         frappe.db.commit()
         (self.manager.site_folder / self.manager.get_trash_path(frappe._dict(name=other.name))).unlink()
         stranger = self.manager.site_folder / self.tree_path("other.pdf")
-        stranger.write_bytes(b"not the row's")
+        # the same size as the row's bytes, another content
+        stranger.write_bytes(b"OTHER")
         with self.set_user(OWNER), self.assertRaises(frappe.ValidationError):
             remove_or_restore([other.name])
         frappe.db.rollback()
         self.assertEqual(frappe.db.get_value("File", other.name, "status"), STATUS_TRASHED)
-        self.assertEqual(stranger.read_bytes(), b"not the row's")
+        self.assertEqual(stranger.read_bytes(), b"OTHER")

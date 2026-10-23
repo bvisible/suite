@@ -66,6 +66,15 @@ def _files_url(key: str) -> str | None:
     return None
 
 
+# //// Neoffice — added (maintenance#1823, File._delete_file_on_disk): a deletion after the commit that fails is named in the
+# //// Error Log: raised there, it reached the person after their deletion had been made, and stopped the callbacks behind it.
+def _quietly(delete, entity):
+    try:
+        delete(entity)
+    except Exception:
+        frappe.log_error("Drive: could not delete the bytes of a deleted row", frappe.get_traceback())
+
+
 class File(FrappeFile):
     """Every File is Drive-managed. Files created by Drive itself (marked with
     `flags.file_created` before insert) skip the framework's storage flow, which
@@ -204,19 +213,25 @@ class File(FrappeFile):
     # //// files (« /private/files/<name> », « /files/<name> »), flat storage and S3 keep frappe's way.
     def _delete_file_on_disk(self):
         manager = self.manager
+        if manager.flat or manager.s3_enabled:
+            return super()._delete_file_on_disk()
+        entity = frappe._dict(name=self.name, file_url=self.file_url)
+        # a trashed row's bytes are in its place in the trash, whatever its url: an adopted upload's kept
+        # « /private/files/<name> » may since name a newer framework file, which frappe's way would delete
+        if self.status == STATUS_TRASHED and not self._not_in_disk():
+            if not self.is_folder:
+                frappe.db.after_commit.add(lambda: _quietly(manager.delete_from_trash, entity))
+            return
         key = storage_key(self.file_url or "")
         drive_place = (
             key.startswith("private/files/") and posixpath.dirname(key.rstrip("/")) != "private/files"
         )
-        if manager.flat or manager.s3_enabled or not drive_place:
+        if not drive_place:
             return super()._delete_file_on_disk()
         if self._not_in_disk() or self.is_folder or self.status == STATUS_REMOVED:
             return
-        entity = frappe._dict(name=self.name, file_url=self.file_url)
-        if self.status == STATUS_TRASHED:
-            frappe.db.after_commit.add(lambda: manager.delete_from_trash(entity))
-        elif not manager.named_by_another_row(key, self.name):
-            frappe.db.after_commit.add(lambda: manager.delete_file(entity))
+        if not manager.named_by_another_row(key, self.name):
+            frappe.db.after_commit.add(lambda: _quietly(manager.delete_file, entity))
 
     def after_delete(self):
         if self.status == STATUS_REMOVED and not self._not_in_disk():
@@ -475,6 +490,12 @@ class File(FrappeFile):
         """
         Move file to a new folder.
         """
+        new_parent = new_parent or get_user_folder().name
+        # //// Neoffice — the target folder's names, held as an upload holds them (maintenance#1820): two moves at once of
+        # //// one name into one folder each read it as free, and both aimed at the same place on the disk. Before the row
+        # //// lock, in the order an upload takes its locks: names, then rows and storage.
+        if new_parent != self.folder:
+            hold_folder_names(new_parent)
         # Row lock BEFORE any disk transfer: WebDAV promotion and settlement
         # serialize on this lock, and a relocation whose disk op ran outside
         # it was observable mid-flight — old bytes already carried while the
@@ -485,7 +506,6 @@ class File(FrappeFile):
         # //// and a move would carry them into the tree while the row stays trashed. Restored first, it moves as any.
         if self.status != STATUS_ACTIVE:
             frappe.throw(frappe._("Restore this file from the trash first"), frappe.ValidationError)
-        new_parent = new_parent or get_user_folder().name
 
         if new_parent == self.name:
             frappe.throw(
@@ -514,9 +534,6 @@ class File(FrappeFile):
         self.flags.drive_disk_rename = True
 
         if new_parent != self.folder:
-            # //// Neoffice — the target folder's names, held as an upload holds them (maintenance#1820): two moves at once
-            # //// of one name into one folder each read it as free, and both aimed at the same place on the disk
-            hold_folder_names(new_parent)
             old_folder_name = frappe.db.get_value("File", self.folder, "file_name")
             new_folder_name = frappe.db.get_value("File", new_parent, "file_name")
             full_name = frappe.db.get_value("User", frappe.session.user, "full_name")
@@ -532,7 +549,7 @@ class File(FrappeFile):
             update_file_size(self.folder, -self.file_size)
             update_file_size(new_parent, +self.file_size)
             self.folder = new_parent
-            # //// Neoffice — a locking read: this request holds the folder's names (see above)
+            # //// Neoffice — a locking read: this request holds the folder's names (hold_folder_names, above)
             self.file_name = get_new_file_name(
                 self.file_name, new_parent, self.is_folder, self.name, locking=True
             )
@@ -563,6 +580,9 @@ class File(FrappeFile):
         """
         Rename file or folder
         """
+        # //// Neoffice — the folder's names, held as an upload holds them (maintenance#1820): two renames at once to one
+        # //// name each read it as free. Before the row lock, in the order an upload takes its locks.
+        hold_folder_names(self.folder)
         # row lock before the disk transfer — same discipline as move()
         frappe.db.get_value("File", self.name, "name", for_update=True)
         if not user_has_permission(self, "write"):
@@ -573,9 +593,7 @@ class File(FrappeFile):
 
         if new_file_name == self.file_name:
             return self
-        # //// Neoffice — the folder's names, held as an upload holds them, and a locking read (maintenance#1820): two
-        # //// renames at once to one name each read it as free
-        hold_folder_names(self.folder)
+        # //// Neoffice — a locking read: this request holds the folder's names (hold_folder_names, above)
         validate_filename(new_file_name, self.folder, self.file_type, locking=True)
 
         full_name = frappe.db.get_value("User", {"name": frappe.session.user}, ["full_name"])

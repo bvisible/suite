@@ -370,6 +370,11 @@ def _publish_artifact(recording_name: str, path: Path) -> dict:
     drive_file = _reconcile_publication(manager, recording, parent, file_name)
     created = drive_file is None
     if created:
+        # //// Neoffice — a name whose place on the disk is empty too (maintenance#1820): FileManager.upload_file refuses
+        # //// to place bytes over others, and the same name would be refused at every retry
+        from suite.drive.api.files import _free_on_disk
+
+        file_name = _free_on_disk(file_name, parent, manager)
         drive_file = create_drive_file(
             file_name,
             parent,
@@ -380,18 +385,24 @@ def _publish_artifact(recording_name: str, path: Path) -> dict:
             owner=recording.room_owner,
             name=recording.publication_key,
         )
-        frappe.db.after_rollback.add(lambda: _delete_drive_blob(manager, drive_file))
+        # //// Neoffice — only bytes this publication placed are deleted on a failure (maintenance#1820): upload_file refuses
+        # //// a place already holding bytes, and those are not this recording's
+        placed = []
+        frappe.db.after_rollback.add(lambda: placed and _delete_drive_blob(manager, drive_file))
         transfer_path = path.with_name(f"{path.name}.{frappe.generate_hash(length=12)}.transfer")
         try:
             shutil.copyfile(path, transfer_path)
             manager.upload_file(transfer_path, drive_file)
+            placed.append(drive_file.name)  # //// Neoffice — see `placed` above
             if manager.s3_enabled:
                 drive_file.file_url = get_s3_url(get_s3_key(drive_file.file_url))
             drive_file.content_hash = recording.upload_sha256
             drive_file.save(ignore_permissions=True)
             update_file_size(parent, recording.upload_size)
         except Exception:
-            _delete_drive_blob(manager, drive_file)
+            # //// Neoffice — only what this publication placed (see `placed` above)
+            if placed:
+                _delete_drive_blob(manager, drive_file)
             raise
         finally:
             transfer_path.unlink(missing_ok=True)

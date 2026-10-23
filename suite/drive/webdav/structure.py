@@ -134,6 +134,9 @@ def handle_move(ctx: DavContext) -> Response:
 
     overwrote = False
     target = destination.entity
+    # //// Neoffice — the destination folder's names first (maintenance#1820), as an upload and a PUT take them: the trash
+    # //// below takes the owner's storage and the folders' rows, and File.move and File.rename then hold these names
+    hold_folder_names(dest_parent.name)
     if target is not None and target.name != source.entity.name:
         if not ctx.overwrite:
             raise PreconditionFailed("Destination exists and Overwrite is F.")
