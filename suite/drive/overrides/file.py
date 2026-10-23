@@ -33,6 +33,8 @@ from suite.drive.utils import (
     generate_upward_path,
     get_new_file_name,
     get_user_folder,
+    # //// Neoffice — the names of a folder are given out one request at a time to a move and a rename too (maintenance#1820)
+    hold_folder_names,
     principal_list,
     update_file_size,
     validate_filename,
@@ -487,6 +489,9 @@ class File(FrappeFile):
         self.flags.drive_disk_rename = True
 
         if new_parent != self.folder:
+            # //// Neoffice — the target folder's names, held as an upload holds them (maintenance#1820): two moves at once
+            # //// of one name into one folder each read it as free, and both aimed at the same place on the disk
+            hold_folder_names(new_parent)
             old_folder_name = frappe.db.get_value("File", self.folder, "file_name")
             new_folder_name = frappe.db.get_value("File", new_parent, "file_name")
             full_name = frappe.db.get_value("User", frappe.session.user, "full_name")
@@ -502,7 +507,10 @@ class File(FrappeFile):
             update_file_size(self.folder, -self.file_size)
             update_file_size(new_parent, +self.file_size)
             self.folder = new_parent
-            self.file_name = get_new_file_name(self.file_name, new_parent, self.is_folder, self.name)
+            # //// Neoffice — a locking read: this request holds the folder's names (see above)
+            self.file_name = get_new_file_name(
+                self.file_name, new_parent, self.is_folder, self.name, locking=True
+            )
 
         # Update all the children's paths. Flat storage keys by id, so nothing on
         # disk or in any file_url depends on where a file sits in the tree.
@@ -540,7 +548,10 @@ class File(FrappeFile):
 
         if new_file_name == self.file_name:
             return self
-        validate_filename(new_file_name, self.folder, self.file_type)
+        # //// Neoffice — the folder's names, held as an upload holds them, and a locking read (maintenance#1820): two
+        # //// renames at once to one name each read it as free
+        hold_folder_names(self.folder)
+        validate_filename(new_file_name, self.folder, self.file_type, locking=True)
 
         full_name = frappe.db.get_value("User", {"name": frappe.session.user}, ["full_name"])
         message = f"{full_name} renamed {self.file_name} to {new_file_name}"

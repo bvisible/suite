@@ -31591,26 +31591,34 @@ msgstr "{0} abonnement(s) push sur {1} ont été supprimés avant que le serveur
 msgid "{0} of {1} push subscription(s) were deleted before the mail server became unavailable. The rest were not deleted: try again in a moment."
 msgstr "{0} abonnement(s) push sur {1} ont été supprimés avant que le serveur de messagerie ne devienne indisponible. Les autres n'ont pas été supprimés : réessayez dans un instant."
 
-#: suite/drive/utils/files.py:596
+#: suite/drive/utils/files.py:97 suite/drive/utils/files.py:602
 msgid "A file is already there"
 msgstr "Un fichier existe déjà à cet emplacement"
 
-#: suite/drive/api/files.py:923
+#: suite/drive/api/files.py:332
+msgid "A link must be an http or https address"
+msgstr "Un lien doit être une adresse http ou https"
+
+#: suite/drive/api/files.py:321 suite/drive/api/files.py:955
 msgid "No free name in this folder"
 msgstr "Aucun nom libre dans ce dossier"
 
-#: suite/drive/api/files.py:818 suite/drive/api/files.py:879
+#: suite/drive/api/files.py:850 suite/drive/api/files.py:911
 msgid "Restore its folder from the trash first"
 msgstr "Restaurez d'abord son dossier depuis la corbeille"
 
-#: suite/drive/overrides/file.py:448
+#: suite/drive/overrides/file.py:462
 msgid "Restore this file from the trash first"
 msgstr "Restaurez d'abord ce fichier depuis la corbeille"
 
-#: suite/drive/api/files.py:796 suite/drive/api/files.py:861
+#: suite/drive/utils/files.py:711
+msgid "The folders below this one loop into each other"
+msgstr "Les dossiers situés sous celui-ci forment une boucle"
+
+#: suite/drive/api/files.py:828 suite/drive/api/files.py:893
 msgid "This file has been deleted"
 msgstr "Ce fichier a été supprimé"
 
-#: suite/drive/api/files.py:93 suite/drive/utils/files.py:598
+#: suite/drive/utils/files.py:604 suite/drive/api/files.py:93
 msgid "This folder is in the trash"
 msgstr "Ce dossier se trouve dans la corbeille"

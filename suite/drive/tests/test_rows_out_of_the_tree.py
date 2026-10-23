@@ -18,6 +18,7 @@ from werkzeug.wrappers import Request
 
 from suite.drive.api.files import (
     create_folder,
+    create_link,
     delete_entities,
     get_upload_path,
     remove_or_restore,
@@ -760,3 +761,112 @@ class TestRowsOutOfTheTreeGiveUpTheirUrl(IntegrationTestCase):
         frappe.db.commit()
         self.assertTrue(self.manager.named_by_another_row(place, projects.name))
         self.assertEqual(self.content(inside.name), b"inside")
+
+    def commit_elsewhere(self, file_name: str, content: bytes, folder=None) -> str:
+        """An Active file of `folder` (the shared folder), with its bytes, made and committed by another request."""
+        import hashlib
+
+        from suite.drive.tests.test_folder_names import another_connection
+
+        folder = folder or self.folder
+        name = frappe.generate_hash(length=10)
+        place = self.tree_path(file_name, folder)
+        (self.manager.site_folder / place).write_bytes(content)
+        now = frappe.utils.now()
+        with another_connection() as other:
+            other.sql("SET SESSION innodb_lock_wait_timeout = 5")
+            other.sql(
+                """INSERT INTO `tabFile` (`name`, `creation`, `modified`, `owner`, `modified_by`, `file_name`, `folder`,
+                `file_url`, `is_private`, `is_folder`, `file_size`, `file_type`, `mime_type`, `status`, `content_hash`,
+                `file_modified`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 1, 0, %s, 'PDF', 'application/pdf', %s, %s, %s)""",
+                (
+                    name,
+                    now,
+                    now,
+                    COLLEAGUE,
+                    COLLEAGUE,
+                    file_name,
+                    folder.name,
+                    "/" + place.as_posix(),
+                    len(content),
+                    STATUS_ACTIVE,
+                    hashlib.sha256(content).hexdigest(),
+                    now,
+                ),
+            )
+            other.commit()
+        return name
+
+    def test_two_moves_of_one_name_into_one_folder_get_two_names(self):
+        # a move reads the names of the folder it goes to while it holds them, past its transaction's snapshot: the other
+        # request had committed « dup.pdf » after this one began, and both aimed at the same place on the disk
+        elsewhere = self.make_folder(OWNER, "Ailleurs-dup")
+        mine = self.upload(OWNER, b"mine", "dup.pdf", parent=elsewhere.name)
+        # this request's snapshot, taken before the other request commits
+        frappe.db.sql("SELECT COUNT(*) FROM `tabFile` WHERE `folder` = %s", self.folder.name)
+        theirs = self.commit_elsewhere("dup.pdf", b"theirs")
+
+        with self.set_user(OWNER):
+            frappe.get_doc("File", mine.name).move(self.folder.name)
+        frappe.db.commit()
+
+        self.assertEqual(frappe.db.get_value("File", mine.name, "file_name"), "dup (1).pdf")
+        self.assertEqual(self.content(mine.name), b"mine")
+        self.assertEqual(self.content(theirs), b"theirs")
+
+    def test_two_renames_to_one_name_in_one_folder_are_not_both_taken(self):
+        mine = self.upload(OWNER, b"mine", "free.pdf")
+        frappe.db.sql("SELECT COUNT(*) FROM `tabFile` WHERE `folder` = %s", self.folder.name)
+        theirs = self.commit_elsewhere("taken.pdf", b"theirs")
+
+        with self.set_user(OWNER), self.assertRaises(frappe.ValidationError):
+            frappe.get_doc("File", mine.name).rename("taken.pdf")
+        frappe.db.rollback()
+
+        self.assertEqual(self.content(mine.name), b"mine")
+        self.assertEqual(self.content(theirs), b"theirs")
+
+    def test_an_upload_never_replaces_bytes_already_at_its_place(self):
+        orphan = self.manager.site_folder / self.tree_path("orphan.pdf")
+        orphan.write_bytes(b"bytes no row names")
+
+        mine = self.upload(OWNER, b"mine", "orphan.pdf")
+
+        self.assertEqual(mine.file_name, "orphan (1).pdf")
+        self.assertEqual(self.content(mine.name), b"mine")
+        self.assertEqual(orphan.read_bytes(), b"bytes no row names")
+        # and the storage itself refuses to place bytes over others
+        staged = self.manager.site_folder / self.tree_path("staged.tmp")
+        staged.write_bytes(b"staged")
+        self.planted.append(staged)
+        with self.assertRaisesRegex(frappe.ValidationError, "A file is already there"):
+            self.manager.upload_file(staged, frappe._dict(name=mine.name, file_url=mine.file_url), False)
+        self.assertEqual(self.content(mine.name), b"mine")
+
+    def test_a_link_is_an_address_on_the_web_only(self):
+        place = Path(storage_key(self.folder.file_url)) / "devis.pdf"
+        for link in (place.as_posix(), "/" + place.as_posix(), "javascript:alert(1)", "https:///nohost"):
+            with self.subTest(link=link), self.set_user(COLLEAGUE):
+                with self.assertRaisesRegex(frappe.ValidationError, "http or https"):
+                    create_link("devis.pdf", link, parent=self.folder.name)
+            frappe.db.rollback()
+        with self.set_user(COLLEAGUE):
+            link = create_link("site", "https://example.com/page", parent=self.folder.name)
+        self.assertEqual(link.file_url, "https://example.com/page")
+        # and the name a colleague's file would take stays free
+        self.assertFalse(self.manager.named_by_another_row(place, None))
+
+    def test_folders_that_loop_into_each_other_change_nothing(self):
+        first = self.make_folder(OWNER, "Premier")
+        with self.set_user(OWNER):
+            second = create_folder("Second", parent=first.name)
+        frappe.db.commit()
+        inside = self.upload(OWNER, b"inside", "plan.pdf", parent=second.name)
+        url = frappe.db.get_value("File", inside.name, "file_url")
+        # a corrupt `folder`: the first folder inside the second
+        frappe.db.set_value("File", first.name, "folder", second.name, update_modified=False)
+
+        with self.assertRaisesRegex(frappe.ValidationError, "loop"):
+            repoint_descendants(first.name, first.file_url, "private/files/elsewhere/")
+        self.assertEqual(frappe.db.get_value("File", inside.name, "file_url"), url)
+        frappe.db.rollback()

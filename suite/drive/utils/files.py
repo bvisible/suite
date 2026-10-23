@@ -90,7 +90,12 @@ class FileManager:
             else:
                 os.remove(current_path)
         else:
-            os.rename(current_path, self.site_folder / storage_key(file.file_url))
+            # //// Neoffice — never over bytes already there (maintenance#1820), as move() refuses: os.rename replaced them
+            # //// without a word. The upload endpoint gives a name whose place is free (api/files.py, upload_file).
+            destination = self.site_folder / storage_key(file.file_url)
+            if destination.exists() or destination.is_symlink():
+                frappe.throw(frappe._("A file is already there"), frappe.ValidationError)
+            os.rename(current_path, destination)
             if file and create_thumbnail and self.can_create_thumbnail(file):
                 frappe.enqueue(
                     self.upload_thumbnail,
@@ -469,12 +474,13 @@ class FileManager:
                 SELECT `name`, `name`, `folder`, 0 FROM `tabFile` WHERE `name` IN %(others)s
                 UNION ALL
                 SELECT `up`.`start`, `t`.`name`, `t`.`folder`, `up`.`depth` + 1
-                FROM `tabFile` `t` JOIN `up` ON `t`.`name` = `up`.`folder` WHERE `up`.`depth` < 64
+                FROM `tabFile` `t` JOIN `up` ON `t`.`name` = `up`.`folder` WHERE `up`.`depth` < %(depth)s
             )
             SELECT DISTINCT `start` FROM `up` WHERE `folder` = %(entity)s""",
-            {"others": tuple(others), "entity": entity},
+            {"others": tuple(others), "entity": entity, "depth": MAX_DEPTH},
             pluck=True,
         )
+        # a chain longer than MAX_DEPTH (a loop in the folders) proves nothing: its row stays another's
         return bool(others - set(below))
 
     # //// Neoffice — added (maintenance#1820)
@@ -679,6 +685,11 @@ class FileManager:
 # //// what lies below it is not looked at); a row out of the tree is left alone with all below it, since its bytes are in
 # //// its own place in the trash. One query reads the rows below, one UPDATE per batch writes them.
 REPOINT_BATCH = 500
+# //// Neoffice — how deep the walks through the folders go (repoint_descendants, FileManager.named_by_another_row): far
+# //// beyond any real tree, and under MariaDB's own stop for a recursive query (max_recursive_iterations, 1000 since
+# //// 10.6, which ends it without an error); reached, the folders loop (a corrupt `folder`). A walk down that reaches it
+# //// changes nothing and says so; a walk up that reaches it leaves the row counted as another's.
+MAX_DEPTH = 256
 
 
 def repoint_descendants(folder: str, old: str | Path, new: str | Path) -> int:
@@ -690,12 +701,14 @@ def repoint_descendants(folder: str, old: str | Path, new: str | Path) -> int:
             UNION ALL
             SELECT `t`.`name`, `t`.`folder`, `t`.`file_url`, `below`.`depth` + 1
             FROM `tabFile` `t` JOIN `below` ON `t`.`folder` = `below`.`name`
-            WHERE `t`.`status` = %(active)s AND `below`.`depth` < 64
+            WHERE `t`.`status` = %(active)s AND `below`.`depth` < %(depth)s
         )
-        SELECT `name`, `folder`, `file_url` FROM `below`""",
-        {"folder": folder, "active": STATUS_ACTIVE},
+        SELECT `name`, `folder`, `file_url`, `depth` FROM `below`""",
+        {"folder": folder, "active": STATUS_ACTIVE, "depth": MAX_DEPTH},
         as_dict=True,
     )
+    if any(row.depth >= MAX_DEPTH for row in rows):
+        frappe.throw(frappe._("The folders below this one loop into each other"), frappe.ValidationError)
     children: dict[str, list] = {}
     for row in rows:
         children.setdefault(row.folder, []).append(row)

@@ -11,7 +11,7 @@ import tempfile
 import zipfile
 from io import BytesIO
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import quote, urlparse  # //// Neoffice — urlparse: create_link (maintenance#1820)
 
 import frappe
 import mimemapper
@@ -144,10 +144,15 @@ def upload_file(
 
     # //// Neoffice — a plain read: this request committed once it held the folder's names (hold_folder_names)
     file_name = free_file_name(file.filename, parent, locking=False)
+    manager = FileManager()
+    # //// Neoffice — and a name whose place on the disk is empty (maintenance#1820): bytes that no row names (an upload
+    # //// whose request failed after its bytes were placed) were replaced without a word; FileManager.upload_file now
+    # //// refuses to, so the name goes on to the next free one
+    file_name = _free_on_disk(file_name, parent, manager, embed)
 
     mime_type = mimemapper.get_mime_type(str(temp_path), native_first=False)
     file_type = get_file_type(mime_type)
-    manager = FileManager()
+    # //// Neoffice — the FileManager is made above, where the name is given out
 
     drive_file = create_drive_file(
         file_name,
@@ -295,9 +300,37 @@ def ensure_path(fullpath, parent=None):
     return current_parent
 
 
+# //// Neoffice — added (maintenance#1820, upload_file): `file_name`, else the first `title (n).ext` free in the folder
+# //// (plain reads, as upload_file's) whose place on the disk is empty too. Flat storage keys a place by id: as given.
+def _free_on_disk(file_name: str, parent: str, manager: FileManager, embed=False) -> str:
+    if manager.flat or manager.s3_enabled:
+        return file_name
+    parent_path = Path(storage_key(frappe.db.get_value("File", parent, "file_url") or ""))
+
+    def place_is_empty(name):
+        place = manager.get_disk_path(frappe._dict(file_name=name, parent_path=parent_path), embed)
+        place = manager.site_folder / place
+        return not (place.exists() or place.is_symlink())
+
+    if place_is_empty(file_name):
+        return file_name
+    title, extension = os.path.splitext(file_name)
+    for number in range(1, 10_000):
+        candidate = f"{title} ({number}){extension}"
+        if taken_in_folder(parent, candidate, locking=False) is None and place_is_empty(candidate):
+            return candidate
+    frappe.throw(frappe._("No free name in this folder"), frappe.ValidationError)
+
+
 @frappe.whitelist()
 def create_link(file_name: str, link: str, parent: str | None = None):
     parent = parent or get_user_folder().name
+    # //// Neoffice — a link is an address on the web (maintenance#1820): one written as a place of the site's files
+    # //// ("private/files/…") counted as naming that place, and held a colleague's name in advance
+    # //// (FileManager.named_by_another_row). Only http and https, with a host.
+    parsed = urlparse(link or "")
+    if parsed.scheme not in ("http", "https") or not parsed.netloc:
+        frappe.throw(frappe._("A link must be an http or https address"), frappe.ValidationError)
 
     if not user_has_permission(parent, "upload"):
         frappe.throw(

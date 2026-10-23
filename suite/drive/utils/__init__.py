@@ -721,7 +721,9 @@ def _site_time(epoch):
     return to_site_naive(datetime.fromtimestamp(float(epoch), tz=UTC))
 
 
-def get_new_file_name(file_name: str, parent_name: str, type: str = False, entity: str | None = None):
+def get_new_file_name(
+    file_name: str, parent_name: str, type: str = False, entity: str | None = None, locking: bool = False
+):
     # //// Neoffice — rewritten (maintenance#1820). The name handed out must be free on the disk, where a folder's entries
     # //// share one namespace whatever they are and whoever may see them. Upstream looked through the permission filters
     # //// (frappe.db.get_list), which leave out a colleague's file readable through a shared folder only; it counted
@@ -730,11 +732,13 @@ def get_new_file_name(file_name: str, parent_name: str, type: str = False, entit
     # //// looked alike without checking that one was free. A restore, a move or a rename then landed on a taken name,
     # //// and its bytes went over the other entry's. Now: the exact name, any Active entry of the folder (`entity`
     # //// itself excepted), and the first free `title (n).ext` (free_file_name). `type` is kept for the callers.
-    taken = taken_in_folder(parent_name, file_name, locking=False)
+    # //// `locking`: a locking read, for a request that holds the folder's names (hold_folder_names) inside a transaction
+    # //// it did not commit since (File.move, File.rename): it sees what the requests that held them before committed.
+    taken = taken_in_folder(parent_name, file_name, locking=locking)
     if taken is None or taken.name == entity:
         return file_name
     # //// Neoffice — see above: the first free `title (n).ext`
-    return free_file_name(file_name, parent_name, locking=False)
+    return free_file_name(file_name, parent_name, locking=locking)
 
 
 # //// Neoffice — added (no upstream equivalent): the names of a folder are given out one request at a time. Two requests
@@ -842,8 +846,9 @@ def free_file_name(file_name: str, folder: str, locking: bool = True) -> str:
     frappe.throw(f"No free name for {file_name} in this folder.", frappe.ValidationError)
 
 
-def validate_filename(file_name, parent, type, error=None):
-    suggested_name = get_new_file_name(file_name, parent, type)
+# //// Neoffice — `locking` added (maintenance#1820), as for get_new_file_name
+def validate_filename(file_name, parent, type, error=None, locking=False):
+    suggested_name = get_new_file_name(file_name, parent, type, locking=locking)
     if suggested_name != file_name:
         if not error:
             error = f"{file_name} exists."
