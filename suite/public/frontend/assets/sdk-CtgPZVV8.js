@@ -1,1 +1,0 @@
-import"./InfoDialog-BBNPlex5.js";import{t as e}from"./call-CbCJk5VI.js";import"./utils-Bg40Rf5F.js";import"./resources-LSOx5F99.js";var t=(t,n)=>e(`suite.drive.overrides.file.get_file_for_doc`,{doctype:t,docname:n});export{t};

@@ -1,1 +1,0 @@
-import{b as e}from"./files-1v-b_UHs.js";export{e as translate};
