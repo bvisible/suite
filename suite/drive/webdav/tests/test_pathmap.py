@@ -27,7 +27,7 @@ def make_file(parent, name: str, **kwargs):
         parent,
         kwargs.pop("file_type", "Text"),
         # //// Neoffice — one slash between the folder's url (which ends with one) and the name: a doubled slash is a
-        # //// second spelling of the place, refused since maintenance#1821 (File.validate_private_file_access)
+        # //// second spelling of the place, refused since maintenance#1821 (File._refuse_drive_own_places)
         f"{parent_url.rstrip('/')}/{frappe.generate_hash(length=8)}",
         kwargs.pop("mime_type", "text/plain"),
         kwargs.pop("file_size", 4),

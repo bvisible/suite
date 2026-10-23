@@ -7,7 +7,7 @@ from pathlib import Path
 
 import frappe
 import mimemapper
-from frappe import _  # //// Neoffice — validate_private_file_access below (maintenance#1821)
+from frappe import _  # //// Neoffice — _refuse_drive_own_places below (maintenance#1821)
 from frappe.core.doctype.file.file import File as FrappeFile
 from frappe.utils import get_files_path, now
 
@@ -237,13 +237,14 @@ class File(FrappeFile):
         )
         return self.file_type == "Link" or not self.file_url or content_without_storage
 
-    # //// Neoffice — added (maintenance#1821): frappe's check on private files (validate_private_file_access, frappe
-    # //// fork, #1738) compares this row's url with the urls of the private files on record, once brought back to the
-    # //// file it lands on, and brings back only the urls frappe itself reads: "/private/files/…", "/files/…", a full url
-    # //// of the site. The Drive reads a row by its storage key (storage_key, then FileManager.get_local_path), the same
-    # //// file for "/private/files/x", "private/files/x", "//private/files/x", "./private/files/x" or the Drive's S3 url
-    # //// of it. A row of one's own set to a colleague's file without the leading slash passed the check, and the Drive
-    # //// served the colleague's bytes. The check now receives the url as the Drive reads it too.
+    # //// Neoffice — added (maintenance#1821): frappe's check on private files (the fork's, #1738, see
+    # //// _validate_private_file_access_in_every_spelling below) compares this row's url with the urls of the private
+    # //// files on record, once brought back to the file it lands on, and brings back only the urls frappe itself reads:
+    # //// "/private/files/…", "/files/…", a full url of the site. The Drive reads a row by its storage key (storage_key,
+    # //// then FileManager.get_local_path), the same file for "/private/files/x", "private/files/x", "//private/files/x",
+    # //// "./private/files/x" or the Drive's S3 url of it. A row of one's own set to a colleague's file without the
+    # //// leading slash passed the check, and the Drive served the colleague's bytes. The check now receives the url as
+    # //// the Drive reads it too.
     def _url_read_from_disk(self):
         url = super()._url_read_from_disk()
         if url or not self.file_url:
@@ -257,8 +258,19 @@ class File(FrappeFile):
     # //// trashed rows and the files of their folders (FileManager.get_trash_url, maintenance#1820), but bytes whose row
     # //// went another way may stay there, and an adopted framework upload keeps its url while its bytes are there:
     # //// only a save of this row's own place is let through. Administrator passes, as in frappe's check.
+    # //// The fork of frappe runs its check in `_validate_private_file_access_in_every_spelling` since its merge of
+    # //// upstream 15.124 (before_insert and before_save; upstream's `validate_private_file_access` runs next to it in
+    # //// before_insert only); before, in `validate_private_file_access`. The Drive's checks follow whichever runs.
+    def _validate_private_file_access_in_every_spelling(self):
+        super()._validate_private_file_access_in_every_spelling()
+        self._refuse_drive_own_places()
+
     def validate_private_file_access(self):
         super().validate_private_file_access()
+        if not hasattr(FrappeFile, "_validate_private_file_access_in_every_spelling"):
+            self._refuse_drive_own_places()
+
+    def _refuse_drive_own_places(self):
         if frappe.session.user == "Administrator" or not self.file_url:
             return
         local_url = self._url_read_from_disk()
