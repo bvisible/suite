@@ -224,6 +224,7 @@ def _create_empty_resource(ctx: DavContext, resolved: pathmap.ResolvedPath) -> f
             from suite.drive.utils.files import get_s3_key, get_s3_url
 
             drive_file.file_url = get_s3_url(get_s3_key(drive_file.file_url))
+            drive_file.flags.drive_sets_url = True  # //// Neoffice — see File.validate
             drive_file.save()
         drive_file.db_set("content_hash", hashlib.sha256(b"").hexdigest(), update_modified=False)
     finally:

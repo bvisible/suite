@@ -146,7 +146,8 @@ def create_blog(entity_name: str, html: str, attachments: str | None = None):
     """
     file = frappe.get_doc("File", entity_name)
     if not user_has_permission(file, "read"):
-        frappe.throw("You don't have access to this file.", frappe.PermissionError)
+        # //// Neoffice — translated (maintenance#1828)
+        frappe.throw(frappe._("You don't have access to this file."), frappe.PermissionError)
     blogger = frappe.db.exists("Blogger", {"user": frappe.session.user})
     if not blogger:
         frappe.throw("Please create a Blogger for your user first.")

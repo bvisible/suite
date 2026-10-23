@@ -84,7 +84,8 @@ def storage_breakdown():
         "total": query.groupby(DriveFile.file_type).run(as_dict=True),
         "entities": entities,
         # //// Neoffice — said by the statistics when there is no quota, where they said « of your 0 bytes (∞ %) »
-        "disk": drive_disk(),
+        # //// Neoffice — to the staff only (maintenance#1828), see storage_bar_data
+        "disk": drive_disk() if _sees_the_volume() else None,
     }
 
 
@@ -93,8 +94,18 @@ def storage_bar_data():
     usage = get_storage_usage()
     # //// Neoffice — the volume the Drive writes its files to: a bar without a quota shows it (it showed « / 5 GB », a
     # //// limit no server has, Jérémy 16.10.2026; maintenance#1598)
-    usage["disk"] = drive_disk()
+    # //// Neoffice — to the staff only (maintenance#1828): the size of the site's volume and what is used of it are the
+    # //// company's figures, not a portal account's; its bar shows its own use alone (utils/storageGauge.js)
+    usage["disk"] = drive_disk() if _sees_the_volume() else None
     return usage
+
+
+# //// Neoffice — added (maintenance#1828): whether the session is a desk account (System User), which may see the volume
+def _sees_the_volume() -> bool:
+    user = frappe.session.user
+    if user == "Administrator":
+        return True
+    return user != "Guest" and frappe.get_cached_value("User", user, "user_type") == "System User"
 
 
 # //// Neoffice — added (no upstream equivalent), see storage_bar_data

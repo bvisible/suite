@@ -31622,3 +31622,19 @@ msgstr "Ce fichier a été supprimé"
 #: suite/drive/utils/files.py:604 suite/drive/api/files.py:93
 msgid "This folder is in the trash"
 msgstr "Ce dossier se trouve dans la corbeille"
+
+#: suite/drive/overrides/file.py:109
+msgid "The address of a Drive file can only be changed by the Drive"
+msgstr "L'adresse d'un fichier Drive ne peut être modifiée que par le Drive"
+
+#: suite/drive/api/permissions.py:163 suite/drive/api/permissions.py:166
+msgid "We couldn't find what you're looking for."
+msgstr "Nous n'avons pas trouvé ce que vous cherchez."
+
+#: suite/drive/api/permissions.py:110 suite/drive/api/permissions.py:177 suite/drive/api/permissions.py:180 suite/writer/api/docs.py:150
+msgid "You don't have access to this file."
+msgstr "Vous n'avez pas accès à ce fichier."
+
+#: suite/drive/overrides/file.py:355
+msgid "A Drive file can only be changed by the Drive"
+msgstr "Un fichier Drive ne peut être modifié que par le Drive"

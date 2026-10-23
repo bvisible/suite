@@ -110,10 +110,16 @@ class TestThePrivateFileCheckReadsUrlsAsTheDriveDoes(IntegrationTestCase):
         self.planted.append(path)
         return path
 
-    def point_my_row_at(self, url: str):
-        """The other user sets the url of a row of their own, through the desk's API."""
+    def point_my_row_at(self, url: str, folder: str | None = None):
+        """The other user's row gets `url` as the Drive's own writers give one (`flags.drive_sets_url`): what the guard
+        must still refuse. A document API is refused before that, for any url of the Drive's (test_drive_addresses)."""
         with self.set_user(OTHER):
-            frappe.client.set_value("File", self.mine.name, "file_url", url)
+            doc = frappe.get_doc("File", self.mine.name)
+            doc.file_url = url
+            if folder:
+                doc.folder = folder
+            doc.flags.drive_sets_url = True
+            doc.save()
 
     def served(self) -> bytes:
         with self.manager.get_file(frappe.get_doc("File", self.mine.name)) as stored:
@@ -198,7 +204,7 @@ class TestThePrivateFileCheckReadsUrlsAsTheDriveDoes(IntegrationTestCase):
         for url in (place, "/" + place):
             with self.subTest(url=url):
                 with self.set_user(OTHER), self.assertRaisesRegex(frappe.PermissionError, REFUSAL):
-                    frappe.client.set_value("File", self.mine.name, {"folder": kept.name, "file_url": url})
+                    self.point_my_row_at(url, folder=kept.name)
                 frappe.db.rollback()
                 self.assertEqual(self.served(), b"the other's note")
 

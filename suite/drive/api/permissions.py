@@ -106,7 +106,8 @@ def get_general_access(entity: str | Document | frappe._dict):
     if isinstance(entity, str):
         entity = frappe.get_cached_doc("File", entity)
     if not get_user_access_for_user(entity, frappe.session.user)["read"]:
-        frappe.throw("You don't have access to this file.", frappe.PermissionError)
+        # //// Neoffice — translated (maintenance#1828)
+        frappe.throw(frappe._("You don't have access to this file."), frappe.PermissionError)
 
     for user, access_type in (("Guest", "public"), (GENERAL_USER, "site")):
         access = get_user_access_for_user(entity, user)
@@ -143,6 +144,8 @@ def get_entity_with_permissions(entity_name: str | None = None):
     Return file data with permissions
     """
     entity = None
+    # //// Neoffice — the messages below are translated (maintenance#1828): the Drive's « Oups ! » page showed them in
+    # //// English whatever the person's language
     if entity_name:
         entity = frappe.get_all(
             "File",
@@ -157,10 +160,12 @@ def get_entity_with_permissions(entity_name: str | None = None):
         frappe.local.response.errors = [
             {
                 "type": "PageDoesNotExistError",
-                "message": "We couldn't find what you're looking for.",
+                # //// Neoffice — translated, see above
+                "message": frappe._("We couldn't find what you're looking for."),
             }
         ]
-        frappe.throw("We couldn't find what you're looking for.", frappe.PageDoesNotExistError)
+        # //// Neoffice — translated, see above
+        frappe.throw(frappe._("We couldn't find what you're looking for."), frappe.PageDoesNotExistError)
     entity = entity[0]
     # //// Neoffice (v15) — coalesce in Python what FILE_FIELDS' pypika Coalesce
     # //// would have done in SQL, since FILE_FIELDS_SQL is used above.
@@ -171,10 +176,12 @@ def get_entity_with_permissions(entity_name: str | None = None):
         frappe.local.response.errors = [
             {
                 "type": "PermissionError",
-                "message": "You don't have access to this file.",
+                # //// Neoffice — translated, see above
+                "message": frappe._("You don't have access to this file."),
             }
         ]
-        frappe.throw("You don't have access to this file.", frappe.PermissionError)
+        # //// Neoffice — translated, see above
+        frappe.throw(frappe._("You don't have access to this file."), frappe.PermissionError)
 
     owner_info = frappe.db.get_value("User", entity.owner, ["user_image", "full_name"], as_dict=True) or {}
     breadcrumbs = {"breadcrumbs": get_valid_breadcrumbs(entity.name, user_access)}

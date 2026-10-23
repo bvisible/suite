@@ -186,6 +186,8 @@ def _create(ctx: DavContext, resolved, scratch: Path, size: int, sha256: str) ->
 
     mime_type = _detect_mime(ctx, scratch)
     manager = ctx.manager
+    # //// Neoffice — never over bytes already at the new file's place (maintenance#1828), as an upload and a move do
+    _clear_the_place(manager, parent.name, name)
     drive_file = create_drive_file(
         name,
         parent.name,
@@ -235,6 +237,7 @@ def _create(ctx: DavContext, resolved, scratch: Path, size: int, sha256: str) ->
     if manager.s3_enabled:
         generation = _stage_s3_generation(manager, blob, scratch, get_s3_key(blob.file_url), replaces=None)
         drive_file.file_url = get_s3_url(generation)
+        drive_file.flags.drive_sets_url = True  # //// Neoffice — the Drive gives the address (File.validate)
         drive_file.save()
     else:
         _stage_disk_swap(scratch, _Compensation(drive_file, undo, repair), manager, blob)
@@ -246,6 +249,31 @@ def _create(ctx: DavContext, resolved, scratch: Path, size: int, sha256: str) ->
     drive_file.db_set(stamped, update_modified=False)
     _bump_folder_size(parent.name, size)
     return _response(ctx, 201, drive_file.name, sha256)
+
+
+# //// Neoffice — added (maintenance#1828, _create): the place a new file takes must be free. Bytes there that no row names
+# //// (a request that failed after it placed them) were replaced at the commit's swap without a word: they are set aside
+# //// in the trash, under a name of their own, and named in the Error Log; nothing is destroyed and the client gets the
+# //// path it asked for. A place another row names is that row's: 409. Flat storage keys a place by id; S3 is flat.
+def _clear_the_place(manager, parent: str, name: str) -> None:
+    if manager.flat or manager.s3_enabled:
+        return
+    parent_path = Path(storage_key(frappe.db.get_value("File", parent, "file_url") or ""))
+    key = manager.get_disk_path(frappe._dict(file_name=name, parent_path=parent_path))
+    place = manager.site_folder / key
+    if not (place.exists() or place.is_symlink()):
+        return
+    if manager.named_by_another_row(key, None):
+        raise Conflict("Another file holds this place.")
+    aside = manager.site_folder / manager.get_trash_path(
+        frappe._dict(name=f"orphan-{frappe.generate_hash(length=12)}")
+    )
+    aside.parent.mkdir(exist_ok=True)
+    os.rename(place, aside)
+    # kept if the request fails later: the bytes stay aside either way
+    frappe.log_error(
+        "Drive: bytes no row named were set aside before a WebDAV PUT", f"{key} -> {aside}", defer_insert=True
+    )
 
 
 def _overwrite(ctx: DavContext, row: frappe._dict, scratch: Path, size: int, sha256: str) -> Response:

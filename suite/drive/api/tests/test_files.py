@@ -594,7 +594,9 @@ class TestDriveFilesAPI(IntegrationTestCase):
         with self.set_user(OWNER):
             file = frappe.get_doc("File", self.file.name)
             file.file_url = "/private/files/../../invalid.txt"
-            with self.assertRaises(frappe.ValidationError):
+            # //// Neoffice — a document save that changes the address of a Drive file is refused before the path is
+            # //// looked at (File.validate, maintenance#1828): PermissionError, not ValidationError
+            with self.assertRaises((frappe.ValidationError, frappe.PermissionError)):
                 file.save()
 
     def test_ordered_chunks_are_assembled_byte_for_byte(self):

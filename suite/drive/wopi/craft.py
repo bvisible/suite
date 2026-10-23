@@ -222,6 +222,7 @@ def save_copy(file_id: str, file_name: str) -> dict:
     if manager.s3_enabled:
         manager.conn.put_object(Bucket=manager.bucket, Key=get_s3_key(drive_file.file_url), Body=content)
         drive_file.file_url = get_s3_url(get_s3_key(drive_file.file_url))
+        drive_file.flags.drive_sets_url = True  # //// Neoffice — the Drive gives the address (File.validate)
         drive_file.save(ignore_permissions=True)
     else:
         destination = manager.site_folder / storage_key(drive_file.file_url)

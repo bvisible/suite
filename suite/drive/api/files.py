@@ -172,6 +172,7 @@ def upload_file(
     # Change path to be s3 compatible
     if manager.s3_enabled:
         drive_file.file_url = get_s3_url(get_s3_key(drive_file.file_url))
+        drive_file.flags.drive_sets_url = True  # //// Neoffice — the Drive gives the address (File.validate)
         drive_file.save()
 
     try:
@@ -885,7 +886,15 @@ def toggle_entity_status(doc, manager: FileManager, locked_owners: set):
         flag = STATUS_TRASHED
         # //// Neoffice — read before the move: an adopted framework upload or an embed keeps its url, as upstream
         leaves_tree_url = in_tree and manager.holds_tree_url(doc)
-        manager.move_to_trash(doc)
+        # //// Neoffice — bytes another row names stay where they are, a copy goes to the trash (maintenance#1828): frappe
+        # //// gives one /private/files/<name> to two Files of one content (an attachment and its copy adopted by the
+        # //// Drive), and moving them took the other one's bytes away.
+        shared = (
+            in_tree and not doc.is_folder and manager.named_by_another_row(doc.file_url, doc.name, exact=True)
+        )
+        # //// Neoffice — nor is anything taken to the trash for a row with no bytes on the disk (see the restore below)
+        if not doc._not_in_disk():
+            manager.move_to_trash(doc, copy=shared)
         if leaves_tree_url:
             new_url = manager.get_trash_url(doc)
     else:
@@ -919,10 +928,16 @@ def toggle_entity_status(doc, manager: FileManager, locked_owners: set):
         # //// transaction was rolled back after the move put them there. They are taken as restored; upstream's move
         # //// looked for them in the trash and failed every time, until the purge.
         put_back = in_tree and _own_bytes_put_back(new_url or doc.file_url, doc, manager)
-        if not put_back:
+        # //// Neoffice — a row with no bytes on the disk (a link, a document kept in its own doctype) has nothing to
+        # //// bring back from the trash (maintenance#1828): upstream moved « nothing » to its url, and the restore failed
+        # //// with « This file doesn't exist on disk ». move_to_trash already leaves it alone.
+        if not put_back and not doc._not_in_disk():
             if in_tree and _place_taken(new_url or doc.file_url, doc, manager):
                 new_url = _free_place_in_folder(doc, manager)
             manager.restore(doc, new_url)
+        # //// Neoffice — see _bring_back_what_the_trash_took (maintenance#1828)
+        elif not put_back:
+            _bring_back_what_the_trash_took(doc, manager)
         flag = STATUS_ACTIVE
 
     doc.status = flag
@@ -935,6 +950,8 @@ def toggle_entity_status(doc, manager: FileManager, locked_owners: set):
     old_url = doc.file_url
     if new_url is not None and new_url != old_url:
         doc.file_url = new_url
+        # //// Neoffice — the Drive gives the address (File.validate, maintenance#1828)
+        doc.flags.drive_sets_url = True
     doc.save()
     if new_url is not None and new_url != old_url and doc.is_folder:
         repoint_descendants(doc.name, old_url, new_url)
@@ -958,6 +975,33 @@ def _own_bytes_put_back(url: str, doc, manager: FileManager) -> bool:
         return False
     with path.open("rb") as stored:
         return hashlib.file_digest(stored, "sha256").hexdigest() == doc.content_hash
+
+
+# //// Neoffice — added (maintenance#1828, toggle_entity_status, File.permanent_delete): before maintenance#1828 the trash took
+# //// the bytes the url of a row without bytes of its own names (a library file's, for a reference to it) to the row's place
+# //// in the trash. They go back to where the library file is now (its folder may have been renamed since), when nothing is
+# //// there and its folder is, and the reference follows it; no folder is made for them. When the place holds bytes again
+# //// (the file was uploaded anew), `discard` drops the old copy, at a deletion of the row.
+def _bring_back_what_the_trash_took(doc, manager: FileManager, discard: bool = False) -> None:
+    if manager.flat or manager.s3_enabled or not doc.file_url or doc.file_type == "Link":
+        return
+    trashed = manager.site_folder / manager.get_trash_path(doc)
+    if not trashed.is_file():
+        return
+    url = doc.file_url
+    if doc.content_doctype == ATTACHMENT_CONTENT_DOCTYPE and doc.content_docname:
+        url = frappe.db.get_value("File", doc.content_docname, "file_url") or url
+    place = manager.get_local_path(url)
+    if place.exists() or place.is_symlink():
+        if discard:
+            frappe.db.after_commit.add(lambda: trashed.unlink(missing_ok=True))
+        return
+    if not place.parent.is_dir():
+        return
+    os.rename(trashed, place)
+    if url != doc.file_url:
+        doc.file_url = url
+        doc.flags.drive_sets_url = True
 
 
 # //// Neoffice — added (maintenance#1820, #1821, toggle_entity_status): whether the place `url` holds bytes or is named by

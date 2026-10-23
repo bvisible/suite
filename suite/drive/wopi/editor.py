@@ -104,6 +104,7 @@ def create_office_file(file_type: str, title: str, parent: str = None) -> dict: 
 
     if manager.s3_enabled:
         drive_file.file_url = get_s3_url(get_s3_key(drive_file.file_url))
+        drive_file.flags.drive_sets_url = True  # //// Neoffice — the Drive gives the address (File.validate)
         drive_file.save(ignore_permissions=True)
 
     frappe.db.commit()

@@ -703,6 +703,8 @@ def create_drive_file(
     drive_file.insert(ignore_permissions=True)
     path = entity_path(drive_file) if callable(entity_path) else entity_path
     drive_file.file_url = str(path) if path else ""
+    # //// Neoffice — the Drive gives the address (File.validate, maintenance#1828)
+    drive_file.flags.drive_sets_url = True
     drive_file.save(ignore_permissions=True)
     if owner:
         drive_file.db_set("owner", owner, update_modified=False)

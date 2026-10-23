@@ -396,6 +396,7 @@ def _publish_artifact(recording_name: str, path: Path) -> dict:
             placed.append(drive_file.name)  # //// Neoffice — see `placed` above
             if manager.s3_enabled:
                 drive_file.file_url = get_s3_url(get_s3_key(drive_file.file_url))
+                drive_file.flags.drive_sets_url = True  # //// Neoffice — see File.validate
             drive_file.content_hash = recording.upload_sha256
             drive_file.save(ignore_permissions=True)
             update_file_size(parent, recording.upload_size)

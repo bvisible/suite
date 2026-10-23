@@ -117,6 +117,7 @@ class _Copier:
         self.created_blobs.append(frappe._dict(name=target.name, file_url=target.file_url))
         if manager.s3_enabled:
             target.file_url = get_s3_url(get_s3_key(target.file_url))
+            target.flags.drive_sets_url = True  # //// Neoffice — the Drive gives the address (File.validate)
             target.save()
         if node.get("content_hash"):
             target.db_set("content_hash", node.content_hash, update_modified=False)

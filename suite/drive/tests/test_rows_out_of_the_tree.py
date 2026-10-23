@@ -98,6 +98,16 @@ class TestRowsOutOfTheTreeGiveUpTheirUrl(IntegrationTestCase):
         frappe.flags.mute_drive_activity_log = False
         super().tearDown()
 
+    def point_as(self, user: str, name: str, url: str):
+        """A row of `user`'s pointed at `url` as the Drive's own writers point one (`flags.drive_sets_url`): a document
+        API refuses any url of the Drive's (test_drive_addresses), these tests look at what lies behind."""
+        with self.set_user(user):
+            doc = frappe.get_doc("File", name)
+            doc.file_url = url
+            doc.flags.drive_sets_url = True
+            doc.save()
+        frappe.db.commit()
+
     def subtree(self, name: str) -> list[str]:
         names = [name]
         for child in frappe.get_all("File", filters={"folder": name}, pluck="name"):
@@ -448,8 +458,7 @@ class TestRowsOutOfTheTreeGiveUpTheirUrl(IntegrationTestCase):
         with self.set_user(OWNER):
             remove_or_restore([mine.name])
         frappe.db.commit()
-        with self.set_user(COLLEAGUE):
-            frappe.client.set_value("File", theirs.name, "file_url", "/" + place.as_posix())
+        self.point_as(COLLEAGUE, theirs.name, "/" + place.as_posix())
         frappe.db.commit()
 
         with self.set_user(OWNER):
@@ -467,8 +476,7 @@ class TestRowsOutOfTheTreeGiveUpTheirUrl(IntegrationTestCase):
         mine = self.upload(OWNER, b"the owner's", "here.pdf")
         theirs = self.upload(COLLEAGUE, b"the colleague's note", "note.txt")
         target = self.tree_path("there.pdf")
-        with self.set_user(COLLEAGUE):
-            frappe.client.set_value("File", theirs.name, "file_url", "/" + target.as_posix())
+        self.point_as(COLLEAGUE, theirs.name, "/" + target.as_posix())
         frappe.db.commit()
 
         with self.set_user(OWNER), self.assertRaisesRegex(frappe.ValidationError, "A file is already there"):
@@ -756,8 +764,7 @@ class TestRowsOutOfTheTreeGiveUpTheirUrl(IntegrationTestCase):
 
         # a colleague's row pointed under the place is another row, whatever the folder it is in
         theirs = self.upload(COLLEAGUE, b"theirs", "note.txt")
-        with self.set_user(COLLEAGUE):
-            frappe.client.set_value("File", theirs.name, "file_url", f"/{place}/elsewhere.pdf")
+        self.point_as(COLLEAGUE, theirs.name, f"/{place}/elsewhere.pdf")
         frappe.db.commit()
         self.assertTrue(self.manager.named_by_another_row(place, projects.name))
         self.assertEqual(self.content(inside.name), b"inside")
@@ -964,3 +971,352 @@ class TestRowsOutOfTheTreeGiveUpTheirUrl(IntegrationTestCase):
         frappe.db.rollback()
         self.assertEqual(frappe.db.get_value("File", other.name, "status"), STATUS_TRASHED)
         self.assertEqual(stranger.read_bytes(), b"OTHER")
+
+    def test_a_document_api_does_not_change_a_drive_files_address(self):
+        # the address moves with the file, through the Drive's own code; a document API changed it without the Drive's
+        # checks (maintenance#1828)
+        mine = self.upload(OWNER, b"mine", "address.pdf")
+        free = "/" + self.tree_path("elsewhere.pdf").as_posix()
+        with (
+            self.set_user(OWNER),
+            self.assertRaisesRegex(frappe.PermissionError, "only be changed by the Drive"),
+        ):
+            frappe.client.set_value("File", mine.name, "file_url", free)
+        frappe.db.rollback()
+        with (
+            self.set_user(OWNER),
+            self.assertRaisesRegex(frappe.PermissionError, "only be changed by the Drive"),
+        ):
+            doc = frappe.get_doc("File", mine.name)
+            doc.file_url = "/private/files/somewhere.pdf"
+            doc.save()
+        frappe.db.rollback()
+        with (
+            self.set_user(OWNER),
+            self.assertRaisesRegex(frappe.PermissionError, "only be changed by the Drive"),
+        ):
+            # the flag is the Drive's code's, a payload does not carry it
+            payload = frappe.get_doc("File", mine.name).as_dict()
+            payload.update({"file_url": free, "flags": {"drive_sets_url": 1}})
+            frappe.client.save(payload)
+        frappe.db.rollback()
+        with (
+            self.set_user(OWNER),
+            self.assertRaisesRegex(frappe.PermissionError, "only be changed by the Drive"),
+        ):
+            # frappe's optimize_file writes the image again at frappe's place for it, not at the Drive's
+            frappe.get_doc("File", mine.name).optimize_file()
+        frappe.db.rollback()
+        self.assertEqual(frappe.db.get_value("File", mine.name, "file_url"), mine.file_url)
+        self.assertEqual(self.content(mine.name), b"mine")
+        # Administrator may, as for every check of the Drive
+        frappe.set_user("Administrator")
+        frappe.client.set_value("File", mine.name, "file_url", free)
+        self.assertEqual(frappe.db.get_value("File", mine.name, "file_url"), free)
+        frappe.db.rollback()
+        # and the Drive's own flows still give addresses (a move, here)
+        elsewhere = self.make_folder(OWNER, "Ailleurs-address")
+        with self.set_user(OWNER):
+            frappe.get_doc("File", mine.name).move(elsewhere.name)
+        frappe.db.commit()
+        self.assertEqual(self.content(mine.name), b"mine")
+
+    def test_a_frappe_file_is_not_pointed_at_a_url_no_file_has_yet(self):
+        # frappe's own check, which this override skipped for a saved File: a new url names a file that is there
+        # (maintenance#1828)
+        suffix = frappe.generate_hash(length=8)
+        with self.set_user(OWNER):
+            framework = frappe.get_doc(
+                {
+                    "doctype": "File",
+                    "file_name": f"framework-{suffix}.txt",
+                    "content": b"mine",
+                    "is_private": 1,
+                }
+            ).insert(ignore_permissions=True)
+        frappe.db.commit()
+        self.planted.append(self.manager.get_local_path(framework.file_url))
+        self.addCleanup(lambda: frappe.db.delete("File", {"name": framework.name}) or frappe.db.commit())
+        self.assertEqual(framework.file_url, f"/private/files/framework-{suffix}.txt")
+        with self.set_user(OWNER), self.assertRaisesRegex(frappe.ValidationError, "does not exist"):
+            frappe.client.set_value(
+                "File", framework.name, "file_url", f"/private/files/payslip-{suffix}.pdf"
+            )
+        frappe.db.rollback()
+        self.assertEqual(frappe.db.get_value("File", framework.name, "file_url"), framework.file_url)
+
+    def test_a_frappe_file_is_not_pointed_at_a_folder_nor_optimized_over_another(self):
+        from PIL import Image
+
+        suffix = frappe.generate_hash(length=8)
+        folder = self.manager.site_folder / "private" / "files" / f"dossier-{suffix}"
+        folder.mkdir()
+        self.addCleanup(lambda: folder.rmdir())
+
+        def png(colour):
+            buffer = BytesIO()
+            Image.new("RGB", (64, 64), colour).save(buffer, format="PNG")
+            return buffer.getvalue()
+
+        with self.set_user(OWNER):
+            logo = frappe.get_doc(
+                {"doctype": "File", "file_name": f"logo-{suffix}.png", "content": png("red"), "is_private": 1}
+            ).insert(ignore_permissions=True)
+            # frappe gives the same content the older url: a copy under a name of its own
+            copy = frappe.get_doc(
+                {
+                    "doctype": "File",
+                    "file_name": f"banner-{suffix}.png",
+                    "content": png("red"),
+                    "is_private": 1,
+                }
+            ).insert(ignore_permissions=True)
+            banner = frappe.get_doc(
+                {
+                    "doctype": "File",
+                    "file_name": f"banner-{suffix}.png",
+                    "content": png("blue"),
+                    "is_private": 1,
+                }
+            ).insert(ignore_permissions=True)
+        frappe.db.commit()
+        rows = [logo.name, copy.name, banner.name]
+        self.addCleanup(lambda: frappe.db.delete("File", {"name": ("in", rows)}) or frappe.db.commit())
+        for row in (logo, banner):
+            self.planted.append(self.manager.get_local_path(row.file_url))
+        self.assertEqual(copy.file_url, logo.file_url)
+        self.assertEqual(banner.file_url, f"/private/files/banner-{suffix}.png")
+
+        with self.set_user(OWNER), self.assertRaisesRegex(frappe.ValidationError, "does not exist"):
+            frappe.client.set_value("File", logo.name, "file_url", f"/private/files/dossier-{suffix}")
+        frappe.db.rollback()
+        with self.set_user(OWNER), self.assertRaises(TypeError):
+            frappe.get_doc("File", copy.name).optimize_file()
+        frappe.db.rollback()
+        self.assertEqual(self.manager.get_local_path(banner.file_url).read_bytes(), png("blue"))
+
+    def test_a_webdav_put_never_replaces_bytes_already_at_its_place(self):
+        import glob
+
+        from suite.drive.webdav import put
+        from suite.drive.webdav.errors import Conflict
+        from suite.drive.webdav.tests.utils import make_ctx
+
+        trash_dir = self.manager.site_folder / self.manager.get_trash_path(frappe._dict(name="x")).parent
+        before = set(glob.glob(str(trash_dir / "orphan-*")))
+        orphan = self.manager.site_folder / self.tree_path("put.txt")
+        orphan.write_bytes(b"bytes no row names")
+
+        response = put.handle(
+            make_ctx(
+                "PUT",
+                f"/dav/Home/{self.folder.file_name}/put.txt",
+                OWNER,
+                data=b"the new body",
+                content_type="application/octet-stream",
+            )
+        )
+        frappe.db.commit()
+        frappe.set_user("Administrator")
+
+        self.assertEqual(response.status_code, 201)
+        created = frappe.db.get_value("File", {"folder": self.folder.name, "file_name": "put.txt"}, "name")
+        self.assertEqual(self.content(created), b"the new body")
+        aside = set(glob.glob(str(trash_dir / "orphan-*"))) - before
+        self.assertEqual(len(aside), 1)
+        self.planted.extend(Path(path) for path in aside)
+        self.assertEqual(Path(next(iter(aside))).read_bytes(), b"bytes no row names")
+
+        # a place another row names is that row's: 409, and no row is made
+        theirs = self.upload(COLLEAGUE, b"theirs", "note.txt")
+        held = self.tree_path("held.txt")
+        (self.manager.site_folder / held).write_bytes(b"held")
+        self.point_as(COLLEAGUE, theirs.name, "/" + held.as_posix())
+        with self.assertRaises(Conflict):
+            put.handle(
+                make_ctx(
+                    "PUT",
+                    f"/dav/Home/{self.folder.file_name}/held.txt",
+                    OWNER,
+                    data=b"other body",
+                    content_type="application/octet-stream",
+                )
+            )
+        frappe.db.rollback()
+        frappe.set_user("Administrator")
+        self.assertIsNone(frappe.db.get_value("File", {"folder": self.folder.name, "file_name": "held.txt"}))
+        self.assertEqual((self.manager.site_folder / held).read_bytes(), b"held")
+
+    def test_bytes_another_row_names_stay_through_the_trash_and_the_deletion(self):
+        # frappe gives one /private/files/<name> to two Files of one content: an attachment, and its copy the Drive
+        # adopted. Trashing or deleting the Drive's took the other one's bytes away (maintenance#1828)
+        file_name = f"{self.folder.file_name}-shared.pdf"
+        url = f"/private/files/{file_name}"
+        place = self.manager.site_folder / storage_key(url)
+        self.planted.append(place)
+        other_folder = self.make_folder(OWNER, "Autre")
+        with self.set_user(OWNER):
+            adopted = create_drive_file(file_name, self.folder.name, "PDF", url, "application/pdf", 6)
+            attachment = create_drive_file(file_name, other_folder.name, "PDF", url, "application/pdf", 6)
+        place.write_bytes(b"shared")
+        frappe.db.commit()
+
+        with self.set_user(OWNER):
+            remove_or_restore([adopted.name])
+        frappe.db.commit()
+        self.assertEqual(self.content(attachment.name), b"shared")
+        trash_entry = self.manager.site_folder / self.manager.get_trash_path(adopted)
+        self.assertEqual(trash_entry.read_bytes(), b"shared")
+
+        with self.set_user(OWNER):
+            delete_entities([adopted.name])
+        frappe.db.commit()
+        self.assertEqual(self.content(attachment.name), b"shared")
+        self.assertFalse(trash_entry.exists())
+
+        # deleted for good without the trash, too
+        with self.set_user(OWNER):
+            again = create_drive_file(file_name, self.folder.name, "PDF", url, "application/pdf", 6)
+            delete_entities([again.name])
+        frappe.db.commit()
+        self.assertEqual(self.content(attachment.name), b"shared")
+
+    def test_a_link_and_a_document_come_back_from_the_trash(self):
+        # nothing of theirs is on the disk: the restore moved « nothing » and failed (maintenance#1828)
+        with self.set_user(OWNER):
+            link = create_link("site", "https://example.com/page", parent=self.folder.name)
+            document = create_drive_file("Notes", self.folder.name, "Document", "", "frappe/slides", 0)
+        frappe.db.set_value("File", document.name, "content_doctype", "Presentation", update_modified=False)
+        frappe.db.commit()
+        for row in (link, document):
+            with self.subTest(row=row.file_name):
+                with self.set_user(OWNER):
+                    remove_or_restore([row.name])
+                    remove_or_restore([row.name])
+                frappe.db.commit()
+                self.assertEqual(frappe.db.get_value("File", row.name, "status"), STATUS_ACTIVE)
+
+    def reference_trashed_before(self, library):
+        """A reference to `library`, trashed the way it was before maintenance#1828: the library's bytes went to the
+        reference's place in the trash."""
+        with self.set_user(OWNER):
+            reference = create_drive_file(
+                "reference.pdf", self.folder.name, "PDF", library.file_url, "application/pdf", 13
+            )
+        frappe.db.set_value(
+            "File",
+            reference.name,
+            {"content_doctype": "File", "content_docname": library.name, "status": STATUS_TRASHED},
+            update_modified=False,
+        )
+        frappe.db.commit()
+        trashed = self.manager.site_folder / self.manager.get_trash_path(frappe._dict(name=reference.name))
+        trashed.parent.mkdir(exist_ok=True)
+        self.manager.get_local_path(library.file_url).rename(trashed)
+        self.planted.append(trashed)
+        return reference, trashed
+
+    def test_a_reference_trashed_before_gives_its_library_file_its_bytes_back(self):
+        # before maintenance#1828 the trash took the library file's bytes to the reference's place in the trash
+        lib = self.make_folder(OWNER, "Bibliotheque")
+        library = self.upload(OWNER, b"the library's", "library.pdf", parent=lib.name)
+        reference, trashed = self.reference_trashed_before(library)
+        # the library's folder was renamed since: the library row followed it, the reference did not
+        old_folder = self.manager.get_local_path(frappe.db.get_value("File", lib.name, "file_url"))
+        with self.set_user(OWNER):
+            frappe.get_doc("File", lib.name).rename("Bibliotheque-2")
+        frappe.db.commit()
+
+        with self.set_user(OWNER):
+            remove_or_restore([reference.name])
+        frappe.db.commit()
+
+        self.assertEqual(frappe.db.get_value("File", reference.name, "status"), STATUS_ACTIVE)
+        self.assertFalse(trashed.exists())
+        self.assertEqual(self.content(library.name), b"the library's")
+        self.assertEqual(
+            frappe.db.get_value("File", reference.name, "file_url"),
+            frappe.db.get_value("File", library.name, "file_url"),
+        )
+        # no folder is made again under the old name
+        self.assertFalse(old_folder.exists())
+        # and from now on the trash leaves the bytes where they are
+        with self.set_user(OWNER):
+            remove_or_restore([reference.name])
+        frappe.db.commit()
+        self.assertFalse(trashed.exists())
+        self.assertEqual(self.content(library.name), b"the library's")
+
+    def test_a_reference_trashed_before_and_deleted_drops_only_an_old_copy(self):
+        library = self.upload(OWNER, b"the library's", "library.pdf")
+        reference, trashed = self.reference_trashed_before(library)
+        # the library file was uploaded anew at its place: the trash holds an old copy of it
+        self.manager.get_local_path(library.file_url).write_bytes(b"the library's")
+        with self.set_user(OWNER):
+            delete_entities([reference.name])
+        frappe.db.commit()
+        self.assertFalse(trashed.exists())
+        self.assertEqual(self.content(library.name), b"the library's")
+
+        # with nothing at its place, a deletion gives the library file its bytes back
+        other, trashed = self.reference_trashed_before(library)
+        with self.set_user(OWNER):
+            delete_entities([other.name])
+        frappe.db.commit()
+        self.assertFalse(trashed.exists())
+        self.assertEqual(self.content(library.name), b"the library's")
+
+    def test_the_drives_access_messages_are_translated(self):
+        # the Drive's « Oups ! » page showed them in English whatever the person's language (maintenance#1828)
+        from suite.drive.api.permissions import get_entity_with_permissions
+
+        mine = self.upload(OWNER, b"mine", "private.pdf")
+        stranger = "drive-out-of-tree-stranger@example.com"
+        ensure_user(stranger)
+        with (
+            self.set_user(stranger),
+            patch("frappe._", side_effect=lambda message, *args, **kwargs: f"<{message}>"),
+            self.assertRaisesRegex(frappe.PermissionError, "<You don't have access to this file.>"),
+        ):
+            get_entity_with_permissions(mine.name)
+        with (
+            self.set_user(stranger),
+            patch("frappe._", side_effect=lambda message, *args, **kwargs: f"<{message}>"),
+            self.assertRaisesRegex(
+                frappe.PageDoesNotExistError, "<We couldn't find what you're looking for.>"
+            ),
+        ):
+            get_entity_with_permissions("no-such-file")
+
+    def test_a_portal_account_does_not_see_the_sites_volume(self):
+        # the size of the site's volume and what is used of it are the company's figures (maintenance#1828)
+        from suite.drive.api.storage import storage_bar_data, storage_breakdown
+
+        portal = "drive-out-of-tree-portal@example.com"
+        staff = "drive-out-of-tree-staff@example.com"
+        for user in (portal, staff):
+            ensure_user(user)
+        frappe.get_doc("User", staff).add_roles("Desk User")
+        self.assertEqual(frappe.db.get_value("User", portal, "user_type"), "Website User")
+        self.assertEqual(frappe.db.get_value("User", staff, "user_type"), "System User")
+        volume = {"total": 500, "used": 120, "free": 380}
+        # whatever the site keeps its files on: the volume is there to be said
+        with patch("suite.drive.api.storage.drive_disk", return_value=volume):
+            with self.set_user(portal):
+                self.assertIsNone(storage_bar_data()["disk"])
+                self.assertIsNone(storage_breakdown()["disk"])
+                self.assertIn("total_size", storage_bar_data())
+            for user in (staff, "Administrator"):
+                with self.subTest(user=user), self.set_user(user):
+                    self.assertEqual(storage_bar_data()["disk"], volume)
+
+    def test_a_file_named_like_a_colleagues_but_for_its_case_or_accents_is_dropped(self):
+        # the column compares without case or accents, the disk does not: frappe's check, which read « résumé.pdf » as
+        # the colleague's « resume.pdf » and refused it, compares the url exactly (fork of frappe, maintenance#1828)
+        theirs = self.upload(COLLEAGUE, b"the colleague's", "resume.pdf")
+        for file_name in ("résumé.pdf", "RESUME.pdf"):
+            with self.subTest(file_name=file_name):
+                mine = self.upload(OWNER, f"mine {file_name}".encode(), file_name)
+                self.assertNotEqual(mine.file_url, theirs.file_url)
+                self.assertEqual(self.content(mine.name), f"mine {file_name}".encode())
+        self.assertEqual(self.content(theirs.name), b"the colleague's")

@@ -432,11 +432,14 @@ class FileManager:
         return bool(entity.file_url) and Path(storage_key(entity.file_url)) == self.__get_trash_path(entity)
 
     # //// Neoffice — added (maintenance#1821): FileManager.move looks for the place among the urls on record first
-    def named_by_another_row(self, key: str | Path, entity: str | None) -> bool:
+    # //// Neoffice — `exact` added (maintenance#1828): whether these bytes are another row's too (copied, not moved, to
+    # //// the trash; kept at a deletion) asks for the place as the disk spells it, not for a variant of its name
+    def named_by_another_row(self, key: str | Path, entity: str | None, exact: bool = False) -> bool:
         """Whether a row other than `entity` (or one below it) names the place `key`, or a place under it, in either
         spelling a row is written with ("private/files/…", "/private/files/…", a folder's with its trailing slash)."""
         key = Path(storage_key(key)).as_posix()
-        exact = (key, "/" + key, key + "/", "/" + key + "/")
+        # //// Neoffice — `spellings` was `exact`, a name the parameter takes (maintenance#1828)
+        spellings = (key, "/" + key, key + "/", "/" + key + "/")
         prefixes = (key + "/", "/" + key + "/")
 
         def under(prefix):
@@ -449,7 +452,8 @@ class FileManager:
             """SELECT `name`, `file_url`, `owner` FROM `tabFile` WHERE `file_url` IN %(exact)s
             UNION ALL SELECT `name`, `file_url`, `owner` FROM `tabFile` WHERE `file_url` LIKE %(under)s
             UNION ALL SELECT `name`, `file_url`, `owner` FROM `tabFile` WHERE `file_url` LIKE %(under_slash)s""",
-            {"exact": exact, "under": under(prefixes[0]), "under_slash": under(prefixes[1])},
+            # //// Neoffice — see `spellings` above
+            {"exact": spellings, "under": under(prefixes[0]), "under_slash": under(prefixes[1])},
             as_dict=True,
         )
         user = frappe.session.user
@@ -459,10 +463,11 @@ class FileManager:
                 continue
             # The column compares without case or accents (its collation), the disk does not: « Rapport.pdf » and
             # « rapport.pdf » are two places. A variant of the place is still taken when another owner's row names it:
-            # frappe's check on private files compares the same way and would refuse the save once the bytes have moved,
-            # and frappe's /private/files/ route finds a row the same way (find_file_by_url), so it guards that route.
-            if (row.file_url in exact or row.file_url.startswith(prefixes)) or (
-                user != "Administrator" and row.owner != user
+            # frappe's check on private files and its /private/files/ route (find_file_by_url) compared the same way
+            # before the fork of frappe compared urls exactly (maintenance#1828), and a site may run a frappe from before.
+            # //// Neoffice — `exact` asks about the bytes, not about the name: only the place itself counts (maintenance#1828).
+            if (row.file_url in spellings or row.file_url.startswith(prefixes)) or (
+                not exact and user != "Administrator" and row.owner != user
             ):
                 others.add(row.name)
         if not others or not entity:
@@ -505,7 +510,8 @@ class FileManager:
         return self.move(entity, new_path)
 
     @_not_if_flat
-    def move_to_trash(self, entity):
+    # //// Neoffice — `copy` added (maintenance#1828): bytes another row names are copied into the trash, not moved
+    def move_to_trash(self, entity, copy=False):
         if not entity.file_url or entity.mime_type in ["frappe/slides", "link"]:
             return
 
@@ -518,7 +524,8 @@ class FileManager:
                     CopySource={"Bucket": bucket, "Key": storage_key(entity.file_url)},
                     Key=str(trash_path),
                 )
-                self.conn.delete_object(Bucket=bucket, Key=storage_key(entity.file_url))
+                if not copy:  # //// Neoffice — see `copy` above
+                    self.conn.delete_object(Bucket=bucket, Key=storage_key(entity.file_url))
             else:
                 full_trash_path = self.site_folder / trash_path
                 cur_path = self.get_local_path(entity.file_url)
@@ -533,7 +540,13 @@ class FileManager:
 
                 full_trash_path.parent.mkdir(exist_ok=True)
                 # //// Neoffice — cur_path is read above, before the trash is looked at
-                if cur_path.is_dir():
+                if copy:
+                    # //// Neoffice — see `copy` above
+                    if cur_path.is_dir():
+                        shutil.copytree(cur_path, full_trash_path)
+                    else:
+                        shutil.copy2(cur_path, full_trash_path)
+                elif cur_path.is_dir():
                     shutil.move(cur_path, full_trash_path)
                 else:
                     cur_path.rename(full_trash_path)

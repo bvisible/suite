@@ -78,6 +78,8 @@ class TestTheStatisticsOfTheDrive(IntegrationTestCase):
                     patch("suite.drive.api.storage.shutil.disk_usage", return_value=Usage(500, 120, 380)),
                     patch("suite.drive.api.storage.get_quota", return_value=0),
                     patch("suite.drive.api.storage.frappe.db.get_single_value", side_effect=on_a_disk),
+                    # the volume is said to desk accounts only (test_rows_out_of_the_tree), this one is a portal account
+                    patch("suite.drive.api.storage._sees_the_volume", return_value=True),
                 ):
                     data = storage_breakdown()
         finally:
