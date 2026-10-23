@@ -412,7 +412,7 @@ class FileManager:
     # //// its place there. Upstream kept its file_url on the folder's path and its name, where its bytes no longer are
     # //// (move_to_trash took them to the trash, a deletion removed them), as « where a restore would put it back ». The
     # //// next file of that name in that folder got the same url, and frappe's check on private files (File.before_save,
-    # //// validate_private_file_access) refused it as a row reaching another owner's bytes: a deposit, a sync, a mail
+    # //// _validate_private_file_access_in_every_spelling) refused it as a row reaching another owner's bytes: a deposit, a sync, a mail
     # //// saved to the Drive under the name of a colleague's trashed or deleted file failed with « You don't have
     # //// permission to access this file ». Such a row now holds the key of its place in the trash, keyed by its id,
     # //// where its bytes are, and a restore gives it back a place in the tree (api/files.py, toggle_entity_status).
@@ -431,31 +431,51 @@ class FileManager:
         """Whether a row other than `entity` (or one below it) names the place `key`, or a place under it, in either
         spelling a row is written with ("private/files/…", "/private/files/…", a folder's with its trailing slash)."""
         key = Path(storage_key(key)).as_posix()
+        exact = (key, "/" + key, key + "/", "/" + key + "/")
+        prefixes = (key + "/", "/" + key + "/")
 
-        def under(spelling):
+        def under(prefix):
             # what lies below it, the LIKE wildcards of a name taken literally
-            return spelling.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "/%"
+            return prefix.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
 
+        # three statements, each an index range on file_url: joined by OR, MariaDB read the whole table (EXPLAIN on
+        # prodclone.local, 23.10); an unescaped `_` in the LIKE did the same
         rows = frappe.db.sql(
-            """SELECT `name` FROM `tabFile` WHERE `file_url` IN %(exact)s
-            OR `file_url` LIKE %(under)s OR `file_url` LIKE %(under_slash)s""",
-            {
-                "exact": (key, "/" + key, key + "/", "/" + key + "/"),
-                "under": under(key),
-                "under_slash": under("/" + key),
-            },
-            pluck=True,
+            """SELECT `name`, `file_url`, `owner` FROM `tabFile` WHERE `file_url` IN %(exact)s
+            UNION ALL SELECT `name`, `file_url`, `owner` FROM `tabFile` WHERE `file_url` LIKE %(under)s
+            UNION ALL SELECT `name`, `file_url`, `owner` FROM `tabFile` WHERE `file_url` LIKE %(under_slash)s""",
+            {"exact": exact, "under": under(prefixes[0]), "under_slash": under(prefixes[1])},
+            as_dict=True,
         )
-        others = set(rows) - {entity}
+        user = frappe.session.user
+        others = set()
+        for row in rows:
+            if row.name == entity:
+                continue
+            # The column compares without case or accents (its collation), the disk does not: « Rapport.pdf » and
+            # « rapport.pdf » are two places. A variant of the place is still taken when another owner's row names it:
+            # frappe's check on private files compares the same way and would refuse the save once the bytes have moved,
+            # and frappe's /private/files/ route finds a row the same way (find_file_by_url), so it guards that route.
+            if (row.file_url in exact or row.file_url.startswith(prefixes)) or (
+                user != "Administrator" and row.owner != user
+            ):
+                others.add(row.name)
         if not others or not entity:
             return bool(others)
-        # rows below `entity` are its own, not others: a trashed folder's files from before the patch still name its old place
-        mine, level = set(), [entity]
-        while level:
-            level = frappe.get_all("File", filters={"folder": ("in", level)}, pluck="name")
-            level = [name for name in level if name not in mine]
-            mine.update(level)
-        return bool(others - mine)
+        # the rows below `entity` are its own, not others (a trashed folder's files from before the patch still name its
+        # old place): one walk up from each of the others, in one query
+        below = frappe.db.sql(
+            """WITH RECURSIVE `up` (`start`, `name`, `folder`, `depth`) AS (
+                SELECT `name`, `name`, `folder`, 0 FROM `tabFile` WHERE `name` IN %(others)s
+                UNION ALL
+                SELECT `up`.`start`, `t`.`name`, `t`.`folder`, `up`.`depth` + 1
+                FROM `tabFile` `t` JOIN `up` ON `t`.`name` = `up`.`folder` WHERE `up`.`depth` < 64
+            )
+            SELECT DISTINCT `start` FROM `up` WHERE `folder` = %(entity)s""",
+            {"others": tuple(others), "entity": entity},
+            pluck=True,
+        )
+        return bool(others - set(below))
 
     # //// Neoffice — added (maintenance#1820)
     def in_trash(self, url) -> bool:
@@ -559,7 +579,7 @@ class FileManager:
                     raise FileExistsError(dest_path)
                 # //// Neoffice — nor into the trash (maintenance#1820): a place there is a trashed row's own, which no
                 # //// move gives (move_to_trash does). Moving into a trashed folder would leave the bytes where no save
-                # //// may name them (File.validate_private_file_access); a rename in place inside one stays.
+                # //// may name them (File._refuse_drive_own_places); a rename in place inside one stays.
                 if self.in_trash(dest_key) and Path(dest_key).parent != Path(src_key).parent:
                     raise IsADirectoryError(dest_path)
                 # //// Neoffice — nor onto a place another row names (maintenance#1821), even with nothing there yet: the
@@ -651,34 +671,68 @@ class FileManager:
             local_path.unlink(missing_ok=True)
 
 
-# //// Neoffice — added (maintenance#1820): the files of a folder that changed its place on the disk follow its url, row by
-# //// row, without moving any byte (the folder's directory carried them) and without the save of each: no Version row,
-# //// no hook, a few milliseconds a row, where saving each one of a large folder's files outlasted the request, whose
-# //// rollback then left the directory moved and the rows on their old urls. Each url only changes its prefix, `old`
-# //// for `new`: no url is made up here. Only the rows whose url is under `old` (an adopted framework upload or a link
-# //// keeps its own); a row out of the tree is left alone, since its bytes are in its own place in the trash.
+# //// Neoffice — added (maintenance#1820): the files of a folder that changed its place on the disk follow its url,
+# //// without moving any byte (the folder's directory carried them) and without the save of each: no Version row, no
+# //// hook, where saving each one of a large folder's files outlasted the request, whose rollback then left the directory
+# //// moved and the rows on their old urls. Each url only changes its prefix, `old` for `new`: no url is made up here.
+# //// Only the rows whose url is under their folder's old one (an adopted framework upload or a link keeps its own, and
+# //// what lies below it is not looked at); a row out of the tree is left alone with all below it, since its bytes are in
+# //// its own place in the trash. One query reads the rows below, one UPDATE per batch writes them.
+REPOINT_BATCH = 500
+
+
 def repoint_descendants(folder: str, old: str | Path, new: str | Path) -> int:
     """Moves the urls of the Active rows below `folder` from under `old` to under `new` (storage keys); returns how many
     changed."""
-    old_key, new_key = Path(storage_key(old)), Path(storage_key(new))
-    moved = 0
-    for child in frappe.get_all(
-        "File", filters={"folder": folder, "status": STATUS_ACTIVE}, fields=["name", "file_url"]
-    ):
-        if not child.file_url:
-            continue
-        key = Path(storage_key(child.file_url))
-        if not key.is_relative_to(old_key):
-            continue
-        new_child_key = new_key / key.relative_to(old_key)
-        url = (
-            ("/" if child.file_url.startswith("/") else "")
-            + new_child_key.as_posix()
-            + ("/" if child.file_url.endswith("/") else "")
+    rows = frappe.db.sql(
+        """WITH RECURSIVE `below` (`name`, `folder`, `file_url`, `depth`) AS (
+            SELECT `name`, `folder`, `file_url`, 0 FROM `tabFile` WHERE `folder` = %(folder)s AND `status` = %(active)s
+            UNION ALL
+            SELECT `t`.`name`, `t`.`folder`, `t`.`file_url`, `below`.`depth` + 1
+            FROM `tabFile` `t` JOIN `below` ON `t`.`folder` = `below`.`name`
+            WHERE `t`.`status` = %(active)s AND `below`.`depth` < 64
         )
-        frappe.db.set_value("File", child.name, "file_url", url, update_modified=False)
-        moved += 1 + repoint_descendants(child.name, key, new_child_key)
-    return moved
+        SELECT `name`, `folder`, `file_url` FROM `below`""",
+        {"folder": folder, "active": STATUS_ACTIVE},
+        as_dict=True,
+    )
+    children: dict[str, list] = {}
+    for row in rows:
+        children.setdefault(row.folder, []).append(row)
+
+    urls: dict[str, str] = {}
+    walk = [(folder, Path(storage_key(old)), Path(storage_key(new)))]
+    while walk:
+        parent, parent_old, parent_new = walk.pop()
+        for child in children.get(parent, ()):
+            if not child.file_url or child.name in urls:
+                continue
+            key = Path(storage_key(child.file_url))
+            if not key.is_relative_to(parent_old):
+                continue
+            new_key = parent_new / key.relative_to(parent_old)
+            urls[child.name] = (
+                ("/" if child.file_url.startswith("/") else "")
+                + new_key.as_posix()
+                + ("/" if child.file_url.endswith("/") else "")
+            )
+            walk.append((child.name, key, new_key))
+
+    changes = list(urls.items())
+    for start in range(0, len(changes), REPOINT_BATCH):
+        batch = changes[start : start + REPOINT_BATCH]
+        values = [value for change in batch for value in change]
+        frappe.db.sql(
+            "UPDATE `tabFile` SET `file_url` = CASE `name` "
+            + " ".join(["WHEN %s THEN %s"] * len(batch))
+            + " END WHERE `name` IN %s",
+            [*values, tuple(name for name, _url in batch)],
+        )
+        # as frappe.db.set_value does
+        for name, _url in batch:
+            frappe.clear_document_cache("File", name)
+    frappe.db.value_cache.pop("File", None)
+    return len(changes)
 
 
 # Utils

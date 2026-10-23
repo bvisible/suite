@@ -791,7 +791,15 @@ def remove_or_restore(entity_names: list[str] | str):
     # //// bytes stayed in the tree, and those could not be restored again.
     # A folder restored with its files goes first.
     docs = [frappe.get_doc("File", entity) for entity in entity_names]
-    restoring = {doc.name: doc for doc in docs if doc.status != STATUS_ACTIVE}
+    # a row deleted for good (Removed: from another tab, or through the API) is neither trashed nor restored
+    if any(doc.status not in (STATUS_ACTIVE, STATUS_TRASHED) for doc in docs):
+        frappe.throw(frappe._("This file has been deleted"), frappe.DoesNotExistError)
+    # the storage of every owner is held before it is checked, so that nothing lands between the check and the restores
+    # (an upload takes the same lock); in one order, so that two such requests cannot wait on each other
+    for owner in sorted({doc.owner for doc in docs}):
+        acquire_owner_storage_lock(owner)
+        locked_owners.add(owner)
+    restoring = {doc.name: doc for doc in docs if doc.status == STATUS_TRASHED}
 
     def depth(doc):
         level, folder = 0, doc.folder
@@ -848,6 +856,9 @@ def toggle_entity_status(doc, manager: FileManager, locked_owners: set):
         if leaves_tree_url:
             new_url = manager.get_trash_url(doc)
     else:
+        # //// Neoffice — only a trashed row is restored (maintenance#1820): a deleted one has no bytes in the trash
+        if doc.status != STATUS_TRASHED:
+            frappe.throw(frappe._("This file has been deleted"), frappe.DoesNotExistError)
         validate_quota(doc.owner, doc.file_size)
         # A trashed name is free — get_new_file_name only counts Active siblings —
         # so something may have taken it. Restoring onto it would overwrite the
@@ -863,7 +874,7 @@ def toggle_entity_status(doc, manager: FileManager, locked_owners: set):
         if in_tree and (renamed or manager.holds_trash_url(doc)):
             new_url = str(manager.get_disk_path(doc)) + ("/" if doc.is_folder else "")
         # //// Neoffice — its folder first: a file restored into a folder still in the trash would get a place inside the
-        # //// trashed folder's, which no save may name (File.validate_private_file_access).
+        # //// trashed folder's, which no save may name (File._refuse_drive_own_places).
         if in_tree and manager.in_trash(new_url or doc.file_url) and not manager.holds_trash_url(doc):
             frappe.throw(frappe._("Restore its folder from the trash first"), frappe.ValidationError)
         # //// Neoffice — never onto a place taken (maintenance#1820, #1821): bytes already there that no Active row names,

@@ -31591,15 +31591,15 @@ msgstr "{0} abonnement(s) push sur {1} ont été supprimés avant que le serveur
 msgid "{0} of {1} push subscription(s) were deleted before the mail server became unavailable. The rest were not deleted: try again in a moment."
 msgstr "{0} abonnement(s) push sur {1} ont été supprimés avant que le serveur de messagerie ne devienne indisponible. Les autres n'ont pas été supprimés : réessayez dans un instant."
 
-#: suite/drive/utils/files.py:571
+#: suite/drive/utils/files.py:596
 msgid "A file is already there"
 msgstr "Un fichier existe déjà à cet emplacement"
 
-#: suite/drive/api/files.py:910
+#: suite/drive/api/files.py:923
 msgid "No free name in this folder"
 msgstr "Aucun nom libre dans ce dossier"
 
-#: suite/drive/api/files.py:809 suite/drive/api/files.py:866
+#: suite/drive/api/files.py:818 suite/drive/api/files.py:879
 msgid "Restore its folder from the trash first"
 msgstr "Restaurez d'abord son dossier depuis la corbeille"
 
@@ -31607,6 +31607,10 @@ msgstr "Restaurez d'abord son dossier depuis la corbeille"
 msgid "Restore this file from the trash first"
 msgstr "Restaurez d'abord ce fichier depuis la corbeille"
 
-#: suite/drive/api/files.py:92 suite/drive/utils/files.py:573
+#: suite/drive/api/files.py:796 suite/drive/api/files.py:861
+msgid "This file has been deleted"
+msgstr "Ce fichier a été supprimé"
+
+#: suite/drive/api/files.py:93 suite/drive/utils/files.py:598
 msgid "This folder is in the trash"
 msgstr "Ce dossier se trouve dans la corbeille"

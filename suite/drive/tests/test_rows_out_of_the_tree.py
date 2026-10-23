@@ -1,6 +1,6 @@
 # //// Neoffice — added file (no upstream equivalent): a row that leaves the Drive's tree (trash, deletion) gives up its
 # //// url there (maintenance#1820, FileManager.get_trash_url). It kept its folder's path and its name, and the next file
-# //// of that name in that folder got the same url: frappe's check on private files (validate_private_file_access)
+# //// of that name in that folder got the same url: frappe's check on private files (the fork's)
 # //// refused it as a row reaching another owner's bytes, « You don't have permission to access this file ». That check
 # //// is meant to stay: a row aimed at another owner's bytes, in the tree or in the trash, is still refused.
 from __future__ import annotations
@@ -334,7 +334,8 @@ class TestRowsOutOfTheTreeGiveUpTheirUrl(IntegrationTestCase):
         frappe.db.rollback()
 
         modified = frappe.db.get_value("File", gone.name, "modified")
-        counts = release(only=list(legacy))
+        # one row a batch: every page and every write of the patch is gone through
+        counts = release(only=list(legacy), batch=1)
 
         self.assertEqual(counts, {"trashed": 2, "removed": 1, "followed": 1, "failed": 0})
         for name in (loose.name, projects.name, gone.name):
@@ -629,3 +630,133 @@ class TestRowsOutOfTheTreeGiveUpTheirUrl(IntegrationTestCase):
         self.assertTrue(frappe.db.get_value("File", sub.name, "file_url").endswith("/Sub/"))
         self.assertEqual(frappe.db.get_value("File", deep.name, "modified"), modified)
         frappe.db.rollback()
+
+    def test_a_restore_holds_every_owners_storage_before_checking_it(self):
+        # a deposit landing between the check of the storage and the restores would make a row refused half-way, after
+        # the bytes of the ones before had moved; the deposit takes the same lock
+        import suite.drive.api.files as files_api
+
+        mine = self.upload(OWNER, b"mine", "a.pdf")
+        theirs = self.upload(COLLEAGUE, b"theirs", "b.pdf")
+        with self.set_user(OWNER):
+            remove_or_restore([mine.name, theirs.name])
+        frappe.db.commit()
+
+        calls = []
+        lock, quota = files_api.acquire_owner_storage_lock, files_api.validate_quota
+
+        def locking(owner):
+            calls.append(("lock", owner))
+            return lock(owner)
+
+        def checking(owner=None, incoming_size=0):
+            calls.append(("quota", owner))
+            return quota(owner, incoming_size)
+
+        with (
+            self.set_user(OWNER),
+            patch.object(files_api, "acquire_owner_storage_lock", side_effect=locking),
+            patch.object(files_api, "validate_quota", side_effect=checking),
+        ):
+            remove_or_restore([theirs.name, mine.name])
+        frappe.db.commit()
+
+        first_check = next(i for i, call in enumerate(calls) if call[0] == "quota")
+        self.assertEqual([owner for kind, owner in calls[:first_check]], sorted([OWNER, COLLEAGUE]))
+        self.assertEqual(frappe.db.get_value("File", mine.name, "status"), STATUS_ACTIVE)
+        self.assertEqual(self.content(theirs.name), b"theirs")
+
+    def test_a_restore_refused_for_the_storage_moves_nothing(self):
+        import suite.drive.api.files as files_api
+
+        first = self.upload(OWNER, b"first", "first.pdf")
+        second = self.upload(OWNER, b"second", "second.pdf")
+        with self.set_user(OWNER):
+            remove_or_restore([first.name, second.name])
+        frappe.db.commit()
+
+        with (
+            self.set_user(OWNER),
+            patch.object(files_api, "validate_quota", side_effect=ValueError("You're out of storage!")),
+            self.assertRaises(ValueError),
+        ):
+            remove_or_restore([first.name, second.name])
+        frappe.db.rollback()
+
+        for row, content in ((first, b"first"), (second, b"second")):
+            trashed = frappe.get_doc("File", row.name)
+            self.assertEqual(trashed.status, STATUS_TRASHED)
+            self.assertEqual(trashed.file_url, self.manager.get_trash_url(trashed))
+            self.assertEqual(self.content(row.name), content)
+
+    def test_a_deleted_file_in_the_selection_is_refused_before_anything_moves(self):
+        gone = self.upload(OWNER, b"gone", "gone.pdf")
+        kept = self.upload(OWNER, b"kept", "kept.pdf")
+        with self.set_user(OWNER):
+            remove_or_restore([gone.name, kept.name])
+            delete_entities([gone.name])
+        frappe.db.commit()
+
+        with (
+            self.set_user(OWNER),
+            self.assertRaisesRegex(frappe.DoesNotExistError, "This file has been deleted"),
+        ):
+            remove_or_restore([kept.name, gone.name])
+        frappe.db.rollback()
+
+        self.assertEqual(frappe.db.get_value("File", kept.name, "status"), STATUS_TRASHED)
+        self.assertEqual(self.content(kept.name), b"kept")
+        self.assertEqual(frappe.db.get_value("File", gone.name, "status"), STATUS_REMOVED)
+
+    def test_a_name_that_differs_by_case_is_another_place_but_not_next_to_a_colleagues_file(self):
+        # the column compares without case or accents, the disk does not
+        mine = self.upload(OWNER, b"the small one", "rapport.pdf")
+        with self.set_user(OWNER):
+            remove_or_restore([mine.name])
+        frappe.db.commit()
+        big = self.upload(OWNER, b"the big one", "Rapport.pdf")
+
+        with self.set_user(OWNER):
+            remove_or_restore([mine.name])
+        frappe.db.commit()
+
+        self.assertEqual(frappe.db.get_value("File", mine.name, "file_name"), "rapport.pdf")
+        self.assertEqual(self.content(mine.name), b"the small one")
+        self.assertEqual(self.content(big.name), b"the big one")
+
+        # next to a colleague's « Bilan.pdf », a « bilan.pdf » would be refused by frappe's check once its bytes had
+        # moved (it compares the same way as the column): it takes a free name instead
+        other = self.upload(OWNER, b"mine", "bilan.pdf")
+        with self.set_user(OWNER):
+            remove_or_restore([other.name])
+        frappe.db.commit()
+        theirs = self.upload(COLLEAGUE, b"theirs", "Bilan.pdf")
+        with self.set_user(OWNER):
+            remove_or_restore([other.name])
+        frappe.db.commit()
+        self.assertEqual(frappe.db.get_value("File", other.name, "file_name"), "bilan (1).pdf")
+        self.assertEqual(self.content(other.name), b"mine")
+        self.assertEqual(self.content(theirs.name), b"theirs")
+
+    def test_the_place_lookup_sees_what_lies_below_and_keeps_a_folders_own_files(self):
+        projects = self.make_folder(OWNER, "Projets")
+        inside = self.upload(OWNER, b"inside", "plan.pdf", parent=projects.name)
+        place = storage_key(frappe.db.get_value("File", projects.name, "file_url")).rstrip("/")
+
+        self.assertFalse(self.manager.named_by_another_row(place, projects.name))
+        self.assertTrue(self.manager.named_by_another_row(place, None))
+
+        # the LIKE wildcards of a name are taken literally: « a_b » is not « aXb », whose file is a colleague's
+        axb = self.make_folder(COLLEAGUE, "aXb")
+        self.upload(COLLEAGUE, b"theirs", "x.pdf", parent=axb.name)
+        sibling = Path(storage_key(self.folder.file_url)) / "a_b"
+        with self.set_user(OWNER):
+            self.assertFalse(self.manager.named_by_another_row(sibling, None))
+
+        # a colleague's row pointed under the place is another row, whatever the folder it is in
+        theirs = self.upload(COLLEAGUE, b"theirs", "note.txt")
+        with self.set_user(COLLEAGUE):
+            frappe.client.set_value("File", theirs.name, "file_url", f"/{place}/elsewhere.pdf")
+        frappe.db.commit()
+        self.assertTrue(self.manager.named_by_another_row(place, projects.name))
+        self.assertEqual(self.content(inside.name), b"inside")
