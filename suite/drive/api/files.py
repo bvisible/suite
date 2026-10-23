@@ -46,6 +46,7 @@ from suite.drive.utils.files import (
     content_disposition,
     get_s3_key,
     get_s3_url,
+    # //// Neoffice — the files of a folder follow it by their url (maintenance#1820, toggle_entity_status)
     repoint_descendants,
     storage_key,
     stored_on_disk,
@@ -852,6 +853,7 @@ def toggle_entity_status(doc, manager: FileManager, locked_owners: set):
         # so something may have taken it. Restoring onto it would overwrite the
         # newcomer's blob, or, for a folder, land inside it.
         available = get_new_file_name(doc.file_name, doc.folder, doc.file_type, doc.name)
+        # //// Neoffice — `renamed` is kept: the place in the tree is given below, renamed or not (maintenance#1820)
         renamed = available != doc.file_name
         if renamed:
             doc.flags.drive_disk_rename = True

@@ -733,6 +733,7 @@ def get_new_file_name(file_name: str, parent_name: str, type: str = False, entit
     taken = taken_in_folder(parent_name, file_name, locking=False)
     if taken is None or taken.name == entity:
         return file_name
+    # //// Neoffice — see above: the first free `title (n).ext`
     return free_file_name(file_name, parent_name, locking=False)
 
 

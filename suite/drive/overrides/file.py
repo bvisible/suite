@@ -7,12 +7,12 @@ from pathlib import Path
 
 import frappe
 import mimemapper
-from frappe import _
+from frappe import _  # //// Neoffice — validate_private_file_access below (maintenance#1821)
 from frappe.core.doctype.file.file import File as FrappeFile
 from frappe.utils import get_files_path, now
 
 from suite.drive.api.activity import create_new_activity_log
-from suite.drive.api.files import ARCHIVE_DIR, get_file_type
+from suite.drive.api.files import ARCHIVE_DIR, get_file_type  # //// Neoffice — ARCHIVE_DIR: maintenance#1821
 from suite.drive.api.permissions import (
     exceeds_grant_ceiling,
     get_entity_with_permissions,
@@ -564,6 +564,7 @@ class File(FrappeFile):
                 self.file_url = new_url
 
         self.save()
+        # //// Neoffice — see above: the folder's files follow by their url
         if self.is_folder and new_url and new_url != old_url:
             repoint_descendants(self.name, old_url, new_url)
 
@@ -595,6 +596,7 @@ class File(FrappeFile):
         if delete_blob and self.is_private and not self.manager.flat:
             self.file_url = self.manager.get_trash_url(self)
         self.save()
+        # //// Neoffice — the bytes are deleted where they were (`stored`), not at the url the row now holds
         if delete_blob:
             self._delete_blob_after_commit(blob_is_trashed, stored)
 

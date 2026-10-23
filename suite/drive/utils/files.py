@@ -426,6 +426,7 @@ class FileManager:
         """Whether `entity`'s file_url is the key of its place in the trash (get_trash_url)."""
         return bool(entity.file_url) and Path(storage_key(entity.file_url)) == self.__get_trash_path(entity)
 
+    # //// Neoffice — added (maintenance#1821): FileManager.move looks for the place among the urls on record first
     def named_by_another_row(self, key: str | Path, entity: str | None) -> bool:
         """Whether a row other than `entity` (or one below it) names the place `key`, or a place under it, in either
         spelling a row is written with ("private/files/…", "/private/files/…", a folder's with its trailing slash)."""
@@ -456,6 +457,7 @@ class FileManager:
             mine.update(level)
         return bool(others - mine)
 
+    # //// Neoffice — added (maintenance#1820)
     def in_trash(self, url) -> bool:
         """Whether a file_url or storage key is in the trash: a row's own place there, or what lies under a trashed
         folder's."""
@@ -504,6 +506,7 @@ class FileManager:
                     shutil.rmtree(full_trash_path)
 
                 full_trash_path.parent.mkdir(exist_ok=True)
+                # //// Neoffice — cur_path is read above, before the trash is looked at
                 if cur_path.is_dir():
                     shutil.move(cur_path, full_trash_path)
                 else:
@@ -512,6 +515,7 @@ class FileManager:
             frappe.log_error(f"Moved {entity.name} to trash without it being on disk")
             pass
 
+    # //// Neoffice — `destination` added (maintenance#1820), see below
     @_not_if_flat
     def restore(self, entity, destination: str | None = None):
         """
@@ -567,6 +571,7 @@ class FileManager:
                     shutil.move(cur_path, dest_path)
                 else:
                     cur_path.rename(dest_path)
+        # //// Neoffice — the two refusals above, said to the person (maintenance#1820, #1821)
         except FileExistsError:
             frappe.throw(frappe._("A file is already there"), frappe.ValidationError)
         except IsADirectoryError:
