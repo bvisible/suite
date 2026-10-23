@@ -193,6 +193,31 @@ class File(FrappeFile):
             frappe.throw("Cannot delete the Drive root folder.", frappe.PermissionError)
         super().on_trash()
 
+    # //// Neoffice — added (maintenance#1823): a Drive row deleted as a document (the desk's File list, the undo of a
+    # //// WebDAV PUT) went through frappe's deletion of its bytes, whose delete_file() keeps only the last part of the
+    # //// path: for « private/files/Users/<x>/<folder>/devis.pdf » it removed « private/files/devis.pdf », a framework
+    # //// file of that name if there was one, and left the Drive's own bytes behind. In the tree on the site's disk, a
+    # //// Drive place (a path below the files folder) is the Drive's to clear, once the deletion is committed: a trashed
+    # //// row's bytes in its place in the trash, an Active row's at its url unless another row names that place. A
+    # //// deleted row's went with permanent_delete (after_delete clears its place in the trash), a folder's directory
+    # //// stays (frappe deletes an empty folder only), a link or a document without storage has none. Frappe's own
+    # //// files (« /private/files/<name> », « /files/<name> »), flat storage and S3 keep frappe's way.
+    def _delete_file_on_disk(self):
+        manager = self.manager
+        key = storage_key(self.file_url or "")
+        drive_place = (
+            key.startswith("private/files/") and posixpath.dirname(key.rstrip("/")) != "private/files"
+        )
+        if manager.flat or manager.s3_enabled or not drive_place:
+            return super()._delete_file_on_disk()
+        if self._not_in_disk() or self.is_folder or self.status == STATUS_REMOVED:
+            return
+        entity = frappe._dict(name=self.name, file_url=self.file_url)
+        if self.status == STATUS_TRASHED:
+            frappe.db.after_commit.add(lambda: manager.delete_from_trash(entity))
+        elif not manager.named_by_another_row(key, self.name):
+            frappe.db.after_commit.add(lambda: manager.delete_file(entity))
+
     def after_delete(self):
         if self.status == STATUS_REMOVED and not self._not_in_disk():
             self._delete_blob_after_commit(not self.manager.flat)

@@ -914,9 +914,15 @@ def toggle_entity_status(doc, manager: FileManager, locked_owners: set):
         # //// as a framework upload written at the url an adopted file kept while it was in the trash (upstream moved the
         # //// trashed bytes over it), or a place another row names with nothing there yet (one pointed at it in advance
         # //// would have read the bytes). The row takes a free place in its folder instead.
-        if in_tree and _place_taken(new_url or doc.file_url, doc, manager):
-            new_url = _free_place_in_folder(doc, manager)
-        manager.restore(doc, new_url)
+        # //// Neoffice — a restore tried again (maintenance#1823): when the bytes are no longer in the trash but at the
+        # //// place the row goes back to, with nothing else naming it and the row's own content, an attempt whose
+        # //// transaction was rolled back after the move put them there. They are taken as restored; upstream's move
+        # //// looked for them in the trash and failed every time, until the purge.
+        put_back = in_tree and _own_bytes_put_back(new_url or doc.file_url, doc, manager)
+        if not put_back:
+            if in_tree and _place_taken(new_url or doc.file_url, doc, manager):
+                new_url = _free_place_in_folder(doc, manager)
+            manager.restore(doc, new_url)
         flag = STATUS_ACTIVE
 
     doc.status = flag
@@ -932,6 +938,25 @@ def toggle_entity_status(doc, manager: FileManager, locked_owners: set):
     doc.save()
     if new_url is not None and new_url != old_url and doc.is_folder:
         repoint_descendants(doc.name, old_url, new_url)
+
+
+# //// Neoffice — added (maintenance#1823, toggle_entity_status): whether `doc`'s bytes are at `url` rather than in its place
+# //// in the trash: nothing left there, no other row naming `url`, and at `url` a directory for a folder, for a file its
+# //// size and, when the row knows it, its SHA-256.
+def _own_bytes_put_back(url: str, doc, manager: FileManager) -> bool:
+    if (manager.site_folder / manager.get_trash_path(doc)).exists():
+        return False
+    path = manager.get_local_path(url)
+    if not path.exists() or manager.named_by_another_row(url, doc.name):
+        return False
+    if doc.is_folder:
+        return path.is_dir()
+    if not path.is_file() or path.stat().st_size != (doc.file_size or 0):
+        return False
+    if not doc.content_hash:
+        return True
+    with path.open("rb") as stored:
+        return hashlib.file_digest(stored, "sha256").hexdigest() == doc.content_hash
 
 
 # //// Neoffice — added (maintenance#1820, #1821, toggle_entity_status): whether the place `url` holds bytes or is named by

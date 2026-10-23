@@ -870,3 +870,61 @@ class TestRowsOutOfTheTreeGiveUpTheirUrl(IntegrationTestCase):
             repoint_descendants(first.name, first.file_url, "private/files/elsewhere/")
         self.assertEqual(frappe.db.get_value("File", inside.name, "file_url"), url)
         frappe.db.rollback()
+
+    def test_a_file_deleted_as_a_document_leaves_a_framework_file_of_its_name(self):
+        # frappe's deletion of a File's bytes keeps only the last part of the path: deleting a Drive row from the desk
+        # removed « private/files/<its name> », a framework file, and left the Drive's bytes behind (maintenance#1823)
+        file_name = f"{self.folder.file_name}-same.pdf"
+        framework = self.manager.site_folder / "private" / "files" / file_name
+        framework.write_bytes(b"a framework file")
+        self.planted.append(framework)
+        mine = self.upload(OWNER, b"the drive's", file_name)
+        place = self.manager.site_folder / storage_key(mine.file_url)
+        trashed = self.upload(OWNER, b"in the trash", "trashed.pdf")
+        with self.set_user(OWNER):
+            remove_or_restore([trashed.name])
+        frappe.db.commit()
+        trash_entry = self.manager.site_folder / self.manager.get_trash_path(trashed)
+        self.assertTrue(trash_entry.exists())
+
+        # as the desk's File list deletes a row
+        frappe.delete_doc("File", mine.name, ignore_permissions=True, force=True)
+        frappe.delete_doc("File", trashed.name, ignore_permissions=True, force=True)
+        frappe.db.commit()
+
+        self.assertEqual(framework.read_bytes(), b"a framework file")
+        self.assertFalse(place.exists())
+        self.assertFalse(trash_entry.exists())
+
+    def test_a_restore_tried_again_after_a_rollback_finds_its_bytes(self):
+        # the first attempt moved the bytes out of the trash, then its transaction was rolled back: the row is still in
+        # the trash, its bytes at the place it goes back to (maintenance#1823)
+        mine = self.upload(OWNER, b"mine", "back.pdf")
+        with self.set_user(OWNER):
+            remove_or_restore([mine.name])
+        frappe.db.commit()
+        trash_entry = self.manager.site_folder / self.manager.get_trash_path(frappe._dict(name=mine.name))
+        trash_entry.rename(self.manager.site_folder / self.tree_path("back.pdf"))
+
+        with self.set_user(OWNER):
+            remove_or_restore([mine.name])
+        frappe.db.commit()
+
+        restored = frappe.get_doc("File", mine.name)
+        self.assertEqual((restored.status, restored.file_name), (STATUS_ACTIVE, "back.pdf"))
+        self.assertEqual(Path(storage_key(restored.file_url)), self.tree_path("back.pdf"))
+        self.assertEqual(self.content(mine.name), b"mine")
+
+        # bytes at that place that are not its own are not taken, and stay
+        other = self.upload(OWNER, b"other", "other.pdf")
+        with self.set_user(OWNER):
+            remove_or_restore([other.name])
+        frappe.db.commit()
+        (self.manager.site_folder / self.manager.get_trash_path(frappe._dict(name=other.name))).unlink()
+        stranger = self.manager.site_folder / self.tree_path("other.pdf")
+        stranger.write_bytes(b"not the row's")
+        with self.set_user(OWNER), self.assertRaises(frappe.ValidationError):
+            remove_or_restore([other.name])
+        frappe.db.rollback()
+        self.assertEqual(frappe.db.get_value("File", other.name, "status"), STATUS_TRASHED)
+        self.assertEqual(stranger.read_bytes(), b"not the row's")
