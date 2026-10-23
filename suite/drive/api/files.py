@@ -81,10 +81,15 @@ def upload_file(
 
     if not user_has_permission(parent, "upload"):
         frappe.throw("Ask the folder owner for upload access.", frappe.PermissionError)
-    # //// Neoffice — a folder in the trash takes no file (maintenance#1820): the file's place would be inside the trashed
-    # //// folder's, which the private-file check refuses after the upload, with a message about permissions.
-    if frappe.db.get_value("File", parent, "status") != STATUS_ACTIVE:
-        frappe.throw(frappe._("This folder is in the trash"), frappe.ValidationError)
+    # //// Neoffice — a folder in the trash takes no file, nor does one inside it (maintenance#1820): the file's place
+    # //// would be inside the trashed folder's, which the private-file check refuses after the upload, with a message
+    # //// about permissions.
+    folder, seen = parent, set()
+    while folder and folder not in seen:
+        seen.add(folder)
+        status, folder = frappe.db.get_value("File", folder, ["status", "folder"]) or (None, None)
+        if status != STATUS_ACTIVE:
+            frappe.throw(frappe._("This folder is in the trash"), frappe.ValidationError)
 
     if fullpath:
         parent = ensure_path(fullpath, parent)
@@ -793,6 +798,7 @@ def remove_or_restore(entity_names: list[str] | str):
             level, folder = level + 1, restoring[folder].folder
         return level
 
+    incoming = {}
     for doc in restoring.values():
         parent = doc.folder
         if (
@@ -801,6 +807,12 @@ def remove_or_restore(entity_names: list[str] | str):
             and frappe.db.get_value("File", parent, "status") != STATUS_ACTIVE
         ):
             frappe.throw(frappe._("Restore its folder from the trash first"), frappe.ValidationError)
+        if parent not in restoring:
+            # a folder's size holds its files'
+            incoming[doc.owner] = incoming.get(doc.owner, 0) + (doc.file_size or 0)
+    # the storage of each owner, for all of theirs at once (toggle_entity_status checks one row at a time)
+    for owner, size in incoming.items():
+        validate_quota(owner, size)
     docs.sort(key=lambda doc: depth(doc) if doc.name in restoring else 0)
 
     for doc in docs:

@@ -531,11 +531,17 @@ class TestRowsOutOfTheTreeGiveUpTheirUrl(IntegrationTestCase):
     def test_nothing_is_dropped_into_a_trashed_folder(self):
         projects = self.make_folder(OWNER, "Projets")
         with self.set_user(OWNER):
+            sub = create_folder("Sub", parent=projects.name)
             remove_or_restore([projects.name])
         frappe.db.commit()
 
-        with self.assertRaisesRegex(frappe.ValidationError, "This folder is in the trash"):
-            self.upload(COLLEAGUE, b"late", "late.pdf", parent=projects.name)
+        for parent in (projects.name, sub.name):
+            with (
+                self.subTest(parent=parent),
+                self.assertRaisesRegex(frappe.ValidationError, "This folder is in the trash"),
+            ):
+                self.upload(COLLEAGUE, b"late", "late.pdf", parent=parent)
+            frappe.db.rollback()
 
     def test_a_trashed_file_is_not_moved_and_a_rename_keeps_its_bytes_in_the_trash(self):
         mine = self.upload(OWNER, b"mine", "old-name.pdf")
