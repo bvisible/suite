@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   CARD_PATH,
   MAX_BODY,
+  PANE_CARD_PATH,
   NORA_PATHS,
   cardAnswer,
   instanceHref,
@@ -39,10 +40,10 @@ describe('noraCall', () => {
   })
 
   it('takes the calls of the protocol, each one', async () => {
-    expect(NORA_PATHS.size).toBe(6)
+    expect(NORA_PATHS.size).toBe(7)
     for (const path of NORA_PATHS) {
       const fetch = server()
-      const body = path === CARD_PATH ? '{"token":"c1","action":"approve"}' : '{}'
+      const body = path === CARD_PATH || path === PANE_CARD_PATH ? '{"token":"c1","action":"approve"}' : '{}'
       expect((await noraCall({ fetch })(path, body)).status, path).toBe(200)
       expect(fetch.mock.calls[0][0]).toBe(path)
     }
@@ -138,6 +139,25 @@ describe('a card’s answer', () => {
     expect(fetch).not.toHaveBeenCalled()
     expect(cardAnswer('{"token":"c1","action":"reject"}')).toBe(true)
     expect((await call(CARD_PATH, '{"token":"c1","action":"reject"}')).status).toBe(200)
+  })
+
+  it('names one of the card’s choices only through the pane’s door, as a short text', async () => {
+    const fetch = server()
+    const call = noraCall({ fetch })
+    expect(await call(CARD_PATH, '{"token":"c1","action":"approve","choice":"Bureau"}')).toEqual({ status: 400, body: '' })
+    for (const body of [
+      '{"token":"c1","action":"approve","choice":1}',
+      '{"token":"c1","action":"approve","choice":""}',
+      `{"token":"c1","action":"approve","choice":"${'b'.repeat(141)}"}`,
+      '{"token":"c1","action":"edit","choice":"Bureau"}',
+      '{"token":"c1","action":"approve","choice":"Bureau","edits":"{}"}',
+    ]) {
+      expect(await call(PANE_CARD_PATH, body), body).toEqual({ status: 400, body: '' })
+    }
+    expect(fetch).not.toHaveBeenCalled()
+    expect((await call(PANE_CARD_PATH, '{"token":"m1","action":"approve","choice":"Bureau"}')).status).toBe(200)
+    expect((await call(PANE_CARD_PATH, '{"token":"m1","action":"reject"}')).status).toBe(200)
+    expect(fetch.mock.calls[0][0]).toBe(PANE_CARD_PATH)
   })
 })
 

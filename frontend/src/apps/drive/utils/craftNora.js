@@ -5,7 +5,7 @@
 //// host page offers the same function (neoffice-mobile: desktop/src/editors/host/host.js, editors/nora.js); here the
 //// page makes the call itself, with the person's desk session (the cookie) and the page's CSRF token.
 ////
-//// Where a call goes is never read from anywhere: it is one of the protocol's five paths, at the page's own origin.
+//// Where a call goes is never read from anywhere: it is one of the protocol's paths (NORA_PATHS), at the page's own origin.
 //// Anything else is refused before it leaves, and so is a body that is not a plain JSON object or that names `cmd`
 //// (Frappe runs the method `cmd` names whatever the path says: with it, the editor could have any method run as the
 //// person, past the list below).
@@ -18,6 +18,9 @@
 /** The person's answer to a card shown in the pane (« sauvegarde ce modèle »: a letter template to confirm, #1822). Not
  * nora's `respond`, which also approves and edits an e-mail waiting to leave: a door for the template cards only. */
 export const CARD_PATH = '/api/method/nora.api.cards.confirm_template'
+/** The person's answer to the other cards a pane shows: the mailbox to write an e-mail draft from, one of those the card
+ * offers, or no (#1822). A door that answers the template and mailbox cards of the person only, never an e-mail's send. */
+export const PANE_CARD_PATH = '/api/method/nora.api.cards.answer_in_pane'
 
 /** The calls of the craft-nora protocol (craft-libs crates/nora/src/protocol.rs), and nothing else of the instance. */
 export const NORA_PATHS = new Set([
@@ -27,11 +30,13 @@ export const NORA_PATHS = new Set([
   '/api/method/nora.api.chat.get_browser_actions',
   '/api/method/nora.api.page_observation.receive_observation',
   CARD_PATH,
+  PANE_CARD_PATH,
 ])
 
-/** What a card's answer may say: yes or no, nothing else. */
+/** What a card's answer may say: yes or no, nothing else (and, through the pane's door, which of the card's choices). */
 const CARD_ACTIONS = new Set(['approve', 'reject'])
 const MAX_TOKEN = 140
+const MAX_CHOICE = 140
 
 /** Where a link the pane shows may lead, on this page's origin: a document of the Drive, a page of the desk, NeoMail. */
 export const OPEN_PREFIXES = ['/drive/', '/app/', '/neomail']
@@ -90,7 +95,7 @@ export function keepThePagesFile(text, fileId) {
 }
 
 /** Whether the arguments of a card's answer are a card's token and yes or no, and nothing else. */
-export function cardAnswer(text) {
+export function cardAnswer(text, { choice = false } = {}) {
   let value
   try {
     value = JSON.parse(text)
@@ -98,12 +103,15 @@ export function cardAnswer(text) {
     return false
   }
   const keys = Object.keys(value || {})
+  const allowed = choice ? ['token', 'action', 'choice'] : ['token', 'action']
   return (
-    keys.every((key) => key === 'token' || key === 'action') &&
+    keys.every((key) => allowed.includes(key)) &&
     typeof value.token === 'string' &&
     value.token.length > 0 &&
     value.token.length <= MAX_TOKEN &&
-    CARD_ACTIONS.has(value.action)
+    CARD_ACTIONS.has(value.action) &&
+    (value.choice === undefined ||
+      (typeof value.choice === 'string' && value.choice.length > 0 && value.choice.length <= MAX_CHOICE))
   )
 }
 
@@ -131,6 +139,7 @@ export function noraCall({
     let text = plainArguments(typeof body === 'string' ? body : '')
     if (text === null) return { status: 400, body: '' }
     if (path === CARD_PATH && !cardAnswer(text)) return { status: 400, body: '' }
+    if (path === PANE_CARD_PATH && !cardAnswer(text, { choice: true })) return { status: 400, body: '' }
     if (fileId && MESSAGE_PATHS.has(path)) text = keepThePagesFile(text, fileId())
     const headers = { Accept: 'application/json', 'Content-Type': 'application/json' }
     const token = csrfToken()
