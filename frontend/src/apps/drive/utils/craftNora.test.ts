@@ -1,7 +1,18 @@
 //// Neoffice — added file (no upstream equivalent): the way to Nora the Drive page offers a Craft editor (craftNora.js).
 import { describe, expect, it, vi } from 'vitest'
 
-import { MAX_BODY, NORA_PATHS, keepThePagesFile, noraCall, offerNora, plainArguments } from './craftNora'
+import {
+  CARD_PATH,
+  MAX_BODY,
+  NORA_PATHS,
+  cardAnswer,
+  instanceHref,
+  keepThePagesFile,
+  noraCall,
+  noraOpen,
+  offerNora,
+  plainArguments,
+} from './craftNora'
 
 const SEND = '/api/method/nora.api.chat.start_or_resume_thread'
 const ARGS = JSON.stringify({ message: 'Bonjour', context: '{"surface":"editor","app":"word"}', block: 0 })
@@ -27,13 +38,22 @@ describe('noraCall', () => {
     })
   })
 
-  it('takes the five calls of the protocol, each one', async () => {
-    expect(NORA_PATHS.size).toBe(5)
+  it('takes the calls of the protocol, each one', async () => {
+    expect(NORA_PATHS.size).toBe(6)
     for (const path of NORA_PATHS) {
       const fetch = server()
-      expect((await noraCall({ fetch })(path, '{}')).status, path).toBe(200)
+      const body = path === CARD_PATH ? '{"token":"c1","action":"approve"}' : '{}'
+      expect((await noraCall({ fetch })(path, body)).status, path).toBe(200)
       expect(fetch.mock.calls[0][0]).toBe(path)
     }
+  })
+
+  it('reads the path once, as text: an object that changes what it says is refused', async () => {
+    const fetch = server()
+    let reads = 0
+    const shifty = { toString: () => (reads++ === 0 ? SEND : '/api/method/frappe.client.delete') }
+    expect(await noraCall({ fetch })(shifty as unknown as string, ARGS)).toEqual({ status: 403, body: '' })
+    expect(fetch).not.toHaveBeenCalled()
   })
 
   it('refuses any other path before it leaves the page, an address of another origin among them', async () => {
@@ -43,6 +63,7 @@ describe('noraCall', () => {
       '/api/method/frappe.client.get_list',
       '/api/method/nora.api.chat.start_or_resume_thread/x',
       '/api/method/nora.api.v2.memory.read_memory',
+      '/api/method/nora.api.cards.respond',
       '/api/v2/method/nora.api.chat.post_message',
       'https://elsewhere.example/api/method/nora.api.chat.post_message',
       '//elsewhere.example/api/method/nora.api.chat.post_message',
@@ -100,6 +121,63 @@ describe('noraCall', () => {
   })
 })
 
+describe('a card’s answer', () => {
+  it('is a token and yes or no, nothing else: never an e-mail’s edit', async () => {
+    const fetch = server()
+    const call = noraCall({ fetch })
+    for (const body of [
+      '{"token":"c1","action":"edit","edits":"{\\"recipient\\":\\"x@elsewhere.example\\"}"}',
+      '{"token":"c1","action":"approve","edits":"{}"}',
+      '{"token":"","action":"approve"}',
+      '{"action":"reject"}',
+      `{"token":"${'t'.repeat(141)}","action":"approve"}`,
+      '{"token":1,"action":"approve"}',
+    ]) {
+      expect(await call(CARD_PATH, body), body).toEqual({ status: 400, body: '' })
+    }
+    expect(fetch).not.toHaveBeenCalled()
+    expect(cardAnswer('{"token":"c1","action":"reject"}')).toBe(true)
+    expect((await call(CARD_PATH, '{"token":"c1","action":"reject"}')).status).toBe(200)
+  })
+})
+
+describe('the links of the pane', () => {
+  const ORIGIN = 'https://erp.example.test'
+
+  it('open a page of this instance, in a new tab', () => {
+    const open = vi.fn()
+    const openLink = noraOpen({ open, origin: () => ORIGIN })
+    expect(openLink('/drive/f/abc123')).toBe(true)
+    expect(open).toHaveBeenCalledWith(`${ORIGIN}/drive/f/abc123`)
+    expect(openLink(`${ORIGIN}/app/webmail?account=Bo%C3%AEte&folder=Drafts&uid=41`)).toBe(true)
+    expect(openLink('/neomail')).toBe(true)
+    expect(open).toHaveBeenCalledTimes(3)
+  })
+
+  it('never another site, a script or a page the pane has no business opening', () => {
+    const open = vi.fn()
+    const openLink = noraOpen({ open, origin: () => ORIGIN })
+    for (const url of [
+      'https://elsewhere.example/drive/f/abc',
+      '//elsewhere.example/drive/f/abc',
+      '/\\elsewhere.example/drive/f/abc',
+      'javascript:alert(1)',
+      'drive/f/abc',
+      '/api/method/frappe.client.delete',
+      '/files/secret.pdf',
+      '/neomailbox',
+      `${ORIGIN}.elsewhere.example/drive/f/abc`,
+      '/drive/f/a b',
+      '',
+      undefined as unknown as string,
+    ]) {
+      expect(openLink(url), String(url)).toBe(false)
+    }
+    expect(open).not.toHaveBeenCalled()
+    expect(instanceHref('/app/neoffice-letter/x', ORIGIN)).toBe(`${ORIGIN}/app/neoffice-letter/x`)
+  })
+})
+
 describe('plainArguments', () => {
   it('writes a plain object again, and an empty body as an empty one', () => {
     expect(plainArguments('{"thread_id":"t"}')).toBe('{"thread_id":"t"}')
@@ -108,19 +186,21 @@ describe('plainArguments', () => {
 })
 
 describe('offerNora', () => {
-  it('puts the editor’s function on the page, and takes it back', async () => {
+  it('puts the editor’s functions on the page, and takes them back', async () => {
     const page: Record<string, unknown> = {}
     const withdraw = offerNora(page, 'wordcraft', { fetch: server() })
     expect(typeof page.wordcraftNoraCall).toBe('function')
+    expect(typeof page.wordcraftNoraOpen).toBe('function')
     withdraw()
     expect(page).not.toHaveProperty('wordcraftNoraCall')
+    expect(page).not.toHaveProperty('wordcraftNoraOpen')
   })
 
-  it('names each editor’s function after its prefix', () => {
+  it('names each editor’s functions after its prefix', () => {
     for (const prefix of ['wordcraft', 'gridcraft', 'deckcraft', 'pdfcraft']) {
       const page: Record<string, unknown> = {}
       offerNora(page, prefix, {})
-      expect(Object.keys(page), prefix).toEqual([`${prefix}NoraCall`])
+      expect(Object.keys(page), prefix).toEqual([`${prefix}NoraCall`, `${prefix}NoraOpen`])
     }
   })
 

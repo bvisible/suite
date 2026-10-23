@@ -15,6 +15,10 @@
 //// (an editor still on a file this page has left) leaves without it: never another file than the page's. The server
 //// reads the id again under the person's rights anyway (neoffice_theme.editor_document).
 
+/** The person's answer to a card shown in the pane (« sauvegarde ce modèle »: a letter template to confirm, #1822). Not
+ * nora's `respond`, which also approves and edits an e-mail waiting to leave: a door for the template cards only. */
+export const CARD_PATH = '/api/method/nora.api.cards.confirm_template'
+
 /** The calls of the craft-nora protocol (craft-libs crates/nora/src/protocol.rs), and nothing else of the instance. */
 export const NORA_PATHS = new Set([
   '/api/method/nora.api.chat.start_or_resume_thread',
@@ -22,7 +26,15 @@ export const NORA_PATHS = new Set([
   '/api/method/nora.api.chat.get_messages',
   '/api/method/nora.api.chat.get_browser_actions',
   '/api/method/nora.api.page_observation.receive_observation',
+  CARD_PATH,
 ])
+
+/** What a card's answer may say: yes or no, nothing else. */
+const CARD_ACTIONS = new Set(['approve', 'reject'])
+const MAX_TOKEN = 140
+
+/** Where a link the pane shows may lead, on this page's origin: a document of the Drive, a page of the desk, NeoMail. */
+export const OPEN_PREFIXES = ['/drive/', '/app/', '/neomail']
 
 /** The calls that carry the page context (`context`, a JSON text). */
 const MESSAGE_PATHS = new Set([
@@ -77,6 +89,24 @@ export function keepThePagesFile(text, fileId) {
   return JSON.stringify({ ...args, context: JSON.stringify({ ...context, document: rest }) })
 }
 
+/** Whether the arguments of a card's answer are a card's token and yes or no, and nothing else. */
+export function cardAnswer(text) {
+  let value
+  try {
+    value = JSON.parse(text)
+  } catch {
+    return false
+  }
+  const keys = Object.keys(value || {})
+  return (
+    keys.every((key) => key === 'token' || key === 'action') &&
+    typeof value.token === 'string' &&
+    value.token.length > 0 &&
+    value.token.length <= MAX_TOKEN &&
+    CARD_ACTIONS.has(value.action)
+  )
+}
+
 /**
  * The function the editor calls: `(path, body) => Promise<{ status, body }>`. Status 0, with the reason, when nothing
  * came back; 403 for a path that is not the protocol's, 400 for a body that is not plain arguments, 413 for one too large.
@@ -95,11 +125,13 @@ export function noraCall({
   fileId,
 } = {}) {
   return async (path, body) => {
-    if (!NORA_PATHS.has(String(path))) return { status: 403, body: '' }
+    // One value, read once: an object whose text changes between two reads never passes the list.
+    if (typeof path !== 'string' || !NORA_PATHS.has(path)) return { status: 403, body: '' }
     if (typeof body === 'string' && body.length > MAX_BODY) return { status: 413, body: '' }
     let text = plainArguments(typeof body === 'string' ? body : '')
     if (text === null) return { status: 400, body: '' }
-    if (fileId && MESSAGE_PATHS.has(String(path))) text = keepThePagesFile(text, fileId())
+    if (path === CARD_PATH && !cardAnswer(text)) return { status: 400, body: '' }
+    if (fileId && MESSAGE_PATHS.has(path)) text = keepThePagesFile(text, fileId())
     const headers = { Accept: 'application/json', 'Content-Type': 'application/json' }
     const token = csrfToken()
     if (typeof token === 'string' && token && token !== UNRENDERED_TOKEN) headers['X-Frappe-CSRF-Token'] = token
@@ -107,7 +139,7 @@ export function noraCall({
     const timer = setTimeout(() => controller.abort(), timeoutMs)
     try {
       // A path: the page's own origin, with its session cookie and nothing else.
-      const response = await fetch(String(path), {
+      const response = await fetch(path, {
         method: 'POST',
         credentials: 'same-origin',
         redirect: 'error',
@@ -131,15 +163,60 @@ export function noraCall({
 }
 
 /**
- * Offers the editor of `prefix` its way to Nora on `target` (the Drive page's window), before the editor starts.
- * Returns what takes it back, which leaves alone a function put there by someone else since.
+ * The address a link of Nora's leads to when it is one of this instance's pages, else null: a path (`/drive/f/…`), or
+ * an address of the page's own origin, under OPEN_PREFIXES. Another site, a `javascript:` link, a path that a browser
+ * reads as another host (`//…`, a backslash) are never one.
+ */
+export function instanceHref(url, origin) {
+  if (typeof url !== 'string' || !url || url.length > 2048 || /[\s\\]/.test(url)) return null
+  if (!url.startsWith('/') && !url.startsWith(`${origin}/`)) return null
+  if (url.startsWith('//')) return null
+  let address
+  try {
+    address = new URL(url, origin)
+  } catch {
+    return null
+  }
+  if (address.origin !== origin || !['http:', 'https:'].includes(address.protocol)) return null
+  const path = address.pathname
+  const allowed = OPEN_PREFIXES.some((prefix) =>
+    prefix.endsWith('/') ? path.startsWith(prefix) : path === prefix || path.startsWith(`${prefix}/`),
+  )
+  return allowed ? address.href : null
+}
+
+/**
+ * The function the editor calls to open a link of Nora's (a card's « Ouvrir », a link in a reply): `(url) => boolean`.
+ * An address of this instance opens in a new tab, on a click of the person's; anything else is refused (false).
+ *
+ * @param {object} [options]
+ * @param {(href: string) => void} [options.open]
+ * @param {() => string} [options.origin] the page's origin
+ */
+export function noraOpen({
+  open = (href) => globalThis.open(href, '_blank', 'noopener,noreferrer'),
+  origin = () => globalThis.location.origin,
+} = {}) {
+  return (url) => {
+    const href = instanceHref(url, origin())
+    if (!href) return false
+    open(href)
+    return true
+  }
+}
+
+/**
+ * Offers the editor of `prefix` its way to Nora on `target` (the Drive page's window), before the editor starts: its
+ * calls (`<prefix>NoraCall`) and the links it opens (`<prefix>NoraOpen`). Returns what takes them back, which leaves
+ * alone a function put there by someone else since.
  */
 export function offerNora(target, prefix, options) {
   if (!target || !EDITORS.has(prefix)) return () => {}
-  const name = `${prefix}NoraCall`
-  const call = noraCall(options)
-  target[name] = call
+  const offered = { [`${prefix}NoraCall`]: noraCall(options), [`${prefix}NoraOpen`]: noraOpen(options) }
+  Object.assign(target, offered)
   return () => {
-    if (target[name] === call) delete target[name]
+    for (const [name, fn] of Object.entries(offered)) {
+      if (target[name] === fn) delete target[name]
+    }
   }
 }
