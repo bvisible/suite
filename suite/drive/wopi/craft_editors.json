@@ -10,9 +10,9 @@
     "sha256": "45d179a72272f586cccaab81cea75d4b77615bfd50e5eb8182ebc48a88629511"
   },
   "deckcraft": {
-    "version": "0.10.0+bf08f71",
-    "url": "https://github.com/bvisible/deckcraft/releases/download/web-0.10.0-bf08f71/deckcraft-web-0.10.0.zip",
-    "sha256": "e7343a91f97469d49bdd5b080c6bd927248fd9bb62913d3234d20ff17c01452b"
+    "version": "0.10.0+e9f6d67",
+    "url": "https://github.com/bvisible/deckcraft/releases/download/web-0.10.0-e9f6d67/deckcraft-web-0.10.0.zip",
+    "sha256": "efb33268b63a7faf7a1638d9cb556b4a614681371b888b1d3aa7ab06a0e34f17"
   },
   "pdfcraft": {
     "version": "0.7.1+3a9a433",
