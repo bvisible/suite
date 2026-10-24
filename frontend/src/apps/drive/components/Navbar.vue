@@ -27,7 +27,7 @@
           </template>
         </Button>
         <div v-if="neodeskHint" role="status"
-          class="absolute right-0 top-full z-30 mt-2 w-72 rounded-md border border-outline-gray-2 bg-surface-modal p-3 text-p-sm text-ink-gray-7 shadow-xl">
+          class="absolute right-0 top-full z-30 mt-2 w-72 rounded-md border border-outline-gray-2 bg-surface-elevation-2 p-3 text-p-sm text-ink-gray-7 shadow-xl">
           <div class="flex items-start justify-between gap-2">
             <p class="font-medium text-ink-gray-9">{{ __('Nothing opened?') }}</p>
             <button type="button" class="text-ink-gray-5 hover:text-ink-gray-8" :aria-label="__('Close')"

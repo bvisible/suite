@@ -47,6 +47,18 @@ describe('the files it is offered for', () => {
 		}
 	})
 
+	it('is an uploaded Office file, whose type the Drive names as its own documents', () => {
+		// What get_entity_with_permissions answers for a .docx put in the Drive: file_type « Document », no content.
+		for (const [file_name, file_type] of [
+			['Document sans titre.docx', 'Document'],
+			['Plan.pptx', 'Presentation'],
+			['Ventes.xlsx', 'Spreadsheet'],
+			['Scan.pdf', 'PDF'],
+		]) {
+			expect(opensInNeodesk({ file_name, file_type, is_folder: 0, content_doctype: null })).toBe(true)
+		}
+	})
+
 	it('is not a folder, a link, a hosted document, an old format or a text file', () => {
 		// A .txt opens in no editor of the Drive: the WordCraft editor would write it back as a .docx, a copy.
 		for (const entity of [
@@ -57,7 +69,10 @@ describe('the files it is offered for', () => {
 			{ file_name: 'Sans extension' },
 			{ file_name: 'Dossier.docx', is_folder: 1 },
 			{ file_name: 'Lien.pdf', is_link: 1 },
-			{ file_name: 'Page.docx', file_type: 'Document' },
+			{ file_name: 'Page.docx', file_type: 'Document', content_doctype: 'Writer Document' },
+			{ file_name: 'Slides.pptx', file_type: 'Presentation', content_doctype: 'Presentation' },
+			{ file_name: 'Feuille.xlsx', file_type: 'Spreadsheet', content_doctype: 'Sheet' },
+			{ file_name: 'Lien.docx', file_type: 'Link' },
 			null,
 		]) {
 			expect(opensInNeodesk(entity)).toBe(false)

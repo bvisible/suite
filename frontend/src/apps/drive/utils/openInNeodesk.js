@@ -42,10 +42,17 @@ export function neodeskLink(location, fileId) {
   return `neodesk://drive/${host}/${fileId}`
 }
 
+/**
+ * The documents the Drive hosts itself (its Writer, Slides and Sheets: files.js, isWriterDocument, isPresentation,
+ * isSheet). Their `content_doctype` tells them apart, never `file_type`: an uploaded .docx, .pptx or .xlsx carries
+ * « Document », « Presentation » or « Spreadsheet » as well.
+ */
+const HOSTED_CONTENT_DOCTYPES = ['Writer Document', 'Presentation', 'Sheet']
+
 /** Whether Neodesk opens this entity of the Drive: a file (not a folder, a link or a hosted document) of its types. */
 export function opensInNeodesk(entity) {
-  if (!entity || entity.is_folder || entity.is_link) return false
-  if (['Link', 'Document', 'Presentation', 'Spreadsheet'].includes(entity.file_type)) return false
+  if (!entity || entity.is_folder || entity.is_link || entity.file_type === 'Link') return false
+  if (HOSTED_CONTENT_DOCTYPES.includes(entity.content_doctype)) return false
   return NEODESK_EXTENSIONS.includes(extensionOf(entity.file_name))
 }
 
