@@ -31663,3 +31663,8 @@ msgstr "Le compte administrateur du serveur de messagerie n'est jamais verrouill
 #, fuzzy
 msgid " "
 msgstr " "
+
+#: suite/i18n_anchors.py:32
+msgctxt "Meet Recording"
+msgid "Terminal"
+msgstr "Terminé"
