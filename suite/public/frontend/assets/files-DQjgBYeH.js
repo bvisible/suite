@@ -1,1 +1,0 @@
-import{b as e}from"./files-CHKIvpti.js";export{e as translate};
