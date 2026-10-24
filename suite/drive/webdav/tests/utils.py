@@ -36,7 +36,10 @@ def error_logs(filters: dict, field: str = "name") -> list:
 
 def delete_error_logs(filters: dict) -> None:
     for name in error_logs(filters):
-        frappe.get_doc("Error Log", name).delete()
+        # //// Neoffice — Frappe v15 refuses to delete an Error Log to the (non-System Manager) user a WebDAV
+        # //// test leaves in the session ("User not allowed to delete Error Log"); v16 has no such check.
+        # //// Drop the ignore_permissions when the fleet moves to Frappe v16.
+        frappe.delete_doc("Error Log", name, force=True, ignore_permissions=True)
 
 
 def ensure_user_with_password(email: str, password: str) -> None:
