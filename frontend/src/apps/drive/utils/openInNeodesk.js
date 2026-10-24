@@ -36,6 +36,8 @@ export function neodeskLink(location, fileId) {
   if (!location || location.protocol !== 'https:' || location.port) return null
   const host = String(location.hostname || '').toLowerCase()
   if (!/^[a-z0-9.-]{1,253}$/.test(host) || !host.includes('.')) return null
+  // An address in numbers (a bench on an IP): Neodesk takes host names only, and would say nothing.
+  if (/^\d+$/.test(host.split('.').pop())) return null
   if (!FILE_ID.test(String(fileId || ''))) return null
   return `neodesk://drive/${host}/${fileId}`
 }

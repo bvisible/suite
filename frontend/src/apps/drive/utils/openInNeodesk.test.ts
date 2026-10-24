@@ -30,6 +30,8 @@ describe('the address handed to Neodesk', () => {
 		expect(neodeskLink({ ...site, protocol: 'http:' }, 'ab12')).toBeNull()
 		expect(neodeskLink({ ...site, port: '8000' }, 'ab12')).toBeNull()
 		expect(neodeskLink({ ...site, hostname: 'localhost' }, 'ab12')).toBeNull()
+		expect(neodeskLink({ ...site, hostname: '10.0.0.5' }, 'ab12')).toBeNull()
+		expect(neodeskLink({ ...site, hostname: '[::1]' }, 'ab12')).toBeNull()
 		expect(neodeskLink(site, '../ab12')).toBeNull()
 		expect(neodeskLink(site, 'ab 12')).toBeNull()
 		expect(neodeskLink(site, 'x'.repeat(141))).toBeNull()
