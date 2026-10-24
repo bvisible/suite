@@ -27,3 +27,6 @@ def _i18n_anchors():
     # frappe-ui's calendar grid, which frontend/neoffice-calendar-i18n.ts passes through __() at build time: the
     # extractor never reads node_modules (maintenance#1321).
     _("{0} more")
+    # The last stage of a Meet Recording's finalization: the bare « Terminal » is another app's kiosk (« Borne »), and
+    # the desk looks a Select option up under its DocType first (ControlSelect and the Select formatter).
+    _("Terminal", context="Meet Recording")
