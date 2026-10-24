@@ -50,3 +50,13 @@ Suite
 Triangle
 Vertical
 //// Neoffice — the signing secret and the token life of the Drive's Office editors (the Craft editors). Collabora's server address, the connection test and the master switch went with Collabora (maintenance#1570).
+
+# Read by the extractor but not text to translate (24.10.2026): a lone placeholder and a fragment of the built
+# frontend, the avatar styles of Mail's settings, a DocType name, a word that is the same in French.
+${week}
+)),i=r.match(/(?:^|s).([a-zA-Z][w-]*)/g);i&&(t.class=i.map(e=>e.trim().slice(1)).join(
+Drive Sync Device
+identicon
+infrastructure
+robohash
+wavatar

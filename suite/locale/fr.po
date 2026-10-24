@@ -31638,3 +31638,28 @@ msgstr "Vous n'avez pas accès à ce fichier."
 #: suite/drive/overrides/file.py:355
 msgid "A Drive file can only be changed by the Drive"
 msgstr "Un fichier Drive ne peut être modifié que par le Drive"
+
+#: frontend/src/test/neoffice-i18n.test.ts:72
+msgid "Deleted {0}"
+msgstr "{0} supprimé(s)"
+
+#: frontend/src/test/neoffice-i18n.test.ts:111
+msgid "Hello world"
+msgstr "Bonjour le monde"
+
+#. Option for the 'Finalization Stage' (Select) field in DocType 'Meet
+#. Recording'
+#: suite/meet/doctype/meet_recording/meet_recording.json:123
+msgid "Publishing"
+msgstr "Publication"
+
+#: suite/mail/neoffice_stalwart.py:275
+msgid "The mail server's administrator account is never locked."
+msgstr "Le compte administrateur du serveur de messagerie n'est jamais verrouillé."
+
+# no opinion on purpose: repeating the source erases the translation another
+# app ships (neoffice-maintenance#335)
+#: suite/public/frontend/assets/Signup-BaRAHYqZ.js:1
+#, fuzzy
+msgid " "
+msgstr " "
