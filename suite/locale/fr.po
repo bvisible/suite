@@ -31668,3 +31668,21 @@ msgstr " "
 msgctxt "Meet Recording"
 msgid "Terminal"
 msgstr "Terminé"
+
+#: frontend/src/apps/drive/components/Navbar.vue:41
+msgid "Install Neodesk"
+msgstr "Installer Neodesk"
+
+#: frontend/src/apps/drive/components/Navbar.vue:38
+msgid "Neodesk may not be installed on this computer, or not up to date."
+msgstr "Neodesk n'est peut-être pas installé sur cet ordinateur, ou n'est pas à jour."
+
+#: frontend/src/apps/drive/components/Navbar.vue:32
+msgid "Nothing opened?"
+msgstr "Rien ne s'est ouvert ?"
+
+#: frontend/src/apps/drive/components/Navbar.vue:24
+#: frontend/src/apps/drive/components/Navbar.vue:256
+#: suite/public/frontend/assets/ErrorPage-SOKUPeXs.js:1
+msgid "Open in Neodesk"
+msgstr "Ouvrir dans Neodesk"
