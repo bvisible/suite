@@ -4,7 +4,7 @@
 
 Frappe 15.124.0 empties the private ``User.__new_password`` at the end of ``User.on_update``; this app's
 ``on_update`` hook runs after that and read ``None``: the password of the mailbox never changed, with no error.
-``validate`` keeps the value in the document's flags first (``remember_new_password``)."""
+``before_validate`` keeps the value in the document's flags first (``keep_new_password``, upstream's fix)."""
 
 from __future__ import annotations
 
@@ -41,8 +41,9 @@ class TestUpdateAccountPassword(IntegrationTestCase):
 
     def test_the_mailbox_takes_the_password_frappe_emptied_after_validate(self):
         user = new_user()
-        user._User__new_password = "Another-Password-1!"
-        events.remember_new_password(user)  # validate, with the value still there
+        user.new_password = "Another-Password-1!"
+        events.keep_new_password(user)  # before_validate, with the value still there
+        user.new_password = ""  # what User.validate and User.on_update do
         user._User__new_password = None  # what User.on_update does from frappe 15.124.0 on
         user.flags.in_insert = False
 
@@ -50,18 +51,9 @@ class TestUpdateAccountPassword(IntegrationTestCase):
 
         update_mail_password.assert_called_once_with(user.name, new_password="Another-Password-1!")
 
-    def test_the_attribute_still_serves_when_validate_did_not_run(self):
-        user = new_user()
-        user._User__new_password = "Another-Password-2!"
-        user.flags.in_insert = False
-
-        update_mail_password = self.update(user)
-
-        update_mail_password.assert_called_once_with(user.name, new_password="Another-Password-2!")
-
     def test_no_new_password_changes_nothing(self):
         user = new_user()
-        events.remember_new_password(user)
+        events.keep_new_password(user)
         user.flags.in_insert = False
 
         self.assertFalse(self.update(user).called)

@@ -48,7 +48,9 @@ requires = ["flit_core >=3.4,<4"]
 build-backend = "flit_core.buildapi"
 
 [tool.bench.frappe-dependencies]
-frappe = ">=16.0.0,<18.0.0"
+# //// Neoffice — the fleet runs this fork on Frappe v15 (15.124.0 and later): upstream's ">=16.0.0" made
+# //// `bench validate-dependencies` refuse the fork's own bench. Drop this when the fleet moves to Frappe v16.
+frappe = ">=15.124.0,<18.0.0"
 
 [tool.ruff]
 line-length = 110

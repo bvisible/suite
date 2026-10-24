@@ -718,8 +718,10 @@ def create_drive_file(
 def _site_time(epoch):
     from datetime import UTC
 
+    # //// Neoffice — upstream's WebDAV helper, the zone conversion described above.
     from suite.drive.webdav.properties import to_site_naive
 
+    # //// Neoffice — as above: the epoch is read as UTC, then taken into the site's zone.
     return to_site_naive(datetime.fromtimestamp(float(epoch), tz=UTC))
 
 

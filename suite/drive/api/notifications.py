@@ -6,6 +6,8 @@ from frappe import _  # //// Neoffice — share e-mail and notification translat
 from frappe.model.document import Document
 from pypika import Order
 
+from suite.suite_core import suite_email
+
 
 def get_link(entity):
     if entity.file_type == "Document":
@@ -122,9 +124,9 @@ def notify_share(entity_name, docperm_name):
             )
         else:
             create_notification(docshare.owner, docshare.user, "Share", entity, message)
-            # //// Neoffice — absolute: a mail client cannot open « /drive/d/<id>/ » (#363).
-            link = frappe.utils.get_url(link)
-        send_share_email(docshare.user, message, link, entity_type)
+        # //// Neoffice — the link is made absolute inside send_share_email (« /drive/d/<id>/ » cannot be
+        # //// opened from a mail client, #363); the translated sentence is rebuilt there from the same parts.
+        send_share_email(docshare.user, author_full_name, entity_type, entity.file_name, link)
 
 
 def create_notification(from_user: str, to_user: str, type: str, entity: str, message: str | None = None):
@@ -166,31 +168,42 @@ def drive_logo_inline_images():
         return []
 
 
-def send_share_email(to, message, link, type_):
-    # //// Neoffice — subject and button translated; upstream sent « Frappe Drive - Folder
-    # //// Shared » and « Open folder » in English to every recipient (#363).
+def send_share_email(to, sharer, item_type, item_name, link):
+    link = frappe.utils.get_url(link)
+    # //// Neoffice — subject, sentence and button translated into the recipient's language; upstream's
+    # //// local copy sends « Frappe Drive - Folder Shared » and « Open folder » in English (#363).
+    # //// Suite Cloud's own template (when the site is connected to it) still gets the plain parameters.
     subject = {
         "folder": _("A folder was shared with you"),
         "file": _("A file was shared with you"),
         "document": _("A document was shared with you"),
-    }.get(type_) or _("A file was shared with you")
+    }.get(item_type) or _("A file was shared with you")
+    message = {
+        "folder": _('{0} shared a folder with you: "{1}"'),
+        "file": _('{0} shared a file with you: "{1}"'),
+        "document": _('{0} shared a document with you: "{1}"'),
+    }.get(item_type) or _('{0} shared a file with you: "{1}"')
     button = {
         "folder": _("Open the folder"),
         "file": _("Open the file"),
         "document": _("Open the document"),
-    }.get(type_) or _("Open the file")
+    }.get(item_type) or _("Open the file")
     try:
-        frappe.sendmail(
-            recipients=to,
-            subject=subject,  # //// Neoffice — translated above (#363).
-            template="drive_share",
-            args={
-                "message": message,
-                "type": type_,
-                "link": link,
-                "button": button,  # //// Neoffice — translated label for the template (#363).
+        suite_email.enqueue(
+            "drive-share",
+            to,
+            {"sharer": sharer, "item_type": item_type, "item_name": item_name, "link": link},
+            local={
+                "subject": subject,  # //// Neoffice — translated above (#363).
+                "template": "drive_share",
+                "args": {
+                    "message": message.format(sharer, item_name),  # //// Neoffice — translated above (#363).
+                    "type": item_type,
+                    "link": link,
+                    "button": button,  # //// Neoffice — translated label for the template (#363).
+                },
+                "inline_images": drive_logo_inline_images(),
             },
-            inline_images=drive_logo_inline_images(),
         )
     except Exception:
         pass
