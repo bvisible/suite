@@ -31686,3 +31686,80 @@ msgstr "Rien ne s'est ouvert ?"
 #: suite/public/frontend/assets/ErrorPage-SOKUPeXs.js:1
 msgid "Open in Neodesk"
 msgstr "Ouvrir dans Neodesk"
+
+#: frontend/src/apps/mail/components/Modals/EditAccountQuotaModal.vue:23
+#: frontend/src/apps/mail/components/Modals/EditGroupQuotaModal.vue:18
+#: suite/public/frontend/assets/AccountView-CRXMYqER.js:1
+#: suite/public/frontend/assets/GroupView-CY4wrzyE.js:1
+msgid "0 means no limit."
+msgstr "0 signifie aucune limite."
+
+#: suite/suite_core/doctype/suite_settings/suite_settings.py:86
+#, python-brace-format
+msgid "Connected to Suite Cloud as tenant {0} on cluster {1}."
+msgstr "Connecté à Suite Cloud en tant que tenant {0} sur le cluster {1}."
+
+#. Description of the 'Disk Quota (GB)' (Float) field in DocType 'Mail Account
+#. Request'
+#: suite/mail/doctype/mail_account_request/mail_account_request.json:128
+msgid "Disk quota in GB applied to the account on creation. Blank or 0 means unlimited."
+msgstr "Quota de disque en Go appliqué au compte à sa création. Vide ou 0 signifie illimité."
+
+#: suite/mail/email_suggestions/__init__.py:115
+msgid "Failed to index suggested addresses for search"
+msgstr "Échec de l'indexation des adresses suggérées pour la recherche"
+
+#: suite/mail/email_suggestions/__init__.py:47
+msgid "Failed to look up email suggestions"
+msgstr "Échec de la recherche de suggestions d'e-mail"
+
+#: frontend/src/apps/mail/components/Modals/AddAccountModal.vue:94
+#: frontend/src/apps/mail/components/Modals/AddGroupModal.vue:38
+#: frontend/src/apps/mail/components/Modals/EditInviteModal.vue:46
+#: suite/public/frontend/assets/AccountsView-RGzWyhog.js:2
+#: suite/public/frontend/assets/GroupsView-Bb8Wwp9I.js:1
+msgid "Leave blank or 0 for no limit."
+msgstr "Laissez vide ou mettez 0 pour aucune limite."
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue:302
+#: suite/public/frontend/assets/OverviewView-CIfiYLGy.js:1
+#, python-brace-format
+msgid "of {0} used"
+msgstr "sur {0} utilisés"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue:383
+#: suite/public/frontend/assets/OverviewView-CIfiYLGy.js:1
+#, python-brace-format, python-format
+msgid "Storage is {0}% used"
+msgstr "Stockage utilisé à {0} %"
+
+#: suite/suite_core/doctype/suite_settings/suite_settings.py:41
+msgid "Suite Cloud URL is not https: the tenant secret would travel in the clear."
+msgstr "L'URL de Suite Cloud n'est pas en https : le secret du tenant circulerait en clair."
+
+#: suite/suite_core/suite_email.py:37
+#, python-brace-format
+msgid "The email to {0} was not sent: {1}"
+msgstr "L'e-mail à {0} n'a pas été envoyé : {1}"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue:384
+#: suite/public/frontend/assets/OverviewView-CIfiYLGy.js:1
+msgid "The site is close to the disk its plan includes."
+msgstr "Le site approche de la capacité de disque incluse dans son plan."
+
+#. Description of the 'Suite Cloud Secret' (Password) field in DocType 'Suite
+#. Settings'
+#: suite/suite_core/doctype/suite_settings/suite_settings.json:83
+msgid "This site's secret at Suite Cloud, shown once by a Suite Cloud operator with Rotate Secret."
+msgstr "Secret de ce site chez Suite Cloud, affiché une seule fois par un opérateur Suite Cloud avec Rotate Secret."
+
+#. Description of the 'Suite Cloud Tenant' (Data) field in DocType 'Suite
+#. Settings'
+#: suite/suite_core/doctype/suite_settings/suite_settings.json:76
+msgid "This site's tenant id at Suite Cloud: the name of its Suite Tenant record."
+msgstr "Identifiant tenant de ce site chez Suite Cloud : le nom de son enregistrement Suite Tenant."
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue:302
+#: suite/public/frontend/assets/OverviewView-CIfiYLGy.js:1
+msgid "used, no cap"
+msgstr "utilisé, sans plafond"
