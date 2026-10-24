@@ -5,9 +5,9 @@
     "sha256": "f48b49926a3e5e5314487e41cbffeb446c88ca90cd69fc293810f175813ec444"
   },
   "gridcraft": {
-    "version": "0.11.1+4318d9d",
-    "url": "https://github.com/bvisible/gridcraft/releases/download/web-0.11.1-4318d9d/gridcraft-web-0.11.1.zip",
-    "sha256": "0dff85e8bafd8dca8073950f81c73b11339c94bc2b9b127c5e46c8eb3ae4f10e"
+    "version": "0.11.1+aae5024",
+    "url": "https://github.com/bvisible/gridcraft/releases/download/web-0.11.1-aae5024/gridcraft-web-0.11.1.zip",
+    "sha256": "9d24082c4ef42262ec73bc8ef23eddd914c1862aaf7ebcf34cdb7321d43e50fe"
   },
   "deckcraft": {
     "version": "0.10.0+af8373f",
