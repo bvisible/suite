@@ -88,6 +88,15 @@ export function isOfficeBinary(entity) {
   return OFFICE_BINARY_EXT.test(name)
 }
 
+// //// Neoffice: a PDF opens in the PDF editor (PdfWithEditor.vue), so the file page gives it the whole frame
+// too, as it does an Office file; the editor frame is full-bleed, never inside the padded preview. ////
+const PDF_EXT = /\.pdf$/i
+export function opensInEditor(entity) {
+  if (isOfficeBinary(entity)) return true
+  if (!entity || entity.is_folder) return false
+  return entity.mime_type === 'application/pdf' || PDF_EXT.test(entity.file_name || entity.title || '')
+}
+
 function isPresentation(entity) {
   return entity?.content_doctype === PRESENTATION_CONTENT_DOCTYPE
 }

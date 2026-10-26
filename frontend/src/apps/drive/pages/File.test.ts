@@ -35,6 +35,8 @@ vi.mock('@/apps/drive/utils/files', () => ({
   hasHostedContent: () => false,
   // //// Neoffice — File.vue's office-binary guard (45f09cf6d) imports this too; without it the mock threw.
   isOfficeBinary: () => false,
+  // //// Neoffice — File.vue now asks opensInEditor (an Office file or a PDF: the editor is full-bleed).
+  opensInEditor: () => false,
 }))
 
 vi.mock('@/apps/drive/components/Navbar.vue', () => ({

@@ -15,7 +15,8 @@
           // //// Neoffice — the padding/centering moved from `class` to this `:class`:
           // //// an Office file opens in the Craft editor, which must be full-bleed;
           // //// every other preview keeps upstream's padded, centered frame.
-          isOfficeBinary(file.data)
+          // //// Neoffice — a PDF opens in the PDF editor too (opensInEditor), so it is full-bleed as well.
+          opensInEditor(file.data)
             ? 'flex'
             : 'px-10 py-5 flex justify-center align-center items-center'
         "
@@ -58,9 +59,9 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Button } from 'frappe-ui'
 import FileRender from '@/apps/drive/components/FileRender.vue'
 import FilePreviewSkeleton from '@/apps/drive/components/FileTypePreview/FilePreviewSkeleton.vue'
-//// Neoffice — detect Office binaries so the Craft editor renders full-bleed
-//// (no Drive chrome around it). Upstream ships no Office editing.
-import { isOfficeBinary } from '@/apps/drive/utils/files'
+//// Neoffice — detect the files that open in a Craft editor (Office binaries and PDFs) so the editor renders
+//// full-bleed (no Drive chrome around it). Upstream ships no Office editing.
+import { opensInEditor } from '@/apps/drive/utils/files'
 import { createResource } from 'frappe-ui'
 import { appDocumentTitle } from '@/utils/documentTitle'
 import { useRouter } from 'vue-router'
