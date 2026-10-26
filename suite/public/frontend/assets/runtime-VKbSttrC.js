@@ -1,1 +1,0 @@
-import{t as e}from"./resources-6XP6haKT.js";import{u as t}from"./session-Dcbhav-o.js";import{t as n}from"./resources-DyV2otSs.js";import"./sdk-DvrE3Lvk.js";function r(){t()&&n.fetch(),window.translatedMessages||e({url:`suite.drive.api.product.get_translations`,cache:`translations`,transform:e=>window.translatedMessages=e}).fetch()}export{r as bootstrap};
