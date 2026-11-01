@@ -29,6 +29,7 @@ from suite.meet.api.recording import (
     _reconcile_interrupted,
     _reconcile_recording,
     _system_datetime_as_utc,
+    _system_naive_after,
     cleanup_failed_recordings,
     get_preflight,
     get_state,
@@ -86,6 +87,17 @@ class IntegrationTestRecordingApi(IntegrationTestCase):
                 _system_datetime_as_utc("2026-08-02 04:45:00"),
                 datetime(2026, 8, 1, 23, 15, tzinfo=UTC),
             )
+
+    # //// Neoffice — added test: a recording's limit is the same span when the clock changes inside it (see
+    # //// _system_naive_after). 2026-11-01 05:12 UTC is 01:12 in New York and the clocks go back at 02:00 local, inside
+    # //// the 4 h 1 min that follow: added to the local reading, the limit was an hour too far.
+    def test_a_recording_limit_is_the_same_span_when_the_clock_changes_inside_it(self):
+        started = datetime(2026, 11, 1, 5, 12, tzinfo=UTC)
+        span = timedelta(seconds=MAX_SECONDS + STARTUP_TIMEOUT_SECONDS)
+
+        with patch("frappe.utils.get_system_timezone", return_value="America/New_York"):
+            ends = _system_naive_after(MAX_SECONDS + STARTUP_TIMEOUT_SECONDS, started)
+            self.assertEqual(_system_datetime_as_utc(ends), started + span)
 
     def test_recorder_uses_configured_site_origin(self):
         frappe.conf.recorder_site_origin = "https://meet.example.com"

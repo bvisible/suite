@@ -295,6 +295,17 @@ def _utc_now_naive():
     return _system_datetime_as_utc(now_datetime()).replace(tzinfo=None)
 
 
+# //// Neoffice — the deadlines of a recording are added in UTC. Upstream added them to the reading of the local
+# //// clock (`add_to_date(now_datetime(), seconds=…)`), which is an hour off whenever a change of the clock falls inside
+# //// the 4 hours and a minute that follow: the grant's authorization then outlasted the recording's maximum by an
+# //// hour (the nightly run of the CI, whose site is on a US zone, went red on the night clocks went back, 1 Nov
+# //// 2026: authorization_expires_at - iat was 18 060 s, not 14 460). Keep when merging upstream.
+def _system_naive_after(seconds, now=None):
+    """The naive system-time datetime `seconds` after `now` (the moment of the call), as a Datetime field holds it."""
+    moment = (now or datetime.now(UTC)) + timedelta(seconds=seconds)
+    return moment.astimezone(ZoneInfo(frappe.utils.get_system_timezone())).replace(tzinfo=None)
+
+
 def _bounded_end(recording):
     ended_at = _utc_now_naive()
     if recording.max_ends_at:
@@ -468,7 +479,7 @@ def start(meeting_id: str, request_id: str) -> dict:
     ):
         frappe.throw(_("A recording is already starting or active"))
 
-    now = now_datetime()
+    now = datetime.now(UTC)
     recording = frappe.get_doc(
         {
             "doctype": "Meet Recording",
@@ -480,10 +491,10 @@ def start(meeting_id: str, request_id: str) -> dict:
             "estimated_seconds": preflight["estimated_seconds"],
             "estimated_bytes": preflight["estimated_bytes"],
             "budget_bytes": preflight["budget_bytes"],
-            "max_ends_at": add_to_date(now, seconds=MAX_SECONDS + STARTUP_TIMEOUT_SECONDS),
+            "max_ends_at": _system_naive_after(MAX_SECONDS + STARTUP_TIMEOUT_SECONDS, now),
             "recorder_job_id": frappe.generate_hash(length=32),
             "request_id": request_id,
-            "pending_deadline": add_to_date(now, seconds=STARTUP_TIMEOUT_SECONDS),
+            "pending_deadline": _system_naive_after(STARTUP_TIMEOUT_SECONDS, now),
             "drive_home_folder": destination,
         }
     ).insert(ignore_permissions=True)
