@@ -29,6 +29,8 @@ from suite.meet.api.recording import (
     _reconcile_interrupted,
     _reconcile_recording,
     _system_datetime_as_utc,
+    # //// Neoffice — tests the UTC-based deadline fix (6bb707b21 "fix(meet): the
+    # //// deadlines of a recording are added in UTC, not to the local clock")
     _system_naive_after,
     cleanup_failed_recordings,
     get_preflight,

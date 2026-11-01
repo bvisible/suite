@@ -479,6 +479,10 @@ def start(meeting_id: str, request_id: str) -> dict:
     ):
         frappe.throw(_("A recording is already starting or active"))
 
+    # //// Neoffice — read the clock in UTC, not now_datetime() (local clock): adding
+    # //// seconds to a local-time reading landed an hour off across a DST change (the
+    # //// US fallback on 1 Nov 2026), outlasting the recording's max by an hour
+    # //// (6bb707b21 "fix(meet): the deadlines of a recording are added in UTC, not to the local clock")
     now = datetime.now(UTC)
     recording = frappe.get_doc(
         {
@@ -491,9 +495,11 @@ def start(meeting_id: str, request_id: str) -> dict:
             "estimated_seconds": preflight["estimated_seconds"],
             "estimated_bytes": preflight["estimated_bytes"],
             "budget_bytes": preflight["budget_bytes"],
+            # //// Neoffice — see the block marker above: UTC-based deadline
             "max_ends_at": _system_naive_after(MAX_SECONDS + STARTUP_TIMEOUT_SECONDS, now),
             "recorder_job_id": frappe.generate_hash(length=32),
             "request_id": request_id,
+            # //// Neoffice — see the block marker above: UTC-based deadline
             "pending_deadline": _system_naive_after(STARTUP_TIMEOUT_SECONDS, now),
             "drive_home_folder": destination,
         }
