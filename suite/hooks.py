@@ -548,3 +548,9 @@ DENIED_PATHS = []
 DENIED_WILDCARD_PATHS = [
     "/api/",
 ]
+
+# //// Neoffice — the answer page of an invitation (/event_rsvp?token=…, sent by e-mail to the participants of an event)
+# //// stays open while the website is in maintenance (Website Profile maintenance_mode, an instance without a showcase
+# //// site); the apps of the suite are mounted by route rules, open by themselves. Read by
+# //// frappe/website/path_resolver.py (website_route_stays_open, neoffice-maintenance#2171).
+website_maintenance_open_routes = ["event_rsvp"]
