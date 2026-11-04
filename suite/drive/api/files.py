@@ -884,6 +884,12 @@ def toggle_entity_status(doc, manager: FileManager, locked_owners: set):
     in_tree = not manager.flat and not manager.s3_enabled and not doc._not_in_disk()
     if doc.status == STATUS_ACTIVE:
         flag = STATUS_TRASHED
+        # //// Neoffice — the installed apps' word on a row about to go to the trash, BEFORE its bytes move (hook
+        # //// `drive_before_trash`, called with the File; an app refuses by raising). A refusal raised later, from a hook
+        # //// on the save, rolled back the row while its bytes were already in the trash, out of its reach. First user:
+        # //// a construction app keeps a plan its takeoff measures on.
+        for method in frappe.get_hooks("drive_before_trash"):
+            frappe.get_attr(method)(doc)
         # //// Neoffice — read before the move: an adopted framework upload or an embed keeps its url, as upstream
         leaves_tree_url = in_tree and manager.holds_tree_url(doc)
         # //// Neoffice — bytes another row names stay where they are, a copy goes to the trash (maintenance#1828): frappe
