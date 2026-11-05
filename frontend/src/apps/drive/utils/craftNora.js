@@ -10,6 +10,9 @@
 //// (Frappe runs the method `cmd` names whatever the path says: with it, the editor could have any method run as the
 //// person, past the list below).
 ////
+//// A dictation (`STT_PATH`) is the one call that is not plain JSON to the server: the pane hands the recording as base64 in a JSON body,
+//// and this page turns it into the form the server reads (`dictationForm`), with the same session and CSRF token as the rest.
+////
 //// The editor tells Nora which Drive file its document is (`document.id` of the page context it sends with each
 //// message), the id this page gave it with the file (CraftEditor.vue's `open`). A message that names another file
 //// (an editor still on a file this page has left) leaves without it: never another file than the page's. The server
@@ -22,6 +25,11 @@ export const CARD_PATH = '/api/method/nora.api.cards.confirm_template'
  * offers, or no (#1822). A door that answers the template and mailbox cards of the person only, never an e-mail's send. */
 export const PANE_CARD_PATH = '/api/method/nora.api.cards.answer_in_pane'
 
+/** What the person said, turned into words by the server (`nora.api.stt.transcribe`: a multipart form with the recording in
+ * `file`, `language` two letters; it answers `{message: {success, text | error}}`). The pane's calls are JSON, so it hands the
+ * recording as base64 (craft-libs `protocol::transcribe_body`) and this page makes the form, with the person's session. */
+export const STT_PATH = '/api/method/nora.api.stt.transcribe'
+
 /** The calls of the craft-nora protocol (craft-libs crates/nora/src/protocol.rs), and nothing else of the instance. */
 export const NORA_PATHS = new Set([
   '/api/method/nora.api.chat.start_or_resume_thread',
@@ -31,7 +39,14 @@ export const NORA_PATHS = new Set([
   '/api/method/nora.api.page_observation.receive_observation',
   CARD_PATH,
   PANE_CARD_PATH,
+  STT_PATH,
 ])
+
+/** The longest recording the pane hands over, as base64 (the same bound as craft-libs `MAX_AUDIO_BASE64`: about two minutes). */
+export const MAX_AUDIO_BASE64 = 3_000_000
+
+/** The kinds of recording a browser makes (MediaRecorder), by the extension the server reads them by. */
+const AUDIO_TYPES = { 'audio/webm': 'webm', 'audio/ogg': 'ogg', 'audio/mp4': 'm4a', 'audio/mpeg': 'mp3', 'audio/wav': 'wav' }
 
 /** What a card's answer may say: yes or no, nothing else (and, through the pane's door, which of the card's choices). */
 const CARD_ACTIONS = new Set(['approve', 'reject'])
@@ -116,6 +131,38 @@ export function cardAnswer(text, { choice = false } = {}) {
 }
 
 /**
+ * The form of a dictation, from the arguments the pane sent (`audio_base64`, `mime`, `language`): the recording as a file named by
+ * its kind, and the language, two letters. Null when they are anything else (a recording that is not base64, a kind that is no audio,
+ * a language that is not two letters, a key that is not one of these three).
+ */
+export function dictationForm(text, { atob = (value) => globalThis.atob(value) } = {}) {
+  let value
+  try {
+    value = JSON.parse(text)
+  } catch {
+    return null
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  const { audio_base64: audio, mime, language, ...rest } = value
+  if (Object.keys(rest).length) return null
+  const extension = typeof mime === 'string' ? AUDIO_TYPES[mime.toLowerCase().split(';')[0].trim()] : undefined
+  if (!extension || typeof audio !== 'string' || !audio || audio.length > MAX_AUDIO_BASE64) return null
+  if (typeof language !== 'string' || !/^[a-z]{2}$/.test(language)) return null
+  let bytes
+  try {
+    const binary = atob(audio)
+    bytes = new Uint8Array(binary.length)
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+  } catch {
+    return null
+  }
+  const form = new FormData()
+  form.append('file', new Blob([bytes], { type: mime }), `dictation.${extension}`)
+  form.append('language', language)
+  return form
+}
+
+/**
  * The function the editor calls: `(path, body) => Promise<{ status, body }>`. Status 0, with the reason, when nothing
  * came back; 403 for a path that is not the protocol's, 400 for a body that is not plain arguments, 413 for one too large.
  *
@@ -142,6 +189,13 @@ export function noraCall({
     if (path === PANE_CARD_PATH && !cardAnswer(text, { choice: true })) return { status: 400, body: '' }
     if (fileId && MESSAGE_PATHS.has(path)) text = keepThePagesFile(text, fileId())
     const headers = { Accept: 'application/json', 'Content-Type': 'application/json' }
+    let payload = text
+    if (path === STT_PATH) {
+      // The server reads a form: the browser writes its boundary, so no Content-Type is set here.
+      payload = dictationForm(text)
+      if (!payload) return { status: 400, body: '' }
+      delete headers['Content-Type']
+    }
     const token = csrfToken()
     if (typeof token === 'string' && token && token !== UNRENDERED_TOKEN) headers['X-Frappe-CSRF-Token'] = token
     const controller = new AbortController()
@@ -153,7 +207,7 @@ export function noraCall({
         credentials: 'same-origin',
         redirect: 'error',
         headers,
-        body: text,
+        body: payload,
         signal: controller.signal,
       })
       let answer = ''
@@ -221,7 +275,8 @@ export function noraOpen({
  */
 export function offerNora(target, prefix, options) {
   if (!target || !EDITORS.has(prefix)) return () => {}
-  const offered = { [`${prefix}NoraCall`]: noraCall(options), [`${prefix}NoraOpen`]: noraOpen(options) }
+  // `<prefix>NoraDictation`: this page carries a dictation to the server (`STT_PATH`), so the pane offers its microphone.
+  const offered = { [`${prefix}NoraCall`]: noraCall(options), [`${prefix}NoraOpen`]: noraOpen(options), [`${prefix}NoraDictation`]: true }
   Object.assign(target, offered)
   return () => {
     for (const [name, fn] of Object.entries(offered)) {

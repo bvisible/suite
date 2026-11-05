@@ -3,7 +3,9 @@
      speaks `postMessage` to this page (`?host=parent`), which gives it the file and stores what it saves, through the
      content endpoints (suite/drive/wopi/endpoints.py), with a token and no session cookie. For staff, it also offers the
      editor its way to Nora (`window.<editor>NoraCall`, utils/craftNora.js), with the desk session. It names the file
-     it sends (`id`, the Drive file's name), which the editor tells Nora; an editor that does not know `id` ignores it. //// -->
+     it sends (`id`, the Drive file's name), which the editor tells Nora; an editor that does not know `id` ignores it.
+     The frame may use the microphone (`allow`): the pane's dictation records in the editor, and this page carries the recording to
+     the server (`window.<editor>NoraDictation`, utils/craftNora.js). //// -->
 <template>
   <div class="relative flex h-full w-full flex-col">
     <!-- Loading state: the build (WebAssembly) and the document -->
@@ -41,7 +43,7 @@
       :src="src"
       :title="session.file_name"
       class="w-full grow border-0"
-      allow="clipboard-read; clipboard-write; fullscreen"
+      allow="clipboard-read; clipboard-write; fullscreen; microphone"
     />
 
     <!-- Someone saved the document since it was opened here: nothing was written, the user chooses -->

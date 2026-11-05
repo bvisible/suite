@@ -3,10 +3,13 @@ import { describe, expect, it, vi } from 'vitest'
 
 import {
   CARD_PATH,
+  MAX_AUDIO_BASE64,
   MAX_BODY,
+  STT_PATH,
   PANE_CARD_PATH,
   NORA_PATHS,
   cardAnswer,
+  dictationForm,
   instanceHref,
   keepThePagesFile,
   noraCall,
@@ -17,6 +20,8 @@ import {
 
 const SEND = '/api/method/nora.api.chat.start_or_resume_thread'
 const ARGS = JSON.stringify({ message: 'Bonjour', context: '{"surface":"editor","app":"word"}', block: 0 })
+// What the pane hands over for a dictation: the recording as base64 (here the three bytes 1, 2, 3), its kind, the language.
+const DICTATION = JSON.stringify({ audio_base64: 'AQID', mime: 'audio/webm', language: 'fr' })
 
 function server(status = 200, text = '{"message":{"thread_id":"nora-1"}}') {
   return vi.fn(async (_url: string, _init: RequestInit) => ({ status, text: async () => text }) as unknown as Response)
@@ -40,10 +45,15 @@ describe('noraCall', () => {
   })
 
   it('takes the calls of the protocol, each one', async () => {
-    expect(NORA_PATHS.size).toBe(7)
+    expect(NORA_PATHS.size).toBe(8)
     for (const path of NORA_PATHS) {
       const fetch = server()
-      const body = path === CARD_PATH || path === PANE_CARD_PATH ? '{"token":"c1","action":"approve"}' : '{}'
+      const body =
+        path === CARD_PATH || path === PANE_CARD_PATH
+          ? '{"token":"c1","action":"approve"}'
+          : path === STT_PATH
+            ? DICTATION
+            : '{}'
       expect((await noraCall({ fetch })(path, body)).status, path).toBe(200)
       expect(fetch.mock.calls[0][0]).toBe(path)
     }
@@ -211,16 +221,19 @@ describe('offerNora', () => {
     const withdraw = offerNora(page, 'wordcraft', { fetch: server() })
     expect(typeof page.wordcraftNoraCall).toBe('function')
     expect(typeof page.wordcraftNoraOpen).toBe('function')
+    // This page carries a dictation: the editor offers its microphone.
+    expect(page.wordcraftNoraDictation).toBe(true)
     withdraw()
     expect(page).not.toHaveProperty('wordcraftNoraCall')
     expect(page).not.toHaveProperty('wordcraftNoraOpen')
+    expect(page).not.toHaveProperty('wordcraftNoraDictation')
   })
 
   it('names each editor’s functions after its prefix', () => {
     for (const prefix of ['wordcraft', 'gridcraft', 'deckcraft', 'pdfcraft']) {
       const page: Record<string, unknown> = {}
       offerNora(page, prefix, {})
-      expect(Object.keys(page), prefix).toEqual([`${prefix}NoraCall`, `${prefix}NoraOpen`])
+      expect(Object.keys(page), prefix).toEqual([`${prefix}NoraCall`, `${prefix}NoraOpen`, `${prefix}NoraDictation`])
     }
   })
 
@@ -286,5 +299,54 @@ describe('the file the page shows', () => {
     const read = server()
     await noraCall({ fetch: read, fileId: () => '3fcaa7893c' })('/api/method/nora.api.chat.get_messages', '{"thread_id":"nora-1"}')
     expect(read.mock.calls[0][1].body).toBe('{"thread_id":"nora-1"}')
+  })
+})
+
+describe('a dictation', () => {
+  it('goes to the server as the form it reads: the recording as a file, the language, the page’s session and CSRF token', async () => {
+    const fetch = server(200, '{"message":{"success":true,"text":"corrige le texte"}}')
+    const call = noraCall({ fetch, csrfToken: () => 'the-token' })
+    expect(await call(STT_PATH, DICTATION)).toEqual({ status: 200, body: '{"message":{"success":true,"text":"corrige le texte"}}' })
+    const [url, init] = fetch.mock.calls[0]
+    expect(url).toBe(STT_PATH)
+    expect(init).toMatchObject({ method: 'POST', credentials: 'same-origin', redirect: 'error' })
+    // No Content-Type: the browser writes the form's boundary.
+    expect(init.headers).toEqual({ Accept: 'application/json', 'X-Frappe-CSRF-Token': 'the-token' })
+    const form = init.body as FormData
+    expect(form.get('language')).toBe('fr')
+    const file = form.get('file') as File
+    expect(file.name).toBe('dictation.webm')
+    expect(file.type).toBe('audio/webm')
+    expect([...new Uint8Array(await file.arrayBuffer())]).toEqual([1, 2, 3])
+  })
+
+  it('names the file by the kind of recording: Safari’s mp4 is an m4a', () => {
+    const form = dictationForm(JSON.stringify({ audio_base64: 'AQID', mime: 'audio/mp4', language: 'de' }))
+    expect((form?.get('file') as File).name).toBe('dictation.m4a')
+  })
+
+  it('refuses what is not a recording: no call leaves the page', async () => {
+    const fetch = server()
+    const call = noraCall({ fetch })
+    for (const body of [
+      JSON.stringify({ audio_base64: 'AQID', mime: 'text/html', language: 'fr' }),
+      JSON.stringify({ audio_base64: 'AQID', mime: 'audio/webm', language: 'français' }),
+      JSON.stringify({ audio_base64: 'AQID', mime: 'audio/webm', language: 'fr', file: '/etc/passwd' }),
+      JSON.stringify({ audio_base64: '', mime: 'audio/webm', language: 'fr' }),
+      JSON.stringify({ audio_base64: '***not base64***', mime: 'audio/webm', language: 'fr' }),
+      JSON.stringify({ audio_base64: 'A'.repeat(MAX_AUDIO_BASE64 + 4), mime: 'audio/webm', language: 'fr' }),
+      JSON.stringify({ audio_base64: 'AQID', language: 'fr' }),
+      '[]',
+      'not json',
+    ]) {
+      expect((await call(STT_PATH, body)).status, body.slice(0, 60)).toBe(400)
+    }
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it('is no way round the list: a body that names `cmd` is refused here as it is for every call', async () => {
+    const fetch = server()
+    expect((await noraCall({ fetch })(STT_PATH, JSON.stringify({ cmd: 'frappe.client.delete', audio_base64: 'AQID', mime: 'audio/webm', language: 'fr' }))).status).toBe(400)
+    expect(fetch).not.toHaveBeenCalled()
   })
 })
