@@ -1,8 +1,8 @@
 {
   "wordcraft": {
-    "version": "0.14.0+35e726b",
-    "url": "https://github.com/bvisible/wordcraft/releases/download/web-0.14.0-35e726b/wordcraft-web-0.14.0.zip",
-    "sha256": "8312035fc1ea56b3d88aad188a00f0bda959f3fb8a933d5cefcf1a897c5bc8dc"
+    "version": "0.14.0+5117e42",
+    "url": "https://github.com/bvisible/wordcraft/releases/download/web-0.14.0-5117e42/wordcraft-web-0.14.0.zip",
+    "sha256": "48724fb73b80e19e1f66f3259d0f70d1972fbfa64babb7278c3f34a62c525c42"
   },
   "gridcraft": {
     "version": "0.15.0+e35219d",
