@@ -15,9 +15,9 @@
     "sha256": "766abe814b57f57412928554c65d94b51d201dfa89de7f799912b8982d0dcd58"
   },
   "pdfcraft": {
-    "version": "0.17.0+b8fb087",
-    "url": "https://github.com/bvisible/pdfcraft/releases/download/web-0.17.0-b8fb087/pdfcraft-web-0.17.0.zip",
-    "sha256": "2f7e089b90b531e35f79d9dd0ca10b0ee226995cee04c5eb50e2a03b8b97df9f"
+    "version": "0.17.0+0ccb888",
+    "url": "https://github.com/bvisible/pdfcraft/releases/download/web-0.17.0-0ccb888/pdfcraft-web-0.17.0.zip",
+    "sha256": "eacb0c9941d997f8605250ad69b20650484229862487754c41556ba7deb2c732"
   },
   "mailcraft": {
     "version": "0.10.0+05264e3",
