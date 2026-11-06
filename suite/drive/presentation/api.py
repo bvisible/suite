@@ -1,6 +1,7 @@
 # //// Neoffice — added file (no upstream equivalent): the methods of a shared presentation. The visitor's page calls
-# //// the guest ones (a code, the visit, its heartbeat, a forward); the staff call send_link and get_stats, which check
-# //// the right on the link. A guest method answers the same way for a link that does not exist and one that is closed.
+# //// the guest ones (a code, the visit, its heartbeat, a forward, a question and its answers); the staff call send_link,
+# //// get_stats and the questions' methods, which check the right on the link. A guest method answers the same way for a
+# //// link that does not exist and one that is closed.
 from __future__ import annotations
 
 import json
@@ -10,6 +11,7 @@ from frappe import _
 from frappe.rate_limiter import rate_limit
 from frappe.utils import escape_html, get_datetime, now_datetime
 
+from suite.drive.presentation import questions as asking
 from suite.drive.presentation import rules
 
 
@@ -163,6 +165,31 @@ def forward(
     return {"ok": True}
 
 
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(limit=12, seconds=600)
+def ask(
+    visit: str, question: str, slide: int | str | None = None
+):  # permission-check: ok the visit's secret is the proof; the link decides whether questions are open
+    """A question of the person watching, on the slide on screen: Nora answers it, or it waits for the person who
+    answers for the link (suite/drive/presentation/questions.py)."""
+    row = _visit(visit)
+    if not row:
+        return {"ok": False, "reason": "closed", "message": _("This presentation is not shared any more.")}
+    return asking.ask(row, question, slide)
+
+
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(limit=150, seconds=600)
+def questions(
+    visit: str,
+):  # permission-check: ok the visit's secret is the proof; only that person's questions
+    """The questions of the person watching, and their answers, oldest first."""
+    row = _visit(visit)
+    if not row:
+        return {"ok": False}
+    return asking.thread(row)
+
+
 # ---------------------------------------------------------------------------------------------------------------------
 # The staff
 # ---------------------------------------------------------------------------------------------------------------------
@@ -257,6 +284,31 @@ def get_stats(name: str):
         "events": events[-40:],
         "total_seconds": sum(v.total_seconds or 0 for v in viewers),
     }
+
+
+@frappe.whitelist()
+def get_questions(name: str):
+    """The questions asked on the link, the waiting ones first."""
+    link = frappe.get_doc("Presentation Link", name)
+    link.check_permission("read")
+    return asking.staff_view(link)
+
+
+@frappe.whitelist()
+def read_questions(name: str):
+    """What the questions asked on the link say, in two sentences (empty under two questions)."""
+    link = frappe.get_doc("Presentation Link", name)
+    link.check_permission("read")
+    return {"reading": asking.reading(link)}
+
+
+@frappe.whitelist(methods=["POST"])
+def reply_question(name: str, answer: str, retained: int = 1, send: int = 1):
+    """The answer to a question of the link, sent to the person by e-mail; kept for the next people when `retained`."""
+    question = frappe.get_doc("Presentation Question", name)
+    link = frappe.get_doc("Presentation Link", question.link)
+    link.check_permission("write")
+    return asking.reply(question, link, answer, retained, send)
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -361,6 +413,7 @@ def _start_visit(link, viewer, browser_id: str | None) -> dict:
         "content": f"/p/{link.token}/c/{secret}/start",
         "first_name": viewer.first_name or "",
         "can_forward": bool(link.allow_forward),
+        "questions": asking.visitor_settings(link),
     }
 
 

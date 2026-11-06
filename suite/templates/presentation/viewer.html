@@ -6,7 +6,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="robots" content="noindex, nofollow">
 	<title>{{ title|e }}</title>
-	<link rel="stylesheet" href="/assets/suite/presentation/viewer.css?v=1">
+	<link rel="stylesheet" href="/assets/suite/presentation/viewer.css?v=2">
 </head>
 <body class="np">
 	<div class="np-paper" id="np-paper">
@@ -74,10 +74,35 @@
 	<div class="np-player" id="np-player" hidden>
 		<div class="np-bar np-bar-top">
 			<span class="np-player-title">{{ title|e }}</span>
-			<button type="button" class="np-button np-button-light" id="np-forward" hidden>{{ strings.forward }}</button>
+			<div class="np-bar-actions">
+				<button type="button" class="np-button np-button-ghost" id="np-ask-open" aria-pressed="false" aria-controls="np-ask" hidden><img src="/assets/nora/images/nora-orb-dark.svg" alt="" onerror="this.remove()">{{ strings.ask }}</button>
+				<button type="button" class="np-button np-button-light" id="np-forward" hidden>{{ strings.forward }}</button>
+			</div>
 		</div>
-		<div class="np-stage" id="np-stage">
-			<iframe id="np-frame" title="{{ title|e }}" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox" allow="autoplay; fullscreen" referrerpolicy="no-referrer"></iframe>
+		<div class="np-body">
+			<div class="np-stage" id="np-stage">
+				<iframe id="np-frame" title="{{ title|e }}" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox" allow="autoplay; fullscreen" referrerpolicy="no-referrer"></iframe>
+			</div>
+			<aside class="np-ask" id="np-ask" aria-labelledby="np-ask-title" hidden>
+				<div class="np-ask-head">
+					<img class="np-orb" src="/assets/nora/images/nora-orb.svg" alt="" onerror="this.remove()">
+					<div class="np-ask-titles">
+						<h2 class="np-ask-title" id="np-ask-title">{{ strings.ask }}</h2>
+						<p class="np-ask-sub" id="np-ask-sub"></p>
+					</div>
+					<button type="button" class="np-ask-close" id="np-ask-close" aria-label="{{ strings.close }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+				</div>
+				<div class="np-ask-where" id="np-ask-where"></div>
+				<div class="np-ask-thread" id="np-ask-thread" aria-live="polite"></div>
+				<form class="np-ask-form" id="np-ask-form" novalidate>
+					<div class="np-ask-row">
+						<textarea name="question" rows="2" maxlength="500" placeholder="{{ strings.askPlaceholder }}" aria-label="{{ strings.askPlaceholder }}"></textarea>
+						<button type="submit" class="np-ask-send" aria-label="{{ strings.askSend }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+					</div>
+					<p class="np-error" id="np-ask-error" role="alert" hidden></p>
+					<p class="np-ask-note">{{ strings.askNote }}</p>
+				</form>
+			</aside>
 		</div>
 		<div class="np-bar np-bar-bottom">
 			<div class="np-progress" id="np-progress" aria-hidden="true"></div>
@@ -112,6 +137,6 @@
 	</dialog>
 
 	<script>window.npConfig = {{ config|safe }};</script>
-	<script src="/assets/suite/presentation/viewer.js?v=1"></script>
+	<script src="/assets/suite/presentation/viewer.js?v=2"></script>
 </body>
 </html>

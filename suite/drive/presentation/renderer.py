@@ -164,6 +164,24 @@ def viewer_strings() -> dict:
         "sent": _("Sent. They will receive it in a moment."),
         "error": _("Something went wrong. Try again in a moment."),
         "keys": _("Arrow keys, or swipe on a phone"),
+        "ask": _("A question?"),
+        "askSubNora": _("Nora answers from this presentation. Otherwise, she passes it on to {0}."),
+        "askSubPerson": _("{0} answers you by e-mail."),
+        "onSlide": _("On slide {0}"),
+        "onSlideTitled": _("On slide {0} · {1}"),
+        "askPlaceholder": _("Your question on this slide…"),
+        "askSend": _("Send the question"),
+        "askNote": _("Your questions are read by the person who sent you this presentation."),
+        "askHint": _(
+            "Ask about what you see: Nora answers from the presentation, or passes your question on."
+        ),
+        "askHintPerson": _("Ask about what you see: your question goes to {0}, who answers by e-mail."),
+        "askThinking": _("Nora reads the presentation…"),
+        "askForwarded": _("I passed your question on to {0}: the answer comes by e-mail, to {1}."),
+        "askForwardedPerson": _("{0} has your question: the answer comes by e-mail, to {1}."),
+        "forwardedPill": _("Passed on to {0} · answer by e-mail"),
+        "answerOf": _("Answer of {0}"),
+        "close": _("Close"),
     }
 
 

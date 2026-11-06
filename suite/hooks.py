@@ -144,11 +144,12 @@ ignore_file_permissions = True
 # Permissions — permission_query_conditions (deep-merged union; no key clashes)
 # ============================================================================
 permission_query_conditions = {
-    # //// Neoffice — a shared presentation's links, people and visits are the staff's only (a portal account holds
-    # //// Suite User): suite/drive/presentation/permissions.py.
+    # //// Neoffice — a shared presentation's links, people, visits and questions are the staff's only (a portal account
+    # //// holds Suite User): suite/drive/presentation/permissions.py.
     "Presentation Link": "suite.drive.presentation.permissions.query_conditions",
     "Presentation Viewer": "suite.drive.presentation.permissions.query_conditions",
     "Presentation Visit": "suite.drive.presentation.permissions.query_conditions",
+    "Presentation Question": "suite.drive.presentation.permissions.query_conditions",  # //// Neoffice — the questions are the staff's only too (#2337)
     # drive
     "File": "suite.drive.utils.overrides.filter_file",
     "Drive Permission": "suite.drive.utils.overrides.filter_drive_permission",
@@ -185,6 +186,7 @@ has_permission = {
     "Presentation Link": "suite.drive.presentation.permissions.has_permission",
     "Presentation Viewer": "suite.drive.presentation.permissions.has_permission",
     "Presentation Visit": "suite.drive.presentation.permissions.has_permission",
+    "Presentation Question": "suite.drive.presentation.permissions.has_permission",  # //// Neoffice — the questions are the staff's only too (#2337)
     # drive
     "File": "suite.drive.api.permissions.user_has_permission",
     "Drive Permission": "suite.drive.api.permissions.drive_permission_has_permission",

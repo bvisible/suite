@@ -1,0 +1,230 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-11-06 21:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "link",
+  "viewer",
+  "visit",
+  "email",
+  "first_name",
+  "column_break_question",
+  "status",
+  "asked_on",
+  "slide",
+  "slide_title",
+  "question_section",
+  "question",
+  "nora_section",
+  "nora_answer",
+  "nora_sources",
+  "column_break_nora",
+  "nora_reason",
+  "nora_seconds",
+  "answer_section",
+  "answer",
+  "column_break_answer",
+  "answered_by",
+  "answered_on",
+  "retained",
+  "sent_to_visitor"
+ ],
+ "fields": [
+  {
+   "fieldname": "link",
+   "fieldtype": "Link",
+   "label": "Presentation Link",
+   "options": "Presentation Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "viewer",
+   "fieldtype": "Link",
+   "label": "Person",
+   "options": "Presentation Viewer",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "visit",
+   "fieldtype": "Link",
+   "label": "Visit",
+   "options": "Presentation Visit",
+   "read_only": 1
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "first_name",
+   "fieldtype": "Data",
+   "label": "First Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_question",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Asked\nAnswered by Nora\nWaiting\nAnswered",
+   "default": "Asked",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "asked_on",
+   "fieldtype": "Datetime",
+   "label": "Asked On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "slide",
+   "fieldtype": "Int",
+   "label": "Slide",
+   "read_only": 1
+  },
+  {
+   "fieldname": "slide_title",
+   "fieldtype": "Data",
+   "label": "Slide Title",
+   "read_only": 1
+  },
+  {
+   "fieldname": "question_section",
+   "fieldtype": "Section Break",
+   "label": "The Question"
+  },
+  {
+   "fieldname": "question",
+   "fieldtype": "Small Text",
+   "label": "Question",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "nora_section",
+   "fieldtype": "Section Break",
+   "label": "Nora"
+  },
+  {
+   "fieldname": "nora_answer",
+   "fieldtype": "Small Text",
+   "label": "Nora's Answer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "nora_sources",
+   "fieldtype": "Small Text",
+   "label": "Sources Nora Cited",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_nora",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "nora_reason",
+   "fieldtype": "Data",
+   "label": "Why Nora Forwarded It",
+   "read_only": 1
+  },
+  {
+   "fieldname": "nora_seconds",
+   "fieldtype": "Float",
+   "label": "Nora's Seconds",
+   "read_only": 1
+  },
+  {
+   "fieldname": "answer_section",
+   "fieldtype": "Section Break",
+   "label": "The Answer"
+  },
+  {
+   "fieldname": "answer",
+   "fieldtype": "Small Text",
+   "label": "Answer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_answer",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "answered_by",
+   "fieldtype": "Link",
+   "label": "Answered By",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "answered_on",
+   "fieldtype": "Datetime",
+   "label": "Answered On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "retained",
+   "fieldtype": "Check",
+   "label": "Nora Keeps This Answer for the Next People",
+   "default": "1",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sent_to_visitor",
+   "fieldtype": "Check",
+   "label": "Sent to the Person",
+   "default": "0",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-06 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Drive",
+ "name": "Presentation Question",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager"
+  },
+  {
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Suite Admin"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Suite User"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "question",
+ "track_changes": 1
+}

@@ -25,6 +25,7 @@
   "intro_logo",
   "column_break_intro",
   "intro_seconds",
+  "seen_tab",
   "visits_section",
   "stats_html",
   "first_opened_on",
@@ -33,7 +34,17 @@
   "viewer_count",
   "total_seconds",
   "recipients",
-  "token"
+  "token",
+  "questions_tab",
+  "questions_html",
+  "question_count",
+  "waiting_count",
+  "nora_tab",
+  "questions_mode",
+  "questions_to",
+  "column_break_nora",
+  "nora_reads_notes",
+  "nora_sources_html"
  ],
  "fields": [
   {
@@ -159,6 +170,11 @@
    "label": "Logo Seconds"
   },
   {
+   "fieldname": "seen_tab",
+   "fieldtype": "Tab Break",
+   "label": "What They Saw"
+  },
+  {
    "fieldname": "visits_section",
    "fieldtype": "Section Break",
    "label": "What They Saw"
@@ -219,11 +235,71 @@
    "no_copy": 1,
    "read_only": 1,
    "unique": 1
+  },
+  {
+   "fieldname": "questions_tab",
+   "fieldtype": "Tab Break",
+   "label": "Questions"
+  },
+  {
+   "fieldname": "questions_html",
+   "fieldtype": "HTML",
+   "label": "Questions"
+  },
+  {
+   "default": "0",
+   "fieldname": "question_count",
+   "fieldtype": "Int",
+   "label": "Questions Asked",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "waiting_count",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Questions Waiting",
+   "read_only": 1
+  },
+  {
+   "fieldname": "nora_tab",
+   "fieldtype": "Tab Break",
+   "label": "What Nora Can Say"
+  },
+  {
+   "default": "Nora Answers, Else Forwards",
+   "fieldname": "questions_mode",
+   "fieldtype": "Select",
+   "label": "When Someone Asks a Question",
+   "options": "Nora Answers, Else Forwards\nForward Every Question\nNo Questions"
+  },
+  {
+   "description": "The person who receives the questions Nora forwards, and answers them. Empty: the person who created the link.",
+   "fieldname": "questions_to",
+   "fieldtype": "Link",
+   "label": "Who Answers the Questions",
+   "options": "User"
+  },
+  {
+   "fieldname": "column_break_nora",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "The notes often say what is not said to the client: Nora reads them only if you tick this.",
+   "fieldname": "nora_reads_notes",
+   "fieldtype": "Check",
+   "label": "Nora Reads the Speaker Notes"
+  },
+  {
+   "fieldname": "nora_sources_html",
+   "fieldtype": "HTML",
+   "label": "What Nora Knows"
   }
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-11-06 16:40:00.000000",
+ "modified": "2026-11-06 21:00:00.000000",
  "modified_by": "Administrator",
  "module": "Drive",
  "name": "Presentation Link",

@@ -2,6 +2,8 @@
 // //// (suite/drive/presentation/). The e-mail, the code, the logo, then the presentation in a sandboxed frame; the frame's
 // //// bridge (bridge.js) says which slide is on screen and how far the videos went, and this page counts the seconds the
 // //// page is really looked at (visible, and touched in the last two minutes or a video playing) and sends them every 15 s.
+// //// « A question? » asks about the slide on screen (maintenance#2337): Nora answers from the presentation, or the
+// //// question goes to the person who answers for the link; the page follows the answer.
 (function () {
 	"use strict";
 	const config = window.npConfig || {};
@@ -177,6 +179,7 @@
 		box.hidden = false;
 		requestAnimationFrame(() => box.classList.add("np-on"));
 		$("np-forward").hidden = !result.can_forward;
+		setupQuestions(result.questions);
 		setInterval(tick, 1000);
 		setInterval(beat, BEAT_MS);
 		frame.focus();
@@ -193,6 +196,7 @@
 			furthest = Math.max(furthest, current);
 			lastActivity = Date.now();
 			draw();
+			drawWhere();
 		} else if (data.type === "video") {
 			const percent = Math.max(0, Math.min(100, Math.round(data.percent || 0)));
 			videos[data.src] = Math.max(videos[data.src] || 0, percent);
@@ -245,6 +249,7 @@
 	$("np-next").addEventListener("click", () => go(1));
 	document.addEventListener("keydown", (event) => {
 		if (!visit || document.activeElement === frame || $("np-forward-dialog").open) return;
+		if (["TEXTAREA", "INPUT"].includes((document.activeElement || {}).tagName)) return;
 		if (["ArrowRight", "PageDown", " "].includes(event.key)) { event.preventDefault(); go(1); }
 		if (["ArrowLeft", "PageUp"].includes(event.key)) { event.preventDefault(); go(-1); }
 	});
@@ -287,4 +292,143 @@
 			button.disabled = false;
 		}
 	});
+	// A question on the slide on screen ---------------------------------------------------------------------------------
+	let asking = null;
+	let thread = [];
+	let askedAt = 0;
+	let polling = null;
+	const el = (tag, cls, text) => {
+		const node = document.createElement(tag);
+		if (cls) node.className = cls;
+		if (text !== undefined) node.textContent = text;
+		return node;
+	};
+	const orb = () => {
+		const img = el("img", "np-orb-small");
+		img.src = "/assets/nora/images/nora-orb.svg";
+		img.alt = "";
+		img.onerror = () => img.remove();
+		return img;
+	};
+
+	function setupQuestions(settings) {
+		asking = settings || {};
+		if (!asking.enabled) return;
+		const form = $("np-ask-form");
+		$("np-ask-open").hidden = false;
+		$("np-ask-sub").textContent = asking.nora ? format(S.askSubNora, asking.answeredBy) : format(S.askSubPerson, asking.answeredBy);
+		$("np-ask-open").addEventListener("click", () => toggleAsk());
+		$("np-ask-close").addEventListener("click", () => toggleAsk(false));
+		form.addEventListener("submit", sendQuestion);
+		form.question.addEventListener("keydown", (event) => {
+			if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+				event.preventDefault();
+				form.requestSubmit();
+			}
+		});
+		loadThread();
+	}
+
+	function toggleAsk(force) {
+		const panel = $("np-ask");
+		const show = typeof force === "boolean" ? force : panel.hidden;
+		panel.hidden = !show;
+		$("np-player").classList.toggle("np-asking", show);
+		$("np-ask-open").setAttribute("aria-pressed", String(show));
+		if (show) {
+			drawWhere();
+			drawThread();
+			loadThread();
+			$("np-ask-form").question.focus();
+		} else if (frame) {
+			frame.focus();
+		}
+	}
+
+	function drawWhere() {
+		if (!asking || !asking.enabled || $("np-ask").hidden) return;
+		const title = (asking.slides || [])[current - 1] || "";
+		$("np-ask-where").textContent = title ? format(S.onSlideTitled, current, title) : format(S.onSlide, current);
+	}
+
+	function drawThread() {
+		const box = $("np-ask-thread");
+		box.innerHTML = "";
+		if (!thread.length) {
+			box.append(el("p", "np-ask-hint", asking.nora ? S.askHint : format(S.askHintPerson, asking.answeredBy)));
+			return;
+		}
+		thread.forEach((q) => {
+			box.append(el("div", "np-q", q.question));
+			const reply = el("div", "np-a");
+			const body = el("div", "np-a-body");
+			if (q.status === "Asked") {
+				reply.append(orb());
+				body.append(el("p", "np-a-text np-thinking", S.askThinking));
+			} else if (q.status === "Answered by Nora") {
+				reply.append(orb());
+				body.append(el("p", "np-a-text", q.answer));
+				if ((q.sources || []).length) {
+					const chips = el("div", "np-chips");
+					q.sources.forEach((label) => chips.append(el("span", "np-chip", label)));
+					body.append(chips);
+				}
+			} else if (q.status === "Answered") {
+				reply.classList.add("np-a-person");
+				body.append(el("p", "np-a-by", format(S.answerOf, q.by)), el("p", "np-a-text", q.answer));
+			} else {
+				reply.append(orb());
+				const text = asking.nora ? S.askForwarded : S.askForwardedPerson;
+				body.append(el("p", "np-a-text", format(text, asking.answeredBy, email)));
+				const pill = el("span", "np-pill");
+				pill.append(el("i"), format(S.forwardedPill, asking.answeredBy));
+				body.append(pill);
+			}
+			reply.append(body);
+			box.append(reply);
+		});
+		box.scrollTop = box.scrollHeight;
+	}
+
+	async function loadThread() {
+		if (!visit) return;
+		try {
+			const result = await call("questions", { visit });
+			if (result.ok) {
+				thread = result.questions || [];
+				drawThread();
+			}
+		} catch (e) {
+			/* the next look will try again */
+		}
+		schedule();
+	}
+
+	function schedule() {
+		clearTimeout(polling);
+		if (thread.some((q) => q.status === "Asked") && Date.now() - askedAt < 120000) polling = setTimeout(loadThread, 2500);
+	}
+
+	async function sendQuestion(event) {
+		event.preventDefault();
+		const form = $("np-ask-form");
+		const text = form.question.value.trim();
+		if (!text) return;
+		showError("np-ask-error", "");
+		const button = form.querySelector("button");
+		button.disabled = true;
+		try {
+			const result = await call("ask", { visit, question: text, slide: current });
+			if (!result.ok) return showError("np-ask-error", result.message);
+			form.question.value = "";
+			thread.push({ name: result.question, slide: current, question: text, status: "Asked" });
+			askedAt = Date.now();
+			drawThread();
+			schedule();
+		} catch (e) {
+			showError("np-ask-error", S.error);
+		} finally {
+			button.disabled = false;
+		}
+	}
 })();

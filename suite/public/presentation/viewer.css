@@ -94,7 +94,8 @@ body.np {
 .np-player.np-on { opacity: 1; }
 .np-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px clamp(12px, 3vw, 28px); }
 .np-player-title { font-size: 14px; color: #c9c2ba; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.np-stage { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 0 clamp(8px, 3vw, 40px); }
+.np-body { flex: 1; min-height: 0; display: flex; gap: 16px; padding: 0 clamp(8px, 3vw, 40px); }
+.np-stage { flex: 1; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; }
 .np-stage iframe { width: 100%; height: 100%; max-width: calc((100vh - 150px) * 16 / 9); max-height: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 12px; background: var(--np-paper); box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.7); }
 .np-bar-bottom { flex-direction: column; align-items: stretch; gap: 10px; padding-bottom: 16px; }
 .np-progress { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 3px; }
@@ -110,13 +111,59 @@ body.np {
 .np-count b { color: var(--np-paper); }
 .np-keys { font-size: 13.5px; color: #c9c2ba; }
 
+/* A question on the slide on screen (maintenance#2337). */
+.np-bar-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.np-button-ghost { display: inline-flex; align-items: center; gap: 8px; color: var(--np-paper); background: transparent; border: 1px solid rgba(255, 253, 248, 0.35); font-size: 14px; min-height: 40px; padding: 8px 14px; }
+.np-button-ghost:hover { background: rgba(255, 253, 248, 0.08); }
+.np-button-ghost[aria-pressed="true"] { border-color: var(--np-signal); background: rgba(245, 93, 26, 0.16); }
+.np-button-ghost img { width: 18px; height: 18px; }
+.np-ask { flex: 0 0 min(400px, 38vw); min-width: 0; display: flex; flex-direction: column; background: var(--np-paper); color: var(--np-ink); border-radius: 14px; overflow: hidden; box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.7); }
+.np-ask-head { display: flex; align-items: flex-start; gap: 12px; padding: 16px 16px 10px; }
+.np-orb { width: 32px; height: 32px; flex-shrink: 0; }
+.np-ask-titles { flex: 1; min-width: 0; }
+.np-ask-title { margin: 0; font-family: "Forum", Georgia, serif; font-weight: 400; font-size: 24px; line-height: 1.1; }
+.np-ask-sub { margin: 4px 0 0; font-size: 13px; line-height: 1.45; color: var(--np-ink-3); }
+.np-ask-close { width: 32px; height: 32px; flex-shrink: 0; border: 0; border-radius: 8px; background: transparent; color: var(--np-ink-3); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.np-ask-close:hover { background: var(--np-field); }
+.np-ask-close svg, .np-ask-send svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.np-ask-where { margin: 0 16px; padding: 8px 12px; border-radius: 10px; background: var(--np-signal-soft); border: 1px solid #fbd5c2; font-size: 13px; color: var(--np-ink-2); }
+.np-ask-thread { flex: 1 1 0; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 14px 16px; }
+.np-ask-hint { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--np-ink-3); }
+.np-q { align-self: flex-end; max-width: 86%; background: var(--np-ink); color: var(--np-paper); border-radius: 14px 14px 4px 14px; padding: 10px 14px; font-size: 14px; line-height: 1.45; white-space: pre-line; overflow-wrap: anywhere; }
+.np-a { display: flex; gap: 10px; max-width: 94%; }
+.np-orb-small { width: 22px; height: 22px; flex-shrink: 0; margin-top: 2px; }
+.np-a-body { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.np-a-text { margin: 0; font-size: 14px; line-height: 1.5; white-space: pre-line; overflow-wrap: anywhere; }
+.np-a-person { border-left: 3px solid var(--np-line); padding-left: 12px; }
+.np-a-by { margin: 0; font-size: 12px; font-weight: 700; color: var(--np-ink-3); }
+.np-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.np-chip { border: 1px solid var(--np-line); border-radius: 999px; padding: 3px 10px; font-size: 12px; color: var(--np-ink-2); }
+.np-pill { align-self: flex-start; display: inline-flex; align-items: center; gap: 7px; background: var(--np-field); border-radius: 999px; padding: 4px 11px; font-size: 12.5px; font-weight: 600; }
+.np-pill i { width: 7px; height: 7px; border-radius: 999px; background: var(--np-signal); }
+.np-thinking { color: var(--np-ink-3); }
+.np-thinking::after { content: ""; display: inline-block; width: 1.2em; text-align: left; animation: np-dots 1.2s steps(4, end) infinite; }
+@keyframes np-dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+.np-ask-form { border-top: 1px solid var(--np-line-soft); padding: 12px 16px 14px; display: flex; flex-direction: column; gap: 8px; }
+.np-ask-row { display: flex; gap: 8px; align-items: flex-end; }
+.np-ask-row textarea { flex: 1; min-width: 0; font: inherit; font-size: 14px; color: var(--np-ink); background: #fff; border: 1px solid #d9d2c7; border-radius: 12px; padding: 11px 14px; resize: none; min-height: 44px; max-height: 140px; outline: none; }
+.np-ask-row textarea:focus { border-color: var(--np-signal); box-shadow: 0 0 0 4px var(--np-signal-soft); }
+.np-ask-send { width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: 12px; background: var(--np-ink); color: var(--np-paper); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.np-ask-send[disabled] { opacity: 0.6; cursor: progress; }
+.np-ask-note { margin: 0; font-size: 12px; line-height: 1.45; color: var(--np-ink-3); }
+
 .np-dialog { border: 0; padding: 0; border-radius: 18px; width: min(calc(100% - 32px), 560px); background: #fdfbf7; color: var(--np-ink); box-shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.7); }
 .np-dialog::backdrop { background: rgba(20, 20, 20, 0.55); backdrop-filter: blur(3px); }
 .np-dialog form { padding: 30px clamp(20px, 4vw, 34px); display: flex; flex-direction: column; gap: 16px; }
 .np-dialog-actions { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 
+@media (max-width: 760px) {
+	.np-ask { position: fixed; left: 0; right: 0; bottom: 0; height: min(74vh, 600px); border-radius: 18px 18px 0 0; z-index: 6; }
+	.np-button-ghost { padding: 8px 10px; }
+}
 @media (max-width: 640px) {
 	.np-keys { display: none; }
+	.np-player-title { display: none; }
+	.np-bar-top { justify-content: flex-end; }
 	.np-brand img { height: 22px; max-width: 62vw; }
 	.np-top .np-muted { display: none; }
 	.np-digit-row input { height: 54px; font-size: 28px; }
