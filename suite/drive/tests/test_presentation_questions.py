@@ -86,6 +86,7 @@ class TestQuestions(FrappeTestCase):
             patcher.start()
             self.addCleanup(patcher.stop)
         self.visit = self.enter()
+        self.alerts.clear()  # the owner is told a new person entered (api._notify_owner): not a question
 
     def new_link(self, **values):
         return frappe.get_doc(
