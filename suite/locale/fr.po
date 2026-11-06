@@ -32243,3 +32243,402 @@ msgstr "{0} regarde une vidéo jusqu'à la fin"
 #: suite/drive/doctype/presentation_link/presentation_link.js:59
 msgid "Received, not opened yet: {0}"
 msgstr "Reçue, pas encore ouverte : {0}"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:121
+msgid "A price or a commitment: Nora leaves it to you."
+msgstr "Un prix ou un engagement : Nora vous laisse le soin d'y répondre."
+
+#: suite/drive/presentation/questions.py:174
+#, python-brace-format
+msgid "A question of {0} characters at most, please."
+msgstr "Une question de {0} caractères au plus, s'il vous plaît."
+
+#: suite/drive/presentation/questions.py:133
+#: suite/drive/presentation/renderer.py:183
+#, python-brace-format
+msgid "Answer of {0}"
+msgstr "Réponse de {0}"
+
+#. Label of a Link field in DocType 'Presentation Question'
+#: suite/drive/doctype/presentation_question/presentation_question.json:170
+msgid "Answered By"
+msgstr "Répondue par"
+
+#. Option for the 'Status' (Select) field in DocType 'Presentation Question'
+#: suite/drive/doctype/presentation_link/presentation_link.js:172
+#: suite/drive/doctype/presentation_link/presentation_link.js:187
+#: suite/drive/doctype/presentation_question/presentation_question.json:83
+msgid "Answered by Nora"
+msgstr "Répondue par Nora"
+
+#: suite/drive/presentation/renderer.py:176
+msgid "Ask about what you see: Nora answers from the presentation, or passes your question on."
+msgstr "Posez votre question sur ce que vous voyez : Nora répond à partir de la présentation, ou transmet votre question."
+
+#: suite/drive/presentation/renderer.py:178
+#, python-brace-format
+msgid "Ask about what you see: your question goes to {0}, who answers by e-mail."
+msgstr "Posez votre question sur ce que vous voyez : elle est transmise à {0}, qui répond par e-mail."
+
+#. Label of a Datetime field in DocType 'Presentation Question'
+#: suite/drive/doctype/presentation_question/presentation_question.json:92
+msgid "Asked On"
+msgstr "Posée le"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:226
+msgid "Correct Nora's Answer"
+msgstr "Corriger la réponse de Nora"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:176
+msgid "Correct the answer"
+msgstr "Corriger la réponse"
+
+#. Option for the 'When Someone Asks a Question' (Select) field in DocType
+#. 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:274
+msgid "Forward Every Question"
+msgstr "Transmettre chaque question"
+
+#: suite/drive/presentation/renderer.py:180
+#, python-brace-format
+msgid "I passed your question on to {0}: the answer comes by e-mail, to {1}."
+msgstr "J'ai transmis votre question à {0} : la réponse vous parviendra par e-mail, à {1}."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:165
+msgid "kept for the next people"
+msgstr "retenue pour les prochaines personnes"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:256
+msgid "Never, for a person outside:"
+msgstr "Jamais, pour une personne extérieure :"
+
+#. Option for the 'When Someone Asks a Question' (Select) field in DocType
+#. 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:274
+msgid "No Questions"
+msgstr "Aucune question"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:140
+msgid "Nobody has asked a question yet. People ask from the presentation, on the slide on screen."
+msgstr "Personne n'a encore posé de question. Les questions se posent depuis la présentation, sur la diapositive affichée."
+
+#: suite/drive/presentation/renderer.py:168
+#, python-brace-format
+msgid "Nora answers from this presentation. Otherwise, she passes it on to {0}."
+msgstr "Nora répond à partir de cette présentation. Sinon, elle la transmet à {0}."
+
+#. Option for the 'When Someone Asks a Question' (Select) field in DocType
+#. 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:274
+msgid "Nora Answers, Else Forwards"
+msgstr "Nora répond, sinon transmet"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:124
+msgid "Nora did not find a sure answer in the presentation."
+msgstr "Nora n'a pas trouvé de réponse sûre dans la présentation."
+
+#: suite/drive/presentation/questions.py:337
+msgid "Nora did not find a sure answer in the presentation: she told the person that you answer by e-mail."
+msgstr "Nora n'a pas trouvé de réponse sûre dans la présentation : elle a indiqué à la personne que vous répondez par e-mail."
+
+#: suite/drive/presentation/questions.py:335
+msgid "Nora does not answer a price or a commitment: that is for you."
+msgstr "Nora ne répond pas à un prix ni à un engagement : cela vous revient."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:249
+msgid "Nora is not on this site: every question goes to the person who answers."
+msgstr "Nora n'est pas active sur ce site : chaque question est transmise à la personne qui répond."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:120
+#: suite/drive/presentation/questions.py:333
+msgid "Nora is not on this site: the question comes to you."
+msgstr "Nora n'est pas active sur ce site : la question vous parvient directement."
+
+#. Label of a Check field in DocType 'Presentation Question'
+#: suite/drive/doctype/presentation_question/presentation_question.json:183
+msgid "Nora Keeps This Answer for the Next People"
+msgstr "Nora retient cette réponse pour les prochaines personnes"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:155
+#: suite/drive/doctype/presentation_link/presentation_link.js:231
+msgid "Nora keeps this answer for the next people of this link"
+msgstr "Nora retient cette réponse pour les prochaines personnes de ce lien"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:168
+#: suite/drive/presentation/renderer.py:179
+msgid "Nora reads the presentation…"
+msgstr "Nora lit la présentation…"
+
+#. Label of a Check field in DocType 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:292
+msgid "Nora Reads the Speaker Notes"
+msgstr "Nora lit les notes de l'orateur"
+
+#. Label of a Small Text field in DocType 'Presentation Question'
+#: suite/drive/doctype/presentation_question/presentation_question.json:127
+msgid "Nora's Answer"
+msgstr "Réponse de Nora"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:123
+msgid "Nora's answer did not hold by the slides it cited: she left it to you."
+msgstr "La réponse de Nora ne tenait pas face aux diapositives citées : elle vous a laissé le soin d'y répondre."
+
+#. Label of a Float field in DocType 'Presentation Question'
+#: suite/drive/doctype/presentation_question/presentation_question.json:149
+msgid "Nora's Seconds"
+msgstr "Secondes de Nora"
+
+#: suite/drive/presentation/renderer.py:170
+#, python-brace-format
+msgid "On slide {0}"
+msgstr "Sur la diapositive {0}"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:128
+#, python-brace-format
+msgid "on slide {0}"
+msgstr "sur la diapositive {0}"
+
+#: suite/drive/presentation/renderer.py:171
+#, python-brace-format
+msgid "On slide {0} · {1}"
+msgstr "Sur la diapositive {0} · {1}"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:128
+#, python-brace-format
+msgid "on slide {0}, « {1} »"
+msgstr "sur la diapositive {0}, « {1} »"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:253
+msgid "Only when ticked here."
+msgstr "Seulement si cette case est cochée."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:122
+msgid "Outside the presentation: Nora leaves it to you."
+msgstr "Hors de la présentation : Nora vous laisse le soin d'y répondre."
+
+#: suite/drive/presentation/renderer.py:182
+#, python-brace-format
+msgid "Passed on to {0} · answer by e-mail"
+msgstr "Transmise à {0} · réponse par e-mail"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:139
+msgid "Questions are closed on this link."
+msgstr "Les questions sont fermées sur ce lien."
+
+#: suite/drive/presentation/questions.py:166
+msgid "Questions are not open on this presentation."
+msgstr "Les questions ne sont pas ouvertes sur cette présentation."
+
+#. Label of a Int field in DocType 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:253
+msgid "Questions Asked"
+msgstr "Questions posées"
+
+#. Label of a Int field in DocType 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:261
+msgid "Questions Waiting"
+msgstr "Questions en attente"
+
+#: suite/drive/presentation/questions.py:490
+msgid "See the presentation again"
+msgstr "Revoir la présentation"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:230
+#, python-brace-format
+msgid "Send it to {0} by e-mail"
+msgstr "L'envoyer à {0} par e-mail"
+
+#: suite/drive/presentation/renderer.py:173
+msgid "Send the question"
+msgstr "Envoyer la question"
+
+#. Label of a Check field in DocType 'Presentation Question'
+#: suite/drive/doctype/presentation_question/presentation_question.json:190
+msgid "Sent to the Person"
+msgstr "Envoyée à la personne"
+
+#. Label of a Data field in DocType 'Presentation Question'
+#: suite/drive/doctype/presentation_question/presentation_question.json:104
+msgid "Slide Title"
+msgstr "Titre de la diapositive"
+
+#: suite/drive/presentation/questions.py:388
+#, python-brace-format
+msgid "Slide {0}"
+msgstr "Diapositive {0}"
+
+#. Label of a Small Text field in DocType 'Presentation Question'
+#: suite/drive/doctype/presentation_question/presentation_question.json:133
+msgid "Sources Nora Cited"
+msgstr "Sources citées par Nora"
+
+#. Label of a Section Break field in DocType 'Presentation Question'
+#: suite/drive/doctype/presentation_question/presentation_question.json:155
+msgid "The Answer"
+msgstr "La réponse"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:119
+#: suite/drive/presentation/questions.py:331
+msgid "The link sends every question to you."
+msgstr "Le lien vous transmet chaque question."
+
+#. Description of the 'Nora Reads the Speaker Notes' (Check) field in DocType
+#. 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:289
+msgid "The notes often say what is not said to the client: Nora reads them only if you tick this."
+msgstr "Les notes disent souvent ce qui n'est pas dit au client : Nora ne les lit que si vous cochez cette case."
+
+#. Description of the 'Who Answers the Questions' (Link) field in DocType
+#. 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:277
+msgid "The person who receives the questions Nora forwards, and answers them. Empty: the person who created the link."
+msgstr "La personne qui reçoit les questions que Nora transmet, et qui y répond. Si vide : la personne qui a créé le lien."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:252
+msgid "The presentation"
+msgstr "La présentation"
+
+#. Label of a Section Break field in DocType 'Presentation Question'
+#: suite/drive/doctype/presentation_question/presentation_question.json:110
+msgid "The Question"
+msgstr "La question"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:229
+msgid "The Right Answer"
+msgstr "La bonne réponse"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:253
+msgid "The speaker notes"
+msgstr "Les notes de l'orateur"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:252
+msgid "The text of each slide, and its images' descriptions. Always."
+msgstr "Le texte de chaque diapositive, et la description de ses images. Toujours."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:150
+#: suite/drive/doctype/presentation_link/presentation_link.js:187
+msgid "Waiting for You"
+msgstr "Vous attend"
+
+#. Label of a Tab Break field in DocType 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:267
+msgid "What Nora Can Say"
+msgstr "Ce que Nora peut dire"
+
+#. Label of a HTML field in DocType 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:297
+msgid "What Nora Knows"
+msgstr "Ce que Nora sait"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:254
+msgid "What you answered on this link and kept for the next people. Never lent to another link."
+msgstr "Ce que vous avez répondu sur ce lien et retenu pour les prochaines personnes. Jamais prêté à un autre lien."
+
+#. Label of a Select field in DocType 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:273
+msgid "When Someone Asks a Question"
+msgstr "Quand quelqu'un pose une question"
+
+#. Label of a Link field in DocType 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:280
+msgid "Who Answers the Questions"
+msgstr "Qui répond aux questions"
+
+#. Label of a Data field in DocType 'Presentation Question'
+#: suite/drive/doctype/presentation_question/presentation_question.json:143
+msgid "Why Nora Forwarded It"
+msgstr "Pourquoi Nora l'a transmise"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:201
+#: suite/drive/presentation/questions.py:455
+msgid "Write the answer first."
+msgstr "Rédigez d'abord la réponse."
+
+#: suite/drive/presentation/questions.py:169
+msgid "Write your question first."
+msgstr "Rédigez d'abord votre question."
+
+#: suite/drive/presentation/questions.py:478
+#, python-brace-format
+msgid "You asked, about « {0} »:"
+msgstr "Vous avez demandé, au sujet de « {0} » :"
+
+#: suite/drive/presentation/questions.py:476
+#, python-brace-format
+msgid "You asked, on slide {0} of « {1} »:"
+msgstr "Vous avez demandé, sur la diapositive {0} de « {1} » :"
+
+#: suite/drive/presentation/questions.py:180
+#, python-brace-format
+msgid "You have asked many questions today: {0} will answer you by e-mail."
+msgstr "Vous avez posé beaucoup de questions aujourd'hui : {0} vous répondra par e-mail."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:219
+msgid "Your answer is on its way."
+msgstr "Votre réponse est partie."
+
+#: suite/drive/presentation/questions.py:304
+#, python-brace-format
+msgid "Your answer leaves by e-mail to {0}."
+msgstr "Votre réponse part par e-mail à {0}."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:153
+#, python-brace-format
+msgid "Your answer, sent to {0} by e-mail"
+msgstr "Votre réponse, envoyée à {0} par e-mail"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:254
+msgid "Your answers"
+msgstr "Vos réponses"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:256
+msgid "your clients and their figures, your e-mails, your ERP documents, what Nora learnt about your company. Here Nora has no tool: she reads the sources above, nothing else. A figure she writes must be written in a slide she cites, or she passes the question on."
+msgstr "vos clients et leurs chiffres, vos e-mails, vos documents ERP, ce que Nora a appris de votre entreprise. Ici, Nora n'a aucun outil : elle lit les sources ci-dessus, rien d'autre. Un chiffre qu'elle écrit doit figurer dans une diapositive qu'elle cite, sinon elle transmet la question."
+
+#: suite/drive/presentation/renderer.py:172
+msgid "Your question on this slide…"
+msgstr "Votre question sur cette diapositive…"
+
+#: suite/drive/presentation/questions.py:495
+#, python-brace-format
+msgid "Your question on « {0} »"
+msgstr "Votre question sur « {0} »"
+
+#: suite/drive/presentation/renderer.py:174
+msgid "Your questions are read by the person who sent you this presentation."
+msgstr "Vos questions sont lues par la personne qui vous a envoyé cette présentation."
+
+#: suite/drive/presentation/renderer.py:169
+#, python-brace-format
+msgid "{0} answers you by e-mail."
+msgstr "{0} vous répond par e-mail."
+
+#: suite/drive/presentation/questions.py:284
+#, python-brace-format
+msgid "{0} asks a question on « {1} »"
+msgstr "{0} pose une question sur « {1} »"
+
+#: suite/drive/presentation/questions.py:290
+#, python-brace-format
+msgid "{0} asks, on slide {1}, « {2} »:"
+msgstr "{0} demande, sur la diapositive {1}, « {2} » :"
+
+#: suite/drive/presentation/questions.py:292
+#, python-brace-format
+msgid "{0} asks, on slide {1}:"
+msgstr "{0} demande, sur la diapositive {1} :"
+
+#: suite/drive/presentation/questions.py:294
+#, python-brace-format
+msgid "{0} asks:"
+msgstr "{0} demande :"
+
+#: suite/drive/presentation/renderer.py:181
+#, python-brace-format
+msgid "{0} has your question: the answer comes by e-mail, to {1}."
+msgstr "{0} a reçu votre question : la réponse vous parviendra par e-mail, à {1}."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:254
+#, python-brace-format
+msgid "{0} kept"
+msgstr "Retenues : {0}"

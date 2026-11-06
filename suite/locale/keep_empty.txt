@@ -60,3 +60,10 @@ identicon
 infrastructure
 robohash
 wavatar
+
+# The same in French, on a shared presentation's questions (maintenance#2337).
+Nora
+Presentation Question
+Questions
+{0} / {1}
+{0} s
