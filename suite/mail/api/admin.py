@@ -96,6 +96,23 @@ def check_member_target(member_id: str) -> str:
             _("You do not have permission to act on {0}.").format(frappe.bold(member_id)),
             frappe.PermissionError,
         )
+    # //// Neoffice — on our sites only Administrator is System Manager, so the rule above guarded no real account:
+    # //// a Suite Admin could set the password of, disable or delete a member with rights of the ERP it does not
+    # //// hold (an accountant, the client's own administrator) and sign in as them. An admin now acts only on a
+    # //// member whose roles it holds too (neoffice-maintenance#2296).
+    if not is_system_manager(frappe.session.user):
+        from frappe.permissions import AUTOMATIC_ROLES
+
+        beyond = (
+            set(frappe.get_roles(member_id))
+            - set(frappe.get_roles(frappe.session.user))
+            - set(AUTOMATIC_ROLES)
+        )
+        if beyond:
+            frappe.throw(
+                _("You do not have permission to act on {0}.").format(frappe.bold(member_id)),
+                frappe.PermissionError,
+            )
     return member_id
 
 

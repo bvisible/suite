@@ -7,6 +7,35 @@ from frappe.rate_limiter import rate_limit
 from frappe.translate import get_all_translations
 from frappe.utils import escape_html, split_emails, validate_email_address
 
+# //// Neoffice — how long a signup code stays good and how many wrong guesses it takes. Upstream kept the code
+# //// forever and counted nothing, so the six digits could be guessed over weeks (neoffice-maintenance#2296).
+SIGNUP_OTP_TTL_SECONDS = 10 * 60
+SIGNUP_OTP_MAX_FAILURES = 5
+
+
+# //// Neoffice — added (neoffice-maintenance#2296): this module defers its annotations (see the top), so Frappe
+# //// only reports a `str` parameter that receives a JSON object instead of refusing it. A dict that reaches
+# //// frappe.get_doc is read as a filter and picks any row, so every guest entry point checks its names here.
+def _plain_text(value, label: str) -> str:
+    """The value when it is a non-empty string, else a refusal."""
+    if not isinstance(value, str) or not value.strip():
+        frappe.throw(_("Invalid {0}.").format(label), frappe.ValidationError)
+    return value
+
+
+# //// Neoffice — added (neoffice-maintenance#2296): the value comes from a link, and upstream sent the browser
+# //// wherever it said. Only a path that starts with one slash stays on this site.
+def local_path(value) -> str | None:
+    """A path of this site to go to after signing up, or None when the value is anything else."""
+    if not isinstance(value, str):
+        return None
+    value = value.strip()
+    if not value.startswith("/") or value.startswith("//") or value.startswith("/\\"):
+        return None
+    if any(ch in value for ch in "\r\n\t"):
+        return None
+    return value
+
 
 def access_app():
     return True
@@ -46,7 +75,23 @@ def signup(
     if not password:
         frappe.throw("Password is required.")
 
+    # //// Neoffice — names and texts must be strings (see _plain_text), and a request signs up once: a used one,
+    # //// or one whose invitation was used or withdrawn, no longer makes an account (neoffice-maintenance#2296).
+    _plain_text(account_request, _("account request"))
+    _plain_text(first_name, _("first name"))
+    _plain_text(password, _("password"))
+    if last_name is not None and not isinstance(last_name, str):
+        frappe.throw(_("Invalid {0}.").format(_("last name")), frappe.ValidationError)
+
     account_request = frappe.get_doc("Account Request", account_request)
+    # //// Neoffice — once only, and never past its invitation (see above)
+    if account_request.signed_up:
+        frappe.throw(_("This sign-up link has already been used."), frappe.PermissionError)
+    if account_request.invite and frappe.db.get_value(
+        "Drive User Invitation", account_request.invite, "status"
+    ) not in ("Pending", "Automatic"):
+        frappe.throw(_("This invitation has already been used or has expired."), frappe.PermissionError)
+
     if not account_request.invite:
         if frappe.get_website_settings("disable_signup"):
             frappe.throw("Signing up is disabled on this site.", frappe.PermissionError)
@@ -132,6 +177,8 @@ def send_otp(email: str, login: bool = False):
     if signup_disabled():
         frappe.throw("Signing up is disabled on this site.", frappe.PermissionError)
 
+    # //// Neoffice — see _plain_text (neoffice-maintenance#2296)
+    _plain_text(email, _("email"))
     account_request = frappe.get_doc(
         {
             "doctype": "Account Request",
@@ -147,13 +194,38 @@ def send_otp(email: str, login: bool = False):
     return account_request.name
 
 
+# permission-check: ok a visitor proves the address with its code
 @frappe.whitelist(allow_guest=True)
 @rate_limit(limit=5, seconds=60)
 def verify_otp(account_request: str, otp: str):
+    # //// Neoffice — upstream compared the code and nothing else: it never expired, was never used up and could
+    # //// be guessed without limit. A code now lives SIGNUP_OTP_TTL_SECONDS, SIGNUP_OTP_MAX_FAILURES wrong guesses
+    # //// burn it, and a right one is spent; « Resend » sends a new request with a new code (neoffice-maintenance#2296).
+    # //// The failures are counted in Redis: a refusal rolls the database back, so a counter there would never move.
+    import hmac
+
+    from frappe.utils import add_to_date, cint, get_datetime, now_datetime
+
+    _plain_text(account_request, _("account request"))
+    _plain_text(otp, _("verification code"))
     req = frappe.get_doc("Account Request", account_request)
-    if req.otp != otp:
+    # //// Neoffice — see above: expiry, failure count, spent code
+    failures_key = frappe.cache.make_key(f"drive_signup_otp_failures:{req.name}")
+    expired = not req.otp_generated_at or get_datetime(req.otp_generated_at) < add_to_date(
+        now_datetime(), seconds=-SIGNUP_OTP_TTL_SECONDS
+    )
+    if not req.otp or req.signed_up or expired:
+        frappe.throw(_("This verification code has expired. Please request a new one."))
+    if cint(frappe.cache.get(failures_key)) >= SIGNUP_OTP_MAX_FAILURES:
+        frappe.throw(_("Too many wrong codes. Please request a new one."))
+    if not hmac.compare_digest(str(req.otp).encode(), otp.strip().encode()):
+        if frappe.cache.incrby(failures_key, 1) == 1:
+            frappe.cache.expire(failures_key, SIGNUP_OTP_TTL_SECONDS)
         frappe.throw("Invalid OTP")
-    req.login_count += 1
+    # //// Neoffice — the right code is spent (see above)
+    frappe.cache.delete(failures_key)
+    req.otp = None
+    req.login_count = cint(req.login_count) + 1
     req.save(ignore_permissions=True)
 
 
@@ -250,8 +322,14 @@ def get_user_groups():
     ]
 
 
+# permission-check: ok the mailed key, then the invitee's own sign-in
 @frappe.whitelist(allow_guest=True)
 def accept_invite(key: str, redirect: bool | str = True):
+    # //// Neoffice — the key is a name, never a filter (see _plain_text); a redirect that is not a path of this
+    # //// site is dropped (neoffice-maintenance#2296).
+    _plain_text(key, _("invitation key"))
+    if not isinstance(redirect, bool):
+        redirect = local_path(redirect) or True
     try:
         invitation = frappe.get_doc("Drive User Invitation", key)
     except Exception:
@@ -262,11 +340,17 @@ def accept_invite(key: str, redirect: bool | str = True):
 
 @frappe.whitelist()
 def reject_invite(key: str):
+    # //// Neoffice — only the person invited, or a Drive admin, withdraws an invitation: upstream let any
+    # //// signed-in user expire anyone's (neoffice-maintenance#2296).
+    _plain_text(key, _("invitation key"))
     try:
         invitation = frappe.get_doc("Drive User Invitation", key)
     except Exception:
         frappe.throw("Could not find invitation.")
 
+    # //// Neoffice — see above
+    if not invitation.is_for(frappe.session.user) and not is_drive_site_admin():
+        frappe.throw(_("You don't have the permissions for this action."), frappe.PermissionError)
     invitation.status = "Expired"
     invitation.save(ignore_permissions=True)
 

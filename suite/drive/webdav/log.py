@@ -48,6 +48,16 @@ DEBUG_HEADERS = (
 )
 
 
+# //// Neoffice — added (neoffice-maintenance#2296): the path, the client name, the note and the headers come from
+# //// the request, and a line break in them wrote a line of the caller's choosing into the log. Every character
+# //// that is not printable is written as its escape (a newline as \n), so one request stays one line.
+def _one_line(value) -> str:
+    text = str(value)
+    if text.isprintable():
+        return text
+    return "".join(ch if ch.isprintable() else ch.encode("unicode_escape").decode("ascii") for ch in text)
+
+
 def configured_level() -> int | None:
     raw = str(frappe.conf.get("drive_webdav_log_level") or "").strip().lower()
     if raw == "off":
@@ -82,22 +92,25 @@ def log_response(request: Request, response: Response) -> None:
 
     status = response.status_code
     duration_ms = (time.monotonic() - context["start"]) * 1000
-    client = (request.user_agent.string or "-")[:120]
+    client = _one_line((request.user_agent.string or "-")[:120])  # //// Neoffice — see _one_line
     ip = getattr(frappe.local, "request_ip", None) or request.remote_addr or "-"
 
+    # //// Neoffice — see _one_line
     line = (
-        f"{request.method} {request.path} -> {status} {duration_ms:.1f}ms "
-        f'user={context["user"] or "-"} ip={ip} client="{client}"'
+        f"{_one_line(request.method)} {_one_line(request.path)} -> {status} {duration_ms:.1f}ms "
+        f'user={_one_line(context["user"] or "-")} ip={_one_line(ip)} client="{client}"'
     )
     if context["note"]:
-        line += f' note="{context["note"]}"'
+        line += f' note="{_one_line(context["note"])}"'  # //// Neoffice — see _one_line
 
     level = logging.ERROR if status >= 500 else logging.WARNING if status >= 400 else logging.INFO
     logger.log(level, line)
 
     if context["level"] <= logging.DEBUG:
+        # //// Neoffice — see _one_line
         headers = "; ".join(
-            f"{name}: {value}" for name in DEBUG_HEADERS if (value := request.headers.get(name))
+            f"{name}: {_one_line(value)}" for name in DEBUG_HEADERS if (value := request.headers.get(name))
         )
         if headers:
-            logger.debug(f"{request.method} {request.path} headers: {headers}")
+            # //// Neoffice — see _one_line
+            logger.debug(f"{_one_line(request.method)} {_one_line(request.path)} headers: {headers}")

@@ -170,6 +170,13 @@ import { toast } from "@/apps/drive/utils/toasts"
 import { settings } from "@/apps/drive/resources/permissions"
 
 const params = new URLSearchParams(new URL(window.location.href).search)
+//// Neoffice — the page to go to after signing up comes from the link: only a path of this site is followed,
+//// anything else (another site, a javascript: URL) falls back to /drive (neoffice-maintenance#2296).
+const redirectTo = (() => {
+  const value = (params.get("redirect-to") || "").trim()
+  if (!value.startsWith("/") || value.startsWith("//") || value.startsWith("/\\")) return "/drive"
+  return value
+})()
 const email = ref(params.get("e") || "")
 const first_name = ref("")
 const last_name = ref("")
@@ -186,7 +193,8 @@ const otpValidated = ref(account_request.value !== "")
 const loginUrl = computed(
   () =>
     "/login?redirect-to=" +
-    encodeURIComponent(params.get("redirect-to") || "/drive")
+    //// Neoffice — see redirectTo
+    encodeURIComponent(redirectTo)
 )
 
 onMounted(() => {
@@ -219,7 +227,8 @@ const signup = createResource({
     }
   },
   onSuccess() {
-    window.location.replace(params.get("redirect-to") || "/drive")
+    //// Neoffice — see redirectTo
+    window.location.replace(redirectTo)
   },
 })
 

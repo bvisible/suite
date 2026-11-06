@@ -44,15 +44,32 @@ _SRV_SERVICE_MAP = {
 }
 
 
+# //// Neoffice — added (neoffice-maintenance#2296): this module defers its annotations (see the top), so Frappe
+# //// only reports a `str` parameter that receives a JSON object instead of refusing it. A dict that reaches
+# //// get_doc, get_value or exists is read as a filter and picks any row: every guest entry point checks here.
+def _plain_text(*values) -> None:
+    for value in values:
+        if not isinstance(value, str) or not value.strip():
+            frappe.throw(_("Invalid request."), frappe.ValidationError)
+
+
+# permission-check: ok the self-signup form, closed while signup is off
 @frappe.whitelist(allow_guest=True)
 @dynamic_rate_limit()
 def validate_email_assigned(email: str) -> None:
     """Checks if email is already assigned"""
 
+    # //// Neoffice — the check serves the self-signup form only: with signup off it answered anyone whether an
+    # //// address has an account (neoffice-maintenance#2296). See _plain_text for the type check.
+    _plain_text(email)
+    if not frappe.db.get_single_value("Mail Settings", "allow_signup"):
+        frappe.throw(_("Signup is disabled."))
+
     if frappe.db.exists("User", {"email": email}):
         frappe.throw(_("Username already taken."))
 
 
+# permission-check: ok self-signup, gated by allow_signup
 @frappe.whitelist(allow_guest=True)
 @dynamic_rate_limit()
 def signup(username: str, domain: str, email: str) -> str:
@@ -66,6 +83,7 @@ def signup(username: str, domain: str, email: str) -> str:
     if not frappe.db.get_single_value("Mail Settings", "allow_signup"):
         frappe.throw(_("Signup is disabled."))
 
+    _plain_text(username, domain, email)  # //// Neoffice — see _plain_text (neoffice-maintenance#2296)
     if domain not in get_signup_domains():
         frappe.throw(_("Domain {0} is not allowed for signup.").format(domain))
 
@@ -84,22 +102,26 @@ def signup(username: str, domain: str, email: str) -> str:
     return account_request.name
 
 
+# permission-check: ok mails the request's own address only
 @frappe.whitelist(allow_guest=True)
 @dynamic_rate_limit()
 def resend_otp(account_request: str) -> None:
     """Resend OTP to the user"""
 
+    _plain_text(account_request)  # //// Neoffice — see _plain_text (neoffice-maintenance#2296)
     account_request = frappe.get_doc("Mail Account Request", account_request)
     account_request.set_otp()
     account_request.save(ignore_permissions=True)
     account_request.send_verification_email()
 
 
+# permission-check: ok the mailed code is the right
 @frappe.whitelist(allow_guest=True)
 @dynamic_rate_limit()
 def verify_otp(account_request: str, otp: str) -> str:
     """Verify the OTP and return the request key"""
 
+    _plain_text(account_request, otp)  # //// Neoffice — see _plain_text (neoffice-maintenance#2296)
     otp_hash = frappe.cache.get_value(otp_cache_key(account_request), expires=True)
     if not otp_hash or otp_hash != sha256_hash(otp):
         frappe.throw(_("Invalid OTP. Please try again."))
@@ -108,11 +130,13 @@ def verify_otp(account_request: str, otp: str) -> str:
     return frappe.db.get_value("Mail Account Request", account_request, "request_key")
 
 
+# permission-check: ok the secret request key is the right
 @frappe.whitelist(allow_guest=True)
 @dynamic_rate_limit()
 def get_account_request(request_key: str) -> dict | None:
     """Return the account request details"""
 
+    _plain_text(request_key)  # //// Neoffice — see _plain_text (neoffice-maintenance#2296)
     if account_request := frappe.db.get_value(
         "Mail Account Request",
         {"request_key": request_key},
@@ -127,6 +151,7 @@ def get_account_request(request_key: str) -> dict | None:
         return account_request
 
 
+# permission-check: ok the secret request key is the right
 @frappe.whitelist(allow_guest=True)
 @dynamic_rate_limit()
 def get_account_setup_options(request_key: str) -> dict:
@@ -137,6 +162,8 @@ def get_account_setup_options(request_key: str) -> dict:
     """
 
     from suite.mail.directory import get_account_metadata
+
+    _plain_text(request_key)  # //// Neoffice — see _plain_text (neoffice-maintenance#2296)
 
     account_request = frappe.db.get_value(
         "Mail Account Request",
@@ -154,6 +181,7 @@ def get_account_setup_options(request_key: str) -> dict:
     return get_account_metadata()
 
 
+# permission-check: ok the secret key of a pending request is the right
 @frappe.whitelist(allow_guest=True)
 @dynamic_rate_limit()
 def create_account(
@@ -166,6 +194,9 @@ def create_account(
 ) -> None:
     """Create a new mail account"""
 
+    # //// Neoffice — see _plain_text (neoffice-maintenance#2296): a JSON object as the key picked the last pending
+    # //// request of anyone and made its account with the caller's password.
+    _plain_text(request_key)
     account_request = frappe.get_last_doc("Mail Account Request", {"request_key": request_key})
     account_request.validate_expired()
     account_request.is_verified = 1
@@ -425,20 +456,35 @@ def censor_email(email: str) -> str:
     return f"{censored_username}@{domain}"
 
 
+# permission-check: ok forgot-password form, mails the account's own address
 @frappe.whitelist(allow_guest=True)
 @dynamic_rate_limit()
 def send_reset_password_link(user: str) -> str:
     """Send reset password link to the user"""
+
+    # //// Neoffice — see _plain_text (neoffice-maintenance#2296)
+    _plain_text(user)
 
     # Only an admin resetting somebody else's password is an administrative act; this same endpoint
     # backs the public "forgot password" form, and a user asking for their own link is not audited.
     if frappe.session.user != user:
         log_admin_action("send reset password link", user)
 
+    # //// Neoffice — like core's reset_password, Administrator, Guest and disabled accounts are never reset from
+    # //// here, and none of them, nor an unknown name, is told apart from an account with no backup address: the
+    # //// answer is the name that was typed and nothing is sent. Upstream answered « does not exist » and reset
+    # //// Administrator's key for any visitor (neoffice-maintenance#2296).
+    # //// The name is compared as stored: the database finds « administrator » as Administrator.
+    account = frappe.db.get_value("User", user, ["name", "enabled"], as_dict=True)
+    if not account or account.name in frappe.STANDARD_USERS or not cint(account.enabled):
+        return user
+
     email = get_backup_email(user)
     key = set_reset_password_key(user)
 
-    link = get_url("/mail/reset-password/" + key)
+    # //// Neoffice — the link carries the key: it is built on the site's configured address, never on the Host
+    # //// header a visitor sent with the request, as core's reset_password does (neoffice-maintenance#2296).
+    link = get_url("/mail/reset-password/" + key, allow_header_override=False)
     suite_email.send(
         "password-reset",
         email,
@@ -452,11 +498,13 @@ def send_reset_password_link(user: str) -> str:
     return censor_email(email)
 
 
+# permission-check: ok the secret reset key is the right
 @frappe.whitelist(allow_guest=True)
 @dynamic_rate_limit()
 def get_user_for_reset_password_key(key: str) -> str:
     """Return the user for a reset password key"""
 
+    _plain_text(key)  # //// Neoffice — see _plain_text (neoffice-maintenance#2296)
     hashed_key = sha256_hash(key)
     return frappe.db.get_value("User", {"reset_password_key": hashed_key}, "name")
 

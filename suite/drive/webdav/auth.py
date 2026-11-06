@@ -46,7 +46,8 @@ def authenticate(request: Request) -> str:
     # //// sends it as `Authorization: Bearer`; upstream knows only Basic. The token opens /dav and nothing else.
     bearer = _parse_bearer(request.headers.get("Authorization"))
     if bearer is not None:
-        return _authenticate_device(bearer)
+        # //// Neoffice — the account's IP allowlist holds for every credential (see _refuse_outside_policy)
+        return _refuse_outside_policy(_authenticate_device(bearer))
     credentials = _parse_basic(request.headers.get("Authorization"))
     if not credentials:
         # Windows always probes unauthenticated first: challenge without
@@ -69,6 +70,8 @@ def authenticate(request: Request) -> str:
         # API credentials are their own factor: the 2FA and
         # disable_user_pass_login gates below govern password logins only
         if _api_secret_valid(api_user.name, password) and cint(api_user.enabled):
+            # //// Neoffice — the IP allowlist holds for API credentials too, as on frappe's token auth
+            _refuse_outside_policy(api_user.name)
             for tracker in trackers:
                 tracker.add_success_attempt()
             return api_user.name
@@ -112,12 +115,41 @@ def authenticate(request: Request) -> str:
         _delete_cache(user)
         raise _challenge("Incorrect user or password.")
 
+    # //// Neoffice — a password sign-in also obeys the account's login hours and forced password change, as the
+    # //// login page does (see _refuse_outside_policy)
+    _refuse_outside_policy(canonical, password_login=True, cache_user=user)
+
     # only cache credentials that are actually allowed to authenticate
     if verified_now:
         _store_cache(user, password, canonical)
     for tracker in trackers:
         tracker.add_success_attempt()
     return canonical
+
+
+# //// Neoffice — added (neoffice-maintenance#2296). Upstream checked only `enabled` and 2FA, so /dav let in a
+# //// credential from an address outside the account's IP allowlist, and a password outside the account's login
+# //// hours or past its forced change, all of which the login page, token auth and cookie sessions refuse. The
+# //// refusal is the same generic challenge as a wrong password (no oracle on a right one) and is not counted as a
+# //// failed attempt, like the 2FA block above.
+def _refuse_outside_policy(user: str, password_login: bool = False, cache_user: str | None = None) -> str:
+    from types import SimpleNamespace
+
+    from frappe.auth import LoginManager, validate_ip_address
+
+    try:
+        validate_ip_address(user)
+        if password_login:
+            # the two checks of the login page read nothing but `.user`
+            stand_in = SimpleNamespace(user=user)
+            LoginManager.validate_hour(stand_in)
+            if LoginManager.force_user_to_reset_password(stand_in):
+                raise frappe.AuthenticationError
+    except frappe.AuthenticationError:
+        if cache_user:
+            _delete_cache(cache_user)
+        raise _challenge("Incorrect user or password.") from None
+    return user
 
 
 def _parse_basic(header: str | None) -> tuple[str, str] | None:

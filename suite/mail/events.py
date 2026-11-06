@@ -420,6 +420,7 @@ def delete_user_settings(doc: Document, method: str | None = None) -> None:
         frappe.delete_doc("User Settings", settings, ignore_permissions=True, delete_permanently=True)
 
 
+# permission-check: ok frappe's reset: the reset key or the old password is the right
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 def update_password(
     new_password: str, logout_all_sessions: int = 0, key: str | None = None, old_password: str | None = None
@@ -437,7 +438,9 @@ def update_password(
         )
 
     result = _get_user_for_update_password(key, old_password)
-    user = result.get("user")
+    # //// Neoffice — an expired key still names its user, with a message: Frappe refuses it (410) and so must the
+    # //// mailbox. Upstream kept the user and set the mail password from any stale key (neoffice-maintenance#2296).
+    user = None if result.get("message") else result.get("user")
 
     result = update_frappe_password(
         new_password=new_password, logout_all_sessions=logout_all_sessions, key=key, old_password=old_password

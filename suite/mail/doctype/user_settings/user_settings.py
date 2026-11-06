@@ -128,10 +128,34 @@ class UserSettings(OwnerFromUser, Document):
         self.name = str(uuid7())
 
     def validate(self) -> None:
+        self.validate_who_edits()  # //// Neoffice — see validate_who_edits (neoffice-maintenance#2296)
         if not self.username or frappe.flags.in_migrate:
             return
 
         self.validate_jmap_settings()
+
+    # //// Neoffice — added (neoffice-maintenance#2296). Suite User may create a row with `if_owner`, but Frappe
+    # //// checks create before before_insert pins the owner to `user`, so anyone could make the row of another
+    # //// account with a backup e-mail of theirs, and a Suite Admin could rewrite anyone's: the guest « forgot
+    # //// password » form then mailed that account's reset link to them. A person makes only their own row, and only
+    # //// they set their recovery address; Administrator, System Manager and server code (ignore_permissions) keep
+    # //// their hand on every row. (`user` itself is set only once: Frappe refuses to move a row.)
+    def validate_who_edits(self) -> None:
+        if self.flags.ignore_permissions or frappe.flags.in_migrate or frappe.flags.in_install:
+            return
+        session_user = frappe.session.user
+        if session_user == "Administrator" or "System Manager" in frappe.get_roles(session_user):
+            return
+
+        if self.is_new():
+            if self.user != session_user:
+                frappe.throw(_("You can only create your own user settings."), frappe.PermissionError)
+            return
+
+        if self.user != session_user and self.has_value_changed("backup_email"):
+            frappe.throw(
+                _("Only {0} can change their backup email.").format(self.user), frappe.PermissionError
+            )
 
     def on_update(self) -> None:
         if client := self.client:

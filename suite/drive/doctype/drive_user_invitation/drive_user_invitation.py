@@ -4,7 +4,12 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
+# //// Neoffice — urlencode and _ serve accept() (neoffice-maintenance#2296)
+from urllib.parse import urlencode
+
 import frappe
+from frappe import _  # //// Neoffice — see accept()
 from frappe.model.document import Document
 from frappe.utils import add_days, get_datetime, now, validate_email_address
 
@@ -45,7 +50,11 @@ class DriveUserInvitation(Document):
     def invite_via_email(self):
         from suite.drive.api.notifications import drive_logo_inline_images
 
-        link = frappe.utils.get_url(f"/api/method/suite.drive.api.product.accept_invite?key={self.name}")
+        # //// Neoffice — the link carries the key: it is built on the site's configured address, never on the
+        # //// Host header of the request that made the invitation (neoffice-maintenance#2296).
+        link = frappe.utils.get_url(
+            f"/api/method/suite.drive.api.product.accept_invite?key={self.name}", allow_header_override=False
+        )
         suite_email.send(
             "drive-invite",
             self.email,
@@ -78,7 +87,9 @@ class DriveUserInvitation(Document):
         if redirect:
             frappe.local.response["type"] = "redirect"
 
-        if not exists:
+        # //// Neoffice — the sign-up request is made only for an address that has no account yet: an existing
+        # //// account signs in below instead (neoffice-maintenance#2296).
+        if not exists and not frappe.db.exists("User", self.email):
             # If the user does not have an account, redirect to sign up
             req = frappe.get_doc(
                 {
@@ -89,22 +100,39 @@ class DriveUserInvitation(Document):
                 }
             ).insert(ignore_permissions=True)
             frappe.db.commit()
-            user_exists = frappe.db.exists("User", self.email)
 
-            if not user_exists:
-                url = f"/drive/signup?e={self.email}&r={req.name}"
-                if isinstance(redirect, str):
-                    url += f"&redirect-to={redirect}"
-                frappe.local.response["location"] = url
-                return
+            # //// Neoffice — the values are encoded, and the redirect is a path of this site (accept_invite)
+            query = {"e": self.email, "r": req.name}
+            if isinstance(redirect, str):
+                query["redirect-to"] = redirect
+            url = "/drive/signup?" + urlencode(query)
+            frappe.local.response["location"] = url
+            return
+
+        # //// Neoffice — upstream signed a visitor in as the invited account with login_as: no password, no second
+        # //// factor, for whoever held the key (a Drive admin can read every key). The invited person now signs in
+        # //// with their own credentials, then comes back to this link, and only they can accept it
+        # //// (neoffice-maintenance#2296).
+        if frappe.session.user == "Guest":
+            back = f"/api/method/suite.drive.api.product.accept_invite?key={self.name}"
+            url = "/login?" + urlencode({"redirect-to": back})
+            frappe.local.response["location"] = url
+            return url
+        if not self.is_for(frappe.session.user):
+            frappe.throw(_("This invitation was sent to another account."), frappe.PermissionError)
 
         self.status = "Accepted"
         self.accepted_at = frappe.utils.now()
         self.save(ignore_permissions=True)
         frappe.db.commit()
 
-        if frappe.session.user == "Guest":
-            frappe.local.login_manager.login_as(self.email)
-
+        # //// Neoffice — upstream's login_as stood here; the sign-in now happens before, see above
         frappe.local.response["location"] = "/drive/"
         return "/drive/"
+
+    # //// Neoffice — added (neoffice-maintenance#2296): whether `user` is the person this invitation was sent to
+    def is_for(self, user: str | None) -> bool:
+        if not user or user == "Guest" or not self.email:
+            return False
+        email = frappe.db.get_value("User", user, "email") or user
+        return email.strip().lower() == self.email.strip().lower()
