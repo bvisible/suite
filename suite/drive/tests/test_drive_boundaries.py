@@ -582,3 +582,42 @@ class TestFavouritesRecentsAndNotificationsAreTheirPersons(DriveCase):
             )
             with self.assertRaises(frappe.PermissionError):
                 forged.insert()
+
+
+class TestAnEditorSaveCountsAgainstTheOwnersStorage(DriveCase):
+    """#31: a save of the Office editors wrote up to the largest file size with no quota check."""
+
+    def test_a_save_past_the_quota_is_refused_and_one_within_lands(self):
+        from suite.drive.wopi import endpoints
+        from suite.drive.wopi.token import generate_wopi_token
+
+        with as_role(OWNER):
+            file = _blob(f"sb-{frappe.generate_hash(length=6)}.docx", get_user_folder().name, b"DOCX")
+        _grant(file.name, COLLEAGUE, read=1, write=1)
+        path = self.manager.site_folder / storage_key(file.file_url)
+        token = generate_wopi_token(file.name, user=COLLEAGUE, can_write=True)["access_token"]
+
+        def save(data: bytes):
+            builder = EnvironBuilder(
+                path=f"/wopi/files/{file.name}",
+                method="POST",
+                headers={"X-WOPI-Access-Token": token},
+                data=data,
+            )
+            frappe.local.request = Request(builder.get_environ())
+            try:
+                endpoints.put_file(file.name)
+            finally:
+                del frappe.local.request
+
+        # the owner has room for what they hold and a few bytes more, not for a large save by a collaborator
+        used = frappe.db.sql(
+            "SELECT COALESCE(SUM(file_size), 0) FROM `tabFile` WHERE owner = %s AND is_folder = 0 AND status = 'Active'",
+            OWNER,
+        )[0][0]
+        with patch("suite.drive.api.storage.get_quota", return_value=int(used) + 100):
+            with self.assertRaises(ValueError):
+                save(b"x" * 1000)
+            self.assertEqual(path.read_bytes(), b"DOCX")
+            save(b"DOCX2")
+        self.assertEqual(path.read_bytes(), b"DOCX2")
