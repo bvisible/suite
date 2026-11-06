@@ -1,1 +1,0 @@
-import{z as e}from"./files-DFNBj0cP.js";export{e as openEntity};
