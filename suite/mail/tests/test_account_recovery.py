@@ -119,13 +119,14 @@ class TestMailAccountRecovery(IntegrationTestCase):
     def test_the_reset_link_is_built_on_the_sites_address_not_on_the_request_host(self):
         person = make_user("recovery-reset")
         frappe.db.set_value("User Settings", settings_of(person), "backup_email", "back.up@backup.example")
-        site_address = frappe.utils.get_url(allow_header_override=False)
         frappe.set_user("Guest")
         with (
             patch("frappe.utils.data.get_host_name_from_request", return_value="https://elsewhere.example"),
             patch.dict(frappe.local.conf, {"host_name": None, "hostname": None}),
             patch.object(account.suite_email, "send") as send,
         ):
+            # what the site calls itself with no host_name configured: its own name, never the request's Host
+            site_address = frappe.utils.get_url(allow_header_override=False)
             answer = account.send_reset_password_link(user=person)
         self.assertEqual(answer, "b******@backup.example")
         self.assertEqual(send.call_args.args[1], "back.up@backup.example")
