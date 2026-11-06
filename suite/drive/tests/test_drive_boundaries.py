@@ -621,3 +621,47 @@ class TestAnEditorSaveCountsAgainstTheOwnersStorage(DriveCase):
             self.assertEqual(path.read_bytes(), b"DOCX")
             save(b"DOCX2")
         self.assertEqual(path.read_bytes(), b"DOCX2")
+
+
+class TestTheFileListLeavesOutLinkOnlyRows(DriveCase):
+    """#21's sibling: the File list query counted the "anyone with the link" principal, so any account listed every
+    link-shared file of the site through /api/resource/File."""
+
+    def test_a_link_opens_its_file_and_lists_nothing_while_shares_are_listed(self):
+        from suite.drive.utils import GROUP_PREFIX
+        from suite.drive.utils.overrides import filter_file
+
+        tag = frappe.generate_hash(length=6)
+        with as_role(OWNER):
+            home = get_user_folder().name
+            by_link = _blob(f"sb-link-{tag}.txt", home)
+            by_name = _blob(f"sb-name-{tag}.txt", home)
+            by_group = _blob(f"sb-group-{tag}.txt", home)
+        group = frappe.get_doc(
+            {"doctype": "User Group", "name": f"sb-group-{tag}", "user_group_members": [{"user": COLLEAGUE}]}
+        ).insert(ignore_permissions=True)
+        frappe.cache().delete_key("drive_user_groups")
+        _grant(by_link.name, "", read=1)
+        _grant(by_name.name, COLLEAGUE, read=1)
+        _grant(by_group.name, GROUP_PREFIX + group.name, read=1)
+        names = [by_link.name, by_name.name, by_group.name]
+
+        def listed(user):
+            # the condition the File list query gets from this app (filter_file): the stock File rows let role All
+            # read any File and leave the choice to it; a site whose Custom DocPerm keeps All to its own Files
+            # (osiris) narrows the list further, which is not what is tested here
+            condition = filter_file(user)
+            return {
+                row[0]
+                for row in frappe.db.sql(
+                    f"SELECT `name` FROM `tabFile` WHERE {condition} AND `name` IN %s", [tuple(names)]
+                )
+            }
+
+        self.assertEqual(listed(COLLEAGUE), {by_name.name, by_group.name})
+        self.assertEqual(listed(OWNER), set(names))
+        # a visitor's condition is valid SQL with no principal left, and lists none of them
+        self.assertEqual(listed("Guest"), set())
+        # the link still opens the one file it was made for (the Drive's own check, which its pages ask)
+        self.assertTrue(user_has_permission(by_link.name, "read", COLLEAGUE))
+        self.assertTrue(user_has_permission(by_link.name, "read", "Guest"))

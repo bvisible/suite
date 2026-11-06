@@ -16,21 +16,23 @@ def file_permission_criterion(user=None, table=None):
     file = table or frappe.qb.DocType("File")
     permission = frappe.qb.DocType("Drive Permission")
     share = frappe.qb.DocType("DocShare")
-    criterion = (
-        (file.is_private == 0)
-        | (file.owner == user)
-        | file.name.isin(
+    # //// Neoffice — not the "anyone with the link" principal (neoffice-maintenance#2296), as content_query_conditions:
+    # //// a link opens the one file it was made for (has_permission), it is not an entry in a list. Counted here, it
+    # //// listed every link-shared file of the site to any account (/api/resource/File). Guest has no other principal.
+    principals = [p for p in get_principals(user) if p != ""]
+    criterion = (file.is_private == 0) | (file.owner == user)
+    if principals:
+        criterion |= file.name.isin(
             frappe.qb.from_(permission)
             .select(permission.entity)
-            .where(
-                permission.user.isin(get_principals(user)) & (permission.read == 1) & (permission.deny == 0)
-            )
+            # //// Neoffice — the principals without the link one (see above)
+            .where(permission.user.isin(principals) & (permission.read == 1) & (permission.deny == 0))
         )
-        | file.name.isin(
-            frappe.qb.from_(share)
-            .select(share.share_name)
-            .where((share.share_doctype == "File") & (share.user == user) & (share.read == 1))
-        )
+    # //// Neoffice — the DocShares, as upstream had them, in a clause of their own (see above)
+    criterion |= file.name.isin(
+        frappe.qb.from_(share)
+        .select(share.share_name)
+        .where((share.share_doctype == "File") & (share.user == user) & (share.read == 1))
     )
     if SYSTEM_USER_ROLE in roles:
         # //// Neoffice — v15 compat: _doctypes_with_read takes no user arg here (14deec32 "fix(drive): File hook works on Frappe v15 (get_doctypes_with_read signature)"), see block marker below
