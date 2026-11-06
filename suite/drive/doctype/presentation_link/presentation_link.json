@@ -33,12 +33,12 @@
   "column_break_visits",
   "viewer_count",
   "total_seconds",
+  "question_count",
+  "waiting_count",
   "recipients",
   "token",
   "questions_tab",
   "questions_html",
-  "question_count",
-  "waiting_count",
   "nora_tab",
   "questions_mode",
   "questions_to",
@@ -220,6 +220,21 @@
    "read_only": 1
   },
   {
+   "default": "0",
+   "fieldname": "question_count",
+   "fieldtype": "Int",
+   "label": "Questions Asked",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "waiting_count",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Questions Waiting",
+   "read_only": 1
+  },
+  {
    "description": "The addresses the link was sent to from here.",
    "fieldname": "recipients",
    "fieldtype": "Small Text",
@@ -245,21 +260,6 @@
    "fieldname": "questions_html",
    "fieldtype": "HTML",
    "label": "Questions"
-  },
-  {
-   "default": "0",
-   "fieldname": "question_count",
-   "fieldtype": "Int",
-   "label": "Questions Asked",
-   "read_only": 1
-  },
-  {
-   "default": "0",
-   "fieldname": "waiting_count",
-   "fieldtype": "Int",
-   "in_list_view": 1,
-   "label": "Questions Waiting",
-   "read_only": 1
   },
   {
    "fieldname": "nora_tab",
@@ -299,7 +299,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-11-06 21:00:00.000000",
+ "modified": "2026-11-06 22:10:00.000000",
  "modified_by": "Administrator",
  "module": "Drive",
  "name": "Presentation Link",
