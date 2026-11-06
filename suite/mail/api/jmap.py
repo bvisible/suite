@@ -38,6 +38,7 @@ def pushed_accounts_of(user: str, changed: dict, logger) -> list[tuple[str, dict
     return accounts
 
 
+# permission-check: ok the mail server's webhook (Guest) acts only on the named user's linked accounts
 @frappe.whitelist(methods=["POST"], allow_guest=True)
 def push_notification() -> dict:
     """Handle JMAP Push Notification."""
