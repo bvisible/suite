@@ -16,6 +16,14 @@ from suite.suite_core import suite_email
 MAX_TITLE_LEN = 280
 
 
+# //// Neoffice — a sheet's collaboration events (cell ops, Yjs updates and full states, presence, cursors) went
+# //// to the site-wide room that every desk user's socket joins, whatever the sheet: a user who may not read the
+# //// sheet received its edits live. They go to the sheet's own room, which frappe's socket server lets a socket
+# //// join (doc_subscribe) only after the read check, and which the Sheets client joins (collab/realtime-adapter.js).
+def sheet_room(name: str) -> dict:
+    return {"doctype": "Sheet", "docname": name}
+
+
 # ── Presence ──────────────────────────────────────────────────────────────────
 
 
@@ -32,6 +40,7 @@ def ping_presence(name: str) -> None:
         "sheet_presence",
         {"sheet": name, "user": user, **identity},
         after_commit=False,
+        **sheet_room(name),  # //// Neoffice — the sheet's own room, see sheet_room
     )
 
 
@@ -60,6 +69,7 @@ def broadcast_op(name: str, op: str) -> None:
         "sheet_op",
         {"sheet": name, "user": frappe.session.user, "op": op},
         after_commit=False,
+        **sheet_room(name),  # //// Neoffice — the sheet's own room, see sheet_room
     )
 
 
@@ -73,6 +83,7 @@ def broadcast_cursor(name: str, r: int, c: int, sub_sheet: str) -> None:
         "sheet_cursor",
         {"sheet": name, "user": user, **identity, "r": int(r), "c": int(c), "sub_sheet": sub_sheet},
         after_commit=False,
+        **sheet_room(name),  # //// Neoffice — the sheet's own room, see sheet_room
     )
 
 
@@ -115,6 +126,7 @@ def yjs_relay(name: str, event: str, payload: str) -> None:
         event,
         {"sheet": name, "user": frappe.session.user, "payload": payload},
         after_commit=False,
+        **sheet_room(name),  # //// Neoffice — the sheet's own room, see sheet_room
     )
 
 

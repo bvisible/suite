@@ -163,21 +163,21 @@ class JMAPAccount(Document):
         self.clear_cached_blobs()
         self.clear_search_indexes()
 
-    @frappe.whitelist()
+    @frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
     def clear_cached_jmap_identities(self) -> None:
         """Clear all cached JMAP identities for the current account."""
 
         if self.has_clear_cache_permission():
             invalidate_jmap_identities_cache(self.name)
 
-    @frappe.whitelist()
+    @frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
     def clear_cached_jmap_mailboxes(self) -> None:
         """Clear all cached JMAP mailboxes for the current account."""
 
         if self.has_clear_cache_permission():
             invalidate_jmap_mailboxes_cache(self.name)
 
-    @frappe.whitelist()
+    @frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
     def clear_cached_blobs(self) -> None:
         """Clear all cached JMAP blobs for the current account."""
 
@@ -186,7 +186,7 @@ class JMAPAccount(Document):
 
         get_blob_store(self.name).delete_all()
 
-    @frappe.whitelist()
+    @frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
     def clear_cached_mail_messages(self) -> None:
         """Clear all cached mail messages for the current account."""
 
@@ -195,7 +195,7 @@ class JMAPAccount(Document):
 
         get_data_store(self.name).delete_all(Entity.EMAIL)
 
-    @frappe.whitelist()
+    @frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
     def clear_cached_contact_cards(self) -> None:
         """Clear all cached contact cards for the current account."""
 
@@ -204,7 +204,7 @@ class JMAPAccount(Document):
 
         get_data_store(self.name).delete_all(Entity.CONTACT_CARD)
 
-    @frappe.whitelist()
+    @frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
     def clear_search_indexes(self) -> None:
         """Delete all search indexes belonging to the current account.
 
@@ -216,7 +216,7 @@ class JMAPAccount(Document):
 
         destroy_namespace(get_search_base_path(), get_account_namespace(self.name))
 
-    @frappe.whitelist()
+    @frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
     def rebuild_search_index(self) -> None:
         """Rebuild the account's email-address index from its cached messages and contact cards."""
 

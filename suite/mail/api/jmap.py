@@ -16,8 +16,26 @@ from suite.mail.doctype.push_subscription.push_subscription import (
     read_jmap_push,
     verify_push_subscription,
 )
+
+# //// Neoffice — for pushed_accounts_of below
+from suite.mail.doctype.user_account.user_account import is_jmap_account_belongs_to_user
 from suite.mail.jmap import invalidate_jmap_identities_cache, invalidate_jmap_mailboxes_cache
 from suite.mail.utils.logger import get_push_logger
+
+
+# //// Neoffice — the push endpoint is open to anyone (the mail server calls it), and while push encryption is off
+# //// (the default) a plain JSON body is believed. `user` comes from the query string and every account id from the
+# //// body, so a forged push could name any account: open a data store for it, drop the cached mailboxes and
+# //// identities of a real one, or queue a sync job per account it lists. Only the accounts linked to that user
+# //// (User Account, which syncs every account of their mail session, shared ones included) are acted on.
+def pushed_accounts_of(user: str, changed: dict, logger) -> list[tuple[str, dict]]:
+    accounts = []
+    for account, changes in changed.items():
+        if is_jmap_account_belongs_to_user(account, user):
+            accounts.append((account, changes))
+        else:
+            logger.warning("push-for-unlinked-account")
+    return accounts
 
 
 @frappe.whitelist(methods=["POST"], allow_guest=True)
@@ -81,6 +99,11 @@ def push_notification() -> dict:
         if isinstance(pushed, CalendarAlert):
             ctx["account"] = pushed.account_id
 
+            # //// Neoffice — see pushed_accounts_of: an account the user is not linked to is not theirs to alert
+            if not is_jmap_account_belongs_to_user(pushed.account_id, user):
+                logger.warning("push-for-unlinked-account")
+                return {"status": "processed"}
+
             logger.info("calendar-alert-received")
             enqueue_send_event_alert_notification(user, pushed.to_wire(), ctx=ctx)
 
@@ -88,7 +111,8 @@ def push_notification() -> dict:
 
         logger.debug("state-change-received")
 
-        for account, changes in pushed.changed.items():
+        # //// Neoffice — only the user's own accounts: pushed_accounts_of
+        for account, changes in pushed_accounts_of(user, pushed.changed, logger):
             ctx["account"] = account
 
             for entity, state in changes.items():

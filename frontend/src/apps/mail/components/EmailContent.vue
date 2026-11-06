@@ -129,6 +129,10 @@ const handleTrust = () => {
 
 // Listen for keyboard/swipe events from iframe
 const handleMessage = (event: MessageEvent) => {
+	//// Neoffice — every message is taken from this message's own frame only, as the mailto ones always were:
+	//// `window` hears any window that holds a reference to this one, and a page opened from a link in a mail
+	//// could post a forged Ctrl+A then Delete, which the mailbox acts on with no confirmation.
+	if (event.source !== (frame.value?.$el as HTMLIFrameElement | undefined)?.contentWindow) return
 	// Horizontal swipes detected inside the iframe, re-broadcast for the thread pane's
 	// swipe navigation (MailboxView listens; it dedupes across EmailContent instances).
 	if (event.data?.type === 'swipe') {
@@ -198,6 +202,11 @@ const srcdoc = computed(() => {
 	let sanitized = DOMPurify.sanitize(escapeBracketedAddresses(content), DOMPURIFY_CONFIG)
 	if (effectiveBlock.value) sanitized = blockRemoteAssets(sanitized)
 	const doc = new DOMParser().parseFromString(sanitized, 'text/html')
+	//// Neoffice — a <meta http-equiv="refresh"> in a mail replaced the message pane with the sender's page, with
+	//// remote content blocked or not; no mail has a use for it.
+	doc.querySelectorAll('meta[http-equiv]').forEach((meta) => {
+		if (/^\s*refresh\s*$/i.test(meta.getAttribute('http-equiv') || '')) meta.remove()
+	})
 	// Two kinds of email render exactly as authored, dark theme or not: those
 	// declaring a fixed palette (suite's own templates), and art-directed ones
 	// — the author claimed the full canvas and painted with color — where
@@ -223,6 +232,7 @@ const srcdoc = computed(() => {
 			<meta name="viewport" content="width=device-width, initial-scale=1">
 			<meta name="color-scheme" content="${dataTheme.value}">
 			<meta charset="UTF-8">
+			${/* //// Neoffice — remoteContentPolicy */ effectiveBlock.value ? remoteContentPolicy() : ''}
 			<style>
 				body {
 					font-family: InterVar, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
@@ -476,7 +486,8 @@ const srcdoc = computed(() => {
 							window.parent.postMessage({ type: 'mailto', href: anchor.href }, '*');
 							return;
 						}
-						window.open(anchor.href, '_blank');
+						// //// Neoffice — without an opener: the page a mail links to gets no handle on this window
+						window.open(anchor.href, '_blank', 'noopener,noreferrer');
 					}
 				});
 
@@ -533,6 +544,23 @@ const srcdoc = computed(() => {
 })
 
 const colors = computed(() => THEME_CONFIG[dataTheme.value])
+
+//// Neoffice — remote content was blocked by rewriting what a regex recognised (an <img src>, a literal `url(`),
+//// and a sender went round it: `@import`, `image-set()`, an escaped `u\72l(`, a tab inside `https:`. While the
+//// reader has not loaded the images, the frame also carries a policy that lets nothing load from anywhere but this
+//// site and the message itself (inline cid: images are served from here), whatever the markup says.
+const remoteContentPolicy = () => {
+	const here = window.location.origin
+	const policy = [
+		"default-src 'none'",
+		`img-src ${here} 'self' data: blob: cid:`,
+		`media-src ${here} 'self' data: blob:`,
+		`font-src ${here} 'self' data:`,
+		`style-src ${here} 'self' 'unsafe-inline'`,
+		"script-src 'unsafe-inline'",
+	].join('; ')
+	return `<meta http-equiv="Content-Security-Policy" content="${policy}">`
+}
 
 const DOMPURIFY_CONFIG = {
 	ALLOWED_TAGS: [

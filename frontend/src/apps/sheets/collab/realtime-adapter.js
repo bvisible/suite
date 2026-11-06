@@ -30,6 +30,26 @@ export function createRealtimeAdapter({
 	// remove the exact wrapped callback we registered on the socket.
 	const wrapped = new Map()
 
+	//// Neoffice — the server publishes a sheet's events to the sheet's own room (`doc:Sheet/<name>`,
+	//// suite/sheets/api.py sheet_room), no longer to the site-wide room every desk user is in. Frappe's socket
+	//// server lets a socket into that room after checking it may read the sheet (doc_subscribe). Joined now and
+	//// on every (re)connect: a reconnected socket is a new one, with no rooms.
+	const socket = realtime?.socket
+	const subscribe = () => {
+		if (socket?.emit) socket.emit('doc_subscribe', 'Sheet', sheetId)
+		else realtime?.emit?.('doc_subscribe', 'Sheet', sheetId)
+	}
+	subscribe()
+	if (socket?.on) socket.on('connect', subscribe)
+	else realtime?.on?.('connect', subscribe)
+
+	function destroy() {
+		if (socket?.off) socket.off('connect', subscribe)
+		else realtime?.off?.('connect', subscribe)
+		if (socket?.emit) socket.emit('doc_unsubscribe', 'Sheet', sheetId)
+		else realtime?.emit?.('doc_unsubscribe', 'Sheet', sheetId)
+	}
+
 	function publish(event, payload) {
 		// Fire-and-forget; the relay errors land in the console but never
 		// block typing.
@@ -65,5 +85,5 @@ export function createRealtimeAdapter({
 		}
 	}
 
-	return { publish, on, off }
+	return { publish, on, off, destroy } //// Neoffice — destroy: leaves the sheet's room, see above
 }

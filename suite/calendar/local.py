@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import copy
 import json as jsonlib
+import math
 import re
 from datetime import UTC, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
@@ -102,7 +103,7 @@ def mailbox_possible(user: str) -> bool:
         return False
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def ensure_local_calendar_account() -> str | None:
     """The calendar guard's way out when no mailbox could be made: the session user's local calendar account
     (None for a portal user, or one who has a mail account)."""
@@ -466,6 +467,45 @@ def occurrences(
     return result
 
 
+# dateutil walks a rule period by period from the series' start, and stops at the first date the rule gives or at
+# its year 9999; `until` and `count` are only checked against a date it gives. A rule whose filters never match (the
+# 30th of February, every second of it) therefore walked to 9999 on every expansion: seconds of a web worker to store
+# it, then again on every query of the calendar and every minute in deliver_due_alerts. And a rule more frequent than
+# daily walks every hour, minute or second since its start before it reaches the window asked for. A stored series
+# is therefore daily at most (the only frequencies the calendar's screens make) and gives at least one date.
+SUB_DAILY = {"hourly", "minutely", "secondly"}
+# The Gregorian calendar repeats exactly every 400 years (month lengths, leap days, weekdays): that many periods.
+CYCLE_PERIODS = {rrule.DAILY: 146097, rrule.WEEKLY: 20871, rrule.MONTHLY: 4800, rrule.YEARLY: 400}
+
+
+def check_rule(event: dict, fallback_tz: str | None) -> None:
+    """Refuse a recurrence rule that would make every expansion of the series walk for seconds."""
+
+    rule = event.get("recurrenceRule")
+    if not rule:
+        return
+    frequency = str(rule.get("frequency") or "").lower()
+    if frequency in SUB_DAILY:
+        raise ValueError(_("A repeat more frequent than daily is not supported."))
+    interval = int(rule.get("interval") or 1)
+    if interval < 1:
+        raise ValueError(_("The repeat interval must be at least 1."))
+
+    # Whether the rule gives any date at all, whatever its count or end. The calendar and the rule's own interval
+    # both come back to the same state after `cycle` years, so the walk starts on the last such return that still
+    # leaves a whole cycle before year 9999: at most two cycles of periods are walked, never 8000 years of them.
+    tz = zone_of(event.get("timeZone"), fallback_tz)
+    start = parse_local(event["start"], tz)
+    base = CYCLE_PERIODS[_FREQUENCY[frequency]]
+    cycle = 400 * interval // math.gcd(base, interval)
+    room = datetime.max.year - start.year
+    if room >= 2 * cycle:
+        start = start.replace(year=start.year + (room // cycle - 1) * cycle)
+    probe = {**event, "recurrenceRule": {k: v for k, v in rule.items() if k not in ("count", "until")}}
+    if next(iter(rule_of(probe, start, tz)), None) is None:
+        raise ValueError(_("This repeat rule never gives a date."))
+
+
 def span_of(event: dict, fallback_tz: str | None) -> tuple[datetime, datetime | None, int]:
     """(first start, last end or None for a series without an end, recurs) in naive UTC, for the period queries."""
 
@@ -627,6 +667,7 @@ class LocalJMAPConnection:
         return {**_loads(row.data), "id": row.name} if row else None
 
     def store_event(self, obj: dict, id: str | None = None) -> str:
+        check_rule(obj, self.time_zone)
         begin, finish, recurs = span_of(obj, self.time_zone)
         values = {"uid": obj.get("uid"), "range_start": begin, "range_end": finish, "recurs": recurs}
         if id:

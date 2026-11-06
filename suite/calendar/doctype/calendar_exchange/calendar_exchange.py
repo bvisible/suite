@@ -365,7 +365,7 @@ class CalendarExchange(OwnerFromUser, Document):
             )
             logger.debug("export-enqueued", job_id=job_id, format=self.export_format)
 
-    @frappe.whitelist()
+    @frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
     def retry(self) -> None:
         """Retry the import or export."""
 

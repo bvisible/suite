@@ -143,7 +143,7 @@ def _provision_mail_account_now(user: str) -> None:
     frappe.db.commit()
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def ensure_personal_mail_account() -> bool:
     """//// Neoffice: guarantee a desk user ALWAYS has a calendar/mailbox.
     Provision the current user's mailbox synchronously on demand if they are an
@@ -176,7 +176,7 @@ def ensure_personal_mail_account() -> bool:
 
 
 # //// Neoffice — re-indented to spaces (was tabs); whitespace only.
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def provision_existing_mail_accounts() -> dict:
     """Backfill: provision a mailbox for every eligible desk user that has none.
     Idempotent — used by the migration patch and callable manually on deploy."""

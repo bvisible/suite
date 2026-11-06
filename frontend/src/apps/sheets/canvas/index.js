@@ -411,6 +411,12 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     _acRender()
   }
 
+  //// Neoffice — a sheet's tab name is anyone's text (an editor of a shared sheet, an imported workbook) and was
+  //// written into the autocomplete row with innerHTML: `S<img onerror=…>` ran when a collaborator typed `=S`.
+  //// Every name and label goes in escaped; a tab name with accents or spaces shows as before.
+  const _acEsc = (value) =>
+    String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
+
   function _acRender() {
     if (!_acEl) return
     _acEl.innerHTML = ''
@@ -421,8 +427,8 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
         ? `<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-cyan-6, #0891b2);background:var(--surface-cyan-1, #ecfeff);border-radius:3px;padding:1px 5px;">sheet</span>`
         : item.kind === 'range'
           ? `<span style="font-size:11px;color:var(--ink-gray-5, #7c7c7c);">Tab to fill range</span>`
-          : `<span style="font-size:11px;color:var(--ink-gray-5, #7c7c7c);">${AC_FUNS[item.name]}</span>`
-      row.innerHTML = `<span style="font-weight:600;min-width:80px;color:var(--ink-gray-9, #171717);">${item.name}</span>${right}`
+          : `<span style="font-size:11px;color:var(--ink-gray-5, #7c7c7c);">${_acEsc(AC_FUNS[item.name])}</span>` //// Neoffice — escaped: _acEsc
+      row.innerHTML = `<span style="font-weight:600;min-width:80px;color:var(--ink-gray-9, #171717);">${_acEsc(item.name)}</span>${right}` //// Neoffice — escaped: _acEsc
       row.addEventListener('mousedown', e => { e.preventDefault(); _acCommit(item) })
       row.addEventListener('mouseover', () => { _acIdx = i; _acHighlight() })
       _acEl.appendChild(row)
@@ -465,11 +471,11 @@ export function createGrid(canvas, { onSelect, onCommit, onInput, onCancel, getF
     if (!desc) { _acHide(); return }
     _acItems = []; _acIdx = 0
     const params = desc.params
-      .map((p, i) => i === desc.active ? `<b style="color:var(--ink-gray-9, #171717);">${p}</b>` : p)
+      .map((p, i) => i === desc.active ? `<b style="color:var(--ink-gray-9, #171717);">${_acEsc(p)}</b>` : _acEsc(p)) //// Neoffice — escaped: _acEsc
       .join(', ')
     _acEl.innerHTML =
       `<div style="padding:6px 12px;white-space:nowrap;color:var(--ink-gray-5, #7c7c7c);">` +
-      `<span style="font-weight:600;color:var(--ink-gray-9, #171717);">${ctx.fn}</span>(${params})</div>`
+      `<span style="font-weight:600;color:var(--ink-gray-9, #171717);">${_acEsc(ctx.fn)}</span>(${params})</div>` //// Neoffice — escaped: _acEsc
     const ox = parseFloat(overlay.el.style.left)   || 0
     const oy = parseFloat(overlay.el.style.top)    || 0
     const oh = parseFloat(overlay.el.style.height) || 24

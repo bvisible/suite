@@ -499,7 +499,8 @@ const dropdownOptions = computed(() => [
 ])
 
 const openUrl = (location: string) => {
-	if (isUrl(location)) window.open(location, '_blank')
+	//// Neoffice — an event's location is the organiser's text: the page it opens gets no handle on this window
+	if (isUrl(location)) window.open(location, '_blank', 'noopener,noreferrer')
 }
 </script>
 

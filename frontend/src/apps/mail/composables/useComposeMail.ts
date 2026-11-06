@@ -17,6 +17,14 @@ import type { ComposeMailData, DraftRecipient, Identity, UserResource } from '@/
 import type { RecipientField } from '@/apps/mail/utils/recipientFields'
 import type { MentionCandidate } from '@/apps/mail/utils/mentionSuggestion'
 
+//// Neoffice — an attachment opens in a tab as a blob: URL, which has this app's origin, typed by the sender's
+//// Content-Type: an attachment sent as text/html or image/svg+xml ran its script there as the reader. A type the
+//// browser shows without running anything (an image, a PDF, plain text, audio, video) still opens in the tab;
+//// any other type is downloaded instead.
+const INLINE_SAFE_TYPE = /^(image\/(png|jpe?g|gif|webp|avif|bmp)|application\/pdf|text\/plain|audio\/[\w.+-]+|video\/[\w.+-]+)$/i
+const inlineSafeType = (type?: string) =>
+	type && INLINE_SAFE_TYPE.test(type.split(';')[0].trim()) ? type : 'application/octet-stream'
+
 /** The mounted TextEditor instance, as far as this composable cares about it. */
 interface EditorHost {
 	$el?: HTMLElement
@@ -540,7 +548,7 @@ export const useComposeMail = (options: ComposeMailOptions) => {
 		if (!tab) return raiseToast(__('Allow popups to open attachments.'), 'error')
 
 		try {
-			tab.location.href = await getAttachmentUrl(blob_id, type, scopeAccountId.value)
+			tab.location.href = await getAttachmentUrl(blob_id, inlineSafeType(type), scopeAccountId.value) //// Neoffice — inlineSafeType
 		} catch {
 			tab.close()
 		}

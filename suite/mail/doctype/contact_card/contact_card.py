@@ -248,7 +248,8 @@ def parse_contact_card_name(name: str) -> tuple[str, str]:
     return account, id
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via delete_contact_cards) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def bulk_delete(names: JSONList[str]) -> None:
     """Delete multiple Contact Cards based on their names."""
 
@@ -263,7 +264,7 @@ def bulk_delete(names: JSONList[str]) -> None:
     frappe.msgprint(_("Contact Cards deleted successfully."), alert=True)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def add_contact_card(
     account: str,
     address_book_ids: list[str],
@@ -295,7 +296,7 @@ def add_contact_card(
     frappe.throw(_(format_set_error(response.not_created.get(creation_id))), title=title)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def bulk_add_contact_cards(account: str, contact_cards: list[dict], raise_exception: bool = True) -> None:
     """Adds multiple contact cards for the given account and returns their IDs."""
 
@@ -393,7 +394,7 @@ def get_contact_cards(account: str, ids: list[str]) -> list[dict]:
     return [contact_cards[id] for id in ids if id in contact_cards]
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def update_contact_card(
     account: str,
     id: str,
@@ -477,14 +478,16 @@ def contact_card_update_address_books(
     _remove_cached_contact_cards(account, ids)
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via contact_card_update_address_books) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def contact_card_add_to_address_book(account: str, ids: list[str], address_book_id: str) -> None:
     """Adds the provided contact cards to an address book."""
 
     return contact_card_update_address_books(account, ids, add_address_book_id=address_book_id)
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via contact_card_update_address_books) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def contact_card_remove_from_address_book(
     account: str,
     ids: list[str],
@@ -495,7 +498,8 @@ def contact_card_remove_from_address_book(
     return contact_card_update_address_books(account, ids, remove_address_book_id=address_book_id)
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via contact_card_update_address_books) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def contact_card_move_between_address_books(
     account: str, ids: list[str], from_address_book_id: str, to_address_book_id: str
 ) -> None:
@@ -509,7 +513,8 @@ def contact_card_move_between_address_books(
     )
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via contact_card_update_address_books) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def contact_card_move_to_address_book(
     account: str,
     ids: list[str],
@@ -520,7 +525,7 @@ def contact_card_move_to_address_book(
     return contact_card_update_address_books(account, ids, move_to_address_book_id=address_book_id)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def delete_contact_cards(account: str, ids: list[str]) -> None:
     """Deletes contact cards for the given account by its IDs."""
 

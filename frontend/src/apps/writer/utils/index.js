@@ -41,6 +41,19 @@ function highlightCodeBlocks(html) {
   return doc.body.innerHTML
 }
 
+//// Neoffice — the print settings are stored as the client sent them (WriterDocument.update_settings) and are
+//// written into a <style> block and a style attribute of a same-origin iframe: a header text holding `"; }
+//// </style><script>` ran its script for whoever printed. A text goes into the CSS as a quoted string with its
+//// quotes, backslashes, line breaks and angle brackets escaped; a size is a number or its default.
+const cssString = (value) =>
+  '"' +
+  String(value ?? '').replace(/[\\"'<>\n\r\f]/g, (c) => '\\' + c.charCodeAt(0).toString(16) + ' ') +
+  '"'
+const cssNumber = (value, fallback) => {
+  const number = Number(value)
+  return Number.isFinite(number) && number > 0 ? number : fallback
+}
+
 export function printDoc(html, settings = {}) {
   const highlightedHtml = highlightCodeBlocks(html)
   const fontMap = {
@@ -62,10 +75,11 @@ export function printDoc(html, settings = {}) {
   // custom properties the editor sets — otherwise paragraphs fall back to the
   // prose defaults and print looser than what is on screen.
   const editorVars = [
-    `--editor-font-size: ${settings?.font_size || 15}px`,
+    //// Neoffice — numbers only, see cssNumber above
+    `--editor-font-size: ${cssNumber(settings?.font_size, 15)}px`,
     `--editor-line-height: ${cssLineHeight(settings?.line_height)}`,
-    `--paragraph-spacing-before: ${settings?.paragraph_spacing_before || 0}px`,
-    `--paragraph-spacing-after: ${settings?.paragraph_spacing_after || 0}px`,
+    `--paragraph-spacing-before: ${cssNumber(settings?.paragraph_spacing_before, 0)}px`,
+    `--paragraph-spacing-after: ${cssNumber(settings?.paragraph_spacing_after, 0)}px`,
   ].join('; ')
   const content = `
             <!DOCTYPE html>
@@ -78,7 +92,7 @@ export function printDoc(html, settings = {}) {
                 margin: 1.25cm 2.5cm;
 
                 @top-left {
-                  content: "${settings?.print_header_left || ''}";  
+                  content: ${cssString(settings?.print_header_left)}; /* //// Neoffice — escaped: cssString */  
                   font-family: ${fontFamily};
                   font-size: 10px;  
                   line-height: 1;
@@ -86,7 +100,7 @@ export function printDoc(html, settings = {}) {
                   ${settings?.print_header_separator ? ' border-bottom: 0.25pt solid var(--ink-gray-4); margin-bottom: 10px;' : ''}
                 }
                 @top-right {
-                  content: "${settings?.print_header_right || ''}";  
+                  content: ${cssString(settings?.print_header_right)}; /* //// Neoffice — escaped: cssString */  
                   font-family: ${fontFamily};
                   font-size: 10px;  
                   line-height: 1;
@@ -94,7 +108,7 @@ export function printDoc(html, settings = {}) {
                   ${settings?.print_header_separator ? ' border-bottom: 0.25pt solid var(--ink-gray-4); margin-bottom: 10px;' : ''}
                 }
                 @bottom-left {  
-                  content: "${settings?.print_footer_left || ''}";  
+                  content: ${cssString(settings?.print_footer_left)}; /* //// Neoffice — escaped: cssString */  
                   font-family: ${fontFamily};
                   font-size: 10px;  
                   line-height: 1;
@@ -102,7 +116,7 @@ export function printDoc(html, settings = {}) {
                   ${settings?.print_footer_separator ? 'border-top: 0.25pt solid var(--ink-gray-6); margin-top: 2px;' : ''}
                 }
                 @bottom-right {  
-                  content: ${settings?.print_show_pages ? '"Page " counter(page) " of " counter(pages)' : `"${settings?.print_footer_right || ''}"`};
+                  content: ${settings?.print_show_pages ? '"Page " counter(page) " of " counter(pages)' : cssString(settings?.print_footer_right)}; /* //// Neoffice — escaped: cssString */
                   font-family: var(--font-inter);
                   font-size: 10px;
                   line-height: 1;

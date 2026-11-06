@@ -121,13 +121,16 @@ def clean_content_for_obsidian(content):
     return content
 
 
+# permission-check: ok user_has_permission(file, "comment") refuses first
 @frappe.whitelist(allow_guest=True)
 def save_comments(doc: str, data: str):
     file = frappe.get_doc("File", {"content_docname": doc, "content_doctype": "Writer Document"})
     if not user_has_permission(file, "comment"):
         frappe.throw("You cannot comment on this file.")
 
-    frappe.get_doc("Writer Document", doc).save_comments(data, file)
+    # //// Neoffice — a commenter without write may only change their own comments (WriterDocument.save_comments)
+    can_write = user_has_permission(file, "write")
+    frappe.get_doc("Writer Document", doc).save_comments(data, file, can_write=can_write)
 
 
 @frappe.whitelist()

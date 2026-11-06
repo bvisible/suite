@@ -202,6 +202,7 @@ import { Button } from 'frappe-ui'
 
 import { fetchAttachment, getAttachmentUrl } from '@/apps/mail/resources'
 import { getFileIcon, revokeObjectUrlAfterDownload } from '@/apps/mail/utils'
+import { escapeHtml } from '@/apps/mail/utils/html' //// Neoffice — see printAttachment
 import { useScreenSize } from '@/apps/mail/utils/composables'
 
 import type { Attachment } from '@/apps/mail/types'
@@ -325,10 +326,11 @@ const printAttachment = () => {
 		return
 	}
 
-	iframe.srcdoc = `
-			<html>
-				<head>
-					<title>${currentAttachment.value?.filename || 'Print'}</title>
+	//// Neoffice — the file name is the sender's text and this frame has the app's origin: a name holding
+	//// `</title><img onerror=…>` ran as the reader when they printed. It goes in escaped (the image source is
+	//// the blob: URL this viewer made).
+	const title = escapeHtml(currentAttachment.value?.filename || 'Print')
+	iframe.srcdoc = `<html><head><title>${title}</title>
 					<style>
 						body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
 						img { max-width: 100%; height: auto; }

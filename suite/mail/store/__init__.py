@@ -85,7 +85,7 @@ def get_email_address_index(account: str) -> EmailAddressIndex:
     return EmailAddressIndex(get_account_namespace(account))
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def destroy_data_store() -> None:
     """Delete every mail data store for the current site. System Manager only.
 
@@ -100,7 +100,7 @@ def destroy_data_store() -> None:
     destroy_namespace(get_data_base_path(), MAIL_NAMESPACE)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def destroy_blob_store() -> None:
     """Delete every mail blob store for the current site. System Manager only.
 
@@ -115,7 +115,7 @@ def destroy_blob_store() -> None:
     destroy_namespace(get_blob_base_path(), MAIL_NAMESPACE)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def destroy_search_index() -> None:
     """Delete every mail search index for the current site. System Manager only.
 
@@ -177,7 +177,7 @@ def rebuild_email_address_index(account: str, in_background: bool = True) -> Non
         index.index_addresses(_contact_addresses(batch))
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def rebuild_all_email_address_indexes() -> None:
     """Rebuild the email-address index for every JMAP account. System Manager only.
 

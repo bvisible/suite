@@ -16,6 +16,7 @@ import {
 import { lockedElsewhere } from './editLock'
 import { normalizeZIndices } from '@/apps/slides/stores/element'
 import { normalizeColor } from '@/apps/slides/utils/color'
+import { sanitizeSlideHTML } from '@/apps/slides/utils/helpers' //// Neoffice — see getElementDimensions
 import { appDocumentTitle } from '@/utils/documentTitle'
 import { getSessionUser } from '@/boot/session'
 import { v4 as uuid4 } from 'uuid'
@@ -100,7 +101,10 @@ const getElementDimensions = async (el) => {
 		tempDiv.style.whiteSpace = 'pre'
 	}
 
-	tempDiv.innerHTML = el.content || ''
+	//// Neoffice — a text element's content is stored as its editor sent it (save_slides; frappe's XSS filter skips
+	//// JSON fields) and was measured through innerHTML before any renderer sanitized it: an `<img onerror>` ran
+	//// as whoever opened the presentation. It is measured as it is drawn, through the renderers' own sanitizer.
+	tempDiv.innerHTML = sanitizeSlideHTML(el.content || '')
 	document.body.appendChild(tempDiv)
 
 	await document.fonts.ready

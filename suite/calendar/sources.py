@@ -312,7 +312,7 @@ def set_visibility(account: str, calendar_id: str, visible) -> None:
     frappe.throw(_("This calendar does not exist."))
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def set_calendar_scope(account: str, scope: str) -> None:
     """Whose dates the sources show: only the person's own, or everything they may read. One choice for all."""
     _require_own(account)

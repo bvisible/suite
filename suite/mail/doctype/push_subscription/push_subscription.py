@@ -119,7 +119,7 @@ class PushSubscription(Document):
         if self.url and not self.url.startswith("https://"):
             frappe.throw(_("The URL must start with 'https://'."))
 
-    @frappe.whitelist()
+    @frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
     def renew(self) -> None:
         """Renews the push subscription subscription."""
 
@@ -187,7 +187,7 @@ def is_push_subscription_disabled(user: str, raise_exception: bool = False) -> b
     return disabled
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def bulk_delete(names: JSONList[str]) -> None:
     """Deletes multiple push subscriptions given their names."""
 
@@ -310,7 +310,7 @@ def on_login(login_manager) -> None:
     )
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def add_push_subscription(
     user: str,
     device_client_id: str | None = None,
@@ -495,7 +495,7 @@ def verify_push_subscription(user: str, id: str, verification_code: str) -> None
         frappe.throw(_(format_set_error(result.not_updated.get(id))), title=title)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def renew_push_subscription(user: str, id: str) -> None:
     """Renews a push subscription subscription for the given user and subscription ID."""
 
@@ -629,7 +629,7 @@ def renew_expiring_push_subscriptions() -> None:
         )
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def delete_push_subscriptions(user: str, ids: list[str]) -> None:
     """Deletes push subscriptions for the given user and list of subscription IDs."""
 

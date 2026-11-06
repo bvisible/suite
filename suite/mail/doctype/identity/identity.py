@@ -157,7 +157,8 @@ def parse_identity_name(name: str) -> tuple[str, str]:
     return account, id
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via delete_identities) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def bulk_delete(names: JSONList[str]) -> None:
     """Deletes multiple identities given their names."""
 
@@ -172,7 +173,7 @@ def bulk_delete(names: JSONList[str]) -> None:
     frappe.msgprint(_("Identities deleted successfully."), alert=True)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def add_identity(
     account: str,
     email: str,
@@ -227,7 +228,7 @@ def get_identity(account: str, id: str, raise_exception: bool = True) -> dict | 
         )
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def update_identity(
     account: str,
     id: str,
@@ -260,7 +261,7 @@ def update_identity(
         frappe.throw(_(format_set_error(response.not_updated.get(id))), title=title)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def delete_identities(account: str, ids: list[str]) -> None:
     """Deletes identities for the given account and list of identity IDs."""
 

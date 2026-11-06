@@ -220,7 +220,7 @@ def get_scheduled_mail(account: str, id: str) -> dict:
     return row
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def reschedule_mail(account: str, id: str, send_at: str) -> dict:
     """Moves a held submission's delivery time. `send_at` is UTC `...Z`."""
 
@@ -235,7 +235,7 @@ def reschedule_mail(account: str, id: str, send_at: str) -> dict:
     return {"id": created["id"], "send_at": to_utc_z(send_at)}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def send_scheduled_mail_now(account: str, id: str) -> dict:
     """Delivers a held submission immediately."""
 
@@ -249,7 +249,7 @@ def send_scheduled_mail_now(account: str, id: str) -> dict:
     return {"id": created["id"], "thread_id": submission.get("threadId")}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def cancel_scheduled_mail(account: str, id: str) -> dict:
     """Cancels a held submission's delivery and moves the message back to Drafts."""
 
@@ -270,7 +270,7 @@ def cancel_scheduled_mail(account: str, id: str) -> dict:
     return {"id": email_id}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def retry_failed_mail(account: str, id: str) -> dict:
     """Resubmits a finalized submission's email for immediate delivery, replacing the failed
     record so the listing shows only the live attempt. A record that was already retried - by
@@ -298,7 +298,7 @@ def retry_failed_mail(account: str, id: str) -> dict:
     return {"id": created["id"]}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def dismiss_failed_mail(account: str, id: str) -> None:
     """Drops a finalized submission's record from the Outbox listing."""
 

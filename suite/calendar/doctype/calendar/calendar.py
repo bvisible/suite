@@ -157,7 +157,8 @@ def validate_calendar_name_format(name: str) -> None:
         frappe.throw(_("Calendar name must be in the format 'account|id'."))
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via delete_calendars) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def bulk_delete(names: JSONList[str]) -> None:
     """Deletes multiple calendars given their names."""
 
@@ -172,7 +173,7 @@ def bulk_delete(names: JSONList[str]) -> None:
     frappe.msgprint(_("Calendars deleted successfully."), alert=True)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 @dynamic_rate_limit()
 def add_calendar(
     account: str,
@@ -230,7 +231,7 @@ def get_calendar(account: str, id: str) -> dict:
     )
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 @dynamic_rate_limit()
 def update_calendar(
     account: str,
@@ -265,7 +266,7 @@ def update_calendar(
         frappe.throw(_(format_set_error(response.not_updated.get(id))), title=title)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 @dynamic_rate_limit()
 def delete_calendars(account: str, ids: list[str], remove_events: bool = True) -> None:
     """Deletes calendars for the specified account and ID(s)."""
@@ -502,7 +503,8 @@ def has_permission(doc: Document, ptype: str, user: str | None = None) -> bool:
 # //// Drop each one the day upstream ships an equivalent.
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via _update_calendar) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def share_calendar(account: str, id: str, share_with: list | str) -> None:
     """//// Neoffice: sets who a calendar is shared with (and their rights).
 
@@ -582,7 +584,7 @@ def get_caldav_url(account: str, id: str) -> dict:
     return result
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def set_calendar_visibility(account: str, id: str, visible: int = 1) -> None:
     """//// Neoffice: persist a calendar's show/hide state (isVisible) so the
     sidebar toggle survives reloads. `visible` is int (0/1) — a `int | bool`

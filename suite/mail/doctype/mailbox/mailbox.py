@@ -134,7 +134,8 @@ def parse_mailbox_name(name: str) -> tuple[str, str]:
     return account, id
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via delete_mailboxes) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def bulk_delete(names: JSONList[str]) -> None:
     """Deletes multiple mailboxes given their names."""
 
@@ -149,7 +150,7 @@ def bulk_delete(names: JSONList[str]) -> None:
     frappe.msgprint(_("Mailboxes deleted successfully."), alert=True)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def add_mailbox(
     account: str,
     name: str,
@@ -203,7 +204,7 @@ def get_mailbox(account: str, id: str, raise_exception: bool = False) -> dict | 
         )
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def update_mailbox(
     account: str,
     id: str,
@@ -241,7 +242,7 @@ def update_mailbox(
     invalidate_jmap_mailboxes_cache(account)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def delete_mailboxes(account: str, ids: list[str], remove_emails: bool = True) -> None:
     """Deletes a mailbox for the given account by its ID."""
 
@@ -300,7 +301,7 @@ def fetch_mailboxes(account: str, page: int = 1, limit: int | None = 10) -> list
     return sorted_mailboxes[start:end]
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def update_mailbox_position(
     account: str, target_mailbox_id: str, prior_mailbox_id: str | None = None
 ) -> None:

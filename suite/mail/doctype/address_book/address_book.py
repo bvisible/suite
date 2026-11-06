@@ -138,7 +138,8 @@ def _get_total_cache_key(account: str) -> str:
     return f"{account}:address_books:total"
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via delete_address_books) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def bulk_delete(names: JSONList[str]) -> None:
     """Deletes multiple address books given their names."""
 
@@ -153,7 +154,7 @@ def bulk_delete(names: JSONList[str]) -> None:
     frappe.msgprint(_("Address Books deleted successfully."), alert=True)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def add_address_book(
     account: str,
     name: str,
@@ -208,7 +209,7 @@ def get_address_book(account: str, id: str, raise_exception: bool = True) -> dic
         )
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def update_address_book(
     account: str,
     id: str,
@@ -241,7 +242,7 @@ def update_address_book(
         frappe.throw(_(format_set_error(response.not_updated.get(id))), title=title)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def delete_address_books(account: str, ids: list[str]) -> None:
     """Deletes address books for the given account and list of address book IDs."""
 

@@ -103,7 +103,7 @@ def _fetch_vacation_response(account: str) -> dict:
     return items[0].to_wire() if items else {}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def update_vacation_response(
     account: str,
     enabled: bool | int,

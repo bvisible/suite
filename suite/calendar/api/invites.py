@@ -82,7 +82,7 @@ def get_invite_details(account: str, blob_id: str) -> dict | None:
     }
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 @dynamic_rate_limit()
 def add_invite_to_calendar(account: str, blob_id: str) -> dict:
     """Creates the invite's event(s) from a text/calendar mail attachment on the account's default
@@ -98,7 +98,7 @@ def add_invite_to_calendar(account: str, blob_id: str) -> dict:
     frappe.throw(_("Could not add the event to the calendar."))
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 @dynamic_rate_limit()
 def rsvp_to_invite(account: str, blob_id: str, response: str) -> dict:
     """Records the viewer's RSVP to an invite attachment: puts the event on their calendar first

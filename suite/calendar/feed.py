@@ -122,14 +122,14 @@ def get_calendar_feed() -> dict:
     return _answer(_require_desk_user())
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def enable_calendar_feed() -> dict:
     user = _require_desk_user()
     _save(user, {**_state(user), "enabled": 1})
     return _answer(user)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def regenerate_calendar_feed() -> dict:
     """A new address: the one that was given stops working, wherever it was pasted."""
     user = _require_desk_user()
@@ -138,7 +138,7 @@ def regenerate_calendar_feed() -> dict:
     return _answer(user)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def disable_calendar_feed() -> dict:
     user = _require_desk_user()
     _save(user, {**_state(user), "enabled": 0})

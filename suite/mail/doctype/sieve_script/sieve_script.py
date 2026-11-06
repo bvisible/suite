@@ -389,7 +389,8 @@ def _query_sieve_scripts(
     return {"ids": ids[:limit], "total": total}
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via _delete_sieve_scripts) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def bulk_delete(names: JSONList[str]) -> None:
     """Deletes multiple sieve scripts given their names."""
 
@@ -604,7 +605,7 @@ def build_automation_sieve(account: str, activate: bool = False, raise_exception
     )
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def rebuild_all_automation_sieves() -> None:
     """Enqueue a rebuild of the automation sieve script for every JMAP account.
 

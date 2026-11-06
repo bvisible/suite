@@ -55,9 +55,10 @@
                 class="aspect-[37/50] cursor-pointer overflow-hidden rounded-4 dark:bg-gray-900 border border-gray-50 dark:border-outline-gray-1 px-2.5 py-1 shadow-lg transition-shadow hover:shadow-xl"
               >
                 <div class="overflow-hidden text-ellipsis whitespace-nowrap">
+                  <!-- //// Neoffice — the stored html is drawn through DOMPurify (thumbnailHtml): a document saved before the server filtered it may still hold a script -->
                   <div
                     class="prose prose-sm prose-v3 pointer-events-none w-[200%] origin-top-left scale-[.55] prose-p:my-1 md:w-[250%] md:scale-[.39]"
-                    v-html="row.html"
+                    v-html="thumbnailHtml(row.html)"
                   />
                 </div>
               </div>
@@ -150,6 +151,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch, useTemplateRef } from 'vue'
+import DOMPurify from 'dompurify' //// Neoffice — see thumbnailHtml below
 
 import { Avatar, TabButtons, Tooltip } from 'frappe-ui'
 import { useInfiniteScroll } from '@vueuse/core'
@@ -163,6 +165,11 @@ import { useSessionStore } from '@/boot/session'
 import { useUsers } from '@/apps/writer/composables/useUsers'
 
 const currentUserId = computed(() => useSessionStore().user)
+
+//// Neoffice — a grid thumbnail is the document's stored html drawn with v-html. The server filters it on every
+//// save now (WriterDocument.clean_html); this covers what was stored before, and anything that reaches the list
+//// another way. Formatting stays, scripts and event handlers go.
+const thumbnailHtml = (html?: string | null) => DOMPurify.sanitize(html || '')
 const { getUser: $user } = useUsers()
 
 const thumbnail = ref(

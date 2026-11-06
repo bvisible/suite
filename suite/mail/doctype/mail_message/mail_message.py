@@ -398,19 +398,19 @@ class MailMessage(Document):
                 )
             )
 
-    @frappe.whitelist()
+    @frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
     def save_draft(self) -> MailQueue:
         """Save the Mail Message as a draft."""
 
         return self._update_or_submit_draft(save_as_draft=True)
 
-    @frappe.whitelist()
+    @frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
     def submit(self, send_at: str | None = None) -> MailQueue:
         """Submit the draft Mail Message. `send_at` (system-time string) schedules delivery via FUTURERELEASE."""
 
         return self._update_or_submit_draft(save_as_draft=False, send_at=send_at)
 
-    @frappe.whitelist()
+    @frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
     def move_to_mailbox(self, mailbox_id: str) -> None:
         """Move the Mail Message to a specified mailbox."""
 
@@ -418,7 +418,7 @@ class MailMessage(Document):
         move_messages_to_mailbox(self.account, [self.id], mailbox_id)
         self.reload()
 
-    @frappe.whitelist()
+    @frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
     def add_to_mailbox(self, mailbox_id: str) -> None:
         """Add the Mail Message to a specified mailbox."""
 
@@ -426,7 +426,7 @@ class MailMessage(Document):
         add_messages_to_mailbox(self.account, [self.id], mailbox_id)
         self.reload()
 
-    @frappe.whitelist()
+    @frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
     def remove_from_mailbox(self, mailbox_id: str) -> None:
         """Remove the Mail Message from a specified mailbox."""
 
@@ -434,21 +434,21 @@ class MailMessage(Document):
         remove_messages_from_mailbox(self.account, [self.id], mailbox_id)
         self.reload()
 
-    @frappe.whitelist()
+    @frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
     def set_seen(self, seen: bool) -> None:
         """Set the Mail Message as seen or unseen."""
 
         set_seen_status(self.account, [self.id], seen)
         self.reload()
 
-    @frappe.whitelist()
+    @frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
     def set_flagged(self, flagged: bool) -> None:
         """Set the Mail Message as flagged or unflagged."""
 
         set_flagged_status(self.account, [self.id], flagged)
         self.reload()
 
-    @frappe.whitelist()
+    @frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
     def reply(self) -> MailQueue:
         """Reply to the Mail Message."""
 
@@ -473,7 +473,7 @@ class MailMessage(Document):
 
         return self._reply(recipients)
 
-    @frappe.whitelist()
+    @frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
     def reply_all(self) -> MailQueue:
         """Reply to all recipients of the Mail Message."""
 
@@ -505,7 +505,7 @@ class MailMessage(Document):
 
         return self._reply(recipients)
 
-    @frappe.whitelist()
+    @frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
     def forward(self) -> MailQueue:
         """Forward the Mail Message."""
 
@@ -706,7 +706,8 @@ class MailMessage(Document):
         return recipients
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via _delete_emails) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def bulk_delete(names: JSONList[str]) -> None:
     """Delete multiple Mail Messages based on their names."""
 
@@ -721,7 +722,8 @@ def bulk_delete(names: JSONList[str]) -> None:
     frappe.msgprint(_("Mail Messages deleted successfully."), alert=True)
 
 
-@frappe.whitelist()
+# permission-check: ok get_user_for_jmap_account refuses a message of another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def reply(source_name: str, target_doc=None) -> MailQueue:
     """Reply to the Mail Message."""
 
@@ -729,7 +731,8 @@ def reply(source_name: str, target_doc=None) -> MailQueue:
     return source_doc.reply()
 
 
-@frappe.whitelist()
+# permission-check: ok get_user_for_jmap_account refuses a message of another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def reply_all(source_name: str, target_doc=None) -> MailQueue:
     """Reply to all recipients of the Mail Message."""
 
@@ -737,7 +740,8 @@ def reply_all(source_name: str, target_doc=None) -> MailQueue:
     return source_doc.reply_all()
 
 
-@frappe.whitelist()
+# permission-check: ok get_user_for_jmap_account refuses a message of another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def forward(source_name: str, target_doc=None) -> MailQueue:
     """Forward the Mail Message."""
 
@@ -1537,20 +1541,22 @@ def fetch_changes(user: str, account: str, email_state: str | None = None, ctx: 
     ctx["email_state"] = email_state
 
     if not current_state:
-        if not email_state:
-            # A manual or scheduled run carries no state, and storing None would leave the
-            # account re-"initializing" on every run with changes never fetched — seed from
-            # the server's actual Email state instead.
-            try:
-                email_state = get_email_state(account_view(get_jmap_client(user), account))
-                ctx["email_state"] = email_state
-            except Exception:
-                logger.error("email-sync-state-init-failed")
-                log_mail_error(
-                    _("Failed to initialize email sync state"),
-                    frappe.get_traceback(with_context=True),
-                )
-                return
+        # //// Neoffice — the first state is always read from the server, never taken from the push. The push
+        # //// endpoint is open, and with push encryption off (the default) its body is believed: a forged state stored
+        # //// here made every later `changes(since_state=…)` fail, so the account's new mail stopped syncing for good.
+        # A manual or scheduled run carries no state, and storing None would leave the
+        # account re-"initializing" on every run with changes never fetched — seed from
+        # the server's actual Email state instead.
+        try:
+            email_state = get_email_state(account_view(get_jmap_client(user), account))
+            ctx["email_state"] = email_state
+        except Exception:
+            logger.error("email-sync-state-init-failed")
+            log_mail_error(
+                _("Failed to initialize email sync state"),
+                frappe.get_traceback(with_context=True),
+            )
+            return
 
         if not email_state:
             logger.warning("email-sync-state-unavailable")

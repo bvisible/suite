@@ -603,6 +603,7 @@ import {
 } from '@/apps/mail/utils'
 import { isCollapsed as isCollapsedIn, lastMessageOf } from '@/apps/mail/utils/threadFolding'
 import { containEmailHtml } from '@/apps/mail/utils/containEmailHtml'
+import { escapeHtml } from '@/apps/mail/utils/html' //// Neoffice — see headerText below
 import { getSenderInitial } from '@/apps/mail/utils/participants'
 import { mailCopyIds } from '@/apps/mail/utils/mailCopies'
 import { useFilterBySender, useScreenSize, useSettings, useTheme } from '@/apps/mail/utils/composables'
@@ -1499,7 +1500,7 @@ const getBodyContent = (mail: Mail) => {
 const getQuotedContent = (mail: Mail) =>
 	`
 		<div class="frappe_mail_quote">
-			${/* //// Neoffice — translated whole, dayjs' llll (maintenance#1321) */ __('On {0}, {1} wrote:', [dayjs(mail.received_at).format('llll'), mail.from_email])}
+			${/* //// Neoffice — translated whole, dayjs' llll (maintenance#1321); the address escaped: headerText */ __('On {0}, {1} wrote:', [dayjs(mail.received_at).format('llll'), headerText(mail.from_email)])}
 			<blockquote style="margin-left: 8px">
 				${getBodyContent(mail)}
 			</blockquote>
@@ -1510,6 +1511,11 @@ const getQuotedContent = (mail: Mail) =>
 // lives in html_body, visible and editable in the composer, with the signature
 // inserted above it (see useComposeMail's prefilledBody). Only the original's
 // body needs to stay out of the editor (see getForwardedBody).
+//// Neoffice — the names, addresses and subject of a received mail are the sender's text, and these headers are
+//// HTML: the composer parses them into the live page (innerHTML), so `Subject: <img onerror=…>` ran as the reader
+//// who clicked Forward. They go in escaped; a recipient's `Name <address>` now shows its address too.
+const headerText = (value?: string | null) => escapeHtml(String(value ?? ''))
+
 //// Neoffice — translated, see getQuotedContent above (maintenance#1321).
 const getForwardHeader = (mail: Mail) => {
 	const recipients = getGroupedRecipients(mail.recipients, true, true)
@@ -1517,11 +1523,11 @@ const getForwardHeader = (mail: Mail) => {
 		<div>
 			<br><br>
 			---------- ${/* //// Neoffice — translated, whole lines (maintenance#1321) */ __('Forwarded message')} ---------<br>
-			${__('From: {0}', [`${mail.from_name} &lt;${mail.from_email}&gt;`])}<br>
+			${__('From: {0}', [/* //// Neoffice — escaped: headerText */ `${headerText(mail.from_name)} &lt;${headerText(mail.from_email)}&gt;`])}<br>
 			${__('Date: {0}', [dayjs(mail.received_at).format('llll')])}<br>
-			${__('Subject: {0}', [mail.subject || ''])}<br>
-			${__('To: {0}', [recipients.to])}<br>
-			${recipients.cc ? `${__('Cc: {0}', [recipients.cc])}<br>` : ''}
+			${__('Subject: {0}', [/* //// Neoffice — escaped: headerText */ headerText(mail.subject)])}<br>
+			${__('To: {0}', [/* //// Neoffice — escaped: headerText */ headerText(recipients.to)])}<br>
+			${recipients.cc ? `${__('Cc: {0}', [/* //// Neoffice — escaped: headerText */ headerText(recipients.cc)])}<br>` : ''}
 		</div>
 	`
 }

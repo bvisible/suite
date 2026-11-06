@@ -106,7 +106,8 @@ def _get_total_cache_key(account: str) -> str:
     return f"{account}:participant_identities:total"
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via delete_participant_identities) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def bulk_delete(names: JSONList[str]) -> None:
     """Deletes participant identities for the given list of names."""
 
@@ -121,7 +122,7 @@ def bulk_delete(names: JSONList[str]) -> None:
     frappe.msgprint(_("Participant Identities deleted successfully."), alert=True)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def add_participant_identity(account: str, name: str, email: str, default: bool = False) -> str:
     """Adds a participant identity for the given account and returns the identity ID."""
 
@@ -170,7 +171,7 @@ def get_participant_identity(account: str, id: str) -> dict:
     )
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def update_participant_identity(account: str, id: str, name: str, email: str, default: bool = False) -> None:
     """Updates an existing participant identity with the given parameters."""
 
@@ -193,7 +194,7 @@ def update_participant_identity(account: str, id: str, name: str, email: str, de
         frappe.throw(_(format_set_error(response.not_updated.get(id))), title=title)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def delete_participant_identities(account: str, ids: list[str]) -> None:
     """Deletes participant identities for the specified account and ID(s)."""
 

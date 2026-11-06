@@ -34,7 +34,27 @@ def get_media_response(src: str) -> Response:
     )
     # werkzeug advertises ranges only on a 206; a player decides from the 200
     response.headers["Accept-Ranges"] = "bytes"
+    harden_media_response(response, mimetype)  # //// Neoffice — see harden_media_response below
     return response
+
+
+# //// Neoffice — the proxy streams any file attached to a presentation, on the app's own origin. Opened as a page,
+# //// an uploaded .html or .svg ran its script there with the viewer's session. A slide only ever needs images,
+# //// video and audio drawn inline; nothing is sniffed into another type, and every other type is sent as a
+# //// download in a sandbox. An <img> ignores both headers, so a slide's SVG image still draws.
+INLINE_MEDIA_TYPES = frozenset(
+    {"image/png", "image/jpeg", "image/gif", "image/webp", "image/avif", "image/bmp", "image/x-icon"}
+)
+
+
+def harden_media_response(response: Response, mimetype: str) -> None:
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    if mimetype in INLINE_MEDIA_TYPES or mimetype.startswith(("video/", "audio/")):
+        return
+    # werkzeug wrote `inline; filename=…`: the same name, as a download
+    _inline, separator, filename = (response.headers.get("Content-Disposition") or "").partition(";")
+    response.headers["Content-Disposition"] = f"attachment{separator}{filename}"
+    response.headers["Content-Security-Policy"] = "sandbox; default-src 'none'"
 
 
 def get_reference_presentations(name: str) -> set[str]:

@@ -133,7 +133,8 @@ def _get_total_cache_key(account: str) -> str:
     return f"{account}:event_notifications:total"
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via delete_event_notifications) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def bulk_delete(names: JSONList[str]) -> None:
     """Deletes multiple event notifications given their names."""
 
@@ -191,7 +192,7 @@ def get_event_notifications(account: str, ids: list[str]) -> list[dict]:
     return [notifications[id] for id in ids if id in notifications]
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def delete_event_notifications(account: str, ids: list[str]) -> None:
     """Deletes event notifications for the specified account and ID(s)."""
 

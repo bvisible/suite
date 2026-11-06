@@ -691,7 +691,7 @@ class MailQueue(OwnerFromUser, Document):
                 _("Failed to fetch forwarded email Message-ID"), frappe.get_traceback(with_context=True)
             )
 
-    @frappe.whitelist()
+    @frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
     def retry(self) -> None:
         """Retries Create, Update or Submit the Email."""
 
@@ -1012,7 +1012,7 @@ class MailQueue(OwnerFromUser, Document):
         self.db_set(kwargs, update_modified=update_modified, notify=notify, commit=commit)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def bulk_retry(names: JSONList[str]) -> None:
     """Retries the emails with the given names."""
 

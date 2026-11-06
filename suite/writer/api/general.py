@@ -20,6 +20,12 @@ Recents = frappe.qb.DocType("Drive Entity Log")
 Binary = CustomFunction("BINARY", ["expression"])
 
 
+# //// Neoffice — see search(): a search snippet is text with the index's <mark> highlights, nothing else.
+def safe_snippet(content: str | None) -> str:
+    escaped = frappe.utils.escape_html(content or "")
+    return escaped.replace("&lt;mark&gt;", "<mark>").replace("&lt;/mark&gt;", "</mark>")
+
+
 @frappe.whitelist()
 def get_document_list(
     start: int = 0,
@@ -144,6 +150,7 @@ def get_versions(id: str):
     return versions
 
 
+# permission-check: ok a result is kept only when get_user_access gives read
 @frappe.whitelist()
 def search(query: str, filters: str | None = None):
     client = WriterSearch()
@@ -162,6 +169,10 @@ def search(query: str, filters: str | None = None):
         if not meta or not get_user_access(meta["name"]).get("read"):
             continue
         k.update(meta)
+        # //// Neoffice — the index stores the documents' text with its entities decoded, so a snippet can hold
+        # //// live markup, and the search dialog draws it with v-html. It goes out escaped, with only the <mark>
+        # //// highlights the index adds put back.
+        k["content"] = safe_snippet(k.get("content"))
         if current_file := current_files.get(k["name"]):
             k["title"] = current_file["file_name"]
         cleaned_results.append(k)

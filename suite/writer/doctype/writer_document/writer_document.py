@@ -9,7 +9,9 @@ from datetime import datetime, timedelta
 
 import frappe
 import pycrdt
+from frappe import _  # //// Neoffice — for check_comment_changes below
 from frappe.model.document import Document
+from frappe.utils.html_utils import sanitize_html  # //// Neoffice — for clean_html below
 
 from suite.drive.api.notifications import create_notification, get_link
 from suite.suite_core import suite_email
@@ -20,6 +22,51 @@ COLLISION_ERRORS = (
 )
 
 AUTOVERSION_DURATION = 10
+
+
+# //// Neoffice — the stored `html` is drawn as markup (the Writer home's grid view, v-html) and indexed for the
+# //// search snippets, so it goes through frappe's XSS filter on every path. save_doc writes it with
+# //// db.set_value, which skips Document._sanitize_content; and that filter returns any value that parses as JSON
+# //// unchanged (a JSON string literal holding a tag included), hence always_sanitize. Ordinary formatting
+# //// (headings, lists, tables, links, images, inline styles) is on the filter's allow list and is kept.
+def clean_html(html: str | None) -> str | None:
+    if not html:
+        return html
+    return sanitize_html(html, always_sanitize=True)
+
+
+# //// Neoffice — what a comment-only reader may change in the comments blob (save_comments below).
+def read_comments(data: str | None) -> dict:
+    """The comments of a stored Y.js comments blob, as plain data: {comment id: comment}."""
+    if not data:
+        return {}
+    comments_doc = pycrdt.Doc()
+    comments_doc.apply_update(base64.b64decode(data))
+    return comments_doc.get("comments", type=pycrdt.Map).to_py() or {}
+
+
+def comment_entries(comments: dict) -> dict:
+    """{entry id: (owner, text)} for every comment and every reply of a comments map."""
+    entries = {}
+    for comment_id, comment in comments.items():
+        if not isinstance(comment, dict):
+            continue
+        entries[comment_id] = (comment.get("owner"), comment.get("text"))
+        for reply in comment.get("replies") or []:
+            if isinstance(reply, dict) and (reply.get("id") or reply.get("name")):
+                entries[reply.get("id") or reply.get("name")] = (reply.get("owner"), reply.get("text"))
+    return entries
+
+
+def check_comment_changes(old: dict, new: dict, user: str) -> None:
+    """A reader who may only comment adds and edits their own comments and replies, and nobody else's."""
+    before, after = comment_entries(old), comment_entries(new)
+    for entry_id, (owner, text) in before.items():
+        if owner != user and after.get(entry_id) != (owner, text):
+            frappe.throw(_("You can only change your own comments."), frappe.PermissionError)
+    for entry_id, (owner, _text) in after.items():
+        if entry_id not in before and owner != user:
+            frappe.throw(_("A new comment must be written in your own name."), frappe.PermissionError)
 
 
 class WriterDocument(Document):
@@ -35,7 +82,8 @@ class WriterDocument(Document):
         try:
             frappe.db.set_value("Writer Document", self.name, "content", data)
             if html is not None:
-                frappe.db.set_value("Writer Document", self.name, "html", html)
+                # //// Neoffice — filtered as on save(): see clean_html
+                frappe.db.set_value("Writer Document", self.name, "html", clean_html(html))
             self.update_file(file_size=len(self.content))
         except COLLISION_ERRORS:
             pass
@@ -97,7 +145,8 @@ class WriterDocument(Document):
     @frappe.whitelist(methods=["POST"])
     def save_html(self, html: str):
         self.check_permission("write")
-        self.html = html
+        # //// Neoffice — the JSON-shaped value save() would let through: clean_html
+        self.html = clean_html(html)
         self.update_file()
         self.save()
 
@@ -111,18 +160,32 @@ class WriterDocument(Document):
         doc.file_modified = frappe.utils.now()
         doc.save(ignore_permissions=True)
 
-    def save_comments(self, data, file):
+    def save_comments(self, data, file, can_write: bool = True):
+        # //// Neoffice — the blob is built by the client, owners included. A reader who may only comment can
+        # //// no longer rewrite or delete the others' comments nor add one in another name (check_comment_changes);
+        # //// and a mention is announced only for the comments and replies of the person saving, so no e-mail
+        # //// goes out as "<someone else> mentioned you". Each author's own save announces their mentions (the
+        # //// notification is created once: create_notification skips one that exists).
+        user = frappe.session.user
+        comments_map = read_comments(data)
+        if not can_write:
+            check_comment_changes(read_comments(self.ycomments), comments_map, user)
         try:
             frappe.db.set_value("Writer Document", self.name, "ycomments", data)
 
             # Go over every comment in the YJS data and check replies for mentions
-            comments_doc = pycrdt.Doc()
-            comments_doc.apply_update(base64.b64decode(data))
-            comments_map = comments_doc.get("comments", type=pycrdt.Map)
+            # //// Neoffice — read once above (read_comments); only the saver's own comments and replies count
             for comment_id, comment_data in comments_map.items():
-                mentions = [{**k, "owner": comment_data["owner"]} for k in comment_data.get("mentions", [])]
-                for reply in comment_data["replies"]:
-                    mentions.extend([{**k, "owner": reply["owner"]} for k in reply.get("mentions", [])])
+                if not isinstance(comment_data, dict):
+                    continue
+                mentions = (
+                    [{**k, "owner": user} for k in comment_data.get("mentions") or []]
+                    if comment_data.get("owner") == user
+                    else []
+                )
+                for reply in comment_data.get("replies") or []:
+                    if isinstance(reply, dict) and reply.get("owner") == user:
+                        mentions.extend([{**k, "owner": user} for k in reply.get("mentions") or []])
                 if mentions:
                     frappe.enqueue(
                         notify_comments,

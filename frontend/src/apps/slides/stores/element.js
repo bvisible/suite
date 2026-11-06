@@ -13,7 +13,7 @@ import { useTextEditor, resetGrowthBaseline } from '@/apps/slides/composables/us
 
 import { getElementDiv } from './elementRegistry'
 import { markDirty } from './saving'
-import { generateUniqueId, cloneObj } from '../utils/helpers'
+import { generateUniqueId, cloneObj, sanitizeSlideHTML } from '../utils/helpers' //// Neoffice — sanitizeSlideHTML: createMeasuringDiv
 import { getBorderInset, getCoverCrop, isFullRect } from '../utils/cropGeometry'
 import { getMinSizeForElement } from '../utils/resize'
 import { getBoundTargetIds, getLineBox, remapElementIds } from '../utils/connectors'
@@ -393,7 +393,9 @@ const createMeasuringDiv = (html) => {
 		position: 'absolute',
 		visibility: 'hidden',
 	})
-	tempTextElement.innerHTML = html
+	//// Neoffice — measured as drawn: the stored content of a text element passes through the renderers' sanitizer
+	//// before it reaches innerHTML (presentation.js, getElementDimensions)
+	tempTextElement.innerHTML = sanitizeSlideHTML(html || '')
 
 	return tempTextElement
 }

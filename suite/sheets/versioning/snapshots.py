@@ -102,6 +102,9 @@ def create(
         "sheet_snapshot_created",
         {"sheet": sheet, "snapshot": snap.name, "kind": kind, "seq": head_seq},
         after_commit=True,
+        # //// Neoffice — the sheet's own room, not the site-wide one (suite/sheets/api.py, sheet_room)
+        doctype="Sheet",
+        docname=sheet,
     )
     return snap.name
 

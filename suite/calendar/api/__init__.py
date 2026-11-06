@@ -184,7 +184,8 @@ def get_calendars_with_shared(account: str, erp_dates: int = 0) -> list[dict]:
     return rows + _erp_calendars(account, erp_dates)
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via add_calendar) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 @dynamic_rate_limit()
 def create_calendar(account: str, name: str, color: str | None = None) -> str:
     """Creates a calendar and returns its `account|id` name."""
@@ -196,7 +197,7 @@ def create_calendar(account: str, name: str, color: str | None = None) -> str:
     return f"{account}|{calendar_id}"
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 @dynamic_rate_limit()
 def edit_calendar(
     account: str,
@@ -238,7 +239,7 @@ def edit_calendar(
         frappe.throw(error.get("description") or _("Could not update the calendar."), title=title)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 @dynamic_rate_limit()
 def delete_calendar(account: str, id: str) -> None:
     """Deletes a calendar and the events on it. The default calendar stays: it is
@@ -1096,7 +1097,8 @@ def _with_name(items: list[dict] | None) -> list[dict] | None:
     ]
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via record_rsvp) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 @dynamic_rate_limit()
 def rsvp_calendar_event(account: str, id: str, response: str, recurrence_id: str | None = None) -> None:
     """Records the logged-in user's RSVP (accepted / declined / tentative) on the event.
@@ -1108,7 +1110,8 @@ def rsvp_calendar_event(account: str, id: str, response: str, recurrence_id: str
     record_rsvp(account, id, response, recurrence_id=recurrence_id)
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via update_calendar_event) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 @dynamic_rate_limit()
 def edit_calendar_event(account: str, id: str, send_scheduling_messages: bool = False, **kwargs) -> None:
     """Sets the given `EventFields` on an event and keeps every other field as stored.
@@ -1162,7 +1165,7 @@ def edit_calendar_event(account: str, id: str, send_scheduling_messages: bool = 
     )
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 @dynamic_rate_limit()
 def split_calendar_event_series(
     account: str,
@@ -1251,7 +1254,8 @@ def split_calendar_event_series(
     return new_id
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via _end_series_before) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 @dynamic_rate_limit()
 def delete_calendar_event_series_from(
     account: str,

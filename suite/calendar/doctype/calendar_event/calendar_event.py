@@ -366,7 +366,8 @@ def client_uid(uid: object) -> str | None:
     return uid
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via delete_calendar_events) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def bulk_delete(names: JSONList[str]) -> None:
     """Deletes calendar events for the given list of names."""
 
@@ -381,7 +382,7 @@ def bulk_delete(names: JSONList[str]) -> None:
     frappe.msgprint(_("Calendar Events deleted successfully."), alert=True)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 @dynamic_rate_limit()
 def add_calendar_event(
     account: str,
@@ -510,7 +511,7 @@ def get_calendar_events(account: str, ids: list[str]) -> list[dict]:
     return [events[id] for id in ids if id in events]
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 @dynamic_rate_limit()
 def update_calendar_event(
     account: str,
@@ -652,7 +653,7 @@ def _reanchor_overrides(
     jmap_events.set_overrides(client, id, reanchored)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 @dynamic_rate_limit()
 def update_calendar_event_instance(
     account: str,
@@ -703,7 +704,7 @@ def update_calendar_event_instance(
         _enqueue_event_notification(account, "update", event_id=master_id, recurrence_id=recurrence_id)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 @dynamic_rate_limit()
 def delete_calendar_events(account: str, ids: list[str], send_scheduling_messages: bool = False) -> None:
     """Deletes a calendar event for the given account by its ID."""
@@ -746,7 +747,7 @@ def delete_calendar_events(account: str, ids: list[str], send_scheduling_message
         _enqueue_event_notification(account, "cancel", event_snapshot=snapshot)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 @dynamic_rate_limit()
 def delete_calendar_event_instance(
     account: str, master_id: str, recurrence_id: str, send_scheduling_messages: bool = False

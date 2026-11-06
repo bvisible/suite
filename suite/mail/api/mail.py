@@ -720,7 +720,7 @@ def fetch_mail_as_eml(name: str) -> bytes:
     return content
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def create_mail(
     account: str,
     from_email: str,
@@ -800,7 +800,7 @@ def create_mail(
     }
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def update_draft_mail(
     account: str,
     id: str,
@@ -891,7 +891,8 @@ def update_draft_mail(
     }
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via delete_messages) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def delete_mail(account: str, id: str) -> None:
     """Deletes the given mail."""
 
@@ -949,7 +950,8 @@ def get_mime_message(name: str) -> dict:
     return result
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via set_flagged_status) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def set_flagged(account: str, ids: list[str], flagged: bool) -> dict:
     """Sets flagged for mails."""
 
@@ -958,7 +960,8 @@ def set_flagged(account: str, ids: list[str], flagged: bool) -> dict:
     return {"ids": ids, "flagged": flagged}
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via set_seen_status) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def set_mails_seen(account: str, ids: list[str], seen: bool) -> list[str]:
     """Sets seen status for the given mails."""
 
@@ -967,7 +970,8 @@ def set_mails_seen(account: str, ids: list[str], seen: bool) -> list[str]:
     return ids
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via move_messages_to_mailbox) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def move_mails(account: str, ids: list[str], mailbox: str, clear_junk: bool = False) -> None:
     """Sets mailbox for mails."""
 
@@ -976,14 +980,16 @@ def move_mails(account: str, ids: list[str], mailbox: str, clear_junk: bool = Fa
     move_messages_to_mailbox(account, ids, mailbox)
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via add_messages_to_mailbox) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def add_mails_to_mailbox(account: str, ids: list[str], mailbox_id: str) -> None:
     """Adds mails to a mailbox without removing them from their existing mailboxes."""
 
     add_messages_to_mailbox(account, ids, mailbox_id)
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via remove_messages_from_mailbox) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def remove_mails_from_mailbox(account: str, ids: list[str], mailbox_id: str) -> None:
     """Removes mails from a mailbox without deleting them."""
 
@@ -1002,7 +1008,8 @@ def _screen_senders(account: str, ids: list[str], action: str | None) -> None:
         _screen_email_addresses(account, from_emails, action=action)
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via set_messages_mailboxes) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def set_mails_mailboxes(account: str, mails: list[dict], screen_action: str | None = None) -> None:
     """Restores each mail's exact mailbox membership and junk status (used to undo a move), optionally
     re-screening the senders with `screen_action` to reverse a junk/not-junk's screening on undo."""
@@ -1011,7 +1018,8 @@ def set_mails_mailboxes(account: str, mails: list[dict], screen_action: str | No
     _screen_senders(account, [m["id"] for m in mails], screen_action)
 
 
-@frappe.whitelist()
+# permission-check: ok get_user_for_jmap_account (via set_spam_status) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def set_mails_spam_status(
     account: str, ids: list[str], spam: bool, screen_action: str | None = None
 ) -> list[str]:
@@ -1024,7 +1032,8 @@ def set_mails_spam_status(
     return ids
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via empty_mailbox) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def empty_user_mailbox(account: str, mailbox: str) -> None:
     """Empties the given mailbox."""
 
@@ -1245,7 +1254,7 @@ def get_email_suggestions(account: str, text: str, limit: int = 10) -> list[dict
     return suggestions
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def create_mailbox(
     account: str,
     name: str,
@@ -1271,7 +1280,7 @@ def create_mailbox(
     build_automation_sieve(account, activate=True)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def update_mailbox(
     account: str,
     id: str,
@@ -1304,7 +1313,7 @@ def update_mailbox(
     build_automation_sieve(account, activate=True)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def delete_mailbox(account: str, id: str, name: str) -> None:
     """Deletes the mailbox with the given mailbox ID, followed by its settings."""
 
@@ -1335,7 +1344,7 @@ def get_global_screened_addresses() -> list[dict]:
     return get_global_screened_email_addresses()
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def screen_email_address(account: str, email: str, action: str = "Reject") -> None:
     """Screens a single email address for the given account with the given action.
 
@@ -1348,7 +1357,7 @@ def screen_email_address(account: str, email: str, action: str = "Reject") -> No
     _screen_email_addresses(account, [email], action)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def screen_email_addresses(
     account: str, emails: list[str], action: str = "Reject", override: bool = True
 ) -> None:
@@ -1468,7 +1477,7 @@ def auto_accept_recipients(account: str, recipients: list | str) -> None:
         )
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def unscreen_email_addresses(account: str, emails: list[str]) -> None:
     """Removes screening rules by deleting Screened Email Address records and regenerating the sieve.
 
@@ -1627,7 +1636,7 @@ def get_screening_sender_mails(account: str, from_email: str) -> list[dict]:
 ALLOW_DESTINATION_ROLES = ("inbox", "archive", "trash")
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def allow_screening_senders(
     account: str, from_emails: list[str], destination: str = "inbox"
 ) -> dict[str, list[str]]:
@@ -1659,7 +1668,8 @@ def allow_screening_senders(
     return moved
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via _screening_message_ids) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def move_screening_mails_to_inbox(account: str) -> None:
     """Move every Screening-folder message to the Inbox (offered when screening is turned off)."""
 
@@ -1671,7 +1681,7 @@ def move_screening_mails_to_inbox(account: str) -> None:
     move_mails(account, ids, inbox_id, clear_junk=True)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def screen_out_senders(account: str, from_emails: list[str]) -> dict[str, list[str]]:
     """Screen senders out: mark them Spam (future mail to Junk) and move their screened mail to Junk.
 
@@ -1694,7 +1704,7 @@ def screen_out_senders(account: str, from_emails: list[str]) -> dict[str, list[s
     return junked
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def undo_screening_verdict(account: str, from_emails: list[str], ids: list[str]) -> None:
     """Reverse a Screener verdict: drop the rules it wrote and put the mail back in the Screener.
 

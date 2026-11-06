@@ -156,7 +156,7 @@ class MailSettings(Document):
                 _("The JMAP Push Subscription Private Key does not correspond to the P256DH public key.")
             )
 
-    @frappe.whitelist()
+    @frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
     def generate_jmap_push_keys(self) -> None:
         """Generates new JMAP push subscription encryption keys and saves them."""
 

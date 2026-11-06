@@ -133,8 +133,8 @@ class FetchChangesRealtime(unittest.TestCase):
 class FetchChangesInit(unittest.TestCase):
     """``fetch_changes`` with no stored sync state — how the state gets seeded.
 
-    A webhook carries the new state and initializes from it directly. A manual or
-    scheduled run carries none; storing that None would leave the account
+    A webhook's state is not believed: the push endpoint is open, so the state is read
+    from the server as for a manual or scheduled run. Those carry none; storing that None would leave the account
     re-"initializing" on every run with changes never fetched, so the state is seeded
     from the server instead, read off an empty ``Email/get``.
     """
@@ -173,11 +173,14 @@ class FetchChangesInit(unittest.TestCase):
         ]
         return update_sync_state, log_mail_error, gets
 
-    def test_webhook_state_initializes_directly(self):
-        update_sync_state, log_mail_error, gets = self._run("s2")
+    # //// Neoffice — the state a push carries is no longer stored as the first one: the server's own is read
+    # //// (fetch_changes). Upstream stored it without asking, and a forged push stopped the account's sync for good.
+    def test_webhook_state_is_not_trusted_the_server_state_is_stored(self):
+        update_sync_state, log_mail_error, gets = self._run("forged-by-a-push", server_state="s5")
 
-        update_sync_state.assert_called_once_with(ACCOUNT, type="email", state="s2")
-        self.assertEqual(gets, [])
+        # //// Neoffice — the server's state is stored, read with an empty Email/get, not the push's
+        update_sync_state.assert_called_once_with(ACCOUNT, type="email", state="s5")
+        self.assertEqual([get["ids"] for get in gets], [[]])
         log_mail_error.assert_not_called()
 
     def test_missing_state_is_seeded_from_server(self):

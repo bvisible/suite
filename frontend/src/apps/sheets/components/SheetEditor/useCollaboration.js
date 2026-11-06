@@ -128,6 +128,7 @@ export function useCollaboration({
 
   let _doc       = null
   let _provider  = null
+  let _adapter   = null //// Neoffice — kept to leave the sheet's realtime room on stop (realtime-adapter.js)
   let _awareness = null
   let _binding   = null
   let _sheetId   = null
@@ -274,6 +275,7 @@ export function useCollaboration({
         realtime: _realtime,
         callFn:   _callFn,
       })
+      _adapter = adapter //// Neoffice — see _adapter above
       _provider = createFrappeProvider({ doc: _doc, sheetId: _sheetId, realtime: adapter })
       _awareness = createAwareness({
         sheetId:  _sheetId,
@@ -317,8 +319,9 @@ export function useCollaboration({
     _binding?.dispose()
     _awareness?.destroy()
     _provider?.destroy()
+    _adapter?.destroy?.() //// Neoffice — leaves the sheet's realtime room
     _doc?.destroy()
-    _binding = _awareness = _provider = _doc = null
+    _binding = _awareness = _provider = _doc = _adapter = null //// Neoffice — _adapter, see above
     _sheetId = null
     presentUsers.value  = []
     remoteCursors.value = new Map()
