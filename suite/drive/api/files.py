@@ -46,6 +46,8 @@ from suite.drive.utils.files import (
     content_disposition,
     get_s3_key,
     get_s3_url,
+    # //// Neoffice — a name is never "." nor ".." (neoffice-maintenance#2296, create_folder, ensure_path)
+    refuse_dot_name,
     # //// Neoffice — the files of a folder follow it by their url (maintenance#1820, toggle_entity_status)
     repoint_descendants,
     storage_key,
@@ -116,11 +118,26 @@ def upload_file(
     # //// given out under the folder's lock once the last chunk is in (below), and every chunk of one upload must land
     # //// in the same staging file even if a sibling takes the name meanwhile.
     temp_path = get_upload_path(f"{upload_session}_{secure_filename(file.filename)}")
+    # //// Neoffice — the bytes of an upload count from its first chunk (neoffice-maintenance#2296): the quota was
+    # //// asked once the last chunk was in, and an upload that never sent it grew its staging file with no limit, in a
+    # //// place no row names (the hourly sweep clears what is left: scripts.clear_download_archives). Each chunk now
+    # //// asks for the size the upload declares (an upload in several chunks declares one, as every client of the
+    # //// Drive does), and the staged bytes never pass it.
+    declared_size = max(frappe.utils.cint(total_file_size), 0)
+    if total_chunks > 1 and not declared_size:
+        frappe.throw(frappe._("An upload in several parts must declare its size"), frappe.ValidationError)
+    validate_quota(incoming_size=declared_size)
     with temp_path.open("ab") as f:
         f.seek(offset)
         f.write(file.stream.read())
-        if not f.tell() >= int(total_file_size) or current_chunk != total_chunks - 1:
+        # //// Neoffice — see the quota above
+        overflow = bool(declared_size) and f.tell() > declared_size
+        if not overflow and (not f.tell() >= int(total_file_size) or current_chunk != total_chunks - 1):
             return
+    # //// Neoffice — see the quota above
+    if overflow:
+        temp_path.unlink(missing_ok=True)
+        frappe.throw(frappe._("The upload is larger than the size it declared"), frappe.ValidationError)
 
     # Validate that file size is matching
     file_size = temp_path.stat().st_size
@@ -224,6 +241,9 @@ def get_thumbnail(entity_name: str):
 
 @frappe.whitelist()
 def create_folder(file_name: str, parent: str | None = None):
+    # //// Neoffice — before anything is made on the disk (neoffice-maintenance#2296): a folder called ".." climbed one
+    # //// directory, and an upload below a few of them landed outside the Drive.
+    refuse_dot_name(file_name)
     parent = parent or get_user_folder().name
 
     parent_doc = frappe.get_doc("File", parent)
@@ -268,6 +288,13 @@ def ensure_path(fullpath, parent=None):
     :return: The name of the deepest folder
     """
     parts = Path(fullpath).parts
+    # //// Neoffice — every folder of the path is an entry, and the path is relative to `parent`
+    # //// (neoffice-maintenance#2296): "../../x" made one folder per "..", each a directory higher, and the file's
+    # //// bytes were written where the last one led. Path("a/./b").parts has no ".": only ".." and a root are left.
+    if Path(fullpath).is_absolute():
+        frappe.throw(frappe._("This name cannot be used: {0}").format(fullpath), frappe.ValidationError)
+    for folder in parts:
+        refuse_dot_name(folder)
     current_parent = parent or get_user_folder().name
 
     for folder in parts[:-1]:
@@ -573,7 +600,8 @@ def _iter_folder_files(entity_name, prefix=""):
     children = frappe.get_all(
         "File",
         filters={"folder": entity_name, "status": STATUS_ACTIVE},
-        fields=["name", "file_name", "is_folder", "file_type", "file_url"],
+        # //// Neoffice — file_size: the archive's size is weighed first (neoffice-maintenance#2296, download_folder)
+        fields=["name", "file_name", "is_folder", "file_type", "file_url", "file_size"],
     )
     for child in children:
         if not user_has_permission(child.name, "read"):
@@ -591,13 +619,27 @@ def _collect_download_files(entity_names):
     Read is checked here and again per descendant in `_iter_folder_files`; a single
     folder nests its contents under its own file name.
     """
+    # //// Neoffice — each file once (neoffice-maintenance#2296): the selection was taken as sent, and one readable
+    # //// file named twenty thousand times made a zip of twenty thousand copies on the site's disk. A name chosen
+    # //// twice, or a file that is also inside a chosen folder, now goes in the archive at its first place.
+    seen = set()
+    for arcname, entity in _collect_download_files_as_sent(list(dict.fromkeys(entity_names or []))):
+        if entity.name in seen:
+            continue
+        seen.add(entity.name)
+        yield arcname, entity
+
+
+# //// Neoffice — upstream's _collect_download_files, renamed: _collect_download_files above keeps each file once
+def _collect_download_files_as_sent(entity_names):
     for name in entity_names:
         if not user_has_permission(name, "read"):
             raise frappe.PermissionError("You do not have permission to download this file")
         entity = frappe.get_value(
             "File",
             name,
-            ["name", "file_name", "is_folder", "file_type", "file_url", "status"],
+            # //// Neoffice — file_size: see _iter_folder_files
+            ["name", "file_name", "is_folder", "file_type", "file_url", "status", "file_size"],
             as_dict=True,
         )
         if not entity or entity.status != STATUS_ACTIVE:
@@ -699,11 +741,18 @@ def download_folder(entities: str):
         entities = frappe.parse_json(entities)
     if not entities:
         frappe.throw("Nothing to download", ValueError)
+    # //// Neoffice — a selection names each entry once (neoffice-maintenance#2296, _collect_download_files)
+    if not isinstance(entities, list) or not all(isinstance(name, str) for name in entities):
+        frappe.throw("Nothing to download", ValueError)
+    entities = list(dict.fromkeys(entities))
 
     # resolve up front so a permission error surfaces here, not in the job
     files = list(_collect_download_files(entities))
     if not files:
         frappe.throw("No downloadable files found", frappe.NotFound)
+    # //// Neoffice — and the archive must fit on the disk with room to spare (neoffice-maintenance#2296): it is written
+    # //// whole to the site's files before it is sent, beside everyone's files.
+    _refuse_archive_too_large(files)
 
     cache = frappe.cache()
     user = frappe.session.user
@@ -741,6 +790,21 @@ def download_folder(entities: str):
         user=user,
     )
     return {"token": token, "file_name": zip_name}
+
+
+# //// Neoffice — added (neoffice-maintenance#2296, download_folder): refuse an archive the disk would not hold, leaving
+# //// a tenth of the volume (at least 1 GiB) free. S3 builds it in a local temporary file first, so it counts too.
+def _refuse_archive_too_large(files):
+    import shutil
+
+    total = sum(int(entity.get("file_size") or 0) for _arcname, entity in files)
+    try:
+        usage = shutil.disk_usage(frappe.get_site_path("private", "files"))
+    except OSError:
+        return
+    margin = max(usage.total // 10, 1024**3)
+    if total > usage.free - margin:
+        frappe.throw(frappe._("This selection is too large to download at once"), frappe.ValidationError)
 
 
 def _get_download_entry(token):

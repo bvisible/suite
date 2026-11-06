@@ -39,7 +39,12 @@ def _persist_jwt_secret(settings, secret: str) -> bool:
     would ever agree on it.
     """
     try:
-        settings.db_set("jwt_secret", secret)
+        # //// Neoffice — encrypted, as a save of the Password field stores it (neoffice-maintenance#2296): db_set wrote
+        # //// the secret in clear in tabSingles, where get_password returned it as is and nothing re-encrypted it.
+        from frappe.utils.password import set_encrypted_password
+
+        set_encrypted_password(settings.doctype, settings.name, secret, "jwt_secret")
+        settings.db_set("jwt_secret", "*" * len(secret))
         frappe.db.commit()
         return True
     except Exception:

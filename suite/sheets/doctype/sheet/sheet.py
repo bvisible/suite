@@ -7,6 +7,7 @@ import frappe
 from frappe.model.document import Document
 
 from suite.drive.overrides.file import File as DriveFile
+from suite.utils.document_owner import refuse_owner_change  # //// Neoffice — Sheet.validate (#2296)
 from suite.sheets.doctype.sheet.storage import (
     MAX_SHEETS_DATA_BYTES,
     decode_sheets_data,
@@ -34,6 +35,9 @@ class Sheet(Document):
     # end: auto-generated types
 
     def validate(self):
+        # //// Neoffice — the owner of a saved sheet is not the caller's to change (neoffice-maintenance#2296): the
+        # //// `if_owner` rows of Sheet read the owner from the request being checked, so setting it to oneself passed.
+        refuse_owner_change(self)
         title = (self.title or "").strip()
         if not title:
             frappe.throw("Title is required")

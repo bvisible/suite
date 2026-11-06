@@ -3,6 +3,7 @@
 from __future__ import annotations
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.tests.roles import as_role  # //// Neoffice — the users are desk colleagues (#2296)
 from lxml import etree
 
 from suite.drive.utils import create_drive_file, get_user_folder
@@ -34,6 +35,11 @@ class TestWebDAVProppatch(IntegrationTestCase):
         super().setUpClass()
         ensure_user_with_password(OWNER, PASSWORD)
         ensure_user(READER)
+        # //// Neoffice — OWNER and READER read the shared root as colleagues do: "any logged-in user" is a desk account
+        # //// (neoffice-maintenance#2296, get_principals), which an account with no desk role is not
+        for desk_user in (OWNER, READER):
+            with as_role("sales_user", email=desk_user):
+                pass
         with cls.set_user(OWNER):
             cls.home = get_user_folder(OWNER).name
 

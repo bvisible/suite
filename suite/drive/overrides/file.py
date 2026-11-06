@@ -36,7 +36,9 @@ from suite.drive.utils import (
     get_user_folder,
     # //// Neoffice — the names of a folder are given out one request at a time to a move and a rename too (maintenance#1820)
     hold_folder_names,
-    principal_list,
+    # //// Neoffice — the principals themselves, without the link one, in place of principal_list
+    # //// (neoffice-maintenance#2296, content_query_conditions)
+    get_principals,
     update_file_size,
     validate_filename,
 )
@@ -46,9 +48,14 @@ from suite.drive.utils.files import (
     FileManager,
     escape_component,
     get_s3_url,
+    # //// Neoffice — a name is never "." nor ".." (neoffice-maintenance#2296, File.validate)
+    refuse_dot_name,
     repoint_descendants,
     storage_key,
 )
+
+# //// Neoffice — the owner of a saved document is not the caller's to change (neoffice-maintenance#2296, File.validate)
+from suite.utils.document_owner import refuse_owner_change
 
 
 # //// Neoffice — added (maintenance#1821, File._url_read_from_disk): the url frappe's check understands of the file a
@@ -93,6 +100,18 @@ class File(FrappeFile):
 
     def validate(self):
         self._validate_content_link()
+        # //// Neoffice — a name is an entry of its folder, never "." nor ".." (neoffice-maintenance#2296): a folder
+        # //// called ".." named its parent's parent on the disk, and an upload below it climbed out of the Drive.
+        if self.is_new() or self.has_value_changed("file_name"):
+            refuse_dot_name(self.file_name, allow_empty=True)
+        # //// Neoffice — the owner of a saved File is not the caller's to change (neoffice-maintenance#2296): the
+        # //// Drive's rights follow `owner` (permissions.get_user_access_for_user), so a document API that set it to
+        # //// the caller made a reader the owner of the file, or of a folder and all it holds.
+        refuse_owner_change(self)
+        # //// Neoffice — and what frappe's validate checks when a saved File is made public or attached to a
+        # //// document, which this override never reaches for a saved File (neoffice-maintenance#2296), see below.
+        if not self.is_new():
+            self._validate_saved_exposure()
         # //// Neoffice — the address of a Drive file is the Drive's to change (maintenance#1828): it moves with the file
         # //// (move, rename, trash, restore, deletion), each time through code that sets `flags.drive_sets_url` and checks
         # //// the place first. A document API (frappe.client.set_value, save, PUT /api/resource/File) changed it without
@@ -177,6 +196,34 @@ class File(FrappeFile):
             and (self.file_url or "").rsplit("/", 1)[0] in ("/files", "/private/files")
         ):
             self.handle_is_private_changed()
+
+    # //// Neoffice — added (neoffice-maintenance#2296, validate): a saved File made public, or attached to a document,
+    # //// gets frappe's checks (the reference exists and its caller may write it; the public-files setting), and the
+    # //// Drive's own rule: general access is for whoever holds `share`. A collaborator with `write` only set
+    # //// `is_private=0` and a made-up reference, and the file became readable by every user and every visitor
+    # //// (permissions._ref_doc_access). Code that saves with ignore_permissions keeps its way.
+    def _validate_saved_exposure(self):
+        before = self.get_doc_before_save()
+        if not before:
+            return
+        reference = ("attached_to_doctype", "attached_to_name", "attached_to_field")
+        reference_changed = any(
+            (before.get(field) or None) != (self.get(field) or None) for field in reference
+        )
+        made_public = bool(frappe.utils.cint(before.is_private)) and not frappe.utils.cint(self.is_private)
+        if not (reference_changed or made_public):
+            return
+        if reference_changed:
+            self.validate_attachment_references()
+        if made_public:
+            self.enforce_public_file_restrictions()
+        if self.flags.ignore_permissions or frappe.session.user == "Administrator":
+            return
+        if not user_has_permission(before, "share"):
+            frappe.throw(
+                _("Only someone who may share this file can make it public or attach it to a document"),
+                frappe.PermissionError,
+            )
 
     def _validate_content_link(self):
         """`content_doctype`/`content_docname` are the sole permission delegation
@@ -646,6 +693,8 @@ class File(FrappeFile):
 
         if new_file_name == self.file_name:
             return self
+        # //// Neoffice — before the disk is touched (neoffice-maintenance#2296, refuse_dot_name)
+        refuse_dot_name(new_file_name)
         # //// Neoffice — a locking read: this request holds the folder's names (hold_folder_names, above)
         validate_filename(new_file_name, self.folder, self.file_type, locking=True)
 
@@ -875,15 +924,21 @@ def content_query_conditions(doctype: str, user: str | None, extra: str | None =
 
     table = f"`tab{doctype}`"
     user_lit = frappe.db.escape(user)
-    clauses = [
-        f"{table}.owner = {user_lit}",
-        f"{table}.name IN ("
-        f"SELECT `tabFile`.content_docname FROM `tabFile` "
-        f"INNER JOIN `tabDrive Permission` ON `tabDrive Permission`.entity = `tabFile`.name "
-        f"WHERE `tabFile`.content_doctype = {frappe.db.escape(doctype)} "
-        f"AND `tabDrive Permission`.user IN ({principal_list(user)}) "
-        f"AND `tabDrive Permission`.`read` = 1 AND `tabDrive Permission`.`deny` = 0)",
-    ]
+    clauses = [f"{table}.owner = {user_lit}"]
+    # //// Neoffice — not the "anyone with the link" principal (neoffice-maintenance#2296): a link is the capability to
+    # //// open one document, not an entry in a list. Counted here, it listed every link-shared document of the site,
+    # //// its content included, to any visitor (Guest's only principal is that one). has_permission still opens
+    # //// such a document to whoever has its link.
+    principals = [p for p in get_principals(user) if p != ""]
+    if principals:
+        clauses.append(
+            f"{table}.name IN ("
+            f"SELECT `tabFile`.content_docname FROM `tabFile` "
+            f"INNER JOIN `tabDrive Permission` ON `tabDrive Permission`.entity = `tabFile`.name "
+            f"WHERE `tabFile`.content_doctype = {frappe.db.escape(doctype)} "
+            f"AND `tabDrive Permission`.user IN ({', '.join(frappe.db.escape(p) for p in principals)}) "
+            f"AND `tabDrive Permission`.`read` = 1 AND `tabDrive Permission`.`deny` = 0)"
+        )
     if extra:
         clauses.append(extra)
     return "(" + " OR ".join(clauses) + ")"

@@ -35,7 +35,14 @@ def extract_compressed_file(file_path: str, destination: str) -> None:
             member_path = os.path.join(destination, member.name)
             if not is_within_directory(destination, member_path):
                 frappe.throw(_("Unsafe file path detected: {0}").format(member.name))
-        archive.extractall(destination)
+            # //// Neoffice — an archive of mail, events or contacts holds files and folders, nothing else
+            # //// (neoffice-maintenance#2296): the name test above never looked at a member's type, and a link
+            # //// member followed by a member below it wrote outside `destination`, anywhere the worker can write.
+            if not (member.isfile() or member.isdir()):
+                frappe.throw(_("Unsafe archive member: {0}").format(member.name))
+        # //// Neoffice — and the extraction itself refuses what leaves `destination` (links, absolute names, devices,
+        # //// set-uid modes): the "data" filter of the standard library, the default from Python 3.14 on.
+        archive.extractall(destination, filter="data")
 
     if not os.path.exists(file_path):
         frappe.throw(_("File not found: {0}").format(file_path))

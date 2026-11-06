@@ -289,6 +289,11 @@ def get_users():
     """All enabled site users, for sharing and user management."""
     if frappe.session.user == "Guest":
         frappe.throw(_("You don't have the permissions for this action."), frappe.PermissionError)
+    # //// Neoffice — to the company's desk accounts (neoffice-maintenance#2296): upstream refused Guest only, and a portal
+    # //// customer read the name, address and photo of every user of the site, the other customers included. A
+    # //// Website User has no right to the User list (Desk User's `select`), and their picker stays empty.
+    if not _sees_the_directory():
+        return []
     return frappe.get_all(
         doctype="User",
         filters=[
@@ -309,6 +314,9 @@ def get_user_groups():
     """Shareable user groups, with how many people each one carries."""
     if frappe.session.user == "Guest":
         frappe.throw(_("You don't have the permissions for this action."), frappe.PermissionError)
+    # //// Neoffice — to the company's desk accounts, as get_users (neoffice-maintenance#2296)
+    if not _sees_the_directory():
+        return []
 
     counts = frappe._dict(
         frappe.db.sql(
@@ -323,6 +331,16 @@ def get_user_groups():
 
 
 # permission-check: ok the mailed key, then the invitee's own sign-in
+# //// Neoffice — added (neoffice-maintenance#2296, get_users, get_user_groups): whether a logged-in session may list
+# //// the site's people and groups. A desk account (System User) may, as frappe gives it `select` on User through
+# //// Desk User; a Drive admin too. A Website User may not.
+def _sees_the_directory() -> bool:
+    user = frappe.session.user
+    if user == "Administrator" or "Suite Admin" in frappe.get_roles(user):
+        return True
+    return frappe.get_cached_value("User", user, "user_type") == "System User"
+
+
 @frappe.whitelist(allow_guest=True)
 def accept_invite(key: str, redirect: bool | str = True):
     # //// Neoffice — the key is a name, never a filter (see _plain_text); a redirect that is not a path of this

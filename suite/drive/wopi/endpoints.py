@@ -15,6 +15,7 @@ import os
 import frappe
 from frappe import _
 
+from suite.drive.api.storage import acquire_owner_storage_lock, validate_quota
 from suite.drive.utils.files import FileManager, storage_key
 
 from .token import validate_wopi_token
@@ -68,6 +69,10 @@ def check_token_permission(file, token_data: dict, ptype: str) -> bool:
     # WOPI requests carry no session: `frappe.session.user` is Guest here, so the
     # user must be taken from the token and passed explicitly.
     user = token_data.get("user_id") or "Guest"
+    # A disabled account holds nothing (neoffice-maintenance#2296): disabling a user closed their sessions but not
+    # the editor tokens they held, which kept reading and saving their files until they expired.
+    if user != "Guest" and not frappe.db.get_value("User", user, "enabled"):
+        return False
     return bool(user_has_permission(file, ptype, user=user))
 
 
@@ -185,6 +190,11 @@ def put_file(file_id: str):
         return {"error": "The file changed since it was opened"}
 
     content = frappe.request.get_data()
+
+    # A save counts against its owner's storage, as an upload and a WebDAV PUT do (neoffice-maintenance#2296): only
+    # what it adds, under the owner's storage lock. Saved by a collaborator, it is still the owner's.
+    acquire_owner_storage_lock(file.owner)
+    validate_quota(file.owner, max(0, len(content) - (file.file_size or 0)))
 
     # Keep the previous bytes so a failed write can be rolled back
     try:

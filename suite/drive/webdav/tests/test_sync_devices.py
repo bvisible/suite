@@ -15,6 +15,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.tests.roles import as_role  # //// Neoffice — the users are desk colleagues (#2296)
 from lxml import etree
 
 from suite.drive.api import sync
@@ -351,6 +352,11 @@ class TestDavPath(IntegrationTestCase):
         ensure_user_with_password(OTHER, PASSWORD)
         with cls.set_user(OWNER):
             cls.home = get_user_folder(OWNER).name
+        # //// Neoffice — OWNER and OTHER read the shared root as colleagues do: "any logged-in user" is a desk account
+        # //// (neoffice-maintenance#2296, get_principals), which an account with no desk role is not
+        for desk_user in (OWNER, OTHER):
+            with as_role("sales_user", email=desk_user):
+                pass
 
     def tearDown(self):
         frappe.set_user("Administrator")

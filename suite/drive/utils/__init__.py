@@ -443,7 +443,22 @@ def get_principals(user=None):
         return [""]
 
     groups = frappe.cache().hget("drive_user_groups", user, generator=lambda: _user_groups(user))
+    # //// Neoffice — "any logged-in user" is any desk account of the company (neoffice-maintenance#2296). Upstream gave
+    # //// it to every session: here a portal customer, a shop visitor who signed up or a Drive invitee is a Website
+    # //// User, and through the `$GENERAL` read row of the shared root (_ensure_general_read) such an account listed
+    # //// and read the whole shared tree. What is shared with them by name, by group or by link stays theirs.
+    if not _counts_as_general(user):
+        return [user, *(GROUP_PREFIX + g for g in groups), ""]
     return [user, *(GROUP_PREFIX + g for g in groups), GENERAL_USER, ""]
+
+
+# //// Neoffice — added (neoffice-maintenance#2296, get_principals): whether `user` is one of "any logged-in user", the
+# //// `$GENERAL` principal: a desk account (System User), Administrator, or the principal itself (asked about by
+# //// get_general_access and the share marker of get_entity_with_permissions).
+def _counts_as_general(user) -> bool:
+    if user in (GENERAL_USER, "Administrator"):
+        return True
+    return frappe.get_cached_value("User", user, "user_type") == "System User"
 
 
 def _user_groups(user):
@@ -586,9 +601,31 @@ def get_valid_breadcrumbs(entity_name, user_access):
     """
     # Admins see the entire path; others get the contiguous readable suffix.
     path = generate_upward_path(entity_name)
-    if user_access.get("type") not in ["admin", "user"]:
-        lose_access = next((i for i, k in enumerate(path[::-1]) if not k["read"]), 0)
-        path = path[-lose_access:]
+    # //// Neoffice — the suffix for everyone but a Drive admin (neoffice-maintenance#2296): upstream gave the whole path
+    # //// to a holder of `write` and to the owner of the leaf (both typed "admin" or "user"), with the names, owners
+    # //// and documents of folders they cannot open. A folder is readable as the Drive decides it (its rows, its owner,
+    # //// the document it is kept for), and the `Users` root counts above the person's own drive, which
+    # //// _name_own_drive turns into "Home". Walked from the leaf up to the first folder they cannot open.
+    from suite.drive.api.permissions import get_user_access_for_user, is_drive_admin
+
+    user = frappe.session.user
+    if not is_drive_admin(user):
+
+        def readable(i):
+            node = path[i]
+            if node["read"] or (user != "Guest" and node["owner"] == user):
+                return True
+            if node["name"] == USERS_FOLDER and i + 1 < len(path) and path[i + 1]["file_name"] == user:
+                return True
+            try:
+                return bool(get_user_access_for_user(node["name"], user).get("read"))
+            except frappe.DoesNotExistError:
+                return False
+
+        start = len(path)
+        while start > 0 and readable(start - 1):
+            start -= 1
+        path = path[start:] if start < len(path) else path[-1:]
     return _name_own_drive(path)
 
 

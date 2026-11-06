@@ -10,6 +10,7 @@ from unittest.mock import Mock, patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.tests.roles import as_role  # //// Neoffice — a desk colleague (#2296)
 from werkzeug.test import EnvironBuilder
 from werkzeug.wrappers import Request
 
@@ -535,7 +536,11 @@ class TestDriveFilesAPI(IntegrationTestCase):
         # A $GENERAL share opens it to site users, but not guests.
         with self.set_user(OWNER):
             self.file.share(user=GENERAL_USER, read=True)
+        # //// Neoffice — the site's users are its desk accounts (neoffice-maintenance#2296, get_principals): MEMBER, an
+        # //// account with no desk role (a Website User, as a portal customer), is not one of them; a colleague is.
         with self.set_user(MEMBER):
+            self.assertFalse(user_has_permission(self.file, "read"))
+        with as_role("sales_user", email="drive-files-desk@yopmail.com"):
             self.assertTrue(user_has_permission(self.file, "read"))
         with self.set_user("Guest"):
             self.assertFalse(user_has_permission(self.file, "read"))

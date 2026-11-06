@@ -355,3 +355,65 @@ def user_has_permission(doc, ptype, user=None):
         ptype = "write"
     access = get_user_access_for_user(doc, user)
     return bool(access.get(ptype))
+
+
+# //// Neoffice — added (neoffice-maintenance#2296): the `has_permission` hooks of Drive Favourite, Drive Entity Log and
+# //// Drive Notification. Their list queries were scoped to the person (utils/overrides.py), but a row asked for by its
+# //// name was not: Suite User's role row let any account read, rewrite and delete another user's favourites, recents
+# //// and notifications, and create a notification in anyone's inbox in anyone's name. A row is its person's: the one
+# //// it names now, and the one it named before a save that changes it.
+def _row_is_users(doctype: str, doc, field: str, user: str) -> bool:
+    if isinstance(doc, str):
+        doc = frappe.get_doc(doctype, doc)
+    if doc.get(field) != user:
+        return False
+    name = doc.get("name")
+    is_new = doc.is_new() if hasattr(doc, "is_new") else not name
+    if name and not is_new:
+        stored = frappe.db.get_value(doctype, name, field)
+        if stored is not None and stored != user:
+            return False
+    return True
+
+
+def drive_favourite_has_permission(doc, ptype="read", user=None):
+    user = user or frappe.session.user
+    if is_drive_admin(user):
+        return True
+    return user != "Guest" and _row_is_users("Drive Favourite", doc, "user", user)
+
+
+def drive_entity_log_has_permission(doc, ptype="read", user=None):
+    user = user or frappe.session.user
+    if is_drive_admin(user):
+        return True
+    return user != "Guest" and _row_is_users("Drive Entity Log", doc, "user", user)
+
+
+def drive_notification_has_permission(doc, ptype="read", user=None):
+    """The recipient reads, marks and removes a notification, its sender reads it. One is created in the sender's
+    own name, about a file both the sender and the recipient may read, as notifications.create_notification does."""
+    user = user or frappe.session.user
+    if is_drive_admin(user):
+        return True
+    if user == "Guest":
+        return False
+    if isinstance(doc, str):
+        doc = frappe.get_doc("Drive Notification", doc)
+    if ptype == "create":
+        if doc.get("from_user") != user or not doc.get("to_user"):
+            return False
+        if doc.get("notif_doctype") != "File" or not doc.get("notif_doctype_name"):
+            return False
+        entity = doc.get("notif_doctype_name")
+        if not frappe.db.exists("File", entity):
+            return False
+        return bool(
+            get_user_access_for_user(entity, user).get("read")
+            and get_user_access_for_user(entity, doc.get("to_user")).get("read")
+        )
+    if ptype in ("read", "select", "print", "export", "email", "report"):
+        return _row_is_users("Drive Notification", doc, "to_user", user) or _row_is_users(
+            "Drive Notification", doc, "from_user", user
+        )
+    return _row_is_users("Drive Notification", doc, "to_user", user)

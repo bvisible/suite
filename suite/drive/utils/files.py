@@ -93,6 +93,10 @@ class FileManager:
             # //// Neoffice — never over bytes already there (maintenance#1820), as move() refuses: os.rename replaced them
             # //// without a word. The upload endpoint gives a name whose place is free (api/files.py, upload_file).
             destination = self.site_folder / storage_key(file.file_url)
+            # //// Neoffice — and never outside the files folders, nor anywhere but the entry its name makes in its
+            # //// folder (neoffice-maintenance#2296): a url built from a folder named ".." climbed out of the Drive, and
+            # //// the rename below wrote the bytes wherever the bench user can write.
+            self.place_in_tree(storage_key(file.file_url))
             if destination.exists() or destination.is_symlink():
                 frappe.throw(frappe._("A file is already there"), frappe.ValidationError)
             os.rename(current_path, destination)
@@ -187,8 +191,31 @@ class FileManager:
         if self.s3_enabled:
             self.conn.put_object(Bucket=self.bucket, Key=str(path) + "/", Body="")
         else:
+            # //// Neoffice — the folder is made where its name puts it in its parent, inside the files folders, or
+            # //// not at all (neoffice-maintenance#2296): a folder named ".." made no directory and its row named
+            # //// the parent's parent, from which the next upload climbed out of the Drive.
+            self.place_in_tree(str(path))
             (self.site_folder / path).mkdir(exist_ok=True)
         return str(path) + "/"
+
+    # //// Neoffice — added (neoffice-maintenance#2296, create_folder, upload_file): where a key of the tree is on the
+    # //// disk, refused unless it is the entry its last component names in its folder, inside the files folders.
+    def place_in_tree(self, key) -> Path:
+        """The real place of a storage key on the disk. Refused when one of its components is "." or ".." (a Drive
+        name never is one: refuse_dot_name), or when the place, once its folders' links are followed, is not inside
+        the site's private or public files folder."""
+        key = str(key).lstrip("/")
+        if not key or any(part in ("", ".", "..") for part in key.rstrip("/").split("/")):
+            frappe.throw(frappe._("The File URL you've entered is incorrect"), frappe.ValidationError)
+        literal = self.site_folder / key
+        place = Path(os.path.realpath(literal.parent)) / literal.name
+        roots = [
+            Path(os.path.realpath(self.site_folder / "private" / "files")),
+            Path(os.path.realpath(self.site_folder / "public" / "files")),
+        ]
+        if not any(place != root and place.is_relative_to(root) for root in roots):
+            frappe.throw(frappe._("The File URL you've entered is incorrect"), frappe.ValidationError)
+        return place
 
     def get_file(self, entity, range_header=None, log=True):
         """
@@ -767,6 +794,21 @@ def escape_component(file_name):
     directory level. Escape it rather than renaming the user's file — `%` first, or
     a name containing a literal `%2F` would decode back into a separator."""
     return (file_name or "").replace("%", "%25").replace("/", "%2F").replace("\\", "%5C")
+
+
+# //// Neoffice — added (neoffice-maintenance#2296, File.validate, create_folder, ensure_path): escape_component keeps
+# //// a name to one path component, but "." and ".." are components that name the folder itself and its parent: a
+# //// folder called ".." made the next upload climb one directory per folder, out of the Drive.
+def refuse_dot_name(file_name, allow_empty: bool = False) -> None:
+    """Refuse a name that a path would read as a place rather than an entry: ".", "..", one with a NUL, and an empty
+    one unless `allow_empty` (a framework File may have none)."""
+    name = file_name if isinstance(file_name, str) else ""
+    if allow_empty and not name:
+        return
+    if name.strip() in ("", ".", "..") or "\x00" in name:
+        frappe.throw(
+            frappe._("This name cannot be used: {0}").format(name.strip() or '""'), frappe.ValidationError
+        )
 
 
 def unescape_component(component):

@@ -1155,6 +1155,13 @@ def normalize_filter(filter: dict) -> dict:
     return {"operator": "AND", "conditions": [{k: v} for k, v in filter.items()]}
 
 
+# //// Neoffice — the sizes get_avatar draws (neoffice-maintenance#2296)
+AVATAR_MIN_SIZE = 16
+AVATAR_MAX_SIZE = 512
+
+
+# //// Neoffice — the reason the audit asks for (neoffice-maintenance#2296):
+# permission-check: ok a picture of the address given, no record read
 @frappe.whitelist()
 def get_avatar(email: str, size: int = 128, strict: bool = False) -> None:
     """Fetch and return avatar for the given email."""
@@ -1164,6 +1171,9 @@ def get_avatar(email: str, size: int = 128, strict: bool = False) -> None:
 
     email = email.strip().lower()
     email_hash = hashlib.md5(email.encode()).hexdigest()
+    # //// Neoffice — a size the page draws, not one the caller picks (neoffice-maintenance#2296): the identicon is
+    # //// drawn size x size in the worker's memory, and size=30000 asked for gigabytes. The app asks for 128.
+    size = min(max(cint(size) or 128, AVATAR_MIN_SIZE), AVATAR_MAX_SIZE)
 
     cache_key = f"avatar:{email_hash}:{size}"
 
@@ -1784,12 +1794,32 @@ def upload_file():
             total_chunks = 1
 
         temp_path = Path(get_files_path(".temp-" + get_safe_file_name(filename), is_private=is_private))
+        # //// Neoffice — no chunk lands past the largest file the site takes (neoffice-maintenance#2296): a seek to a
+        # //// huge offset made a sparse file of that size, which the read below loaded whole into the worker's memory,
+        # //// and a declared size above what was sent kept the staging file growing with no check.
+        from frappe.core.api.file import get_max_file_size
+
+        max_file_size = get_max_file_size()
+        if offset < 0 or offset > max_file_size or cint(frappe.form_dict.total_file_size) > max_file_size:
+            frappe.throw(
+                _("File size exceeded the maximum allowed size of {0} MB").format(max_file_size / 1048576),
+                frappe.ValidationError,
+            )
         with temp_path.open("ab" if current_chunk > 0 else "wb") as f:
             total_file_size = frappe.form_dict.total_file_size or 0
             f.seek(offset)
             f.write(file.stream.read())
-            if not f.tell() >= int(total_file_size) or current_chunk != total_chunks - 1:
+            # //// Neoffice — see the size check above
+            too_large = f.tell() > max_file_size
+            if not too_large and (not f.tell() >= int(total_file_size) or current_chunk != total_chunks - 1):
                 return
+        # //// Neoffice — see the size check above
+        if too_large:
+            temp_path.unlink(missing_ok=True)
+            frappe.throw(
+                _("File size exceeded the maximum allowed size of {0} MB").format(max_file_size / 1048576),
+                frappe.ValidationError,
+            )
 
         content = temp_path.read_bytes()
         temp_path.unlink()

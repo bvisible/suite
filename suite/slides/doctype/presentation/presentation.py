@@ -21,6 +21,7 @@ from frappe.utils import cstr, flt
 from suite.drive.api.permissions import user_has_permission
 from suite.drive.overrides.file import File as DriveFile
 from suite.drive.overrides.file import content_has_permission, content_query_conditions
+from suite.utils.document_owner import refuse_owner_change  # //// Neoffice — Presentation.validate (#2296)
 
 SYSTEM_TEMPLATE_TITLES = {"Light", "Dark"}
 MAX_THUMBNAIL_BYTES = 6 * 1024 * 1024
@@ -31,6 +32,9 @@ class Presentation(Document):
         self.slug = slug(self.title)
 
     def validate(self):
+        # //// Neoffice — the owner of a saved presentation is not the caller's to change (neoffice-maintenance#2296):
+        # //// has_permission lets a template's owner write it, and read the owner from the request being checked.
+        refuse_owner_change(self)
         self.validate_advance_after()
 
         if self.is_composite:
@@ -627,6 +631,8 @@ def create_new_webp_file_doc(presentation_name, file_url, image, extn):
     files = frappe.get_all(
         "File",
         filters={
+            # //// Neoffice — an image of this presentation, not of any document of that name (neoffice-maintenance#2296)
+            "attached_to_doctype": "Presentation",
             "attached_to_name": presentation_name,
             "file_url": file_url,
         },
@@ -635,6 +641,9 @@ def create_new_webp_file_doc(presentation_name, file_url, image, extn):
     )
     if files:
         _file = frappe.get_doc("File", files[0].name)
+        # //// Neoffice — the rights first, the disk after (neoffice-maintenance#2296): the .webp was written next to the
+        # //// image before the save and the delete below checked anything, and their refusal left it on the disk.
+        _file.check_permission("write")
         webp_path = _file.get_full_path().replace(extn, "webp")
         convert_and_save_image(image, webp_path)
         new_file = frappe.copy_doc(_file)
@@ -649,6 +658,9 @@ def create_new_webp_file_doc(presentation_name, file_url, image, extn):
 
 @frappe.whitelist()
 def get_webp_doc(presentation_name: str, file_doc: dict):
+    # //// Neoffice — only for a presentation the caller may write, as its siblings save_base64_image and
+    # //// update_slide_attachments ask (neoffice-maintenance#2296): it reads an image and writes a file on the disk.
+    frappe.get_doc("Presentation", presentation_name).check_permission("write")
     file_url = file_doc.get("file_url", "")
     if file_url.endswith((".webp", ".svg")):
         return file_doc
@@ -675,6 +687,8 @@ def update_element_urls(presentation, element):
 @frappe.whitelist()
 def optimize_images(name: str):
     doc = frappe.get_doc("Presentation", name)
+    # //// Neoffice — before any image is converted on the disk, not at the save (neoffice-maintenance#2296)
+    doc.check_permission("write")
 
     for slide in doc.slides:
         elements = json.loads(slide.elements or "[]")

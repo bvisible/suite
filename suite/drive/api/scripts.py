@@ -139,6 +139,10 @@ def clear_deleted_files():
         print(f"Drive: {failed} of {len(result)} removed file(s) could not be purged")
 
 
+# //// Neoffice — how long an upload's staging file may sit untouched (neoffice-maintenance#2296, clear_download_archives)
+STAGING_TTL = 24 * 60 * 60
+
+
 def clear_download_archives():
     """Sweep expired folder-download zip artifacts from disk and S3."""
     import os
@@ -153,6 +157,16 @@ def clear_download_archives():
     if local_dir.exists():
         for path in local_dir.iterdir():
             if path.is_file() and path.stat().st_mtime < cutoff:
+                path.unlink(missing_ok=True)
+
+    # //// Neoffice — and the staging files of uploads left unfinished (neoffice-maintenance#2296): no row names them,
+    # //// the quota does not count them, and nothing removed them. An upload's chunks follow one another within
+    # //// seconds; one untouched for a day is abandoned.
+    staging = manager.site_folder / "private" / "files" / (manager.get_prefix() or "") / ".uploads"
+    if staging.is_dir():
+        stale = time.time() - STAGING_TTL
+        for path in staging.iterdir():
+            if path.is_file() and not path.is_symlink() and path.stat().st_mtime < stale:
                 path.unlink(missing_ok=True)
 
     if manager.s3_enabled:

@@ -7,6 +7,11 @@
 from __future__ import annotations
 from frappe.model.document import Document
 
+from suite.utils.document_owner import refuse_owner_change  # //// Neoffice — WriterTemplate.validate (#2296)
+
 
 class WriterTemplate(Document):
-    pass
+    # //// Neoffice — the owner of a saved template is not the caller's to change (neoffice-maintenance#2296):
+    # //// template_has_permission lets the owner write it, and read the owner from the request being checked.
+    def validate(self):
+        refuse_owner_change(self)
