@@ -29,6 +29,13 @@ from suite.mail.api import jmap as jmap_api
 FRONTEND = Path(frappe.get_app_path("suite")).parent / "frontend" / "src" / "apps"
 
 POST_ONLY = [
+    ("suite.mail.api.account", None, "create_mail_import"),
+    ("suite.mail.api.account", None, "create_mail_export"),
+    ("suite.mail.api.account", None, "create_calendar_import"),
+    ("suite.mail.api.account", None, "create_calendar_export"),
+    ("suite.mail.api.account", None, "create_contacts_import"),
+    ("suite.mail.api.account", None, "create_contacts_export"),
+    ("suite.mail.api.account", None, "set_signature"),
     ("suite.mail.api.mail", None, "create_mail"),
     ("suite.mail.api.mail", None, "update_draft_mail"),
     ("suite.mail.api.mail", None, "delete_mail"),

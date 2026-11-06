@@ -509,7 +509,7 @@ def get_user_for_reset_password_key(key: str) -> str:
     return frappe.db.get_value("User", {"reset_password_key": hashed_key}, "name")
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 @dynamic_rate_limit()
 def create_mail_import(
     account: str,
@@ -532,7 +532,7 @@ def create_mail_import(
     doc.submit()
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 @dynamic_rate_limit()
 def create_mail_export(
     account: str,
@@ -560,7 +560,7 @@ def create_mail_export(
     doc.submit()
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 @dynamic_rate_limit()
 def create_calendar_import(
     account: str,
@@ -582,7 +582,7 @@ def create_calendar_import(
     doc.submit()
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 @dynamic_rate_limit()
 def create_calendar_export(
     account: str,
@@ -628,7 +628,7 @@ def normalize_calendar_filter(filter: dict) -> dict:
     return normalized
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 @dynamic_rate_limit()
 def create_contacts_import(
     account: str,
@@ -650,7 +650,7 @@ def create_contacts_import(
     doc.submit()
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 @dynamic_rate_limit()
 def create_contacts_export(
     account: str,
@@ -741,7 +741,8 @@ def get_participant_identities(account: str) -> list[dict]:
     return fetch_participant_identities(account, page=1, limit=100)
 
 
-@frappe.whitelist()
+# permission-check: ok get_account_client (via the Identity load_from_db) refuses another's account
+@frappe.whitelist(methods=["POST"])  # //// Neoffice — a write: POST only, a GET is not CSRF-checked
 def set_signature(identity: str, signature: str) -> None:
     """Set the email signature for an identity"""
 
