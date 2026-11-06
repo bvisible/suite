@@ -1,0 +1,272 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-11-06 15:14:10.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "presentation",
+  "status",
+  "column_break_main",
+  "reference_doctype",
+  "reference_name",
+  "url",
+  "access_section",
+  "allowed_domains",
+  "allowed_emails",
+  "column_break_access",
+  "allow_forward",
+  "forward_outside",
+  "notify_owner",
+  "expires_on",
+  "intro_section",
+  "brand_logo",
+  "intro_logo",
+  "column_break_intro",
+  "intro_seconds",
+  "visits_section",
+  "stats_html",
+  "first_opened_on",
+  "last_seen_on",
+  "column_break_visits",
+  "viewer_count",
+  "total_seconds",
+  "recipients",
+  "token"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "description": "A Drive folder that holds an index.html, or an HTML file.",
+   "fieldname": "presentation",
+   "fieldtype": "Link",
+   "label": "Presentation",
+   "options": "File",
+   "reqd": 1
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Draft\nSent\nOpened\nWithdrawn"
+  },
+  {
+   "fieldname": "column_break_main",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Linked To",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Dynamic Link",
+   "in_standard_filter": 1,
+   "label": "Linked Document",
+   "options": "reference_doctype"
+  },
+  {
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "label": "Link",
+   "no_copy": 1,
+   "options": "URL",
+   "read_only": 1
+  },
+  {
+   "fieldname": "access_section",
+   "fieldtype": "Section Break",
+   "label": "Who Can Enter"
+  },
+  {
+   "description": "One per line, for example example.com: every address of the domain enters with its code.",
+   "fieldname": "allowed_domains",
+   "fieldtype": "Small Text",
+   "label": "Accepted Domains"
+  },
+  {
+   "description": "One per line, besides the domains.",
+   "fieldname": "allowed_emails",
+   "fieldtype": "Small Text",
+   "label": "Accepted Addresses"
+  },
+  {
+   "fieldname": "column_break_access",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "allow_forward",
+   "fieldtype": "Check",
+   "label": "They Can Forward It to a Colleague"
+  },
+  {
+   "default": "0",
+   "depends_on": "allow_forward",
+   "fieldname": "forward_outside",
+   "fieldtype": "Check",
+   "label": "A Forwarded Address Outside the List Can Enter"
+  },
+  {
+   "default": "1",
+   "fieldname": "notify_owner",
+   "fieldtype": "Check",
+   "label": "Notify Me of Each New Person"
+  },
+  {
+   "fieldname": "expires_on",
+   "fieldtype": "Datetime",
+   "label": "Expires On"
+  },
+  {
+   "fieldname": "intro_section",
+   "fieldtype": "Section Break",
+   "label": "Opening"
+  },
+  {
+   "description": "At the top of the visitor's page: a still logo.",
+   "fieldname": "brand_logo",
+   "fieldtype": "Attach Image",
+   "label": "Logo on the Page"
+  },
+  {
+   "description": "Shown once the code is right, before the first slide. An animated SVG plays its motion; without it, the logo of the page.",
+   "fieldname": "intro_logo",
+   "fieldtype": "Attach Image",
+   "label": "Logo of the Opening"
+  },
+  {
+   "fieldname": "column_break_intro",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1.2",
+   "description": "How long the logo stays: 1.2 s for a still logo, the length of its motion for an animated one.",
+   "fieldname": "intro_seconds",
+   "fieldtype": "Float",
+   "label": "Logo Seconds"
+  },
+  {
+   "fieldname": "visits_section",
+   "fieldtype": "Section Break",
+   "label": "What They Saw"
+  },
+  {
+   "fieldname": "stats_html",
+   "fieldtype": "HTML",
+   "label": "Statistics"
+  },
+  {
+   "fieldname": "first_opened_on",
+   "fieldtype": "Datetime",
+   "label": "First Opened On",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_seen_on",
+   "fieldtype": "Datetime",
+   "label": "Last Seen On",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_visits",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "viewer_count",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "People",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "total_seconds",
+   "fieldtype": "Int",
+   "label": "Seconds Watched",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "description": "The addresses the link was sent to from here.",
+   "fieldname": "recipients",
+   "fieldtype": "Small Text",
+   "label": "Sent To",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "token",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Token",
+   "no_copy": 1,
+   "read_only": 1,
+   "unique": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-06 16:40:00.000000",
+ "modified_by": "Administrator",
+ "module": "Drive",
+ "name": "Presentation Link",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Suite Admin",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Suite User",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}

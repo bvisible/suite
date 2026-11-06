@@ -1,0 +1,166 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-11-06 15:14:10.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "link",
+  "email",
+  "first_name",
+  "entered_via",
+  "invited_by",
+  "column_break_viewer",
+  "first_seen_on",
+  "last_seen_on",
+  "total_seconds",
+  "slides_seen",
+  "furthest_slide",
+  "video_percent",
+  "devices",
+  "remember_hash",
+  "remember_until"
+ ],
+ "fields": [
+  {
+   "fieldname": "link",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Presentation Link",
+   "options": "Presentation Link",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Email",
+   "options": "Email",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "first_name",
+   "fieldtype": "Data",
+   "label": "First Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "entered_via",
+   "fieldtype": "Select",
+   "label": "Entered Via",
+   "options": "Link Sent\nForwarded\nCopied Link",
+   "read_only": 1
+  },
+  {
+   "fieldname": "invited_by",
+   "fieldtype": "Link",
+   "label": "Forwarded By",
+   "options": "Presentation Viewer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_viewer",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "first_seen_on",
+   "fieldtype": "Datetime",
+   "label": "First Seen On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_seen_on",
+   "fieldtype": "Datetime",
+   "label": "Last Seen On",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "total_seconds",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Seconds Watched",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "slides_seen",
+   "fieldtype": "Int",
+   "label": "Slides Seen",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "furthest_slide",
+   "fieldtype": "Int",
+   "label": "Furthest Slide",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "video_percent",
+   "fieldtype": "Int",
+   "label": "Video Watched (%)",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "devices",
+   "fieldtype": "Int",
+   "label": "Devices",
+   "read_only": 1
+  },
+  {
+   "fieldname": "remember_hash",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Remember Hash",
+   "read_only": 1
+  },
+  {
+   "fieldname": "remember_until",
+   "fieldtype": "Datetime",
+   "hidden": 1,
+   "label": "Remember Until",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-06 15:14:10.000000",
+ "modified_by": "Administrator",
+ "module": "Drive",
+ "name": "Presentation Viewer",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager"
+  },
+  {
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Suite Admin"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Suite User"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "email"
+}

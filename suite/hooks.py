@@ -69,6 +69,10 @@ website_route_rules = [
     # //// through this public route (they call it back with a signed token, no session).
     # //// See suite/drive/wopi/. The CheckFileInfo route of Collabora's protocol is gone.
     {"from_route": "/wopi/files/<file_id>/contents", "to_route": "wopi_handler"},
+    # //// Neoffice — a presentation shared by a link (suite/drive/presentation/renderer.py, which reads the request's
+    # //// own path). Mounted like an app so that the site's language selector and redirections leave it alone
+    # //// (neoffice_theme's language_prefix skips app mounts) and it stays open while the website is in maintenance.
+    {"from_route": "/p/<path:app_path>", "to_route": "p"},
 ]
 
 # //// Neoffice — upstream (8ac14ee9e) makes the Suite launcher the website home page.
@@ -140,6 +144,11 @@ ignore_file_permissions = True
 # Permissions — permission_query_conditions (deep-merged union; no key clashes)
 # ============================================================================
 permission_query_conditions = {
+    # //// Neoffice — a shared presentation's links, people and visits are the staff's only (a portal account holds
+    # //// Suite User): suite/drive/presentation/permissions.py.
+    "Presentation Link": "suite.drive.presentation.permissions.query_conditions",
+    "Presentation Viewer": "suite.drive.presentation.permissions.query_conditions",
+    "Presentation Visit": "suite.drive.presentation.permissions.query_conditions",
     # drive
     "File": "suite.drive.utils.overrides.filter_file",
     "Drive Permission": "suite.drive.utils.overrides.filter_drive_permission",
@@ -172,6 +181,10 @@ permission_query_conditions = {
 # Permissions — has_permission (deep-merged union; no key clashes)
 # ============================================================================
 has_permission = {
+    # //// Neoffice — see permission_query_conditions above (suite/drive/presentation/permissions.py).
+    "Presentation Link": "suite.drive.presentation.permissions.has_permission",
+    "Presentation Viewer": "suite.drive.presentation.permissions.has_permission",
+    "Presentation Visit": "suite.drive.presentation.permissions.has_permission",
     # drive
     "File": "suite.drive.api.permissions.user_has_permission",
     "Drive Permission": "suite.drive.api.permissions.drive_permission_has_permission",
@@ -553,4 +566,9 @@ DENIED_WILDCARD_PATHS = [
 # //// stays open while the website is in maintenance (Website Profile maintenance_mode, an instance without a showcase
 # //// site); the apps of the suite are mounted by route rules, open by themselves. Read by
 # //// frappe/website/path_resolver.py (website_route_stays_open, neoffice-maintenance#2171).
-website_maintenance_open_routes = ["event_rsvp"]
+website_maintenance_open_routes = ["event_rsvp", "p"]
+
+# //// Neoffice — a presentation of the Drive shared by a link (/p/<token>, suite/drive/presentation/): one renderer
+# //// answers the visitor's page, the logo of its opening and the presentation's files (with ranges, for the videos).
+# //// `p` above keeps it open while the website is in maintenance: it is a page the staff sends a customer to.
+page_renderer = ["suite.drive.presentation.renderer.PresentationLinkPage"]

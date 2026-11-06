@@ -1,0 +1,158 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-11-06 15:14:10.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "link",
+  "viewer",
+  "browser_id",
+  "device",
+  "column_break_visit",
+  "started_on",
+  "last_seen_on",
+  "active_seconds",
+  "slide_count",
+  "furthest_slide",
+  "slides",
+  "videos",
+  "secret_hash",
+  "user_agent"
+ ],
+ "fields": [
+  {
+   "fieldname": "link",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Presentation Link",
+   "options": "Presentation Link",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "viewer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Person",
+   "options": "Presentation Viewer",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "browser_id",
+   "fieldtype": "Data",
+   "label": "Browser",
+   "read_only": 1
+  },
+  {
+   "fieldname": "device",
+   "fieldtype": "Select",
+   "label": "Device",
+   "options": "Computer\nPhone\nTablet",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_visit",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "started_on",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Started On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_seen_on",
+   "fieldtype": "Datetime",
+   "label": "Last Seen On",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "active_seconds",
+   "fieldtype": "Int",
+   "label": "Seconds Watched",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "slide_count",
+   "fieldtype": "Int",
+   "label": "Slides in the Presentation",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "furthest_slide",
+   "fieldtype": "Int",
+   "label": "Furthest Slide",
+   "read_only": 1
+  },
+  {
+   "description": "Seconds watched per slide number.",
+   "fieldname": "slides",
+   "fieldtype": "JSON",
+   "label": "Slides",
+   "read_only": 1
+  },
+  {
+   "description": "Furthest point reached per video, in percent.",
+   "fieldname": "videos",
+   "fieldtype": "JSON",
+   "label": "Videos",
+   "read_only": 1
+  },
+  {
+   "fieldname": "secret_hash",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Secret Hash",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "user_agent",
+   "fieldtype": "Small Text",
+   "label": "Browser Details",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-06 15:14:10.000000",
+ "modified_by": "Administrator",
+ "module": "Drive",
+ "name": "Presentation Visit",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager"
+  },
+  {
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Suite Admin"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Suite User"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

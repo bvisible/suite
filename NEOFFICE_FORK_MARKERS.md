@@ -132,6 +132,16 @@ accepts the token as `Authorization: Bearer` (`suite/drive/webdav/auth.py`, mark
 `Drive`, random names, permissions: `System Manager` only (people go through the whitelisted methods of `sync.py`,
 which check the owner). At a merge: keep the file whole. Nothing upstream collides with it.
 
+#### `suite/drive/doctype/presentation_link/presentation_link.json` · `suite/drive/doctype/presentation_viewer/presentation_viewer.json` · `suite/drive/doctype/presentation_visit/presentation_visit.json`
+**Entirely ours — three new DocTypes, no upstream equivalent.** A presentation of the Drive shared by a link that asks
+for an e-mail and a code (`suite/drive/presentation/`): `Presentation Link` (the Drive folder or HTML file, the accepted
+domains and addresses, forwarding, the logos of the page and of its opening, what was seen in total; its `token` is the
+secret of `/p/<token>`), `Presentation Viewer` (a person, by her e-mail: how she entered, the seconds she watched, the
+slides she saw, how far the video went, on how many browsers) and `Presentation Visit` (one visit from one browser: the
+seconds per slide and per video, the SHA-256 of the visit's secret). Module `Drive`, random names. `Suite User` reads
+them and writes the link; the visitor's page writes the two others through the guest methods of `api.py` only. The
+French of their labels is in `suite/locale/fr.po`. At a merge: keep the files whole. Nothing upstream collides with them.
+
 #### `suite/drive/wopi/craft_editors.json`
 **Entirely ours — no upstream equivalent.** The list of the Craft editors' browser builds (NeoWrite, NeoSheet,
 NeoSlides, NeoPDF: Neoffice's forks of storytold's Craft apps) that `suite/drive/wopi/craft_install.py` installs

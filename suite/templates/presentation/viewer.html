@@ -1,0 +1,117 @@
+<!-- //// Neoffice — added file (no upstream equivalent): the visitor's page of a shared presentation (suite/drive/presentation/renderer.py). -->
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="robots" content="noindex, nofollow">
+	<title>{{ title|e }}</title>
+	<link rel="stylesheet" href="/assets/suite/presentation/viewer.css?v=1">
+</head>
+<body class="np">
+	<div class="np-paper" id="np-paper">
+		<header class="np-top">
+			<span class="np-brand" id="np-brand"></span>
+			<span class="np-muted">{{ strings.privatePresentation }}</span>
+		</header>
+
+		{% if not is_open %}
+		<main class="np-main">
+			<section class="np-card">
+				<h1 class="np-title">{{ strings.closedTitle }}</h1>
+				<p class="np-lede">{{ strings.closedText }}</p>
+			</section>
+		</main>
+		{% else %}
+		<main class="np-main" id="np-gate">
+			<section class="np-col">
+				<div class="np-eyebrow">{{ strings.preparedFor }}</div>
+				<h1 class="np-title">{{ title|e }}</h1>
+				<form class="np-form" id="np-email-form" novalidate>
+					<label class="np-field">
+						<span>{{ strings.email }} <b aria-hidden="true">*</b></span>
+						<input type="email" name="email" autocomplete="email" required inputmode="email">
+						<small>{{ strings.emailHint }}</small>
+					</label>
+					<label class="np-field">
+						<span>{{ strings.firstName }}</span>
+						<input type="text" name="first_name" autocomplete="given-name" maxlength="80">
+					</label>
+					<p class="np-error" id="np-email-error" role="alert" hidden></p>
+					<button class="np-button" type="submit">{{ strings.getCode }}</button>
+				</form>
+				<p class="np-small">{{ strings.measured }}</p>
+			</section>
+		</main>
+
+		<main class="np-main" id="np-code" hidden>
+			<section class="np-card">
+				<div class="np-eyebrow">{{ strings.codeSent }}</div>
+				<h1 class="np-title">{{ strings.lookInbox }}</h1>
+				<p class="np-lede" id="np-sent-to"></p>
+				<fieldset class="np-digits" id="np-digits">
+					<legend>{{ strings.codeLegend }}</legend>
+					<div class="np-digit-row">
+						{% for i in range(6) %}<input inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="{{ strings.codeLegend }} {{ i + 1 }}">{% endfor %}
+					</div>
+					<small>{{ strings.opensAtSixth }}</small>
+				</fieldset>
+				<p class="np-error" id="np-code-error" role="alert" hidden></p>
+				<div class="np-links">
+					<button type="button" class="np-link" id="np-resend">{{ strings.resend }}</button>
+					<button type="button" class="np-link" id="np-other">{{ strings.notMyAddress }}</button>
+				</div>
+				<p class="np-small np-rule">{{ strings.rememberNote }}</p>
+			</section>
+		</main>
+		{% endif %}
+	</div>
+
+	<div class="np-intro" id="np-intro" hidden aria-hidden="true">
+		<img id="np-intro-logo" alt="">
+	</div>
+
+	<div class="np-player" id="np-player" hidden>
+		<div class="np-bar np-bar-top">
+			<span class="np-player-title">{{ title|e }}</span>
+			<button type="button" class="np-button np-button-light" id="np-forward" hidden>{{ strings.forward }}</button>
+		</div>
+		<div class="np-stage" id="np-stage">
+			<iframe id="np-frame" title="{{ title|e }}" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox" allow="autoplay; fullscreen" referrerpolicy="no-referrer"></iframe>
+		</div>
+		<div class="np-bar np-bar-bottom">
+			<div class="np-progress" id="np-progress" aria-hidden="true"></div>
+			<div class="np-controls">
+				<div class="np-controls-left">
+					<button type="button" class="np-square" id="np-prev" aria-label="{{ strings.previous }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
+					<button type="button" class="np-square np-square-light" id="np-next" aria-label="{{ strings.next }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
+					<span class="np-count" id="np-count"></span>
+				</div>
+				<div class="np-controls-right">
+					<span class="np-keys">{{ strings.keys }}</span>
+					<button type="button" class="np-square" id="np-full" aria-label="{{ strings.fullScreen }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<dialog class="np-dialog" id="np-forward-dialog">
+		<form method="dialog" id="np-forward-form">
+			<h2 class="np-title np-title-small">{{ strings.forwardTitle }}</h2>
+			<p class="np-lede">{{ strings.forwardText }}</p>
+			<label class="np-field"><span>{{ strings.colleagueEmail }} <b aria-hidden="true">*</b></span><input type="email" name="email" required></label>
+			<label class="np-field"><span>{{ strings.colleagueName }}</span><input type="text" name="first_name" maxlength="80"></label>
+			<label class="np-field"><span>{{ strings.aNote }}</span><textarea name="message" rows="3" maxlength="1000"></textarea></label>
+			<p class="np-error" id="np-forward-error" role="alert" hidden></p>
+			<p class="np-ok" id="np-forward-ok" role="status" hidden>{{ strings.sent }}</p>
+			<div class="np-dialog-actions">
+				<button type="button" class="np-link" id="np-forward-cancel">{{ strings.cancel }}</button>
+				<button type="submit" class="np-button" id="np-forward-send">{{ strings.send }}</button>
+			</div>
+		</form>
+	</dialog>
+
+	<script>window.npConfig = {{ config|safe }};</script>
+	<script src="/assets/suite/presentation/viewer.js?v=1"></script>
+</body>
+</html>

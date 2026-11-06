@@ -31763,3 +31763,483 @@ msgstr "Identifiant tenant de ce site chez Suite Cloud : le nom de son enregistr
 #: suite/public/frontend/assets/OverviewView-CIfiYLGy.js:1
 msgid "used, no cap"
 msgstr "utilisé, sans plafond"
+
+#: suite/drive/presentation/api.py:428
+msgid "A code will be sent to this address to open it."
+msgstr "Un code sera envoyé à cette adresse pour l'ouvrir."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:80
+msgid "a computer"
+msgstr "un ordinateur"
+
+#. Description of the 'Presentation' (Link) field in DocType 'Presentation
+#. Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:47
+msgid "A Drive folder that holds an index.html, or an HTML file."
+msgstr "Un dossier du Drive contenant un index.html, ou un fichier HTML."
+
+#. Label of a Check field in DocType 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:120
+msgid "A Forwarded Address Outside the List Can Enter"
+msgstr "Une adresse transférée hors liste peut entrer"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:32
+msgid "A Note"
+msgstr "Une note"
+
+#: suite/drive/presentation/renderer.py:155
+msgid "A note for them, if you like"
+msgstr "Une note pour votre collègue, si vous le souhaitez"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:80
+msgid "a phone"
+msgstr "un téléphone"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:80
+msgid "a tablet"
+msgstr "une tablette"
+
+#. Label of a Small Text field in DocType 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:103
+msgid "Accepted Addresses"
+msgstr "Adresses acceptées"
+
+#. Label of a Small Text field in DocType 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:97
+msgid "Accepted Domains"
+msgstr "Domaines acceptés"
+
+#: suite/drive/presentation/renderer.py:160
+msgid "Arrow keys, or swipe on a phone"
+msgstr "Flèches du clavier, ou balayage sur téléphone"
+
+#. Description of the 'Logo on the Page' (Attach Image) field in DocType
+#. 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:139
+msgid "At the top of the visitor's page: a still logo."
+msgstr "En haut de la page du visiteur : un logo fixe."
+
+#. Label of a Small Text field in DocType 'Presentation Visit'
+#: suite/drive/doctype/presentation_visit/presentation_visit.json:121
+msgid "Browser Details"
+msgstr "Détails du navigateur"
+
+#: suite/drive/presentation/rules.py:106
+msgid "Choose a folder that holds an index.html, or an HTML file."
+msgstr "Choisissez un dossier contenant un index.html, ou un fichier HTML."
+
+#: suite/drive/doctype/presentation_link/presentation_link.py:31
+msgid "Choose the type of the linked document."
+msgstr "Choisissez le type du document lié."
+
+#. Option for the 'Entered Via' (Select) field in DocType 'Presentation Viewer'
+#: suite/drive/doctype/presentation_viewer/presentation_viewer.json:55
+msgid "Copied Link"
+msgstr "Lien copié"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:9
+msgid "Copy the Link"
+msgstr "Copier le lien"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:30
+msgid "E-mail Address"
+msgstr "Adresse e-mail"
+
+#. Label of a Select field in DocType 'Presentation Viewer'
+#: suite/drive/doctype/presentation_viewer/presentation_viewer.json:54
+msgid "Entered Via"
+msgstr "Entrée par"
+
+#: suite/drive/presentation/renderer.py:130
+msgid "First name (optional)"
+msgstr "Prénom (facultatif)"
+
+#: suite/drive/presentation/renderer.py:150
+#: suite/drive/presentation/renderer.py:151
+msgid "Forward to a colleague"
+msgstr "Transférer à un collègue"
+
+#. Label of a Link field in DocType 'Presentation Viewer'
+#: suite/drive/doctype/presentation_viewer/presentation_viewer.json:61
+msgid "Forwarded By"
+msgstr "Transféré par"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:75
+#, python-brace-format
+msgid "Forwarded by {0}"
+msgstr "Transféré par {0}"
+
+#. Description of the 'Videos' (JSON) field in DocType 'Presentation Visit'
+#: suite/drive/doctype/presentation_visit/presentation_visit.json:104
+msgid "Furthest point reached per video, in percent."
+msgstr "Point le plus avancé atteint dans chaque vidéo, en pour cent."
+
+#. Label of a Int field in DocType 'Presentation Viewer'
+#. Label of a Int field in DocType 'Presentation Visit'
+#: suite/drive/doctype/presentation_viewer/presentation_viewer.json:100
+#: suite/drive/doctype/presentation_visit/presentation_visit.json:93
+msgid "Furthest Slide"
+msgstr "Diapositive la plus avancée"
+
+#: suite/drive/presentation/renderer.py:131
+msgid "Get my code"
+msgstr "Recevoir mon code"
+
+#. Description of the 'Logo Seconds' (Float) field in DocType 'Presentation
+#. Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:156
+msgid "How long the logo stays: 1.2 s for a still logo, the length of its motion for an animated one."
+msgstr "Durée d'affichage du logo : 1,2 s pour un logo fixe, la durée de son animation pour un logo animé."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:100
+msgid "How They Entered"
+msgstr "Mode d'accès"
+
+#: suite/drive/presentation/api.py:404
+msgid "It is valid for 10 minutes. If you did not ask for it, ignore this e-mail."
+msgstr "Il est valable 10 minutes. Si vous ne l'avez pas demandé, ignorez cet e-mail."
+
+#. Option for the 'Entered Via' (Select) field in DocType 'Presentation Viewer'
+#: suite/drive/doctype/presentation_viewer/presentation_viewer.json:55
+msgid "Link Sent"
+msgstr "Lien envoyé"
+
+#. Label of a Link field in DocType 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:70
+msgid "Linked To"
+msgstr "Lié à"
+
+#. Label of a Attach Image field in DocType 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:148
+msgid "Logo of the Opening"
+msgstr "Logo d'ouverture"
+
+#. Label of a Attach Image field in DocType 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:142
+msgid "Logo on the Page"
+msgstr "Logo sur la page"
+
+#. Label of a Float field in DocType 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:159
+msgid "Logo Seconds"
+msgstr "Durée du logo (secondes)"
+
+#: suite/drive/presentation/renderer.py:137
+msgid "Look in your inbox"
+msgstr "Regardez votre boîte de réception"
+
+#: suite/drive/presentation/renderer.py:148
+msgid "Next slide"
+msgstr "Diapositive suivante"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:59
+msgid "Nobody has entered yet."
+msgstr "Personne n'est encore entré."
+
+#. Label of a Check field in DocType 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:126
+msgid "Notify Me of Each New Person"
+msgstr "M'avertir à chaque nouvelle personne"
+
+#: suite/drive/presentation/renderer.py:143
+msgid "On this browser you will not need a code for 30 days."
+msgstr "Sur ce navigateur, vous n'aurez pas besoin de code pendant 30 jours."
+
+#. Description of the 'Accepted Addresses' (Small Text) field in DocType
+#. 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:100
+msgid "One per line, besides the domains."
+msgstr "Une par ligne, en plus des domaines."
+
+#. Description of the 'Accepted Domains' (Small Text) field in DocType
+#. 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:94
+msgid "One per line, for example example.com: every address of the domain enters with its code."
+msgstr "Une par ligne, par exemple example.com : chaque adresse de ce domaine accède avec son code."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:10
+msgid "Open as a Visitor"
+msgstr "Ouvrir en tant que visiteur"
+
+#: suite/drive/presentation/api.py:426
+msgid "Open the presentation"
+msgstr "Ouvrir la présentation"
+
+#: suite/drive/presentation/renderer.py:127
+msgid "Prepared for you"
+msgstr "Préparée pour vous"
+
+#. Name of a DocType
+#. Label of a Link field in DocType 'Presentation Viewer'
+#. Label of a Link field in DocType 'Presentation Visit'
+#: suite/drive/doctype/presentation_link/presentation_link.json:229
+#: suite/drive/doctype/presentation_viewer/presentation_viewer.json:30
+#: suite/drive/doctype/presentation_visit/presentation_visit.json:29
+msgid "Presentation Link"
+msgstr "Lien de présentation"
+
+#. Name of a DocType
+#: suite/drive/doctype/presentation_viewer/presentation_viewer.json:138
+msgid "Presentation Viewer"
+msgstr "Personne de la présentation"
+
+#. Name of a DocType
+#: suite/drive/doctype/presentation_visit/presentation_visit.json:131
+msgid "Presentation Visit"
+msgstr "Visite de la présentation"
+
+#: suite/drive/presentation/renderer.py:147
+msgid "Previous slide"
+msgstr "Diapositive précédente"
+
+#: suite/drive/presentation/renderer.py:126
+msgid "Private presentation"
+msgstr "Présentation privée"
+
+#. Label of a Data field in DocType 'Presentation Viewer'
+#: suite/drive/doctype/presentation_viewer/presentation_viewer.json:121
+msgid "Remember Hash"
+msgstr "Empreinte mémorisée"
+
+#. Label of a Datetime field in DocType 'Presentation Viewer'
+#: suite/drive/doctype/presentation_viewer/presentation_viewer.json:128
+msgid "Remember Until"
+msgstr "Mémoriser jusqu'au"
+
+#. Label of a Int field in DocType 'Presentation Link'
+#. Label of a Int field in DocType 'Presentation Viewer'
+#. Label of a Int field in DocType 'Presentation Visit'
+#: suite/drive/doctype/presentation_link/presentation_link.json:202
+#: suite/drive/doctype/presentation_viewer/presentation_viewer.json:86
+#: suite/drive/doctype/presentation_visit/presentation_visit.json:79
+msgid "Seconds Watched"
+msgstr "Secondes regardées"
+
+#. Description of the 'Slides' (JSON) field in DocType 'Presentation Visit'
+#: suite/drive/doctype/presentation_visit/presentation_visit.json:97
+msgid "Seconds watched per slide number."
+msgstr "Secondes regardées par numéro de diapositive."
+
+#: suite/drive/presentation/renderer.py:141
+msgid "Send the code again"
+msgstr "Renvoyer le code"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:8
+#: suite/drive/doctype/presentation_link/presentation_link.js:28
+msgid "Send the Link"
+msgstr "Envoyer le lien"
+
+#: suite/drive/presentation/renderer.py:158
+msgid "Sent. They will receive it in a moment."
+msgstr "Envoyé. Votre collègue la recevra dans un instant."
+
+#. Description of the 'Logo of the Opening' (Attach Image) field in DocType
+#. 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:145
+msgid "Shown once the code is right, before the first slide. An animated SVG plays its motion; without it, the logo of the page."
+msgstr "Affiché une fois le code juste, avant la première diapositive. Un SVG animé joue son animation ; sans lui, le logo de la page."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:68
+#, python-brace-format
+msgid "Slide {0}: {1}"
+msgstr "Diapositive {0} : {1}"
+
+#. Label of a Int field in DocType 'Presentation Visit'
+#: suite/drive/doctype/presentation_visit/presentation_visit.json:86
+msgid "Slides in the Presentation"
+msgstr "Diapositives de la présentation"
+
+#. Label of a Int field in DocType 'Presentation Viewer'
+#: suite/drive/doctype/presentation_viewer/presentation_viewer.json:93
+msgid "Slides Seen"
+msgstr "Diapositives vues"
+
+#: suite/drive/presentation/renderer.py:159
+msgid "Something went wrong. Try again in a moment."
+msgstr "Une erreur est survenue. Réessayez dans un instant."
+
+#. Description of the 'Sent To' (Small Text) field in DocType 'Presentation
+#. Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:207
+msgid "The addresses the link was sent to from here."
+msgstr "Les adresses auxquelles ce lien a été envoyé depuis ici."
+
+#: suite/drive/presentation/rules.py:104
+msgid "The folder has no index.html: it is not a web presentation."
+msgstr "Le dossier ne contient pas d'index.html : ce n'est pas une présentation web."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:71
+msgid "The link copied"
+msgstr "Lien copié"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:40
+msgid "The link is on its way."
+msgstr "Le lien est en route."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:71
+msgid "The link sent"
+msgstr "Lien envoyé"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:14
+msgid "The link will open nothing any more. The visits stay."
+msgstr "Le lien n'ouvrira plus rien. Les visites restent."
+
+#: suite/drive/presentation/renderer.py:140
+msgid "The presentation opens at the sixth digit."
+msgstr "La présentation s'ouvre dès le sixième chiffre saisi."
+
+#: suite/drive/presentation/renderer.py:139
+msgid "The six-digit code"
+msgstr "Le code à six chiffres"
+
+#: suite/drive/presentation/renderer.py:153
+msgid "Their e-mail address"
+msgstr "L'adresse e-mail de votre collègue"
+
+#: suite/drive/presentation/renderer.py:154
+msgid "Their first name (optional)"
+msgstr "Prénom de votre collègue (facultatif)"
+
+#. Label of a Check field in DocType 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:113
+msgid "They Can Forward It to a Colleague"
+msgstr "Transférable à un collègue"
+
+#: suite/drive/presentation/api.py:31 suite/drive/presentation/api.py:128
+msgid "This address cannot open the presentation. Ask the person who sent it to you."
+msgstr "Cette adresse ne peut pas ouvrir la présentation. Demandez à la personne qui vous l'a envoyée."
+
+#: suite/drive/presentation/api.py:46
+msgid "This code is not the right one, or it has expired."
+msgstr "Ce code n'est pas le bon, ou il a expiré."
+
+#: suite/drive/presentation/api.py:26 suite/drive/presentation/api.py:123
+#: suite/drive/presentation/api.py:162
+msgid "This is not an e-mail address."
+msgstr "Ce n'est pas une adresse e-mail."
+
+#: suite/drive/presentation/renderer.py:142
+msgid "This is not my address"
+msgstr "Ce n'est pas mon adresse"
+
+#: suite/drive/presentation/api.py:159
+msgid "This link is withdrawn or has expired."
+msgstr "Ce lien a été retiré ou a expiré."
+
+#: suite/drive/presentation/api.py:120
+msgid "This presentation cannot be forwarded."
+msgstr "Cette présentation ne peut pas être transférée."
+
+#: suite/drive/presentation/rules.py:98
+msgid "This presentation is not in the Drive any more."
+msgstr "Cette présentation ne se trouve plus dans le Drive."
+
+#: suite/drive/presentation/renderer.py:144
+msgid "This presentation is not shared any more"
+msgstr "Cette présentation n'est plus partagée"
+
+#: suite/drive/presentation/api.py:117 suite/drive/presentation/api.py:246
+msgid "This presentation is not shared any more."
+msgstr "Cette présentation n'est plus partagée."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:97
+msgid "Time spent on each slide, everyone together"
+msgstr "Temps passé sur chaque diapositive, toutes personnes confondues"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:95
+msgid "Time Watched"
+msgstr "Temps regardé"
+
+#: suite/drive/presentation/renderer.py:133
+msgid "To prepare what comes next with you, we see the time spent on each slide and whether the videos were watched. This stays with us, in Switzerland, with our exchange."
+msgstr "Pour préparer la suite avec vous, nous voyons le temps passé sur chaque diapositive et si les vidéos ont été regardées. Ces données restent chez nous, en Suisse, avec nos échanges."
+
+#. Label of a Int field in DocType 'Presentation Viewer'
+#: suite/drive/doctype/presentation_viewer/presentation_viewer.json:107
+msgid "Video Watched (%)"
+msgstr "Vidéo regardée (%)"
+
+#: suite/drive/presentation/renderer.py:129
+msgid "We send a six-digit code to it."
+msgstr "Nous enverrons un code à six chiffres à cette adresse."
+
+#: suite/drive/presentation/renderer.py:138
+#, python-brace-format
+msgid "We sent it to {0}. It is valid for 10 minutes."
+msgstr "Nous l'avons envoyé à {0}. Il est valable 10 minutes."
+
+#. Label of a Section Break field in DocType 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:164
+msgid "What They Saw"
+msgstr "Ce qui a été vu"
+
+#. Label of a Section Break field in DocType 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:91
+msgid "Who Can Enter"
+msgstr "Qui peut entrer"
+
+#. Option for the 'Status' (Select) field in DocType 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:61
+msgid "Withdrawn"
+msgstr "Retiré"
+
+#: suite/drive/presentation/renderer.py:145
+msgid "Write to the person who sent it to you: a new link leaves in one click."
+msgstr "Écrivez à la personne qui vous l'a envoyée : un nouveau lien part en un clic."
+
+#: suite/drive/presentation/api.py:409
+#, python-brace-format
+msgid "Your code for « {0} »"
+msgstr "Votre code pour « {0} »"
+
+#: suite/drive/presentation/renderer.py:136
+msgid "Your code is on its way"
+msgstr "Votre code est en route"
+
+#: suite/drive/presentation/api.py:402
+#, python-brace-format
+msgid "Your code to open « {0} »:"
+msgstr "Votre code pour ouvrir « {0} » :"
+
+#: suite/drive/presentation/renderer.py:152
+msgid "Your colleague receives the presentation in their name. Their code arrives by itself."
+msgstr "Votre collègue reçoit la présentation à son nom. Son code arrive tout seul."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:86
+#, python-brace-format
+msgid "{0} enters, on {1}"
+msgstr "{0} entre sur {1}"
+
+#: suite/drive/presentation/api.py:145
+#, python-brace-format
+msgid "{0} forwarded « {1} » to {2}"
+msgstr "{0} a transféré « {1} » à {2}"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:88
+#, python-brace-format
+msgid "{0} forwards it to {1}"
+msgstr "{0} le transfère à {1}"
+
+#: suite/drive/presentation/api.py:381
+#, python-brace-format
+msgid "{0} opened « {1} »"
+msgstr "{0} a ouvert « {1} »"
+
+#: suite/drive/presentation/api.py:420
+#, python-brace-format
+msgid "{0} shares a presentation with you: « {1} »."
+msgstr "{0} partage une présentation avec vous : « {1} »."
+
+#: suite/drive/presentation/api.py:431
+#, python-brace-format
+msgid "{0} shares « {1} » with you"
+msgstr "{0} partage « {1} » avec vous"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:87
+#, python-brace-format
+msgid "{0} watches a video to the end"
+msgstr "{0} regarde une vidéo jusqu'à la fin"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:59
+msgid "Received, not opened yet: {0}"
+msgstr "Reçue, pas encore ouverte : {0}"
