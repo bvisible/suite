@@ -18,7 +18,9 @@ from suite.drive.presentation import rules
 # ---------------------------------------------------------------------------------------------------------------------
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=12, seconds=600)
-def request_code(token: str, email: str, first_name: str | None = None):
+def request_code(
+    token: str, email: str, first_name: str | None = None
+):  # permission-check: ok the visitor has no account: the link token and the accepted domains decide
     """Sends a code to `email` when the link accepts it."""
     link = _open_link(token)
     email = rules.normalize_email(email)
@@ -37,7 +39,9 @@ def request_code(token: str, email: str, first_name: str | None = None):
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=20, seconds=600)
-def verify_code(token: str, email: str, code: str, browser_id: str | None = None):
+def verify_code(
+    token: str, email: str, code: str, browser_id: str | None = None
+):  # permission-check: ok the visitor has no account: the code sent to the e-mail is the proof
     """Opens a visit when the code is right."""
     link = _open_link(token)
     email = rules.normalize_email(email)
@@ -63,7 +67,9 @@ def verify_code(token: str, email: str, code: str, browser_id: str | None = None
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=30, seconds=600)
-def resume(token: str, email: str, remember: str, browser_id: str | None = None):
+def resume(
+    token: str, email: str, remember: str, browser_id: str | None = None
+):  # permission-check: ok the visitor has no account: the remembered secret of the browser is the proof
     """Opens a visit without a code on a browser where the code was given in the last 30 days."""
     link = _open_link(token)
     email = rules.normalize_email(email)
@@ -82,7 +88,9 @@ def resume(token: str, email: str, remember: str, browser_id: str | None = None)
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=120, seconds=600)
-def track(visit: str, beat: str | dict | None = None):
+def track(
+    visit: str, beat: str | dict | None = None
+):  # permission-check: ok the visit's secret, given after the code, is the proof
     """A heartbeat of a visit: the seconds watched per slide since the last one and how far each video went."""
     row = _visit(visit)
     if not row:
@@ -114,7 +122,9 @@ def track(visit: str, beat: str | dict | None = None):
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=10, seconds=600)
-def forward(visit: str, email: str, first_name: str | None = None, message: str | None = None):
+def forward(
+    visit: str, email: str, first_name: str | None = None, message: str | None = None
+):  # permission-check: ok the visit's secret is the proof; the link decides who may receive it
     """Sends the presentation to a colleague of the person watching it, when the link allows it."""
     row = _visit(visit)
     if not row:
