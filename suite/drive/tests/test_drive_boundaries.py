@@ -560,3 +560,25 @@ class TestFavouritesRecentsAndNotificationsAreTheirPersons(DriveCase):
         self.assertFalse(drive_notification_has_permission(forged, "create", CUSTOMER))
         forged.from_user, forged.to_user = OWNER, COLLEAGUE
         self.assertTrue(drive_notification_has_permission(forged, "create", OWNER))
+        # and through the document API, where the hooks answer
+        with as_role(COLLEAGUE):
+            self.assertFalse(frappe.has_permission("Drive Favourite", "read", doc=favourite.name))
+            self.assertFalse(frappe.has_permission("Drive Entity Log", "delete", doc=recent.name))
+            with self.assertRaises(frappe.PermissionError):
+                frappe.delete_doc("Drive Favourite", favourite.name)
+        with as_role(OWNER):
+            self.assertTrue(frappe.has_permission("Drive Favourite", "read", doc=favourite.name))
+        with as_role(CUSTOMER):
+            forged = frappe.get_doc(
+                {
+                    "doctype": "Drive Notification",
+                    "from_user": OWNER,
+                    "to_user": COLLEAGUE,
+                    "type": "Share",
+                    "message": "sb forged",
+                    "notif_doctype": "File",
+                    "notif_doctype_name": file.name,
+                }
+            )
+            with self.assertRaises(frappe.PermissionError):
+                forged.insert()

@@ -191,6 +191,10 @@ has_permission = {
     "Drive Entity Activity Log": "suite.drive.api.permissions.activity_log_has_permission",
     "Drive Settings": "suite.drive.api.permissions.drive_settings_has_permission",
     "Drive User Invitation": "suite.drive.api.permissions.drive_invitation_has_permission",
+    # //// Neoffice — a favourite, a recent and a notification are their person's, by name too (neoffice-maintenance#2296)
+    "Drive Favourite": "suite.drive.api.permissions.drive_favourite_has_permission",
+    "Drive Entity Log": "suite.drive.api.permissions.drive_entity_log_has_permission",
+    "Drive Notification": "suite.drive.api.permissions.drive_notification_has_permission",
     # slides
     "Presentation": "suite.slides.doctype.presentation.presentation.has_permission",
     # writer
