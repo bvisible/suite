@@ -157,7 +157,14 @@ def forward(
                 "invited_by": sender.name,
             }
         ).insert(ignore_permissions=True)
-    _send_link_mail(link, email, _clean_name(first_name), _clean_message(message), sender=_who(sender))
+    _send_link_mail(
+        link,
+        email,
+        _clean_name(first_name),
+        _clean_message(message),
+        sender=_who(sender),
+        reply_to=sender.email,
+    )
     _notify(
         link,
         _("{0} forwarded « {1} » to {2}").format(_who(sender), link.title, email),
@@ -211,7 +218,12 @@ def send_link(name: str, email: str, first_name: str | None = None, message: str
         link.status = "Sent"
     link.save()
     _send_link_mail(
-        link, email, _clean_name(first_name), _clean_message(message), sender=frappe.utils.get_fullname()
+        link,
+        email,
+        _clean_name(first_name),
+        _clean_message(message),
+        sender=frappe.utils.get_fullname(),
+        reply_to=frappe.db.get_value("User", frappe.session.user, "email"),
     )
     return {"ok": True, "status": link.status}
 
@@ -501,7 +513,11 @@ def _send_code(link, email: str, code: str) -> None:
     )
 
 
-def _send_link_mail(link, email: str, first_name: str, message: str, sender: str) -> None:
+def _send_link_mail(
+    link, email: str, first_name: str, message: str, sender: str, reply_to: str | None
+) -> None:
+    """The link by e-mail; « Reply » in the mailbox of the person who receives it writes to the one who sent it, not
+    to the site's sending address."""
     greeting = _("Hello {0},").format(first_name) if first_name else _("Hello,")
     lines = [f"<p>{escape_html(greeting)}</p>"]
     lines.append(
@@ -519,6 +535,7 @@ def _send_link_mail(link, email: str, first_name: str, message: str, sender: str
         recipients=[email],
         subject=_("{0} shares « {1} » with you").format(sender, link.title),
         message="".join(lines),
+        reply_to=reply_to or None,
         now=True,
         reference_doctype="Presentation Link",
         reference_name=link.name,

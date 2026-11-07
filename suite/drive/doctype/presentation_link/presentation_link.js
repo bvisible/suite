@@ -27,8 +27,20 @@ frappe.ui.form.on("Presentation Link", {
 			render_questions(frm, r.message || {});
 			render_sources(frm, r.message || {});
 		});
+		open_asked_tab(frm);
 	},
 });
+
+// The « Answer » button of the e-mail that forwards a question opens the record on its Questions tab
+// (`?tab=questions`, suite/drive/presentation/questions.py), once per opening of the record.
+function open_asked_tab(frm) {
+	const wanted = new URLSearchParams(window.location.search).get("tab");
+	if (!wanted || frm.__np_tab_opened === frm.doc.name) return;
+	const tab = (frm.layout.tabs || []).find((t) => t.df.fieldname === `${wanted}_tab`);
+	if (!tab) return;
+	frm.__np_tab_opened = frm.doc.name;
+	tab.set_active();
+}
 
 function send_link(frm) {
 	const dialog = new frappe.ui.Dialog({

@@ -75,7 +75,12 @@ class TestQuestions(FrappeTestCase):
         self.link = self.new_link()
         self.sent, self.jobs, self.alerts = [], [], []
         patches = (
-            patch.object(frappe, "sendmail", side_effect=lambda **kw: self.sent.append(kw)),
+            # each mail keeps the language it was written in
+            patch.object(
+                frappe,
+                "sendmail",
+                side_effect=lambda **kw: self.sent.append({**kw, "lang": frappe.local.lang}),
+            ),
             patch.object(frappe, "enqueue", side_effect=lambda *a, **kw: self.jobs.append(kw)),
             patch(
                 "frappe.desk.doctype.notification_log.notification_log.enqueue_create_notification",
@@ -160,6 +165,7 @@ class TestQuestions(FrappeTestCase):
         self.assertEqual(seen["slide"], 2)
         self.assertEqual({p["id"] for p in seen["passages"]}, {"S1", "S2"})
         self.assertEqual(self.thread()[-1]["sources"], ["Slide 2"])
+        self.assertEqual(self.thread()[-1]["slides"], [2])  # its chip turns the deck to slide 2
         self.assertNotIn([STAFF], [mail["recipients"] for mail in self.sent])  # nobody has to answer it
         self.assertEqual(self.alerts, [])
 
@@ -216,12 +222,52 @@ class TestQuestions(FrappeTestCase):
         self.assertEqual(mail["recipients"], ["anna@firm-example.ch"])
         self.assertEqual(mail["reply_to"], STAFF)
         self.assertIn("Au forfait par dossier.", mail["message"])
+        self.assertEqual(mail["message"].count("Anna,"), 1)  # the mail greets her
         self.assertEqual(self.thread()[-1]["answer"], "Au forfait par dossier.")
         kept = [p for p in asking.passages(self.link) if p["kind"] == "answer"]
         self.assertEqual(len(kept), 1)
         self.assertIn("Au forfait par dossier.", kept[0]["text"])
         other = self.new_link(title=f"{PREFIX} other link")
         self.assertEqual([p for p in asking.passages(other) if p["kind"] == "answer"], [])
+
+    def test_the_question_reaches_the_person_who_answers_in_her_language_and_a_reply_reaches_the_visitor(
+        self,
+    ):
+        # Nora's job forwards the question; a job of frappe runs in English whatever its user reads
+        frappe.db.set_value("User", STAFF, "language", "de")
+        frappe.clear_document_cache("User", STAFF)
+        self.addCleanup(frappe.clear_document_cache, "User", STAFF)
+        self.addCleanup(frappe.db.set_value, "User", STAFF, "language", None)
+        before = frappe.local.lang
+        frappe.local.lang = "en"
+        self.addCleanup(setattr, frappe.local, "lang", before)
+        fake = lambda **kw: {"sure": False, "answer": "", "sources": [], "reason": "price_or_commitment"}  # noqa: E731
+        self.answered_by(fake, self.ask("Combien coûte la reprise ?"))
+        mail = self.sent[-1]
+        self.assertEqual((mail["recipients"], mail["lang"]), ([STAFF], "de"))
+        self.assertEqual(frappe.local.lang, "en")  # the job's language comes back
+        self.assertEqual(mail["reply_to"], "anna@firm-example.ch")  # « Reply » writes to the person who asked
+        self.assertIn(f"/app/presentation-link/{self.link.name}?tab=questions", mail["message"])
+
+    def test_an_answer_that_greets_her_itself_is_not_greeted_twice_and_comes_first(self):
+        fake = lambda **kw: {"sure": False, "answer": "", "sources": [], "reason": "price_or_commitment"}  # noqa: E731
+        name = self.answered_by(fake, self.ask("Combien coûte la reprise ?")).name
+        with as_role(STAFF):
+            api.reply_question(name, "Bonjour Anna,\nau forfait par dossier.", retained=0, send=1)
+        message = self.sent[-1]["message"]
+        self.assertEqual(message.count("Anna,"), 1)
+        self.assertLess(message.index("au forfait par dossier."), message.index("Combien coûte la reprise ?"))
+
+    def test_a_reply_to_the_link_mail_writes_to_the_one_who_sent_it(self):
+        with as_role(STAFF):
+            api.send_link(self.link.name, "paul@firm-example.ch", "Paul")
+        self.assertEqual(
+            (self.sent[-1]["recipients"], self.sent[-1]["reply_to"]), (["paul@firm-example.ch"], STAFF)
+        )
+        self.link.db_set("allow_forward", 1)
+        with as_role("Guest"):
+            self.assertTrue(api.forward(self.visit, "lea@firm-example.ch", "Léa")["ok"])
+        self.assertEqual(self.sent[-1]["reply_to"], "anna@firm-example.ch")
 
     def test_a_person_sees_her_questions_only(self):
         self.ask("La question d'Anna ?")

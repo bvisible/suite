@@ -7,9 +7,11 @@ from __future__ import annotations
 
 import json
 import re
+from contextlib import contextmanager
 
 import frappe
 from frappe import _
+from frappe.translate import get_user_lang
 from frappe.utils import cint, escape_html, get_fullname, now_datetime
 
 from suite.drive.presentation import rules
@@ -27,6 +29,12 @@ SLIDE_CHARS = 2500
 NOTES_CHARS = 1500
 DECK_CACHE_SECONDS = 24 * 3600
 ANSWERS_LENT = 40
+# An answer that greets the person itself (French, German, Italian, English: the languages of the fleet's clients).
+_GREETING = re.compile(
+    r"\s*(bonjour|bonsoir|salut|cher|chère|madame|monsieur|grüezi|guten (tag|morgen|abend)|hallo|liebe|lieber|"
+    r"sehr geehrte|buongiorno|buonasera|ciao|gentile|caro|cara|hello|hi|dear)\b",
+    re.I,
+)
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -280,11 +288,29 @@ def forward(doc, link, reason: str) -> None:
     doc.db_set({"status": "Waiting", "nora_reason": reason})
     _refresh_counts(link.name)
     user = answers_for(link)
+    # Nora's job forwards the question, and a job of frappe writes in English whatever its user reads: the e-mail
+    # and the notification are written in the language of the person who answers.
+    with _language_of(user):
+        _tell(doc, link, user, reason)
+
+
+@contextmanager
+def _language_of(user: str):
+    before = frappe.local.lang
+    frappe.local.lang = get_user_lang(user)
+    try:
+        yield
+    finally:
+        frappe.local.lang = before
+
+
+def _tell(doc, link, user: str, reason: str) -> None:
     who = doc.first_name or doc.email
     subject = _("{0} asks a question on « {1} »").format(who, link.title)
     email = frappe.db.get_value("User", user, "email")
     if email:
-        url = frappe.utils.get_url(f"/app/presentation-link/{link.name}")
+        # the button opens the link's record on its Questions tab (presentation_link.js reads `tab`)
+        url = frappe.utils.get_url(f"/app/presentation-link/{link.name}?tab=questions")
         person = f"{doc.first_name} ({doc.email})" if doc.first_name else doc.email
         if doc.slide and doc.slide_title:
             asks = _("{0} asks, on slide {1}, « {2} »:").format(person, doc.slide, doc.slide_title)
@@ -308,6 +334,8 @@ def forward(doc, link, reason: str) -> None:
             recipients=[email],
             subject=subject,
             message=body,
+            # « Reply » in her mailbox writes to the person who asked, not to the site's sending address
+            reply_to=doc.email,
             now=True,
             reference_doctype="Presentation Link",
             reference_name=link.name,
@@ -372,7 +400,13 @@ def thread(row) -> dict:
         item = {"name": r.name, "slide": r.slide, "question": r.question, "status": r.status}
         if r.status == "Answered by Nora":
             item["answer"] = r.nora_answer
-            item["sources"] = [_source_label(lent.get(s), s) for s in _json_list(r.nora_sources)]
+            cited = _json_list(r.nora_sources)
+            item["sources"] = [_source_label(lent.get(s), s) for s in cited]
+            # the slide each source shows, for its chip to turn the deck there (none for a kept answer)
+            item["slides"] = [
+                (lent.get(s) or {}).get("slide") if (lent.get(s) or {}).get("kind") != "answer" else None
+                for s in cited
+            ]
         elif r.status == "Answered":
             item["answer"] = r.answer
             item["by"] = get_fullname(r.answered_by)
@@ -471,25 +505,30 @@ def reply(doc, link, answer: str, retained: int, send: int) -> dict:
 
 def _send_answer(doc, link, answer: str) -> None:
     sender = get_fullname(frappe.session.user)
-    greeting = _("Hello {0},").format(doc.first_name) if doc.first_name else _("Hello,")
     asked = (
         _("You asked, on slide {0} of « {1} »:").format(doc.slide, link.title)
         if doc.slide
         else _("You asked, about « {0} »:").format(link.title)
     )
-    body = "".join(
-        [
-            f"<p>{escape_html(greeting)}</p>",
-            f"<p>{escape_html(asked)}</p>",
-            f'<blockquote style="margin:12px 0;padding:10px 14px;border-left:3px solid #e8e1d6;color:#4a4541;'
-            f'white-space:pre-line">{escape_html(doc.question)}</blockquote>',
-            f'<p style="white-space:pre-line">{escape_html(answer)}</p>',
-            f"<p>{escape_html(sender)}</p>",
-            f'<p style="margin:22px 0"><a href="{escape_html(link.url)}" style="background:#141414;color:#ffffff;'
-            f'padding:12px 20px;border-radius:10px;text-decoration:none;font-weight:600">'
-            f"{escape_html(_('See the presentation again'))}</a></p>",
-        ]
+    question = [
+        f"<p>{escape_html(asked)}</p>",
+        f'<blockquote style="margin:12px 0;padding:10px 14px;border-left:3px solid #e8e1d6;color:#4a4541;'
+        f'white-space:pre-line">{escape_html(doc.question)}</blockquote>',
+    ]
+    words = [f'<p style="white-space:pre-line">{escape_html(answer)}</p>', f"<p>{escape_html(sender)}</p>"]
+    # the person who answers often opens with « Bonjour Marc, » herself: her words then come first, the question
+    # quoted under them, and the mail does not greet twice
+    if _GREETING.match(answer):
+        parts = words + question
+    else:
+        greeting = _("Hello {0},").format(doc.first_name) if doc.first_name else _("Hello,")
+        parts = [f"<p>{escape_html(greeting)}</p>", *question, *words]
+    parts.append(
+        f'<p style="margin:22px 0"><a href="{escape_html(link.url)}" style="background:#141414;color:#ffffff;'
+        f'padding:12px 20px;border-radius:10px;text-decoration:none;font-weight:600">'
+        f"{escape_html(_('See the presentation again'))}</a></p>"
     )
+    body = "".join(parts)
     frappe.sendmail(
         recipients=[doc.email],
         subject=_("Your question on « {0} »").format(link.title),

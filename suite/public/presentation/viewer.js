@@ -245,6 +245,13 @@
 
 	// The controls -----------------------------------------------------------------------------------------------------
 	const go = (dir) => frame && frame.contentWindow.postMessage({ source: "np-viewer", type: "go", dir }, "*");
+	// the bridge only turns one slide at a time (bridge.js): as many turns as slides to the one asked
+	function goToSlide(slide) {
+		const steps = Math.max(-80, Math.min(80, slide - current));
+		for (let i = 0; i < Math.abs(steps); i++) go(Math.sign(steps));
+		// on a phone the panel covers the slide: it steps aside to show it
+		if (window.matchMedia("(max-width: 760px)").matches) toggleAsk(false);
+	}
 	$("np-prev").addEventListener("click", () => go(-1));
 	$("np-next").addEventListener("click", () => go(1));
 	document.addEventListener("keydown", (event) => {
@@ -370,7 +377,15 @@
 				body.append(el("p", "np-a-text", q.answer));
 				if ((q.sources || []).length) {
 					const chips = el("div", "np-chips");
-					q.sources.forEach((label) => chips.append(el("span", "np-chip", label)));
+					q.sources.forEach((label, i) => {
+						// a slide's chip turns the deck to it; a kept answer's chip only names who said it
+						const slide = (q.slides || [])[i];
+						if (!slide) return chips.append(el("span", "np-chip", label));
+						const chip = el("button", "np-chip np-chip-go", label);
+						chip.type = "button";
+						chip.addEventListener("click", () => goToSlide(slide));
+						chips.append(chip);
+					});
 					body.append(chips);
 				}
 			} else if (q.status === "Answered") {
