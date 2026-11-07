@@ -32642,3 +32642,300 @@ msgstr "{0} a reçu votre question : la réponse vous parviendra par e-mail, à 
 #, python-brace-format
 msgid "{0} kept"
 msgstr "Retenues : {0}"
+
+#: suite/writer/doctype/writer_document/writer_document.py:69
+msgid "A new comment must be written in your own name."
+msgstr "Un nouveau commentaire doit être écrit à votre nom."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:520
+msgid "A question"
+msgstr "Une question"
+
+#: suite/drive/presentation/questions.py:526
+#, python-brace-format
+msgid "A question of {0} to {1} characters, please."
+msgstr "Veuillez saisir une question de {0} à {1} caractères."
+
+#: suite/calendar/local.py:489
+msgid "A repeat more frequent than daily is not supported."
+msgstr "Une répétition plus fréquente que quotidienne n'est pas prise en charge."
+
+#: suite/drive/api/product.py:80 suite/drive/api/product.py:209
+msgid "account request"
+msgstr "demande de compte"
+
+#: suite/drive/api/files.py:128
+msgid "An upload in several parts must declare its size"
+msgstr "Un envoi en plusieurs parties doit indiquer sa taille"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:414
+msgid "Answered by the Team"
+msgstr "Répondu par l'équipe"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:518
+msgid "Ask the question a client would ask: Nora answers as she would answer them, from these sources."
+msgstr "Posez la question qu'un client poserait : Nora répond comme elle le ferait, à partir de ces sources."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:115
+msgctxt "device"
+msgid "Computer"
+msgstr "Ordinateur"
+
+#. Label of a Section Break field in DocType 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:242
+msgid "Counters"
+msgstr "Compteurs"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:520
+msgid "Do our data stay in Switzerland?"
+msgstr "Nos données restent-elles en Suisse ?"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:511
+msgid "Every question is forwarded to you."
+msgstr "Chaque question vous est transmise."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:191
+msgid "Everyone together · only the time the page was really looked at counts"
+msgstr "Toutes les personnes ensemble · seul le temps où la page était vraiment regardée compte"
+
+#: suite/drive/api/product.py:81
+msgid "first name"
+msgstr "prénom"
+
+#: suite/mail/api/account.py:53
+msgid "Invalid request."
+msgstr "Demande invalide."
+
+#: suite/drive/api/product.py:22 suite/drive/api/product.py:84
+#, python-brace-format
+msgid "Invalid {0}."
+msgstr "{0} invalide."
+
+#: suite/drive/api/product.py:348 suite/drive/api/product.py:363
+msgid "invitation key"
+msgstr "clé d'invitation"
+
+#: suite/drive/api/product.py:84
+msgid "last name"
+msgstr "nom"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:512
+msgid "No questions on this link."
+msgstr "Aucune question sur ce lien."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:510
+msgid "Nora answers, else she forwards to you."
+msgstr "Nora répond, sinon elle vous transmet la question."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:557
+#, python-brace-format
+msgid "Nora would forward this question to {0}."
+msgstr "Nora transmettrait cette question à {0}."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:326
+msgid "Not Opened Yet"
+msgstr "Pas encore ouvert"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:149
+msgid "Not sent from here yet"
+msgstr "Pas encore envoyé depuis ici"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:524
+msgid "Nothing is recorded or sent: it is a trial."
+msgstr "Rien n'est enregistré ni envoyé : c'est un essai."
+
+#: suite/drive/overrides/file.py:224
+msgid "Only someone who may share this file can make it public or attach it to a document"
+msgstr "Seule une personne autorisée à partager ce fichier peut le rendre public ou le joindre à un document"
+
+#: suite/mail/doctype/user_settings/user_settings.py:157
+#, python-brace-format
+msgid "Only {0} can change their backup email."
+msgstr "L'e-mail de secours ne peut être modifié que par {0}."
+
+#: suite/drive/api/product.py:82
+msgid "password"
+msgstr "mot de passe"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:116
+msgctxt "device"
+msgid "Phone"
+msgstr "Téléphone"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:309
+msgid "Saw Everything"
+msgstr "Tout vu"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:504
+msgid "See them"
+msgstr "Les voir"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:380
+#, python-brace-format
+msgid "sent to {0} by e-mail"
+msgstr "envoyé à {0} par e-mail"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:488
+msgid "She answers the people who watch the presentation from these sources, and nothing else. What she says always cites where she has it from."
+msgstr "Elle répond aux personnes qui regardent la présentation, uniquement à partir de ces sources. Chacune de ses réponses indique d'où elle la tire."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:244
+#, python-brace-format
+msgid "Slide {0} holds them the longest: {1}."
+msgstr "La diapositive {0} les retient le plus longtemps : {1}."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:243
+#, python-brace-format
+msgid "Slide {0}, « {1} », holds them the longest: {2}."
+msgstr "La diapositive {0}, « {1} », les retient le plus longtemps : {2}."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:309
+#, python-brace-format
+msgid "Stops at Slide {0}"
+msgstr "S'arrête à la {0}"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:117
+msgctxt "device"
+msgid "Tablet"
+msgstr "Tablette"
+
+#: suite/utils/document_owner.py:24
+msgid "The owner of a document cannot be changed"
+msgstr "Le propriétaire d'un document ne peut pas être modifié"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:237
+#, python-brace-format
+msgid "The part « {0} » holds them the most: {1} on {2} slides."
+msgstr "La partie « {0} » les retient le plus : {1} sur {2} diapositives."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:513
+#, python-brace-format
+msgid "The questions go to {0}."
+msgstr "Les questions sont transmises à {0}."
+
+#: suite/calendar/local.py:492
+msgid "The repeat interval must be at least 1."
+msgstr "L'intervalle de répétition doit être d'au moins 1."
+
+#: suite/drive/doctype/drive_disk_settings/drive_disk_settings.py:61
+msgid "The storage endpoint must be a public http(s) address"
+msgstr "L'adresse du point de stockage doit être une adresse http(s) publique"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:190
+msgid "The time spent on each slide"
+msgstr "Le temps passé sur chaque diapositive"
+
+#: suite/drive/api/files.py:140
+msgid "The upload is larger than the size it declared"
+msgstr "L'envoi est plus volumineux que la taille déclarée"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:496
+msgid "They often say what is not said to the client: your choice."
+msgstr "Elles disent souvent ce qu'on ne dit pas au client : à vous de choisir."
+
+#: suite/drive/api/product.py:93
+msgid "This invitation has already been used or has expired."
+msgstr "Cette invitation a déjà été utilisée ou a expiré."
+
+#: suite/drive/doctype/drive_user_invitation/drive_user_invitation.py:122
+msgid "This invitation was sent to another account."
+msgstr "Cette invitation a été envoyée à un autre compte."
+
+#: suite/drive/api/files.py:295 suite/drive/utils/files.py:810
+#, python-brace-format
+msgid "This name cannot be used: {0}"
+msgstr "Ce nom ne peut pas être utilisé : {0}"
+
+#: suite/calendar/local.py:506
+msgid "This repeat rule never gives a date."
+msgstr "Cette règle de répétition ne donne jamais de date."
+
+#: suite/drive/api/files.py:807
+msgid "This selection is too large to download at once"
+msgstr "Cette sélection est trop volumineuse pour être téléchargée d'un coup"
+
+#: suite/drive/api/product.py:89
+msgid "This sign-up link has already been used."
+msgstr "Ce lien d'inscription a déjà été utilisé."
+
+#: suite/drive/api/product.py:218
+msgid "This verification code has expired. Please request a new one."
+msgstr "Ce code de vérification a expiré. Veuillez en demander un nouveau."
+
+#: suite/drive/api/product.py:220
+msgid "Too many wrong codes. Please request a new one."
+msgstr "Trop de codes erronés. Veuillez en demander un nouveau."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:517
+msgid "Try as a Visitor"
+msgstr "Essayer comme un visiteur"
+
+#: suite/utils/file.py:42
+#, python-brace-format
+msgid "Unsafe archive member: {0}"
+msgstr "Élément d'archive non sûr : {0}"
+
+#: suite/drive/api/product.py:210
+msgid "verification code"
+msgstr "code de vérification"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:487
+msgid "What Nora Knows for This Link"
+msgstr "Ce que Nora connaît pour ce lien"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:362
+msgid "What They Asked"
+msgstr "Ce qui a été demandé"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:362
+#, python-brace-format
+msgid "What {0} Asked"
+msgstr "Ce que {0} a demandé"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:335
+msgid "Where They Are"
+msgstr "Où en est la personne"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:511
+msgid "Without Nora: the person knows you will answer by e-mail."
+msgstr "Sans Nora : la personne sait que vous répondrez par e-mail."
+
+#: suite/writer/doctype/writer_document/writer_document.py:66
+msgid "You can only change your own comments."
+msgstr "Vous ne pouvez modifier que vos propres commentaires."
+
+#: suite/mail/doctype/user_settings/user_settings.py:152
+msgid "You can only create your own user settings."
+msgstr "Vous ne pouvez créer que vos propres paramètres utilisateur."
+
+#: suite/drive/presentation/questions.py:534
+msgid "You have tried many questions today: try again tomorrow."
+msgstr "Vous avez posé beaucoup de questions aujourd'hui : réessayez demain."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:510
+msgid "You receive the question by e-mail; your answer leaves by e-mail."
+msgstr "Vous recevez la question par e-mail ; votre réponse part par e-mail."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:380
+msgid "Your Answer"
+msgstr "Votre réponse"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:281
+#, python-brace-format
+msgid "{0} comes back on {1}: a second device"
+msgstr "{0} revient sur {1} : un deuxième appareil"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:282
+#, python-brace-format
+msgid "{0} comes back, on {1}"
+msgstr "{0} revient, sur {1}"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:283
+#, python-brace-format
+msgid "{0} enters with the link copied, on {1}"
+msgstr "{0} entre avec le lien copié, sur {1}"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:250
+#, python-brace-format
+msgid "{0} stops at slide {1}."
+msgstr "{0} s'arrête à la diapositive {1}."

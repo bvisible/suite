@@ -43,7 +43,8 @@ _GREETING = re.compile(
 def extract_slides(html: str) -> list[dict]:
     """The slides of a web presentation, in the order the bridge counts them (bridge.js): the top sections of a
     reveal.js deck, else the elements marked `.slide`. Each: its `index` (from 1), `title` (`data-title`, else its
-    first heading), `text` (images' alternative texts included) and the speaker's `notes` (`aside.notes`)."""
+    first heading), `text` (images' alternative texts included), the speaker's `notes` (`aside.notes`) and the
+    `part` it belongs to (`data-part`, 0 when the deck has no parts)."""
     from bs4 import BeautifulSoup
 
     soup = BeautifulSoup(html or "", "html.parser")
@@ -66,9 +67,28 @@ def extract_slides(html: str) -> list[dict]:
                 "title": title[:140],
                 "text": _text(node)[:SLIDE_CHARS],
                 "notes": notes[:NOTES_CHARS],
+                "part": cint(node.get("data-part") or 0),
             }
         )
     return slides
+
+
+def parts_of(slides: list[dict]) -> list[dict]:
+    """The parts of a deck that marks them (`data-part`), in order: each its number, the slides it spans, and its
+    name, the title of its first slide without its number (« 04 WinBiz » → « WinBiz »)."""
+    parts: list[dict] = []
+    for slide in slides:
+        number = slide.get("part") or 0
+        if not number:
+            continue
+        if parts and parts[-1]["part"] == number:
+            parts[-1]["end"] = slide["index"]
+            continue
+        label = re.sub(r"^\s*\d+[\s.·:\u2013-]*", "", slide.get("title") or "").strip()
+        parts.append(
+            {"part": number, "label": label or str(number), "start": slide["index"], "end": slide["index"]}
+        )
+    return parts
 
 
 def _text(node) -> str:
@@ -81,7 +101,7 @@ def deck_slides(link) -> list[dict]:
 
     _, entry = rules.entry_file(link.presentation)
     modified = frappe.db.get_value("File", entry.name, "modified")
-    key = f"presentation_slides:{entry.name}:{modified}"
+    key = f"presentation_slides:v2:{entry.name}:{modified}"  # v2: each slide carries its part
     cached = frappe.cache.get_value(key)
     if cached is not None:
         return cached
@@ -479,7 +499,65 @@ def staff_view(link) -> dict:
         "nora": bool(_answerer()),
         "slides": sum(1 for p in lent.values() if p["kind"] == "slide"),
         "kept": sum(1 for p in lent.values() if p["kind"] == "answer"),
+        "reference": reference_of(link),
     }
+
+
+def reference_of(link) -> dict | None:
+    """The client or the offer the link is attached to, by its title."""
+    if not (link.reference_doctype and link.reference_name):
+        return None
+    title = link.reference_name
+    try:
+        field = frappe.get_meta(link.reference_doctype).get_title_field()
+        if field and field != "name":
+            title = frappe.db.get_value(link.reference_doctype, link.reference_name, field) or title
+    except Exception:
+        pass
+    return {"doctype": link.reference_doctype, "name": link.reference_name, "title": title}
+
+
+def trial(link, question: str, slide=None) -> dict:
+    """What Nora would answer a person of the link, asked by the team on its record (« Try as a visitor »): the
+    same passages, the same answerer and the same rule (a sure answer that cites a source the link lends), and
+    nothing recorded, counted, forwarded or sent."""
+    question = re.sub(r"[ \t]+", " ", (question or "").strip())
+    if not MIN_CHARS <= len(question) <= MAX_CHARS:
+        frappe.throw(_("A question of {0} to {1} characters, please.").format(MIN_CHARS, MAX_CHARS))
+    if not enabled(link):
+        return {"sure": False, "reason": "questions_closed"}
+    answerer = _answerer()
+    if (link.questions_mode or MODE_NORA) != MODE_NORA or not answerer:
+        return {"sure": False, "reason": "forward_every_question" if answerer else "no_answerer"}
+    # the model is called each time: a cap per person and per day, like a visitor's
+    if not _count(f"trial:{frappe.session.user}", PER_PERSON_A_DAY * 2):
+        frappe.throw(_("You have tried many questions today: try again tomorrow."))
+    lent = passages(link)
+    slide = min(max(cint(slide), 0), rules.MAX_SLIDES)
+    titles = slide_titles(link)
+    try:
+        result = answerer(
+            question=question,
+            slide=slide,
+            slide_title=titles[slide - 1] if 0 < slide <= len(titles) else "",
+            passages=lent,
+            first_name="",
+            title=link.title,
+        )
+    except Exception:
+        frappe.log_error("Presentation question: the answerer failed on a trial", frappe.get_traceback())
+        result = None
+    known = {p["id"]: p for p in lent}
+    sources = [s for s in (result or {}).get("sources") or [] if s in known]
+    answer = ((result or {}).get("answer") or "").strip()
+    if result and result.get("sure") and answer and sources:
+        return {
+            "sure": True,
+            "answer": answer,
+            "sources": [_source_label(known[s], s) for s in sources],
+            "slides": [known[s].get("slide") if known[s]["kind"] != "answer" else None for s in sources],
+        }
+    return {"sure": False, "reason": ((result or {}).get("reason") or "not_sure")[:140]}
 
 
 def reply(doc, link, answer: str, retained: int, send: int) -> dict:

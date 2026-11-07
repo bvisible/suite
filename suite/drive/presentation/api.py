@@ -5,14 +5,20 @@
 from __future__ import annotations
 
 import json
+from collections import Counter
+from datetime import timedelta
 
 import frappe
 from frappe import _
 from frappe.rate_limiter import rate_limit
-from frappe.utils import escape_html, get_datetime, now_datetime
+from frappe.utils import cint, escape_html, get_datetime, now_datetime
 
 from suite.drive.presentation import questions as asking
 from suite.drive.presentation import rules
+
+# A browser that opens the link again within this time, on the same kind of device, is the same sitting (a reload,
+# a second tab): the record tells one entry, not one per page load.
+SAME_SITTING = timedelta(minutes=30)
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -260,42 +266,98 @@ def get_stats(name: str):
         order_by="started_on asc",
     )
     names = {v.name: v for v in viewers}
+    # two people of the same first name are told apart by their address, in the log as in the sentences
+    firsts = Counter((v.first_name or "").strip().lower() for v in viewers if v.first_name)
+
+    def who(viewer) -> str:
+        if viewer and viewer.first_name and firsts[viewer.first_name.strip().lower()] > 1:
+            return f"{viewer.first_name} ({viewer.email})"
+        return _who(viewer)
+
     per_slide: dict[str, float] = {}
     slide_count = 0
     events = []
+    devices: dict[str, list[str]] = {}  # the kinds of device each person entered on, in order
+    last: dict[str, tuple] = {}  # each person's last visit: when, on what
+    videos_seen: set[tuple] = set()
     for visit in visits:
         slide_count = max(slide_count, visit.slide_count or 0)
         for key, seconds in _json(visit.slides).items():
             per_slide[key] = round(per_slide.get(key, 0) + float(seconds), 1)
         person = names.get(visit.viewer)
-        events.append({"on": visit.started_on, "kind": "visit", "who": _who(person), "device": visit.device})
+        seen = devices.setdefault(visit.viewer, [])
+        before = last.get(visit.viewer)
+        last[visit.viewer] = (visit.started_on, visit.device)
+        same_sitting = (
+            before
+            and before[1] == visit.device
+            and before[0]
+            and visit.started_on
+            and get_datetime(visit.started_on) - get_datetime(before[0]) < SAME_SITTING
+        )
+        if not same_sitting:
+            events.append(
+                {
+                    "on": visit.started_on,
+                    "kind": "visit",
+                    "who": who(person),
+                    "device": visit.device,
+                    "again": bool(before),
+                    "new_device": bool(seen) and visit.device not in seen,
+                    "via": None if before else (person or {}).get("entered_via"),
+                }
+            )
+        if visit.device and visit.device not in seen:
+            seen.append(visit.device)
         for source, percent in _json(visit.videos).items():
-            if int(percent) >= 95:
-                events.append({"on": visit.started_on, "kind": "video", "who": _who(person), "video": source})
+            if int(percent) >= 95 and (visit.viewer, source) not in videos_seen:
+                videos_seen.add((visit.viewer, source))
+                events.append({"on": visit.started_on, "kind": "video", "who": who(person), "video": source})
     for viewer in viewers:
         if viewer.invited_by and viewer.invited_by in names:
             events.append(
                 {
                     "on": viewer.creation,
                     "kind": "forwarded",
-                    "who": _who(names[viewer.invited_by]),
+                    "who": who(names[viewer.invited_by]),
                     "to": viewer.email,
                 }
             )
-        viewer.who = _who(viewer)
-        viewer.forwarded_by = _who(names.get(viewer.invited_by)) if viewer.invited_by else None
+        viewer.who = who(viewer)
+        viewer.forwarded_by = who(names.get(viewer.invited_by)) if viewer.invited_by else None
+        viewer.device_kinds = devices.get(viewer.name, [])
     events = sorted((e for e in events if e["on"]), key=lambda e: get_datetime(e["on"]))
+    try:
+        slides = asking.deck_slides(link)
+    except Exception:
+        slides = []
     return {
         "title": link.title,
         "status": link.status,
         "url": link.url,
-        "slide_count": slide_count,
+        "created_on": link.creation,
+        "presentation": frappe.db.get_value("File", link.presentation, "file_name") or link.presentation,
+        "reference": asking.reference_of(link),
+        "sent_to": rules.normalize_emails(link.recipients),
+        "slide_count": slide_count or len(slides),
+        "slide_titles": [s["title"] for s in slides],
+        "parts": asking.parts_of(slides),
         "per_slide": per_slide,
         "viewers": [v for v in viewers if v.first_seen_on],
         "invited": [v.email for v in viewers if not v.first_seen_on],
         "events": events[-40:],
         "total_seconds": sum(v.total_seconds or 0 for v in viewers),
+        "video_percent": max((v.video_percent or 0 for v in viewers), default=0),
+        "questions": cint(link.question_count),
     }
+
+
+@frappe.whitelist(methods=["POST"])
+def try_question(name: str, question: str, slide: int | None = None):
+    """What Nora would answer a person of the link, for the team to try it before sending (nothing is recorded)."""
+    link = frappe.get_doc("Presentation Link", name)
+    link.check_permission("read")
+    return asking.trial(link, question, slide)
 
 
 @frappe.whitelist()

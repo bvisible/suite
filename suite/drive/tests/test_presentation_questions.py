@@ -3,12 +3,14 @@
 # //// of and one she is not, the person who answers, the answers kept for the next people, and who reads the questions.
 from __future__ import annotations
 
+from datetime import timedelta
 from unittest import TestCase
 from unittest.mock import patch
 
 import frappe
 from frappe.tests.roles import as_role
 from frappe.tests.utils import FrappeTestCase
+from frappe.utils import get_datetime
 
 from suite.drive.presentation import api
 from suite.drive.presentation import questions as asking
@@ -35,6 +37,16 @@ class TestSlides(TestCase):
         self.assertNotIn("Ne pas dire le prix", slides[1]["text"])
         self.assertEqual(slides[1]["notes"], "Ne pas dire le prix.")
         self.assertNotIn("window.secret", slides[0]["text"])
+
+    def test_the_parts_of_a_deck_are_named_by_their_first_slide(self):
+        html = """<section class="slide" data-title="Couverture"></section>
+<section class="slide" data-part="1" data-title="01 Neoservice"></section><section class="slide" data-part="1"></section>
+<section class="slide" data-part="2" data-title="02 · WinBiz"></section>"""
+        parts = asking.parts_of(asking.extract_slides(html))
+        self.assertEqual(
+            [(p["label"], p["start"], p["end"]) for p in parts], [("Neoservice", 2, 3), ("WinBiz", 4, 4)]
+        )
+        self.assertEqual(asking.parts_of(asking.extract_slides(DECK)), [])
 
     def test_a_reveal_deck_is_read_by_its_top_sections(self):
         html = '<div class="reveal"><div class="slides"><section><h2>Un</h2></section><section><h2>Deux</h2></section></div></div>'
@@ -292,6 +304,59 @@ class TestQuestions(FrappeTestCase):
         self.assertEqual([q.status for q in view["questions"]], ["Waiting", "Answered by Nora"])
         self.assertEqual((view["count"], view["by_nora"], view["waiting"], view["slides"]), (2, 1, 1, 2))
 
+    def test_a_reload_is_one_entry_and_another_device_is_told(self):
+        first = frappe.get_all(
+            "Presentation Visit", filters={"link": self.link.name}, fields=["name", "viewer", "started_on"]
+        )[0]
+        frappe.db.set_value("Presentation Visit", first.name, "device", "Computer")
+        start = get_datetime(first.started_on)
+        for minutes, device in ((5, "Computer"), (90, "Computer"), (120, "Phone")):
+            _visit(self.link.name, first.viewer, start + timedelta(minutes=minutes), device)
+        with as_role(STAFF):
+            stats = api.get_stats(self.link.name)
+        visits = [(e["again"], e["new_device"]) for e in stats["events"] if e["kind"] == "visit"]
+        # the reload five minutes later is the same sitting; ninety minutes later she comes back; then on a phone
+        self.assertEqual(visits, [(False, False), (True, False), (True, True)])
+        self.assertEqual(stats["viewers"][0].device_kinds, ["Computer", "Phone"])
+        self.assertEqual(stats["slide_titles"], ["Couverture", "La reprise"])
+
+    def test_two_people_of_the_same_first_name_are_told_apart_by_their_address(self):
+        self.enter(email="anna.b@firm-example.ch")  # an Anna again, another person
+        with as_role(STAFF):
+            stats = api.get_stats(self.link.name)
+        self.assertEqual(
+            sorted(v.who for v in stats["viewers"]),
+            ["Anna (anna.b@firm-example.ch)", "Anna (anna@firm-example.ch)"],
+        )
+
+    def test_a_trial_answers_as_a_visitor_and_records_nothing(self):
+        sure = lambda **kw: {"sure": True, "answer": "467.", "sources": ["S2", "S9"], "reason": "answered"}  # noqa: E731
+        sent, jobs = len(self.sent), len(self.jobs)
+        with patch.object(asking, "_answerer", return_value=sure), as_role(STAFF):
+            result = api.try_question(self.link.name, "Combien de comptes ?", 2)
+        # a source the link does not lend (S9) is dropped, the one it lends is told with its slide
+        self.assertEqual((result["sure"], result["answer"], result["slides"]), (True, "467.", [2]))
+        self.assertEqual(len(result["sources"]), 1)
+        self.assertEqual(frappe.db.count("Presentation Question", {"link": self.link.name}), 0)
+        self.assertEqual((len(self.sent), len(self.jobs)), (sent, jobs))
+
+    def test_a_trial_says_why_nora_would_forward_it(self):
+        unsure = lambda **kw: {"sure": False, "answer": "", "sources": [], "reason": "price_or_commitment"}  # noqa: E731
+        with patch.object(asking, "_answerer", return_value=unsure), as_role(STAFF):
+            self.assertEqual(
+                api.try_question(self.link.name, "Combien ça coûte ?"),
+                {"sure": False, "reason": "price_or_commitment"},
+            )
+        every = self.new_link(questions_mode=asking.MODE_FORWARD)
+        called = []
+        with patch.object(asking, "_answerer", return_value=lambda **kw: called.append(kw)), as_role(STAFF):
+            self.assertEqual(api.try_question(every.name, "Combien ?")["reason"], "forward_every_question")
+        self.assertEqual(called, [])
+
+    def test_a_portal_account_cannot_try_a_question(self):
+        with as_role(PORTAL):
+            self.assertRaises(frappe.PermissionError, api.try_question, self.link.name, "Combien ?")
+
 
 def _listed(doctype: str) -> list:
     """What the acting account lists of `doctype`: a refusal lists nothing too."""
@@ -299,6 +364,20 @@ def _listed(doctype: str) -> list:
         return frappe.get_list(doctype, limit=5)
     except frappe.PermissionError:
         return []
+
+
+def _visit(link: str, viewer: str, started_on, device: str):
+    """A visit of `viewer`, as a browser that opens the link again leaves one."""
+    return frappe.get_doc(
+        {
+            "doctype": "Presentation Visit",
+            "link": link,
+            "viewer": viewer,
+            "started_on": started_on,
+            "device": device,
+            "slide_count": 2,
+        }
+    ).insert(ignore_permissions=True)
 
 
 def _file(name: str, folder: str, is_folder: int = 0, content: str | None = None):

@@ -1,0 +1,827 @@
+/* //// Neoffice — added file (no upstream equivalent): the record of a shared presentation in the desk, drawn as its
+   //// design plan draws it (the « Présentations partagées et suivies — écrans » canvas of 06.11: what they saw, the
+   //// questions, what Nora can say). Tokens are scoped to .np-desk so they never leak into the rest of the desk; the
+   //// values come from the design system (neoffice-design-system tokens/colors.css, StatusPill), with the dark scope
+   //// the theme's own screens use (neoffice_theme day_summary.css). Loaded by presentation_link.js. */
+
+.np-desk {
+	--np-signal: #f55d1a;
+	--np-signal-soft: #ffb599;
+	--np-signal-text: #aa3700;
+	--np-ink: #141414;
+	--np-on-ink: #fffdf8;
+	--np-card: #ffffff;
+	--np-head: #faf8f4;
+	--np-well: #f4f2ee;
+	--np-banner: linear-gradient(115deg, #ffefe9 0%, #fbf6ee 45%, #faf8f4 100%);
+	--np-banner-border: #fbd5c2;
+	--np-border: #e8e1d6;
+	--np-border-subtle: #f0ebe3;
+	--np-field: #d9d2c7;
+	--np-grid: #ede8e0;
+	--np-text: #141414;
+	--np-text-2: #4a4541;
+	--np-text-3: #6b6560;
+	--np-success-bg: #e6f4ea;
+	--np-success: #15803d;
+	--np-warn-bg: #fdf3dc;
+	--np-warn: #a16207;
+	--np-info-bg: #e7edfb;
+	--np-info: #1d4ed8;
+	--np-danger-bg: #fdeae4;
+	--np-danger: #c2410c;
+	--np-muted-bg: #ece7de;
+	--np-muted: #6b6560;
+
+	font-family: Karla, system-ui, sans-serif;
+	color: var(--np-text);
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+	padding: 18px 0 12px;
+	-webkit-font-smoothing: antialiased;
+}
+
+html[data-theme="dark"] .np-desk {
+	--np-signal-soft: rgba(245, 93, 26, 0.5);
+	--np-signal-text: #ff8d64;
+	--np-ink: #fffdf8;
+	--np-on-ink: #141414;
+	--np-card: #1b1611;
+	--np-head: rgba(255, 251, 245, 0.04);
+	--np-well: rgba(255, 251, 245, 0.06);
+	--np-banner: linear-gradient(118deg, #1b1611 0%, #25180f 48%, #3a1d10 100%);
+	--np-banner-border: rgba(245, 93, 26, 0.3);
+	--np-border: rgba(255, 251, 245, 0.14);
+	--np-border-subtle: rgba(255, 251, 245, 0.08);
+	--np-field: rgba(255, 251, 245, 0.24);
+	--np-grid: rgba(255, 251, 245, 0.08);
+	--np-text: #fffdf8;
+	--np-text-2: #d8d0c4;
+	--np-text-3: #b3a999;
+	--np-success-bg: rgba(31, 157, 87, 0.18);
+	--np-success: #7fd3a0;
+	--np-warn-bg: rgba(224, 152, 15, 0.18);
+	--np-warn: #f0c064;
+	--np-info-bg: rgba(59, 130, 246, 0.18);
+	--np-info: #a9c3f7;
+	--np-danger-bg: rgba(220, 74, 61, 0.18);
+	--np-danger: #ec9184;
+	--np-muted-bg: rgba(255, 251, 245, 0.08);
+	--np-muted: #d8d0c4;
+}
+
+.np-desk h1,
+.np-desk h2,
+.np-desk h3 {
+	font-family: Forum, Georgia, serif;
+	font-weight: 400;
+	letter-spacing: 0;
+	text-transform: none;
+	color: var(--np-text);
+	margin: 0;
+}
+
+/* The banner of a tab: its title, a line under it, its figures --------------------------------------------------- */
+.np-hero {
+	position: relative;
+	border: 1px solid var(--np-banner-border);
+	border-radius: 18px;
+	padding: 30px 30px 26px;
+	background: var(--np-banner);
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-end;
+	gap: 24px;
+	flex-wrap: wrap;
+}
+.np-hero > .np-pill {
+	position: absolute;
+	top: -14px;
+	left: 28px;
+}
+.np-hero-text {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	min-width: 0;
+	max-width: 680px;
+}
+.np-hero h1 {
+	font-size: 40px;
+	line-height: 1.05;
+}
+.np-hero-sub {
+	font-size: 15px;
+	line-height: 1.5;
+	color: var(--np-text-2);
+}
+.np-figures {
+	display: flex;
+	gap: 28px;
+	flex-wrap: wrap;
+}
+.np-figure {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 4px;
+}
+.np-figure + .np-figure {
+	border-left: 1px solid var(--np-banner-border);
+	padding-left: 28px;
+}
+.np-figure b {
+	font-family: Forum, Georgia, serif;
+	font-weight: 400;
+	font-size: 46px;
+	line-height: 1;
+	font-variant-numeric: tabular-nums;
+}
+.np-label {
+	font-size: 11.5px;
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--np-text-3);
+}
+.np-reading {
+	display: flex;
+	gap: 10px;
+	align-items: flex-start;
+	font-size: 15px;
+	line-height: 1.5;
+	color: var(--np-text-2);
+}
+.np-orb {
+	width: 22px;
+	height: 22px;
+	flex-shrink: 0;
+	margin-top: 1px;
+}
+
+/* Cards ------------------------------------------------------------------------------------------------------------ */
+.np-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 24px;
+	align-items: flex-start;
+}
+.np-card {
+	background: var(--np-card);
+	border: 1px solid var(--np-border);
+	border-radius: 18px;
+	padding: 22px 24px;
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	min-width: 0;
+	box-sizing: border-box;
+}
+.np-wide {
+	flex: 999 1 600px;
+}
+.np-side {
+	flex: 1 1 300px;
+}
+.np-card-head {
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+.np-card h2 {
+	font-size: 26px;
+	line-height: 1.15;
+}
+.np-note {
+	font-size: 13px;
+	line-height: 1.45;
+	color: var(--np-text-3);
+}
+.np-text {
+	margin: 0;
+	font-size: 14px;
+	line-height: 1.55;
+	color: var(--np-text-2);
+}
+.np-empty {
+	font-size: 15px;
+	color: var(--np-text-2);
+	padding: 8px 0;
+}
+
+/* The time on each slide: one series, its heaviest slides in the signal --------------------------------------------- */
+.np-chart {
+	position: relative;
+	height: 230px;
+	display: flex;
+	align-items: flex-end;
+	gap: 2px;
+	border-bottom: 1px solid var(--np-field);
+	padding-top: 28px;
+	box-sizing: border-box;
+}
+.np-grid {
+	position: absolute;
+	left: 0;
+	right: 0;
+	border-top: 1px dashed var(--np-grid);
+	pointer-events: none;
+}
+.np-bar {
+	flex: 1 1 0;
+	height: 100%;
+	position: relative;
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	min-width: 0;
+	background: transparent;
+	border: 0;
+	padding: 0;
+	cursor: default;
+}
+.np-bar i {
+	display: block;
+	width: 100%;
+	max-width: 22px;
+	min-height: 2px;
+	border-radius: 4px 4px 0 0;
+	background: var(--np-signal-soft);
+}
+.np-bar.np-top i {
+	background: var(--np-signal);
+}
+.np-bar:hover i,
+.np-bar:focus-visible i {
+	background: var(--np-signal);
+	outline: 2px solid var(--np-card);
+}
+.np-bar:focus-visible {
+	outline: none;
+}
+.np-bar em {
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
+	white-space: nowrap;
+	font-style: normal;
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--np-text);
+	pointer-events: none;
+}
+.np-tip {
+	position: absolute;
+	z-index: 3;
+	transform: translate(-50%, calc(-100% - 10px));
+	background: var(--np-ink);
+	color: var(--np-on-ink);
+	border-radius: 10px;
+	padding: 8px 11px;
+	font-size: 12.5px;
+	line-height: 1.4;
+	max-width: 260px;
+	pointer-events: none;
+	box-shadow: 0 6px 16px rgba(40, 28, 18, 0.18);
+}
+.np-tip b {
+	display: block;
+	font-weight: 700;
+}
+.np-tip[hidden] {
+	display: none;
+}
+.np-axis {
+	display: flex;
+	justify-content: space-between;
+	font-size: 12px;
+	color: var(--np-text-3);
+	font-variant-numeric: tabular-nums;
+}
+.np-parts {
+	display: grid;
+	gap: 4px;
+	font-size: 12px;
+	color: var(--np-text-3);
+}
+.np-parts div {
+	border-top: 2px solid var(--np-border);
+	padding-top: 6px;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.np-parts div.np-on {
+	border-top-color: var(--np-ink);
+	color: var(--np-text);
+	font-weight: 700;
+}
+
+/* What happened ----------------------------------------------------------------------------------------------------- */
+.np-log {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	font-size: 14px;
+	line-height: 1.45;
+}
+.np-log li {
+	display: flex;
+	gap: 12px;
+}
+.np-log time {
+	flex-shrink: 0;
+	width: 46px;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+.np-log .np-day {
+	font-size: 11.5px;
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--np-text-3);
+	padding-top: 4px;
+}
+
+/* The people -------------------------------------------------------------------------------------------------------- */
+.np-table-card {
+	background: var(--np-card);
+	border: 1px solid var(--np-border);
+	border-radius: 18px;
+	overflow: hidden;
+}
+.np-scroll {
+	overflow-x: auto;
+}
+.np-table {
+	width: 100%;
+	min-width: 860px;
+	border-collapse: collapse;
+	font-size: 14.5px;
+}
+.np-table th {
+	background: var(--np-head);
+	text-align: left;
+	font-weight: 500;
+	color: var(--np-text-2);
+	padding: 14px 12px;
+	white-space: nowrap;
+}
+.np-table td {
+	padding: 14px 12px;
+	border-top: 1px solid var(--np-border-subtle);
+	vertical-align: middle;
+}
+.np-table th:first-child,
+.np-table td:first-child {
+	padding-left: 20px;
+}
+.np-table th:last-child,
+.np-table td:last-child {
+	padding-right: 20px;
+}
+.np-table .np-num {
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+.np-who {
+	font-weight: 600;
+}
+.np-mail {
+	font-size: 12.5px;
+	color: var(--np-text-3);
+}
+
+/* The five tones of a state (design system StatusPill) ---------------------------------------------------------------- */
+.np-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	padding: 6px 13px;
+	border-radius: 999px;
+	font-size: 13.5px;
+	font-weight: 500;
+	line-height: 1.2;
+	white-space: nowrap;
+	background: var(--np-muted-bg);
+	color: var(--np-muted);
+}
+.np-pill::before {
+	content: "";
+	width: 6px;
+	height: 6px;
+	border-radius: 999px;
+	background: currentColor;
+	flex: 0 0 auto;
+}
+.np-pill.np-success {
+	background: var(--np-success-bg);
+	color: var(--np-success);
+}
+.np-pill.np-warn {
+	background: var(--np-warn-bg);
+	color: var(--np-warn);
+}
+.np-pill.np-info {
+	background: var(--np-info-bg);
+	color: var(--np-info);
+}
+.np-pill.np-danger {
+	background: var(--np-danger-bg);
+	color: var(--np-danger);
+}
+
+/* The questions ----------------------------------------------------------------------------------------------------- */
+.np-waiting {
+	background: var(--np-card);
+	border: 1px solid var(--np-ink);
+	border-radius: 18px;
+	padding: 22px 24px;
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+.np-meta {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+	font-size: 14px;
+	color: var(--np-text-2);
+}
+.np-meta b {
+	color: var(--np-text);
+}
+.np-quote {
+	font-family: Forum, Georgia, serif;
+	font-size: 26px;
+	line-height: 1.2;
+	white-space: pre-line;
+}
+.np-field-label {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--np-text-2);
+	margin: 0 0 6px;
+	display: block;
+}
+.np-desk textarea.np-input,
+.np-desk input.np-input {
+	width: 100%;
+	box-sizing: border-box;
+	border: 1px solid var(--np-field);
+	border-radius: 12px;
+	padding: 12px 14px;
+	font: inherit;
+	font-size: 14.5px;
+	line-height: 1.55;
+	color: var(--np-text);
+	background: var(--np-card);
+	resize: vertical;
+}
+.np-desk textarea.np-input {
+	min-height: 104px;
+}
+.np-desk .np-input:focus {
+	outline: none;
+	border-color: var(--np-signal);
+	box-shadow: 0 0 0 3px rgba(245, 93, 26, 0.18);
+}
+.np-actions {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 14px;
+	flex-wrap: wrap;
+}
+.np-list {
+	background: var(--np-card);
+	border: 1px solid var(--np-border);
+	border-radius: 18px;
+	overflow: hidden;
+}
+.np-list-head {
+	padding: 16px 24px;
+	background: var(--np-head);
+	font-family: Forum, Georgia, serif;
+	font-size: 22px;
+}
+.np-item {
+	border-top: 1px solid var(--np-border-subtle);
+	padding: 18px 24px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.np-item-q {
+	font-size: 15.5px;
+	font-weight: 600;
+	white-space: pre-line;
+}
+.np-item-a {
+	display: flex;
+	gap: 10px;
+	align-items: flex-start;
+	font-size: 14px;
+	line-height: 1.5;
+	color: var(--np-text-2);
+	white-space: pre-line;
+}
+.np-item-a .np-orb {
+	width: 18px;
+	height: 18px;
+	margin-top: 2px;
+}
+.np-src {
+	color: var(--np-text-3);
+}
+.np-link {
+	font-size: 13.5px;
+	font-weight: 600;
+	color: var(--np-signal-text);
+	background: none;
+	border: 0;
+	padding: 0;
+	cursor: pointer;
+}
+.np-link:hover {
+	text-decoration: underline;
+}
+
+/* A switch and a choice, drawn as the design system's Switch ----------------------------------------------------------- */
+.np-switch {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 14px;
+	color: var(--np-text);
+	margin: 0;
+	cursor: pointer;
+}
+/* the desk draws every checkbox and radio with its own tick and size: those are set back here */
+.np-desk .np-switch input[type="checkbox"],
+.np-desk .np-choice input[type="radio"] {
+	background-image: none !important;
+	box-shadow: none !important;
+	outline-offset: 2px;
+}
+.np-desk .np-switch input[type="checkbox"] {
+	border: 0 !important;
+}
+.np-desk .np-switch input {
+	appearance: none;
+	-webkit-appearance: none;
+	width: 38px !important;
+	height: 22px !important;
+	min-width: 38px;
+	border-radius: 999px;
+	background: var(--np-field);
+	position: relative;
+	flex-shrink: 0;
+	margin: 0;
+	cursor: pointer;
+	transition: background 120ms ease;
+}
+.np-switch input::after {
+	content: "";
+	position: absolute;
+	top: 3px;
+	left: 3px;
+	width: 16px;
+	height: 16px;
+	border-radius: 999px;
+	background: #fffdf8;
+	transition: left 120ms ease;
+}
+.np-desk .np-switch input:checked {
+	background-color: var(--np-ink) !important;
+}
+.np-desk .np-switch input:not(:checked) {
+	background-color: var(--np-field) !important;
+}
+.np-switch input:checked::after {
+	left: 19px;
+	background: var(--np-on-ink);
+}
+.np-switch input:disabled {
+	cursor: default;
+	opacity: 0.7;
+}
+.np-switch input:focus-visible {
+	outline: 2px solid var(--np-signal);
+	outline-offset: 2px;
+}
+.np-choice {
+	display: flex;
+	gap: 12px;
+	align-items: flex-start;
+	font-size: 14px;
+	line-height: 1.45;
+	margin: 0;
+	cursor: pointer;
+}
+.np-desk .np-choice input {
+	background-color: transparent !important;
+	appearance: none;
+	-webkit-appearance: none;
+	width: 18px !important;
+	height: 18px !important;
+	border-radius: 999px !important;
+	border: 2px solid var(--np-ink) !important;
+	flex-shrink: 0;
+	margin: 1px 0 0;
+	display: grid;
+	place-content: center;
+	cursor: pointer;
+}
+.np-desk .np-choice input[type="radio"]::before,
+.np-desk .np-choice input[type="radio"]::after {
+	content: none !important;
+}
+.np-desk .np-choice input[type="radio"]:checked::before {
+	content: "" !important;
+	position: static !important;
+	transform: none !important;
+	width: 8px !important;
+	height: 8px !important;
+	border: 0 !important;
+	border-radius: 999px;
+	background: var(--np-ink) !important;
+}
+.np-choice input:focus-visible {
+	outline: 2px solid var(--np-signal);
+	outline-offset: 2px;
+}
+.np-choice span span {
+	color: var(--np-text-3);
+}
+
+/* What Nora can say ------------------------------------------------------------------------------------------------- */
+.np-sources {
+	background: var(--np-card);
+	border: 1px solid var(--np-border);
+	border-radius: 18px;
+	overflow: hidden;
+}
+.np-source {
+	display: flex;
+	gap: 16px;
+	align-items: flex-start;
+	padding: 16px 20px;
+}
+.np-source + .np-source {
+	border-top: 1px solid var(--np-border-subtle);
+}
+.np-source .np-switch {
+	margin-top: 2px;
+}
+.np-source-body {
+	flex-grow: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+.np-source-title {
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+	align-items: baseline;
+	font-size: 15.5px;
+	font-weight: 700;
+}
+.np-source-title span {
+	font-size: 13px;
+	font-weight: 400;
+	color: var(--np-text-3);
+}
+.np-source-detail {
+	font-size: 13.5px;
+	line-height: 1.5;
+	color: var(--np-text-2);
+}
+.np-lock {
+	border-radius: 18px;
+	background: var(--np-well);
+	padding: 18px 20px;
+	display: flex;
+	gap: 14px;
+	align-items: flex-start;
+	font-size: 14px;
+	line-height: 1.55;
+}
+.np-lock svg {
+	flex-shrink: 0;
+	margin-top: 1px;
+	color: var(--np-text);
+}
+.np-try {
+	border: 1px solid var(--np-banner-border);
+	border-radius: 18px;
+	padding: 20px 22px;
+	background: var(--np-banner);
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+.np-try-head {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+}
+.np-try-head .np-orb {
+	width: 28px;
+	height: 28px;
+}
+.np-try-head h3 {
+	font-size: 24px;
+}
+.np-try-form {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+.np-try-form textarea {
+	flex: 1 1 100%;
+	min-height: 0 !important;
+	resize: none !important;
+}
+.np-try-answer {
+	display: flex;
+	gap: 10px;
+	align-items: flex-start;
+	font-size: 14px;
+	line-height: 1.5;
+}
+.np-try-answer .np-orb {
+	width: 20px;
+	height: 20px;
+}
+.np-chips {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+	margin-top: 8px;
+}
+.np-chip {
+	border: 1px solid var(--np-border);
+	background: var(--np-card);
+	border-radius: 999px;
+	padding: 3px 10px;
+	font-size: 12px;
+	color: var(--np-text-2);
+}
+.np-try-foot {
+	border-top: 1px solid var(--np-banner-border);
+	padding-top: 12px;
+	font-size: 13px;
+	line-height: 1.5;
+	color: var(--np-text-2);
+}
+.np-warning {
+	font-size: 14px;
+	color: var(--np-signal-text);
+}
+
+@media (max-width: 640px) {
+	.np-hero {
+		padding: 26px 20px 20px;
+	}
+	.np-hero h1 {
+		font-size: 32px;
+	}
+	.np-figure b {
+		font-size: 36px;
+	}
+	.np-figure,
+	.np-figure + .np-figure {
+		align-items: flex-start;
+		border-left: 0;
+		padding-left: 0;
+	}
+	.np-card,
+	.np-waiting {
+		padding: 18px;
+	}
+	.np-quote {
+		font-size: 22px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.np-switch input,
+	.np-switch input::after {
+		transition: none;
+	}
+}

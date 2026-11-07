@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Frappe Suite VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-11-06 20:48+0000\n"
-"PO-Revision-Date: 2026-11-06 20:48+0000\n"
+"POT-Creation-Date: 2026-11-07 16:02+0000\n"
+"PO-Revision-Date: 2026-11-07 16:02+0000\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -350,16 +350,16 @@ msgstr ""
 
 #. Description of the 'Presentation' (Link) field in DocType 'Presentation
 #. Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:58
+#: suite/drive/doctype/presentation_link/presentation_link.json:109
 msgid "A Drive folder that holds an index.html, or an HTML file."
 msgstr ""
 
 #. Label of a Check field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:131
+#: suite/drive/doctype/presentation_link/presentation_link.json:197
 msgid "A Forwarded Address Outside the List Can Enter"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:39
+#: suite/drive/doctype/presentation_link/presentation_link.js:66
 msgid "A Note"
 msgstr ""
 
@@ -377,7 +377,7 @@ msgstr ""
 msgid "A calendar needs a name."
 msgstr ""
 
-#: suite/drive/presentation/api.py:517
+#: suite/drive/presentation/api.py:586
 msgid "A code will be sent to this address to open it."
 msgstr ""
 
@@ -516,13 +516,22 @@ msgstr ""
 msgid "A patch encoding the change between the data in the event property, and the data after the update."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:121
+#: suite/drive/doctype/presentation_link/presentation_link.js:347
 msgid "A price or a commitment: Nora leaves it to you."
 msgstr ""
 
-#: suite/drive/presentation/questions.py:174
+#: suite/drive/doctype/presentation_link/presentation_link.js:520
+msgid "A question"
+msgstr ""
+
+#: suite/drive/presentation/questions.py:202
 #, python-brace-format
 msgid "A question of {0} characters at most, please."
+msgstr ""
+
+#: suite/drive/presentation/questions.py:526
+#, python-brace-format
+msgid "A question of {0} to {1} characters, please."
 msgstr ""
 
 #: suite/drive/presentation/renderer.py:167
@@ -716,12 +725,12 @@ msgid "Accepted"
 msgstr ""
 
 #. Label of a Small Text field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:114
+#: suite/drive/doctype/presentation_link/presentation_link.json:180
 msgid "Accepted Addresses"
 msgstr ""
 
 #. Label of a Small Text field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:108
+#: suite/drive/doctype/presentation_link/presentation_link.json:174
 msgid "Accepted Domains"
 msgstr ""
 
@@ -2348,11 +2357,10 @@ msgstr ""
 
 #. Label of a Small Text field in DocType 'Presentation Question'
 #: suite/drive/doctype/presentation_question/presentation_question.json:160
-#: suite/drive/presentation/questions.py:303
 msgid "Answer"
 msgstr ""
 
-#: suite/drive/presentation/questions.py:133
+#: suite/drive/presentation/questions.py:161
 #: suite/drive/presentation/renderer.py:183
 #, python-brace-format
 msgid "Answer of {0}"
@@ -2360,7 +2368,7 @@ msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Presentation Question'
 #. Label of a Check field in DocType 'Mail Message'
-#: suite/drive/doctype/presentation_link/presentation_link.js:174
+#: suite/drive/doctype/presentation_link/presentation_link.js:404
 #: suite/drive/doctype/presentation_question/presentation_question.json:83
 #: suite/mail/doctype/mail_message/mail_message.json:297
 msgid "Answered"
@@ -2377,10 +2385,15 @@ msgid "Answered On"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Presentation Question'
-#: suite/drive/doctype/presentation_link/presentation_link.js:172
-#: suite/drive/doctype/presentation_link/presentation_link.js:187
+#: suite/drive/doctype/presentation_link/presentation_link.js:369
+#: suite/drive/doctype/presentation_link/presentation_link.js:393
+#: suite/drive/doctype/presentation_link/presentation_link.js:413
 #: suite/drive/doctype/presentation_question/presentation_question.json:83
 msgid "Answered by Nora"
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:414
+msgid "Answered by the Team"
 msgstr ""
 
 #. Label of a Password field in DocType 'Sheets AI Settings'
@@ -2776,6 +2789,7 @@ msgid "Ascending"
 msgstr ""
 
 #: frontend/src/neoffice/i18nRegistry.ts:141
+#: suite/drive/doctype/presentation_link/presentation_link.js:521
 msgid "Ask"
 msgstr ""
 
@@ -2810,6 +2824,10 @@ msgstr ""
 msgid "Ask the participants"
 msgstr ""
 
+#: suite/drive/doctype/presentation_link/presentation_link.js:518
+msgid "Ask the question a client would ask: Nora answers as she would answer them, from these sources."
+msgstr ""
+
 #. Option for the 'On Mark As Junk' (Select) field in DocType 'JMAP Account'
 #: suite/mail/doctype/jmap_account/jmap_account.json:100
 msgid "Ask to Block Sender"
@@ -2826,7 +2844,7 @@ msgid "Ask your audience something..."
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Presentation Question'
-#: suite/drive/doctype/presentation_link/presentation_link.js:175
+#: suite/drive/doctype/presentation_link/presentation_link.js:394
 #: suite/drive/doctype/presentation_question/presentation_question.json:83
 msgid "Asked"
 msgstr ""
@@ -2854,7 +2872,7 @@ msgstr ""
 
 #. Description of the 'Logo on the Page' (Attach Image) field in DocType
 #. 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:150
+#: suite/drive/doctype/presentation_link/presentation_link.json:216
 msgid "At the top of the visitor's page: a still logo."
 msgstr ""
 
@@ -4234,6 +4252,10 @@ msgstr ""
 msgid "Certificate not trusted"
 msgstr ""
 
+#: suite/drive/doctype/presentation_link/presentation_link.js:513
+msgid "Change"
+msgstr ""
+
 #: frontend/src/apps/mail/components/Settings/ScreenedEmailAddressSettings.vue:78
 #: frontend/src/apps/mail/components/Settings/ScreenedEmailAddressSettings.vue:81
 #: suite/public/frontend/assets/useSettingsTabs-Hpjy0YuI.js:1
@@ -4827,6 +4849,11 @@ msgstr ""
 msgid "Computer"
 msgstr ""
 
+#: suite/drive/doctype/presentation_link/presentation_link.js:115
+msgctxt "device"
+msgid "Computer"
+msgstr ""
+
 #: frontend/src/apps/mail/pages/OutboxView.vue:336
 #: suite/public/frontend/assets/OutboxView-BmrKlPMn.js:1
 msgid "Concluded deliveries — delivered, sent, or failed — will appear here."
@@ -5304,7 +5331,7 @@ msgstr ""
 msgid "Copy meeting link"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:12
+#: suite/drive/doctype/presentation_link/presentation_link.js:22
 msgid "Copy the Link"
 msgstr ""
 
@@ -5328,11 +5355,11 @@ msgstr ""
 msgid "Corner Radius"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:226
+#: suite/drive/doctype/presentation_link/presentation_link.js:449
 msgid "Correct Nora's Answer"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:176
+#: suite/drive/doctype/presentation_link/presentation_link.js:393
 msgid "Correct the answer"
 msgstr ""
 
@@ -5622,6 +5649,11 @@ msgstr ""
 #: frontend/src/neoffice/i18nRegistry.ts:292
 #, python-brace-format
 msgid "Count: {0}"
+msgstr ""
+
+#. Label of a Section Break field in DocType 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:242
+msgid "Counters"
 msgstr ""
 
 #. Label of a Data field in DocType 'Contact Card Address'
@@ -7166,7 +7198,7 @@ msgstr ""
 #. Label of a Int field in DocType 'Presentation Viewer'
 #: frontend/src/apps/meet/components/settings/DeviceSettingsTab.vue:4
 #: frontend/src/neoffice/i18nRegistry.ts:360
-#: suite/drive/doctype/presentation_link/presentation_link.js:108
+#: suite/drive/doctype/presentation_link/presentation_link.js:333
 #: suite/drive/doctype/presentation_viewer/presentation_viewer.json:114
 #: suite/public/frontend/assets/Meeting-BeGFmKzH.js:209
 msgid "Devices"
@@ -7389,6 +7421,10 @@ msgstr ""
 #: frontend/src/neoffice/i18nRegistry.ts:368
 #: suite/public/frontend/assets/PresentationEditor-IsjU5CLs.js:1
 msgid "Distribute columns"
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:520
+msgid "Do our data stay in Switzerland?"
 msgstr ""
 
 #. Label of a Dynamic Link field in DocType 'Drive Notification'
@@ -7622,7 +7658,7 @@ msgstr ""
 #: suite/calendar/doctype/calendar_event/calendar_event.json:71
 #: suite/calendar/doctype/calendar_exchange/calendar_exchange.json:67
 #: suite/calendar/doctype/event_notification/event_notification.json:158
-#: suite/drive/doctype/presentation_link/presentation_link.json:72
+#: suite/drive/doctype/presentation_link/presentation_link.json:123
 #: suite/mail/doctype/contacts_exchange/contacts_exchange.json:66
 #: suite/mail/doctype/mail_exchange/mail_exchange.json:67
 #: suite/mail/doctype/mail_message/mail_message.json:272
@@ -7860,7 +7896,7 @@ msgstr ""
 msgid "Duration is required for non-draft events."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:37
+#: suite/drive/doctype/presentation_link/presentation_link.js:64
 msgid "E-mail Address"
 msgstr ""
 
@@ -8941,6 +8977,10 @@ msgstr ""
 msgid "Every event on this calendar will be deleted too. This can't be undone."
 msgstr ""
 
+#: suite/drive/doctype/presentation_link/presentation_link.js:511
+msgid "Every question is forwarded to you."
+msgstr ""
+
 #: frontend/src/apps/mail/pages/dashboard/TlsReportsView.vue:45
 #: suite/public/frontend/assets/TlsReportsView-Df8EL14C.js:1
 msgid "Every reported session negotiated TLS."
@@ -8986,6 +9026,10 @@ msgstr ""
 
 #: frontend/src/apps/meet/components/MeetingInfoContent.vue:29
 msgid "Everyone in this meeting should see the same fingerprint"
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:191
+msgid "Everyone together · only the time the page was really looked at counts"
 msgstr ""
 
 #: frontend/src/apps/calendar/components/NeoCockpitSidebar.vue:137
@@ -9116,7 +9160,7 @@ msgid "Expires At"
 msgstr ""
 
 #. Label of a Datetime field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:142
+#: suite/drive/doctype/presentation_link/presentation_link.json:208
 msgid "Expires On"
 msgstr ""
 
@@ -10159,7 +10203,7 @@ msgstr ""
 #: frontend/src/apps/mail/pages/InviteSetupView.vue:14
 #: frontend/src/apps/mail/pages/SignupView.vue:72
 #: frontend/src/neoffice/i18nRegistry.ts:489
-#: suite/drive/doctype/presentation_link/presentation_link.js:38
+#: suite/drive/doctype/presentation_link/presentation_link.js:65
 #: suite/drive/doctype/presentation_question/presentation_question.json:72
 #: suite/drive/doctype/presentation_viewer/presentation_viewer.json:48
 #: suite/mail/doctype/mail_account_request/mail_account_request.js:52
@@ -10171,7 +10215,7 @@ msgid "First Name"
 msgstr ""
 
 #. Label of a Datetime field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:190
+#: suite/drive/doctype/presentation_link/presentation_link.json:247
 msgid "First Opened On"
 msgstr ""
 
@@ -10446,7 +10490,7 @@ msgstr ""
 
 #. Option for the 'When Someone Asks a Question' (Select) field in DocType
 #. 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:274
+#: suite/drive/doctype/presentation_link/presentation_link.json:86
 msgid "Forward Every Question"
 msgstr ""
 
@@ -10467,7 +10511,7 @@ msgstr ""
 
 #. Option for the 'Entered Via' (Select) field in DocType 'Presentation Viewer'
 #. Label of a Check field in DocType 'Mail Message'
-#: suite/drive/doctype/presentation_link/presentation_link.js:79
+#: suite/drive/doctype/presentation_link/presentation_link.js:303
 #: suite/drive/doctype/presentation_viewer/presentation_viewer.json:55
 #: suite/mail/doctype/mail_message/mail_message.json:305
 msgid "Forwarded"
@@ -10483,7 +10527,7 @@ msgstr ""
 msgid "Forwarded From (Email ID)"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:83
+#: suite/drive/doctype/presentation_link/presentation_link.js:306
 #, python-brace-format
 msgid "Forwarded by {0}"
 msgstr ""
@@ -11295,14 +11339,14 @@ msgstr ""
 msgid "Hello world"
 msgstr ""
 
-#: suite/drive/presentation/api.py:505
-#: suite/drive/presentation/questions.py:474
+#: suite/drive/presentation/api.py:574
+#: suite/drive/presentation/questions.py:602
 #, python-brace-format
 msgid "Hello {0},"
 msgstr ""
 
-#: suite/drive/presentation/api.py:505
-#: suite/drive/presentation/questions.py:474
+#: suite/drive/presentation/api.py:574
+#: suite/drive/presentation/questions.py:602
 #: suite/templates/emails/generic.html:13
 msgid "Hello,"
 msgstr ""
@@ -11432,7 +11476,7 @@ msgstr ""
 msgid "Hours"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:108
+#: suite/drive/doctype/presentation_link/presentation_link.js:333
 msgid "How They Entered"
 msgstr ""
 
@@ -11449,7 +11493,7 @@ msgstr ""
 
 #. Description of the 'Logo Seconds' (Float) field in DocType 'Presentation
 #. Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:167
+#: suite/drive/doctype/presentation_link/presentation_link.json:233
 msgid "How long the logo stays: 1.2 s for a still logo, the length of its motion for an animated one."
 msgstr ""
 
@@ -12552,7 +12596,7 @@ msgstr ""
 msgid "Is there an issue with your configuration?"
 msgstr ""
 
-#: suite/drive/presentation/api.py:491
+#: suite/drive/presentation/api.py:556
 msgid "It is valid for 10 minutes. If you did not ask for it, ignore this e-mail."
 msgstr ""
 
@@ -13046,14 +13090,13 @@ msgstr ""
 
 #. Label of a Datetime field in DocType 'Drive Sync Device'
 #: suite/drive/doctype/drive_sync_device/drive_sync_device.json:94
-#: suite/drive/doctype/presentation_link/presentation_link.js:108
 msgid "Last Seen"
 msgstr ""
 
 #. Label of a Datetime field in DocType 'Presentation Link'
 #. Label of a Datetime field in DocType 'Presentation Viewer'
 #. Label of a Datetime field in DocType 'Presentation Visit'
-#: suite/drive/doctype/presentation_link/presentation_link.json:197
+#: suite/drive/doctype/presentation_link/presentation_link.json:254
 #: suite/drive/doctype/presentation_viewer/presentation_viewer.json:78
 #: suite/drive/doctype/presentation_visit/presentation_visit.json:72
 msgid "Last Seen On"
@@ -13062,6 +13105,10 @@ msgstr ""
 #: frontend/src/apps/mail/pages/dashboard/DomainsView.vue:122
 #: suite/public/frontend/assets/DomainsView-BC5FRXDG.js:1
 msgid "Last Verified"
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:335
+msgid "Last Visit"
 msgstr ""
 
 #: frontend/src/components/settings/UserProfileSettings.vue:74
@@ -13279,7 +13326,7 @@ msgstr ""
 #: frontend/src/apps/drive/components/Navbar.vue:445
 #: frontend/src/neoffice/i18nRegistry.ts:657
 #: suite/calendar/doctype/event_link/event_link.json:35
-#: suite/drive/doctype/presentation_link/presentation_link.json:94
+#: suite/drive/doctype/presentation_link/presentation_link.json:145
 #: suite/public/frontend/assets/ErrorPage-DAoI7YCq.js:1
 #: suite/public/frontend/assets/editor-Ckxnl2Xw.js:14
 #: suite/public/frontend/assets/kits-C8eIF3Ue.js:1
@@ -13302,12 +13349,12 @@ msgid "Link name"
 msgstr ""
 
 #. Label of a Dynamic Link field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:88
+#: suite/drive/doctype/presentation_link/presentation_link.json:139
 msgid "Linked Document"
 msgstr ""
 
 #. Label of a Link field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:81
+#: suite/drive/doctype/presentation_link/presentation_link.json:132
 msgid "Linked To"
 msgstr ""
 
@@ -13593,17 +13640,17 @@ msgid "Logo"
 msgstr ""
 
 #. Label of a Float field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:170
+#: suite/drive/doctype/presentation_link/presentation_link.json:236
 msgid "Logo Seconds"
 msgstr ""
 
 #. Label of a Attach Image field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:159
+#: suite/drive/doctype/presentation_link/presentation_link.json:225
 msgid "Logo of the Opening"
 msgstr ""
 
 #. Label of a Attach Image field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:153
+#: suite/drive/doctype/presentation_link/presentation_link.json:219
 msgid "Logo on the Page"
 msgstr ""
 
@@ -15053,7 +15100,7 @@ msgstr ""
 #: frontend/src/apps/mail/components/mobile/MobileFolderSheet.vue:142
 #: frontend/src/apps/mail/pages/MailboxView.vue:421
 #: frontend/src/neoffice/i18nRegistry.ts:718
-#: suite/drive/doctype/presentation_link/presentation_link.js:20
+#: suite/drive/doctype/presentation_link/presentation_link.js:30
 #: suite/public/frontend/assets/MailLayout-DfYAvNbs.js:1
 #: suite/public/frontend/assets/MailboxView-BoFCiJ_J.js:1
 msgid "More"
@@ -15567,7 +15614,7 @@ msgstr ""
 msgid "Never"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:256
+#: suite/drive/doctype/presentation_link/presentation_link.js:507
 msgid "Never, for a person outside:"
 msgstr ""
 
@@ -15909,7 +15956,7 @@ msgstr ""
 
 #. Option for the 'When Someone Asks a Question' (Select) field in DocType
 #. 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:274
+#: suite/drive/doctype/presentation_link/presentation_link.json:86
 msgid "No Questions"
 msgstr ""
 
@@ -16414,6 +16461,10 @@ msgstr ""
 msgid "No push subscriptions."
 msgstr ""
 
+#: suite/drive/doctype/presentation_link/presentation_link.js:512
+msgid "No questions on this link."
+msgstr ""
+
 #: suite/mail/doctype/quota/quota.py:73
 msgid "No quotas found."
 msgstr ""
@@ -16537,11 +16588,11 @@ msgstr ""
 msgid "No {0} found for namespace {1}."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:140
+#: suite/drive/doctype/presentation_link/presentation_link.js:367
 msgid "Nobody has asked a question yet. People ask from the presentation, on the slide on screen."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:67
+#: suite/drive/doctype/presentation_link/presentation_link.js:143
 msgid "Nobody has entered yet."
 msgstr ""
 
@@ -16590,15 +16641,13 @@ msgid "None yet."
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Presentation Question'
-#: suite/drive/doctype/presentation_link/presentation_link.js:163
-#: suite/drive/doctype/presentation_link/presentation_link.js:195
 #: suite/drive/doctype/presentation_question/presentation_question.json:122
 msgid "Nora"
 msgstr ""
 
 #. Option for the 'When Someone Asks a Question' (Select) field in DocType
 #. 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:274
+#: suite/drive/doctype/presentation_link/presentation_link.json:86
 msgid "Nora Answers, Else Forwards"
 msgstr ""
 
@@ -16608,7 +16657,7 @@ msgid "Nora Keeps This Answer for the Next People"
 msgstr ""
 
 #. Label of a Check field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:292
+#: suite/drive/doctype/presentation_link/presentation_link.json:94
 msgid "Nora Reads the Speaker Notes"
 msgstr ""
 
@@ -16617,35 +16666,45 @@ msgstr ""
 msgid "Nora answers from this presentation. Otherwise, she passes it on to {0}."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:124
+#: suite/drive/doctype/presentation_link/presentation_link.js:510
+msgid "Nora answers, else she forwards to you."
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:350
 msgid "Nora did not find a sure answer in the presentation."
 msgstr ""
 
-#: suite/drive/presentation/questions.py:337
+#: suite/drive/presentation/questions.py:385
 msgid "Nora did not find a sure answer in the presentation: she told the person that you answer by e-mail."
 msgstr ""
 
-#: suite/drive/presentation/questions.py:335
+#: suite/drive/presentation/questions.py:383
 msgid "Nora does not answer a price or a commitment: that is for you."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:249
+#: suite/drive/doctype/presentation_link/presentation_link.js:489
 msgid "Nora is not on this site: every question goes to the person who answers."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:120
-#: suite/drive/presentation/questions.py:333
+#: suite/drive/doctype/presentation_link/presentation_link.js:345
+#: suite/drive/presentation/questions.py:381
 msgid "Nora is not on this site: the question comes to you."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:155
-#: suite/drive/doctype/presentation_link/presentation_link.js:231
+#: suite/drive/doctype/presentation_link/presentation_link.js:384
+#: suite/drive/doctype/presentation_link/presentation_link.js:454
 msgid "Nora keeps this answer for the next people of this link"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:168
+#: suite/drive/doctype/presentation_link/presentation_link.js:391
+#: suite/drive/doctype/presentation_link/presentation_link.js:547
 #: suite/drive/presentation/renderer.py:179
 msgid "Nora reads the presentation…"
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:557
+#, python-brace-format
+msgid "Nora would forward this question to {0}."
 msgstr ""
 
 #. Label of a Small Text field in DocType 'Presentation Question'
@@ -16658,7 +16717,7 @@ msgstr ""
 msgid "Nora's Seconds"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:123
+#: suite/drive/doctype/presentation_link/presentation_link.js:349
 msgid "Nora's answer did not hold by the slides it cited: she left it to you."
 msgstr ""
 
@@ -16684,6 +16743,10 @@ msgstr ""
 #. Label of a Data field in DocType 'Mail Message'
 #: suite/mail/doctype/mail_message/mail_message.json:535
 msgid "Not Keyword"
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:326
+msgid "Not Opened Yet"
 msgstr ""
 
 #: suite/meet/api/meeting.py:265 suite/meet/api/meeting.py:318
@@ -16750,8 +16813,12 @@ msgstr ""
 msgid "Not permitted to view accounts for user {0}."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:253
+#: suite/drive/doctype/presentation_link/presentation_link.js:495
 msgid "Not read"
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:149
+msgid "Not sent from here yet"
 msgstr ""
 
 #: frontend/src/apps/mail/composables/useAccountOptions.ts:28
@@ -16812,6 +16879,10 @@ msgstr ""
 msgid "Nothing here"
 msgstr ""
 
+#: suite/drive/doctype/presentation_link/presentation_link.js:524
+msgid "Nothing is recorded or sent: it is a trial."
+msgstr ""
+
 #: frontend/src/apps/drive/components/Navbar.vue:32
 msgid "Nothing opened?"
 msgstr ""
@@ -16864,7 +16935,7 @@ msgid "Notifications"
 msgstr ""
 
 #. Label of a Check field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:137
+#: suite/drive/doctype/presentation_link/presentation_link.json:203
 msgid "Notify Me of Each New Person"
 msgstr ""
 
@@ -17100,13 +17171,13 @@ msgstr ""
 
 #. Description of the 'Accepted Addresses' (Small Text) field in DocType
 #. 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:111
+#: suite/drive/doctype/presentation_link/presentation_link.json:177
 msgid "One per line, besides the domains."
 msgstr ""
 
 #. Description of the 'Accepted Domains' (Small Text) field in DocType
 #. 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:105
+#: suite/drive/doctype/presentation_link/presentation_link.json:171
 msgid "One per line, for example example.com: every address of the domain enters with its code."
 msgstr ""
 
@@ -17221,10 +17292,6 @@ msgstr ""
 msgid "Only the meeting host or co-host can update settings"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:253
-msgid "Only when ticked here."
-msgstr ""
-
 #: suite/mail/doctype/user_settings/user_settings.py:157
 #, python-brace-format
 msgid "Only {0} can change their backup email."
@@ -17308,7 +17375,7 @@ msgstr ""
 msgid "Open Suite"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:13
+#: suite/drive/doctype/presentation_link/presentation_link.js:23
 msgid "Open as a Visitor"
 msgstr ""
 
@@ -17370,17 +17437,17 @@ msgstr ""
 msgid "Open the folder"
 msgstr ""
 
-#: suite/drive/presentation/api.py:515
+#: suite/drive/presentation/api.py:584
 msgid "Open the presentation"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:72
+#: suite/drive/doctype/presentation_link/presentation_link.json:123
 msgid "Opened"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:147
+#: suite/drive/doctype/presentation_link/presentation_link.json:213
 msgid "Opening"
 msgstr ""
 
@@ -17590,7 +17657,7 @@ msgstr ""
 msgid "Outside borders"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:122
+#: suite/drive/doctype/presentation_link/presentation_link.js:348
 msgid "Outside the presentation: Nora leaves it to you."
 msgstr ""
 
@@ -17975,8 +18042,8 @@ msgstr ""
 #: frontend/src/apps/mail/components/AppSidebar.vue:533
 #: frontend/src/apps/meet/components/MeetingToolbar.vue:382
 #: frontend/src/apps/meet/components/PeoplePanel.vue:18
-#: suite/drive/doctype/presentation_link/presentation_link.js:102
-#: suite/drive/doctype/presentation_link/presentation_link.json:210
+#: suite/drive/doctype/presentation_link/presentation_link.js:151
+#: suite/drive/doctype/presentation_link/presentation_link.json:267
 #: suite/public/frontend/assets/MailLayout-DfYAvNbs.js:1
 #: suite/public/frontend/assets/Meeting-BeGFmKzH.js:209
 msgid "People"
@@ -18039,7 +18106,7 @@ msgstr ""
 
 #. Label of a Link field in DocType 'Presentation Question'
 #. Label of a Link field in DocType 'Presentation Visit'
-#: suite/drive/doctype/presentation_link/presentation_link.js:108
+#: suite/drive/doctype/presentation_link/presentation_link.js:333
 #: suite/drive/doctype/presentation_question/presentation_question.json:49
 #: suite/drive/doctype/presentation_visit/presentation_visit.json:39
 msgid "Person"
@@ -18058,6 +18125,11 @@ msgstr ""
 #. Label of a Data field in DocType 'Contact Card'
 #: suite/drive/doctype/presentation_visit/presentation_visit.json:55
 #: suite/mail/doctype/contact_card/contact_card.json:146
+msgid "Phone"
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:116
+msgctxt "device"
 msgid "Phone"
 msgstr ""
 
@@ -18388,7 +18460,7 @@ msgstr ""
 #. Label of a Link field in DocType 'Reference Presentation'
 #: frontend/src/apps/drive/components/Navbar.vue:425
 #: frontend/src/neoffice/i18nRegistry.ts:887
-#: suite/drive/doctype/presentation_link/presentation_link.json:61
+#: suite/drive/doctype/presentation_link/presentation_link.json:112
 #: suite/drive/presentation/renderer.py:70
 #: suite/public/frontend/assets/ErrorPage-DAoI7YCq.js:1
 #: suite/public/frontend/assets/Navbar-BdOZKs46.js:1
@@ -18401,7 +18473,7 @@ msgstr ""
 #. Label of a Link field in DocType 'Presentation Question'
 #. Label of a Link field in DocType 'Presentation Viewer'
 #. Label of a Link field in DocType 'Presentation Visit'
-#: suite/drive/doctype/presentation_link/presentation_link.json:305
+#: suite/drive/doctype/presentation_link/presentation_link.json:309
 #: suite/drive/doctype/presentation_question/presentation_question.json:38
 #: suite/drive/doctype/presentation_viewer/presentation_viewer.json:30
 #: suite/drive/doctype/presentation_visit/presentation_visit.json:29
@@ -18891,26 +18963,28 @@ msgstr ""
 
 #. Label of a Tab Break field in DocType 'Presentation Link'
 #. Label of a HTML field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.js:187
-#: suite/drive/doctype/presentation_link/presentation_link.json:242
+#: suite/drive/doctype/presentation_link/presentation_link.js:153
+#: suite/drive/doctype/presentation_link/presentation_link.js:369
+#: suite/drive/doctype/presentation_link/presentation_link.json:63
 msgid "Questions"
 msgstr ""
 
 #. Label of a Int field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:253
+#: suite/drive/doctype/presentation_link/presentation_link.json:283
 msgid "Questions Asked"
 msgstr ""
 
 #. Label of a Int field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:261
+#: suite/drive/doctype/presentation_link/presentation_link.json:291
 msgid "Questions Waiting"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:139
+#: suite/drive/doctype/presentation_link/presentation_link.js:346
+#: suite/drive/doctype/presentation_link/presentation_link.js:367
 msgid "Questions are closed on this link."
 msgstr ""
 
-#: suite/drive/presentation/questions.py:166
+#: suite/drive/presentation/questions.py:194
 msgid "Questions are not open on this presentation."
 msgstr ""
 
@@ -19130,7 +19204,7 @@ msgstr ""
 #: frontend/src/neoffice/i18nRegistry.ts:914
 #: suite/drive/doctype/drive_notification/drive_notification.json:36
 #: suite/drive/doctype/drive_permission/drive_permission.json:36
-#: suite/drive/doctype/presentation_link/presentation_link.js:253
+#: suite/drive/doctype/presentation_link/presentation_link.js:495
 #: suite/public/frontend/assets/MailboxView-BoFCiJ_J.js:1
 #: suite/public/frontend/assets/constants-CY7xvlZb.js:1
 #: suite/public/frontend/assets/index-BHrHGhFg.js:10623
@@ -19282,12 +19356,6 @@ msgstr ""
 #: suite/public/frontend/assets/TlsReportView-D-8zgFQP.js:1
 #, python-brace-format
 msgid "Received {0}"
-msgstr ""
-
-#: suite/drive/doctype/presentation_link/presentation_link.js:66
-#: suite/drive/doctype/presentation_link/presentation_link.js:111
-#, python-brace-format
-msgid "Received, not opened yet: {0}"
 msgstr ""
 
 #: frontend/src/apps/mail/pages/dashboard/DmarcReportsView.vue:170
@@ -20343,6 +20411,7 @@ msgstr ""
 #: frontend/src/apps/mail/components/MailActions.vue:159
 #: frontend/src/apps/mail/components/MailThread.vue:1098
 #: frontend/src/neoffice/i18nRegistry.ts:952
+#: suite/drive/presentation/questions.py:349
 #: suite/public/frontend/assets/MailThread-CMvoDnDQ.js:347
 #: suite/public/frontend/assets/mailboxTargets-BVY6eVCV.js:6
 msgid "Reply"
@@ -21060,7 +21129,7 @@ msgstr ""
 #: frontend/src/apps/mail/components/Settings/VacationResponseSettings.vue:5
 #: frontend/src/neoffice/i18nRegistry.ts:989
 #: frontend/src/test/neoffice-i18n.test.ts:39
-#: suite/drive/doctype/presentation_link/presentation_link.js:233
+#: suite/drive/doctype/presentation_link/presentation_link.js:456
 #: suite/public/frontend/assets/AccountView-Bm6SAJkz.js:1
 #: suite/public/frontend/assets/AccountsView-CL6ZDJWk.js:2
 #: suite/public/frontend/assets/AddressBookView-C9FiRjhm.js:1
@@ -21146,7 +21215,7 @@ msgstr ""
 msgid "Saved in this browser. Opens and presents without internet."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:219
+#: suite/drive/doctype/presentation_link/presentation_link.js:442
 msgid "Saved."
 msgstr ""
 
@@ -21162,6 +21231,10 @@ msgstr ""
 
 #: frontend/src/neoffice/i18nRegistry.ts:999
 msgid "Saving…"
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:309
+msgid "Saw Everything"
 msgstr ""
 
 #: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:242
@@ -21544,7 +21617,7 @@ msgstr ""
 #. Label of a Int field in DocType 'Presentation Link'
 #. Label of a Int field in DocType 'Presentation Viewer'
 #. Label of a Int field in DocType 'Presentation Visit'
-#: suite/drive/doctype/presentation_link/presentation_link.json:218
+#: suite/drive/doctype/presentation_link/presentation_link.json:275
 #: suite/drive/doctype/presentation_viewer/presentation_viewer.json:86
 #: suite/drive/doctype/presentation_visit/presentation_visit.json:79
 msgid "Seconds Watched"
@@ -21627,8 +21700,12 @@ msgstr ""
 msgid "See availability"
 msgstr ""
 
-#: suite/drive/presentation/questions.py:490
+#: suite/drive/presentation/questions.py:607
 msgid "See the presentation again"
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:504
+msgid "See them"
 msgstr ""
 
 #: frontend/src/neoffice/i18nRegistry.ts:1013
@@ -21894,7 +21971,7 @@ msgstr ""
 #: frontend/src/apps/mail/pages/OutboxView.vue:494
 #: frontend/src/apps/mail/pages/SubmissionDetailsView.vue:368
 #: frontend/src/apps/mail/pages/SubmissionDetailsView.vue:379
-#: suite/drive/doctype/presentation_link/presentation_link.js:41
+#: suite/drive/doctype/presentation_link/presentation_link.js:68
 #: suite/drive/presentation/renderer.py:162
 #: suite/public/frontend/assets/ComposeView-BZUducsu.js:1
 #: suite/public/frontend/assets/OutboxView-BmrKlPMn.js:1
@@ -22039,7 +22116,7 @@ msgstr ""
 msgid "Send invites"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:230
+#: suite/drive/doctype/presentation_link/presentation_link.js:453
 #, python-brace-format
 msgid "Send it to {0} by e-mail"
 msgstr ""
@@ -22064,8 +22141,8 @@ msgstr ""
 msgid "Send scheduled."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:11
-#: suite/drive/doctype/presentation_link/presentation_link.js:35
+#: suite/drive/doctype/presentation_link/presentation_link.js:21
+#: suite/drive/doctype/presentation_link/presentation_link.js:62
 msgid "Send the Link"
 msgstr ""
 
@@ -22089,7 +22166,7 @@ msgstr ""
 msgid "Send to back"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:156
+#: suite/drive/doctype/presentation_link/presentation_link.js:385
 #, python-brace-format
 msgid "Send to {0}"
 msgstr ""
@@ -22191,7 +22268,7 @@ msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Presentation Link'
 #: frontend/src/apps/mail/utils/submission.ts:101
-#: suite/drive/doctype/presentation_link/presentation_link.json:72
+#: suite/drive/doctype/presentation_link/presentation_link.json:123
 #: suite/public/frontend/assets/submission-B6tQGftC.js:1
 msgid "Sent"
 msgstr ""
@@ -22204,7 +22281,7 @@ msgid "Sent At"
 msgstr ""
 
 #. Label of a Small Text field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:226
+#: suite/drive/doctype/presentation_link/presentation_link.json:161
 msgid "Sent To"
 msgstr ""
 
@@ -22224,6 +22301,11 @@ msgstr ""
 #. Label of a Check field in DocType 'Presentation Question'
 #: suite/drive/doctype/presentation_question/presentation_question.json:190
 msgid "Sent to the Person"
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:149
+#, python-brace-format
+msgid "Sent to {0}"
 msgstr ""
 
 #: suite/drive/presentation/renderer.py:164
@@ -22402,6 +22484,7 @@ msgstr ""
 msgid "Set when the request is completed: ownership of the backup email proven via the invite link or signup code, or force-verified by an admin creating the account directly."
 msgstr ""
 
+#. Label of a Tab Break field in DocType 'Presentation Link'
 #. Label of a JSON field in DocType 'Writer Document'
 #: frontend/src/apps/calendar/components/AppSidebar.vue:161
 #: frontend/src/apps/drive/components/Sidebar.vue:119
@@ -22414,6 +22497,7 @@ msgstr ""
 #: frontend/src/neoffice/i18nRegistry.ts:1049
 #: frontend/src/shell/LauncherView.vue:48
 #: frontend/src/shell/settings/SuiteSettingsDialog.vue:8
+#: suite/drive/doctype/presentation_link/presentation_link.json:99
 #: suite/public/frontend/assets/AppContainer-BPNY0NIE.js:1
 #: suite/public/frontend/assets/CalendarLayout-ziI7dN7b.js:1
 #: suite/public/frontend/assets/CalendarView-vYaoq2k1.js:1
@@ -22559,6 +22643,10 @@ msgstr ""
 
 #: frontend/src/apps/calendar/components/Modals/ShareCalendarModal.vue:145
 msgid "Sharing updated."
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:488
+msgid "She answers the people who watch the presentation from these sources, and nothing else. What she says always cites where she has it from."
 msgstr ""
 
 #. Name of a DocType
@@ -22786,7 +22874,7 @@ msgstr ""
 
 #. Description of the 'Logo of the Opening' (Attach Image) field in DocType
 #. 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:156
+#: suite/drive/doctype/presentation_link/presentation_link.json:222
 msgid "Shown once the code is right, before the first slide. An animated SVG plays its motion; without it, the logo of the page."
 msgstr ""
 
@@ -23076,9 +23164,20 @@ msgstr ""
 msgid "Slide in"
 msgstr ""
 
-#: suite/drive/presentation/questions.py:388
+#: suite/drive/doctype/presentation_link/presentation_link.js:262
+#: suite/drive/presentation/questions.py:442
 #, python-brace-format
 msgid "Slide {0}"
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:244
+#, python-brace-format
+msgid "Slide {0} holds them the longest: {1}."
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:243
+#, python-brace-format
+msgid "Slide {0}, « {1} », holds them the longest: {2}."
 msgstr ""
 
 #: suite/slides/doctype/presentation/presentation.py:62
@@ -23086,7 +23185,7 @@ msgstr ""
 msgid "Slide {0}: Advance After must be between 1 and 3600 seconds, not {1}"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:76
+#: suite/drive/doctype/presentation_link/presentation_link.js:183
 #, python-brace-format
 msgid "Slide {0}: {1}"
 msgstr ""
@@ -23095,7 +23194,7 @@ msgstr ""
 #. Label of a Table field in DocType 'Presentation'
 #. Label of a Section Break field in DocType 'Presentation'
 #: frontend/src/neoffice/i18nRegistry.ts:1084
-#: suite/drive/doctype/presentation_link/presentation_link.js:108
+#: suite/drive/doctype/presentation_link/presentation_link.js:334
 #: suite/drive/doctype/presentation_visit/presentation_visit.json:100
 #: suite/slides/doctype/presentation/presentation.json:23
 msgid "Slides"
@@ -23675,7 +23774,7 @@ msgstr ""
 #. Label of a HTML field in DocType 'Presentation Link'
 #: frontend/src/apps/drive/components/Settings/StorageSettings.vue:2
 #: frontend/src/neoffice/i18nRegistry.ts:1109
-#: suite/drive/doctype/presentation_link/presentation_link.json:185
+#: suite/drive/doctype/presentation_link/presentation_link.json:58
 #: suite/public/frontend/assets/DriveLayout-DqUXQ1q0.js:1
 msgid "Statistics"
 msgstr ""
@@ -23720,7 +23819,7 @@ msgstr ""
 #: suite/calendar/doctype/calendar_exchange/calendar_exchange.json:65
 #: suite/calendar/doctype/event_participant/event_participant.json:79
 #: suite/drive/doctype/drive_user_invitation/drive_user_invitation.json:21
-#: suite/drive/doctype/presentation_link/presentation_link.json:71
+#: suite/drive/doctype/presentation_link/presentation_link.json:122
 #: suite/drive/doctype/presentation_question/presentation_question.json:82
 #: suite/mail/doctype/contacts_exchange/contacts_exchange.json:64
 #: suite/mail/doctype/mail_exchange/mail_exchange.json:65
@@ -23781,6 +23880,11 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Meet Recording'
 #: suite/meet/doctype/meet_recording/meet_recording.json:85
 msgid "Stopping"
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:309
+#, python-brace-format
+msgid "Stops at Slide {0}"
 msgstr ""
 
 #: frontend/src/apps/drive/components/NeoCockpitSidebar.vue:119
@@ -24112,7 +24216,7 @@ msgstr ""
 #. Name of a role
 #: suite/calendar/doctype/calendar_exchange/calendar_exchange.json:303
 #: suite/drive/doctype/drive_disk_settings/drive_disk_settings.json:180
-#: suite/drive/doctype/presentation_link/presentation_link.json:329
+#: suite/drive/doctype/presentation_link/presentation_link.json:333
 #: suite/drive/doctype/presentation_question/presentation_question.json:217
 #: suite/drive/doctype/presentation_viewer/presentation_viewer.json:154
 #: suite/drive/doctype/presentation_visit/presentation_visit.json:147
@@ -24224,7 +24328,7 @@ msgstr ""
 #: suite/drive/doctype/drive_permission/drive_permission.json:99
 #: suite/drive/doctype/drive_settings/drive_settings.json:109
 #: suite/drive/doctype/drive_user_invitation/drive_user_invitation.json:58
-#: suite/drive/doctype/presentation_link/presentation_link.json:339
+#: suite/drive/doctype/presentation_link/presentation_link.json:343
 #: suite/drive/doctype/presentation_question/presentation_question.json:222
 #: suite/drive/doctype/presentation_viewer/presentation_viewer.json:159
 #: suite/drive/doctype/presentation_visit/presentation_visit.json:152
@@ -24380,7 +24484,7 @@ msgstr ""
 #: suite/drive/doctype/drive_sync_device/drive_sync_device.json:138
 #: suite/drive/doctype/drive_token/drive_token.json:46
 #: suite/drive/doctype/drive_user_invitation/drive_user_invitation.json:47
-#: suite/drive/doctype/presentation_link/presentation_link.json:317
+#: suite/drive/doctype/presentation_link/presentation_link.json:321
 #: suite/drive/doctype/presentation_question/presentation_question.json:210
 #: suite/drive/doctype/presentation_viewer/presentation_viewer.json:147
 #: suite/drive/doctype/presentation_visit/presentation_visit.json:140
@@ -24493,6 +24597,11 @@ msgstr ""
 
 #. Option for the 'Device' (Select) field in DocType 'Presentation Visit'
 #: suite/drive/doctype/presentation_visit/presentation_visit.json:55
+msgid "Tablet"
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:117
+msgctxt "device"
 msgid "Tablet"
 msgstr ""
 
@@ -24810,7 +24919,7 @@ msgstr ""
 msgid "The Reply-To value the client should set when creating a new Email from this Identity."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:229
+#: suite/drive/doctype/presentation_link/presentation_link.js:452
 msgid "The Right Answer"
 msgstr ""
 
@@ -24893,7 +25002,7 @@ msgstr ""
 
 #. Description of the 'Sent To' (Small Text) field in DocType 'Presentation
 #. Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:223
+#: suite/drive/doctype/presentation_link/presentation_link.json:158
 msgid "The addresses the link was sent to from here."
 msgstr ""
 
@@ -25204,20 +25313,20 @@ msgstr ""
 msgid "The length of the event expressed as a duration (e.g., PT30M, P1D)."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:79
+#: suite/drive/doctype/presentation_link/presentation_link.js:303
 msgid "The link copied"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:47
+#: suite/drive/doctype/presentation_link/presentation_link.js:74
 msgid "The link is on its way."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:119
-#: suite/drive/presentation/questions.py:331
+#: suite/drive/doctype/presentation_link/presentation_link.js:344
+#: suite/drive/presentation/questions.py:379
 msgid "The link sends every question to you."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:79
+#: suite/drive/doctype/presentation_link/presentation_link.js:303
 msgid "The link sent"
 msgstr ""
 
@@ -25227,7 +25336,7 @@ msgstr ""
 msgid "The link to the CalendarEvent that this notification is about."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:17
+#: suite/drive/doctype/presentation_link/presentation_link.js:27
 msgid "The link will open nothing any more. The visits stay."
 msgstr ""
 
@@ -25360,7 +25469,7 @@ msgstr ""
 
 #. Description of the 'Nora Reads the Speaker Notes' (Check) field in DocType
 #. 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:289
+#: suite/drive/doctype/presentation_link/presentation_link.json:90
 msgid "The notes often say what is not said to the client: Nora reads them only if you tick this."
 msgstr ""
 
@@ -25410,6 +25519,11 @@ msgstr ""
 msgid "The parent must be a folder"
 msgstr ""
 
+#: suite/drive/doctype/presentation_link/presentation_link.js:237
+#, python-brace-format
+msgid "The part « {0} » holds them the most: {1} on {2} slides."
+msgstr ""
+
 #. Description of the 'Status' (Select) field in DocType 'Event Participant'
 #: suite/calendar/doctype/event_participant/event_participant.json:75
 msgid "The participant’s current participation status."
@@ -25431,7 +25545,7 @@ msgstr ""
 
 #. Description of the 'Who Answers the Questions' (Link) field in DocType
 #. 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:277
+#: suite/drive/doctype/presentation_link/presentation_link.json:151
 msgid "The person who receives the questions Nora forwards, and answers them. Empty: the person who created the link."
 msgstr ""
 
@@ -25445,7 +25559,7 @@ msgstr ""
 msgid "The plaintext body to send in response to messages when the vacation response is enabled."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:252
+#: suite/drive/doctype/presentation_link/presentation_link.js:492
 msgid "The presentation"
 msgstr ""
 
@@ -25507,6 +25621,11 @@ msgstr ""
 #. Property'
 #: suite/drive/doctype/drive_dav_property/drive_dav_property.json:44
 msgid "The property's local name within the namespace."
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:513
+#, python-brace-format
+msgid "The questions go to {0}."
 msgstr ""
 
 #: suite/mail/api/outbound.py:172 suite/mail/api/outbound.py:250
@@ -25644,7 +25763,7 @@ msgstr ""
 msgid "The soft limit set by this quota object."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:253
+#: suite/drive/doctype/presentation_link/presentation_link.js:494
 msgid "The speaker notes"
 msgstr ""
 
@@ -25667,13 +25786,17 @@ msgstr ""
 msgid "The subject that will be used by the message sent in response to messages when the vacation response is enabled."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:252
+#: suite/drive/doctype/presentation_link/presentation_link.js:492
 msgid "The text of each slide, and its images' descriptions. Always."
 msgstr ""
 
 #. Description of the 'Offset' (Data) field in DocType 'Event Alert'
 #: suite/calendar/doctype/event_alert/event_alert.json:56
 msgid "The time offset relative to the event start or end."
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:190
+msgid "The time spent on each slide"
 msgstr ""
 
 #. Description of the 'Created (UTC)' (Data) field in DocType 'Event
@@ -25945,8 +26068,12 @@ msgid "These items"
 msgstr ""
 
 #. Label of a Check field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:124
+#: suite/drive/doctype/presentation_link/presentation_link.json:190
 msgid "They Can Forward It to a Colleague"
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:496
+msgid "They often say what is not said to the client: your choice."
 msgstr ""
 
 #: frontend/src/neoffice/i18nRegistry.ts:1156
@@ -25982,7 +26109,7 @@ msgstr ""
 msgid "This account request is already verified."
 msgstr ""
 
-#: suite/drive/presentation/api.py:35 suite/drive/presentation/api.py:144
+#: suite/drive/presentation/api.py:40 suite/drive/presentation/api.py:149
 msgid "This address cannot open the presentation. Ask the person who sent it to you."
 msgstr ""
 
@@ -26000,7 +26127,7 @@ msgstr ""
 msgid "This call server does not take notes yet."
 msgstr ""
 
-#: suite/drive/presentation/api.py:55
+#: suite/drive/presentation/api.py:60
 msgid "This code is not the right one, or it has expired."
 msgstr ""
 
@@ -26141,8 +26268,8 @@ msgstr ""
 msgid "This is an old schema document - you cannot do collaborative editing."
 msgstr ""
 
-#: suite/drive/presentation/api.py:30 suite/drive/presentation/api.py:139
-#: suite/drive/presentation/api.py:205
+#: suite/drive/presentation/api.py:35 suite/drive/presentation/api.py:144
+#: suite/drive/presentation/api.py:217
 msgid "This is not an e-mail address."
 msgstr ""
 
@@ -26168,7 +26295,7 @@ msgstr ""
 msgid "This isn't shown after you submit it."
 msgstr ""
 
-#: suite/drive/presentation/api.py:202
+#: suite/drive/presentation/api.py:214
 msgid "This link is withdrawn or has expired."
 msgstr ""
 
@@ -26197,7 +26324,7 @@ msgstr ""
 msgid "This participant"
 msgstr ""
 
-#: suite/drive/presentation/api.py:136
+#: suite/drive/presentation/api.py:141
 msgid "This presentation cannot be forwarded."
 msgstr ""
 
@@ -26209,8 +26336,8 @@ msgstr ""
 msgid "This presentation is not shared any more"
 msgstr ""
 
-#: suite/drive/presentation/api.py:133 suite/drive/presentation/api.py:177
-#: suite/drive/presentation/api.py:326
+#: suite/drive/presentation/api.py:138 suite/drive/presentation/api.py:189
+#: suite/drive/presentation/api.py:391
 msgid "This presentation is not shared any more."
 msgstr ""
 
@@ -26513,12 +26640,12 @@ msgstr ""
 
 #: frontend/src/apps/calendar/components/mobile/MobileEventForm.vue:345
 #: frontend/src/neoffice/i18nRegistry.ts:1174
-#: suite/drive/doctype/presentation_link/presentation_link.js:108
+#: suite/drive/doctype/presentation_link/presentation_link.js:334
 #: suite/public/frontend/assets/SheetEditor-sO9zE8et.js:29
 msgid "Time"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:103
+#: suite/drive/doctype/presentation_link/presentation_link.js:151
 msgid "Time Watched"
 msgstr ""
 
@@ -26536,10 +26663,6 @@ msgstr ""
 #: suite/public/frontend/assets/AccountsView-CL6ZDJWk.js:2
 #: suite/public/frontend/assets/InviteSetupView-Cflcs2ZB.js:1
 msgid "Time Zone"
-msgstr ""
-
-#: suite/drive/doctype/presentation_link/presentation_link.js:105
-msgid "Time spent on each slide, everyone together"
 msgstr ""
 
 #: frontend/src/shell/SetupView.vue:57
@@ -26588,7 +26711,7 @@ msgstr ""
 #: frontend/src/apps/meet/pages/Home.vue:115
 #: frontend/src/neoffice/i18nRegistry.ts:1176
 #: suite/calendar/doctype/calendar_event/calendar_event.json:147
-#: suite/drive/doctype/presentation_link/presentation_link.json:54
+#: suite/drive/doctype/presentation_link/presentation_link.json:105
 #: suite/meet/doctype/meet_room/meet_room.json:33
 #: suite/public/frontend/assets/Home-BTW0VlZg.js:1
 #: suite/public/frontend/assets/Home-ImIpkMIB.js:1
@@ -26679,6 +26802,7 @@ msgstr ""
 #: frontend/src/apps/mail/utils/index.ts:183
 #: frontend/src/neoffice/i18nRegistry.ts:1184
 #: frontend/src/test/neoffice-calendar-i18n.test.ts:82
+#: suite/drive/doctype/presentation_link/presentation_link.js:124
 #: suite/public/frontend/assets/CalendarView-vYaoq2k1.js:1
 #: suite/public/frontend/assets/Documents-CctvnNYC.js:1
 #: suite/public/frontend/assets/SheetEditor-sO9zE8et.js:29
@@ -26779,7 +26903,7 @@ msgstr ""
 #. Label of a Data field in DocType 'Drive DAV Lock'
 #. Label of a Data field in DocType 'Presentation Link'
 #: suite/drive/doctype/drive_dav_lock/drive_dav_lock.json:33
-#: suite/drive/doctype/presentation_link/presentation_link.json:234
+#: suite/drive/doctype/presentation_link/presentation_link.json:298
 msgid "Token"
 msgstr ""
 
@@ -27001,6 +27125,10 @@ msgstr ""
 #: suite/public/frontend/assets/DmarcReportsView-CRDcUiY7.js:1
 #: suite/public/frontend/assets/TlsReportsView-Df8EL14C.js:1
 msgid "Try another search, domain or period."
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:517
+msgid "Try as a Visitor"
 msgstr ""
 
 #: frontend/src/neoffice/i18nRegistry.ts:1205
@@ -28226,7 +28354,8 @@ msgid "Vertical"
 msgstr ""
 
 #: frontend/src/neoffice/i18nRegistry.ts:1264
-#: suite/drive/doctype/presentation_link/presentation_link.js:108
+#: suite/drive/doctype/presentation_link/presentation_link.js:152
+#: suite/drive/doctype/presentation_link/presentation_link.js:334
 #: suite/public/frontend/assets/Meeting-BeGFmKzH.js:209
 #: suite/public/frontend/assets/editor-Ckxnl2Xw.js:14
 #: suite/public/frontend/assets/text-editor-D2TpjoJ5.js:206
@@ -28406,8 +28535,8 @@ msgstr ""
 msgid "Waiting Room"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:150
-#: suite/drive/doctype/presentation_link/presentation_link.js:187
+#: suite/drive/doctype/presentation_link/presentation_link.js:369
+#: suite/drive/doctype/presentation_link/presentation_link.js:376
 msgid "Waiting for You"
 msgstr ""
 
@@ -28540,18 +28669,25 @@ msgid "Welcome to Neoffice"
 msgstr ""
 
 #. Label of a Tab Break field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:267
+#: suite/drive/doctype/presentation_link/presentation_link.json:73
 msgid "What Nora Can Say"
 msgstr ""
 
 #. Label of a HTML field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:297
+#: suite/drive/doctype/presentation_link/presentation_link.json:78
 msgid "What Nora Knows"
 msgstr ""
 
+#: suite/drive/doctype/presentation_link/presentation_link.js:487
+msgid "What Nora Knows for This Link"
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:362
+msgid "What They Asked"
+msgstr ""
+
 #. Label of a Tab Break field in DocType 'Presentation Link'
-#. Label of a Section Break field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:175
+#: suite/drive/doctype/presentation_link/presentation_link.json:53
 msgid "What They Saw"
 msgstr ""
 
@@ -28561,7 +28697,7 @@ msgstr ""
 msgid "What calendar's events be used as part of availability calculation?"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:112
+#: suite/drive/doctype/presentation_link/presentation_link.js:297
 msgid "What happened"
 msgstr ""
 
@@ -28581,8 +28717,13 @@ msgstr ""
 msgid "What to do with the sender when a message is marked as Junk. \"Junk Sender's Mail\" files their future mail into Junk; \"Ask to Block Sender\" prompts to block them outright."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:254
+#: suite/drive/doctype/presentation_link/presentation_link.js:502
 msgid "What you answered on this link and kept for the next people. Never lent to another link."
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:362
+#, python-brace-format
+msgid "What {0} Asked"
 msgstr ""
 
 #. Label of a Data field in DocType 'Event Alert'
@@ -28597,7 +28738,8 @@ msgid "When Marking as Junk"
 msgstr ""
 
 #. Label of a Select field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:273
+#: suite/drive/doctype/presentation_link/presentation_link.js:509
+#: suite/drive/doctype/presentation_link/presentation_link.json:85
 msgid "When Someone Asks a Question"
 msgstr ""
 
@@ -28665,6 +28807,10 @@ msgstr ""
 msgid "When this request stops being valid and can no longer create an account. Defaults to one day after creation."
 msgstr ""
 
+#: suite/drive/doctype/presentation_link/presentation_link.js:335
+msgid "Where They Are"
+msgstr ""
+
 #. Description of the 'Storage Layout' (Section Break) field in DocType 'Drive
 #. Disk Settings'
 #: suite/drive/doctype/drive_disk_settings/drive_disk_settings.json:57
@@ -28724,12 +28870,12 @@ msgid "Whether to store on disk or on an S3 bucket."
 msgstr ""
 
 #. Label of a Link field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:280
+#: suite/drive/doctype/presentation_link/presentation_link.json:154
 msgid "Who Answers the Questions"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:102
+#: suite/drive/doctype/presentation_link/presentation_link.json:168
 msgid "Who Can Enter"
 msgstr ""
 
@@ -28780,18 +28926,22 @@ msgstr ""
 msgid "With you"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:15
+#: suite/drive/doctype/presentation_link/presentation_link.js:25
 msgid "Withdraw"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.json:72
+#: suite/drive/doctype/presentation_link/presentation_link.json:123
 msgid "Withdrawn"
 msgstr ""
 
 #: frontend/src/apps/mail/constants.ts:8
 #: suite/public/frontend/assets/constants-CY7xvlZb.js:1
 msgid "Without Attachments"
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:511
+msgid "Without Nora: the person knows you will answer by e-mail."
 msgstr ""
 
 #: frontend/src/neoffice/i18nRegistry.ts:1282
@@ -28908,8 +29058,8 @@ msgstr ""
 msgid "Write permission denied"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:201
-#: suite/drive/presentation/questions.py:455
+#: suite/drive/doctype/presentation_link/presentation_link.js:425
+#: suite/drive/presentation/questions.py:567
 msgid "Write the answer first."
 msgstr ""
 
@@ -28917,7 +29067,7 @@ msgstr ""
 msgid "Write to the person who sent it to you: a new link leaves in one click."
 msgstr ""
 
-#: suite/drive/presentation/questions.py:169
+#: suite/drive/presentation/questions.py:197
 msgid "Write your question first."
 msgstr ""
 
@@ -29024,6 +29174,7 @@ msgstr ""
 #: frontend/src/apps/mail/components/MailDate.vue:34
 #: frontend/src/apps/mail/utils/index.ts:184
 #: frontend/src/neoffice/i18nRegistry.ts:1291
+#: suite/drive/doctype/presentation_link/presentation_link.js:125
 #: suite/public/frontend/assets/Documents-CctvnNYC.js:1
 #: suite/public/frontend/assets/MailThread-CMvoDnDQ.js:15
 #: suite/public/frontend/assets/SheetEditor-sO9zE8et.js:29
@@ -29100,12 +29251,12 @@ msgstr ""
 msgid "You are viewing the version history of"
 msgstr ""
 
-#: suite/drive/presentation/questions.py:478
+#: suite/drive/presentation/questions.py:589
 #, python-brace-format
 msgid "You asked, about « {0} »:"
 msgstr ""
 
-#: suite/drive/presentation/questions.py:476
+#: suite/drive/presentation/questions.py:587
 #, python-brace-format
 msgid "You asked, on slide {0} of « {1} »:"
 msgstr ""
@@ -29236,7 +29387,7 @@ msgstr ""
 msgid "You don't own any sheets yet"
 msgstr ""
 
-#: suite/drive/presentation/questions.py:180
+#: suite/drive/presentation/questions.py:208
 #, python-brace-format
 msgid "You have asked many questions today: {0} will answer you by e-mail."
 msgstr ""
@@ -29286,6 +29437,10 @@ msgstr ""
 msgid "You have no new senders to screen."
 msgstr ""
 
+#: suite/drive/presentation/questions.py:534
+msgid "You have tried many questions today: try again tomorrow."
+msgstr ""
+
 #: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue:369
 #: suite/public/frontend/assets/CraftEditor-DFsX_tCP.js:1
 msgid "You have unsaved changes. Leave without saving?"
@@ -29311,6 +29466,10 @@ msgstr ""
 
 #: frontend/src/neoffice/i18nRegistry.ts:1301
 msgid "You have view access. Ask the owner for edit access to make changes."
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:510
+msgid "You receive the question by e-mail; your answer leaves by e-mail."
 msgstr ""
 
 #: suite/templates/emails/drive_share.html:43
@@ -29378,26 +29537,25 @@ msgstr ""
 msgid "You're out of storage!"
 msgstr ""
 
+#: suite/drive/doctype/presentation_link/presentation_link.js:380
+msgid "Your Answer"
+msgstr ""
+
 #: frontend/src/apps/drive/components/Settings/WebDAVSettings.vue:51
 #: suite/public/frontend/assets/DriveLayout-DqUXQ1q0.js:1
 msgid "Your account uses two-factor authentication, which WebDAV clients cannot perform with a password — sign in with an API key and secret instead."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:219
+#: suite/drive/doctype/presentation_link/presentation_link.js:442
 msgid "Your answer is on its way."
 msgstr ""
 
-#: suite/drive/presentation/questions.py:304
+#: suite/drive/presentation/questions.py:350
 #, python-brace-format
 msgid "Your answer leaves by e-mail to {0}."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:153
-#, python-brace-format
-msgid "Your answer, sent to {0} by e-mail"
-msgstr ""
-
-#: suite/drive/doctype/presentation_link/presentation_link.js:254
+#: suite/drive/doctype/presentation_link/presentation_link.js:500
 msgid "Your answers"
 msgstr ""
 
@@ -29406,7 +29564,7 @@ msgstr ""
 msgid "Your audio and video have stopped here because you joined from another device."
 msgstr ""
 
-#: suite/drive/presentation/api.py:496
+#: suite/drive/presentation/api.py:561
 #, python-brace-format
 msgid "Your code for « {0} »"
 msgstr ""
@@ -29415,7 +29573,7 @@ msgstr ""
 msgid "Your code is on its way"
 msgstr ""
 
-#: suite/drive/presentation/api.py:489
+#: suite/drive/presentation/api.py:554
 #, python-brace-format
 msgid "Your code to open « {0} »:"
 msgstr ""
@@ -29484,7 +29642,7 @@ msgstr ""
 msgid "Your question on this slide…"
 msgstr ""
 
-#: suite/drive/presentation/questions.py:495
+#: suite/drive/presentation/questions.py:612
 #, python-brace-format
 msgid "Your question on « {0} »"
 msgstr ""
@@ -29578,11 +29736,11 @@ msgstr ""
 msgid "[Unencrypted message blocked]"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:88
+#: suite/drive/doctype/presentation_link/presentation_link.js:113
 msgid "a computer"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:88
+#: suite/drive/doctype/presentation_link/presentation_link.js:113
 msgid "a phone"
 msgstr ""
 
@@ -29596,7 +29754,7 @@ msgstr ""
 msgid "a sender once and their emails reach your Inbox from then on;"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:88
+#: suite/drive/doctype/presentation_link/presentation_link.js:113
 msgid "a tablet"
 msgstr ""
 
@@ -30003,7 +30161,7 @@ msgstr ""
 msgid "just now"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:165
+#: suite/drive/doctype/presentation_link/presentation_link.js:406
 msgid "kept for the next people"
 msgstr ""
 
@@ -30172,12 +30330,12 @@ msgstr ""
 msgid "on"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:128
+#: suite/drive/doctype/presentation_link/presentation_link.js:354
 #, python-brace-format
 msgid "on slide {0}"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:128
+#: suite/drive/doctype/presentation_link/presentation_link.js:354
 #, python-brace-format
 msgid "on slide {0}, « {1} »"
 msgstr ""
@@ -30328,6 +30486,11 @@ msgstr ""
 #. Option for the 'Role' (Select) field in DocType 'Mailbox'
 #: suite/mail/doctype/mailbox/mailbox.json:76
 msgid "sent"
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:380
+#, python-brace-format
+msgid "sent to {0} by e-mail"
 msgstr ""
 
 #. Option for the 'End Reason' (Select) field in DocType 'Meet Recording'
@@ -30574,7 +30737,7 @@ msgstr ""
 msgid "will be restored to {0}."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:256
+#: suite/drive/doctype/presentation_link/presentation_link.js:507
 msgid "your clients and their figures, your e-mails, your ERP documents, what Nora learnt about your company. Here Nora has no tool: she reads the sources above, nothing else. A figure she writes must be written in a slide she cites, or she passes the question on."
 msgstr ""
 
@@ -30723,22 +30886,22 @@ msgstr ""
 msgid "{0} are waiting to be screened."
 msgstr ""
 
-#: suite/drive/presentation/questions.py:284
+#: suite/drive/presentation/questions.py:329
 #, python-brace-format
 msgid "{0} asks a question on « {1} »"
 msgstr ""
 
-#: suite/drive/presentation/questions.py:290
+#: suite/drive/presentation/questions.py:336
 #, python-brace-format
 msgid "{0} asks, on slide {1}, « {2} »:"
 msgstr ""
 
-#: suite/drive/presentation/questions.py:292
+#: suite/drive/presentation/questions.py:338
 #, python-brace-format
 msgid "{0} asks, on slide {1}:"
 msgstr ""
 
-#: suite/drive/presentation/questions.py:294
+#: suite/drive/presentation/questions.py:340
 #, python-brace-format
 msgid "{0} asks:"
 msgstr ""
@@ -30763,6 +30926,16 @@ msgstr ""
 #: suite/public/frontend/assets/editor-Ckxnl2Xw.js:9
 #, python-brace-format
 msgid "{0} columns"
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:281
+#, python-brace-format
+msgid "{0} comes back on {1}: a second device"
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:282
+#, python-brace-format
+msgid "{0} comes back, on {1}"
 msgstr ""
 
 #: suite/drive/api/sync.py:80
@@ -30829,7 +31002,12 @@ msgstr ""
 msgid "{0} emptied."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:94
+#: suite/drive/doctype/presentation_link/presentation_link.js:283
+#, python-brace-format
+msgid "{0} enters with the link copied, on {1}"
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:284
 #, python-brace-format
 msgid "{0} enters, on {1}"
 msgstr ""
@@ -30864,12 +31042,12 @@ msgstr ""
 msgid "{0} files uploaded"
 msgstr ""
 
-#: suite/drive/presentation/api.py:163
+#: suite/drive/presentation/api.py:175
 #, python-brace-format
 msgid "{0} forwarded « {1} » to {2}"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:96
+#: suite/drive/doctype/presentation_link/presentation_link.js:287
 #, python-brace-format
 msgid "{0} forwards it to {1}"
 msgstr ""
@@ -30878,6 +31056,11 @@ msgstr ""
 #: suite/public/frontend/assets/editor-Ckxnl2Xw.js:9
 #, python-brace-format
 msgid "{0} from {1} edge"
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:92
+#, python-brace-format
+msgid "{0} h {1}"
 msgstr ""
 
 #: frontend/src/apps/meet/components/ParticipantTile.vue:93
@@ -30981,7 +31164,7 @@ msgstr ""
 msgid "{0} joined the meeting"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:254
+#: suite/drive/doctype/presentation_link/presentation_link.js:501
 #, python-brace-format
 msgid "{0} kept"
 msgstr ""
@@ -31028,10 +31211,15 @@ msgid "{0} messages"
 msgstr ""
 
 #: frontend/src/apps/calendar/utils/eventTime.ts:156
-#: suite/drive/doctype/presentation_link/presentation_link.js:58
+#: suite/drive/doctype/presentation_link/presentation_link.js:90
 #: suite/public/frontend/assets/eventTime-D9PO3JXt.js:1
 #, python-brace-format
 msgid "{0} min"
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:90
+#, python-brace-format
+msgid "{0} min {1}"
 msgstr ""
 
 #: frontend/neoffice-calendar-i18n.ts:122
@@ -31168,7 +31356,7 @@ msgstr ""
 msgid "{0} ok · {1} failed"
 msgstr ""
 
-#: suite/drive/presentation/api.py:468
+#: suite/drive/presentation/api.py:533
 #, python-brace-format
 msgid "{0} opened « {1} »"
 msgstr ""
@@ -31235,7 +31423,7 @@ msgstr ""
 msgid "{0} results"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:57
+#: suite/drive/doctype/presentation_link/presentation_link.js:87
 #, python-brace-format
 msgid "{0} s"
 msgstr ""
@@ -31296,18 +31484,18 @@ msgstr ""
 msgid "{0} shared a folder with you: \"{1}\""
 msgstr ""
 
-#: suite/drive/presentation/api.py:508
+#: suite/drive/presentation/api.py:577
 #, python-brace-format
 msgid "{0} shares a presentation with you: « {1} »."
 msgstr ""
 
-#: suite/drive/presentation/api.py:520
+#: suite/drive/presentation/api.py:589
 #, python-brace-format
 msgid "{0} shares « {1} » with you"
 msgstr ""
 
 #: frontend/src/neoffice/i18nRegistry.ts:34
-#: suite/drive/doctype/presentation_link/presentation_link.js:252
+#: suite/drive/doctype/presentation_link/presentation_link.js:150
 #: suite/public/frontend/assets/GenericPage-DgAnMWOh.js:1
 #, python-brace-format
 msgid "{0} slides"
@@ -31317,6 +31505,11 @@ msgstr ""
 #: suite/public/frontend/assets/Meeting-BeGFmKzH.js:209
 #, python-brace-format
 msgid "{0} started a poll"
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:250
+#, python-brace-format
+msgid "{0} stops at slide {1}."
 msgstr ""
 
 #: frontend/src/apps/mail/pages/dashboard/TlsReportView.vue:6
@@ -31361,7 +31554,7 @@ msgstr ""
 msgid "{0} votes"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:95
+#: suite/drive/doctype/presentation_link/presentation_link.js:286
 #, python-brace-format
 msgid "{0} watches a video to the end"
 msgstr ""
