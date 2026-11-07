@@ -175,6 +175,11 @@
 	function player(result) {
 		const box = $("np-player");
 		frame = $("np-frame");
+		// once its document is there, the presentation takes the keys itself (its Home, End, F…)
+		frame.addEventListener("load", () => {
+			if (typing()) return;
+			try { frame.contentWindow.focus(); } catch (e) { frame.focus(); }
+		});
 		frame.src = result.content;
 		box.hidden = false;
 		requestAnimationFrame(() => box.classList.add("np-on"));
@@ -254,9 +259,19 @@
 	}
 	$("np-prev").addEventListener("click", () => go(-1));
 	$("np-next").addEventListener("click", () => go(1));
+	// The person types in a field on screen (the question, the forward dialog); a field left focused but hidden (the
+	// code's last digit) is not typing.
+	const typing = () => {
+		const el = document.activeElement;
+		if (!el || !(["TEXTAREA", "INPUT", "SELECT"].includes(el.tagName) || el.isContentEditable)) return false;
+		return !el.closest("[hidden]");
+	};
 	document.addEventListener("keydown", (event) => {
-		if (!visit || document.activeElement === frame || $("np-forward-dialog").open) return;
-		if (["TEXTAREA", "INPUT"].includes((document.activeElement || {}).tagName)) return;
+		if (!visit || $("np-forward-dialog").open) return;
+		if (event.key === "Escape" && asking && !$("np-ask").hidden) return toggleAsk(false);
+		if (typing() || event.metaKey || event.ctrlKey || event.altKey) return;
+		// A key that reaches this page did not reach the presentation, even while its frame is the active element:
+		// a frame focused before its document loaded keeps the keys out of it. This page turns the slide then.
 		if (["ArrowRight", "PageDown", " "].includes(event.key)) { event.preventDefault(); go(1); }
 		if (["ArrowLeft", "PageUp"].includes(event.key)) { event.preventDefault(); go(-1); }
 	});
