@@ -11,7 +11,7 @@ import frappe
 from frappe.tests.roles import as_role
 from frappe.tests.utils import FrappeTestCase
 
-from suite.drive.presentation import api, rules
+from suite.drive.presentation import api, renderer, rules
 
 PREFIX = "np-test"
 
@@ -55,6 +55,28 @@ class TestRules(TestCase):
         self.assertEqual(rules.device_of("Mozilla/5.0 (iPhone; CPU iPhone OS 18_0) Mobile/15E148"), "Phone")
         self.assertEqual(rules.device_of("Mozilla/5.0 (iPad; CPU OS 18_0)"), "Tablet")
         self.assertEqual(rules.device_of("Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0)"), "Computer")
+
+
+class TestCrossOrigin(TestCase):
+    """The presentation's frame has no origin: its fonts ask for a cross-origin answer, which must say one origin."""
+
+    def answers(self, allow_cors, origin="null"):
+        request = frappe._dict(headers={"Origin": origin} if origin else {})
+        with (
+            patch.object(frappe.local, "request", request, create=True),
+            patch.dict(frappe.local.conf, {"allow_cors": allow_cors}),
+        ):
+            return renderer.frappe_answers_cors()
+
+    def test_a_site_that_allows_every_origin_answers_the_frame_itself(self):
+        # the hub sets allow_cors "*": frappe adds the frame's origin, a second header would make the browser refuse
+        self.assertTrue(self.answers("*"))
+
+    def test_a_site_without_cors_leaves_the_header_to_the_presentation(self):
+        self.assertFalse(self.answers(None))
+        self.assertFalse(self.answers(["https://app.example.com"]))
+        self.assertFalse(self.answers("*", origin=None))
+        self.assertTrue(self.answers(["null", "https://app.example.com"]))
 
 
 class TestPresentationLink(FrappeTestCase):

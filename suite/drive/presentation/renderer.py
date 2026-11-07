@@ -119,9 +119,24 @@ class PresentationLinkPage(BaseRenderer):
             return _entry(file)
         response = _send(frappe.get_doc("File", file.name), cache=True)
         # The frame has no origin ("null"): its fonts and its fetches are cross-origin requests. The path carries the
-        # visit's secret and no cookie is ever read, so any origin may read the file.
-        response.headers["Access-Control-Allow-Origin"] = "*"
+        # visit's secret and no cookie is ever read, so any origin may read the file. A site that sets `allow_cors`
+        # gets frappe's own header for the request's origin: a second one made the browser refuse both (the hub's
+        # `allow_cors: "*"`, every font of the presentation blocked).
+        if not frappe_answers_cors():
+            response.headers["Access-Control-Allow-Origin"] = "*"
         return response
+
+
+def frappe_answers_cors() -> bool:
+    """Whether frappe itself allows the request's origin on its response (frappe/app.py, set_cors_headers)."""
+    allowed = frappe.conf.allow_cors
+    request = getattr(frappe.local, "request", None)
+    origin = request.headers.get("Origin") if request else None
+    if not (allowed and origin):
+        return False
+    if allowed == "*":
+        return True
+    return origin in (allowed if isinstance(allowed, list) else [allowed])
 
 
 def viewer_strings() -> dict:
