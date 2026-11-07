@@ -326,7 +326,7 @@ def _tell(doc, link, user: str, reason: str) -> None:
                 f"<p>{escape_html(_why(reason))}</p>",
                 f'<p style="margin:22px 0"><a href="{escape_html(url)}" style="background:#141414;color:#ffffff;'
                 f'padding:12px 20px;border-radius:10px;text-decoration:none;font-weight:600">'
-                f"{escape_html(_('Answer'))}</a></p>",
+                f"{escape_html(_('Reply'))}</a></p>",  # « Répondre », not « Réponse »
                 f"<p>{escape_html(_('Your answer leaves by e-mail to {0}.').format(doc.email))}</p>",
             ]
         )
