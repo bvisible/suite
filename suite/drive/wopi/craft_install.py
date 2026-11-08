@@ -21,6 +21,7 @@ import os
 import shutil
 import stat
 import tempfile
+import time
 import zipfile
 from contextlib import contextmanager
 
@@ -38,6 +39,12 @@ MAX_FILES = 200
 CONNECT_TIMEOUT_SECONDS = 10
 READ_TIMEOUT_SECONDS = 120
 CHUNK_BYTES = 1024 * 1024
+# GitHub answers a release download with a 5xx now and then: on 08.11 it gave a 504 to ten servers updated at
+# the same time, and each was left without some of its editors until the next migrate. A transient answer is
+# tried again, twice, before the install gives up.
+DOWNLOAD_ATTEMPTS = 3
+RETRY_WAIT_SECONDS = (10, 30)
+TRANSIENT_STATUSES = frozenset({429, 500, 502, 503, 504})
 
 
 def public_dir() -> str:
@@ -125,22 +132,51 @@ def locked(root: str):
             fcntl.flock(handle, fcntl.LOCK_UN)
 
 
+class TransientDownloadError(Exception):
+    """The server or the network failed this time; the same request may well succeed in a moment."""
+
+
 def download(url: str, destination: str, sha256: str) -> None:
+    """Fetch ``url`` into ``destination`` and check its hash, trying again when the failure is transient."""
+    for attempt in range(DOWNLOAD_ATTEMPTS):
+        try:
+            download_once(url, destination, sha256)
+            return
+        except TransientDownloadError:
+            if attempt == DOWNLOAD_ATTEMPTS - 1:
+                raise
+            time.sleep(RETRY_WAIT_SECONDS[min(attempt, len(RETRY_WAIT_SECONDS) - 1)])
+
+
+def download_once(url: str, destination: str, sha256: str) -> None:
+    """One attempt. Raises TransientDownloadError when trying again may help, anything else when it cannot."""
     digest = hashlib.sha256()
-    size = 0
-    with requests.get(url, stream=True, timeout=(CONNECT_TIMEOUT_SECONDS, READ_TIMEOUT_SECONDS)) as response:
-        response.raise_for_status()
-        if int(response.headers.get("Content-Length") or 0) > MAX_DOWNLOAD_BYTES:
-            raise ValueError("the download is larger than expected")
-        with open(destination, "wb") as handle:
-            for chunk in response.iter_content(CHUNK_BYTES):
-                size += len(chunk)
-                if size > MAX_DOWNLOAD_BYTES:
-                    raise ValueError("the download is larger than expected")
-                digest.update(chunk)
-                handle.write(chunk)
+    try:
+        with requests.get(
+            url, stream=True, timeout=(CONNECT_TIMEOUT_SECONDS, READ_TIMEOUT_SECONDS)
+        ) as response:
+            if getattr(response, "status_code", None) in TRANSIENT_STATUSES:
+                raise TransientDownloadError(f"HTTP {response.status_code} for {url}")
+            response.raise_for_status()
+            _write_body(response, destination, digest)
+    except (requests.ConnectionError, requests.Timeout, requests.exceptions.ChunkedEncodingError) as e:
+        raise TransientDownloadError(f"{type(e).__name__} for {url}: {e}") from e
     if digest.hexdigest() != sha256.lower():
         raise ValueError("the download does not match its pinned SHA-256")
+
+
+def _write_body(response, destination: str, digest) -> None:
+    """Write the body to ``destination`` (from scratch: an earlier attempt may have left half of it), hashing it."""
+    if int(response.headers.get("Content-Length") or 0) > MAX_DOWNLOAD_BYTES:
+        raise ValueError("the download is larger than expected")
+    size = 0
+    with open(destination, "wb") as handle:
+        for chunk in response.iter_content(CHUNK_BYTES):
+            size += len(chunk)
+            if size > MAX_DOWNLOAD_BYTES:
+                raise ValueError("the download is larger than expected")
+            digest.update(chunk)
+            handle.write(chunk)
 
 
 def unpack(archive: str, destination: str) -> None:

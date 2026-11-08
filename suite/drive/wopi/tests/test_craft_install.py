@@ -31,6 +31,7 @@ def archive(entries: dict, folder: str | None = "app-web-1.0", links: dict | Non
 class FakeResponse:
     def __init__(self, body: bytes, status: int = 200):
         self.body, self.status, self.headers = body, status, {"Content-Length": str(len(body))}
+        self.status_code = status
 
     def __enter__(self):
         return self
@@ -160,6 +161,49 @@ class TestInstalling(TestCase):
                 with self.assertRaises(ValueError, msg=name):
                     install.install(name, self.entry(data))
         fetch.assert_not_called()
+
+    def test_a_gateway_timeout_is_tried_again(self):
+        # 08.11: GitHub gave a 504 to ten servers at once; one more try would have installed every editor.
+        data = archive({"index.html": b"<html>v1"})
+        answers = [FakeResponse(b"", status=504), FakeResponse(data)]
+        with (
+            patch.object(install.requests, "get", side_effect=answers) as fetch,
+            patch.object(install.time, "sleep") as wait,
+        ):
+            install.install("appcraft", self.entry(data))
+        self.assertEqual(fetch.call_count, 2)
+        wait.assert_called_once_with(install.RETRY_WAIT_SECONDS[0])
+        self.assertEqual(install.current_version("appcraft"), "1.0")
+
+    def test_a_network_failure_is_tried_again(self):
+        data = archive({"index.html": b"<html>v1"})
+        answers = [install.requests.ConnectionError("reset by peer"), FakeResponse(data)]
+        with patch.object(install.requests, "get", side_effect=answers), patch.object(install.time, "sleep"):
+            install.install("appcraft", self.entry(data))
+        self.assertEqual(install.current_version("appcraft"), "1.0")
+
+    def test_a_build_that_never_comes_gives_up_and_installs_nothing(self):
+        with patch.object(
+            install.requests, "get", side_effect=lambda *a, **k: FakeResponse(b"", status=503)
+        ) as fetch:
+            with patch.object(install.time, "sleep"), self.assertRaises(install.TransientDownloadError):
+                install.install("appcraft", self.entry(archive({"index.html": b"<html>"})))
+        self.assertEqual(fetch.call_count, install.DOWNLOAD_ATTEMPTS)
+        self.assertIsNone(install.current_version("appcraft"))
+
+    def test_a_missing_build_is_not_tried_again(self):
+        with patch.object(install.requests, "get", return_value=FakeResponse(b"", status=404)) as fetch:
+            with patch.object(install.time, "sleep") as wait, self.assertRaises(RuntimeError):
+                install.install("appcraft", self.entry(archive({"index.html": b"<html>"})))
+        self.assertEqual(fetch.call_count, 1)
+        wait.assert_not_called()
+
+    def test_a_download_that_does_not_match_its_hash_is_not_tried_again(self):
+        data = archive({"index.html": b"<html>"})
+        with patch.object(install.requests, "get", return_value=FakeResponse(data)) as fetch:
+            with patch.object(install.time, "sleep"), self.assertRaises(ValueError):
+                install.install("appcraft", self.entry(data, sha256="0" * 64))
+        self.assertEqual(fetch.call_count, 1)
 
     def test_an_oversized_download_is_stopped(self):
         data = archive({"index.html": b"x" * 1000})
