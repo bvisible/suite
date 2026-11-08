@@ -536,6 +536,10 @@ jobs:
 
       - name: Build
         if: steps.frontend-changes.outputs.run == '1'
+        # //// Neoffice — the root `yarn build` skips the SPA when its committed build is there (package.json,
+        # //// commit-the-build): this job checks that the frontend builds, so it forces the real one.
+        env:
+          FORCE_REBUILD: "1"
         run: yarn build
 
       - name: Test

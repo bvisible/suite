@@ -6,7 +6,9 @@
     "frontend"
   ],
   "scripts": {
-    "build": "yarn workspace @suite/frontend build",
+    "//// Neoffice": "commit-the-build: the SPA the CI builds is committed in suite/public/frontend (build-frontend.yml), so a plain `yarn build` must NOT rebuild it on an instance. Frappe's esbuild runs it after the desk bundle of every `bench build --app suite`: on a 2 vCPU / 4 GB client its Vite build took 1.6 GB and stalled the machine on memory (67 % pressure, the database pushed into swap) at every update, then failed and was thrown away. FORCE_REBUILD=1 forces it; upstream's command is kept verbatim as build:force.",
+    "build": "if [ -d 'suite/public/frontend/assets' ] && [ -z \"$FORCE_REBUILD\" ]; then echo '[skip-build] pre-built artifacts present at suite/public/frontend/assets (set FORCE_REBUILD=1 to force rebuild)'; else yarn build:force; fi",
+    "build:force": "yarn workspace @suite/frontend build",
     "dev": "yarn workspace @suite/frontend dev",
     "test:e2e": "yarn --cwd e2e test",
     "test:e2e:drive-backed-apps": "yarn --cwd e2e test:drive-backed-apps",
