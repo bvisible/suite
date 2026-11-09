@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Frappe Suite VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-11-09 17:55+0000\n"
-"PO-Revision-Date: 2026-11-09 17:55+0000\n"
+"POT-Creation-Date: 2026-11-09 22:21+0000\n"
+"PO-Revision-Date: 2026-11-09 22:21+0000\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -390,7 +390,7 @@ msgstr ""
 msgid "A code given with a shared presentation's link to one person: she enters with it, without an e-mail and a code sent to it."
 msgstr ""
 
-#: suite/drive/presentation/api.py:771
+#: suite/drive/presentation/api.py:774
 msgid "A code will be sent to this address to open it."
 msgstr ""
 
@@ -541,12 +541,12 @@ msgstr ""
 msgid "A question"
 msgstr ""
 
-#: suite/drive/presentation/questions.py:500
+#: suite/drive/presentation/questions.py:502
 #, python-brace-format
 msgid "A question of {0} characters at most, please."
 msgstr ""
 
-#: suite/drive/presentation/questions.py:911
+#: suite/drive/presentation/questions.py:977
 #, python-brace-format
 msgid "A question of {0} to {1} characters, please."
 msgstr ""
@@ -2385,7 +2385,7 @@ msgstr ""
 msgid "Answer it"
 msgstr ""
 
-#: suite/drive/presentation/questions.py:458
+#: suite/drive/presentation/questions.py:460
 #: suite/drive/presentation/renderer.py:220
 #, python-brace-format
 msgid "Answer of {0}"
@@ -3329,6 +3329,11 @@ msgstr ""
 #: suite/public/frontend/assets/MailboxView-CKq77zL5.js:1
 #: suite/public/frontend/assets/OutboxView-DIpZreDy.js:1
 msgid "Before"
+msgstr ""
+
+#: suite/drive/presentation/questions.py:751
+#, python-brace-format
+msgid "Before this question, {0} asked:"
 msgstr ""
 
 #. Label of a Long Text field in DocType 'Sheet Op Log'
@@ -11410,24 +11415,24 @@ msgstr ""
 msgid "Hello world"
 msgstr ""
 
-#: suite/drive/presentation/api.py:759
-#: suite/drive/presentation/questions.py:1000
+#: suite/drive/presentation/api.py:762
+#: suite/drive/presentation/questions.py:1066
 #, python-brace-format
 msgid "Hello {0},"
 msgstr ""
 
-#: suite/drive/presentation/questions.py:182
+#: suite/drive/presentation/questions.py:184
 #, python-brace-format
 msgid "Hello! Ask your question about this presentation: {0} answers you by e-mail."
 msgstr ""
 
-#: suite/drive/presentation/questions.py:179
+#: suite/drive/presentation/questions.py:181
 #, python-brace-format
 msgid "Hello! I am Nora. Ask me your question about this presentation: I answer from what it says, and what I do not know, {0} answers by e-mail."
 msgstr ""
 
-#: suite/drive/presentation/api.py:759
-#: suite/drive/presentation/questions.py:1000
+#: suite/drive/presentation/api.py:762
+#: suite/drive/presentation/questions.py:1066
 #: suite/templates/emails/generic.html:13
 msgid "Hello,"
 msgstr ""
@@ -11611,7 +11616,7 @@ msgstr ""
 msgid "I agree"
 msgstr ""
 
-#: suite/drive/presentation/questions.py:193
+#: suite/drive/presentation/questions.py:195
 #, python-brace-format
 msgid "I am Nora, an assistant. I answer your questions about this presentation from what it says, and I pass what I do not know to {0}, who answers you by e-mail."
 msgstr ""
@@ -12691,7 +12696,7 @@ msgstr ""
 msgid "Is there an issue with your configuration?"
 msgstr ""
 
-#: suite/drive/presentation/api.py:741
+#: suite/drive/presentation/api.py:744
 msgid "It is valid for 10 minutes. If you did not ask for it, ignore this e-mail."
 msgstr ""
 
@@ -16773,6 +16778,10 @@ msgstr ""
 msgid "Nora Reads the Speaker Notes"
 msgstr ""
 
+#: suite/drive/presentation/questions.py:769
+msgid "Nora answered:"
+msgstr ""
+
 #: suite/drive/presentation/renderer.py:205
 #, python-brace-format
 msgid "Nora answers from this presentation. Otherwise, she passes it on to {0}."
@@ -16786,11 +16795,11 @@ msgstr ""
 msgid "Nora did not find a sure answer in the presentation."
 msgstr ""
 
-#: suite/drive/presentation/questions.py:730
+#: suite/drive/presentation/questions.py:796
 msgid "Nora did not find a sure answer in the presentation: she told the person that you answer by e-mail."
 msgstr ""
 
-#: suite/drive/presentation/questions.py:728
+#: suite/drive/presentation/questions.py:794
 msgid "Nora does not answer a price or a commitment: that is for you."
 msgstr ""
 
@@ -16799,7 +16808,7 @@ msgid "Nora is not on this site: every question goes to the person who answers."
 msgstr ""
 
 #: suite/drive/doctype/presentation_link/presentation_link.js:443
-#: suite/drive/presentation/questions.py:726
+#: suite/drive/presentation/questions.py:792
 msgid "Nora is not on this site: the question comes to you."
 msgstr ""
 
@@ -16887,6 +16896,10 @@ msgstr ""
 
 #: suite/mail/doctype/sieve_script/sieve_script.py:165
 msgid "Not allowed to create automation script."
+msgstr ""
+
+#: suite/drive/presentation/questions.py:783
+msgid "Not answered yet."
 msgstr ""
 
 #: frontend/src/neoffice/i18nRegistry.ts:810
@@ -17549,7 +17562,7 @@ msgstr ""
 msgid "Open the folder"
 msgstr ""
 
-#: suite/drive/presentation/api.py:769 suite/drive/presentation/renderer.py:179
+#: suite/drive/presentation/api.py:772 suite/drive/presentation/renderer.py:179
 msgid "Open the presentation"
 msgstr ""
 
@@ -19131,7 +19144,7 @@ msgstr ""
 msgid "Questions are closed on this link."
 msgstr ""
 
-#: suite/drive/presentation/questions.py:492
+#: suite/drive/presentation/questions.py:494
 msgid "Questions are not open on this presentation."
 msgstr ""
 
@@ -20566,7 +20579,7 @@ msgstr ""
 #: frontend/src/apps/mail/components/MailActions.vue:159
 #: frontend/src/apps/mail/components/MailThread.vue:1098
 #: frontend/src/neoffice/i18nRegistry.ts:952
-#: suite/drive/presentation/questions.py:694
+#: suite/drive/presentation/questions.py:696
 #: suite/public/frontend/assets/MailThread-kyo_XN7A.js:347
 #: suite/public/frontend/assets/mailboxTargets-CwDGxHAl.js:6
 msgid "Reply"
@@ -21856,7 +21869,7 @@ msgstr ""
 msgid "See availability"
 msgstr ""
 
-#: suite/drive/presentation/questions.py:1005
+#: suite/drive/presentation/questions.py:1071
 msgid "See the presentation again"
 msgstr ""
 
@@ -23326,7 +23339,8 @@ msgid "Slide in"
 msgstr ""
 
 #: suite/drive/doctype/presentation_link/presentation_link.js:360
-#: suite/drive/presentation/questions.py:823
+#: suite/drive/presentation/questions.py:760
+#: suite/drive/presentation/questions.py:889
 #: suite/drive/presentation/renderer.py:186
 #, python-brace-format
 msgid "Slide {0}"
@@ -23570,6 +23584,11 @@ msgstr ""
 #. Label of a Small Text field in DocType 'Presentation Question'
 #: suite/drive/doctype/presentation_question/presentation_question.json:133
 msgid "Sources Nora Cited"
+msgstr ""
+
+#: suite/drive/presentation/questions.py:780
+#, python-brace-format
+msgid "Sources: {0}"
 msgstr ""
 
 #: frontend/src/neoffice/i18nRegistry.ts:1098
@@ -24949,7 +24968,7 @@ msgstr ""
 msgid "Thank you for watching it to the end."
 msgstr ""
 
-#: suite/drive/presentation/questions.py:189
+#: suite/drive/presentation/questions.py:191
 msgid "Thank you for your visit. The same link brings you back to the presentation whenever you like."
 msgstr ""
 
@@ -25346,6 +25365,10 @@ msgstr ""
 msgid "The domain is disabled, so no mail flows for it."
 msgstr ""
 
+#: suite/drive/presentation/questions.py:757
+msgid "The earlier questions are on the Questions tab."
+msgstr ""
+
 #: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue:158
 #: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue:191
 #: suite/public/frontend/assets/CraftEditor-DFsX_tCP.js:1
@@ -25516,7 +25539,7 @@ msgid "The link is on its way."
 msgstr ""
 
 #: suite/drive/doctype/presentation_link/presentation_link.js:442
-#: suite/drive/presentation/questions.py:724
+#: suite/drive/presentation/questions.py:790
 msgid "The link sends every question to you."
 msgstr ""
 
@@ -26562,7 +26585,7 @@ msgstr ""
 
 #: suite/drive/presentation/api.py:174 suite/drive/presentation/api.py:225
 #: suite/drive/presentation/api.py:251 suite/drive/presentation/api.py:279
-#: suite/drive/presentation/api.py:543
+#: suite/drive/presentation/api.py:546
 msgid "This presentation is not shared any more."
 msgstr ""
 
@@ -28597,7 +28620,7 @@ msgstr ""
 msgid "Vertical"
 msgstr ""
 
-#: suite/drive/presentation/questions.py:197
+#: suite/drive/presentation/questions.py:199
 msgid "Very well. Ask me a question whenever you like, about the slide on screen or the whole presentation."
 msgstr ""
 
@@ -28799,6 +28822,10 @@ msgstr ""
 #: frontend/src/apps/meet/pages/Meeting.vue:617
 #: suite/public/frontend/assets/Meeting-DZvYtNQz.js:209
 msgid "Waiting for the host to join"
+msgstr ""
+
+#: suite/drive/presentation/questions.py:783
+msgid "Waiting for your answer."
 msgstr ""
 
 #: frontend/src/apps/meet/components/LobbyOverlay.vue:10
@@ -29296,7 +29323,7 @@ msgid "Write permission denied"
 msgstr ""
 
 #: suite/drive/doctype/presentation_link/presentation_link.js:516
-#: suite/drive/presentation/questions.py:965
+#: suite/drive/presentation/questions.py:1031
 msgid "Write the answer first."
 msgstr ""
 
@@ -29305,7 +29332,7 @@ msgid "Write to the person who sent it to you: a new link leaves in one click."
 msgstr ""
 
 #: suite/drive/presentation/api.py:282
-#: suite/drive/presentation/questions.py:495
+#: suite/drive/presentation/questions.py:497
 msgid "Write your question first."
 msgstr ""
 
@@ -29493,16 +29520,16 @@ msgstr ""
 msgid "You are viewing the version history of"
 msgstr ""
 
-#: suite/drive/presentation/questions.py:186
+#: suite/drive/presentation/questions.py:188
 msgid "You are welcome. Another question? I am here."
 msgstr ""
 
-#: suite/drive/presentation/questions.py:987
+#: suite/drive/presentation/questions.py:1053
 #, python-brace-format
 msgid "You asked, about « {0} »:"
 msgstr ""
 
-#: suite/drive/presentation/questions.py:985
+#: suite/drive/presentation/questions.py:1051
 #, python-brace-format
 msgid "You asked, on slide {0} of « {1} »:"
 msgstr ""
@@ -29633,7 +29660,7 @@ msgstr ""
 msgid "You don't own any sheets yet"
 msgstr ""
 
-#: suite/drive/presentation/questions.py:510
+#: suite/drive/presentation/questions.py:512
 #, python-brace-format
 msgid "You have asked many questions today: {0} will answer you by e-mail."
 msgstr ""
@@ -29683,7 +29710,7 @@ msgstr ""
 msgid "You have no new senders to screen."
 msgstr ""
 
-#: suite/drive/presentation/questions.py:929
+#: suite/drive/presentation/questions.py:995
 msgid "You have tried many questions today: try again tomorrow."
 msgstr ""
 
@@ -29804,7 +29831,7 @@ msgstr ""
 msgid "Your answer is on its way."
 msgstr ""
 
-#: suite/drive/presentation/questions.py:695
+#: suite/drive/presentation/questions.py:697
 #, python-brace-format
 msgid "Your answer leaves by e-mail to {0}."
 msgstr ""
@@ -29818,7 +29845,7 @@ msgstr ""
 msgid "Your audio and video have stopped here because you joined from another device."
 msgstr ""
 
-#: suite/drive/presentation/api.py:746
+#: suite/drive/presentation/api.py:749
 #, python-brace-format
 msgid "Your code for « {0} »"
 msgstr ""
@@ -29827,7 +29854,7 @@ msgstr ""
 msgid "Your code is on its way"
 msgstr ""
 
-#: suite/drive/presentation/api.py:739
+#: suite/drive/presentation/api.py:742
 #, python-brace-format
 msgid "Your code to open « {0} »:"
 msgstr ""
@@ -29896,7 +29923,7 @@ msgstr ""
 msgid "Your question on this slide…"
 msgstr ""
 
-#: suite/drive/presentation/questions.py:1010
+#: suite/drive/presentation/questions.py:1076
 #, python-brace-format
 msgid "Your question on « {0} »"
 msgstr ""
@@ -31122,6 +31149,11 @@ msgstr ""
 msgid "{0} and {1} others is in the meeting"
 msgstr ""
 
+#: suite/drive/presentation/questions.py:771
+#, python-brace-format
+msgid "{0} answered:"
+msgstr ""
+
 #: suite/drive/presentation/renderer.py:206
 #, python-brace-format
 msgid "{0} answers you by e-mail."
@@ -31145,22 +31177,22 @@ msgstr ""
 msgid "{0} are waiting to be screened."
 msgstr ""
 
-#: suite/drive/presentation/questions.py:674
+#: suite/drive/presentation/questions.py:676
 #, python-brace-format
 msgid "{0} asks a question on « {1} »"
 msgstr ""
 
-#: suite/drive/presentation/questions.py:681
+#: suite/drive/presentation/questions.py:683
 #, python-brace-format
 msgid "{0} asks, on slide {1}, « {2} »:"
 msgstr ""
 
-#: suite/drive/presentation/questions.py:683
+#: suite/drive/presentation/questions.py:685
 #, python-brace-format
 msgid "{0} asks, on slide {1}:"
 msgstr ""
 
-#: suite/drive/presentation/questions.py:685
+#: suite/drive/presentation/questions.py:687
 #, python-brace-format
 msgid "{0} asks:"
 msgstr ""
@@ -31620,7 +31652,7 @@ msgstr ""
 msgid "{0} on screen"
 msgstr ""
 
-#: suite/drive/presentation/api.py:718
+#: suite/drive/presentation/api.py:721
 #, python-brace-format
 msgid "{0} opened « {1} »"
 msgstr ""
@@ -31764,12 +31796,12 @@ msgstr ""
 msgid "{0} shared a folder with you: \"{1}\""
 msgstr ""
 
-#: suite/drive/presentation/api.py:762
+#: suite/drive/presentation/api.py:765
 #, python-brace-format
 msgid "{0} shares a presentation with you: « {1} »."
 msgstr ""
 
-#: suite/drive/presentation/api.py:774
+#: suite/drive/presentation/api.py:777
 #, python-brace-format
 msgid "{0} shares « {1} » with you"
 msgstr ""

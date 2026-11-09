@@ -33228,3 +33228,34 @@ msgstr "Très bien. Posez-moi une question quand vous voulez, sur la diapositive
 #: suite/drive/presentation/questions.py:186
 msgid "You are welcome. Another question? I am here."
 msgstr "Je vous en prie. Une autre question ? Je suis là."
+
+#: suite/drive/presentation/questions.py:751
+#, python-brace-format
+msgid "Before this question, {0} asked:"
+msgstr "Avant cette question, {0} a demandé :"
+
+#: suite/drive/presentation/questions.py:769
+msgid "Nora answered:"
+msgstr "Nora a répondu :"
+
+#: suite/drive/presentation/questions.py:783
+msgid "Not answered yet."
+msgstr "Pas encore de réponse."
+
+#: suite/drive/presentation/questions.py:780
+#, python-brace-format
+msgid "Sources: {0}"
+msgstr "Sources : {0}"
+
+#: suite/drive/presentation/questions.py:757
+msgid "The earlier questions are on the Questions tab."
+msgstr "Les questions précédentes se trouvent dans l'onglet Questions."
+
+#: suite/drive/presentation/questions.py:783
+msgid "Waiting for your answer."
+msgstr "En attente de votre réponse."
+
+#: suite/drive/presentation/questions.py:771
+#, python-brace-format
+msgid "{0} answered:"
+msgstr "{0} a répondu :"
