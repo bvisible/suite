@@ -4,11 +4,16 @@
 // //// page is really looked at (visible, and touched in the last two minutes or a video playing) and sends them every 15 s.
 // //// « A question? » asks about the slide on screen (maintenance#2337): Nora answers from the presentation, or the
 // //// question goes to the person who answers for the link; the page follows the answer.
+// //// The preview (/p/<token>/preview/<secret>, ours only) opens the presentation at once, without the e-mail and the
+// //// code: no visit, so nothing is counted; a question gets what Nora would answer, and nothing is sent.
 (function () {
 	"use strict";
 	const config = window.npConfig || {};
 	const S = config.strings || {};
 	if (!config.isOpen) return;
+	const preview = config.preview || null;
+	// the logos of a link the preview opens in any state: the preview names its secret
+	const logoQuery = preview ? "preview=" + encodeURIComponent(preview.secret) : "";
 
 	const API = "/api/method/suite.drive.presentation.api.";
 	const STORE = "np:" + config.token;
@@ -27,6 +32,7 @@
 	let pending = {};
 	let videos = {};
 	let frame = null;
+	let live = false;
 
 	function store() {
 		try { return JSON.parse(localStorage.getItem(STORE) || "{}"); } catch (e) { return {}; }
@@ -63,14 +69,14 @@
 	// The logo at the top ----------------------------------------------------------------------------------------------
 	if (config.hasBrand) {
 		const img = document.createElement("img");
-		img.src = "/p/" + config.token + "/brand";
+		img.src = "/p/" + config.token + "/brand" + (logoQuery ? "?" + logoQuery : "");
 		img.alt = "";
 		$("np-brand").appendChild(img);
 	}
 
 	// The e-mail -------------------------------------------------------------------------------------------------------
 	const emailForm = $("np-email-form");
-	emailForm.addEventListener("submit", async (event) => {
+	if (emailForm) emailForm.addEventListener("submit", async (event) => {
 		event.preventDefault();
 		showError("np-email-error", "");
 		const button = emailForm.querySelector("button");
@@ -95,7 +101,7 @@
 	});
 
 	// The code ---------------------------------------------------------------------------------------------------------
-	const digits = () => Array.from($("np-digits").querySelectorAll("input"));
+	const digits = () => Array.from(($("np-digits") || document.createElement("div")).querySelectorAll("input"));
 	digits().forEach((input, i, all) => {
 		input.addEventListener("input", () => {
 			input.value = input.value.replace(/\D/g, "").slice(-1);
@@ -131,21 +137,23 @@
 			showError("np-code-error", S.error);
 		}
 	}
-	$("np-resend").addEventListener("click", () => {
-		$("np-code").hidden = true;
-		$("np-gate").hidden = false;
-		emailForm.email.value = email;
-		emailForm.requestSubmit();
-	});
-	$("np-other").addEventListener("click", () => {
-		$("np-code").hidden = true;
-		$("np-gate").hidden = false;
-		emailForm.email.focus();
-	});
+	if (emailForm) {
+		$("np-resend").addEventListener("click", () => {
+			$("np-code").hidden = true;
+			$("np-gate").hidden = false;
+			emailForm.email.value = email;
+			emailForm.requestSubmit();
+		});
+		$("np-other").addEventListener("click", () => {
+			$("np-code").hidden = true;
+			$("np-gate").hidden = false;
+			emailForm.email.focus();
+		});
+	}
 
 	// A browser where the code was given lately opens straight away ----------------------------------------------------
 	const known = store();
-	if (known.email && known.remember) {
+	if (!preview && known.email && known.remember) {
 		call("resume", { token: config.token, email: known.email, remember: known.remember, browser_id: browserId() })
 			.then((result) => { if (result.ok) { email = known.email; open(result, true); } })
 			.catch(() => {});
@@ -166,7 +174,7 @@
 		if (!hold) return setTimeout(startPlayer, 320);
 		const intro = $("np-intro");
 		const logo = $("np-intro-logo");
-		logo.src = "/p/" + config.token + "/" + introLogo + "?play=" + Date.now();
+		logo.src = "/p/" + config.token + "/" + introLogo + "?play=" + Date.now() + (logoQuery ? "&" + logoQuery : "");
 		intro.hidden = false;
 		requestAnimationFrame(() => intro.classList.add("np-on"));
 		setTimeout(startPlayer, reduced ? 600 : hold + 400);
@@ -181,6 +189,7 @@
 			try { frame.contentWindow.focus(); } catch (e) { frame.focus(); }
 		});
 		frame.src = result.content;
+		live = true;
 		box.hidden = false;
 		requestAnimationFrame(() => box.classList.add("np-on"));
 		$("np-forward").hidden = !result.can_forward;
@@ -267,7 +276,7 @@
 		return !el.closest("[hidden]");
 	};
 	document.addEventListener("keydown", (event) => {
-		if (!visit || $("np-forward-dialog").open) return;
+		if (!live || $("np-forward-dialog").open) return;
 		if (event.key === "Escape" && asking && !$("np-ask").hidden) return toggleAsk(false);
 		if (typing() || event.metaKey || event.ctrlKey || event.altKey) return;
 		// A key that reaches this page did not reach the presentation, even while its frame is the active element:
@@ -296,6 +305,13 @@
 		event.preventDefault();
 		showError("np-forward-error", "");
 		const button = $("np-forward-send");
+		if (preview) {
+			// the preview sends nothing: it only shows the gesture
+			$("np-forward-ok").textContent = S.previewNotSent;
+			$("np-forward-ok").hidden = false;
+			button.hidden = true;
+			return setTimeout(() => dialog.close(), 2200);
+		}
 		button.disabled = true;
 		try {
 			const result = await call("forward", {
@@ -403,6 +419,9 @@
 					});
 					body.append(chips);
 				}
+			} else if (q.status === "Preview") {
+				reply.append(orb());
+				body.append(el("p", "np-a-text", format(S.previewWouldForward, asking.answeredBy)));
 			} else if (q.status === "Answered") {
 				reply.classList.add("np-a-person");
 				body.append(el("p", "np-a-by", format(S.answerOf, q.by)), el("p", "np-a-text", q.answer));
@@ -447,6 +466,7 @@
 		showError("np-ask-error", "");
 		const button = form.querySelector("button");
 		button.disabled = true;
+		if (preview) return previewQuestion(form, button, text);
 		try {
 			const result = await call("ask", { visit, question: text, slide: current });
 			if (!result.ok) return showError("np-ask-error", result.message);
@@ -461,4 +481,29 @@
 			button.disabled = false;
 		}
 	}
+
+	// In the preview, Nora answers as she would answer a visitor, and nothing is recorded or sent (api.preview_ask).
+	async function previewQuestion(form, button, text) {
+		const item = { slide: current, question: text, status: "Asked" };
+		thread.push(item);
+		form.question.value = "";
+		drawThread();
+		try {
+			const result = await call("preview_ask", { token: config.token, preview: preview.secret, question: text, slide: current });
+			if (!result.ok) {
+				thread.splice(thread.indexOf(item), 1);
+				return showError("np-ask-error", result.message);
+			}
+			if (result.sure) Object.assign(item, { status: "Answered by Nora", answer: result.answer, sources: result.sources, slides: result.slides });
+			else item.status = "Preview";
+		} catch (e) {
+			thread.splice(thread.indexOf(item), 1);
+			showError("np-ask-error", S.error);
+		} finally {
+			drawThread();
+			button.disabled = false;
+		}
+	}
+
+	if (preview) open(preview);
 })();

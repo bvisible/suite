@@ -2,15 +2,29 @@
 // //// withdraw it, and see what each person saw (suite/drive/presentation/api.py get_stats); answer the questions asked
 // //// on it, see what Nora knows for it and try her as a visitor (maintenance#2337). Drawn as the design plan of 06.11
 // //// draws the record (« Présentations partagées et suivies — écrans »), with the design system's tokens
-// //// (suite/public/presentation/link-form.css).
-const NP_FORM_CSS = "/assets/suite/presentation/link-form.css?v=3";
+// //// (suite/public/presentation/link-form.css). One head (Jérémy, 09.11: « ne me fais pas des choses à double »): what
+// //// waits and what was seen is said at the top right of the form's own head, and the tabs no longer repeat it; the
+// //// preview link, ours only, opens the presentation without a code and counts nothing.
+const NP_FORM_CSS = "/assets/suite/presentation/link-form.css?v=4";
 const NP_MODES = {
 	nora: "Nora Answers, Else Forwards",
 	forward: "Forward Every Question",
 	none: "No Questions",
 };
 
+// The form's head says it, at its top right (frappe's form hero, its detail block, fed by the controller's onload):
+// the question that waits, found in seconds, then who watched and to whom the link went. Clicking a line opens its tab.
+if (frappe.ui.form.add_hero_detail && !frappe.ui.form.__np_link_head) {
+	frappe.ui.form.__np_link_head = true;
+	frappe.ui.form.add_hero_detail("Presentation Link", (frm) => link_head(frm));
+}
+
 frappe.ui.form.on("Presentation Link", {
+	setup(frm) {
+		// before the head is drawn: it is placed by this stylesheet
+		load_form_css();
+		frm.$wrapper.addClass("np-link-form");
+	},
 	refresh(frm) {
 		for (const field of ["stats_html", "questions_html", "nora_sources_html"]) frm.get_field(field).$wrapper.empty();
 		if (frm.is_new()) {
@@ -19,8 +33,12 @@ frappe.ui.form.on("Presentation Link", {
 		}
 		if (frm.doc.status !== "Withdrawn") {
 			frm.add_custom_button(__("Send the Link"), () => send_link(frm)).addClass("btn-primary");
+			if (frm.doc.preview_url) frm.add_custom_button(__("Preview"), () => window.open(frm.doc.preview_url, "_blank", "noopener"));
 			frm.add_custom_button(__("Copy the Link"), () => frappe.utils.copy_to_clipboard(frm.doc.url));
-			frm.add_custom_button(__("Open as a Visitor"), () => window.open(frm.doc.url, "_blank", "noopener"));
+			if (frm.doc.preview_url) {
+				frm.add_custom_button(__("Copy the Preview Link"), () => frappe.utils.copy_to_clipboard(frm.doc.preview_url), __("More"));
+				frm.add_custom_button(__("New Preview Link"), () => new_preview(frm, true), __("More"));
+			}
 			frm.add_custom_button(
 				__("Withdraw"),
 				() =>
@@ -29,6 +47,11 @@ frappe.ui.form.on("Presentation Link", {
 					),
 				__("More")
 			);
+		}
+		// a link made before the preview existed gets its preview link once
+		if (!frm.doc.preview_url && frm.perm[0] && frm.perm[0].write && frm.__np_preview_made !== frm.doc.name) {
+			frm.__np_preview_made = frm.doc.name;
+			new_preview(frm, false);
 		}
 		load_form_css();
 		frappe
@@ -65,6 +88,40 @@ function load_form_css() {
 function open_tab(frm, fieldname) {
 	const tab = (frm.layout.tabs || []).find((t) => t.df.fieldname === fieldname);
 	if (tab) tab.set_active();
+}
+
+// A new preview link: the former one opens nothing any more (the first one, for a link made before the preview).
+function new_preview(frm, ask) {
+	const make = () =>
+		frappe.call({ method: "suite.drive.presentation.api.new_preview", args: { name: frm.doc.name } }).then(() => {
+			if (ask) frappe.show_alert({ message: __("A new preview link is ready."), indicator: "green" });
+			frm.reload_doc();
+		});
+	if (ask) frappe.confirm(__("The former preview link will open nothing any more."), make);
+	else make();
+}
+
+function link_head(frm) {
+	const h = (frm.doc.__onload || {}).np_header;
+	if (frm.is_new() || !h) return null;
+	const lines = [];
+	if (h.question) {
+		lines.push({ text: `« ${h.question.text} » · ${h.question.who}`, title: __("Answer it"), run: () => open_tab(frm, "questions_tab") });
+	}
+	if (h.people) {
+		const watched = [h.people === 1 ? __("1 person") : __("{0} people", [h.people]), __("{0} on screen", [duration(h.seconds)])];
+		if (h.video) watched.push(__("video seen to {0} %", [h.video]));
+		lines.push({ icon: "user", text: watched.join(" · "), run: () => open_tab(frm, "seen_tab") });
+	} else {
+		lines.push({ icon: "user", text: __("Nobody has entered yet.") });
+	}
+	if (!h.waiting && h.questions) {
+		lines.push({ text: h.questions === 1 ? __("1 question, answered") : __("{0} questions, all answered", [h.questions]), run: () => open_tab(frm, "questions_tab") });
+	}
+	const sent = h.sent_to || [];
+	lines.push(sent.length ? { icon: "send", text: __("Sent to {0}", [sent.join(", ")]), title: sent.join("\n") } : { icon: "send", text: __("Not sent from here yet") });
+	const label = h.waiting ? (h.waiting === 1 ? __("A question waits for you") : __("{0} questions wait for you", [h.waiting])) : "";
+	return { label, lines };
 }
 
 function send_link(frm) {
@@ -106,18 +163,9 @@ function pill(text, tone) {
 	return `<span class="np-pill${tone ? " np-" + tone : ""}">${esc(text)}</span>`;
 }
 
-function figure(value, label) {
-	return `<div class="np-figure"><b>${esc(value)}</b><span class="np-label">${esc(label)}</span></div>`;
-}
-
 function orb() {
 	const dark = document.documentElement.getAttribute("data-theme") === "dark";
 	return `<img class="np-orb" src="/assets/nora/images/nora-orb${dark ? "-dark" : ""}.svg" alt="" onerror="this.remove()">`;
-}
-
-function status_pill(status) {
-	const tone = { Draft: "", Sent: "info", Opened: "success", Withdrawn: "danger" }[status];
-	return pill(__(status), tone);
 }
 
 const DEVICE_IN_A_SENTENCE = () => ({ Computer: __("a computer"), Phone: __("a phone"), Tablet: __("a tablet") });
@@ -141,35 +189,17 @@ function hour_of(value) {
 	return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
-// What they saw -----------------------------------------------------------------------------------------------------------
+// What they saw (the head above says how many and how long) ---------------------------------------------------------------
 function render_stats(frm, data) {
 	const wrapper = frm.get_field("stats_html").$wrapper;
 	const viewers = data.viewers || [];
 	const count = data.slide_count || 0;
 	wrapper.html(`
 		<div class="np-desk">
-			${stats_hero(frm, data, viewers)}
 			${viewers.length ? `<div class="np-row">${chart_card(data, viewers)}${log_card(data)}</div>` : ""}
 			${viewers.length || (data.invited || []).length ? people_table(data, viewers, count) : `<div class="np-card"><div class="np-empty">${esc(__("Nobody has entered yet."))}</div></div>`}
 		</div>`);
 	bind_chart(wrapper, data);
-}
-
-function stats_hero(frm, data, viewers) {
-	const sent = (data.sent_to || []).length ? __("Sent to {0}", [data.sent_to.join(", ")]) : __("Not sent from here yet");
-	const sub = [sent, data.reference && data.reference.title, data.slide_count ? __("{0} slides", [data.slide_count]) : ""].filter(Boolean);
-	const figures = [figure(viewers.length, __("People")), figure(duration(data.total_seconds), __("Time Watched"))];
-	if (data.video_percent) figures.push(figure(`${Math.round(data.video_percent)} %`, __("Video")));
-	else if (data.questions) figures.push(figure(data.questions, __("Questions")));
-	return `
-		<div class="np-hero">
-			${status_pill(frm.doc.status)}
-			<div class="np-hero-text">
-				<h1>${esc(frm.doc.title)}</h1>
-				<div class="np-hero-sub">${sub.map(esc).join(" · ")}</div>
-			</div>
-			<div class="np-figures">${figures.join("")}</div>
-		</div>`;
 }
 
 function chart_card(data, viewers) {
@@ -368,16 +398,9 @@ function question_where(q) {
 function render_questions(frm, data) {
 	const wrapper = frm.get_field("questions_html").$wrapper;
 	const rows = data.questions || [];
-	const reference = (data.reference || {}).title;
-	const title = reference ? __("What {0} Asked", [reference]) : __("What They Asked");
-	const hero = `
-		<div class="np-hero">
-			<div class="np-hero-text">
-				<h1>${esc(title)}</h1>
-				<div class="np-reading np-reading-slot">${rows.length ? "" : esc(data.mode === NP_MODES.none ? __("Questions are closed on this link.") : __("Nobody has asked a question yet. People ask from the presentation, on the slide on screen."))}</div>
-			</div>
-			<div class="np-figures">${figure(data.count || 0, __("Questions"))}${figure(data.by_nora || 0, __("Answered by Nora"))}${figure(data.waiting || 0, __("Waiting for You"))}</div>
-		</div>`;
+	// the head above counts them; here, what they say (Nora's reading, from two questions on), then each one
+	const empty = data.mode === NP_MODES.none ? __("Questions are closed on this link.") : __("Nobody has asked a question yet. People ask from the presentation, on the slide on screen.");
+	const intro = rows.length ? (rows.length >= 2 ? `<div class="np-reading np-reading-slot"></div>` : "") : `<div class="np-card"><div class="np-empty">${esc(empty)}</div></div>`;
 	const waiting = rows.filter((q) => q.status === "Waiting");
 	const by_nora = rows.filter((q) => q.status === "Answered by Nora" || q.status === "Asked");
 	const answered = rows.filter((q) => q.status === "Answered");
@@ -418,7 +441,7 @@ function render_questions(frm, data) {
 	const list = (head, items, render) => (items.length ? `<div class="np-list"><div class="np-list-head">${esc(head)}</div>${items.map(render).join("")}</div>` : "");
 	wrapper.html(`
 		<div class="np-desk">
-			${hero}
+			${intro}
 			${waiting.map(card).join("")}
 			${list(__("Answered by Nora"), by_nora, nora_item)}
 			${list(__("Answered by the Team"), answered, team_item)}
@@ -494,8 +517,7 @@ function render_sources(frm, data) {
 			<div class="np-row">
 				<div class="np-wide" style="display:flex;flex-direction:column;gap:18px;min-width:0">
 					<div>
-						<h1 style="font-size:34px;line-height:1.1">${esc(__("What Nora Knows for This Link"))}</h1>
-						<p class="np-text" style="margin-top:6px;font-size:15px">${esc(__("She answers the people who watch the presentation from these sources, and nothing else. What she says always cites where she has it from."))}</p>
+						<p class="np-text" style="font-size:15px">${esc(__("She answers the people who watch the presentation from these sources, and nothing else. What she says always cites where she has it from."))}</p>
 						${data.nora ? "" : `<p class="np-warning" style="margin-top:8px">${esc(__("Nora is not on this site: every question goes to the person who answers."))}</p>`}
 					</div>
 					<div class="np-sources">

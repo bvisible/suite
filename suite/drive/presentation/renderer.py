@@ -3,10 +3,12 @@
 # ////   /p/<token>                     the page: the e-mail, the code, the logo, then the presentation in a frame
 # ////   /p/<token>/brand               the logo at the top of the page (a still one)
 # ////   /p/<token>/logo                the logo of the opening (animated or not)
+# ////   /p/<token>/preview/<secret>    the preview, ours only: the same page without the e-mail and the code, and
+# ////                                   nothing counted (the secret is the link's preview token, shown on its record)
 # ////   /p/<token>/c/<visit>/start     the presentation's entry file (`index.html`: frappe redirects any route that ends
 # ////                                   with `.html`, `index` or `/`, so the entry has a name of its own, one level down,
 # ////                                   and the presentation's relative paths still resolve beside it)
-# ////   /p/<token>/c/<visit>/<path>    a file of the presentation, for a running visit only
+# ////   /p/<token>/c/<visit>/<path>    a file of the presentation, for a running visit only (or the preview's secret)
 # //// The presentation runs in a frame sandboxed without its origin: its scripts never see a session of the site. Its
 # //// entry file gets a small bridge (public/presentation/bridge.js) that tells the page which slide is on screen
 # //// and how far each video went. The route stays open while the website is in maintenance (hooks.py).
@@ -51,6 +53,7 @@ class PresentationLinkPage(BaseRenderer):
         return (
             len(parts) == 2
             or (len(parts) == 3 and parts[2] in ("logo", "brand"))
+            or (len(parts) == 4 and parts[2] == "preview")
             or (len(parts) >= 5 and parts[2] == "c")
         )
 
@@ -61,11 +64,15 @@ class PresentationLinkPage(BaseRenderer):
             return self._page(token)
         if parts[2] in ("logo", "brand"):
             return self._logo(token, "intro_logo" if parts[2] == "logo" else "brand_logo")
+        if parts[2] == "preview":
+            return self._page(token, preview=parts[3])
         return self._content(token, parts[3], unquote("/".join(parts[4:])))
 
     # The page ------------------------------------------------------------------------------------------------------
-    def _page(self, token: str) -> Response:
-        link = _link(token)
+    def _page(self, token: str, preview: str | None = None) -> Response:
+        from suite.drive.presentation.api import preview_link
+
+        link = preview_link(token, preview) if preview else _link(token)
         context = {
             "title": link.title if link else _("Presentation"),
             "is_open": bool(link),
@@ -77,12 +84,15 @@ class PresentationLinkPage(BaseRenderer):
                     "hasLogo": bool(link and link.intro_logo),
                     "hasBrand": bool(link and link.brand_logo),
                     "introSeconds": float(link.intro_seconds or 1.2) if link else 0,
+                    # the preview opens at once: what the code would have given, without a visit
+                    "preview": _preview_start(link, preview) if link and preview else None,
                     "csrfToken": frappe.session.data.csrf_token if frappe.session.user != "Guest" else "",
                     "strings": viewer_strings(),
                 }
             ).replace("<", "\\u003c"),
             "strings": viewer_strings(),
             "lang": frappe.local.lang or "fr",
+            "preview": bool(link and preview),
         }
         html = frappe.render_template("suite/templates/presentation/viewer.html", context)
         response = Response(html, status=200 if link else 404, mimetype="text/html")
@@ -91,7 +101,10 @@ class PresentationLinkPage(BaseRenderer):
 
     # The logo of the opening ---------------------------------------------------------------------------------------
     def _logo(self, token: str, field: str) -> Response:
-        link = _link(token)
+        from suite.drive.presentation.api import preview_link
+
+        # the preview shows the logos of a link in any state: it names its secret
+        link = _link(token) or preview_link(token, frappe.form_dict.get("preview"))
         file_name = link and link.get(field) and frappe.db.get_value("File", {"file_url": link.get(field)})
         if not file_name:
             return _not_found()
@@ -100,12 +113,12 @@ class PresentationLinkPage(BaseRenderer):
 
     # A file of the presentation ------------------------------------------------------------------------------------
     def _content(self, token: str, secret: str, path: str) -> Response:
-        from suite.drive.presentation.api import visit_for_content
+        from suite.drive.presentation.api import preview_link, visit_for_content
 
         visit = visit_for_content(token, secret)
-        if not visit:
+        link = frappe.get_doc("Presentation Link", visit.link) if visit else preview_link(token, secret)
+        if not link:
             return _not_found()
-        link = frappe.get_doc("Presentation Link", visit.link)
         folder, entry = rules.entry_file(link.presentation)
         if path == ENTRY_ALIAS:
             return _entry(entry)
@@ -197,6 +210,9 @@ def viewer_strings() -> dict:
         "forwardedPill": _("Passed on to {0} · answer by e-mail"),
         "answerOf": _("Answer of {0}"),
         "close": _("Close"),
+        "previewBadge": _("Preview · nothing is counted"),
+        "previewNotSent": _("Preview: nothing is sent."),
+        "previewWouldForward": _("In the preview, this question would go to {0}, who answers by e-mail."),
     }
 
 
@@ -207,6 +223,19 @@ def _link(token: str):
         return None
     link = frappe.get_doc("Presentation Link", name)
     return link if rules.is_open(link) else None
+
+
+def _preview_start(link, secret: str) -> dict:
+    """What the visitor's page receives after the code, for the preview: the presentation's entry under the preview's
+    secret, and the link's settings; no visit, so nothing is counted."""
+    from suite.drive.presentation import questions as asking
+
+    return {
+        "secret": secret,
+        "content": f"/p/{link.token}/c/{secret}/start",
+        "can_forward": bool(link.allow_forward),
+        "questions": asking.visitor_settings(link),
+    }
 
 
 def _entry(file) -> Response:

@@ -82,68 +82,61 @@ html[data-theme="dark"] .np-desk {
 	margin: 0;
 }
 
-/* The banner of a tab: its title, a line under it, its figures --------------------------------------------------- */
-.np-hero {
-	position: relative;
-	border: 1px solid var(--np-banner-border);
-	border-radius: 18px;
-	padding: 30px 30px 26px;
-	background: var(--np-banner);
-	display: flex;
-	justify-content: space-between;
-	align-items: flex-end;
-	gap: 24px;
-	flex-wrap: wrap;
+/* The record's head (frappe's form hero, its detail block, filled by presentation_link.js): what waits and what was
+   seen, at the top right of the head, and nowhere else (Jérémy, 09.11: « ne me fais pas des choses à double » ; a
+   question that waits is found in seconds, top right). The hero places a detail beside the name; this record asks for
+   the right edge, keeps its words below 1200 px (the hero keeps only the icons there) and goes under the name on a
+   phone. */
+body.neoffice-cockpit .np-link-form .form-hero-top:has(> .form-hero-detail) .form-hero-id {
+	flex: 1 1 auto;
 }
-.np-hero > .np-pill {
-	position: absolute;
-	top: -14px;
-	left: 28px;
+body.neoffice-cockpit .np-link-form .form-hero-detail {
+	margin-left: auto;
+	max-width: min(50%, 560px);
+	gap: 3px;
 }
-.np-hero-text {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	min-width: 0;
-	max-width: 680px;
-}
-.np-hero h1 {
-	font-size: 40px;
-	line-height: 1.05;
-}
-.np-hero-sub {
-	font-size: 15px;
-	line-height: 1.5;
-	color: var(--np-text-2);
-}
-.np-figures {
-	display: flex;
-	gap: 28px;
-	flex-wrap: wrap;
-}
-.np-figure {
-	display: flex;
-	flex-direction: column;
-	align-items: flex-end;
-	gap: 4px;
-}
-.np-figure + .np-figure {
-	border-left: 1px solid var(--np-banner-border);
-	padding-left: 28px;
-}
-.np-figure b {
-	font-family: Forum, Georgia, serif;
-	font-weight: 400;
-	font-size: 46px;
-	line-height: 1;
-	font-variant-numeric: tabular-nums;
-}
-.np-label {
-	font-size: 11.5px;
+body.neoffice-cockpit .np-link-form .form-hero-detail-label {
+	color: #aa3700;
 	font-weight: 700;
-	letter-spacing: 0.12em;
-	text-transform: uppercase;
-	color: var(--np-text-3);
+	font-size: 11.5px;
+}
+html[data-theme="dark"] body.neoffice-cockpit .np-link-form .form-hero-detail-label {
+	color: #ff8d64;
+}
+@media (max-width: 1199px) {
+	body.neoffice-cockpit .np-link-form .form-hero-detail {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 3px;
+		padding-left: 18px;
+	}
+	body.neoffice-cockpit .np-link-form .form-hero-detail-label,
+	body.neoffice-cockpit .np-link-form .form-hero-detail-text {
+		display: block;
+	}
+	body.neoffice-cockpit .np-link-form .form-hero-detail-icon,
+	body.neoffice-cockpit .np-link-form .form-hero-detail-icon svg {
+		width: 13px;
+		height: 13px;
+	}
+}
+@media (max-width: 767px) {
+	body.neoffice-cockpit .np-link-form .form-hero-top {
+		flex-wrap: wrap;
+	}
+	body.neoffice-cockpit .np-link-form .form-hero-detail {
+		flex-basis: 100%;
+		max-width: 100%;
+		margin-left: 0;
+		padding-left: 0;
+		padding-top: 10px;
+		border-left: 0;
+		border-top: 1px solid var(--nw-clay-veil, #f3decc);
+	}
+}
+
+.np-reading:empty {
+	display: none;
 }
 .np-reading {
 	display: flex;
@@ -795,21 +788,6 @@ html[data-theme="dark"] .np-desk {
 }
 
 @media (max-width: 640px) {
-	.np-hero {
-		padding: 26px 20px 20px;
-	}
-	.np-hero h1 {
-		font-size: 32px;
-	}
-	.np-figure b {
-		font-size: 36px;
-	}
-	.np-figure,
-	.np-figure + .np-figure {
-		align-items: flex-start;
-		border-left: 0;
-		padding-left: 0;
-	}
 	.np-card,
 	.np-waiting {
 		padding: 18px;

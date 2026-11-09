@@ -204,6 +204,25 @@ def questions(
 
 
 # ---------------------------------------------------------------------------------------------------------------------
+# The preview: ours only, without a code, and nothing counted
+# ---------------------------------------------------------------------------------------------------------------------
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(limit=20, seconds=600)
+def preview_ask(
+    token: str, preview: str, question: str, slide: int | str | None = None
+):  # permission-check: ok the link's preview secret, known to its team only, is the proof
+    """A question asked in the preview of a link: what Nora would answer a visitor, from the same sources, and nothing
+    recorded, counted, forwarded or sent (questions.trial)."""
+    link = preview_link(token, preview)
+    if not link:
+        frappe.throw(_("This presentation is not shared any more."), frappe.PermissionError)
+    question = (question or "").strip()
+    if not asking.MIN_CHARS <= len(question) <= asking.MAX_CHARS:
+        return {"ok": False, "reason": "length", "message": _("Write your question first.")}
+    return {"ok": True, **asking.trial(link, question, slide, who=f"preview:{link.name}")}
+
+
+# ---------------------------------------------------------------------------------------------------------------------
 # The staff
 # ---------------------------------------------------------------------------------------------------------------------
 @frappe.whitelist(methods=["POST"])
@@ -360,6 +379,20 @@ def try_question(name: str, question: str, slide: int | None = None):
     return asking.trial(link, question, slide)
 
 
+@frappe.whitelist(methods=["POST"])
+def new_preview(name: str):
+    """A new preview link for the link (the former one opens nothing any more), or its first one."""
+    from suite.drive.doctype.presentation_link.presentation_link import preview_url_of
+
+    link = frappe.get_doc("Presentation Link", name)
+    link.check_permission("write")
+    link.preview_token = rules.new_secret(18)
+    link.db_set(
+        {"preview_token": link.preview_token, "preview_url": preview_url_of(link)}, update_modified=False
+    )
+    return {"preview_url": link.preview_url}
+
+
 @frappe.whitelist()
 def get_questions(name: str):
     """The questions asked on the link, the waiting ones first."""
@@ -399,6 +432,39 @@ def _open_link(token: str):
     if not (link and rules.is_open(link)):
         frappe.throw(_("This presentation is not shared any more."), frappe.PermissionError)
     return link
+
+
+def preview_link(token: str, secret: str):
+    """The link of `token` when `secret` is its preview secret, whatever its state: the team checks a draft before
+    sending it, and a link after a change. Never a link without a preview secret."""
+    if not (rules.TOKEN_RE.fullmatch(token or "") and rules.TOKEN_RE.fullmatch(secret or "")):
+        return None
+    name = frappe.db.get_value("Presentation Link", {"token": token, "preview_token": secret})
+    return frappe.get_doc("Presentation Link", name) if name else None
+
+
+def head_of(link) -> dict:
+    """What the record's head says beside the name (presentation_link.js): the question that waits, how many people
+    watched and how long, how far a video went, and who the link was sent to. Read from the link's counters and two
+    small queries: the head is drawn at every opening of the record."""
+    waiting = frappe.get_all(
+        "Presentation Question",
+        filters={"link": link.name, "status": "Waiting"},
+        fields=["first_name", "email", "question"],
+        order_by="asked_on asc",
+        limit=1,
+    )
+    videos = frappe.get_all("Presentation Viewer", filters={"link": link.name}, pluck="video_percent")
+    first = waiting[0] if waiting else None
+    return {
+        "waiting": cint(link.waiting_count),
+        "question": {"who": first.first_name or first.email, "text": first.question} if first else None,
+        "questions": cint(link.question_count),
+        "people": cint(link.viewer_count),
+        "seconds": cint(link.total_seconds),
+        "video": round(max((v or 0 for v in videos), default=0)),
+        "sent_to": rules.normalize_emails(link.recipients),
+    }
 
 
 def _visit(secret: str):

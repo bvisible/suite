@@ -6,7 +6,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="robots" content="noindex, nofollow">
 	<title>{{ title|e }}</title>
-	<link rel="stylesheet" href="/assets/suite/presentation/viewer.css?v=3">
+	<link rel="stylesheet" href="/assets/suite/presentation/viewer.css?v=4">
 </head>
 <body class="np">
 	<div class="np-paper" id="np-paper">
@@ -15,7 +15,9 @@
 			<span class="np-muted">{{ strings.privatePresentation }}</span>
 		</header>
 
-		{% if not is_open %}
+		{% if preview %}
+		{# the preview opens the presentation at once (viewer.js): no e-mail, no code #}
+		{% elif not is_open %}
 		<main class="np-main">
 			<section class="np-card">
 				<h1 class="np-title">{{ strings.closedTitle }}</h1>
@@ -74,6 +76,7 @@
 	<div class="np-player" id="np-player" hidden>
 		<div class="np-bar np-bar-top">
 			<span class="np-player-title">{{ title|e }}</span>
+			{% if preview %}<span class="np-preview-badge">{{ strings.previewBadge }}</span>{% endif %}
 			<div class="np-bar-actions">
 				<button type="button" class="np-button np-button-ghost" id="np-ask-open" aria-pressed="false" aria-controls="np-ask" hidden><img src="/assets/nora/images/nora-orb-dark.svg" alt="" onerror="this.remove()">{{ strings.ask }}</button>
 				<button type="button" class="np-button np-button-light" id="np-forward" hidden>{{ strings.forward }}</button>
@@ -137,6 +140,6 @@
 	</dialog>
 
 	<script>window.npConfig = {{ config|safe }};</script>
-	<script src="/assets/suite/presentation/viewer.js?v=4"></script>
+	<script src="/assets/suite/presentation/viewer.js?v=5"></script>
 </body>
 </html>

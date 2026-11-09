@@ -279,6 +279,79 @@ class TestPresentationLink(FrappeTestCase):
         self.assertEqual([v.email for v in stats["viewers"]], ["anna@firm-example.ch"])
         self.assertEqual(stats["events"][0]["kind"], "visit")
 
+    def page(self, path: str):
+        """The answer of the visitor's route to `path`, for a person without an account."""
+        with as_role("Guest"):
+            return renderer.PresentationLinkPage(path=path).render()
+
+    def test_the_preview_opens_without_a_code_and_counts_nothing(self):
+        link = self.link
+        self.assertTrue(link.preview_url.endswith(f"/p/{link.token}/preview/{link.preview_token}"))
+        self.assertNotEqual(link.preview_token, link.token)
+        page = self.page(f"p/{link.token}/preview/{link.preview_token}")
+        self.assertEqual(page.status_code, 200)
+        html = page.get_data(as_text=True)
+        config = json.loads(html.split("window.npConfig = ", 1)[1].split(";</script>", 1)[0])
+        self.assertEqual(config["preview"]["content"], f"/p/{link.token}/c/{link.preview_token}/start")
+        self.assertNotIn('id="np-email-form"', html)  # no e-mail, no code
+        entry = self.page(f"p/{link.token}/c/{link.preview_token}/start")
+        self.assertEqual(entry.status_code, 200)
+        self.assertIn("Slide", entry.get_data(as_text=True))
+        # nothing is counted: no person, no visit, the link still a draft nobody opened
+        self.assertEqual(frappe.db.count("Presentation Viewer", {"link": link.name}), 0)
+        self.assertEqual(frappe.db.count("Presentation Visit", {"link": link.name}), 0)
+        self.assertEqual(
+            frappe.db.get_value("Presentation Link", link.name, ["status", "viewer_count"]), ("Draft", 0)
+        )
+
+    def test_the_preview_opens_a_withdrawn_link_for_the_team_only(self):
+        self.link.status = "Withdrawn"
+        self.link.save()
+        self.assertEqual(self.page(f"p/{self.link.token}").status_code, 404)
+        self.assertEqual(self.page(f"p/{self.link.token}/preview/{self.link.preview_token}").status_code, 200)
+
+    def test_a_wrong_or_former_preview_secret_opens_nothing(self):
+        link = self.link
+        visit = self.enter()["visit"]
+        for secret in ("x" * 24, link.token, visit):
+            self.assertEqual(self.page(f"p/{link.token}/preview/{secret}").status_code, 404, secret)
+            self.assertIsNone(api.preview_link(link.token, secret))
+        self.assertIsNone(api.preview_link(link.token, ""))
+        self.assertIsNone(api.preview_link("another-token-0000000", link.preview_token))
+        former = link.preview_token
+        new_url = api.new_preview(link.name)["preview_url"]
+        link.reload()
+        self.assertTrue(new_url.endswith(link.preview_token))
+        self.assertNotEqual(link.preview_token, former)
+        self.assertEqual(self.page(f"p/{link.token}/preview/{former}").status_code, 404)
+        self.assertEqual(self.page(f"p/{link.token}/c/{former}/start").status_code, 404)
+        self.assertIsNotNone(api.preview_link(link.token, link.preview_token))
+
+    def test_only_the_team_makes_a_preview_link(self):
+        with as_role("Guest"):
+            self.assertRaises(frappe.PermissionError, api.new_preview, self.link.name)
+        email = f"{PREFIX}-portal-preview@example.com"
+        if not frappe.db.exists("User", email):
+            frappe.get_doc(
+                {
+                    "doctype": "User",
+                    "email": email,
+                    "first_name": "Portal",
+                    "user_type": "Website User",
+                    "send_welcome_email": 0,
+                }
+            ).insert(ignore_permissions=True)
+            frappe.get_doc("User", email).add_roles("Suite User")
+        try:
+            with as_role(email):
+                self.assertRaises(frappe.PermissionError, api.new_preview, self.link.name)
+                self.assertRaises(
+                    frappe.PermissionError,
+                    frappe.get_doc("Presentation Link", self.link.name).check_permission,
+                )
+        finally:
+            frappe.delete_doc("User", email, force=True, ignore_permissions=True)
+
 
 def _file(name: str, folder: str, is_folder: int = 0, content: str | None = None):
     doc = frappe.get_doc(

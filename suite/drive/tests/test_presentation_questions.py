@@ -357,6 +357,37 @@ class TestQuestions(FrappeTestCase):
         with as_role(PORTAL):
             self.assertRaises(frappe.PermissionError, api.try_question, self.link.name, "Combien ?")
 
+    def test_a_question_in_the_preview_gets_what_nora_would_answer_and_records_nothing(self):
+        sure = lambda **kw: {"sure": True, "answer": "467.", "sources": ["S2"], "reason": "answered"}  # noqa: E731
+        before = frappe.db.count("Presentation Question", {"link": self.link.name})
+        sent, jobs = len(self.sent), len(self.jobs)
+        with patch.object(asking, "_answerer", return_value=sure), as_role("Guest"):
+            result = api.preview_ask(self.link.token, self.link.preview_token, "Combien de comptes ?", 2)
+            self.assertRaises(
+                frappe.PermissionError, api.preview_ask, self.link.token, "x" * 24, "Combien de comptes ?", 2
+            )
+        self.assertEqual(
+            (result["ok"], result["sure"], result["answer"], result["slides"]), (True, True, "467.", [2])
+        )
+        self.assertEqual(frappe.db.count("Presentation Question", {"link": self.link.name}), before)
+        self.assertEqual((len(self.sent), len(self.jobs)), (sent, jobs))
+        unsure = lambda **kw: {"sure": False, "answer": "", "sources": [], "reason": "price_or_commitment"}  # noqa: E731
+        with patch.object(asking, "_answerer", return_value=unsure), as_role("Guest"):
+            result = api.preview_ask(self.link.token, self.link.preview_token, "Combien ça coûte ?", 1)
+        self.assertEqual((result["ok"], result["sure"]), (True, False))
+
+    def test_the_head_says_what_waits_who_watched_and_to_whom(self):
+        unsure = lambda **kw: {"sure": False, "answer": "", "sources": [], "reason": "price_or_commitment"}  # noqa: E731
+        name = self.ask("Le prix de la reprise ?", 1)
+        self.answered_by(unsure, name)
+        frappe.db.set_value("Presentation Link", self.link.name, "recipients", "anna@firm-example.ch")
+        link = frappe.get_doc("Presentation Link", self.link.name)
+        link.run_method("onload")
+        head = link.get_onload().np_header
+        self.assertEqual((head["waiting"], head["questions"], head["people"]), (1, 1, 1))
+        self.assertEqual(head["question"], {"who": "Anna", "text": "Le prix de la reprise ?"})
+        self.assertEqual(head["sent_to"], ["anna@firm-example.ch"])
+
 
 def _listed(doctype: str) -> list:
     """What the acting account lists of `doctype`: a refusal lists nothing too."""

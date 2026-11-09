@@ -15,6 +15,14 @@ MAX_INTRO_SECONDS = 10
 class PresentationLink(Document):
     def before_insert(self):
         self.token = new_secret(18)
+        self.preview_token = new_secret(18)
+
+    def onload(self):
+        """What the record's head says beside the name (presentation_link.js, the hero's detail block): sent with the
+        document, so the head is drawn at once, without a second request."""
+        from suite.drive.presentation.api import head_of
+
+        self.set_onload("np_header", head_of(self))
 
     def validate(self):
         self.allowed_domains = "\n".join(normalize_domains(self.allowed_domains))
@@ -22,10 +30,19 @@ class PresentationLink(Document):
         entry_file(self.presentation)
         if not self.token:
             self.token = new_secret(18)
+        if not self.preview_token:
+            self.preview_token = new_secret(18)
         self.url = get_url(f"/p/{self.token}")
+        self.preview_url = preview_url_of(self)
         seconds = self.intro_seconds or DEFAULT_INTRO_SECONDS
         self.intro_seconds = min(max(seconds, 0), MAX_INTRO_SECONDS)
         if not self.allow_forward:
             self.forward_outside = 0
         if self.reference_name and not self.reference_doctype:
             frappe.throw(frappe._("Choose the type of the linked document."))
+
+
+def preview_url_of(link) -> str:
+    """The preview link of `link`: ours only, it opens the presentation without a code and counts nothing
+    (suite/drive/presentation/renderer.py)."""
+    return get_url(f"/p/{link.token}/preview/{link.preview_token}")

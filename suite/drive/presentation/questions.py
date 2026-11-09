@@ -517,10 +517,11 @@ def reference_of(link) -> dict | None:
     return {"doctype": link.reference_doctype, "name": link.reference_name, "title": title}
 
 
-def trial(link, question: str, slide=None) -> dict:
-    """What Nora would answer a person of the link, asked by the team on its record (« Try as a visitor »): the
-    same passages, the same answerer and the same rule (a sure answer that cites a source the link lends), and
-    nothing recorded, counted, forwarded or sent."""
+def trial(link, question: str, slide=None, who: str | None = None) -> dict:
+    """What Nora would answer a person of the link, asked by the team on its record (« Try as a visitor ») or in the
+    link's preview: the same passages, the same answerer and the same rule (a sure answer that cites a source the
+    link lends), and nothing recorded, counted, forwarded or sent. `who` names the daily cap (the user by default;
+    the preview has no user of its own)."""
     question = re.sub(r"[ \t]+", " ", (question or "").strip())
     if not MIN_CHARS <= len(question) <= MAX_CHARS:
         frappe.throw(_("A question of {0} to {1} characters, please.").format(MIN_CHARS, MAX_CHARS))
@@ -530,7 +531,7 @@ def trial(link, question: str, slide=None) -> dict:
     if (link.questions_mode or MODE_NORA) != MODE_NORA or not answerer:
         return {"sure": False, "reason": "forward_every_question" if answerer else "no_answerer"}
     # the model is called each time: a cap per person and per day, like a visitor's
-    if not _count(f"trial:{frappe.session.user}", PER_PERSON_A_DAY * 2):
+    if not _count(f"trial:{who or frappe.session.user}", PER_PERSON_A_DAY * 2):
         frappe.throw(_("You have tried many questions today: try again tomorrow."))
     lent = passages(link)
     slide = min(max(cint(slide), 0), rules.MAX_SLIDES)

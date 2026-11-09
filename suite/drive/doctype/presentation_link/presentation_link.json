@@ -21,6 +21,7 @@
   "reference_doctype",
   "reference_name",
   "url",
+  "preview_url",
   "questions_to",
   "recipients",
   "access_section",
@@ -44,7 +45,8 @@
   "total_seconds",
   "question_count",
   "waiting_count",
-  "token"
+  "token",
+  "preview_token"
  ],
  "fields": [
   {
@@ -143,6 +145,15 @@
    "fieldname": "url",
    "fieldtype": "Data",
    "label": "Link",
+   "no_copy": 1,
+   "options": "URL",
+   "read_only": 1
+  },
+  {
+   "description": "Ours only: opens the presentation as the visitors see it, without a code, and counts nothing. Never send it to a client.",
+   "fieldname": "preview_url",
+   "fieldtype": "Data",
+   "label": "Preview Link",
    "no_copy": 1,
    "options": "URL",
    "read_only": 1
@@ -299,11 +310,19 @@
    "no_copy": 1,
    "read_only": 1,
    "unique": 1
+  },
+  {
+   "fieldname": "preview_token",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Preview Token",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-11-07 17:30:00.000000",
+ "modified": "2026-11-09 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Drive",
  "name": "Presentation Link",

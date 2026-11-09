@@ -32939,3 +32939,80 @@ msgstr "{0} entre avec le lien copié, sur {1}"
 #, python-brace-format
 msgid "{0} stops at slide {1}."
 msgstr "{0} s'arrête à la diapositive {1}."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:119
+msgid "1 question, answered"
+msgstr "1 question, avec sa réponse"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:97
+msgid "A new preview link is ready."
+msgstr "Un nouveau lien d'aperçu est prêt."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:123
+msgid "A question waits for you"
+msgstr "Une question vous attend"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:109
+msgid "Answer it"
+msgstr "Y répondre"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:39
+msgid "Copy the Preview Link"
+msgstr "Copier le lien d'aperçu"
+
+#: suite/drive/presentation/renderer.py:215
+#, python-brace-format
+msgid "In the preview, this question would go to {0}, who answers by e-mail."
+msgstr "Dans l'aperçu, cette question irait à {0}, qui répond par e-mail."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:40
+msgid "New Preview Link"
+msgstr "Nouveau lien d'aperçu"
+
+#. Description of the 'Preview Link' (Data) field in DocType 'Presentation
+#. Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:153
+msgid "Ours only: opens the presentation as the visitors see it, without a code, and counts nothing. Never send it to a client."
+msgstr "Réservé à l'équipe : ouvre la présentation telle que la voient les visiteurs, sans code, et ne compte rien. Ne jamais l'envoyer à un client."
+
+#. Label of a Data field in DocType 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:156
+msgid "Preview Link"
+msgstr "Lien d'aperçu"
+
+#. Label of a Data field in DocType 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:318
+msgid "Preview Token"
+msgstr "Jeton d'aperçu"
+
+#: suite/drive/presentation/renderer.py:213
+msgid "Preview · nothing is counted"
+msgstr "Aperçu · rien n'est compté"
+
+#: suite/drive/presentation/renderer.py:214
+msgid "Preview: nothing is sent."
+msgstr "Aperçu : rien n'est envoyé."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:100
+msgid "The former preview link will open nothing any more."
+msgstr "L'ancien lien d'aperçu n'ouvrira plus rien."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:113
+#, python-brace-format
+msgid "video seen to {0} %"
+msgstr "vidéo vue à {0} %"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:112
+#, python-brace-format
+msgid "{0} on screen"
+msgstr "{0} à l'écran"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:123
+#, python-brace-format
+msgid "{0} questions wait for you"
+msgstr "{0} questions vous attendent"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:119
+#, python-brace-format
+msgid "{0} questions, all answered"
+msgstr "{0} questions, toutes avec leur réponse"
