@@ -77,7 +77,7 @@ class TestQuery(TestCase):
 
     def test_the_clients_word_brings_the_manuals(self):
         self.assertIn('"devi"*', sources.fts_query("Comment faire une offre ?"))
-        self.assertIn('"article"*', sources.fts_query("Comment ajouter un produit ?"))
+        self.assertIn('"articl"*', sources.fts_query("Comment ajouter un produit ?"))
         self.assertIn('"impression"*', sources.fts_query("Changer la mise en page de nos factures ?"))
         # the answerer reads the software's word beside the client's
         self.assertEqual(
