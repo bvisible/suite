@@ -47,8 +47,8 @@ _GREETING = re.compile(
 def extract_slides(html: str) -> list[dict]:
     """The slides of a web presentation, in the order the bridge counts them (bridge.js): the top sections of a
     reveal.js deck, else the elements marked `.slide`. Each: its `index` (from 1), `title` (`data-title`, else its
-    first heading), `text` (images' alternative texts included), the speaker's `notes` (`aside.notes`) and the
-    `part` it belongs to (`data-part`, 0 when the deck has no parts)."""
+    first heading), `text` (images' alternative texts included, and kept apart in `alts`), the speaker's `notes`
+    (`aside.notes`) and the `part` it belongs to (`data-part`, 0 when the deck has no parts)."""
     from bs4 import BeautifulSoup
 
     soup = BeautifulSoup(html or "", "html.parser")
@@ -60,8 +60,11 @@ def extract_slides(html: str) -> list[dict]:
             aside.decompose()
         for junk in node.select("script, style, template, noscript"):
             junk.decompose()
+        alts = []
         for image in node.select("img[alt]"):
             alt = (image.get("alt") or "").strip()
+            if alt:
+                alts.append(alt)
             image.replace_with(f" {alt} " if alt else " ")
         heading = node.find(["h1", "h2", "h3"])
         title = (node.get("data-title") or (_text(heading) if heading else "") or "").strip()
@@ -72,6 +75,7 @@ def extract_slides(html: str) -> list[dict]:
                 "text": _text(node)[:SLIDE_CHARS],
                 "notes": notes[:NOTES_CHARS],
                 "part": cint(node.get("data-part") or 0),
+                "alts": alts[:40],
             }
         )
     return slides
@@ -105,7 +109,8 @@ def deck_slides(link) -> list[dict]:
 
     _, entry = rules.entry_file(link.presentation)
     modified = frappe.db.get_value("File", entry.name, "modified")
-    key = f"presentation_slides:v2:{entry.name}:{modified}"  # v2: each slide carries its part
+    # v3: each slide carries its part and, apart, its images' texts
+    key = f"presentation_slides:v3:{entry.name}:{modified}"
     cached = frappe.cache.get_value(key)
     if cached is not None:
         return cached
@@ -129,8 +134,14 @@ def names_of(link) -> tuple[list[str], set[str]]:
         slides = deck_slides(link)
     except Exception:
         slides = []
-    text = " ".join(f"{s.get('title') or ''}. {s.get('text') or ''}." for s in slides)
-    return names_in(f"{link.title or ''}. {text}")
+    pieces = []
+    for slide in slides:
+        body = slide.get("text") or ""
+        # an image's text is not prose: a logo writes its brand small (« neoffice ») on every slide
+        for alt in slide.get("alts") or []:
+            body = body.replace(alt, " ", 1)
+        pieces.append(f"{slide.get('title') or ''}. {body}.")
+    return names_in(f"{link.title or ''}. {' '.join(pieces)}")
 
 
 def names_in(text: str) -> tuple[list[str], set[str]]:
@@ -154,7 +165,7 @@ def names_in(text: str) -> tuple[list[str], set[str]]:
         if not inner_capital and re.search(r"(er|ir|re|é|ée|és|ées)$", word.lower()):
             continue
         capital.append(word)
-    names = [word for word in capital if word.lower() not in lower and seen[word] >= 2]
+    names = [word for word in capital if seen[word] >= 2 and word.lower() not in lower]
     return names, {_fold(word) for word in lower}
 
 

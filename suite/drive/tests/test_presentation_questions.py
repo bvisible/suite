@@ -68,6 +68,19 @@ class TestNames(TestCase):
         )  # not a verb of a title, not a word also written small
         self.assertIn("nord", known)
 
+    def test_a_brand_its_logo_writes_small_on_every_slide_stays_a_name(self):
+        slide = (
+            '<section class="slide"><img src="l.svg" alt="neoffice"><p>Le bureau dans Neoffice.</p></section>'
+        )
+        slides = asking.extract_slides(slide * 3)
+        self.assertEqual(slides[0]["alts"], ["neoffice"])
+        with patch.object(asking, "deck_slides", return_value=slides):
+            names, known = asking.names_of(SimpleNamespace(title="Neoffice pour vous"))
+        self.assertIn("Neoffice", names)
+        self.assertEqual(
+            asking.fix_names("NeoFix fait les salaires ?", names, known), "Neoffice fait les salaires ?"
+        )
+
     def test_a_misheard_name_is_written_as_the_presentation_writes_it(self):
         names, known = asking.names_in(self.TEXT)
         fixed = lambda text: asking.fix_names(text, names, known)  # noqa: E731
