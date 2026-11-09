@@ -60,7 +60,42 @@ def verify_code(
             "reason": "wrong_code",
             "message": _("This code is not the right one, or it has expired."),
         }
-    viewer, is_new = _viewer(link, email, waiting.get("first_name"))
+    return _enter(link, email, waiting.get("first_name"), browser_id)
+
+
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(limit=10, seconds=600)
+def enter_with_code(
+    token: str, code: str, browser_id: str | None = None
+):  # permission-check: ok the visitor has no account: the access code given to her with the link is the proof
+    """Opens a visit for the person a code was given to (new_access_code), without an e-mail and a code sent to it."""
+    link = _open_link(token)
+    signs = rules.normalize_access_code(code)
+    row = (
+        frappe.db.get_value(
+            "Presentation Access Code",
+            {"link": link.name, "code_hash": rules.access_code_hash(link.name, signs)},
+            ["name", "email", "first_name", "valid_until", "uses"],
+            as_dict=True,
+        )
+        if signs
+        else None
+    )
+    if not row or (row.valid_until and get_datetime(row.valid_until) < now_datetime()):
+        return {
+            "ok": False,
+            "reason": "wrong_code",
+            "message": _("This access code is not the right one, or it is no longer valid."),
+        }
+    frappe.db.set_value(
+        "Presentation Access Code", row.name, {"last_used_on": now_datetime(), "uses": (row.uses or 0) + 1}
+    )
+    return {"email": row.email, **_enter(link, row.email, row.first_name, browser_id)}
+
+
+def _enter(link, email: str, first_name: str | None, browser_id: str | None) -> dict:
+    """The person enters: her record, a browser remembered for 30 days, and a visit."""
+    viewer, is_new = _viewer(link, email, first_name)
     remember = rules.new_secret()
     frappe.db.set_value(
         "Presentation Viewer",
@@ -403,6 +438,38 @@ def try_question(name: str, question: str, slide: int | None = None):
     link = frappe.get_doc("Presentation Link", name)
     link.check_permission("read")
     return asking.trial(link, question, slide)
+
+
+@frappe.whitelist(methods=["POST"])
+def new_access_code(name: str, email: str, first_name: str | None = None):
+    """A code that opens the link for `email` (Jérémy, 09.11: « lui donner un code »), given with the link by the team:
+    the code is shown once and only its fingerprint is kept. The address is counted as one the link was sent to."""
+    link = frappe.get_doc("Presentation Link", name)
+    link.check_permission("write")
+    if not rules.is_open(link):
+        frappe.throw(_("This link is withdrawn or has expired."))
+    email = rules.normalize_email(email)
+    if not email:
+        frappe.throw(_("This is not an e-mail address."))
+    code = rules.new_access_code()
+    until = rules.access_code_until(link)
+    frappe.get_doc(
+        {
+            "doctype": "Presentation Access Code",
+            "link": link.name,
+            "email": email,
+            "first_name": _clean_name(first_name),
+            "code_hash": rules.access_code_hash(link.name, code),
+            "valid_until": until,
+        }
+    ).insert(ignore_permissions=True)
+    recipients = rules.normalize_emails(link.recipients)
+    if email not in recipients:
+        link.recipients = "\n".join([*recipients, email])
+        if link.status == "Draft":
+            link.status = "Sent"
+        link.save()
+    return {"code": code, "email": email, "valid_until": str(until), "url": f"{link.url}#code"}
 
 
 @frappe.whitelist(methods=["POST"])

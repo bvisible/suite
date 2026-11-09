@@ -20,6 +20,11 @@ CODE_SECONDS = 600
 CODE_ATTEMPTS = 5
 VISIT_HOURS = 12
 REMEMBER_DAYS = 30
+# A code given with the link to one person (Jérémy, 09.11): eight signs that cannot be mistaken for one another (no 0, O,
+# 1, I, L), about 40 bits, shown as two groups of four; it opens the link for that person until its date.
+ACCESS_CODE_SIGNS = "23456789ABCDEFGHJKMNPQRSTUVWXYZ"
+ACCESS_CODE_LENGTH = 8
+ACCESS_CODE_DAYS = 30
 # A heartbeat comes every 15 s; anything above this per beat is not time a person spent looking.
 MAX_BEAT_SECONDS = 30
 MAX_SLIDES = 500
@@ -174,6 +179,33 @@ def visit_expiry():
 
 def remember_until():
     return add_to_date(now_datetime(), days=REMEMBER_DAYS)
+
+
+def new_access_code() -> str:
+    """A code for one person, as she reads it: « K7M4-Q9TP »."""
+    code = "".join(secrets.choice(ACCESS_CODE_SIGNS) for _ in range(ACCESS_CODE_LENGTH))
+    return f"{code[:4]}-{code[4:]}"
+
+
+def normalize_access_code(code: str | None) -> str:
+    """The signs of a code as typed (spaces, dash, small letters), or "" when it cannot be one."""
+    signs = re.sub(r"[^A-Z0-9]", "", (code or "").upper())
+    if len(signs) != ACCESS_CODE_LENGTH or any(sign not in ACCESS_CODE_SIGNS for sign in signs):
+        return ""
+    return signs
+
+
+def access_code_hash(link_name: str, code: str) -> str:
+    """What is kept of a code: its fingerprint, for this link only."""
+    return hash_secret(f"{link_name}:access:{normalize_access_code(code)}")
+
+
+def access_code_until(link):
+    """Until when a new code opens the link: thirty days, or the link's own end when it comes first."""
+    until = add_to_date(now_datetime(), days=ACCESS_CODE_DAYS)
+    if link.expires_on and get_datetime(link.expires_on) < until:
+        return get_datetime(link.expires_on)
+    return until
 
 
 def device_of(user_agent: str | None) -> str:

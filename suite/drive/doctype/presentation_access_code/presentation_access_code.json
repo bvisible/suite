@@ -1,0 +1,110 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-11-09 18:40:00.000000",
+ "description": "A code given with a shared presentation's link to one person: she enters with it, without an e-mail and a code sent to it.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "link",
+  "email",
+  "first_name",
+  "column_break_code",
+  "valid_until",
+  "last_used_on",
+  "uses",
+  "code_hash"
+ ],
+ "fields": [
+  {
+   "fieldname": "link",
+   "fieldtype": "Link",
+   "label": "Presentation Link",
+   "options": "Presentation Link",
+   "reqd": 1,
+   "in_list_view": 1,
+   "search_index": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "E-mail",
+   "options": "Email",
+   "reqd": 1,
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "first_name",
+   "fieldtype": "Data",
+   "label": "First Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_code",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "valid_until",
+   "fieldtype": "Datetime",
+   "label": "Valid Until",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_used_on",
+   "fieldtype": "Datetime",
+   "label": "Last Used On",
+   "read_only": 1
+  },
+  {
+   "fieldname": "uses",
+   "fieldtype": "Int",
+   "label": "Uses",
+   "read_only": 1
+  },
+  {
+   "fieldname": "code_hash",
+   "fieldtype": "Data",
+   "label": "Code Hash",
+   "hidden": 1,
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-09 18:40:00.000000",
+ "modified_by": "Administrator",
+ "module": "Drive",
+ "name": "Presentation Access Code",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager"
+  },
+  {
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Suite Admin"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Suite User"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "email"
+}

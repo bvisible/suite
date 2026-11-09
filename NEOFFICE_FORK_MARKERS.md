@@ -145,6 +145,14 @@ whether Nora keeps it; maintenance#2337). The link also carries its questions' s
 the link; the visitor's page writes the others through the guest methods of `api.py` only. The
 French of their labels is in `suite/locale/fr.po`. At a merge: keep the files whole. Nothing upstream collides with them.
 
+#### `suite/drive/doctype/presentation_access_code/presentation_access_code.json`
+**Entirely ours — a new DocType, no upstream equivalent.** `Presentation Access Code`: a code given with a shared
+presentation's link to one person (« Give an Access Code » on the link's record, `api.new_access_code`), so she enters
+with it alone (`api.enter_with_code`) instead of an e-mail and a code sent to it (maintenance#2337, 09.11). It keeps the
+link, the address and first name, the SHA-256 of the code for this link (never the code), until when it opens, and how
+often it was used. Module `Drive`, random names; `Suite User` reads, the team's method and the visitor's guest method
+write. At a merge: keep the file whole. Nothing upstream collides with it.
+
 #### `suite/drive/wopi/craft_editors.json`
 **Entirely ours — no upstream equivalent.** The list of the Craft editors' browser builds (NeoWrite, NeoSheet,
 NeoSlides, NeoPDF: Neoffice's forks of storytold's Craft apps) that `suite/drive/wopi/craft_install.py` installs

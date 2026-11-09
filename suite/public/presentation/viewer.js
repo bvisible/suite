@@ -8,6 +8,7 @@
 // //// code: no visit, so nothing is counted; a question gets what Nora would answer, and nothing is sent.
 // //// A question can be dictated (our transcription, in Switzerland); the last slide is greeted with a little
 // //// celebration and what one can do next (Jérémy, 09.11: « pour donner le truc un peu ludique »).
+// //// A code given with the link opens it too (« J'ai un code d'accès », enter_with_code), without the e-mail step.
 (function () {
 	"use strict";
 	const config = window.npConfig || {};
@@ -151,6 +152,41 @@
 			$("np-gate").hidden = false;
 			emailForm.email.focus();
 		});
+	}
+
+	// The code given with the link (Jérémy, 09.11): no e-mail, no code to wait for. The link may end in #code, which
+	// opens the page on it. The code is never in the address: it would stay in the browser's history.
+	const accessForm = $("np-access-form");
+	function showAccess(on) {
+		if (!accessForm) return;
+		accessForm.hidden = !on;
+		emailForm.hidden = on;
+		$("np-have-code").hidden = on;
+		$("np-code-by-email").hidden = !on;
+		showError("np-access-error", "");
+		(on ? accessForm.code : emailForm.email).focus();
+	}
+	if (accessForm) {
+		$("np-have-code").addEventListener("click", () => showAccess(true));
+		$("np-code-by-email").addEventListener("click", () => showAccess(false));
+		accessForm.addEventListener("submit", async (event) => {
+			event.preventDefault();
+			showError("np-access-error", "");
+			const button = accessForm.querySelector("button");
+			button.disabled = true;
+			try {
+				const result = await call("enter_with_code", { token: config.token, code: accessForm.code.value, browser_id: browserId() });
+				if (!result.ok) return showError("np-access-error", result.message);
+				email = result.email;
+				keep({ email, remember: result.remember });
+				open(result);
+			} catch (e) {
+				showError("np-access-error", S.error);
+			} finally {
+				button.disabled = false;
+			}
+		});
+		if (window.location.hash === "#code") showAccess(true);
 	}
 
 	// A browser where the code was given lately opens straight away ----------------------------------------------------

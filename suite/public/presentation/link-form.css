@@ -829,3 +829,10 @@ html[data-theme="dark"] body.neoffice-cockpit .np-link-form .form-hero-detail-la
 		transition: none;
 	}
 }
+
+/* The code given with the link, shown once (give_access_code) */
+.np-access-code { display: flex; flex-direction: column; gap: 10px; }
+.np-access-code-value { font-family: "Forum", Georgia, serif; font-size: 40px; letter-spacing: 0.08em; padding: 14px 18px; border-radius: 12px; background: #fff3ec; color: #141414; text-align: center; user-select: all; }
+.np-access-code p { margin: 0; color: var(--text-muted, #6b6560); }
+.np-access-code-sentence { padding: 12px 14px; border-radius: 10px; background: var(--subtle-fg, #f2f1ed); color: var(--text-color, #141414) !important; font-size: 14px; line-height: 1.5; }
+[data-theme="dark"] .np-access-code-value { background: #3a2216; color: #fffdf8; }

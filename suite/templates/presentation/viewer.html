@@ -42,6 +42,19 @@
 					<p class="np-error" id="np-email-error" role="alert" hidden></p>
 					<button class="np-button" type="submit">{{ strings.getCode }}</button>
 				</form>
+				<form class="np-form" id="np-access-form" hidden novalidate>
+					<label class="np-field">
+						<span>{{ strings.accessCode }} <b aria-hidden="true">*</b></span>
+						<input type="text" name="code" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" placeholder="XXXX-XXXX" required>
+						<small>{{ strings.accessHint }}</small>
+					</label>
+					<p class="np-error" id="np-access-error" role="alert" hidden></p>
+					<button class="np-button" type="submit">{{ strings.enter }}</button>
+				</form>
+				<div class="np-links">
+					<button type="button" class="np-link" id="np-have-code">{{ strings.haveCode }}</button>
+					<button type="button" class="np-link" id="np-code-by-email" hidden>{{ strings.codeByEmail }}</button>
+				</div>
 				<p class="np-small">{{ strings.measured }}</p>
 			</section>
 		</main>
@@ -152,6 +165,6 @@
 	</dialog>
 
 	<script>window.npConfig = {{ config|safe }};</script>
-	<script src="/assets/suite/presentation/viewer.js?v=6"></script>
+	<script src="/assets/suite/presentation/viewer.js?v=7"></script>
 </body>
 </html>

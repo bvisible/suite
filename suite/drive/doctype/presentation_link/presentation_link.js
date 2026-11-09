@@ -4,8 +4,9 @@
 // //// draws the record (« Présentations partagées et suivies — écrans »), with the design system's tokens
 // //// (suite/public/presentation/link-form.css). One head (Jérémy, 09.11: « ne me fais pas des choses à double »): what
 // //// waits and what was seen is said at the top right of the form's own head, and the tabs no longer repeat it; the
-// //// preview link, ours only, opens the presentation without a code and counts nothing.
-const NP_FORM_CSS = "/assets/suite/presentation/link-form.css?v=5";
+// //// preview link, ours only, opens the presentation without a code and counts nothing. « Give an Access Code » makes a
+// //// code for one person, given with the link (09.11).
+const NP_FORM_CSS = "/assets/suite/presentation/link-form.css?v=6";
 const NP_MODES = {
 	nora: "Nora Answers, Else Forwards",
 	forward: "Forward Every Question",
@@ -35,6 +36,7 @@ frappe.ui.form.on("Presentation Link", {
 			frm.add_custom_button(__("Send the Link"), () => send_link(frm)).addClass("btn-primary");
 			if (frm.doc.preview_url) frm.add_custom_button(__("Preview"), () => window.open(frm.doc.preview_url, "_blank", "noopener"));
 			frm.add_custom_button(__("Copy the Link"), () => frappe.utils.copy_to_clipboard(frm.doc.url));
+			frm.add_custom_button(__("Give an Access Code"), () => give_access_code(frm));
 			if (frm.doc.preview_url) {
 				frm.add_custom_button(__("Copy the Preview Link"), () => frappe.utils.copy_to_clipboard(frm.doc.preview_url), __("More"));
 				frm.add_custom_button(__("New Preview Link"), () => new_preview(frm, true), __("More"));
@@ -142,6 +144,61 @@ function send_link(frm) {
 					frappe.show_alert({ message: __("The link is on its way."), indicator: "green" });
 					frm.reload_doc();
 				});
+		},
+	});
+	dialog.show();
+}
+
+// A code given with the link to one person (Jérémy, 09.11: « lui donner un code »): she opens the link, which ends in
+// #code, types the code and enters, without an e-mail to wait for. The code is shown here once; only its fingerprint
+// is kept (suite/drive/presentation/api.py new_access_code).
+function give_access_code(frm) {
+	const dialog = new frappe.ui.Dialog({
+		title: __("Give an Access Code"),
+		fields: [
+			{ fieldname: "email", fieldtype: "Data", options: "Email", label: __("E-mail Address"), reqd: 1 },
+			{ fieldname: "first_name", fieldtype: "Data", label: __("First Name") },
+			{
+				fieldname: "note",
+				fieldtype: "HTML",
+				options: `<p class="text-muted small">${esc(__("The code opens the link for this person only. It is shown once: copy it into your message."))}</p>`,
+			},
+		],
+		primary_action_label: __("Create the Code"),
+		primary_action(values) {
+			frappe.call("suite.drive.presentation.api.new_access_code", { name: frm.doc.name, ...values }).then((r) => {
+				dialog.hide();
+				show_access_code(r.message || {});
+				frm.reload_doc();
+			});
+		},
+	});
+	dialog.show();
+}
+
+function show_access_code(given) {
+	const until = frappe.datetime.str_to_user(given.valid_until).split(" ")[0];
+	const sentence = __("Open {0} and enter the access code {1}. It is valid until {2}.", [given.url, given.code, until]);
+	const dialog = new frappe.ui.Dialog({
+		title: __("The Code for {0}", [given.email]),
+		fields: [
+			{
+				fieldname: "code",
+				fieldtype: "HTML",
+				options: `<div class="np-access-code">
+					<div class="np-access-code-value">${esc(given.code)}</div>
+					<p>${esc(__("Valid until {0}. It will not be shown again.", [until]))}</p>
+					<p class="np-access-code-sentence">${esc(sentence)}</p>
+				</div>`,
+			},
+		],
+		primary_action_label: __("Copy the Sentence"),
+		primary_action() {
+			frappe.utils.copy_to_clipboard(sentence);
+		},
+		secondary_action_label: __("Copy the Code"),
+		secondary_action() {
+			frappe.utils.copy_to_clipboard(given.code);
 		},
 	});
 	dialog.show();
