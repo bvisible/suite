@@ -476,7 +476,7 @@ class TestQuestions(FrappeTestCase):
         with (
             patch.object(asking, "transcriber", return_value=listen),
             patch.object(frappe.local, "request", request, create=True),
-            patch.object(frappe.local, "request_ip", "127.0.0.1", create=True),
+            patch.object(frappe.local, "request_ip", _fresh_ip(), create=True),
             as_role("Guest"),
         ):
             self.assertEqual(api.transcribe(visit=self.visit), {"ok": True, "text": "Combien de comptes ?"})
@@ -494,12 +494,18 @@ class TestQuestions(FrappeTestCase):
             patch.object(asking, "transcriber", return_value=listen),
             patch.object(asking, "names_of", return_value=(["Neoffice"], set())),
             patch.object(frappe.local, "request", request, create=True),
-            patch.object(frappe.local, "request_ip", "127.0.0.1", create=True),
+            patch.object(frappe.local, "request_ip", _fresh_ip(), create=True),
             as_role("Guest"),
         ):
             self.assertEqual(
                 api.transcribe(visit=self.visit), {"ok": True, "text": "Des factures sur Neoffice ?"}
             )
+
+
+def _fresh_ip() -> str:
+    """An address of its own for each run: the ceiling of the dictation (10 a ten minutes, per address) is counted in
+    the site's cache, and a second run within ten minutes would hit it."""
+    return f"test-{frappe.generate_hash(length=10)}"
 
 
 def _listed(doctype: str) -> list:
