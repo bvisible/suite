@@ -123,6 +123,7 @@ def _provision_mail_account_now(user: str) -> None:
                 aliases=[],
                 groups=[],
                 roles=["User"],
+                # //// Neoffice — read once before the loop (neoffice-maintenance#2396)
                 quota=quota,
                 timezone=None,
             )
