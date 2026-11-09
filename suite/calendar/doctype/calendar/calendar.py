@@ -605,6 +605,13 @@ def set_calendar_visibility(account: str, id: str, visible: int = 1) -> None:
 def get_shareable_principals(account: str) -> list[dict]:
     """//// Neoffice: lists the principals (colleagues) a calendar can be shared with."""
 
+    # //// Neoffice — the mail server's directory is for the company's desk accounts (neoffice-maintenance#1193), as
+    # //// Drive's get_users (_sees_the_directory): upstream only resolved the JMAP client of the account it was given,
+    # //// so a portal (Website User) account that owns a calendar received every colleague's name and address.
+    # //// Answering [] (not a 403) keeps the share dialog quiet for such an account.
+    if frappe.get_cached_value("User", frappe.session.user, "user_type") != "System User":
+        return []
+
     from suite.calendar.local import is_local_account
 
     if is_local_account(account):
