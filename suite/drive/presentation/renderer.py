@@ -175,7 +175,8 @@ def viewer_strings() -> dict:
         "haveCode": _("I have an access code"),
         "accessCode": _("Your access code"),
         "accessHint": _("The code given to you with the link, eight signs."),
-        "enter": _("Enter"),
+        # not the bare « Enter », which the desk translates as the keyboard's key
+        "enter": _("Open the presentation"),
         "codeByEmail": _("Receive a code by e-mail instead"),
         "rememberNote": _("On this browser you will not need a code for 30 days."),
         "closedTitle": _("This presentation is not shared any more"),

@@ -33106,3 +33106,94 @@ msgstr "{0} pages, lues {1}"
 msgctxt "Send the presentation to a colleague"
 msgid "Forward"
 msgstr "Transférer"
+
+#. Description of a DocType
+#: suite/drive/doctype/presentation_access_code/presentation_access_code.json:5
+msgid "A code given with a shared presentation's link to one person: she enters with it, without an e-mail and a code sent to it."
+msgstr "Un code remis avec le lien d'une présentation partagée à une personne : elle entre avec ce code, sans recevoir de code par e-mail."
+
+#. Label of a Data field in DocType 'Presentation Access Code'
+#: suite/drive/doctype/presentation_access_code/presentation_access_code.json:70
+msgid "Code Hash"
+msgstr "Hachage du code"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:199
+msgid "Copy the Code"
+msgstr "Copier le code"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:195
+msgid "Copy the Sentence"
+msgstr "Copier la phrase"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:167
+msgid "Create the Code"
+msgstr "Créer le code"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:39
+#: suite/drive/doctype/presentation_link/presentation_link.js:157
+msgid "Give an Access Code"
+msgstr "Donner un code d'accès"
+
+#: suite/drive/presentation/renderer.py:175
+msgid "I have an access code"
+msgstr "J'ai un code d'accès"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:181
+#, python-brace-format
+msgid "Open {0} and enter the access code {1}. It is valid until {2}."
+msgstr "Ouvrez {0} et entrez le code d'accès {1}. Il est valable jusqu'au {2}."
+
+#. Name of a DocType
+#: suite/drive/doctype/presentation_access_code/presentation_access_code.json:82
+msgid "Presentation Access Code"
+msgstr "Code d'accès à une présentation"
+
+#: suite/drive/presentation/renderer.py:179
+msgid "Receive a code by e-mail instead"
+msgstr "Recevoir un code par e-mail à la place"
+
+#. Label of a Password field in DocType 'Suite Settings'
+#: suite/suite_core/doctype/suite_settings/suite_settings.json:81
+msgid "Suite Cloud Secret"
+msgstr "Secret Suite Cloud"
+
+#. Label of a Data field in DocType 'Suite Settings'
+#: suite/suite_core/doctype/suite_settings/suite_settings.json:74
+msgid "Suite Cloud Tenant"
+msgstr "Locataire Suite Cloud"
+
+#: frontend/src/apps/mail/pages/dashboard/OverviewView.vue:238
+#: suite/public/frontend/assets/OverviewView-CVQBS1_u.js:1
+msgid "Tenant"
+msgstr "Locataire"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:183
+#, python-brace-format
+msgid "The Code for {0}"
+msgstr "Le code pour {0}"
+
+#: suite/drive/presentation/renderer.py:177
+msgid "The code given to you with the link, eight signs."
+msgstr "Le code qui vous a été remis avec le lien, huit caractères."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:164
+msgid "The code opens the link for this person only. It is shown once: copy it into your message."
+msgstr "Le code n'ouvre le lien que pour cette personne. Il n'est affiché qu'une fois : copiez-le dans votre message."
+
+#: suite/drive/presentation/api.py:88
+msgid "This access code is not the right one, or it is no longer valid."
+msgstr "Ce code d'accès n'est pas le bon, ou il n'est plus valable."
+
+#. Label of a Int field in DocType 'Presentation Access Code'
+#: suite/drive/doctype/presentation_access_code/presentation_access_code.json:64
+msgid "Uses"
+msgstr "Utilisations"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:190
+#, python-brace-format
+msgid "Valid until {0}. It will not be shown again."
+msgstr "Valable jusqu'au {0}. Il ne sera plus affiché."
+
+#: suite/drive/presentation/renderer.py:176
+msgid "Your access code"
+msgstr "Votre code d'accès"
