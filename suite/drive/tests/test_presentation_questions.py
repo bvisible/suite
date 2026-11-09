@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from types import SimpleNamespace
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -387,6 +388,57 @@ class TestQuestions(FrappeTestCase):
         self.assertEqual((head["waiting"], head["questions"], head["people"]), (1, 1, 1))
         self.assertEqual(head["question"], {"who": "Anna", "text": "Le prix de la reprise ?"})
         self.assertEqual(head["sent_to"], ["anna@firm-example.ch"])
+
+    def test_an_answer_from_the_website_keeps_its_page_and_opens_it(self):
+        page = {
+            "id": "W1",
+            "kind": "site",
+            "url": "https://example-firm.ch/fr/comptabilite",
+            "site": "example-firm.ch",
+            "page": "La comptabilité",
+            "title": "page of the website example-firm.ch: La comptabilité",
+            "text": "Les anciens exercices sont archivés.",
+        }
+        frappe.db.set_value("Presentation Link", self.link.name, "nora_sites", "https://example-firm.ch")
+        name = self.ask("Les anciens exercices, ils vont où ?", 1)
+        seen = []
+
+        def nora(**kw):
+            seen.append([p["id"] for p in kw["passages"]])
+            return {"sure": True, "answer": "Ils sont archivés.", "sources": ["W1"], "reason": "answered"}
+
+        with patch.object(asking.site_sources, "search", return_value=[page]):
+            doc = self.answered_by(nora, name)
+        self.assertIn("W1", seen[0])
+        self.assertEqual(doc.status, "Answered by Nora")
+        item = self.thread()[-1]
+        self.assertEqual(item["sources"], ["example-firm.ch · La comptabilité"])
+        self.assertEqual(item["links"], ["https://example-firm.ch/fr/comptabilite"])
+        self.assertEqual(item["slides"], [None])
+        staff = asking.staff_view(frappe.get_doc("Presentation Link", self.link.name))
+        self.assertIn("example-firm.ch · La comptabilité", [r for q in staff["questions"] for r in q.sources])
+
+    def test_a_question_is_dictated_on_a_running_visit_or_in_the_preview_only(self):
+        heard = []
+
+        def listen(upload, language):
+            heard.append(language)
+            return {"success": True, "text": "Combien de comptes ?"}
+
+        request = SimpleNamespace(files={"file": object()}, content_length=20000)
+        with (
+            patch.object(asking, "transcriber", return_value=listen),
+            patch.object(frappe.local, "request", request, create=True),
+            patch.object(frappe.local, "request_ip", "127.0.0.1", create=True),
+            as_role("Guest"),
+        ):
+            self.assertEqual(api.transcribe(visit=self.visit), {"ok": True, "text": "Combien de comptes ?"})
+            self.assertTrue(api.transcribe(token=self.link.token, preview=self.link.preview_token)["ok"])
+            self.assertRaises(frappe.PermissionError, api.transcribe, visit="x" * 32)
+            self.assertRaises(frappe.PermissionError, api.transcribe, token=self.link.token, preview="x" * 24)
+            request.content_length = asking.DICTATION_BYTES + 1
+            self.assertFalse(api.transcribe(visit=self.visit)["ok"])
+        self.assertEqual(len(heard), 2)
 
 
 def _listed(doctype: str) -> list:

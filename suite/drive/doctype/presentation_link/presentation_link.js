@@ -5,7 +5,7 @@
 // //// (suite/public/presentation/link-form.css). One head (Jérémy, 09.11: « ne me fais pas des choses à double »): what
 // //// waits and what was seen is said at the top right of the form's own head, and the tabs no longer repeat it; the
 // //// preview link, ours only, opens the presentation without a code and counts nothing.
-const NP_FORM_CSS = "/assets/suite/presentation/link-form.css?v=4";
+const NP_FORM_CSS = "/assets/suite/presentation/link-form.css?v=5";
 const NP_MODES = {
 	nora: "Nora Answers, Else Forwards",
 	forward: "Forward Every Question",
@@ -496,6 +496,24 @@ function correct_answer(frm, q) {
 	dialog.show();
 }
 
+// The sites Nora reads besides the presentation (suite/drive/presentation/sources.py): one address per line, each with
+// the pages read and when.
+function sites_block(frm, data) {
+	const rows = (data.sites || [])
+		.map((site) => {
+			const state = site.read_on ? __("{0} pages, read {1}", [site.pages, frappe.datetime.prettyDate(site.read_on)]) : __("Being read…");
+			return `<li><span>${esc(site.url.replace(/^https?:\/\//, ""))}</span><span class="np-src">${esc(state)}</span></li>`;
+		})
+		.join("");
+	return `
+		${rows ? `<ul class="np-sites">${rows}</ul>` : ""}
+		<textarea class="np-input np-sites-input" rows="3" aria-label="${esc(__("The websites"))}" placeholder="https://neoffice.ch&#10;https://wiki.neoffice.ch/wiki/manuel">${esc(frm.doc.nora_sites || "")}</textarea>
+		<div class="np-sites-actions">
+			<button type="button" class="btn btn-default btn-xs np-sites-save">${esc(__("Save"))}</button>
+			${rows ? `<button type="button" class="np-link np-sites-read">${esc(__("Read them again now"))}</button>` : ""}
+		</div>`;
+}
+
 // What Nora knows for this link, and a trial as a visitor ----------------------------------------------------------------
 function render_sources(frm, data) {
 	const wrapper = frm.get_field("nora_sources_html").$wrapper;
@@ -536,6 +554,13 @@ function render_sources(frm, data) {
 							`<input type="checkbox" checked disabled>`,
 							data.kept ? `<button type="button" class="np-link np-see-answers" style="align-self:flex-start;margin-top:2px">${esc(__("See them"))}</button>` : ""
 						)}
+						${source(
+							__("The websites"),
+							(data.sites || []).length ? __("{0} sites", [data.sites.length]) : __("None"),
+							__("The website and the public manual: Nora takes the pages that speak of the question and cites them. Pages of prices are never read."),
+							`<input type="checkbox"${(data.sites || []).length ? " checked" : ""} disabled>`,
+							sites_block(frm, data)
+						)}
 					</div>
 					<div class="np-lock">${lock}<div><b>${esc(__("Never, for a person outside:"))}</b> ${esc(__("your clients and their figures, your e-mails, your ERP documents, what Nora learnt about your company. Here Nora has no tool: she reads the sources above, nothing else. A figure she writes must be written in a slide she cites, or she passes the question on."))}</div></div>
 					<div class="np-card" style="gap:12px">
@@ -565,6 +590,14 @@ function render_sources(frm, data) {
 		frm.set_value("questions_mode", this.value).then(() => frm.save());
 	});
 	wrapper.find(".np-see-answers").on("click", () => open_tab(frm, "questions_tab"));
+	wrapper.find(".np-sites-save").on("click", () => {
+		frm.set_value("nora_sites", wrapper.find(".np-sites-input").val()).then(() => frm.save());
+	});
+	wrapper.find(".np-sites-read").on("click", () =>
+		frappe.call({ method: "suite.drive.presentation.api.read_sites", args: { name: frm.doc.name } }).then(() =>
+			frappe.show_alert({ message: __("Nora reads the sites again: a few minutes."), indicator: "blue" })
+		)
+	);
 	wrapper.find(".np-who-answers").on("click", () => {
 		open_tab(frm, "settings_tab");
 		frm.scroll_to_field("questions_to");

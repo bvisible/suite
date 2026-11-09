@@ -6,6 +6,8 @@
 // //// question goes to the person who answers for the link; the page follows the answer.
 // //// The preview (/p/<token>/preview/<secret>, ours only) opens the presentation at once, without the e-mail and the
 // //// code: no visit, so nothing is counted; a question gets what Nora would answer, and nothing is sent.
+// //// A question can be dictated (our transcription, in Switzerland); the last slide is greeted with a little
+// //// celebration and what one can do next (Jérémy, 09.11: « pour donner le truc un peu ludique »).
 (function () {
 	"use strict";
 	const config = window.npConfig || {};
@@ -185,6 +187,8 @@
 		frame = $("np-frame");
 		// once its document is there, the presentation takes the keys itself (its Home, End, F…)
 		frame.addEventListener("load", () => {
+			// the words of the frame's sound buttons, in the page's language
+			frame.contentWindow.postMessage({ source: "np-viewer", type: "words", words: { soundOn: S.soundOn, soundOff: S.soundOff } }, "*");
 			if (typing()) return;
 			try { frame.contentWindow.focus(); } catch (e) { frame.focus(); }
 		});
@@ -233,6 +237,73 @@
 		const now = document.createElement("b");
 		now.textContent = String(current);
 		$("np-count").append(now, " / " + (total || "–"));
+		celebrate();
+	}
+
+	// The last slide ----------------------------------------------------------------------------------------------------
+	let celebrated = false;
+	function celebrate() {
+		const end = $("np-end");
+		if (current < total && !end.hidden) hideEnd();
+		if (celebrated || total < 2 || current !== total) return;
+		celebrated = true;
+		$("np-end-ask").hidden = !(asking && asking.enabled);
+		$("np-end-forward").hidden = $("np-forward").hidden;
+		end.hidden = false;
+		requestAnimationFrame(() => end.classList.add("np-on"));
+		if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) confetti();
+	}
+	function hideEnd() {
+		const end = $("np-end");
+		end.classList.remove("np-on");
+		setTimeout(() => (end.hidden = true), 380);
+	}
+	$("np-end-close").addEventListener("click", hideEnd);
+	$("np-end-ask").addEventListener("click", () => { hideEnd(); toggleAsk(true); });
+	$("np-end-forward").addEventListener("click", () => { hideEnd(); $("np-forward").click(); });
+
+	// The design system's warm colours, falling for two and a half seconds over the stage.
+	function confetti() {
+		const canvas = $("np-confetti");
+		const box = $("np-player").getBoundingClientRect();
+		const ratio = window.devicePixelRatio || 1;
+		canvas.width = box.width * ratio;
+		canvas.height = box.height * ratio;
+		canvas.hidden = false;
+		const ctx = canvas.getContext("2d");
+		ctx.scale(ratio, ratio);
+		const colours = ["#f55d1a", "#ffb599", "#c2723f", "#fffdf8", "#aa3700"];
+		const bits = Array.from({ length: 140 }, () => ({
+			x: box.width / 2 + (Math.random() - 0.5) * box.width * 0.5,
+			y: box.height * 0.42,
+			vx: (Math.random() - 0.5) * 14,
+			vy: -Math.random() * 15 - 5,
+			size: 5 + Math.random() * 7,
+			spin: Math.random() * Math.PI,
+			turn: (Math.random() - 0.5) * 0.35,
+			colour: colours[Math.floor(Math.random() * colours.length)],
+		}));
+		const started = performance.now();
+		(function frameStep(now) {
+			const t = now - started;
+			ctx.clearRect(0, 0, box.width, box.height);
+			ctx.globalAlpha = Math.max(0, 1 - Math.max(0, t - 1800) / 700);
+			bits.forEach((b) => {
+				b.vy += 0.42;
+				b.vx *= 0.985;
+				b.x += b.vx;
+				b.y += b.vy;
+				b.spin += b.turn;
+				ctx.save();
+				ctx.translate(b.x, b.y);
+				ctx.rotate(b.spin);
+				ctx.fillStyle = b.colour;
+				ctx.fillRect(-b.size / 2, -b.size / 4, b.size, b.size / 2);
+				ctx.restore();
+			});
+			if (t < 2500) requestAnimationFrame(frameStep);
+			else canvas.hidden = true;
+		})(started);
 	}
 
 	// The seconds really looked at ---------------------------------------------------------------------------------------
@@ -354,6 +425,7 @@
 		if (!asking.enabled) return;
 		const form = $("np-ask-form");
 		$("np-ask-open").hidden = false;
+		setupDictation();
 		$("np-ask-sub").textContent = asking.nora ? format(S.askSubNora, asking.answeredBy) : format(S.askSubPerson, asking.answeredBy);
 		$("np-ask-open").addEventListener("click", () => toggleAsk());
 		$("np-ask-close").addEventListener("click", () => toggleAsk(false));
@@ -411,6 +483,15 @@
 					q.sources.forEach((label, i) => {
 						// a slide's chip turns the deck to it; a kept answer's chip only names who said it
 						const slide = (q.slides || [])[i];
+						const link = (q.links || [])[i];
+						if (link) {
+							// a page of the site or of the manual opens beside the presentation
+							const a = el("a", "np-chip", label);
+							a.href = link;
+							a.target = "_blank";
+							a.rel = "noopener noreferrer";
+							return chips.append(a);
+						}
 						if (!slide) return chips.append(el("span", "np-chip", label));
 						const chip = el("button", "np-chip np-chip-go", label);
 						chip.type = "button";
@@ -494,7 +575,7 @@
 				thread.splice(thread.indexOf(item), 1);
 				return showError("np-ask-error", result.message);
 			}
-			if (result.sure) Object.assign(item, { status: "Answered by Nora", answer: result.answer, sources: result.sources, slides: result.slides });
+			if (result.sure) Object.assign(item, { status: "Answered by Nora", answer: result.answer, sources: result.sources, slides: result.slides, links: result.links });
 			else item.status = "Preview";
 		} catch (e) {
 			thread.splice(thread.indexOf(item), 1);
@@ -502,6 +583,98 @@
 		} finally {
 			drawThread();
 			button.disabled = false;
+		}
+	}
+
+	// Dictation: a tap listens, a second tap (or a minute) stops; our transcription writes the words after what was
+	// typed, and nothing is sent: the person reads them first.
+	const DICTATION_MS = 60000;
+	const AUDIO_TYPES = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"];
+	let take = null;
+	function setupDictation() {
+		const mic = $("np-ask-mic");
+		const can = asking.dictation && window.MediaRecorder && navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
+		if (!can || mic.dataset.ready) return;
+		mic.dataset.ready = "1";
+		mic.hidden = false;
+		mic.addEventListener("click", () => (take ? stopDictation() : startDictation()));
+		document.addEventListener("visibilitychange", () => { if (document.hidden && take) stopDictation(true); });
+	}
+	function dictationState(state, seconds) {
+		const mic = $("np-ask-mic");
+		const line = $("np-ask-state");
+		mic.classList.toggle("np-listening", state === "listening");
+		mic.classList.toggle("np-writing", state === "writing");
+		mic.setAttribute("aria-label", state === "listening" ? S.stopDictation : S.dictate);
+		mic.title = mic.getAttribute("aria-label");
+		line.hidden = state === "idle";
+		line.textContent = state === "listening" ? format(S.listening, seconds || 0) : state === "writing" ? S.writing : "";
+	}
+	async function startDictation() {
+		showError("np-ask-error", "");
+		const t = { chunks: [], started: Date.now(), cancelled: false };
+		take = t;
+		dictationState("listening", 0);
+		try {
+			t.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+			if (take !== t) return release(t);
+			const type = AUDIO_TYPES.find((each) => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(each));
+			t.rec = new MediaRecorder(t.stream, type ? { mimeType: type } : undefined);
+			t.type = t.rec.mimeType || type || "audio/webm";
+			t.rec.ondataavailable = (e) => { if (e.data && e.data.size) t.chunks.push(e.data); };
+			t.rec.onstop = () => writeDown(t);
+			t.rec.start();
+			t.clock = setInterval(() => dictationState("listening", Math.floor((Date.now() - t.started) / 1000)), 1000);
+			t.limit = setTimeout(() => stopDictation(), DICTATION_MS);
+		} catch (e) {
+			release(t);
+			if (take === t) take = null;
+			dictationState("idle");
+			showError("np-ask-error", S.noMicrophone);
+		}
+	}
+	function stopDictation(cancel) {
+		const t = take;
+		if (!t) return;
+		t.cancelled = !!cancel;
+		if (t.rec && t.rec.state !== "inactive") return t.rec.stop();
+		take = null;
+		release(t);
+		dictationState("idle");
+	}
+	function release(t) {
+		clearInterval(t.clock);
+		clearTimeout(t.limit);
+		(t.stream ? t.stream.getTracks() : []).forEach((track) => track.stop());
+	}
+	async function writeDown(t) {
+		release(t);
+		if (take === t) take = null;
+		if (t.cancelled || !t.chunks.length) return dictationState("idle");
+		dictationState("writing");
+		const body = new FormData();
+		body.append("file", new Blob(t.chunks, { type: t.type }), "question." + (/mp4/.test(t.type) ? "m4a" : "webm"));
+		if (preview) {
+			body.append("token", config.token);
+			body.append("preview", preview.secret);
+		} else {
+			body.append("visit", visit || "");
+		}
+		try {
+			const headers = { Accept: "application/json" };
+			if (config.csrfToken) headers["X-Frappe-CSRF-Token"] = config.csrfToken;
+			const response = await fetch(API + "transcribe", { method: "POST", body, headers, credentials: "same-origin" });
+			const result = ((await response.json().catch(() => ({}))) || {}).message || {};
+			const text = String(result.text || "").trim();
+			if (!response.ok || !result.ok) throw new Error(result.message || S.error);
+			if (!text) throw new Error(S.heardNothing);
+			const field = $("np-ask-form").question;
+			field.value = (field.value.trim() ? field.value.trim() + " " : "") + text;
+			field.focus();
+		} catch (e) {
+			showError("np-ask-error", (e && e.message) || S.error);
+		} finally {
+			dictationState("idle");
 		}
 	}
 

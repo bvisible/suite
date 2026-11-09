@@ -1,0 +1,350 @@
+# //// Neoffice — added file (no upstream equivalent): the sites Nora also reads to answer a question asked on a shared
+# //// presentation (maintenance#2337; Jérémy, 09.11: « toutes les informations du wiki et aussi du site internet »).
+# //// A link names them in `nora_sites`, one address per line: the company's website, its public manual. Each is read
+# //// from its sitemap — the pages under the address, in the link's language — and kept in a small full-text index on
+# //// the site's disk (private/presentation-sources/<hash>.sqlite), read again every day. A question takes the few
+# //// passages that speak of it; Nora cites them like a slide, and the visitor's chip opens the page.
+# //// A page of prices is never read: a price stays with the person who answers for the link.
+from __future__ import annotations
+
+import hashlib
+import os
+import re
+import sqlite3
+from urllib.parse import urlparse
+from xml.etree import ElementTree
+
+import frappe
+from frappe.utils import now_datetime
+
+MAX_PAGES = 600
+PAGE_CHARS = 20000
+CHUNK_CHARS = 1400
+MIN_PAGE_CHARS = 200
+FETCH_TIMEOUT_S = 20
+PER_SITE = 3
+TOP = 6
+LANG_PATH = re.compile(r"^/(fr|de|en|it)(/|$)")
+PRICE_PAGE = re.compile(r"tarif|prix|pricing|price|preise|prezzi|cout|cost|kosten", re.I)
+# A sentence that states an amount of money: the site's pages, a blog article, speak of prices anywhere; the bench of
+# 09.11 found « dès 149 francs par mois » in an article on what an ERP costs. Such a sentence never reaches Nora.
+PRICE_SENTENCE = re.compile(
+    r"(\d[\d'\u2019\u202f .,]*\s*(chf|francs?|fr\.|eur|euros?|€|\$)(?![a-z]))|((chf|fr\.|€|\$)\s*\d)", re.I
+)
+SKIP_TAGS = (
+    "script",
+    "style",
+    "noscript",
+    "nav",
+    "header",
+    "footer",
+    "form",
+    "svg",
+    "button",
+    "template",
+    "aside",
+)
+STOPWORDS = set(
+    """
+    les des une un le la de du et en est pour que qui dans par sur avec pas plus mais ou ce cette ces son sa ses leur
+    leurs vous nous ils elles on il elle je tu se sont aux au comme tout tous toute toutes être avoir fait faire peut
+    peuvent quoi quel quelle quels quelles comment combien est-ce estce votre vos notre nos mon ma mes ton ta tes
+    dont donc alors aussi bien très sans sous entre chez y a ont été the and for with what how can does
+    """.split()
+)
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# What a link reads
+# ---------------------------------------------------------------------------------------------------------------------
+def roots_of(link) -> list[str]:
+    """The addresses `nora_sites` names, one per line, as https addresses without a trailing slash."""
+    out = []
+    for line in (link.get("nora_sites") or "").splitlines():
+        url = line.strip().rstrip("/")
+        if not url:
+            continue
+        if not re.match(r"^https?://", url, re.I):
+            url = "https://" + url
+        parsed = urlparse(url)
+        if parsed.scheme in ("http", "https") and parsed.netloc and url not in out:
+            out.append(url)
+    return out[:5]
+
+
+def language_of(link) -> str:
+    return (frappe.db.get_single_value("System Settings", "language") or "fr")[:2]
+
+
+def state(root: str) -> dict | None:
+    """How many pages of `root` are read, and when: None while it was never read."""
+    path = index_path(root)
+    if not os.path.exists(path):
+        return None
+    with sqlite3.connect(path) as db:
+        pages = db.execute("SELECT COUNT(*) FROM pages").fetchone()[0]
+        read_on = db.execute("SELECT value FROM meta WHERE key = 'read_on'").fetchone()
+    return {"pages": pages, "read_on": read_on[0] if read_on else None}
+
+
+def index_path(root: str) -> str:
+    folder = frappe.get_site_path("private", "presentation-sources")
+    os.makedirs(folder, exist_ok=True)
+    return os.path.join(folder, hashlib.sha256(root.encode()).hexdigest()[:24] + ".sqlite")
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Reading a site
+# ---------------------------------------------------------------------------------------------------------------------
+def refresh_link(name: str) -> None:
+    """The job: read again the sites a link names (when they change, and from the record's « Read again »)."""
+    link = frappe.get_doc("Presentation Link", name)
+    for root in roots_of(link):
+        refresh(root, language_of(link))
+
+
+def refresh_all() -> None:
+    """Every day: the sites of the links that still open, each read once."""
+    seen = set()
+    for name in frappe.get_all(
+        "Presentation Link",
+        filters={"status": ["!=", "Withdrawn"], "nora_sites": ["is", "set"]},
+        pluck="name",
+    ):
+        link = frappe.get_doc("Presentation Link", name)
+        for root in roots_of(link):
+            if root in seen:
+                continue
+            seen.add(root)
+            try:
+                refresh(root, language_of(link))
+            except Exception:
+                frappe.log_error(f"Presentation sources: {root} could not be read", frappe.get_traceback())
+
+
+def refresh(root: str, language: str = "fr") -> dict:
+    """Reads the pages of `root` from its site's sitemap; a page whose `lastmod` did not move is kept as it was."""
+    pages = site_pages(root, language)
+    path = index_path(root)
+    db = sqlite3.connect(path)
+    try:
+        db.executescript(
+            """
+            CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
+            CREATE TABLE IF NOT EXISTS pages (url TEXT PRIMARY KEY, lastmod TEXT, title TEXT, text TEXT);
+            CREATE VIRTUAL TABLE IF NOT EXISTS chunks USING fts5(
+                title, body, url UNINDEXED, tokenize = 'unicode61 remove_diacritics 2'
+            );
+            """
+        )
+        known = {row[0]: row[1] for row in db.execute("SELECT url, lastmod FROM pages")}
+        wanted = {url for url, _ in pages}
+        for url in set(known) - wanted:
+            db.execute("DELETE FROM pages WHERE url = ?", (url,))
+            db.execute("DELETE FROM chunks WHERE url = ?", (url,))
+        for url, lastmod in pages:
+            if url in known and lastmod and known[url] == lastmod:
+                continue
+            page = read_page(url)
+            db.execute("DELETE FROM chunks WHERE url = ?", (url,))
+            if not page:
+                db.execute("DELETE FROM pages WHERE url = ?", (url,))
+                continue
+            db.execute(
+                "INSERT OR REPLACE INTO pages (url, lastmod, title, text) VALUES (?, ?, ?, ?)",
+                (url, lastmod or "", page["title"], page["text"]),
+            )
+            for body in chunks(page["text"]):
+                db.execute(
+                    "INSERT INTO chunks (title, body, url) VALUES (?, ?, ?)", (page["title"], body, url)
+                )
+        db.execute(
+            "INSERT OR REPLACE INTO meta (key, value) VALUES ('read_on', ?)", (str(now_datetime())[:16],)
+        )
+        db.commit()
+    finally:
+        db.close()
+    return state(root) or {}
+
+
+def site_pages(root: str, language: str = "fr") -> list[tuple[str, str]]:
+    """(url, lastmod) of the pages of the sitemap under `root`, in `language` when the site has one per language, no
+    page of prices, `MAX_PAGES` at most."""
+    parsed = urlparse(root)
+    base = f"{parsed.scheme}://{parsed.netloc}"
+    prefix = parsed.path.rstrip("/")
+    found = _sitemap(f"{base}/sitemap.xml", depth=0)
+    by_language = any(LANG_PATH.match(urlparse(url).path) for url, _ in found)
+    out, seen = [], set()
+    for url, lastmod in found:
+        path = urlparse(url).path.rstrip("/")
+        if _host(url) != _host(root) or not (path == prefix or path.startswith(prefix + "/")):
+            continue
+        language_part = LANG_PATH.match(path or "/")
+        if by_language and not prefix and (not language_part or language_part.group(1) != language):
+            continue
+        if PRICE_PAGE.search(path) or url in seen:
+            continue
+        seen.add(url)
+        out.append((url, lastmod))
+    return out[:MAX_PAGES]
+
+
+def _sitemap(url: str, depth: int) -> list[tuple[str, str]]:
+    try:
+        reply = _get(url)
+        tree = ElementTree.fromstring(reply.content)
+    except Exception:
+        return []
+    out = []
+    for node in tree:
+        tag = node.tag.rsplit("}", 1)[-1]
+        loc = next((child.text for child in node if child.tag.endswith("loc")), None)
+        lastmod = next((child.text for child in node if child.tag.endswith("lastmod")), None) or ""
+        if not loc:
+            continue
+        if tag == "sitemap" and depth < 2:
+            out.extend(_sitemap(loc.strip(), depth + 1))
+        elif tag == "url":
+            out.append((loc.strip(), lastmod.strip()))
+    return out
+
+
+def read_page(url: str) -> dict | None:
+    """The title and the readable text of a page: its article (a wiki page's `#wiki-content`, else `main`), without
+    its menus, headers and footers."""
+    from bs4 import BeautifulSoup
+
+    try:
+        reply = _get(url)
+    except Exception:
+        return None
+    if reply.status_code != 200 or "html" not in reply.headers.get("Content-Type", ""):
+        return None
+    soup = BeautifulSoup(reply.text, "html.parser")
+    title = ""
+    meta = soup.find("meta", attrs={"property": "og:title"})
+    if meta and meta.get("content"):
+        title = meta["content"]
+    elif soup.title and soup.title.string:
+        title = soup.title.string
+    title = re.split(r"\s+[\u2014|\u2013-]\s+", title.strip())[0][:140]
+    body = soup.select_one("#wiki-content") or soup.find("main") or soup.find("article") or soup.body
+    if not body:
+        return None
+    for tag in body.find_all(SKIP_TAGS):
+        tag.decompose()
+    text = re.sub(r"\s+", " ", body.get_text(" ")).strip()
+    if len(text) < MIN_PAGE_CHARS:
+        return None
+    return {"title": title or url, "text": text[:PAGE_CHARS]}
+
+
+def chunks(text: str) -> list[str]:
+    """Pieces of about `CHUNK_CHARS`, cut at a sentence."""
+    out, current = [], ""
+    for sentence in re.split(r"(?<=[.!?:;])\s+", text):
+        if current and len(current) + len(sentence) > CHUNK_CHARS:
+            out.append(current.strip())
+            current = ""
+        current += sentence + " "
+    if current.strip():
+        out.append(current.strip())
+    return out
+
+
+def _host(url: str) -> str:
+    return urlparse(url).netloc.lower().removeprefix("www.")
+
+
+def _get(url: str):
+    import requests
+
+    return requests.get(
+        url,
+        timeout=FETCH_TIMEOUT_S,
+        headers={"User-Agent": "Neoffice presentation reader (+https://neoffice.ch)"},
+    )
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# What a question takes
+# ---------------------------------------------------------------------------------------------------------------------
+def search(link, question: str) -> list[dict]:
+    """The passages of the link's sites that speak of `question` (`W<n>`): the best few of each site, `TOP` at most,
+    each with its page's address."""
+    query = fts_query(question)
+    if not query:
+        return []
+    found = []
+    for root in roots_of(link):
+        path = index_path(root)
+        if not os.path.exists(path):
+            continue
+        try:
+            with sqlite3.connect(path) as db:
+                rows = db.execute(
+                    "SELECT url, title, body, bm25(chunks, 4.0, 1.0) AS score FROM chunks WHERE chunks MATCH ? "
+                    "ORDER BY score LIMIT ?",
+                    (query, PER_SITE * 3),
+                ).fetchall()
+        except sqlite3.Error:
+            continue
+        per_page: dict[str, int] = {}
+        kept = 0
+        for url, title, body, score in rows:
+            body = without_prices(body)
+            if per_page.get(url, 0) >= 2 or kept >= PER_SITE or len(body) < MIN_PAGE_CHARS / 2:
+                continue
+            per_page[url] = per_page.get(url, 0) + 1
+            kept += 1
+            found.append((score, root, url, title, body))
+    found.sort(key=lambda row: row[0])
+    out = []
+    for number, (_score, root, url, title, body) in enumerate(found[:TOP], start=1):
+        site = urlparse(root).netloc.removeprefix("www.")
+        out.append(
+            {
+                "id": f"W{number}",
+                "kind": "site",
+                "url": url,
+                "site": site,
+                "page": title,
+                "title": f"page of the website {site}: {title}",
+                "text": body,
+            }
+        )
+    return out
+
+
+def without_prices(text: str) -> str:
+    """The passage without its sentences that state an amount: a price stays with the person who answers."""
+    return " ".join(
+        s for s in re.split(r"(?<=[.!?:;])\s+", text or "") if not PRICE_SENTENCE.search(s)
+    ).strip()
+
+
+def fts_query(question: str) -> str:
+    """The words of the question that carry its meaning, any of them, a long word by its stem (« écritures » finds
+    « écriture »)."""
+    words = []
+    for word in re.findall(r"[\w'-]+", (question or "").lower()):
+        word = word.split("'")[-1].strip("-")
+        if len(word) < 3 or word in STOPWORDS or word.isdigit():
+            continue
+        stem = word[: max(4, len(word) - 2)] if len(word) >= 7 else word
+        token = '"' + stem.replace('"', "") + '"' + ("*" if stem != word else "")
+        if token not in words:
+            words.append(token)
+    return " OR ".join(words[:12])
+
+
+def label(passage: dict) -> str:
+    """The chip of a site's passage on the visitor's page: the site and the page."""
+    page = passage.get("page") or ""
+    return f"{passage.get('site')} · {page[:48]}{'…' if len(page) > 48 else ''}"
+
+
+def describe(link) -> list[dict]:
+    """For the record: each site, its pages read and when."""
+    return [{"url": root, **(state(root) or {"pages": 0, "read_on": None})} for root in roots_of(link)]

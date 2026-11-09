@@ -13,6 +13,7 @@
   "nora_sources_html",
   "questions_mode",
   "nora_reads_notes",
+  "nora_sites",
   "settings_tab",
   "title",
   "presentation",
@@ -94,6 +95,13 @@
    "fieldtype": "Check",
    "hidden": 1,
    "label": "Nora Reads the Speaker Notes"
+  },
+  {
+   "description": "The sites Nora also reads to answer, one address per line (the website, the public manual). Pages of prices are never read.",
+   "fieldname": "nora_sites",
+   "fieldtype": "Small Text",
+   "hidden": 1,
+   "label": "Sites Nora Reads"
   },
   {
    "fieldname": "settings_tab",
@@ -322,7 +330,7 @@
  ],
  "index_web_pages_for_search": 0,
  "links": [],
- "modified": "2026-11-09 11:05:00.000000",
+ "modified": "2026-11-09 14:00:00.000000",
  "modified_by": "Administrator",
  "module": "Drive",
  "name": "Presentation Link",

@@ -381,6 +381,10 @@ scheduler_events = {
         "suite.mail.doctype.contacts_exchange.contacts_exchange.clean_contacts_import_export_directories",
         "suite.calendar.doctype.calendar_exchange.calendar_exchange.clean_calendar_import_export_directories",
     ],
+    # //// Neoffice — the sites Nora reads for the shared presentations, read again every day (maintenance#2337)
+    "daily_long": [
+        "suite.drive.presentation.sources.refresh_all",
+    ],
     "hourly": [
         # drive
         "suite.drive.api.scripts.clear_download_archives",

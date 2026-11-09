@@ -203,6 +203,30 @@ def questions(
     return asking.thread(row)
 
 
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(limit=10, seconds=600)
+def transcribe(
+    visit: str | None = None, token: str | None = None, preview: str | None = None
+):  # permission-check: ok the visit's secret, or the link's preview secret, is the proof
+    """A question dictated on the visitor's page, written down by the site's transcription (Nora's, in Switzerland):
+    the words come back to the field, nothing is kept. The recording is the request's file `file`."""
+    row = _visit(visit) if visit else None
+    link = frappe.get_doc("Presentation Link", row.link) if row else preview_link(token, preview)
+    if not link or not asking.enabled(link):
+        frappe.throw(_("This presentation is not shared any more."), frappe.PermissionError)
+    listener = asking.transcriber()
+    upload = (getattr(frappe.request, "files", None) or {}).get("file")
+    if not listener or not upload:
+        return {"ok": False, "message": _("The microphone is not available.")}
+    # a minute of speech is far below this; anything larger is not a question
+    if (frappe.request.content_length or 0) > asking.DICTATION_BYTES:
+        return {"ok": False, "message": _("The recording is too long.")}
+    result = listener(upload, (frappe.local.lang or "fr")[:2]) or {}
+    if not result.get("success"):
+        return {"ok": False, "message": _("Nothing was heard. Try again, a little closer.")}
+    return {"ok": True, "text": (result.get("text") or "").strip()[: asking.MAX_CHARS]}
+
+
 # ---------------------------------------------------------------------------------------------------------------------
 # The preview: ours only, without a code, and nothing counted
 # ---------------------------------------------------------------------------------------------------------------------
@@ -391,6 +415,23 @@ def new_preview(name: str):
         {"preview_token": link.preview_token, "preview_url": preview_url_of(link)}, update_modified=False
     )
     return {"preview_url": link.preview_url}
+
+
+@frappe.whitelist(methods=["POST"])
+def read_sites(name: str):
+    """Reads again now the sites Nora reads for the link (sources.py), in the background."""
+    link = frappe.get_doc("Presentation Link", name)
+    link.check_permission("write")
+    if not (link.nora_sites or "").strip():
+        return {"ok": False}
+    frappe.enqueue(
+        "suite.drive.presentation.sources.refresh_link",
+        queue="long",
+        name=link.name,
+        job_id=f"presentation_sources:{link.name}",
+        deduplicate=True,
+    )
+    return {"ok": True}
 
 
 @frappe.whitelist()

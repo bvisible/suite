@@ -154,6 +154,34 @@ body.np {
 .np-ask-send { width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: 12px; background: var(--np-ink); color: var(--np-paper); cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .np-ask-send[disabled] { opacity: 0.6; cursor: progress; }
 .np-ask-note { margin: 0; font-size: 12px; line-height: 1.45; color: var(--np-ink-3); }
+.np-pb-short { display: none; }
+@media (max-width: 640px) { .np-pb-long { display: none; } .np-pb-short { display: inline; } }
+/* Dictate the question (our transcription, in Switzerland): a tap listens, a second tap writes it into the field. */
+.np-ask-mic { width: 44px; height: 44px; flex-shrink: 0; border: 1px solid #d9d2c7; border-radius: 12px; background: #fff; color: var(--np-ink); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.np-ask-mic svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.np-ask-mic:hover { border-color: var(--np-ink-2); }
+.np-ask-mic.np-listening { background: var(--np-signal); border-color: var(--np-signal); color: var(--np-ink); animation: np-listen 1.4s ease-in-out infinite; }
+.np-ask-mic.np-writing { opacity: 0.6; cursor: progress; }
+@keyframes np-listen { 0%, 100% { box-shadow: 0 0 0 0 rgba(245, 93, 26, 0.45); } 50% { box-shadow: 0 0 0 7px rgba(245, 93, 26, 0); } }
+.np-ask-state { margin: 0; font-size: 12.5px; color: var(--np-signal-text); }
+a.np-chip { text-decoration: none; }
+a.np-chip:hover, a.np-chip:focus-visible { border-color: var(--np-ink-2); color: var(--np-ink); }
+
+/* The end of the presentation: a little celebration, then what one can do next. */
+.np-confetti { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; }
+.np-end { position: absolute; left: 50%; bottom: 110px; transform: translate(-50%, 12px); z-index: 7; width: min(calc(100% - 32px), 440px); background: var(--np-paper); color: var(--np-ink); border-radius: 18px; padding: 22px 24px 20px; box-shadow: 0 30px 80px -24px rgba(0, 0, 0, 0.75); opacity: 0; transition: opacity 360ms var(--np-ease), transform 360ms var(--np-ease); }
+.np-end.np-on { opacity: 1; transform: translate(-50%, 0); }
+.np-end-title { margin: 0 32px 6px 0; font-family: "Forum", Georgia, serif; font-weight: 400; font-size: 28px; line-height: 1.1; }
+.np-end-text { margin: 0 0 16px; font-size: 14.5px; line-height: 1.5; color: var(--np-ink-2); }
+.np-end-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.np-end .np-button-light { background: var(--np-ink); color: var(--np-paper); }
+.np-end .np-button-light:hover { background: #2b2725; }
+.np-end .np-button-ghost { color: var(--np-ink); border-color: #d9d2c7; }
+.np-end .np-button-ghost:hover { background: var(--np-field); }
+.np-end-close { position: absolute; top: 14px; right: 14px; width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: var(--np-ink-3); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.np-end-close:hover { background: var(--np-field); }
+.np-end-close svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+@media (prefers-reduced-motion: reduce) { .np-end { transition: none; } .np-ask-mic.np-listening { animation: none; } }
 
 .np-dialog { border: 0; padding: 0; border-radius: 18px; width: min(calc(100% - 32px), 560px); background: #fdfbf7; color: var(--np-ink); box-shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.7); }
 .np-dialog::backdrop { background: rgba(20, 20, 20, 0.55); backdrop-filter: blur(3px); }

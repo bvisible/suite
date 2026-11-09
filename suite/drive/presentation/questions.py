@@ -15,6 +15,7 @@ from frappe.translate import get_user_lang
 from frappe.utils import cint, escape_html, get_fullname, now_datetime
 
 from suite.drive.presentation import rules
+from suite.drive.presentation import sources as site_sources
 
 MODE_NORA = "Nora Answers, Else Forwards"
 MODE_FORWARD = "Forward Every Question"
@@ -25,6 +26,9 @@ MAX_CHARS = 500
 # A person asks at most this many questions a day on a link, and a link takes this many a day from everyone.
 PER_PERSON_A_DAY = 30
 PER_LINK_A_DAY = 200
+# A dictated question: a minute of speech is a few hundred kilobytes; the request is refused above this.
+DICTATION_BYTES = 4 * 1024 * 1024
+DICTATION_TIMEOUT_S = 60
 SLIDE_CHARS = 2500
 NOTES_CHARS = 1500
 DECK_CACHE_SECONDS = 24 * 3600
@@ -184,6 +188,7 @@ def visitor_settings(link) -> dict:
         "nora": (link.questions_mode or MODE_NORA) == MODE_NORA and bool(_answerer()),
         "answeredBy": get_fullname(answers_for(link)),
         "slides": slide_titles(link) if enabled(link) else [],
+        "dictation": bool(enabled(link) and transcriber()),
     }
 
 
@@ -248,6 +253,48 @@ def _count(key: str, limit: int) -> bool:
     return True
 
 
+def transcriber():
+    """How the visitor's page writes down a dictated question: the site's transcription service (Nora's whisper, in
+    Switzerland, with the address and key of Nora's settings and its conversion to wav), or None when the site has
+    none, and the page then shows no microphone. Nora's own endpoint is for the staff (`staff_only`, #1925); here the
+    proof is the visit's secret, checked by the caller, and a ceiling per address (api.transcribe)."""
+    if "nora" not in frappe.get_installed_apps():
+        return None
+    try:
+        settings = frappe.get_attr("nora.api.stt._get_stt_config")
+        to_wav = frappe.get_attr("nora.api.stt._maybe_transcode_to_wav")
+    except Exception:
+        return None
+
+    def listen(upload, language: str = "fr") -> dict:
+        import requests
+
+        audio = upload.read()
+        if not audio or len(audio) < 256:
+            return {"success": False}
+        audio, filename, content_type = to_wav(
+            audio, upload.filename or "question.webm", upload.content_type or ""
+        )
+        url, key = settings()
+        try:
+            reply = requests.post(
+                f"{url}/v1/audio/transcriptions",
+                files={"file": (filename, audio, content_type)},
+                data={"model": "whisper-1", "language": language},
+                headers={"Authorization": f"Bearer {key}"} if key else {},
+                timeout=DICTATION_TIMEOUT_S,
+            )
+        except Exception:
+            frappe.log_error("Presentation question: the transcription failed", frappe.get_traceback())
+            return {"success": False}
+        if reply.status_code != 200:
+            frappe.log_error("Presentation question: the transcription failed", reply.text[:500])
+            return {"success": False}
+        return {"success": True, "text": ((reply.json() or {}).get("text") or "").strip()}
+
+    return listen
+
+
 def _answerer():
     hooks = frappe.get_hooks("presentation_question_answerer")
     return frappe.get_attr(hooks[-1]) if hooks else None
@@ -265,7 +312,7 @@ def answer_question(name: str) -> None:
     started = now_datetime()
     lent: list[dict] = []
     try:
-        lent = passages(link)
+        lent = passages(link) + site_passages(link, doc.question)
         result = answerer(
             question=doc.question,
             slide=doc.slide,
@@ -278,7 +325,7 @@ def answer_question(name: str) -> None:
         frappe.log_error("Presentation question: the answerer failed", frappe.get_traceback())
         result = None
     seconds = (now_datetime() - started).total_seconds()
-    known = {p["id"] for p in lent}
+    known = {p["id"]: p for p in lent}
     sources = [s for s in (result or {}).get("sources") or [] if s in known]
     answer = ((result or {}).get("answer") or "").strip()
     if result and result.get("sure") and answer and sources:
@@ -286,7 +333,7 @@ def answer_question(name: str) -> None:
             {
                 "status": "Answered by Nora",
                 "nora_answer": answer[:2000],
-                "nora_sources": json.dumps(sources),
+                "nora_sources": json.dumps(kept_sources(sources, known)),
                 "nora_reason": "",
                 "nora_seconds": round(seconds, 1),
             }
@@ -296,7 +343,7 @@ def answer_question(name: str) -> None:
     doc.db_set(
         {
             "nora_answer": answer[:2000],
-            "nora_sources": json.dumps(sources),
+            "nora_sources": json.dumps(kept_sources(sources, known)),
             "nora_seconds": round(seconds, 1),
         }
     )
@@ -421,12 +468,11 @@ def thread(row) -> dict:
         if r.status == "Answered by Nora":
             item["answer"] = r.nora_answer
             cited = _json_list(r.nora_sources)
-            item["sources"] = [_source_label(lent.get(s), s) for s in cited]
-            # the slide each source shows, for its chip to turn the deck there (none for a kept answer)
-            item["slides"] = [
-                (lent.get(s) or {}).get("slide") if (lent.get(s) or {}).get("kind") != "answer" else None
-                for s in cited
-            ]
+            item["sources"] = [_source_label(lent.get(s) if isinstance(s, str) else s, s) for s in cited]
+            # the slide each source shows, for its chip to turn the deck there (none for a kept answer), and the page
+            # of a site, for its chip to open it
+            item["slides"] = [_slide_of(lent.get(s)) if isinstance(s, str) else None for s in cited]
+            item["links"] = [s.get("url") if isinstance(s, dict) else None for s in cited]
         elif r.status == "Answered":
             item["answer"] = r.answer
             item["by"] = get_fullname(r.answered_by)
@@ -434,8 +480,45 @@ def thread(row) -> dict:
     return {"ok": True, "questions": out}
 
 
-def _source_label(passage: dict | None, source: str) -> str:
+def _slide_of(passage: dict | None):
+    passage = passage or {}
+    return passage.get("slide") if passage.get("kind") not in ("answer", "site") else None
+
+
+def kept_sources(cited: list[str], known: dict) -> list:
+    """What a question keeps of the sources its answer cites: a slide's or a kept answer's id (read again from the
+    link), and a site's page as itself (its label and address), since a site's passages change with the question."""
+    out, pages = [], set()
+    for source in cited:
+        passage = known.get(source) or {}
+        if passage.get("kind") == "site":
+            # two passages of one page are one source
+            if passage.get("url") in pages:
+                continue
+            pages.add(passage.get("url"))
+            out.append({"id": source, "label": site_sources.label(passage), "url": passage.get("url")})
+        else:
+            out.append(source)
+    return out
+
+
+def site_passages(link, question: str) -> list[dict]:
+    """The passages of the link's sites that speak of the question (sources.py); none when it names no site."""
+    if not (link.get("nora_sites") or "").strip():
+        return []
+    try:
+        return site_sources.search(link, question)
+    except Exception:
+        frappe.log_error("Presentation question: the sites could not be searched", frappe.get_traceback())
+        return []
+
+
+def _source_label(passage: dict | None, source) -> str:
+    if isinstance(source, dict):
+        return source.get("label") or source.get("id") or ""
     kind = (passage or {}).get("kind")
+    if kind == "site":
+        return site_sources.label(passage)
     if kind == "answer":
         return passage["title"]
     if passage and passage.get("slide"):
@@ -485,7 +568,9 @@ def staff_view(link) -> dict:
         lent = {}
     for r in rows:
         r.who = r.first_name or r.email
-        r.sources = [_source_label(lent.get(s), s) for s in _json_list(r.nora_sources)]
+        r.sources = [
+            _source_label(lent.get(s) if isinstance(s, str) else s, s) for s in _json_list(r.nora_sources)
+        ]
         r.answered_by_name = get_fullname(r.answered_by) if r.answered_by else ""
     order = {"Waiting": 0, "Asked": 1, "Answered by Nora": 2, "Answered": 3}
     rows.sort(key=lambda r: order.get(r.status, 9))
@@ -499,6 +584,7 @@ def staff_view(link) -> dict:
         "nora": bool(_answerer()),
         "slides": sum(1 for p in lent.values() if p["kind"] == "slide"),
         "kept": sum(1 for p in lent.values() if p["kind"] == "answer"),
+        "sites": site_sources.describe(link),
         "reference": reference_of(link),
     }
 
@@ -533,7 +619,7 @@ def trial(link, question: str, slide=None, who: str | None = None) -> dict:
     # the model is called each time: a cap per person and per day, like a visitor's
     if not _count(f"trial:{who or frappe.session.user}", PER_PERSON_A_DAY * 2):
         frappe.throw(_("You have tried many questions today: try again tomorrow."))
-    lent = passages(link)
+    lent = passages(link) + site_passages(link, question)
     slide = min(max(cint(slide), 0), rules.MAX_SLIDES)
     titles = slide_titles(link)
     try:
@@ -552,11 +638,13 @@ def trial(link, question: str, slide=None, who: str | None = None) -> dict:
     sources = [s for s in (result or {}).get("sources") or [] if s in known]
     answer = ((result or {}).get("answer") or "").strip()
     if result and result.get("sure") and answer and sources:
+        cited = kept_sources(sources, known)
         return {
             "sure": True,
             "answer": answer,
-            "sources": [_source_label(known[s], s) for s in sources],
-            "slides": [known[s].get("slide") if known[s]["kind"] != "answer" else None for s in sources],
+            "sources": [_source_label(known.get(c) if isinstance(c, str) else c, c) for c in cited],
+            "slides": [_slide_of(known.get(c)) if isinstance(c, str) else None for c in cited],
+            "links": [c.get("url") if isinstance(c, dict) else None for c in cited],
         }
     return {"sure": False, "reason": ((result or {}).get("reason") or "not_sure")[:140]}
 

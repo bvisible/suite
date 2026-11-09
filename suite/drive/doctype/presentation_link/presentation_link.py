@@ -40,6 +40,21 @@ class PresentationLink(Document):
             self.forward_outside = 0
         if self.reference_name and not self.reference_doctype:
             frappe.throw(frappe._("Choose the type of the linked document."))
+        from suite.drive.presentation.sources import roots_of
+
+        self.nora_sites = "\n".join(roots_of(self))
+
+    def on_update(self):
+        # the sites Nora reads are read again when they change (sources.py); every day after that
+        if self.has_value_changed("nora_sites") and self.nora_sites:
+            frappe.enqueue(
+                "suite.drive.presentation.sources.refresh_link",
+                queue="long",
+                name=self.name,
+                job_id=f"presentation_sources:{self.name}",
+                deduplicate=True,
+                enqueue_after_commit=True,
+            )
 
 
 def preview_url_of(link) -> str:

@@ -33020,3 +33020,84 @@ msgstr "{0} questions, toutes avec leur réponse"
 #: suite/drive/doctype/presentation_link/presentation_link.js:201
 msgid "When someone enters, the time spent on each slide and what each person saw appear here."
 msgstr "Dès qu'une personne ouvrira la présentation, cet onglet affichera le temps passé sur chaque diapositive et les diapositives consultées par chaque visiteur."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:504
+msgid "Being read…"
+msgstr "Lecture en cours…"
+
+#: suite/drive/presentation/renderer.py:215
+msgid "Dictate your question"
+msgstr "Dictez votre question"
+
+#: suite/drive/presentation/renderer.py:217
+#, python-brace-format
+msgid "Listening… {0} s"
+msgstr "Écoute en cours… {0} s"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:598
+msgid "Nora reads the sites again: a few minutes."
+msgstr "Nora relit les sites : quelques minutes."
+
+#: suite/drive/presentation/api.py:226 suite/drive/presentation/renderer.py:220
+msgid "Nothing was heard. Try again, a little closer."
+msgstr "Rien n'a été entendu. Réessayez, un peu plus près du micro."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:513
+msgid "Read them again now"
+msgstr "Relire maintenant"
+
+#. Label of a Small Text field in DocType 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:104
+msgid "Sites Nora Reads"
+msgstr "Sites que Nora lit"
+
+#: suite/drive/presentation/renderer.py:216
+msgid "Stop and write it"
+msgstr "Arrêter et l'écrire"
+
+#: suite/drive/presentation/renderer.py:222
+msgid "Thank you for watching it to the end."
+msgstr "Merci de l'avoir suivie jusqu'au bout."
+
+#: suite/drive/presentation/api.py:220 suite/drive/presentation/renderer.py:219
+msgid "The microphone is not available."
+msgstr "Le micro n'est pas disponible."
+
+#: suite/drive/presentation/api.py:223
+msgid "The recording is too long."
+msgstr "L'enregistrement est trop long."
+
+#. Description of the 'Sites Nora Reads' (Small Text) field in DocType
+#. 'Presentation Link'
+#: suite/drive/doctype/presentation_link/presentation_link.json:100
+msgid "The sites Nora also reads to answer, one address per line (the website, the public manual). Pages of prices are never read."
+msgstr "Les sites que Nora lit aussi pour répondre, une adresse par ligne (le site web, le manuel public). Les pages de tarifs ne sont jamais lues."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:560
+msgid "The website and the public manual: Nora takes the pages that speak of the question and cites them. Pages of prices are never read."
+msgstr "Le site web et le manuel public : Nora retient les pages qui traitent de la question et les cite. Les pages de tarifs ne sont jamais lues."
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:510
+msgid "The websites"
+msgstr "Les sites web"
+
+#: suite/drive/presentation/renderer.py:214
+msgid "Turn the sound off"
+msgstr "Couper le son"
+
+#: suite/drive/presentation/renderer.py:213
+msgid "Turn the sound on"
+msgstr "Activer le son"
+
+#: suite/drive/presentation/renderer.py:218
+msgid "Writing it down…"
+msgstr "Transcription en cours…"
+
+#: suite/drive/presentation/renderer.py:221
+msgid "You reached the end"
+msgstr "Vous voici au bout"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:504
+#, python-brace-format
+msgid "{0} pages, read {1}"
+msgstr "{0} pages, lues {1}"

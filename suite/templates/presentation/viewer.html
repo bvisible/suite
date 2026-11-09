@@ -6,7 +6,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="robots" content="noindex, nofollow">
 	<title>{{ title|e }}</title>
-	<link rel="stylesheet" href="/assets/suite/presentation/viewer.css?v=4">
+	<link rel="stylesheet" href="/assets/suite/presentation/viewer.css?v=6">
 </head>
 <body class="np">
 	<div class="np-paper" id="np-paper">
@@ -76,7 +76,7 @@
 	<div class="np-player" id="np-player" hidden>
 		<div class="np-bar np-bar-top">
 			<span class="np-player-title">{{ title|e }}</span>
-			{% if preview %}<span class="np-preview-badge">{{ strings.previewBadge }}</span>{% endif %}
+			{% if preview %}<span class="np-preview-badge"><span class="np-pb-long">{{ strings.previewBadge }}</span><span class="np-pb-short">{{ strings.previewShort }}</span></span>{% endif %}
 			<div class="np-bar-actions">
 				<button type="button" class="np-button np-button-ghost" id="np-ask-open" aria-pressed="false" aria-controls="np-ask" hidden><img src="/assets/nora/images/nora-orb-dark.svg" alt="" onerror="this.remove()">{{ strings.ask }}</button>
 				<button type="button" class="np-button np-button-light" id="np-forward" hidden>{{ strings.forward }}</button>
@@ -100,13 +100,25 @@
 				<form class="np-ask-form" id="np-ask-form" novalidate>
 					<div class="np-ask-row">
 						<textarea name="question" rows="2" maxlength="500" placeholder="{{ strings.askPlaceholder }}" aria-label="{{ strings.askPlaceholder }}"></textarea>
+						<button type="button" class="np-ask-mic" id="np-ask-mic" aria-label="{{ strings.dictate }}" title="{{ strings.dictate }}" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
 						<button type="submit" class="np-ask-send" aria-label="{{ strings.askSend }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 					</div>
+					<p class="np-ask-state" id="np-ask-state" aria-live="polite" hidden></p>
 					<p class="np-error" id="np-ask-error" role="alert" hidden></p>
 					<p class="np-ask-note">{{ strings.askNote }}</p>
 				</form>
 			</aside>
 		</div>
+		<canvas class="np-confetti" id="np-confetti" aria-hidden="true" hidden></canvas>
+		<section class="np-end" id="np-end" role="status" hidden>
+			<button type="button" class="np-end-close" id="np-end-close" aria-label="{{ strings.close }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+			<h2 class="np-end-title">{{ strings.endTitle }}</h2>
+			<p class="np-end-text">{{ strings.endText }}</p>
+			<div class="np-end-actions">
+				<button type="button" class="np-button np-button-light" id="np-end-ask" hidden>{{ strings.ask }}</button>
+				<button type="button" class="np-button np-button-ghost" id="np-end-forward" hidden>{{ strings.forward }}</button>
+			</div>
+		</section>
 		<div class="np-bar np-bar-bottom">
 			<div class="np-progress" id="np-progress" aria-hidden="true"></div>
 			<div class="np-controls">
@@ -140,6 +152,6 @@
 	</dialog>
 
 	<script>window.npConfig = {{ config|safe }};</script>
-	<script src="/assets/suite/presentation/viewer.js?v=5"></script>
+	<script src="/assets/suite/presentation/viewer.js?v=6"></script>
 </body>
 </html>

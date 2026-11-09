@@ -135,6 +135,32 @@ html[data-theme="dark"] body.neoffice-cockpit .np-link-form .form-hero-detail-la
 	}
 }
 
+/* The sites Nora reads (the Nora tab) */
+.np-sites {
+	list-style: none;
+	margin: 6px 0 2px;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 13px;
+}
+.np-sites li {
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+}
+.np-sites-input {
+	margin-top: 8px;
+	width: 100%;
+	font-size: 13px;
+}
+.np-sites-actions {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+	margin-top: 8px;
+}
 .np-reading:empty {
 	display: none;
 }

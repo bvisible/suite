@@ -27,7 +27,7 @@ from werkzeug.wrappers import Response
 from suite.drive.presentation import rules
 from suite.drive.utils.files import FileManager, storage_key, stored_on_disk
 
-BRIDGE = '<script src="/assets/suite/presentation/bridge.js"></script>'
+BRIDGE = '<script src="/assets/suite/presentation/bridge.js?v=3"></script>'
 ENTRY_ALIAS = "start"
 CONTENT_SANDBOX = "sandbox allow-scripts allow-popups allow-popups-to-escape-sandbox"
 PRIVATE_HEADERS = {
@@ -179,7 +179,7 @@ def viewer_strings() -> dict:
         "previous": _("Previous slide"),
         "next": _("Next slide"),
         "fullScreen": _("Full screen"),
-        "forward": _("Forward to a colleague"),
+        "forward": _("Forward"),
         "forwardTitle": _("Forward to a colleague"),
         "forwardText": _(
             "Your colleague receives the presentation in their name. Their code arrives by itself."
@@ -210,7 +210,18 @@ def viewer_strings() -> dict:
         "forwardedPill": _("Passed on to {0} · answer by e-mail"),
         "answerOf": _("Answer of {0}"),
         "close": _("Close"),
+        "soundOn": _("Turn the sound on"),
+        "soundOff": _("Turn the sound off"),
+        "dictate": _("Dictate your question"),
+        "stopDictation": _("Stop and write it"),
+        "listening": _("Listening… {0} s"),
+        "writing": _("Writing it down…"),
+        "noMicrophone": _("The microphone is not available."),
+        "heardNothing": _("Nothing was heard. Try again, a little closer."),
+        "endTitle": _("You reached the end"),
+        "endText": _("Thank you for watching it to the end."),
         "previewBadge": _("Preview · nothing is counted"),
+        "previewShort": _("Preview"),
         "previewNotSent": _("Preview: nothing is sent."),
         "previewWouldForward": _("In the preview, this question would go to {0}, who answers by e-mail."),
     }
