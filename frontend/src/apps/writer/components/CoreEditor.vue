@@ -151,8 +151,11 @@ const scrollParent = computed(() =>
   document.querySelector('#editor-scroll-container'),
 )
 
+//// Neoffice — the toolbar renders before the style clipboard extension's storage exists, so reading `.styleClipboard`
+//// on it threw a TypeError once per document load (maintenance#1601). Optional chaining on the storage; to drop if
+//// upstream guards it.
 const isPainting = computed(
-  () => !!editor.value?.storage.styleClipboard.styleClipboard,
+  () => !!editor.value?.storage.styleClipboard?.styleClipboard,
 )
 
 const showUnanchoredButton = computed(() => {
