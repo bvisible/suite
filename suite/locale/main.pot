@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Frappe Suite VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-11-09 10:53+0000\n"
-"PO-Revision-Date: 2026-11-09 10:53+0000\n"
+"POT-Creation-Date: 2026-11-09 11:25+0000\n"
+"PO-Revision-Date: 2026-11-09 11:25+0000\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -509,7 +509,7 @@ msgstr ""
 msgid "A new preview link is ready."
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:189
+#: suite/drive/presentation/renderer.py:190
 msgid "A note for them, if you like"
 msgstr ""
 
@@ -550,7 +550,7 @@ msgstr ""
 msgid "A question waits for you"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:195
+#: suite/drive/presentation/renderer.py:196
 msgid "A question?"
 msgstr ""
 
@@ -2381,7 +2381,7 @@ msgid "Answer it"
 msgstr ""
 
 #: suite/drive/presentation/questions.py:165
-#: suite/drive/presentation/renderer.py:211
+#: suite/drive/presentation/renderer.py:212
 #, python-brace-format
 msgid "Answer of {0}"
 msgstr ""
@@ -2768,7 +2768,7 @@ msgstr ""
 msgid "Arrow"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:194
+#: suite/drive/presentation/renderer.py:195
 msgid "Arrow keys, or swipe on a phone"
 msgstr ""
 
@@ -2820,11 +2820,11 @@ msgstr ""
 msgid "Ask AI to work on your selection"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:204
+#: suite/drive/presentation/renderer.py:205
 msgid "Ask about what you see: Nora answers from the presentation, or passes your question on."
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:206
+#: suite/drive/presentation/renderer.py:207
 #, python-brace-format
 msgid "Ask about what you see: your question goes to {0}, who answers by e-mail."
 msgstr ""
@@ -3958,7 +3958,7 @@ msgstr ""
 #: frontend/src/apps/meet/components/SeanceStopDialog.vue:28
 #: frontend/src/apps/meet/composables/useSFUConnection.ts:260
 #: frontend/src/neoffice/i18nRegistry.ts:201
-#: suite/drive/presentation/renderer.py:191
+#: suite/drive/presentation/renderer.py:192
 #: suite/public/frontend/assets/EventPopover-D-C4iYxP.js:1
 #: suite/public/frontend/assets/ImageGroupUploadDialog-CzZBnRn4.js:1
 #: suite/public/frontend/assets/InsertIframe-K4-QQtPn.js:1
@@ -4618,7 +4618,7 @@ msgstr ""
 #: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:36
 #: frontend/src/apps/meet/components/StatsForNerdsOverlay.vue:37
 #: frontend/src/neoffice/i18nRegistry.ts:239
-#: suite/drive/presentation/renderer.py:212
+#: suite/drive/presentation/renderer.py:213
 #: suite/public/frontend/assets/ComposeView-5AYtXziY.js:1
 #: suite/public/frontend/assets/Dialog-8fZL1K3i.js:1
 #: suite/public/frontend/assets/EventPopover-D-C4iYxP.js:2
@@ -7236,7 +7236,7 @@ msgstr ""
 msgid "Diamond"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:215
+#: suite/drive/presentation/renderer.py:216
 msgid "Dictate your question"
 msgstr ""
 
@@ -10509,9 +10509,13 @@ msgstr ""
 #: frontend/src/apps/mail/components/ComposeMailEditor.vue:459
 #: frontend/src/apps/mail/components/MailActions.vue:171
 #: frontend/src/apps/mail/components/MailThread.vue:1111
-#: suite/drive/presentation/renderer.py:182
 #: suite/public/frontend/assets/MailThread-kyo_XN7A.js:347
 #: suite/public/frontend/assets/mailboxTargets-CwDGxHAl.js:6
+msgid "Forward"
+msgstr ""
+
+#: suite/drive/presentation/renderer.py:183
+msgctxt "Send the presentation to a colleague"
 msgid "Forward"
 msgstr ""
 
@@ -10536,7 +10540,7 @@ msgstr ""
 msgid "Forward mail for addresses of {0} that have no account here to the domain's MX, so some mailboxes can stay on another server."
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:183
+#: suite/drive/presentation/renderer.py:184
 msgid "Forward to a colleague"
 msgstr ""
 
@@ -11561,7 +11565,7 @@ msgstr ""
 msgid "I agree"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:208
+#: suite/drive/presentation/renderer.py:209
 #, python-brace-format
 msgid "I passed your question on to {0}: the answer comes by e-mail, to {1}."
 msgstr ""
@@ -11942,7 +11946,7 @@ msgstr ""
 msgid "In Reply To (Message ID)"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:225
+#: suite/drive/presentation/renderer.py:227
 #, python-brace-format
 msgid "In the preview, this question would go to {0}, who answers by e-mail."
 msgstr ""
@@ -13430,7 +13434,7 @@ msgstr ""
 msgid "List view"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:217
+#: suite/drive/presentation/renderer.py:218
 #, python-brace-format
 msgid "Listening… {0} s"
 msgstr ""
@@ -16709,7 +16713,7 @@ msgstr ""
 msgid "Nora Reads the Speaker Notes"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:196
+#: suite/drive/presentation/renderer.py:197
 #, python-brace-format
 msgid "Nora answers from this presentation. Otherwise, she passes it on to {0}."
 msgstr ""
@@ -16746,7 +16750,7 @@ msgstr ""
 
 #: suite/drive/doctype/presentation_link/presentation_link.js:425
 #: suite/drive/doctype/presentation_link/presentation_link.js:614
-#: suite/drive/presentation/renderer.py:207
+#: suite/drive/presentation/renderer.py:208
 msgid "Nora reads the presentation…"
 msgstr ""
 
@@ -16851,7 +16855,7 @@ msgid "Not for me"
 msgstr ""
 
 #: suite/drive/api/s3.py:14 suite/drive/api/s3.py:18
-#: suite/drive/presentation/renderer.py:298
+#: suite/drive/presentation/renderer.py:300
 msgid "Not found"
 msgstr ""
 
@@ -16940,7 +16944,7 @@ msgstr ""
 msgid "Nothing shared with you yet"
 msgstr ""
 
-#: suite/drive/presentation/api.py:226 suite/drive/presentation/renderer.py:220
+#: suite/drive/presentation/api.py:226 suite/drive/presentation/renderer.py:221
 msgid "Nothing was heard. Try again, a little closer."
 msgstr ""
 
@@ -17181,12 +17185,12 @@ msgstr ""
 msgid "On loop"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:198
+#: suite/drive/presentation/renderer.py:199
 #, python-brace-format
 msgid "On slide {0}"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:199
+#: suite/drive/presentation/renderer.py:200
 #, python-brace-format
 msgid "On slide {0} · {1}"
 msgstr ""
@@ -17986,7 +17990,7 @@ msgstr ""
 msgid "Passed SPF"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:210
+#: suite/drive/presentation/renderer.py:211
 #, python-brace-format
 msgid "Passed on to {0} · answer by e-mail"
 msgstr ""
@@ -18581,6 +18585,7 @@ msgstr ""
 #: frontend/src/apps/drive/components/GenericPage.vue:538
 #: frontend/src/neoffice/i18nRegistry.ts:891
 #: suite/drive/doctype/presentation_link/presentation_link.js:36
+#: suite/drive/presentation/renderer.py:225
 #: suite/mail/doctype/mail_message/mail_message.json:451
 #: suite/mail/doctype/mail_message_part/mail_message_part.json:118
 #: suite/public/frontend/assets/GenericPage-C52HZ6Cm.js:1
@@ -18616,7 +18621,7 @@ msgstr ""
 msgid "Preview not available for this file type"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:223
+#: suite/drive/presentation/renderer.py:224
 msgid "Preview · nothing is counted"
 msgstr ""
 
@@ -18624,7 +18629,7 @@ msgstr ""
 msgid "Preview:"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:224
+#: suite/drive/presentation/renderer.py:226
 msgid "Preview: nothing is sent."
 msgstr ""
 
@@ -22047,7 +22052,7 @@ msgstr ""
 #: frontend/src/apps/mail/pages/SubmissionDetailsView.vue:368
 #: frontend/src/apps/mail/pages/SubmissionDetailsView.vue:379
 #: suite/drive/doctype/presentation_link/presentation_link.js:136
-#: suite/drive/presentation/renderer.py:190
+#: suite/drive/presentation/renderer.py:191
 #: suite/public/frontend/assets/ComposeView-5AYtXziY.js:1
 #: suite/public/frontend/assets/OutboxView-DIpZreDy.js:1
 #: suite/public/frontend/assets/SubmissionDetailsView-DMQUbSNx.js:1
@@ -22225,7 +22230,7 @@ msgstr ""
 msgid "Send the code again"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:201
+#: suite/drive/presentation/renderer.py:202
 msgid "Send the question"
 msgstr ""
 
@@ -22383,7 +22388,7 @@ msgstr ""
 msgid "Sent to {0}"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:192
+#: suite/drive/presentation/renderer.py:193
 msgid "Sent. They will receive it in a moment."
 msgstr ""
 
@@ -23421,7 +23426,7 @@ msgstr ""
 msgid "Something went wrong with the notes. Please try again."
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:193
+#: suite/drive/presentation/renderer.py:194
 msgid "Something went wrong. Try again in a moment."
 msgstr ""
 
@@ -23932,7 +23937,7 @@ msgstr ""
 msgid "Stop Operation ID"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:216
+#: suite/drive/presentation/renderer.py:217
 msgid "Stop and write it"
 msgstr ""
 
@@ -24860,7 +24865,7 @@ msgstr ""
 msgid "Th"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:222
+#: suite/drive/presentation/renderer.py:223
 msgid "Thank you for watching it to the end."
 msgstr ""
 
@@ -25529,7 +25534,7 @@ msgstr ""
 msgid "The method {method} is missing the required {decorator} decorator. Please add it to enforce dynamic rate limiting."
 msgstr ""
 
-#: suite/drive/presentation/api.py:220 suite/drive/presentation/renderer.py:219
+#: suite/drive/presentation/api.py:220 suite/drive/presentation/renderer.py:220
 msgid "The microphone is not available."
 msgstr ""
 
@@ -26113,11 +26118,11 @@ msgstr ""
 msgid "The websites"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:187
+#: suite/drive/presentation/renderer.py:188
 msgid "Their e-mail address"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:188
+#: suite/drive/presentation/renderer.py:189
 msgid "Their first name (optional)"
 msgstr ""
 
@@ -27266,11 +27271,11 @@ msgstr ""
 msgid "Turn on auto framing to lock it"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:214
+#: suite/drive/presentation/renderer.py:215
 msgid "Turn the sound off"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:213
+#: suite/drive/presentation/renderer.py:214
 msgid "Turn the sound on"
 msgstr ""
 
@@ -29225,7 +29230,7 @@ msgstr ""
 msgid "Writer Version"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:218
+#: suite/drive/presentation/renderer.py:219
 msgid "Writing it down…"
 msgstr ""
 
@@ -29581,7 +29586,7 @@ msgstr ""
 msgid "You have view access. Ask the owner for edit access to make changes."
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:221
+#: suite/drive/presentation/renderer.py:222
 msgid "You reached the end"
 msgstr ""
 
@@ -29695,7 +29700,7 @@ msgstr ""
 msgid "Your code to open « {0} »:"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:185
+#: suite/drive/presentation/renderer.py:186
 msgid "Your colleague receives the presentation in their name. Their code arrives by itself."
 msgstr ""
 
@@ -29755,7 +29760,7 @@ msgstr ""
 msgid "Your private address"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:200
+#: suite/drive/presentation/renderer.py:201
 msgid "Your question on this slide…"
 msgstr ""
 
@@ -29764,7 +29769,7 @@ msgstr ""
 msgid "Your question on « {0} »"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:202
+#: suite/drive/presentation/renderer.py:203
 msgid "Your questions are read by the person who sent you this presentation."
 msgstr ""
 
@@ -30985,7 +30990,7 @@ msgstr ""
 msgid "{0} and {1} others is in the meeting"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:197
+#: suite/drive/presentation/renderer.py:198
 #, python-brace-format
 msgid "{0} answers you by e-mail."
 msgstr ""
@@ -31193,7 +31198,7 @@ msgstr ""
 msgid "{0} has raised their hand"
 msgstr ""
 
-#: suite/drive/presentation/renderer.py:209
+#: suite/drive/presentation/renderer.py:210
 #, python-brace-format
 msgid "{0} has your question: the answer comes by e-mail, to {1}."
 msgstr ""

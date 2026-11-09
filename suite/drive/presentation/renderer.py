@@ -179,7 +179,8 @@ def viewer_strings() -> dict:
         "previous": _("Previous slide"),
         "next": _("Next slide"),
         "fullScreen": _("Full screen"),
-        "forward": _("Forward"),
+        # its own context: the hub's Translation table says « Vers l'avant » for a bare « Forward » (a calendar's arrow)
+        "forward": _("Forward", context="Send the presentation to a colleague"),
         "forwardTitle": _("Forward to a colleague"),
         "forwardText": _(
             "Your colleague receives the presentation in their name. Their code arrives by itself."

@@ -33101,3 +33101,8 @@ msgstr "Vous voici au bout"
 #, python-brace-format
 msgid "{0} pages, read {1}"
 msgstr "{0} pages, lues {1}"
+
+#: suite/drive/presentation/renderer.py:183
+msgctxt "Send the presentation to a colleague"
+msgid "Forward"
+msgstr "Transférer"
