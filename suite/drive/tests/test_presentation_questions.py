@@ -54,6 +54,37 @@ class TestSlides(TestCase):
         self.assertEqual([s["title"] for s in asking.extract_slides(html)], ["Un", "Deux"])
 
 
+class TestNames(TestCase):
+    TEXT = (
+        "Neoffice pour votre fiduciaire. La reprise de WinBiz dans Neoffice, puis WinBiz archivé. "
+        "Reprendre vos dossiers. Reprendre sans perte. Nora prépare. Au Nord du canton, le nord."
+    )
+
+    def test_a_name_is_written_with_a_capital_inside_a_sentence_and_never_in_small_letters(self):
+        names, known = asking.names_in(self.TEXT)
+        self.assertEqual(
+            names, ["WinBiz", "Neoffice"]
+        )  # not a verb of a title, not a word also written small
+        self.assertIn("nord", known)
+
+    def test_a_misheard_name_is_written_as_the_presentation_writes_it(self):
+        names, known = asking.names_in(self.TEXT)
+        fixed = lambda text: asking.fix_names(text, names, known)  # noqa: E731
+        self.assertEqual(fixed("Des factures sur NeoFix ?"), "Des factures sur Neoffice ?")
+        self.assertEqual(fixed("Des factures sur Neo office ?"), "Des factures sur Neoffice ?")
+        self.assertEqual(fixed("sur Néo-office et NéoOffice"), "sur Neoffice et Neoffice")
+        self.assertEqual(fixed("les données de Win Biz"), "les données de WinBiz")
+        for kept in (
+            "dans le office",
+            "Au Nord du canton",
+            "Peut-on répondre ?",
+            "voir neoffice.ch",
+            "écrire à info@neoffice.ch",
+            "Neoffice fait les salaires ?",
+        ):
+            self.assertEqual(fixed(kept), kept)
+
+
 class TestQuestions(FrappeTestCase):
     @classmethod
     def setUpClass(cls):
@@ -372,6 +403,21 @@ class TestQuestions(FrappeTestCase):
         )
         self.assertEqual(frappe.db.count("Presentation Question", {"link": self.link.name}), before)
         self.assertEqual((len(self.sent), len(self.jobs)), (sent, jobs))
+
+    def test_nora_is_asked_about_the_name_the_presentation_uses_not_the_one_misheard(self):
+        asked = []
+
+        def answerer(**kw):
+            asked.append(kw["question"])
+            return {"sure": True, "answer": "Oui.", "sources": ["S1"], "reason": "answered"}
+
+        with (
+            patch.object(asking, "_answerer", return_value=answerer),
+            patch.object(asking, "names_of", return_value=(["Neoffice"], set())),
+            as_role("Guest"),
+        ):
+            api.preview_ask(self.link.token, self.link.preview_token, "Des factures sur NeoFix ?", 1)
+        self.assertEqual(asked, ["Des factures sur Neoffice ?"])
         unsure = lambda **kw: {"sure": False, "answer": "", "sources": [], "reason": "price_or_commitment"}  # noqa: E731
         with patch.object(asking, "_answerer", return_value=unsure), as_role("Guest"):
             result = api.preview_ask(self.link.token, self.link.preview_token, "Combien ça coûte ?", 1)
@@ -439,6 +485,20 @@ class TestQuestions(FrappeTestCase):
             request.content_length = asking.DICTATION_BYTES + 1
             self.assertFalse(api.transcribe(visit=self.visit)["ok"])
         self.assertEqual(len(heard), 2)
+
+    def test_a_dictated_name_comes_back_as_the_presentation_writes_it(self):
+        listen = lambda upload, language: {"success": True, "text": "Des factures sur Neo office ?"}  # noqa: E731
+        request = SimpleNamespace(files={"file": object()}, content_length=20000)
+        with (
+            patch.object(asking, "transcriber", return_value=listen),
+            patch.object(asking, "names_of", return_value=(["Neoffice"], set())),
+            patch.object(frappe.local, "request", request, create=True),
+            patch.object(frappe.local, "request_ip", "127.0.0.1", create=True),
+            as_role("Guest"),
+        ):
+            self.assertEqual(
+                api.transcribe(visit=self.visit), {"ok": True, "text": "Des factures sur Neoffice ?"}
+            )
 
 
 def _listed(doctype: str) -> list:

@@ -122,6 +122,125 @@ def slide_titles(link) -> list[str]:
         return []
 
 
+def names_of(link) -> tuple[list[str], set[str]]:
+    """The names the link's presentation uses and the words it writes in small letters (names_in), read from its
+    slides and its title."""
+    try:
+        slides = deck_slides(link)
+    except Exception:
+        slides = []
+    text = " ".join(f"{s.get('title') or ''}. {s.get('text') or ''}." for s in slides)
+    return names_in(f"{link.title or ''}. {text}")
+
+
+def names_in(text: str) -> tuple[list[str], set[str]]:
+    """The names of `text` and its words in small letters (folded). A name is written with a capital where a
+    sentence does not begin (« Neoffice », « WinBiz », « FIDAG »), at least twice, and never in small letters; a word
+    that opens a heading is not one, nor a verb or a participle of a title (« Reprendre », « Hébergé »)."""
+    lower, capital, seen = set(), [], {}
+    for match in re.finditer(r"[^\W\d_][\w'\u2019-]*", text or ""):
+        word = re.split(r"['\u2019]", match.group(0))[-1].strip("-")
+        if len(word) < 3:
+            continue
+        if word.islower():
+            lower.add(word)
+            continue
+        seen[word] = seen.get(word, 0) + 1
+        before = (text[: match.start()].rstrip() or ".")[-1]
+        inner_capital = any(c.isupper() for c in word[1:])
+        if (before in '.!?:;«»\u00b7\u2022|()\u2013\u2014"' and not inner_capital) or word in capital:
+            continue
+        if not inner_capital and re.search(r"(er|ir|re|é|ée|és|ées)$", word.lower()):
+            continue
+        capital.append(word)
+    names = [word for word in capital if word.lower() not in lower and seen[word] >= 2]
+    return names, {_fold(word) for word in lower}
+
+
+NAME_LIKENESS = 0.7
+
+
+def fix_names(text: str, names: list[str], known: set[str] | None = None) -> str:
+    """`text` with a word that sounds like one of `names`, or a short piece run with the next word (« Neo office »),
+    written as that name. A transcription does not know a product's name and writes the nearest words it knows
+    (« NeoFix », « Neo office » for « Neoffice », 09.11), and Nora, asked about a « NeoFix » the slides never name,
+    sent a plain question to the presenter. Only a long name (6 letters or more) is guessed this way, from a word
+    with its first four letters, never a word the presentation itself writes in small letters (`known`) nor a word
+    the name begins (« exporter » stays): « Nord » never becomes « Nora », « répondre » never « Reprendre »."""
+    if not text or not names:
+        return text
+    known = known or set()
+    keys: dict[str, str] = {}
+    for name in names:
+        if len(_fold(name)) >= 6:
+            keys.setdefault(_squash(_fold(name)), name)
+    if not keys:
+        return text
+    words = list(re.finditer(r"[\w'\u2019-]+", text))
+    out, cursor, index = [], 0, 0
+    while index < len(words):
+        word = words[index]
+        # an address or a site (« neoffice.ch », « jeremy@… ») is written as it is
+        if re.match(r"[./@]\w", text[word.end() : word.end() + 2]) or (
+            word.start() and text[word.start() - 1] in "@/."
+        ):
+            index += 1
+            continue
+        prefix, core = _elided(word.group(0))
+        span, name = 1, keys.get(_squash(_fold(core)))
+        if name == core:
+            name = None
+        elif not name and _fold(core) not in known:
+            following = words[index + 1] if index + 1 < len(words) else None
+            if following and len(_fold(core)) <= 4 and not text[word.end() : following.start()].strip():
+                name = _closest(_squash(_fold(core + following.group(0))), keys)
+                span = 2 if name else 1
+            name = name or _closest(_squash(_fold(core)), keys)
+        if name:
+            out.append(text[cursor : word.start()] + prefix + name)
+            cursor = words[index + span - 1].end()
+        index += span
+    out.append(text[cursor:])
+    return "".join(out)
+
+
+def _elided(word: str) -> tuple[str, str]:
+    """« l'office » is « l' » and « office »."""
+    match = re.match(r"^(\w{1,2}['\u2019])(.+)$", word)
+    return (match.group(1), match.group(2)) if match else ("", word)
+
+
+def _fold(word: str) -> str:
+    import unicodedata
+
+    plain = unicodedata.normalize("NFKD", word or "").encode("ascii", "ignore").decode()
+    return re.sub(r"[^a-z0-9]", "", plain.lower())
+
+
+def _squash(word: str) -> str:
+    """« neooffice » and « neoffice » are said the same: a doubled letter counts once."""
+    return re.sub(r"(.)\1+", r"\1", word)
+
+
+def _closest(candidate: str, keys: dict[str, str]) -> str | None:
+    from difflib import SequenceMatcher
+
+    if len(candidate) < 5:
+        return None
+    best, score = None, NAME_LIKENESS
+    for key, name in keys.items():
+        if candidate == key:
+            return name
+        if candidate[:4] != key[:4] or candidate.startswith(key) or key.startswith(candidate):
+            continue
+        if abs(len(candidate) - len(key)) > 3:
+            continue
+        ratio = SequenceMatcher(None, candidate, key).ratio()
+        if ratio >= score:
+            best, score = name, ratio
+    return best
+
+
 def passages(link, slides: list[dict] | None = None) -> list[dict]:
     """What the answerer may read for this link, and nothing else: each slide (`S<n>`), its notes when the link lends
     them (`N<n>`), and the answers kept for this link (`R<n>`)."""
@@ -312,9 +431,10 @@ def answer_question(name: str) -> None:
     started = now_datetime()
     lent: list[dict] = []
     try:
-        lent = passages(link) + site_passages(link, doc.question)
+        question = fix_names(doc.question, *names_of(link))
+        lent = passages(link) + site_passages(link, question)
         result = answerer(
-            question=doc.question,
+            question=question,
             slide=doc.slide,
             slide_title=doc.slide_title,
             passages=lent,
@@ -619,12 +739,13 @@ def trial(link, question: str, slide=None, who: str | None = None) -> dict:
     # the model is called each time: a cap per person and per day, like a visitor's
     if not _count(f"trial:{who or frappe.session.user}", PER_PERSON_A_DAY * 2):
         frappe.throw(_("You have tried many questions today: try again tomorrow."))
-    lent = passages(link) + site_passages(link, question)
+    asked = fix_names(question, *names_of(link))
+    lent = passages(link) + site_passages(link, asked)
     slide = min(max(cint(slide), 0), rules.MAX_SLIDES)
     titles = slide_titles(link)
     try:
         result = answerer(
-            question=question,
+            question=asked,
             slide=slide,
             slide_title=titles[slide - 1] if 0 < slide <= len(titles) else "",
             passages=lent,

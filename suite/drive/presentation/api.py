@@ -224,7 +224,9 @@ def transcribe(
     result = listener(upload, (frappe.local.lang or "fr")[:2]) or {}
     if not result.get("success"):
         return {"ok": False, "message": _("Nothing was heard. Try again, a little closer.")}
-    return {"ok": True, "text": (result.get("text") or "").strip()[: asking.MAX_CHARS]}
+    # the transcription does not know the presentation's names: they are put back (« NeoFix » → « Neoffice »)
+    text = asking.fix_names((result.get("text") or "").strip(), *asking.names_of(link))
+    return {"ok": True, "text": text[: asking.MAX_CHARS]}
 
 
 # ---------------------------------------------------------------------------------------------------------------------
