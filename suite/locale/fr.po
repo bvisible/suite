@@ -33197,3 +33197,34 @@ msgstr "Valable jusqu'au {0}. Il ne sera plus affiché."
 #: suite/drive/presentation/renderer.py:176
 msgid "Your access code"
 msgstr "Votre code d'accès"
+
+#: suite/drive/presentation/questions.py:182
+#, python-brace-format
+msgid "Hello! Ask your question about this presentation: {0} answers you by e-mail."
+msgstr "Bonjour ! Posez votre question sur cette présentation : {0} vous répond par e-mail."
+
+#: suite/drive/presentation/questions.py:179
+#, python-brace-format
+msgid "Hello! I am Nora. Ask me your question about this presentation: I answer from what it says, and what I do not know, {0} answers by e-mail."
+msgstr "Bonjour ! Je suis Nora. Posez-moi votre question sur cette présentation. Je réponds à partir de son contenu. Pour ce que je ne sais pas, {0} vous répond par e-mail."
+
+#: suite/drive/presentation/questions.py:193
+#, python-brace-format
+msgid "I am Nora, an assistant. I answer your questions about this presentation from what it says, and I pass what I do not know to {0}, who answers you by e-mail."
+msgstr "Je suis Nora, une assistante. Je réponds à vos questions sur cette présentation à partir de son contenu, et je transmets ce que je ne sais pas à {0}, qui vous répond par e-mail."
+
+#: suite/drive/presentation/questions.py:189
+msgid "Thank you for your visit. The same link brings you back to the presentation whenever you like."
+msgstr "Merci de votre visite. Le même lien vous ramène à la présentation quand vous le souhaitez."
+
+#: suite/drive/presentation/renderer.py:187
+msgid "The slides"
+msgstr "Les diapositives"
+
+#: suite/drive/presentation/questions.py:197
+msgid "Very well. Ask me a question whenever you like, about the slide on screen or the whole presentation."
+msgstr "Très bien. Posez-moi une question quand vous voulez, sur la diapositive à l'écran ou sur l'ensemble de la présentation."
+
+#: suite/drive/presentation/questions.py:186
+msgid "You are welcome. Another question? I am here."
+msgstr "Je vous en prie. Une autre question ? Je suis là."
