@@ -99,6 +99,15 @@ def _provision_mail_account_now(user: str) -> None:
     # info@testcompany). The Stalwart mailbox is <local>@<domain>, so derive a
     # UNIQUE local part — suffix on collision — instead of failing silently and
     # leaving the user with no calendar. ////
+    # //// Neoffice — the quota is read ONCE, before the loop (neoffice-maintenance#2396). It used to be read in the
+    # //// arguments of create_account, inside the `try` below: a missing configuration key was taken for a name
+    # //// collision on the Stalwart side and logged 30 times per new user, then "no free username".
+    try:
+        quota = cint(get_config("default_disk_quota_gb")) * 1024**3
+    except Exception as e:
+        frappe.log_error("Mail auto-provision not configured", f"user={user}: {e}")
+        return
+
     account = None
     for attempt in range(0, 30):
         cand_local = local_base if attempt == 0 else f"{local_base}{attempt + 1}"
@@ -114,7 +123,7 @@ def _provision_mail_account_now(user: str) -> None:
                 aliases=[],
                 groups=[],
                 roles=["User"],
-                quota=cint(get_config("default_disk_quota_gb")) * 1024**3,
+                quota=quota,
                 timezone=None,
             )
             account = cand
