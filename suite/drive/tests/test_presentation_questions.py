@@ -285,6 +285,30 @@ class TestQuestions(FrappeTestCase):
         self.assertEqual(frappe.db.get_value("Presentation Link", self.link.name, "waiting_count"), 1)
         self.assertEqual(self.thread()[-1]["status"], "Waiting")
 
+    def test_a_forwarded_question_carries_the_conversation_before_it(self):
+        # 09.11, Jérémy: « on reçoit vraiment la question et la transcription du chat ? » (only the question came)
+        sure = lambda **kw: {  # noqa: E731
+            "sure": True,
+            "answer": "467 comptes, sur un seul dossier.",
+            "sources": ["S2"],
+            "reason": "answered",
+        }
+        price = lambda **kw: {"sure": False, "answer": "", "sources": [], "reason": "price_or_commitment"}  # noqa: E731
+        first = self.answered_by(price, self.ask("Faites-vous un rabais ?", slide=1))
+        self.assertNotIn("<hr", self.sent[-1]["message"])  # a first question has nothing before it
+        other = self.enter(email="bruno@firm-example.ch")
+        self.answered_by(sure, self.ask("Une question de Bruno ?", visit=other))
+        self.answered_by(sure, self.ask("Combien de comptes ont été repris ?", slide=2))
+        self.answered_by(price, self.ask("Et combien coûte la reprise ?", slide=2))
+        mail = self.sent[-1]["message"]
+        self.assertEqual(self.sent[-1]["recipients"], [STAFF])
+        # the question first, then what the same person asked before it, oldest first, with what was answered
+        self.assertLess(mail.index("Et combien coûte la reprise ?"), mail.index("<hr"))
+        self.assertLess(mail.index(first.question), mail.index("Combien de comptes ont été repris ?"))
+        self.assertIn("467 comptes, sur un seul dossier.", mail)
+        self.assertEqual(mail.count("Faites-vous un rabais ?"), 1)
+        self.assertNotIn("Une question de Bruno ?", mail)  # another person's questions stay out
+
     def test_a_source_that_does_not_exist_is_not_an_answer(self):
         fake = lambda **kw: {"sure": True, "answer": "Oui.", "sources": ["S9"], "reason": "answered"}  # noqa: E731
         self.assertEqual(self.answered_by(fake, self.ask()).status, "Waiting")

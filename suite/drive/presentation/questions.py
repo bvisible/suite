@@ -33,6 +33,8 @@ SLIDE_CHARS = 2500
 NOTES_CHARS = 1500
 DECK_CACHE_SECONDS = 24 * 3600
 ANSWERS_LENT = 40
+# The e-mail of a forwarded question carries what the same person asked before it on the link, the last ones at most.
+CONVERSATION_IN_MAIL = 12
 # An answer that greets the person itself (French, German, Italian, English: the languages of the fleet's clients).
 _GREETING = re.compile(
     r"\s*(bonjour|bonsoir|salut|cher|chère|madame|monsieur|grüezi|guten (tag|morgen|abend)|hallo|liebe|lieber|"
@@ -693,6 +695,7 @@ def _tell(doc, link, user: str, reason: str) -> None:
                 f'padding:12px 20px;border-radius:10px;text-decoration:none;font-weight:600">'
                 f"{escape_html(_('Reply'))}</a></p>",  # « Répondre », not « Réponse »
                 f"<p>{escape_html(_('Your answer leaves by e-mail to {0}.').format(doc.email))}</p>",
+                _conversation_html(doc, link, person),
             ]
         )
         frappe.sendmail(
@@ -717,6 +720,69 @@ def _tell(doc, link, user: str, reason: str) -> None:
             "from_user": user,
         },
     )
+
+
+def _conversation_html(doc, link, person: str) -> str:
+    """What `person` asked on the link before the question `doc`, and what was answered, oldest first: the chat the
+    person sees on her page, so that the question forwarded is read with what Nora already said. "" when nothing."""
+    rows = frappe.get_all(
+        "Presentation Question",
+        filters={
+            "link": link.name,
+            "viewer": doc.viewer,
+            "name": ["!=", doc.name],
+            "creation": ["<", doc.creation],
+        },
+        fields=["slide", "question", "status", "nora_answer", "nora_sources", "answer", "answered_by"],
+        order_by="creation desc",
+        limit=CONVERSATION_IN_MAIL + 1,
+    )
+    if not rows:
+        return ""
+    more = len(rows) > CONVERSATION_IN_MAIL
+    rows = list(reversed(rows[:CONVERSATION_IN_MAIL]))
+    lent = {}
+    if any(r.status == "Answered by Nora" for r in rows):
+        try:
+            lent = {p["id"]: p for p in passages(link)}
+        except Exception:
+            lent = {}
+    quiet = "color:#6b6b6b;font-size:13px"
+    before = _("Before this question, {0} asked:").format(person)
+    parts = [
+        '<hr style="border:none;border-top:1px solid #e5e2dc;margin:26px 0 18px">',
+        f"<p><strong>{escape_html(before)}</strong></p>",
+    ]
+    if more:
+        earlier = _("The earlier questions are on the Questions tab.")
+        parts.append(f'<p style="{quiet}">{escape_html(earlier)}</p>')
+    for r in rows:
+        where = _("Slide {0}").format(r.slide) + " · " if r.slide else ""
+        parts.append(
+            f'<p style="margin:16px 0 4px"><span style="{quiet}">{escape_html(where)}</span>'
+            f"<strong>{escape_html(r.question)}</strong></p>"
+        )
+        if r.status == "Answered by Nora":
+            cited = [
+                _source_label(lent.get(s) if isinstance(s, str) else s, s) for s in _json_list(r.nora_sources)
+            ]
+            said, answer = _("Nora answered:"), r.nora_answer
+        elif r.status == "Answered":
+            cited, said, answer = [], _("{0} answered:").format(get_fullname(r.answered_by)), r.answer
+        else:
+            cited, said, answer = [], "", ""
+        if answer:
+            parts.append(
+                f'<p style="margin:0 0 2px;white-space:pre-line"><span style="{quiet}">{escape_html(said)}</span> '
+                f"{escape_html(answer)}</p>"
+            )
+            if cited:
+                listed = _("Sources: {0}").format(", ".join(cited))
+                parts.append(f'<p style="margin:0;{quiet}">{escape_html(listed)}</p>')
+        else:
+            waiting = _("Waiting for your answer.") if r.status == "Waiting" else _("Not answered yet.")
+            parts.append(f'<p style="margin:0;{quiet}">{escape_html(waiting)}</p>')
+    return "".join(parts)
 
 
 def _why(reason: str) -> str:
