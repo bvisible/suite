@@ -8,6 +8,7 @@
 // //// code: no visit, so nothing is counted; a question gets what Nora would answer, and nothing is sent.
 // //// A question can be dictated (our transcription, in Switzerland); the last slide is greeted with a little
 // //// celebration and what one can do next (Jérémy, 09.11: « pour donner le truc un peu ludique »).
+// //// The wheel turns the slides, one per gesture, and each stroke of the bar at the bottom goes to its slide (09.11).
 // //// A code given with the link opens it too (« J'ai un code d'accès », enter_with_code), without the e-mail step.
 (function () {
 	"use strict";
@@ -257,17 +258,30 @@
 			playing = !!data.playing;
 		} else if (data.type === "activity") {
 			lastActivity = Date.now();
+		} else if (data.type === "wheel") {
+			wheel(data.dx, data.dy, data.mode);
 		}
 	});
 
 	function draw() {
 		const bar = $("np-progress");
+		// each stroke is a slide: a click goes to it (Jérémy, 09.11: « cliquer sur les bulles pour sauter à une page »)
 		if (bar.children.length !== total) {
 			bar.innerHTML = "";
-			for (let i = 0; i < total; i++) bar.appendChild(document.createElement("i"));
+			for (let i = 0; i < total; i++) {
+				const cell = document.createElement("button");
+				cell.type = "button";
+				cell.title = format(S.slideN, i + 1);
+				cell.setAttribute("aria-label", cell.title);
+				cell.appendChild(document.createElement("i"));
+				cell.addEventListener("click", () => goToSlide(i + 1));
+				bar.appendChild(cell);
+			}
 		}
 		Array.from(bar.children).forEach((cell, i) => {
-			cell.className = i + 1 === current ? "np-now" : i + 1 <= furthest ? "np-seen" : "";
+			cell.firstChild.className = i + 1 === current ? "np-now" : i + 1 <= furthest ? "np-seen" : "";
+			if (i + 1 === current) cell.setAttribute("aria-current", "step");
+			else cell.removeAttribute("aria-current");
 		});
 		$("np-count").innerHTML = "";
 		const now = document.createElement("b");
@@ -375,6 +389,35 @@
 	}
 	$("np-prev").addEventListener("click", () => go(-1));
 	$("np-next").addEventListener("click", () => go(1));
+
+	// The wheel turns the slides, one per gesture, as in a slide show (Jérémy, 09.11: « scroller pour défiler, comme en
+	// PowerPoint »). A wheel's notch is a gesture; a trackpad's swipe is many small events and then its momentum, which
+	// turns nothing more. The wheel inside the presentation comes from the bridge (bridge.js), unless what is under it
+	// scrolls.
+	const WHEEL_STEP = 40;
+	let wheelSum = 0;
+	let wheelTurnAt = 0;
+	let wheelLastAt = 0;
+	function wheel(dx, dy, mode) {
+		if (!live) return;
+		const unit = mode === 1 ? 40 : mode === 2 ? 800 : 1;
+		const delta = (Math.abs(dx) > Math.abs(dy) ? dx : dy) * unit;
+		const now = Date.now();
+		const sameGesture = now - wheelLastAt < 200;
+		wheelLastAt = now;
+		if (now - wheelTurnAt < (sameGesture ? 1500 : 350)) return;
+		if (!sameGesture) wheelSum = 0;
+		wheelSum += delta || 0;
+		if (Math.abs(wheelSum) < WHEEL_STEP) return;
+		go(wheelSum > 0 ? 1 : -1);
+		wheelSum = 0;
+		wheelTurnAt = now;
+	}
+	$("np-stage").addEventListener("wheel", (event) => {
+		if (event.ctrlKey) return; // a pinch zooms
+		event.preventDefault();
+		wheel(event.deltaX, event.deltaY, event.deltaMode);
+	}, { passive: false });
 	// The person types in a field on screen (the question, the forward dialog); a field left focused but hidden (the
 	// code's last digit) is not typing.
 	const typing = () => {
@@ -588,6 +631,12 @@
 			const result = await call("ask", { visit, question: text, slide: current });
 			if (!result.ok) return showError("np-ask-error", result.message);
 			form.question.value = "";
+			// a greeting, a thank-you, a goodbye: Nora answers at once, and nothing was recorded (questions.small_talk)
+			if (result.reply) {
+				thread.push({ slide: current, question: text, status: "Answered by Nora", answer: result.reply, sources: [] });
+				drawThread();
+				return;
+			}
 			thread.push({ name: result.question, slide: current, question: text, status: "Asked" });
 			askedAt = Date.now();
 			drawThread();

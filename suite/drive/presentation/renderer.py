@@ -27,7 +27,7 @@ from werkzeug.wrappers import Response
 from suite.drive.presentation import rules
 from suite.drive.utils.files import FileManager, storage_key, stored_on_disk
 
-BRIDGE = '<script src="/assets/suite/presentation/bridge.js?v=3"></script>'
+BRIDGE = '<script src="/assets/suite/presentation/bridge.js?v=4"></script>'
 ENTRY_ALIAS = "start"
 CONTENT_SANDBOX = "sandbox allow-scripts allow-popups allow-popups-to-escape-sandbox"
 PRIVATE_HEADERS = {
@@ -183,6 +183,8 @@ def viewer_strings() -> dict:
         "closedText": _("Write to the person who sent it to you: a new link leaves in one click."),
         "slideOf": _("{0} / {1}"),
         "previous": _("Previous slide"),
+        "slideN": _("Slide {0}"),
+        "slidesBar": _("The slides"),
         "next": _("Next slide"),
         "fullScreen": _("Full screen"),
         # its own context: the hub's Translation table says « Vers l'avant » for a bare « Forward » (a calendar's arrow)

@@ -40,6 +40,163 @@ _GREETING = re.compile(
     re.I,
 )
 
+# What a person writes or says that is not a question (Jérémy, 09.11: « salut » went to the presenter): a greeting, a
+# thank-you, a goodbye, an « ok », or who Nora is. Nora answers it herself and nothing is recorded or forwarded. A
+# message is small talk only when every one of its words is one of these (« Bonjour, est-ce que… » is a question).
+_SMALL_TALK_WORDS = {
+    "greeting": {
+        "bonjour",
+        "bonsoir",
+        "salut",
+        "coucou",
+        "hello",
+        "hi",
+        "hey",
+        "grüezi",
+        "gruezi",
+        "hallo",
+        "servus",
+        "guten",
+        "tag",
+        "morgen",
+        "abend",
+        "buongiorno",
+        "buonasera",
+        "ciao",
+        "allo",
+        "allô",
+    },
+    "thanks": {"merci", "thanks", "thank", "danke", "grazie", "vielen", "dank", "mille", "infiniment"},
+    "goodbye": {
+        "revoir",
+        "bientôt",
+        "bientot",
+        "bye",
+        "tschüss",
+        "tschuss",
+        "arrivederci",
+        "ciao",
+        "adieu",
+        "journée",
+        "journee",
+        "soirée",
+        "soiree",
+        "week-end",
+        "weekend",
+    },
+    "ok": {
+        "ok",
+        "okay",
+        "oki",
+        "accord",
+        "parfait",
+        "super",
+        "top",
+        "génial",
+        "genial",
+        "cool",
+        "test",
+        "testing",
+        "noted",
+        "compris",
+        "entendu",
+        "nickel",
+        "bravo",
+    },
+}
+_SMALL_TALK_FILLER = {
+    "nora",
+    "à",
+    "a",
+    "au",
+    "vous",
+    "toi",
+    "beaucoup",
+    "bien",
+    "très",
+    "tres",
+    "trop",
+    "bonne",
+    "bon",
+    "d",
+    "de",
+    "et",
+    "you",
+    "much",
+    "so",
+    "madame",
+    "monsieur",
+    "encore",
+    "mille",
+    "fois",
+    "tout",
+    "le",
+    "monde",
+    "lot",
+    "es",
+    "est",
+    "c",
+    "ça",
+    "ca",
+    "un",
+    "une",
+}
+_WHO_IS_NORA = re.compile(
+    r"^(qui (es[- ]tu|êtes[- ]vous|etes[- ]vous|est nora|parle|me répond|me repond)|tu es qui|vous êtes qui|"
+    r"c'?est qui( nora)?|tu es (un robot|une ia|une intelligence artificielle|humaine?)|"
+    r"es[- ]tu (un robot|une ia|humaine?)|who are you|are you (a bot|a robot|human|an ai)|wer bist du|chi sei)$"
+)
+
+
+def small_talk(text: str) -> str | None:
+    """The kind of a message that is not a question (« greeting », « thanks », « goodbye », « ok », « who »), or None."""
+    plain = re.sub(r"[^\w\s'-]", " ", (text or "").lower().replace("\u2019", "'"))
+    plain = re.sub(r"\s+", " ", plain).strip()
+    if not plain or len(plain) > 80:
+        return None
+    if _WHO_IS_NORA.match(plain):
+        return "who"
+    words = [w for w in re.split(r"[\s'-]+", plain) if w]
+    if not words or len(words) > 6:
+        return None
+    kinds = [kind for kind, vocabulary in _SMALL_TALK_WORDS.items() if any(w in vocabulary for w in words)]
+    every = set().union(*_SMALL_TALK_WORDS.values()) | _SMALL_TALK_FILLER
+    if not kinds or not all(w in every for w in words):
+        return None
+    for kind in ("thanks", "goodbye", "greeting", "ok"):
+        if kind in kinds:
+            return kind
+    return None
+
+
+def small_talk_reply(link, kind: str) -> str:
+    """What Nora answers to a message that is not a question, in the visitor's language."""
+    person = get_fullname(answers_for(link))
+    nora = (link.questions_mode or MODE_NORA) == MODE_NORA
+    if kind == "greeting":
+        if nora:
+            return _(
+                "Hello! I am Nora. Ask me your question about this presentation: I answer from what it says, and what "
+                "I do not know, {0} answers by e-mail."
+            ).format(person)
+        return _("Hello! Ask your question about this presentation: {0} answers you by e-mail.").format(
+            person
+        )
+    if kind == "thanks":
+        return _("You are welcome. Another question? I am here.")
+    if kind == "goodbye":
+        return _(
+            "Thank you for your visit. The same link brings you back to the presentation whenever you like."
+        )
+    if kind == "who":
+        return _(
+            "I am Nora, an assistant. I answer your questions about this presentation from what it says, and I pass "
+            "what I do not know to {0}, who answers you by e-mail."
+        ).format(person)
+    return _(
+        "Very well. Ask me a question whenever you like, about the slide on screen or the whole presentation."
+    )
+
 
 # ---------------------------------------------------------------------------------------------------------------------
 # What a presentation says, slide by slide
@@ -342,6 +499,10 @@ def ask(row, question: str, slide) -> dict:
             "reason": "too_long",
             "message": _("A question of {0} characters at most, please.").format(MAX_CHARS),
         }
+    kind = small_talk(question)
+    if kind:
+        # not a question: Nora answers it here, and nothing is recorded, counted or forwarded
+        return {"ok": True, "reply": small_talk_reply(link, kind)}
     if not (_count(f"person:{row.viewer}", PER_PERSON_A_DAY) and _count(f"link:{link.name}", PER_LINK_A_DAY)):
         return {
             "ok": False,
@@ -750,6 +911,16 @@ def trial(link, question: str, slide=None, who: str | None = None) -> dict:
         frappe.throw(_("A question of {0} to {1} characters, please.").format(MIN_CHARS, MAX_CHARS))
     if not enabled(link):
         return {"sure": False, "reason": "questions_closed"}
+    kind = small_talk(question)
+    if kind:
+        return {
+            "sure": True,
+            "answer": small_talk_reply(link, kind),
+            "sources": [],
+            "slides": [],
+            "links": [],
+            "small_talk": kind,
+        }
     answerer = _answerer()
     if (link.questions_mode or MODE_NORA) != MODE_NORA or not answerer:
         return {"sure": False, "reason": "forward_every_question" if answerer else "no_answerer"}

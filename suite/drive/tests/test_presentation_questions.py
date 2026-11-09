@@ -54,6 +54,33 @@ class TestSlides(TestCase):
         self.assertEqual([s["title"] for s in asking.extract_slides(html)], ["Un", "Deux"])
 
 
+class TestSmallTalk(TestCase):
+    def test_a_greeting_a_thanks_a_goodbye_and_who_nora_is_are_not_questions(self):
+        for text, kind in (
+            ("salut", "greeting"),
+            ("Bonjour Nora !", "greeting"),
+            ("Grüezi", "greeting"),
+            ("Merci beaucoup !", "thanks"),
+            ("Top merci Nora", "thanks"),
+            ("Au revoir", "goodbye"),
+            ("Bonne journée", "goodbye"),
+            ("D\u2019accord", "ok"),
+            ("test", "ok"),
+            ("Qui es-tu ?", "who"),
+            ("Tu es un robot ?", "who"),
+        ):
+            self.assertEqual(asking.small_talk(text), kind, text)
+
+    def test_a_question_that_opens_with_a_greeting_is_a_question(self):
+        for text in (
+            "Salut, est-ce que Neoffice fait la TVA ?",
+            "Bonjour, combien ça coûte ?",
+            "merci, et pour les salaires ?",
+            "Est-ce qu'on peut créer des factures ?",
+        ):
+            self.assertIsNone(asking.small_talk(text), text)
+
+
 class TestNames(TestCase):
     TEXT = (
         "Neoffice pour votre fiduciaire. La reprise de WinBiz dans Neoffice, puis WinBiz archivé. "
@@ -189,6 +216,26 @@ class TestQuestions(FrappeTestCase):
     def thread(self, visit=None):
         with as_role("Guest"):
             return api.questions(visit or self.visit)["questions"]
+
+    def test_a_greeting_gets_nora_s_word_and_nothing_is_recorded_counted_or_sent(self):
+        # 09.11: « salut » went to the presenter, by e-mail
+        before = frappe.db.count("Presentation Question", {"link": self.link.name})
+        sent, jobs = len(self.sent), len(self.jobs)
+        with as_role("Guest"):
+            result = api.ask(self.visit, "Salut !", 2)
+        self.assertTrue(result["ok"])
+        self.assertIn("Nora", result["reply"])
+        self.assertNotIn("question", result)
+        self.assertEqual(frappe.db.count("Presentation Question", {"link": self.link.name}), before)
+        self.assertEqual((len(self.sent), len(self.jobs)), (sent, jobs))
+
+    def test_a_thanks_in_the_preview_is_answered_without_the_model(self):
+        called = []
+        with patch.object(asking, "_answerer", return_value=lambda **kw: called.append(kw)), as_role("Guest"):
+            result = api.preview_ask(self.link.token, self.link.preview_token, "Merci !", 41)
+        self.assertEqual((result["ok"], result["sure"], result["small_talk"]), (True, True, "thanks"))
+        self.assertTrue(result["answer"])
+        self.assertEqual(called, [])
 
     def test_a_question_is_kept_with_its_slide_and_sent_to_be_answered(self):
         name = self.ask()

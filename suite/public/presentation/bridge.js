@@ -5,6 +5,7 @@
 // //// A video with sound starts silent, as soon as it is on screen, with a big button to turn its sound on (Jérémy,
 // //// 09.11: « il faut surtout les mettre en mute »); a video the deck marks `muted` (a loop that shows a gesture) has
 // //// no sound to offer and gets no button.
+// //// The wheel goes to the visitor's page, which turns one slide per gesture (09.11), unless what is under it scrolls.
 (function () {
 	"use strict";
 	if (window.parent === window) return;
@@ -150,6 +151,29 @@
 			if (Date.now() - lastActivity > 5000) { lastActivity = Date.now(); post({ type: "activity" }); }
 		}, { passive: true })
 	);
+
+	// The wheel turns the slides (viewer.js counts one turn per gesture), unless what is under it can scroll that way:
+	// a long table, a page that scrolls.
+	function scrolls(target, dx, dy) {
+		const across = Math.abs(dx) > Math.abs(dy);
+		const delta = across ? dx : dy;
+		for (let node = target instanceof Element ? target : null; node; node = node.parentElement) {
+			const style = getComputedStyle(node);
+			const overflow = across ? style.overflowX : style.overflowY;
+			const isRoot = node === document.scrollingElement || node === document.documentElement || node === document.body;
+			if (!isRoot && !/(auto|scroll)/.test(overflow)) continue;
+			const size = across ? node.scrollWidth - node.clientWidth : node.scrollHeight - node.clientHeight;
+			if (size <= 1) continue;
+			const at = across ? node.scrollLeft : node.scrollTop;
+			if ((delta > 0 && at < size - 1) || (delta < 0 && at > 0)) return true;
+		}
+		return false;
+	}
+	window.addEventListener("wheel", (event) => {
+		if (event.ctrlKey || scrolls(event.target, event.deltaX, event.deltaY)) return;
+		event.preventDefault();
+		post({ type: "wheel", dx: event.deltaX, dy: event.deltaY, mode: event.deltaMode });
+	}, { passive: false });
 
 	window.addEventListener("message", (event) => {
 		if (event.source !== window.parent) return;
