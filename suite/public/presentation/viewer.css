@@ -106,6 +106,7 @@ body.np {
 .np-progress i.np-now { background: var(--np-paper); }
 /* each stroke is a button that goes to its slide: a taller target than the stroke it shows (09.11) */
 .np-progress button { display: block; min-width: 0; padding: 7px 0; margin: -7px 0; border: 0; background: none; cursor: pointer; }
+.np-progress button i { display: block; } /* inline in a button, the stroke would lose its height */
 .np-progress button:hover i:not(.np-now) { background: rgba(255, 253, 248, 0.55); }
 .np-progress button:focus-visible { outline: 2px solid var(--np-signal); outline-offset: 1px; border-radius: 4px; }
 .np-controls { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
