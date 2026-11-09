@@ -93,6 +93,12 @@ class TestQuery(TestCase):
 
 
 class TestSite(FrappeTestCase):
+    def setUp(self):
+        # the words only: no test reaches the embedding service (TestMeaning gives a stand-in)
+        patcher = patch.object(sources, "_embedder", return_value=None)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
     def tearDown(self):
         path = sources.index_path(ROOT)
         if os.path.exists(path):
@@ -268,8 +274,10 @@ class TestMeaning(FrappeTestCase):
         def broken(texts, query=False):
             raise RuntimeError("down")
 
-        self.read(broken)
+        with patch.object(sources.time, "sleep") as slept:
+            self.read(broken)
         self.assertEqual(self.vectors(), 0)
+        self.assertEqual([c.args[0] for c in slept.call_args_list], list(sources.EMBED_RETRY_WAITS_S))
         calls = []
         link = frappe._dict(nora_sites=self.ROOT)
         with patch.object(sources, "_embedder", return_value=fake_embedder(calls)):
@@ -290,3 +298,18 @@ class TestMeaning(FrappeTestCase):
         self.assertTrue(found[0]["text"].startswith("… "))
         self.assertIn("cliquez sur Annuler, puis Oui. Le bouton Passer à brouillon", found[0]["text"])
         self.assertLess(len(found[0]["text"]), len(first))  # the end of the piece before, not all of it
+
+    def test_a_batch_the_model_refused_once_is_asked_again(self):
+        good, calls = fake_embedder(), []
+
+        def busy_once(texts, query=False):
+            calls.append(len(texts))
+            if len(calls) == 1:
+                raise RuntimeError("503 Service Temporarily Unavailable")
+            return good(texts, query)
+
+        with patch.object(sources.time, "sleep") as slept:
+            self.read(busy_once)
+        self.assertEqual(self.vectors(), 4)
+        self.assertEqual(calls, [4, 4])
+        slept.assert_called_once_with(sources.EMBED_RETRY_WAITS_S[0])

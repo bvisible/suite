@@ -11,6 +11,7 @@ import hashlib
 import os
 import re
 import sqlite3
+import time
 from urllib.parse import urlparse
 from xml.etree import ElementTree
 
@@ -35,6 +36,9 @@ SEMANTIC = 30
 FUSE_K = 20
 MEANING_WEIGHT = 1.5
 EMBED_BATCH = 64
+# The embedding service gives up on a request it cannot serve in time (503) while another reader holds it: a batch it
+# refused is asked again after these waits before the reading stops (the next one goes on).
+EMBED_RETRY_WAITS_S = (10, 30, 90)
 # A first reading of a manual gives its two thousand pieces to the model (about forty minutes): the job that reads a
 # link's sites is given the time; a job cut short keeps what it did, the next one goes on.
 READ_JOB_TIMEOUT_S = 2 * 3600
@@ -233,11 +237,18 @@ def embed_missing(db) -> int:
     done = 0
     for start in range(0, len(rows), EMBED_BATCH):
         batch = rows[start : start + EMBED_BATCH]
-        try:
-            vectors = embedder([f"{title}\n{body}" for _rowid, _url, title, body in batch])
-        except Exception:
-            frappe.log_error("Presentation sites: the vectors of meaning failed", frappe.get_traceback())
-            break
+        vectors = None
+        for wait in (*EMBED_RETRY_WAITS_S, None):
+            try:
+                vectors = embedder([f"{title}\n{body}" for _rowid, _url, title, body in batch])
+                break
+            except Exception:
+                if wait is None:
+                    frappe.log_error(
+                        "Presentation sites: the vectors of meaning failed", frappe.get_traceback()
+                    )
+                else:
+                    time.sleep(wait)
         if not vectors or len(vectors) != len(batch):
             break
         for (rowid, url, _title, _body), vector in zip(batch, vectors, strict=True):
