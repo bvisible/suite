@@ -57,7 +57,8 @@ class TestSlides(TestCase):
 class TestNames(TestCase):
     TEXT = (
         "Neoffice pour votre fiduciaire. La reprise de WinBiz dans Neoffice, puis WinBiz archivé. "
-        "Reprendre vos dossiers. Reprendre sans perte. Nora prépare. Au Nord du canton, le nord."
+        "Reprendre vos dossiers. Reprendre sans perte. Nora prépare. Au Nord du canton, le nord. "
+        "Écrivez à info@neoffice.ch ou voyez neoffice.ch/fr."
     )
 
     def test_a_name_is_written_with_a_capital_inside_a_sentence_and_never_in_small_letters(self):

@@ -140,7 +140,8 @@ def names_in(text: str) -> tuple[list[str], set[str]]:
     lower, capital, seen = set(), [], {}
     for match in re.finditer(r"[^\W\d_][\w'\u2019-]*", text or ""):
         word = re.split(r"['\u2019]", match.group(0))[-1].strip("-")
-        if len(word) < 3:
+        if len(word) < 3 or _in_address(text, match):
+            # a site or an address (« neoffice.ch ») does not make its name a common word
             continue
         if word.islower():
             lower.add(word)
@@ -181,9 +182,7 @@ def fix_names(text: str, names: list[str], known: set[str] | None = None) -> str
     while index < len(words):
         word = words[index]
         # an address or a site (« neoffice.ch », « jeremy@… ») is written as it is
-        if re.match(r"[./@]\w", text[word.end() : word.end() + 2]) or (
-            word.start() and text[word.start() - 1] in "@/."
-        ):
+        if _in_address(text, word):
             index += 1
             continue
         prefix, core = _elided(word.group(0))
@@ -202,6 +201,13 @@ def fix_names(text: str, names: list[str], known: set[str] | None = None) -> str
         index += span
     out.append(text[cursor:])
     return "".join(out)
+
+
+def _in_address(text: str, word) -> bool:
+    """Whether the matched `word` is a piece of a site, an address or a path (« neoffice.ch », « info@… »)."""
+    return bool(re.match(r"[./@]\w", text[word.end() : word.end() + 2])) or bool(
+        word.start() and text[word.start() - 1] in "@/."
+    )
 
 
 def _elided(word: str) -> tuple[str, str]:
