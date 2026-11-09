@@ -47,9 +47,12 @@ class PresentationLink(Document):
     def on_update(self):
         # the sites Nora reads are read again when they change (sources.py); every day after that
         if self.has_value_changed("nora_sites") and self.nora_sites:
+            from suite.drive.presentation.sources import READ_JOB_TIMEOUT_S
+
             frappe.enqueue(
                 "suite.drive.presentation.sources.refresh_link",
                 queue="long",
+                timeout=READ_JOB_TIMEOUT_S,
                 name=self.name,
                 job_id=f"presentation_sources:{self.name}",
                 deduplicate=True,

@@ -493,9 +493,12 @@ def read_sites(name: str):
     link.check_permission("write")
     if not (link.nora_sites or "").strip():
         return {"ok": False}
+    from suite.drive.presentation.sources import READ_JOB_TIMEOUT_S
+
     frappe.enqueue(
         "suite.drive.presentation.sources.refresh_link",
         queue="long",
+        timeout=READ_JOB_TIMEOUT_S,
         name=link.name,
         job_id=f"presentation_sources:{link.name}",
         deduplicate=True,

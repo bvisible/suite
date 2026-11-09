@@ -172,3 +172,121 @@ class TestSite(FrappeTestCase):
             state = sources.refresh(ROOT, "fr")
         self.assertEqual(fetched, ["https://www.example-firm.ch/sitemap.xml"])
         self.assertEqual(state["pages"], 2)
+
+
+# The meaning, as a stand-in embedder sees it: a direction per idea the words carry, so « annuler une facture » and
+# « la note de crédit » are close though they share no word.
+IDEAS = (
+    ("annul", "credit", "rembours", "corrig"),
+    ("devise", "monnaie", "euro", "etrang"),
+    ("stock", "entrepot", "inventaire"),
+)
+
+
+def fake_embedder(calls: list | None = None):
+    def embed(texts, query=False):
+        if calls is not None:
+            calls.append((len(texts), query))
+        out = []
+        for text in texts:
+            plain = sources._plain(text.lower())
+            out.append([1.0 + sum(plain.count(word) for word in idea) for idea in IDEAS])
+        return out
+
+    return embed
+
+
+class TestMeaning(FrappeTestCase):
+    ROOT = "https://manual.example-firm.ch"
+    FILLER = " Le reste de la page parle d'autre chose, pour qu'elle soit assez longue pour être lue." * 4
+
+    def setUp(self):
+        self.pages = {
+            f"{self.ROOT}/fr/avoir": (
+                "Corriger une facture : la note de crédit",
+                "Une note de crédit corrige.",
+            ),
+            f"{self.ROOT}/fr/devises": ("Les devises", "Les devises et les taux."),
+            f"{self.ROOT}/fr/stock": ("Voir le stock", "Le stock par entrepôt."),
+            f"{self.ROOT}/fr/factures": ("Créer une facture", "La facture, ses lignes."),
+        }
+
+    def tearDown(self):
+        if os.path.exists(sources.index_path(self.ROOT)):
+            os.remove(sources.index_path(self.ROOT))
+
+    def get(self, url):
+        if url.endswith("/sitemap.xml"):
+            sitemap = "<urlset>" + "".join(f"<url><loc>{u}</loc></url>" for u in self.pages) + "</urlset>"
+            return SimpleNamespace(status_code=200, content=sitemap.encode(), text=sitemap, headers={})
+        title, body = self.pages[url]
+        html = f"<html><head><title>{title}</title></head><body><main><p>{body}</p>{self.FILLER}</main></body></html>"
+        return SimpleNamespace(
+            status_code=200, content=html.encode(), text=html, headers={"Content-Type": "text/html"}
+        )
+
+    def read(self, embedder):
+        with (
+            patch.object(sources, "_get", side_effect=self.get),
+            patch.object(sources, "_embedder", return_value=embedder),
+        ):
+            sources.refresh(self.ROOT, "fr")
+
+    def vectors(self) -> int:
+        import sqlite3
+
+        with sqlite3.connect(sources.index_path(self.ROOT)) as db:
+            return db.execute("SELECT count(*) FROM vectors").fetchone()[0]
+
+    def test_a_question_finds_the_page_of_its_meaning_that_none_of_its_words_names(self):
+        self.read(fake_embedder())
+        self.assertEqual(self.vectors(), 4)
+        link = frappe._dict(nora_sites=self.ROOT)
+        with patch.object(sources, "_embedder", return_value=fake_embedder()):
+            found = sources.search(link, "Comment annuler une facture ?")
+        self.assertIn(f"{self.ROOT}/fr/avoir", [p["url"] for p in found])
+        with patch.object(sources, "_embedder", return_value=fake_embedder()):
+            first = sources.search(link, "Comment travailler avec une monnaie étrangère ?")[0]
+        self.assertEqual(first["url"], f"{self.ROOT}/fr/devises")
+
+    def test_a_page_read_again_takes_its_vectors_with_it(self):
+        self.read(fake_embedder())
+        self.pages[f"{self.ROOT}/fr/stock"] = ("Voir le stock", "Le stock par entrepôt, et l'inventaire.")
+        calls = []
+        # the sitemap dates no page: all four are read again, only the changed one goes to the model
+        self.read(fake_embedder(calls))
+        self.assertEqual(self.vectors(), 4)
+        self.assertEqual(calls, [(1, False)])
+        with patch.object(sources, "site_pages", return_value=[(u, "2026-11-10") for u in self.pages]):
+            self.read(fake_embedder())
+        self.assertEqual(self.vectors(), 4)
+        del self.pages[f"{self.ROOT}/fr/stock"]
+        self.read(fake_embedder())
+        self.assertEqual(self.vectors(), 3)
+
+    def test_without_an_embedder_or_when_it_fails_the_search_keeps_its_words(self):
+        def broken(texts, query=False):
+            raise RuntimeError("down")
+
+        self.read(broken)
+        self.assertEqual(self.vectors(), 0)
+        calls = []
+        link = frappe._dict(nora_sites=self.ROOT)
+        with patch.object(sources, "_embedder", return_value=fake_embedder(calls)):
+            found = sources.search(link, "Comment créer une facture ?")
+        self.assertEqual(found[0]["url"], f"{self.ROOT}/fr/factures")
+        self.assertEqual(calls, [])  # no vector in the index: the question is not sent to the model
+
+    def test_a_passage_begins_with_the_end_of_the_piece_before_it(self):
+        first = "Une phrase qui parle d'autre chose. " * 36 + "Dans le menu, cliquez sur Annuler, puis Oui."
+        then = (
+            "Le bouton Passer à brouillon rend la facture modifiable, pour en corriger le montant ou la taxe."
+        )
+        self.pages = {f"{self.ROOT}/fr/corriger": ("Corriger une facture", f"{first} {then}")}
+        self.read(None)
+        self.assertEqual(len(sources.chunks(f"{first} {then}")), 2)  # the steps fall in two pieces
+        found = sources.search(frappe._dict(nora_sites=self.ROOT), "Comment passer à brouillon ?")
+        self.assertEqual(len(found), 1)
+        self.assertTrue(found[0]["text"].startswith("… "))
+        self.assertIn("cliquez sur Annuler, puis Oui. Le bouton Passer à brouillon", found[0]["text"])
+        self.assertLess(len(found[0]["text"]), len(first))  # the end of the piece before, not all of it

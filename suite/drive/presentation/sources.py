@@ -26,6 +26,21 @@ PER_SITE = 3
 TOP = 6
 # The rows of each site the index gives before they are ranked by how much of the question they hold (rank_key).
 CANDIDATES = 60
+# The pieces of each site closest in meaning to the question (vectors of nora's small embedding model), beside them:
+# « travailler avec une monnaie étrangère » finds the manual's page « Multidevises », which no word of it names.
+SEMANTIC = 30
+# The two rankings (the words, the meaning) are fused by their ranks: 1 / (FUSE_K + rank) each, the meaning weighing
+# MEANING_WEIGHT times more (three benches, 64 questions written as clients write them: the right page among the
+# passages 59 times at 1.5, 57 at 1, 58 at 2).
+FUSE_K = 20
+MEANING_WEIGHT = 1.5
+EMBED_BATCH = 64
+# A first reading of a manual gives its two thousand pieces to the model (about forty minutes): the job that reads a
+# link's sites is given the time; a job cut short keeps what it did, the next one goes on.
+READ_JOB_TIMEOUT_S = 2 * 3600
+# A passage begins with the end of the piece before it on its page: steps that the cut into pieces split (« cliquez sur
+# Annuler, puis Oui » in one piece, « Passer à brouillon » in the next) reach the answer whole.
+LEAD_CHARS = 600
 LANG_PATH = re.compile(r"^/(fr|de|en|it)(/|$)")
 PRICE_PAGE = re.compile(r"tarif|prix|pricing|price|preise|prezzi|cout|cost|kosten", re.I)
 # A sentence that states an amount of money: the site's pages, a blog article, speak of prices anywhere; the bench of
@@ -138,6 +153,8 @@ def refresh(root: str, language: str = "fr") -> dict:
             CREATE VIRTUAL TABLE IF NOT EXISTS chunks USING fts5(
                 title, body, url UNINDEXED, tokenize = 'unicode61 remove_diacritics 2'
             );
+            CREATE TABLE IF NOT EXISTS vectors (id INTEGER PRIMARY KEY, url TEXT, vec BLOB);
+            CREATE INDEX IF NOT EXISTS vectors_url ON vectors (url);
             """
         )
         known = {row[0]: row[1] for row in db.execute("SELECT url, lastmod FROM pages")}
@@ -145,11 +162,23 @@ def refresh(root: str, language: str = "fr") -> dict:
         for url in set(known) - wanted:
             db.execute("DELETE FROM pages WHERE url = ?", (url,))
             db.execute("DELETE FROM chunks WHERE url = ?", (url,))
+            db.execute("DELETE FROM vectors WHERE url = ?", (url,))
         for url, lastmod in pages:
             if url in known and lastmod and known[url] == lastmod:
                 continue
             page = read_page(url)
+            # most sitemaps date few pages, so a page is read again every day: a piece whose text did not change
+            # keeps its vector, only a new piece goes to the model
+            kept = {
+                (title, body): vec
+                for title, body, vec in db.execute(
+                    "SELECT chunks.title, chunks.body, vectors.vec FROM vectors "
+                    "JOIN chunks ON chunks.rowid = vectors.id WHERE vectors.url = ?",
+                    (url,),
+                )
+            }
             db.execute("DELETE FROM chunks WHERE url = ?", (url,))
+            db.execute("DELETE FROM vectors WHERE url = ?", (url,))
             if not page:
                 db.execute("DELETE FROM pages WHERE url = ?", (url,))
                 continue
@@ -158,16 +187,66 @@ def refresh(root: str, language: str = "fr") -> dict:
                 (url, lastmod or "", page["title"], page["text"]),
             )
             for body in chunks(page["text"]):
-                db.execute(
+                cursor = db.execute(
                     "INSERT INTO chunks (title, body, url) VALUES (?, ?, ?)", (page["title"], body, url)
                 )
+                if (page["title"], body) in kept:
+                    db.execute(
+                        "INSERT OR REPLACE INTO vectors (id, url, vec) VALUES (?, ?, ?)",
+                        (cursor.lastrowid, url, kept[(page["title"], body)]),
+                    )
         db.execute(
             "INSERT OR REPLACE INTO meta (key, value) VALUES ('read_on', ?)", (str(now_datetime())[:16],)
         )
         db.commit()
+        embed_missing(db)
     finally:
         db.close()
     return state(root) or {}
+
+
+def _embedder():
+    """The function that turns texts into vectors of meaning (nora's hook `presentation_embedder`), or None."""
+    hooks = frappe.get_hooks("presentation_embedder")
+    return frappe.get_attr(hooks[-1]) if hooks else None
+
+
+def _pack(vector) -> bytes:
+    import numpy
+
+    array = numpy.asarray(vector, dtype=numpy.float32)
+    norm = float(numpy.linalg.norm(array)) or 1.0
+    return (array / norm).astype(numpy.float32).tobytes()
+
+
+def embed_missing(db) -> int:
+    """Gives each piece of the site that has none its vector of meaning; a piece gone takes its vector with it. 0 when
+    there is no embedder, when it declines (a counted plan) or does not answer: the search keeps its words."""
+    db.execute("DELETE FROM vectors WHERE id NOT IN (SELECT rowid FROM chunks)")
+    db.commit()
+    embedder = _embedder()
+    if not embedder:
+        return 0
+    rows = db.execute(
+        "SELECT rowid, url, title, body FROM chunks WHERE rowid NOT IN (SELECT id FROM vectors)"
+    ).fetchall()
+    done = 0
+    for start in range(0, len(rows), EMBED_BATCH):
+        batch = rows[start : start + EMBED_BATCH]
+        try:
+            vectors = embedder([f"{title}\n{body}" for _rowid, _url, title, body in batch])
+        except Exception:
+            frappe.log_error("Presentation sites: the vectors of meaning failed", frappe.get_traceback())
+            break
+        if not vectors or len(vectors) != len(batch):
+            break
+        for (rowid, url, _title, _body), vector in zip(batch, vectors, strict=True):
+            db.execute(
+                "INSERT OR REPLACE INTO vectors (id, url, vec) VALUES (?, ?, ?)", (rowid, url, _pack(vector))
+            )
+        db.commit()
+        done += len(batch)
+    return done
 
 
 def site_pages(root: str, language: str = "fr") -> list[tuple[str, str]]:
@@ -274,52 +353,143 @@ def _get(url: str):
 # What a question takes
 # ---------------------------------------------------------------------------------------------------------------------
 def search(link, question: str) -> list[dict]:
-    """The passages of the link's sites that speak of `question` (`W<n>`): the best few of each site, `TOP` at most,
-    each with its page's address."""
+    """The passages of the link's sites that speak of `question` (`W<n>`), each with its page's address: the pieces
+    whose words hold the question (rank_key) and the pieces closest to it in meaning, fused by their ranks; a page
+    takes one place, a site `PER_SITE`, all of them `TOP`."""
     query = fts_query(question)
     if not query:
         return []
     terms = question_terms(question)
-    found = []
-    for root in roots_of(link):
-        path = index_path(root)
-        if not os.path.exists(path):
-            continue
+    paths = [(root, index_path(root)) for root in roots_of(link)]
+    paths = [(root, path) for root, path in paths if os.path.exists(path)]
+    vector = _question_vector(question) if any(_has_vectors(path) for _root, path in paths) else None
+    candidates = []
+    for root, path in paths:
         try:
             with sqlite3.connect(path) as db:
                 rows = db.execute(
-                    "SELECT url, title, body, bm25(chunks, 4.0, 1.0) AS score FROM chunks WHERE chunks MATCH ? "
-                    "ORDER BY score LIMIT ?",
+                    "SELECT rowid, url, title, body, bm25(chunks, 4.0, 1.0) AS score FROM chunks "
+                    "WHERE chunks MATCH ? ORDER BY score LIMIT ?",
                     (query, CANDIDATES),
                 ).fetchall()
                 weights = term_weights(db, terms)
+                closeness = _closeness(db, vector)
+                close = sorted(closeness, key=closeness.get, reverse=True)[:SEMANTIC]
+                have = {row[0] for row in rows}
+                extra = [rowid for rowid in close if rowid not in have]
+                if extra:
+                    marks = ",".join("?" * len(extra))
+                    rows += db.execute(
+                        f"SELECT rowid, url, title, body, 0.0 FROM chunks WHERE rowid IN ({marks})", extra
+                    ).fetchall()
         except sqlite3.Error:
             continue
-        seen: set[str] = set()
-        ranked = sorted(rows, key=lambda row: rank_key(terms, weights, row[1], row[2], row[3]))
-        for url, title, body, score in ranked:
-            body = without_prices(body)
-            # one place per page: two pieces of the same page would keep another page out
-            if url in seen or len(seen) >= PER_SITE or len(body) < MIN_PAGE_CHARS / 2:
-                continue
-            seen.add(url)
-            found.append((rank_key(terms, weights, title, body, score), root, url, title, body))
-    found.sort(key=lambda row: row[0])
-    out = []
-    for number, (_score, root, url, title, body) in enumerate(found[:TOP], start=1):
-        site = urlparse(root).netloc.removeprefix("www.")
+        for rowid, url, title, body, score in rows:
+            candidates.append(
+                {
+                    "root": root,
+                    "path": path,
+                    "rowid": rowid,
+                    "url": url,
+                    "title": title,
+                    "body": body,
+                    "key": rank_key(terms, weights, title, body, score),
+                    "close": closeness.get(rowid),
+                }
+            )
+    by_words = sorted(range(len(candidates)), key=lambda i: candidates[i]["key"])
+    by_meaning = sorted(
+        (i for i, c in enumerate(candidates) if c["close"] is not None), key=lambda i: -candidates[i]["close"]
+    )
+    fused = {i: 1 / (FUSE_K + rank) for rank, i in enumerate(by_words)}
+    for rank, i in enumerate(by_meaning):
+        fused[i] += MEANING_WEIGHT / (FUSE_K + rank)
+    out, seen, per_site = [], set(), {}
+    for i in sorted(fused, key=fused.get, reverse=True):
+        c = candidates[i]
+        body = without_prices(c["body"])
+        if c["url"] in seen or per_site.get(c["root"], 0) >= PER_SITE or len(body) < MIN_PAGE_CHARS / 2:
+            continue
+        seen.add(c["url"])
+        per_site[c["root"]] = per_site.get(c["root"], 0) + 1
+        lead = _lead(c["path"], c["url"], c["rowid"])
+        site = urlparse(c["root"]).netloc.removeprefix("www.")
         out.append(
             {
-                "id": f"W{number}",
+                "id": f"W{len(out) + 1}",
                 "kind": "site",
-                "url": url,
+                "url": c["url"],
                 "site": site,
-                "page": title,
-                "title": f"page of the website {site}: {title}",
-                "text": body,
+                "page": c["title"],
+                "title": f"page of the website {site}: {c['title']}",
+                "text": f"… {without_prices(lead)} {body}" if lead else body,
             }
         )
+        if len(out) >= TOP:
+            break
     return out
+
+
+def _lead(path: str, url: str, rowid: int) -> str:
+    """The end of the piece before `rowid` on its page, from a sentence (`LEAD_CHARS` at most), or ""."""
+    try:
+        with sqlite3.connect(path) as db:
+            row = db.execute(
+                "SELECT body FROM chunks WHERE url = ? AND rowid < ? ORDER BY rowid DESC LIMIT 1",
+                (url, rowid),
+            ).fetchone()
+    except sqlite3.Error:
+        return ""
+    if not row:
+        return ""
+    tail = row[0][-LEAD_CHARS:]
+    if len(row[0]) > LEAD_CHARS:
+        cut = re.search(r"(?<=[.!?:;])\s+", tail)
+        tail = tail[cut.end() :] if cut else ""
+    return tail.strip()
+
+
+def _has_vectors(path: str) -> bool:
+    try:
+        with sqlite3.connect(path) as db:
+            return bool(db.execute("SELECT 1 FROM vectors LIMIT 1").fetchone())
+    except sqlite3.Error:
+        return False
+
+
+def _question_vector(question: str):
+    """The question's vector of meaning, or None (no embedder, or no answer in time: the search keeps its words)."""
+    import numpy
+
+    embedder = _embedder()
+    if not embedder:
+        return None
+    try:
+        vectors = embedder([question], query=True)
+    except Exception:
+        frappe.log_error("Presentation sites: the question's vector failed", frappe.get_traceback())
+        return None
+    if not vectors:
+        return None
+    return numpy.frombuffer(_pack(vectors[0]), dtype=numpy.float32)
+
+
+def _closeness(db, vector) -> dict[int, float]:
+    """The cosine of each piece of a site with the question's vector (both are kept normalized)."""
+    import numpy
+
+    if vector is None:
+        return {}
+    try:
+        rows = db.execute("SELECT id, vec FROM vectors").fetchall()
+    except sqlite3.Error:
+        return {}
+    rows = [row for row in rows if len(row[1]) == vector.nbytes]
+    if not rows:
+        return {}
+    matrix = numpy.frombuffer(b"".join(row[1] for row in rows), dtype=numpy.float32).reshape(len(rows), -1)
+    scores = matrix @ vector
+    return {rows[i][0]: float(scores[i]) for i in range(len(rows))}
 
 
 def without_prices(text: str) -> str:
