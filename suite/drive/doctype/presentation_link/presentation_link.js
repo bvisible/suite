@@ -118,8 +118,9 @@ function link_head(frm) {
 	if (!h.waiting && h.questions) {
 		lines.push({ text: h.questions === 1 ? __("1 question, answered") : __("{0} questions, all answered", [h.questions]), run: () => open_tab(frm, "questions_tab") });
 	}
+	// a link never sent says it by its status (« Draft ») already
 	const sent = h.sent_to || [];
-	lines.push(sent.length ? { icon: "send", text: __("Sent to {0}", [sent.join(", ")]), title: sent.join("\n") } : { icon: "send", text: __("Not sent from here yet") });
+	if (sent.length) lines.push({ icon: "send", text: __("Sent to {0}", [sent.join(", ")]), title: sent.join("\n") });
 	const label = h.waiting ? (h.waiting === 1 ? __("A question waits for you") : __("{0} questions wait for you", [h.waiting])) : "";
 	return { label, lines };
 }
@@ -197,7 +198,7 @@ function render_stats(frm, data) {
 	wrapper.html(`
 		<div class="np-desk">
 			${viewers.length ? `<div class="np-row">${chart_card(data, viewers)}${log_card(data)}</div>` : ""}
-			${viewers.length || (data.invited || []).length ? people_table(data, viewers, count) : `<div class="np-card"><div class="np-empty">${esc(__("Nobody has entered yet."))}</div></div>`}
+			${viewers.length || (data.invited || []).length ? people_table(data, viewers, count) : `<div class="np-card"><div class="np-empty">${esc(__("When someone enters, the time spent on each slide and what each person saw appear here."))}</div></div>`}
 		</div>`);
 	bind_chart(wrapper, data);
 }

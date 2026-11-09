@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Frappe Suite VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-11-09 09:37+0000\n"
-"PO-Revision-Date: 2026-11-09 09:37+0000\n"
+"POT-Creation-Date: 2026-11-09 09:56+0000\n"
+"PO-Revision-Date: 2026-11-09 09:56+0000\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -367,7 +367,7 @@ msgstr ""
 msgid "A Forwarded Address Outside the List Can Enter"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:133
+#: suite/drive/doctype/presentation_link/presentation_link.js:134
 msgid "A Note"
 msgstr ""
 
@@ -528,11 +528,11 @@ msgstr ""
 msgid "A patch encoding the change between the data in the event property, and the data after the update."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:387
+#: suite/drive/doctype/presentation_link/presentation_link.js:388
 msgid "A price or a commitment: Nora leaves it to you."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:552
+#: suite/drive/doctype/presentation_link/presentation_link.js:553
 msgid "A question"
 msgstr ""
 
@@ -546,7 +546,7 @@ msgstr ""
 msgid "A question of {0} to {1} characters, please."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:123
+#: suite/drive/doctype/presentation_link/presentation_link.js:124
 msgid "A question waits for you"
 msgstr ""
 
@@ -2388,7 +2388,7 @@ msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Presentation Question'
 #. Label of a Check field in DocType 'Mail Message'
-#: suite/drive/doctype/presentation_link/presentation_link.js:437
+#: suite/drive/doctype/presentation_link/presentation_link.js:438
 #: suite/drive/doctype/presentation_question/presentation_question.json:83
 #: suite/mail/doctype/mail_message/mail_message.json:297
 msgid "Answered"
@@ -2405,13 +2405,13 @@ msgid "Answered On"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Presentation Question'
-#: suite/drive/doctype/presentation_link/presentation_link.js:426
-#: suite/drive/doctype/presentation_link/presentation_link.js:446
+#: suite/drive/doctype/presentation_link/presentation_link.js:427
+#: suite/drive/doctype/presentation_link/presentation_link.js:447
 #: suite/drive/doctype/presentation_question/presentation_question.json:83
 msgid "Answered by Nora"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:447
+#: suite/drive/doctype/presentation_link/presentation_link.js:448
 msgid "Answered by the Team"
 msgstr ""
 
@@ -2808,7 +2808,7 @@ msgid "Ascending"
 msgstr ""
 
 #: frontend/src/neoffice/i18nRegistry.ts:141
-#: suite/drive/doctype/presentation_link/presentation_link.js:553
+#: suite/drive/doctype/presentation_link/presentation_link.js:554
 msgid "Ask"
 msgstr ""
 
@@ -2843,7 +2843,7 @@ msgstr ""
 msgid "Ask the participants"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:550
+#: suite/drive/doctype/presentation_link/presentation_link.js:551
 msgid "Ask the question a client would ask: Nora answers as she would answer them, from these sources."
 msgstr ""
 
@@ -2863,7 +2863,7 @@ msgid "Ask your audience something..."
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Presentation Question'
-#: suite/drive/doctype/presentation_link/presentation_link.js:427
+#: suite/drive/doctype/presentation_link/presentation_link.js:428
 #: suite/drive/doctype/presentation_question/presentation_question.json:83
 msgid "Asked"
 msgstr ""
@@ -4271,7 +4271,7 @@ msgstr ""
 msgid "Certificate not trusted"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:545
+#: suite/drive/doctype/presentation_link/presentation_link.js:546
 msgid "Change"
 msgstr ""
 
@@ -4868,7 +4868,7 @@ msgstr ""
 msgid "Computer"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:173
+#: suite/drive/doctype/presentation_link/presentation_link.js:174
 msgctxt "device"
 msgid "Computer"
 msgstr ""
@@ -5378,11 +5378,11 @@ msgstr ""
 msgid "Corner Radius"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:482
+#: suite/drive/doctype/presentation_link/presentation_link.js:483
 msgid "Correct Nora's Answer"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:426
+#: suite/drive/doctype/presentation_link/presentation_link.js:427
 msgid "Correct the answer"
 msgstr ""
 
@@ -7221,7 +7221,7 @@ msgstr ""
 #. Label of a Int field in DocType 'Presentation Viewer'
 #: frontend/src/apps/meet/components/settings/DeviceSettingsTab.vue:4
 #: frontend/src/neoffice/i18nRegistry.ts:360
-#: suite/drive/doctype/presentation_link/presentation_link.js:373
+#: suite/drive/doctype/presentation_link/presentation_link.js:374
 #: suite/drive/doctype/presentation_viewer/presentation_viewer.json:114
 #: suite/public/frontend/assets/Meeting-BeGFmKzH.js:209
 msgid "Devices"
@@ -7446,7 +7446,7 @@ msgstr ""
 msgid "Distribute columns"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:552
+#: suite/drive/doctype/presentation_link/presentation_link.js:553
 msgid "Do our data stay in Switzerland?"
 msgstr ""
 
@@ -7919,7 +7919,7 @@ msgstr ""
 msgid "Duration is required for non-draft events."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:131
+#: suite/drive/doctype/presentation_link/presentation_link.js:132
 msgid "E-mail Address"
 msgstr ""
 
@@ -9000,7 +9000,7 @@ msgstr ""
 msgid "Every event on this calendar will be deleted too. This can't be undone."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:543
+#: suite/drive/doctype/presentation_link/presentation_link.js:544
 msgid "Every question is forwarded to you."
 msgstr ""
 
@@ -9051,7 +9051,7 @@ msgstr ""
 msgid "Everyone in this meeting should see the same fingerprint"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:231
+#: suite/drive/doctype/presentation_link/presentation_link.js:232
 msgid "Everyone together · only the time the page was really looked at counts"
 msgstr ""
 
@@ -10226,7 +10226,7 @@ msgstr ""
 #: frontend/src/apps/mail/pages/InviteSetupView.vue:14
 #: frontend/src/apps/mail/pages/SignupView.vue:72
 #: frontend/src/neoffice/i18nRegistry.ts:489
-#: suite/drive/doctype/presentation_link/presentation_link.js:132
+#: suite/drive/doctype/presentation_link/presentation_link.js:133
 #: suite/drive/doctype/presentation_question/presentation_question.json:72
 #: suite/drive/doctype/presentation_viewer/presentation_viewer.json:48
 #: suite/mail/doctype/mail_account_request/mail_account_request.js:52
@@ -10534,7 +10534,7 @@ msgstr ""
 
 #. Option for the 'Entered Via' (Select) field in DocType 'Presentation Viewer'
 #. Label of a Check field in DocType 'Mail Message'
-#: suite/drive/doctype/presentation_link/presentation_link.js:343
+#: suite/drive/doctype/presentation_link/presentation_link.js:344
 #: suite/drive/doctype/presentation_viewer/presentation_viewer.json:55
 #: suite/mail/doctype/mail_message/mail_message.json:305
 msgid "Forwarded"
@@ -10550,7 +10550,7 @@ msgstr ""
 msgid "Forwarded From (Email ID)"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:346
+#: suite/drive/doctype/presentation_link/presentation_link.js:347
 #, python-brace-format
 msgid "Forwarded by {0}"
 msgstr ""
@@ -11499,7 +11499,7 @@ msgstr ""
 msgid "Hours"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:373
+#: suite/drive/doctype/presentation_link/presentation_link.js:374
 msgid "How They Entered"
 msgstr ""
 
@@ -13135,7 +13135,7 @@ msgstr ""
 msgid "Last Verified"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:375
+#: suite/drive/doctype/presentation_link/presentation_link.js:376
 msgid "Last Visit"
 msgstr ""
 
@@ -15644,7 +15644,7 @@ msgstr ""
 msgid "Never"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:539
+#: suite/drive/doctype/presentation_link/presentation_link.js:540
 msgid "Never, for a person outside:"
 msgstr ""
 
@@ -16495,7 +16495,7 @@ msgstr ""
 msgid "No push subscriptions."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:544
+#: suite/drive/doctype/presentation_link/presentation_link.js:545
 msgid "No questions on this link."
 msgstr ""
 
@@ -16622,12 +16622,11 @@ msgstr ""
 msgid "No {0} found for namespace {1}."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:402
+#: suite/drive/doctype/presentation_link/presentation_link.js:403
 msgid "Nobody has asked a question yet. People ask from the presentation, on the slide on screen."
 msgstr ""
 
 #: suite/drive/doctype/presentation_link/presentation_link.js:116
-#: suite/drive/doctype/presentation_link/presentation_link.js:200
 msgid "Nobody has entered yet."
 msgstr ""
 
@@ -16701,11 +16700,11 @@ msgstr ""
 msgid "Nora answers from this presentation. Otherwise, she passes it on to {0}."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:542
+#: suite/drive/doctype/presentation_link/presentation_link.js:543
 msgid "Nora answers, else she forwards to you."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:390
+#: suite/drive/doctype/presentation_link/presentation_link.js:391
 msgid "Nora did not find a sure answer in the presentation."
 msgstr ""
 
@@ -16717,27 +16716,27 @@ msgstr ""
 msgid "Nora does not answer a price or a commitment: that is for you."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:521
+#: suite/drive/doctype/presentation_link/presentation_link.js:522
 msgid "Nora is not on this site: every question goes to the person who answers."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:385
+#: suite/drive/doctype/presentation_link/presentation_link.js:386
 #: suite/drive/presentation/questions.py:381
 msgid "Nora is not on this site: the question comes to you."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:417
-#: suite/drive/doctype/presentation_link/presentation_link.js:487
+#: suite/drive/doctype/presentation_link/presentation_link.js:418
+#: suite/drive/doctype/presentation_link/presentation_link.js:488
 msgid "Nora keeps this answer for the next people of this link"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:424
-#: suite/drive/doctype/presentation_link/presentation_link.js:580
+#: suite/drive/doctype/presentation_link/presentation_link.js:425
+#: suite/drive/doctype/presentation_link/presentation_link.js:581
 #: suite/drive/presentation/renderer.py:207
 msgid "Nora reads the presentation…"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:590
+#: suite/drive/doctype/presentation_link/presentation_link.js:591
 #, python-brace-format
 msgid "Nora would forward this question to {0}."
 msgstr ""
@@ -16752,7 +16751,7 @@ msgstr ""
 msgid "Nora's Seconds"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:389
+#: suite/drive/doctype/presentation_link/presentation_link.js:390
 msgid "Nora's answer did not hold by the slides it cited: she left it to you."
 msgstr ""
 
@@ -16780,7 +16779,7 @@ msgstr ""
 msgid "Not Keyword"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:366
+#: suite/drive/doctype/presentation_link/presentation_link.js:367
 msgid "Not Opened Yet"
 msgstr ""
 
@@ -16848,12 +16847,8 @@ msgstr ""
 msgid "Not permitted to view accounts for user {0}."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:527
+#: suite/drive/doctype/presentation_link/presentation_link.js:528
 msgid "Not read"
-msgstr ""
-
-#: suite/drive/doctype/presentation_link/presentation_link.js:122
-msgid "Not sent from here yet"
 msgstr ""
 
 #: frontend/src/apps/mail/composables/useAccountOptions.ts:28
@@ -16914,7 +16909,7 @@ msgstr ""
 msgid "Nothing here"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:556
+#: suite/drive/doctype/presentation_link/presentation_link.js:557
 msgid "Nothing is recorded or sent: it is a trial."
 msgstr ""
 
@@ -17694,7 +17689,7 @@ msgstr ""
 msgid "Outside borders"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:388
+#: suite/drive/doctype/presentation_link/presentation_link.js:389
 msgid "Outside the presentation: Nora leaves it to you."
 msgstr ""
 
@@ -18142,7 +18137,7 @@ msgstr ""
 
 #. Label of a Link field in DocType 'Presentation Question'
 #. Label of a Link field in DocType 'Presentation Visit'
-#: suite/drive/doctype/presentation_link/presentation_link.js:373
+#: suite/drive/doctype/presentation_link/presentation_link.js:374
 #: suite/drive/doctype/presentation_question/presentation_question.json:49
 #: suite/drive/doctype/presentation_visit/presentation_visit.json:39
 msgid "Person"
@@ -18164,7 +18159,7 @@ msgstr ""
 msgid "Phone"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:174
+#: suite/drive/doctype/presentation_link/presentation_link.js:175
 msgctxt "device"
 msgid "Phone"
 msgstr ""
@@ -19032,8 +19027,8 @@ msgstr ""
 msgid "Questions Waiting"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:386
-#: suite/drive/doctype/presentation_link/presentation_link.js:402
+#: suite/drive/doctype/presentation_link/presentation_link.js:387
+#: suite/drive/doctype/presentation_link/presentation_link.js:403
 msgid "Questions are closed on this link."
 msgstr ""
 
@@ -19257,7 +19252,7 @@ msgstr ""
 #: frontend/src/neoffice/i18nRegistry.ts:914
 #: suite/drive/doctype/drive_notification/drive_notification.json:36
 #: suite/drive/doctype/drive_permission/drive_permission.json:36
-#: suite/drive/doctype/presentation_link/presentation_link.js:527
+#: suite/drive/doctype/presentation_link/presentation_link.js:528
 #: suite/public/frontend/assets/MailboxView-BoFCiJ_J.js:1
 #: suite/public/frontend/assets/constants-CY7xvlZb.js:1
 #: suite/public/frontend/assets/index-BHrHGhFg.js:10623
@@ -21182,7 +21177,7 @@ msgstr ""
 #: frontend/src/apps/mail/components/Settings/VacationResponseSettings.vue:5
 #: frontend/src/neoffice/i18nRegistry.ts:989
 #: frontend/src/test/neoffice-i18n.test.ts:39
-#: suite/drive/doctype/presentation_link/presentation_link.js:489
+#: suite/drive/doctype/presentation_link/presentation_link.js:490
 #: suite/public/frontend/assets/AccountView-Bm6SAJkz.js:1
 #: suite/public/frontend/assets/AccountsView-CL6ZDJWk.js:2
 #: suite/public/frontend/assets/AddressBookView-C9FiRjhm.js:1
@@ -21268,7 +21263,7 @@ msgstr ""
 msgid "Saved in this browser. Opens and presents without internet."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:475
+#: suite/drive/doctype/presentation_link/presentation_link.js:476
 msgid "Saved."
 msgstr ""
 
@@ -21286,7 +21281,7 @@ msgstr ""
 msgid "Saving…"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:349
+#: suite/drive/doctype/presentation_link/presentation_link.js:350
 msgid "Saw Everything"
 msgstr ""
 
@@ -21757,7 +21752,7 @@ msgstr ""
 msgid "See the presentation again"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:536
+#: suite/drive/doctype/presentation_link/presentation_link.js:537
 msgid "See them"
 msgstr ""
 
@@ -22024,7 +22019,7 @@ msgstr ""
 #: frontend/src/apps/mail/pages/OutboxView.vue:494
 #: frontend/src/apps/mail/pages/SubmissionDetailsView.vue:368
 #: frontend/src/apps/mail/pages/SubmissionDetailsView.vue:379
-#: suite/drive/doctype/presentation_link/presentation_link.js:135
+#: suite/drive/doctype/presentation_link/presentation_link.js:136
 #: suite/drive/presentation/renderer.py:190
 #: suite/public/frontend/assets/ComposeView-BZUducsu.js:1
 #: suite/public/frontend/assets/OutboxView-BmrKlPMn.js:1
@@ -22169,7 +22164,7 @@ msgstr ""
 msgid "Send invites"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:486
+#: suite/drive/doctype/presentation_link/presentation_link.js:487
 #, python-brace-format
 msgid "Send it to {0} by e-mail"
 msgstr ""
@@ -22195,7 +22190,7 @@ msgid "Send scheduled."
 msgstr ""
 
 #: suite/drive/doctype/presentation_link/presentation_link.js:35
-#: suite/drive/doctype/presentation_link/presentation_link.js:129
+#: suite/drive/doctype/presentation_link/presentation_link.js:130
 msgid "Send the Link"
 msgstr ""
 
@@ -22219,7 +22214,7 @@ msgstr ""
 msgid "Send to back"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:418
+#: suite/drive/doctype/presentation_link/presentation_link.js:419
 #, python-brace-format
 msgid "Send to {0}"
 msgstr ""
@@ -22356,7 +22351,7 @@ msgstr ""
 msgid "Sent to the Person"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:122
+#: suite/drive/doctype/presentation_link/presentation_link.js:123
 #, python-brace-format
 msgid "Sent to {0}"
 msgstr ""
@@ -22698,7 +22693,7 @@ msgstr ""
 msgid "Sharing updated."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:520
+#: suite/drive/doctype/presentation_link/presentation_link.js:521
 msgid "She answers the people who watch the presentation from these sources, and nothing else. What she says always cites where she has it from."
 msgstr ""
 
@@ -23217,18 +23212,18 @@ msgstr ""
 msgid "Slide in"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:302
+#: suite/drive/doctype/presentation_link/presentation_link.js:303
 #: suite/drive/presentation/questions.py:442
 #, python-brace-format
 msgid "Slide {0}"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:284
+#: suite/drive/doctype/presentation_link/presentation_link.js:285
 #, python-brace-format
 msgid "Slide {0} holds them the longest: {1}."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:283
+#: suite/drive/doctype/presentation_link/presentation_link.js:284
 #, python-brace-format
 msgid "Slide {0}, « {1} », holds them the longest: {2}."
 msgstr ""
@@ -23238,7 +23233,7 @@ msgstr ""
 msgid "Slide {0}: Advance After must be between 1 and 3600 seconds, not {1}"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:223
+#: suite/drive/doctype/presentation_link/presentation_link.js:224
 #, python-brace-format
 msgid "Slide {0}: {1}"
 msgstr ""
@@ -23247,7 +23242,7 @@ msgstr ""
 #. Label of a Table field in DocType 'Presentation'
 #. Label of a Section Break field in DocType 'Presentation'
 #: frontend/src/neoffice/i18nRegistry.ts:1084
-#: suite/drive/doctype/presentation_link/presentation_link.js:374
+#: suite/drive/doctype/presentation_link/presentation_link.js:375
 #: suite/drive/doctype/presentation_visit/presentation_visit.json:100
 #: suite/slides/doctype/presentation/presentation.json:23
 msgid "Slides"
@@ -23935,7 +23930,7 @@ msgstr ""
 msgid "Stopping"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:349
+#: suite/drive/doctype/presentation_link/presentation_link.js:350
 #, python-brace-format
 msgid "Stops at Slide {0}"
 msgstr ""
@@ -24653,7 +24648,7 @@ msgstr ""
 msgid "Tablet"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:175
+#: suite/drive/doctype/presentation_link/presentation_link.js:176
 msgctxt "device"
 msgid "Tablet"
 msgstr ""
@@ -24972,7 +24967,7 @@ msgstr ""
 msgid "The Reply-To value the client should set when creating a new Email from this Identity."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:485
+#: suite/drive/doctype/presentation_link/presentation_link.js:486
 msgid "The Right Answer"
 msgstr ""
 
@@ -25370,20 +25365,20 @@ msgstr ""
 msgid "The length of the event expressed as a duration (e.g., PT30M, P1D)."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:343
+#: suite/drive/doctype/presentation_link/presentation_link.js:344
 msgid "The link copied"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:141
+#: suite/drive/doctype/presentation_link/presentation_link.js:142
 msgid "The link is on its way."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:384
+#: suite/drive/doctype/presentation_link/presentation_link.js:385
 #: suite/drive/presentation/questions.py:379
 msgid "The link sends every question to you."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:343
+#: suite/drive/doctype/presentation_link/presentation_link.js:344
 msgid "The link sent"
 msgstr ""
 
@@ -25576,7 +25571,7 @@ msgstr ""
 msgid "The parent must be a folder"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:277
+#: suite/drive/doctype/presentation_link/presentation_link.js:278
 #, python-brace-format
 msgid "The part « {0} » holds them the most: {1} on {2} slides."
 msgstr ""
@@ -25616,7 +25611,7 @@ msgstr ""
 msgid "The plaintext body to send in response to messages when the vacation response is enabled."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:524
+#: suite/drive/doctype/presentation_link/presentation_link.js:525
 msgid "The presentation"
 msgstr ""
 
@@ -25680,7 +25675,7 @@ msgstr ""
 msgid "The property's local name within the namespace."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:545
+#: suite/drive/doctype/presentation_link/presentation_link.js:546
 #, python-brace-format
 msgid "The questions go to {0}."
 msgstr ""
@@ -25820,7 +25815,7 @@ msgstr ""
 msgid "The soft limit set by this quota object."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:526
+#: suite/drive/doctype/presentation_link/presentation_link.js:527
 msgid "The speaker notes"
 msgstr ""
 
@@ -25843,7 +25838,7 @@ msgstr ""
 msgid "The subject that will be used by the message sent in response to messages when the vacation response is enabled."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:524
+#: suite/drive/doctype/presentation_link/presentation_link.js:525
 msgid "The text of each slide, and its images' descriptions. Always."
 msgstr ""
 
@@ -25852,7 +25847,7 @@ msgstr ""
 msgid "The time offset relative to the event start or end."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:230
+#: suite/drive/doctype/presentation_link/presentation_link.js:231
 msgid "The time spent on each slide"
 msgstr ""
 
@@ -26129,7 +26124,7 @@ msgstr ""
 msgid "They Can Forward It to a Colleague"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:528
+#: suite/drive/doctype/presentation_link/presentation_link.js:529
 msgid "They often say what is not said to the client: your choice."
 msgstr ""
 
@@ -26697,7 +26692,7 @@ msgstr ""
 
 #: frontend/src/apps/calendar/components/mobile/MobileEventForm.vue:345
 #: frontend/src/neoffice/i18nRegistry.ts:1174
-#: suite/drive/doctype/presentation_link/presentation_link.js:374
+#: suite/drive/doctype/presentation_link/presentation_link.js:375
 #: suite/public/frontend/assets/SheetEditor-sO9zE8et.js:29
 msgid "Time"
 msgstr ""
@@ -26855,7 +26850,7 @@ msgstr ""
 #: frontend/src/apps/mail/utils/index.ts:183
 #: frontend/src/neoffice/i18nRegistry.ts:1184
 #: frontend/src/test/neoffice-calendar-i18n.test.ts:82
-#: suite/drive/doctype/presentation_link/presentation_link.js:182
+#: suite/drive/doctype/presentation_link/presentation_link.js:183
 #: suite/public/frontend/assets/CalendarView-vYaoq2k1.js:1
 #: suite/public/frontend/assets/Documents-CctvnNYC.js:1
 #: suite/public/frontend/assets/SheetEditor-sO9zE8et.js:29
@@ -27180,7 +27175,7 @@ msgstr ""
 msgid "Try another search, domain or period."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:549
+#: suite/drive/doctype/presentation_link/presentation_link.js:550
 msgid "Try as a Visitor"
 msgstr ""
 
@@ -28407,7 +28402,7 @@ msgid "Vertical"
 msgstr ""
 
 #: frontend/src/neoffice/i18nRegistry.ts:1264
-#: suite/drive/doctype/presentation_link/presentation_link.js:374
+#: suite/drive/doctype/presentation_link/presentation_link.js:375
 #: suite/public/frontend/assets/Meeting-BeGFmKzH.js:209
 #: suite/public/frontend/assets/editor-Ckxnl2Xw.js:14
 #: suite/public/frontend/assets/text-editor-D2TpjoJ5.js:206
@@ -28587,7 +28582,7 @@ msgstr ""
 msgid "Waiting Room"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:409
+#: suite/drive/doctype/presentation_link/presentation_link.js:410
 msgid "Waiting for You"
 msgstr ""
 
@@ -28740,7 +28735,7 @@ msgstr ""
 msgid "What calendar's events be used as part of availability calculation?"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:337
+#: suite/drive/doctype/presentation_link/presentation_link.js:338
 msgid "What happened"
 msgstr ""
 
@@ -28760,7 +28755,7 @@ msgstr ""
 msgid "What to do with the sender when a message is marked as Junk. \"Junk Sender's Mail\" files their future mail into Junk; \"Ask to Block Sender\" prompts to block them outright."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:534
+#: suite/drive/doctype/presentation_link/presentation_link.js:535
 msgid "What you answered on this link and kept for the next people. Never lent to another link."
 msgstr ""
 
@@ -28776,7 +28771,7 @@ msgid "When Marking as Junk"
 msgstr ""
 
 #. Label of a Select field in DocType 'Presentation Link'
-#: suite/drive/doctype/presentation_link/presentation_link.js:541
+#: suite/drive/doctype/presentation_link/presentation_link.js:542
 #: suite/drive/doctype/presentation_link/presentation_link.json:87
 msgid "When Someone Asks a Question"
 msgstr ""
@@ -28802,6 +28797,10 @@ msgstr ""
 #. Account'
 #: suite/mail/doctype/jmap_account/jmap_account.json:111
 msgid "When enabled, remote images in mail from senders you haven't accepted are not loaded (this prevents senders from tracking when you open their mail). You can load them per message."
+msgstr ""
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:201
+msgid "When someone enters, the time spent on each slide and what each person saw appear here."
 msgstr ""
 
 #. Description of the 'Session Last Update' (Datetime) field in DocType 'User
@@ -28845,7 +28844,7 @@ msgstr ""
 msgid "When this request stops being valid and can no longer create an account. Defaults to one day after creation."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:375
+#: suite/drive/doctype/presentation_link/presentation_link.js:376
 msgid "Where They Are"
 msgstr ""
 
@@ -28978,7 +28977,7 @@ msgstr ""
 msgid "Without Attachments"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:543
+#: suite/drive/doctype/presentation_link/presentation_link.js:544
 msgid "Without Nora: the person knows you will answer by e-mail."
 msgstr ""
 
@@ -29096,7 +29095,7 @@ msgstr ""
 msgid "Write permission denied"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:458
+#: suite/drive/doctype/presentation_link/presentation_link.js:459
 #: suite/drive/presentation/questions.py:568
 msgid "Write the answer first."
 msgstr ""
@@ -29213,7 +29212,7 @@ msgstr ""
 #: frontend/src/apps/mail/components/MailDate.vue:34
 #: frontend/src/apps/mail/utils/index.ts:184
 #: frontend/src/neoffice/i18nRegistry.ts:1291
-#: suite/drive/doctype/presentation_link/presentation_link.js:183
+#: suite/drive/doctype/presentation_link/presentation_link.js:184
 #: suite/public/frontend/assets/Documents-CctvnNYC.js:1
 #: suite/public/frontend/assets/MailThread-CMvoDnDQ.js:15
 #: suite/public/frontend/assets/SheetEditor-sO9zE8et.js:29
@@ -29507,7 +29506,7 @@ msgstr ""
 msgid "You have view access. Ask the owner for edit access to make changes."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:542
+#: suite/drive/doctype/presentation_link/presentation_link.js:543
 msgid "You receive the question by e-mail; your answer leaves by e-mail."
 msgstr ""
 
@@ -29576,7 +29575,7 @@ msgstr ""
 msgid "You're out of storage!"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:413
+#: suite/drive/doctype/presentation_link/presentation_link.js:414
 msgid "Your Answer"
 msgstr ""
 
@@ -29585,7 +29584,7 @@ msgstr ""
 msgid "Your account uses two-factor authentication, which WebDAV clients cannot perform with a password — sign in with an API key and secret instead."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:475
+#: suite/drive/doctype/presentation_link/presentation_link.js:476
 msgid "Your answer is on its way."
 msgstr ""
 
@@ -29594,7 +29593,7 @@ msgstr ""
 msgid "Your answer leaves by e-mail to {0}."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:532
+#: suite/drive/doctype/presentation_link/presentation_link.js:533
 msgid "Your answers"
 msgstr ""
 
@@ -29775,11 +29774,11 @@ msgstr ""
 msgid "[Unencrypted message blocked]"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:171
+#: suite/drive/doctype/presentation_link/presentation_link.js:172
 msgid "a computer"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:171
+#: suite/drive/doctype/presentation_link/presentation_link.js:172
 msgid "a phone"
 msgstr ""
 
@@ -29793,7 +29792,7 @@ msgstr ""
 msgid "a sender once and their emails reach your Inbox from then on;"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:171
+#: suite/drive/doctype/presentation_link/presentation_link.js:172
 msgid "a tablet"
 msgstr ""
 
@@ -30200,7 +30199,7 @@ msgstr ""
 msgid "just now"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:439
+#: suite/drive/doctype/presentation_link/presentation_link.js:440
 msgid "kept for the next people"
 msgstr ""
 
@@ -30369,12 +30368,12 @@ msgstr ""
 msgid "on"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:394
+#: suite/drive/doctype/presentation_link/presentation_link.js:395
 #, python-brace-format
 msgid "on slide {0}"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:394
+#: suite/drive/doctype/presentation_link/presentation_link.js:395
 #, python-brace-format
 msgid "on slide {0}, « {1} »"
 msgstr ""
@@ -30527,7 +30526,7 @@ msgstr ""
 msgid "sent"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:413
+#: suite/drive/doctype/presentation_link/presentation_link.js:414
 #, python-brace-format
 msgid "sent to {0} by e-mail"
 msgstr ""
@@ -30781,7 +30780,7 @@ msgstr ""
 msgid "will be restored to {0}."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:539
+#: suite/drive/doctype/presentation_link/presentation_link.js:540
 msgid "your clients and their figures, your e-mails, your ERP documents, what Nora learnt about your company. Here Nora has no tool: she reads the sources above, nothing else. A figure she writes must be written in a slide she cites, or she passes the question on."
 msgstr ""
 
@@ -30972,12 +30971,12 @@ msgstr ""
 msgid "{0} columns"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:321
+#: suite/drive/doctype/presentation_link/presentation_link.js:322
 #, python-brace-format
 msgid "{0} comes back on {1}: a second device"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:322
+#: suite/drive/doctype/presentation_link/presentation_link.js:323
 #, python-brace-format
 msgid "{0} comes back, on {1}"
 msgstr ""
@@ -31046,12 +31045,12 @@ msgstr ""
 msgid "{0} emptied."
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:323
+#: suite/drive/doctype/presentation_link/presentation_link.js:324
 #, python-brace-format
 msgid "{0} enters with the link copied, on {1}"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:324
+#: suite/drive/doctype/presentation_link/presentation_link.js:325
 #, python-brace-format
 msgid "{0} enters, on {1}"
 msgstr ""
@@ -31091,7 +31090,7 @@ msgstr ""
 msgid "{0} forwarded « {1} » to {2}"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:327
+#: suite/drive/doctype/presentation_link/presentation_link.js:328
 #, python-brace-format
 msgid "{0} forwards it to {1}"
 msgstr ""
@@ -31102,7 +31101,7 @@ msgstr ""
 msgid "{0} from {1} edge"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:159
+#: suite/drive/doctype/presentation_link/presentation_link.js:160
 #, python-brace-format
 msgid "{0} h {1}"
 msgstr ""
@@ -31208,7 +31207,7 @@ msgstr ""
 msgid "{0} joined the meeting"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:533
+#: suite/drive/doctype/presentation_link/presentation_link.js:534
 #, python-brace-format
 msgid "{0} kept"
 msgstr ""
@@ -31255,13 +31254,13 @@ msgid "{0} messages"
 msgstr ""
 
 #: frontend/src/apps/calendar/utils/eventTime.ts:156
-#: suite/drive/doctype/presentation_link/presentation_link.js:157
+#: suite/drive/doctype/presentation_link/presentation_link.js:158
 #: suite/public/frontend/assets/eventTime-D9PO3JXt.js:1
 #, python-brace-format
 msgid "{0} min"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:157
+#: suite/drive/doctype/presentation_link/presentation_link.js:158
 #, python-brace-format
 msgid "{0} min {1}"
 msgstr ""
@@ -31443,7 +31442,7 @@ msgstr ""
 msgid "{0} priority"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:123
+#: suite/drive/doctype/presentation_link/presentation_link.js:124
 #, python-brace-format
 msgid "{0} questions wait for you"
 msgstr ""
@@ -31483,7 +31482,7 @@ msgstr ""
 msgid "{0} results"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:154
+#: suite/drive/doctype/presentation_link/presentation_link.js:155
 #, python-brace-format
 msgid "{0} s"
 msgstr ""
@@ -31555,7 +31554,7 @@ msgid "{0} shares « {1} » with you"
 msgstr ""
 
 #: frontend/src/neoffice/i18nRegistry.ts:34
-#: suite/drive/doctype/presentation_link/presentation_link.js:524
+#: suite/drive/doctype/presentation_link/presentation_link.js:525
 #: suite/public/frontend/assets/GenericPage-DgAnMWOh.js:1
 #, python-brace-format
 msgid "{0} slides"
@@ -31567,7 +31566,7 @@ msgstr ""
 msgid "{0} started a poll"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:290
+#: suite/drive/doctype/presentation_link/presentation_link.js:291
 #, python-brace-format
 msgid "{0} stops at slide {1}."
 msgstr ""
@@ -31614,7 +31613,7 @@ msgstr ""
 msgid "{0} votes"
 msgstr ""
 
-#: suite/drive/doctype/presentation_link/presentation_link.js:326
+#: suite/drive/doctype/presentation_link/presentation_link.js:327
 #, python-brace-format
 msgid "{0} watches a video to the end"
 msgstr ""

@@ -33016,3 +33016,7 @@ msgstr "{0} questions vous attendent"
 #, python-brace-format
 msgid "{0} questions, all answered"
 msgstr "{0} questions, toutes avec leur réponse"
+
+#: suite/drive/doctype/presentation_link/presentation_link.js:201
+msgid "When someone enters, the time spent on each slide and what each person saw appear here."
+msgstr "Dès qu'une personne ouvrira la présentation, cet onglet affichera le temps passé sur chaque diapositive et les diapositives consultées par chaque visiteur."
