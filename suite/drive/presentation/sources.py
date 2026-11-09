@@ -24,6 +24,8 @@ MIN_PAGE_CHARS = 200
 FETCH_TIMEOUT_S = 20
 PER_SITE = 3
 TOP = 6
+# The rows of each site the index gives before they are ranked by how much of the question they hold (rank_key).
+CANDIDATES = 60
 LANG_PATH = re.compile(r"^/(fr|de|en|it)(/|$)")
 PRICE_PAGE = re.compile(r"tarif|prix|pricing|price|preise|prezzi|cout|cost|kosten", re.I)
 # A sentence that states an amount of money: the site's pages, a blog article, speak of prices anywhere; the bench of
@@ -49,7 +51,8 @@ STOPWORDS = set(
     les des une un le la de du et en est pour que qui dans par sur avec pas plus mais ou ce cette ces son sa ses leur
     leurs vous nous ils elles on il elle je tu se sont aux au comme tout tous toute toutes être avoir fait faire peut
     peuvent quoi quel quelle quels quelles comment combien est-ce estce votre vos notre nos mon ma mes ton ta tes
-    dont donc alors aussi bien très sans sous entre chez y a ont été the and for with what how can does
+    dont donc alors aussi bien très sans sous entre chez y a ont été the and for with what how can does depuis
+    déjà deja seulement encore nouveau nouvelle nouveaux il elle peut-il peut-on
     """.split()
 )
 
@@ -276,6 +279,7 @@ def search(link, question: str) -> list[dict]:
     query = fts_query(question)
     if not query:
         return []
+    terms = question_terms(question)
     found = []
     for root in roots_of(link):
         path = index_path(root)
@@ -286,19 +290,20 @@ def search(link, question: str) -> list[dict]:
                 rows = db.execute(
                     "SELECT url, title, body, bm25(chunks, 4.0, 1.0) AS score FROM chunks WHERE chunks MATCH ? "
                     "ORDER BY score LIMIT ?",
-                    (query, PER_SITE * 3),
+                    (query, CANDIDATES),
                 ).fetchall()
+                weights = term_weights(db, terms)
         except sqlite3.Error:
             continue
-        per_page: dict[str, int] = {}
-        kept = 0
-        for url, title, body, score in rows:
+        seen: set[str] = set()
+        ranked = sorted(rows, key=lambda row: rank_key(terms, weights, row[1], row[2], row[3]))
+        for url, title, body, score in ranked:
             body = without_prices(body)
-            if per_page.get(url, 0) >= 2 or kept >= PER_SITE or len(body) < MIN_PAGE_CHARS / 2:
+            # one place per page: two pieces of the same page would keep another page out
+            if url in seen or len(seen) >= PER_SITE or len(body) < MIN_PAGE_CHARS / 2:
                 continue
-            per_page[url] = per_page.get(url, 0) + 1
-            kept += 1
-            found.append((score, root, url, title, body))
+            seen.add(url)
+            found.append((rank_key(terms, weights, title, body, score), root, url, title, body))
     found.sort(key=lambda row: row[0])
     out = []
     for number, (_score, root, url, title, body) in enumerate(found[:TOP], start=1):
@@ -325,18 +330,137 @@ def without_prices(text: str) -> str:
 
 
 def fts_query(question: str) -> str:
-    """The words of the question that carry its meaning, any of them, a long word by its stem (« écritures » finds
-    « écriture »)."""
-    words = []
-    for word in re.findall(r"[\w'-]+", (question or "").lower()):
+    """The words of the question that carry its meaning, any of them, each by its stem (« écritures » finds
+    « écriture », « valide » finds « valider » and « validation »), with the word the manual uses for a word the
+    client says (EQUIVALENTS)."""
+    tokens = []
+    for group in question_terms(question):
+        for stem in group:
+            token = '"' + stem.replace('"', "") + '"' + ("*" if len(stem) >= 4 else "")
+            if token not in tokens:
+                tokens.append(token)
+    return " OR ".join(tokens[:16])
+
+
+# The word a client says, and the word the manual and the sites use for it (by their stems). Only true equivalents of
+# the trade: a quotation is « devis » in the software and « offre » in a client's mouth.
+EQUIVALENTS = {
+    "offre": ["devis"],
+    "produit": ["article"],
+    "ajouter": ["creer"],
+    "rappel": ["relance"],
+    "rappeler": ["relance"],
+    "manuel": ["journal"],
+    "manuelle": ["journal"],
+    "fournisseur": ["achat"],
+    "euro": ["devise"],
+    "amortir": ["immobilisation"],
+    "amortissement": ["immobilisation"],
+}
+# A phrase of the client that the software names in a word.
+PHRASES = {"mise en page": ["impression"]}
+
+
+def glossed(question: str) -> str:
+    """The question with the software's word beside a client's word, for the answerer, which reads words literally:
+    « Comment faire une offre ? » found the page « Créer un devis » and still said it did not know (09.11)."""
+    pairs = []
+    lower = (question or "").lower()
+    for word in re.findall(r"[\w'-]+", lower):
+        word = word.split("'")[-1].strip("-")
+        for target in EQUIVALENTS.get(_plain(word), []):
+            pair = f"{word} = {target}"
+            if pair not in pairs:
+                pairs.append(pair)
+    for phrase, words in PHRASES.items():
+        if phrase in _plain(lower):
+            pairs.append(f"{phrase} = {', '.join(words)}")
+    return f"{question} ({'; '.join(pairs)})" if pairs else question
+
+
+def question_terms(question: str) -> list[list[str]]:
+    """The meaningful words of the question, each as the stems that may stand for it (its own, then its equivalents)."""
+    text = (question or "").lower()
+    groups: list[list[str]] = []
+    for word in re.findall(r"[\w'-]+", text):
         word = word.split("'")[-1].strip("-")
         if len(word) < 3 or word in STOPWORDS or word.isdigit():
             continue
-        stem = word[: max(4, len(word) - 2)] if len(word) >= 7 else word
-        token = '"' + stem.replace('"', "") + '"' + ("*" if stem != word else "")
-        if token not in words:
-            words.append(token)
-    return " OR ".join(words[:12])
+        stem = stem_of(word)
+        group = [stem, *(stem_of(w) for w in EQUIVALENTS.get(_plain(word), EQUIVALENTS.get(stem, [])))]
+        if not any(stem in g for g in groups):
+            groups.append(list(dict.fromkeys(group)))
+    for phrase, words in PHRASES.items():
+        if phrase in _plain(text):
+            groups.append([stem_of(w) for w in words])
+    return groups
+
+
+def covers(terms: list[list[str]], text: str, weights: list[float] | None = None) -> float:
+    """How much of the question `text` holds: its words found (by any of their stems), each by its weight."""
+    words = set(re.findall(r"[a-z0-9]+", _plain((text or "").lower())))
+    held = 0.0
+    for number, group in enumerate(terms):
+        if any(any(w.startswith(stem) if len(stem) >= 4 else w == stem for w in words) for stem in group):
+            held += weights[number] if weights else 1
+    return held
+
+
+def term_weights(db, terms: list[list[str]]) -> list[float]:
+    """How rare each word of the question is in a site (log N/df): « relancer » says more than « facture », which
+    nearly every page of a manual holds."""
+    import math
+
+    total = db.execute("SELECT count(*) FROM chunks").fetchone()[0] or 1
+    weights = []
+    for group in terms:
+        rarest = 0.0
+        for stem in group:
+            token = '"' + stem.replace('"', "") + '"' + ("*" if len(stem) >= 4 else "")
+            try:
+                df = db.execute("SELECT count(*) FROM chunks WHERE chunks MATCH ?", (token,)).fetchone()[0]
+            except sqlite3.Error:
+                df = total
+            rarest = max(rarest, math.log((total + 1) / (df + 1)))
+        weights.append(rarest)
+    return weights
+
+
+def rank_key(terms: list[list[str]], weights: list[float], title: str, body: str, score: float) -> tuple:
+    """First the pages whose title holds the most of the question (its rare words weigh more), then whose text does,
+    then the index's own score: « Valider, imprimer (QR) et envoyer une facture » comes before the many pages that
+    only say « facture »."""
+    return (-round(covers(terms, title, weights), 3), -round(covers(terms, body, weights), 3), score)
+
+
+# The endings a French word takes, longest first: what is left is the stem the index is searched by. The index forgets
+# the accents (unicode61 remove_diacritics), so the stem does too. A question said « valide une facture » missed
+# « Valider, imprimer (QR) et envoyer une facture » of the manual: « valide » was searched as a whole word (09.11).
+_ENDINGS = tuple(
+    sorted(
+        """issements issement ations ation ements ement ateurs atrices ateur atrice ances ance ences ence ables able
+        ibles ible eurs euses euse eur ions ees ee es e s x er ir re ez ent ons ais ait""".split(),
+        key=len,
+        reverse=True,
+    )
+)
+
+
+def _plain(word: str) -> str:
+    import unicodedata
+
+    return unicodedata.normalize("NFKD", word).encode("ascii", "ignore").decode()
+
+
+def stem_of(word: str) -> str:
+    """The stem of a word of five letters or more, never shorter than four letters; a shorter word as it is."""
+    plain = _plain(word.lower())
+    if len(plain) < 5:
+        return plain
+    for ending in _ENDINGS:
+        if plain.endswith(ending) and len(plain) - len(ending) >= 4:
+            return plain[: -len(ending)]
+    return plain
 
 
 def label(passage: dict) -> str:

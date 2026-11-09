@@ -609,7 +609,7 @@ def answer_question(name: str) -> None:
     started = now_datetime()
     lent: list[dict] = []
     try:
-        question = fix_names(doc.question, *names_of(link))
+        question = site_sources.glossed(fix_names(doc.question, *names_of(link)))
         lent = passages(link) + site_passages(link, question)
         result = answerer(
             question=question,
@@ -927,7 +927,7 @@ def trial(link, question: str, slide=None, who: str | None = None) -> dict:
     # the model is called each time: a cap per person and per day, like a visitor's
     if not _count(f"trial:{who or frappe.session.user}", PER_PERSON_A_DAY * 2):
         frappe.throw(_("You have tried many questions today: try again tomorrow."))
-    asked = fix_names(question, *names_of(link))
+    asked = site_sources.glossed(fix_names(question, *names_of(link)))
     lent = passages(link) + site_passages(link, asked)
     slide = min(max(cint(slide), 0), rules.MAX_SLIDES)
     titles = slide_titles(link)
