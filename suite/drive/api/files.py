@@ -1023,8 +1023,38 @@ def toggle_entity_status(doc, manager: FileManager, locked_owners: set):
         # //// Neoffice — the Drive gives the address (File.validate, maintenance#1828)
         doc.flags.drive_sets_url = True
     doc.save()
+    # //// Neoffice — the Drive's trash reaches the document the row stands for (maintenance#1600), see
+    # //// _mirror_trash_to_content_doc.
+    _mirror_trash_to_content_doc(doc, flag)
     if new_url is not None and new_url != old_url and doc.is_folder:
         repoint_descendants(doc.name, old_url, new_url)
+
+
+# //// Neoffice — added (maintenance#1600, toggle_entity_status): a content document that keeps a `trashed` flag of its own
+# //// (Sheet) follows the Drive's trash. Sheets' own trash already reaches its Drive row (sync_content_file, on the flag's
+# //// transition); the other direction did not exist, so a workbook put in the trash from the Drive stayed in the list of
+# //// Sheets. The flag is written straight to the table: a save would fire sync_content_file, which has just been
+# //// outrun by this very call. A document without the field (Writer, Slides) is untouched, and so is a row that holds
+# //// no document. Nothing is done for the rows of a trashed folder (as before: only the rows asked for are toggled).
+# //// To remove if upstream makes the Drive's trash reach the content documents itself.
+def _mirror_trash_to_content_doc(doc, flag: str) -> None:
+    if not (doc.content_doctype and doc.content_docname):
+        return
+    try:
+        has_flag = frappe.get_meta(doc.content_doctype).has_field("trashed")
+    except frappe.DoesNotExistError:  # the app that made the document is no longer installed
+        return
+    if not has_flag:
+        return
+    if flag == STATUS_TRASHED:
+        values = {
+            "trashed": 1,
+            "trashed_on": frappe.utils.now_datetime(),
+            "trashed_by": frappe.session.user,
+        }
+    else:
+        values = {"trashed": 0, "trashed_on": None, "trashed_by": None}
+    frappe.db.set_value(doc.content_doctype, doc.content_docname, values, update_modified=False)
 
 
 # //// Neoffice — added (maintenance#1823, toggle_entity_status): whether `doc`'s bytes are at `url` rather than in its place
