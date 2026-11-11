@@ -4,7 +4,8 @@
   <MoveDialog v-else-if="dialog === 'm'" v-model="dialog" :entities @complete="refresh" />
   
   <!-- Confirmation dialogs -->
-  <RemoveDialog v-if="dialog === 'remove'" v-model="dialog" :entities @success="$router.push({ name: 'writer-home' })" />
+  <!-- //// Neoffice — "trashed" first: the editor then leaves without its "unsaved changes" question (pages/Document.vue, #1194) -->
+  <RemoveDialog v-if="dialog === 'remove'" v-model="dialog" :entities @success="emitter.emit('trashed'); $router.push({ name: 'writer-home' })" />
   
   <InfoDialog v-else-if="dialog === 'i'" v-model="dialog" :entity :emitter />
   <SearchDialog v-if="dialog === 'search'" v-model="dialog" />

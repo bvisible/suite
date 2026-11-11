@@ -8,7 +8,7 @@
     :surface-app="surfaceApp"
     :context-nav="contextNav"
     :context-footer="contextFooter"
-    :navigate="(r) => router.push(r)"
+    :navigate="navigate"
     :on-search="openSearch"
     search-kbd="⌘K"
     @failed="failed = true"
@@ -36,6 +36,8 @@ import { rootInfo, storageBar } from '@/apps/drive/resources/files'
 import { storageGauge } from '@/apps/drive/utils/storageGauge'
 import { notifCount } from '@/apps/drive/resources/permissions'
 import { base2BlockSize, formatSize } from '@/apps/drive/utils/format'
+//// Neoffice — "Home" and "Shared" are the two tabs of one page (shareView), see navigate() below
+import { shareView } from '@/apps/drive/data/prefs'
 
 const router = useRouter()
 const failed = ref(false)
@@ -56,6 +58,15 @@ emitter.on('showSettings', (val = 'profile') => {
     suggestedTab.value = val
   }
 })
+
+//// Neoffice — "Home" and "Shared" open the same page, on one tab or the other (shareView): the item clicked
+//// picks the tab. Upstream pushed the route only, and "Shared" landed on your own files
+//// (neoffice-maintenance#1194).
+function navigate(r) {
+  if (r === '/drive') shareView.value = false
+  if (r === '/drive/shared') shareView.value = true
+  router.push(r)
+}
 
 const root = useRootStore()
 function openSearch() {
@@ -85,9 +96,10 @@ const contextNav = computed(() => {
     {
       label: 'Drive',
       items: [
-        { label: __('Home'), icon: 'lucide-home', route: '/drive', active: rootName === 'drive-Home' },
+        //// Neoffice — Home and Shared are lit by the tab shown (there is no drive-Shared route any more)
+        { label: __('Home'), icon: 'lucide-home', route: '/drive', active: rootName === 'drive-Home' && !shareView.value },
         { label: __('Recents'), icon: 'lucide-clock', route: '/drive/recents', active: rootName === 'drive-Recents' },
-        { label: __('Shared'), icon: 'lucide-users', route: '/drive/shared', active: rootName === 'drive-Shared' },
+        { label: __('Shared'), icon: 'lucide-users', route: '/drive/shared', active: rootName === 'drive-Home' && shareView.value },
         { label: __('Trash'), icon: 'lucide-trash', route: '/drive/trash', active: rootName === 'drive-Trash' },
       ],
     },

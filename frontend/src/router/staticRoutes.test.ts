@@ -36,6 +36,16 @@ describe('suite route table', () => {
     expect(redirect(router.resolve('/suite/start'))).toBe('/mail')
   })
 
+  //// Neoffice — the sidebar's "Shared" opens Home on its "Shared with you" tab, not on your own files (#1194)
+  it('opens the shared tab of the Drive home from /drive/shared', async () => {
+    const { shareView } = await import('@/apps/drive/data/prefs')
+    shareView.value = false
+    const shared = router.getRoutes().find((route) => route.path === '/drive/shared')!
+    const redirect = shared.redirect as (to: unknown) => unknown
+    expect(redirect(router.resolve('/drive/shared'))).toEqual({ name: 'drive-Home' })
+    expect(shareView.value).toBe(true)
+  })
+
   it('keeps the runtime load error available to guests', () => {
     expect(router.resolve('/suite/load-error').meta.allowGuest).toBe(true)
   })

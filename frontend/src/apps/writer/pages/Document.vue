@@ -83,6 +83,8 @@ import { useSessionStore } from '@/boot/session'
 import { useRootStore } from '@/stores/root'
 import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router'
 import { confirmLeave } from '@/utils/confirmLeave'
+//// Neoffice — the "trashed" event of the delete dialog (components/Dialogs.vue), see confirmUnsavedNavigation
+import emitter from '@/apps/writer/emitter'
 const currentUserId = computed(() => useSessionStore().user)
 const isLoggedIn = computed(() => useSessionStore().isLoggedIn)
 import { Button, Skeleton, useDoc, usePageMeta } from 'frappe-ui'
@@ -167,8 +169,15 @@ const unregisterPaletteGroups = useRootStore().registerPaletteGroups(
   },
 )
 onScopeDispose(unregisterPaletteGroups)
+//// Neoffice — a document just moved to the trash leaves without asking: upstream asked "Leave this page? Your
+//// unsaved changes may be lost." after the delete (the editor's dirty flag is still up, its saves now refused),
+//// twice, over the documents list (neoffice-maintenance#1194). Whatever it held goes to the trash with it.
+const trashed = ref(false)
+const onTrashed = () => (trashed.value = true)
+emitter.on('trashed', onTrashed)
+onScopeDispose(() => emitter.off('trashed', onTrashed))
 const confirmUnsavedNavigation = () => {
-  if (!hasUnsavedChanges.value) return true
+  if (trashed.value || !hasUnsavedChanges.value) return true //// Neoffice — `trashed.value ||`: see above
   return confirmLeave()
 }
 onBeforeRouteLeave(confirmUnsavedNavigation)

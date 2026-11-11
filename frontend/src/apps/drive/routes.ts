@@ -3,6 +3,8 @@ import { createResource } from 'frappe-ui'
 
 import { useSessionStore } from '@/boot/session'
 import { appDocumentTitle } from '@/utils/documentTitle'
+//// Neoffice — the "Shared" redirect below opens Home's "Shared with you" tab
+import { shareView } from '@/apps/drive/data/prefs'
 
 /**
  * Drive route module — mounted by the suite router under the '/drive' prefix.
@@ -78,7 +80,13 @@ export const routes: RouteRecordRaw[] = [
       {
         // Shared-with-you is a tab on Home now; old links still land somewhere real.
         path: 'shared',
-        redirect: { name: 'drive-Home' },
+        //// Neoffice — upstream redirected to the Home with whatever tab was open last: the sidebar's
+        //// "Shared" (/drive/shared) showed your own files (neoffice-maintenance#1194). The redirect opens
+        //// the "Shared with you" tab.
+        redirect: () => {
+          shareView.value = true
+          return { name: 'drive-Home' }
+        },
       },
       {
         path: 'attachments/:doctype?/:docname?',

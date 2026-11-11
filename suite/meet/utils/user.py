@@ -5,8 +5,8 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
-import re
 
+# //// Neoffice — `re` is no longer imported: the guest-name check below reads characters, not a pattern (#1194)
 import frappe
 from frappe.utils.caching import redis_cache
 
@@ -68,7 +68,11 @@ def validate_guest_name(guest_name: str) -> tuple[bool, str | None]:
     if len(guest_name) > 50:
         return False, "Guest name must be at most 50 characters"
 
-    if not re.match(r"^[a-zA-Z0-9\s'\-]+$", guest_name):
+    # //// Neoffice — upstream allowed ASCII letters only (`^[a-zA-Z0-9\s'\-]+$`): « Invité », « Zoë », « Müller »
+    # //// were refused at the door of the meeting (neoffice-maintenance#1194). Any letter or digit of any
+    # //// script, spaces, hyphens and both apostrophes (the typed ' and the typographic U+2019); still nothing that
+    # //// markup is made of (<, >, &, quotes).
+    if not all(char.isalnum() or char.isspace() or char in "'\u2019-" for char in guest_name):
         return False, "Guest name contains invalid characters"
 
     return True, None
