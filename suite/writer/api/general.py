@@ -1,6 +1,7 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
 import frappe
 from pypika import CustomFunction, Order
 from pypika import functions as fn
@@ -212,7 +213,10 @@ def get_drive_file_meta(names, ttl=3600):
     cache = frappe.cache()
 
     keys = {name: f"search:drive_file:{name}" for name in names}
-    cached = {k: cache.get_value(k) for k in keys.values()}
+    # //// Neoffice — `expires=True`: these keys are written with a TTL, and frappe v15 keeps a miss in the request's
+    # //// local cache unless told the key expires, so the second lookup went back to the database
+    # //// (red on upstream v15, neoffice-maintenance#263). Frappe's own rule for a key with a TTL.
+    cached = {k: cache.get_value(k, expires=True) for k in keys.values()}
 
     result = {}
     missing = []

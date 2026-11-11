@@ -48,7 +48,10 @@ def get_mailing_list_index() -> dict[str, list[str]]:
     sent to nobody, and retrying on every lookup would only keep the site over the limit.
     """
 
-    index = frappe.cache.get_value(INDEX_KEY)
+    # //// Neoffice — `expires=True`: the index is written with a lifetime, and frappe v15 keeps a miss in the
+    # //// request's local cache unless told the key expires, so the index written below stayed unseen and every
+    # //// lookup rebuilt it (red on upstream v15, neoffice-maintenance#263). Frappe's own rule for a key with a TTL.
+    index = frappe.cache.get_value(INDEX_KEY, expires=True)
     if index is not None and frappe.cache.get_value(INDEX_FRESH_KEY, expires=True):
         return index
 
