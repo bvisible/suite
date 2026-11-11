@@ -110,11 +110,15 @@ jobs:
 
       - name: Install MariaDB Client
         if: steps.backend-changes.outputs.run == '1'
+        # //// Neoffice — a recent MariaDB client requires TLS by default and the job's MariaDB service has none
+        # //// ("SSL is required, but the server does not support it", neoffice-maintenance#2366): every client
+        # //// of the job (this step's, bench's) reads ~/.my.cnf, which turns TLS off for the local service.
         run: |
           sudo apt-get install -y --no-install-recommends mariadb-client || {
             sudo apt-get update
             sudo apt-get install -y --no-install-recommends mariadb-client
           }
+          printf '[client]\nskip-ssl\n' > ~/.my.cnf
 
       - name: Setup Bench
         if: steps.backend-changes.outputs.run == '1'
@@ -414,11 +418,13 @@ jobs:
 
       - name: Install MariaDB Client
         if: steps.mail-calendar-changes.outputs.run == '1'
+        # //// Neoffice — TLS off for the job's local MariaDB service, as in the backend job (neoffice-maintenance#2366).
         run: |
           sudo apt-get install -y --no-install-recommends mariadb-client || {
             sudo apt-get update
             sudo apt-get install -y --no-install-recommends mariadb-client
           }
+          printf '[client]\nskip-ssl\n' > ~/.my.cnf
 
       - name: Setup Bench
         if: steps.mail-calendar-changes.outputs.run == '1'
@@ -516,17 +522,37 @@ jobs:
           echo "run=$run_frontend" >> $GITHUB_OUTPUT
           echo "Run frontend: $run_frontend"
 
+      # //// Neoffice — the frontend is installed and built as build-frontend.yml does, the build that ships
+      # //// (neoffice-maintenance#2366): pnpm in frontend/, frappe-ui as a git submodule with its own
+      # //// dependencies. The root `yarn install` of upstream no longer installs it since the upstream merge of
+      # //// 14.10 (the build died on `Could not load node_modules/dayjs/locale/it`).
+      - name: Fetch the frappe-ui submodule
+        if: steps.frontend-changes.outputs.run == '1'
+        run: git submodule update --init --recursive
+
+      - name: Setup pnpm
+        if: steps.frontend-changes.outputs.run == '1'
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
       - name: Setup Node
         if: steps.frontend-changes.outputs.run == '1'
         uses: actions/setup-node@v7
         with:
-          node-version: 24
-          cache: "yarn"
-          cache-dependency-path: yarn.lock
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install frappe-ui dependencies
+        if: steps.frontend-changes.outputs.run == '1'
+        working-directory: frappe-ui
+        run: yarn install --frozen-lockfile
 
       - name: Install dependencies
         if: steps.frontend-changes.outputs.run == '1'
-        run: yarn install --frozen-lockfile
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
 
       - name: Create bench site config
         if: steps.frontend-changes.outputs.run == '1'
@@ -536,11 +562,8 @@ jobs:
 
       - name: Build
         if: steps.frontend-changes.outputs.run == '1'
-        # //// Neoffice — the root `yarn build` skips the SPA when its committed build is there (package.json,
-        # //// commit-the-build): this job checks that the frontend builds, so it forces the real one.
-        env:
-          FORCE_REBUILD: "1"
-        run: yarn build
+        working-directory: frontend
+        run: pnpm run build
 
       - name: Test
         if: steps.frontend-changes.outputs.run == '1'
@@ -548,7 +571,7 @@ jobs:
         run: |
           if node -e "process.exit(require('./package.json').scripts?.test ? 0 : 1)"; then
             mkdir -p test-results
-            yarn test:ci
+            pnpm run test:ci
           else
             echo "No frontend test script configured"
           fi
