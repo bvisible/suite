@@ -118,6 +118,8 @@ class TestThePrivateFileCheckReadsUrlsAsTheDriveDoes(IntegrationTestCase):
             doc.file_url = url
             if folder:
                 doc.folder = folder
+                # a Drive writer that moves the row says so as move() does (File.validate, GHSA-hvv9-wq9j-hccx)
+                doc.flags.drive_moves = True
             doc.flags.drive_sets_url = True
             doc.save()
 
