@@ -342,6 +342,7 @@ def _sees_the_directory() -> bool:
 
 
 # //// Neoffice — `token`: the e-mailed link's proof (drive_user_invitation.get_invite_token, GHSA-xqwr-x9c5-vvf8)
+# permission-check: ok the invitation's key, and for a sign-up the e-mailed token, are the right; accept() lets in only its person
 @frappe.whitelist(allow_guest=True)
 def accept_invite(key: str, redirect: bool | str = True, token: str | None = None):
     # //// Neoffice — the key is a name, never a filter (see _plain_text); a redirect that is not a path of this

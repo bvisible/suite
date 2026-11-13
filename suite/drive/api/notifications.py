@@ -126,7 +126,7 @@ def notify_share(entity_name, docperm_name):
             from suite.drive.doctype.drive_user_invitation.drive_user_invitation import get_invite_link
 
             key = frappe.get_value("Drive User Invitation", {"email": docshare.user})
-            link = get_invite_link(key, link)
+            link = get_invite_link(key, link)  # //// Neoffice — see above
         else:
             create_notification(docshare.owner, docshare.user, "Share", entity, message)
         # //// Neoffice — the link is made absolute inside send_share_email (« /drive/d/<id>/ » cannot be
