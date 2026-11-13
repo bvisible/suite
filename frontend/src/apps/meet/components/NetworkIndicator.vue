@@ -63,12 +63,15 @@ const severity = computed(() => {
 });
 const message = computed(() => {
 	const local = props.isLocal || !!props.health;
+	// //// Neoffice — i18n: text a person reads goes through __() (#1316). Upstream moved these four sentences here
+	// //// from ParticipantTile.vue, where we had them translated; the build's plugin does not read a bare return.
 	if (severity.value === "critical")
 		return local
-			? "Your internet connection is unstable. Video and audio might lag or drop."
-			: `${props.participantName}'s internet connection is unstable.`;
+			? __("Your internet connection is unstable. Video and audio might lag or drop.")
+			: __("{0}'s internet connection is unstable.", [props.participantName]);
+	// //// Neoffice — the same (#1316)
 	return local
-		? "Your internet connection is weak. You might notice some lag."
-		: `${props.participantName}'s internet connection is weak.`;
+		? __("Your internet connection is weak. You might notice some lag.")
+		: __("{0}'s internet connection is weak.", [props.participantName]);
 });
 </script>
