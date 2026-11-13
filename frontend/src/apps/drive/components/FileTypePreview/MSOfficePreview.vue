@@ -70,9 +70,8 @@
 import { Button, createResource } from 'frappe-ui'
 import { computed, onMounted, ref, watch } from 'vue'
 import CraftEditor from '@/apps/drive/components/FileTypePreview/CraftEditor.vue'
-//// Neoffice — Drive's own download helper, for `download` below.
-import { entitiesDownload } from '@/apps/drive/utils/download.js'
 import LucideLoaderCircle from '~icons/lucide/loader-circle'
+import { entitiesDownload } from '@/apps/drive/utils/download'
 const props = defineProps({
   previewEntity: Object,
 })
@@ -136,8 +135,5 @@ const srcUrl = computed(() =>
     ).href
   )
 )
-//// Neoffice — upstream assigns `window.location.ref` (a typo: nothing happens) to the link
-//// it encodes for Microsoft's viewer, so "Download" did nothing in either card that offers
-//// it. Drive's helper downloads with the user's session, as FileRender.vue does.
 const download = () => entitiesDownload([props.previewEntity])
 </script>

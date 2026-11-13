@@ -109,8 +109,7 @@
 				:userAvatar="currentUser.userAvatar.value"
 				:currentUserName="
 					currentUser.currentUser.value?.full_name ||
-					currentUser.currentUser.value?.name ||
-					__('You')
+					currentUser.currentUser.value?.name
 				"
 				:guestAuthToken="connectionState.guestAuthToken"
 				:isWaitingForApproval="lobbyStore.isWaitingForApproval"
@@ -745,9 +744,6 @@ const sfuConnection = useSFUConnection({
 			mediaState.screenShareStreams = store;
 		}
 	},
-	onActiveSpeakerChanged: (participantIds: string[]) => {
-		participantStore.activeSpeakerIds = participantIds;
-	},
 	onRoomRejoined: () => void captions.restoreCaptionSubscription(),
 	onE2EERequired: () => captions.disableCaptionsForE2EE(),
 	onRecordingState: recording.syncState,
@@ -761,24 +757,19 @@ const backgroundEffects = useBackgroundEffects({
 	mediaAttachments: sfuConnection,
 });
 const noiseCancellation = useNoiseCancellation();
-const { networkQuality, downlinkQuality, isTransportFailed } = useNetworkQuality(
+const { health: networkHealth, networkQuality } = useNetworkQuality(
 	sfuConnection.sfuManager,
 );
 const localNetworkQuality = computed(() => {
-	if (isTransportFailed.value) return "critical";
 	if (
-		sfuConnection.localNetworkQuality.value === "critical" ||
-		downlinkQuality.value === "critical"
-	) {
-		return "critical";
-	}
+		networkHealth.value.networkQuality === "critical" ||
+		networkHealth.value.downlinkQuality === "critical"
+	) return "critical";
 	if (
-		sfuConnection.localNetworkQuality.value === "poor" ||
-		downlinkQuality.value === "poor"
-	) {
-		return "poor";
-	}
-	return "good";
+		networkHealth.value.networkQuality === "poor" ||
+		networkHealth.value.downlinkQuality === "poor"
+	) return "poor";
+	return networkHealth.value.status === "good" ? "good" : "unknown";
 });
 
 // --- Media Controls ---
@@ -916,6 +907,7 @@ provideMeetingContext({
 	networkQuality,
 	localNetworkQuality,
 	seanceStore, //// Neoffice — who agreed to the notes of the call, for the people panel
+	networkHealth,
 });
 
 // Provide legacy injects for components not yet migrated to useMeetingContext

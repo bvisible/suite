@@ -1,3 +1,4 @@
+import type { MediaHealthState } from "../utils/media/MediaHealthMonitor";
 import type { InjectionKey, Ref } from "vue";
 import { inject, provide } from "vue";
 import type { SFUMeetingManager } from "../utils/SFUMeetingManager";
@@ -29,6 +30,7 @@ interface MeetingContext {
 	localNetworkQuality: Ref<string>;
 	//// Neoffice — who agreed to the notes of the call, for the chip of the people panel (absent in tests)
 	seanceStore?: SeanceStore;
+	networkHealth?: Ref<MediaHealthState>;
 }
 
 const MEETING_CONTEXT_KEY: InjectionKey<MeetingContext> =

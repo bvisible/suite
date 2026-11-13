@@ -162,8 +162,8 @@ importers:
         specifier: ^1.12.0
         version: 1.12.2
       mediasoup-client:
-        specifier: ^3.18.8
-        version: 3.23.1
+        specifier: ^3.26.0
+        version: 3.26.0
       mitt:
         specifier: ^3.0.1
         version: 3.0.1
@@ -3481,8 +3481,8 @@ packages:
   mdn-data@2.27.1:
     resolution: {integrity: sha512-9Yubnt3e8A0OKwxYSXyhLymGW4sCufcLG6VdiDdUGVkPhpqLxlvP5vl1983gQjJl3tqbrM731mjaZaP68AgosQ==}
 
-  mediasoup-client@3.23.1:
-    resolution: {integrity: sha512-dFgIQAhYDySRhvekzgUY2trt+Vq2T2YxFKpMjeK0E9dHBbmhE0URUJNo4rKMXrse4Buy8uSbD4kzY+0G/4fw4Q==}
+  mediasoup-client@3.26.0:
+    resolution: {integrity: sha512-XrbXA6yhBW6/MVqYSWHtZ+OiTvu3AIdXdpW6bAy7jkuhQtxQXUGv8BCssLYEt4hJC8GNwNAlTYcv/NhwSBD8tA==}
     engines: {node: '>=22'}
 
   merge2@1.4.1:
@@ -8379,7 +8379,7 @@ snapshots:
 
   mdn-data@2.27.1: {}
 
-  mediasoup-client@3.23.1:
+  mediasoup-client@3.26.0:
     dependencies:
       '@types/debug': 4.1.13
       '@types/events-alias': '@types/events@3.0.3'

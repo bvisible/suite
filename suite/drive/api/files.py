@@ -16,6 +16,7 @@ from urllib.parse import quote, urlparse  # //// Neoffice — urlparse: create_l
 import frappe
 import mimemapper
 from frappe.rate_limiter import rate_limit
+from frappe.utils import validate_url
 from pypika import Order
 from werkzeug.utils import secure_filename, send_file
 from werkzeug.wrappers import Response
@@ -26,6 +27,7 @@ from suite.drive.utils import (
     ATTACHMENT_CONTENT_DOCTYPE,
     STATUS_ACTIVE,
     STATUS_TRASHED,
+    WRITER_CONTENT_DOCTYPE,
     apply_file_size_delta,
     create_drive_file,
     # //// Neoffice — a folder's names given out one request at a time (suite/drive/utils, hold_folder_names; maintenance#1598)
@@ -57,7 +59,19 @@ from suite.drive.utils.users import mark_as_viewed
 
 from .permissions import user_has_permission
 
-FORBIDDEN_DOWNLOAD_TYPES = ["Folder", "Link", "Document", "Presentation"]
+FORBIDDEN_DOWNLOAD_TYPES = ["Folder", "Link", "Presentation"]
+
+
+def _is_downloadable(file):
+    """Whether `file` is stored as bytes that can be served.
+
+    A Writer document's content is in the database, and its `file_url` points at a
+    folder. An uploaded Word file also has file_type "Document", so the type cannot
+    tell them apart. The mime check keeps refusing an old Writer document whose
+    Writer Document link is missing.
+    """
+    is_writer_document = file.content_doctype == WRITER_CONTENT_DOCTYPE or file.mime_type == "frappe_doc"
+    return file.file_type not in FORBIDDEN_DOWNLOAD_TYPES and not is_writer_document
 
 
 @frappe.whitelist(allow_guest=True)
@@ -367,6 +381,7 @@ def create_link(file_name: str, link: str, parent: str | None = None):
         )
 
     validate_filename(file_name, parent, "Link", error=f"Link '{file_name}' already exists.")
+    validate_url(link, throw=True, valid_schemes=("http", "https"))
 
     drive_file = frappe.get_doc(
         {
@@ -379,6 +394,8 @@ def create_link(file_name: str, link: str, parent: str | None = None):
             "folder": parent,
         }
     )
+    # file_created skips the framework's checks, and a link to this site can name a private file
+    drive_file.validate_private_file_access()
     drive_file.flags.file_created = True
     drive_file.insert()
 
@@ -426,17 +443,14 @@ def get_file_content(entity_name: str, trigger_download: bool = False, token: st
             "file_url",
             "is_private",
             "mime_type",
+            "content_doctype",
         ],
         as_dict=1,
     )
 
-    if not file or file.file_type in FORBIDDEN_DOWNLOAD_TYPES or file.status != STATUS_ACTIVE:
+    if not file or not _is_downloadable(file) or file.status != STATUS_ACTIVE:
         frappe.throw("Not found", frappe.DoesNotExistError)
 
-    if file.file_type == "Document":
-        frappe.local.response["type"] = "redirect"
-        frappe.local.response["location"] = "/drive/w/" + file.name
-        return
     if not file.is_private:
         # Public files (adopted framework uploads) are served straight off /files.
         frappe.local.response["type"] = "redirect"
@@ -600,8 +614,17 @@ def _iter_folder_files(entity_name, prefix=""):
     children = frappe.get_all(
         "File",
         filters={"folder": entity_name, "status": STATUS_ACTIVE},
-        # //// Neoffice — file_size: the archive's size is weighed first (neoffice-maintenance#2296, download_folder)
-        fields=["name", "file_name", "is_folder", "file_type", "file_url", "file_size"],
+        fields=[
+            "name",
+            "file_name",
+            "is_folder",
+            "file_type",
+            "file_url",
+            "mime_type",
+            "content_doctype",
+            # //// Neoffice — file_size: the archive's size is weighed first (neoffice-maintenance#2296, download_folder)
+            "file_size",
+        ],
     )
     for child in children:
         if not user_has_permission(child.name, "read"):
@@ -609,7 +632,7 @@ def _iter_folder_files(entity_name, prefix=""):
         arcname = f"{prefix}{child.file_name}"
         if child.is_folder:
             yield from _iter_folder_files(child.name, prefix=f"{arcname}/")
-        elif child.file_type not in FORBIDDEN_DOWNLOAD_TYPES and child.file_url:
+        elif _is_downloadable(child) and child.file_url:
             yield arcname, child
 
 
@@ -638,15 +661,25 @@ def _collect_download_files_as_sent(entity_names):
         entity = frappe.get_value(
             "File",
             name,
-            # //// Neoffice — file_size: see _iter_folder_files
-            ["name", "file_name", "is_folder", "file_type", "file_url", "status", "file_size"],
+            [
+                "name",
+                "file_name",
+                "is_folder",
+                "file_type",
+                "file_url",
+                "status",
+                "mime_type",
+                "content_doctype",
+                # //// Neoffice — file_size: see _iter_folder_files
+                "file_size",
+            ],
             as_dict=True,
         )
         if not entity or entity.status != STATUS_ACTIVE:
             continue
         if entity.is_folder:
             yield from _iter_folder_files(entity.name, prefix=f"{entity.file_name}/")
-        elif entity.file_type not in FORBIDDEN_DOWNLOAD_TYPES and entity.file_url:
+        elif _is_downloadable(entity) and entity.file_url:
             yield entity.file_name, entity
 
 

@@ -10,7 +10,7 @@ import frappe
 import mimemapper
 from frappe import _  # //// Neoffice — _refuse_drive_own_places below (maintenance#1821)
 from frappe.core.doctype.file.file import File as FrappeFile
-from frappe.utils import get_files_path, now
+from frappe.utils import get_files_path, get_url, now  # //// Neoffice — get_url: get_site_url_prefix below
 
 from suite.drive.api.activity import create_new_activity_log
 from suite.drive.api.files import ARCHIVE_DIR, get_file_type  # //// Neoffice — ARCHIVE_DIR: maintenance#1821
@@ -44,14 +44,17 @@ from suite.drive.utils import (
 )
 from suite.drive.utils.files import (
     S3_URL_PREFIX,
+    # //// Neoffice — TRASH_PREFIX, escape_component: places in the trash (_refuse_drive_own_places, #1821)
     TRASH_PREFIX,
     FileManager,
     escape_component,
+    files_using_stored_file,
     get_s3_url,
     # //// Neoffice — a name is never "." nor ".." (neoffice-maintenance#2296, File.validate)
     refuse_dot_name,
     repoint_descendants,
     storage_key,
+    stored_file_in_use,
 )
 
 # //// Neoffice — the owner of a saved document is not the caller's to change (neoffice-maintenance#2296, File.validate)
@@ -129,22 +132,6 @@ class File(FrappeFile):
                 )
         if self.is_new() and not self.flags.file_created:
             return super().validate()
-        if (
-            not self.is_new()
-            and not self.flags.file_created
-            and self.has_value_changed("file_url")
-            and not self._not_in_disk()
-        ):
-            path = self.manager.get_local_path(self.file_url)
-            # //// Neoffice — frappe's validate_file_on_disk, which this override never reaches for a saved File: a url
-            # //// set by a document API names a file that is there (maintenance#1828), as in frappe.
-            if (
-                not self.flags.drive_sets_url
-                and frappe.session.user != "Administrator"
-                and not str(self.file_url).startswith(S3_URL_PREFIX)
-                and not (path.is_dir() if self.is_folder else path.is_file())
-            ):
-                frappe.throw(_("File {0} does not exist").format(self.file_url), frappe.ValidationError)
         # //// Neoffice — upstream applied the two Drive blob rules below to every File, including
         # //// a loose public upload that after_file_upload adopted into the uploader's folder with
         # //// its /files/ URL and is_private=0. Any later save of such a file then failed: the
@@ -157,6 +144,9 @@ class File(FrappeFile):
         in_public_framework_folder = all(
             str(url or "").startswith("/files/") for url in (self.file_url, before and before.file_url)
         )
+        if not self.is_new():
+            # //// Neoffice — with the exemption above (see _validate_storage_fields)
+            self._validate_storage_fields(in_public_framework_folder)
         # Blob-backed Drive files must be private: they're served only through
         # Drive's permission layer, never the public /files/ path. Folders, links
         # and content-doctype files have no on-disk blob, and adopted framework
@@ -170,18 +160,6 @@ class File(FrappeFile):
             and not in_public_framework_folder
         ):
             frappe.throw("Drive files must be private.", frappe.ValidationError)
-        # file_name is coupled to the blob path; only rename()/move() may change it.
-        # //// Neoffice — see the block marker above: framework renames exempted (885538063 "fix(drive): public framework files can be renamed under the File override (wiki webp conversion)")
-        if (
-            not self.is_new()
-            and self.has_value_changed("file_name")
-            and not self.flags.drive_disk_rename
-            and not in_public_framework_folder
-        ):
-            frappe.throw(
-                "Rename Drive files from the Drive interface, not the File form.",
-                frappe.ValidationError,
-            )
         # //// Neoffice — frappe moves a file between /files and /private/files when is_private
         # //// changes (File.handle_is_private_changed, called from File.validate), but this override
         # //// never reaches frappe's validate for an existing File. Marking a framework attachment
@@ -196,6 +174,48 @@ class File(FrappeFile):
             and (self.file_url or "").rsplit("/", 1)[0] in ("/files", "/private/files")
         ):
             self.handle_is_private_changed()
+
+    # //// Neoffice — `in_public_framework_folder` added: see validate()
+    def _validate_storage_fields(self, in_public_framework_folder: bool = False):
+        """Fields of an existing row that only Drive's storage flows may change."""
+        if self.has_value_changed("file_url"):
+            # A File row grants read access to whatever its file_url names, so only
+            # Drive's storage flows may repoint it.
+            # //// Neoffice — ours say so by `drive_sets_url` (move, trash, restore, deletion, the editors' and WebDAV's
+            # //// saves on S3, maintenance#1828); a frappe file under /files/ keeps frappe's rules (see validate()).
+            if not (
+                self.flags.file_created
+                or self.flags.drive_disk_rename
+                or self.flags.drive_sets_url
+                or in_public_framework_folder
+            ):
+                frappe.throw("Only Drive can change the URL of a file.", frappe.ValidationError)
+            if not self.flags.file_created and not self._not_in_disk():
+                path = self.manager.get_local_path(self.file_url)
+                # //// Neoffice — frappe's validate_file_on_disk, which this override never reaches for a saved File: a
+                # //// url set by a document API names a file that is there (maintenance#1828), as in frappe.
+                if (
+                    not self.flags.drive_sets_url
+                    and frappe.session.user != "Administrator"
+                    and not str(self.file_url).startswith(S3_URL_PREFIX)
+                    and not (path.is_dir() if self.is_folder else path.is_file())
+                ):
+                    frappe.throw(_("File {0} does not exist").format(self.file_url), frappe.ValidationError)
+        # A Link row's url is a web address that no storage check has seen. Served as a
+        # file, it would read whatever that address resolves to on the site.
+        if self._link_type_changed():
+            frappe.throw("A file cannot become a link, or a link a file.", frappe.ValidationError)
+        # file_name is coupled to the blob path; only rename()/move() may change it.
+        # //// Neoffice — see validate(): framework renames exempted (885538063 "fix(drive): public framework files can be renamed under the File override (wiki webp conversion)")
+        if (
+            self.has_value_changed("file_name")
+            and not self.flags.drive_disk_rename
+            and not in_public_framework_folder
+        ):
+            frappe.throw(
+                "Rename Drive files from the Drive interface, not the File form.",
+                frappe.ValidationError,
+            )
 
     # //// Neoffice — added (neoffice-maintenance#2296, validate): a saved File made public, or attached to a document,
     # //// gets frappe's checks (the reference exists and its caller may write it; the public-files setting), and the
@@ -224,6 +244,53 @@ class File(FrappeFile):
                 _("Only someone who may share this file can make it public or attach it to a document"),
                 frappe.PermissionError,
             )
+
+    def validate_private_file_access(self):
+        """Run before a new File takes an existing file_url: the user must already be
+        able to read a private file at that url, however the url is spelled. The
+        framework's version asks its own File permission, which
+        `ignore_file_permissions` turns into a yes for everyone, so this asks Drive's."""
+        # //// Neoffice — frappe's check first, as before upstream's replaced it (#1084): the fork of frappe compares the
+        # //// url exactly and asks frappe's rule on File; the Drive's below adds every holder's. Both must let the user in.
+        super().validate_private_file_access()
+        if not self.file_url:
+            return
+        holders = files_using_stored_file(self.file_url, is_private=1)
+        if holders and not any(user_has_permission(name, "read") for name in holders):
+            frappe.throw("You do not have permission to access this file", frappe.PermissionError)
+
+        # The framework treats `/api/method/` and http(s) urls as remote and skips its url
+        # checks, but `get_local_path` resolves any url against the site folder, so `..`
+        # reaches a file no holder lookup can find. storage_key undoes a second layer of
+        # quoting, and the framework strips the site url after this check.
+        url = self.file_url[len(self.get_site_url_prefix()) :]
+        if ".." in storage_key(url).split("/"):
+            frappe.throw("The File URL you've entered is incorrect", frappe.ValidationError)
+        # Drive's uploads skip this method. A fetch url that no row holds names a bucket
+        # object nobody granted. Migrations run as Administrator and insert the first row.
+        if (
+            url.startswith(S3_URL_PREFIX)
+            and frappe.session.user != "Administrator"
+            and not files_using_stored_file(url)
+        ):
+            frappe.throw("You do not have permission to access this file", frappe.PermissionError)
+        # //// Neoffice — the Drive's own places (maintenance#1821), here on a frappe that has no
+        # //// `_validate_private_file_access_in_every_spelling` (the fork's runs them there, see below)
+        if not hasattr(FrappeFile, "_validate_private_file_access_in_every_spelling"):
+            self._refuse_drive_own_places()
+
+    # //// Neoffice — frappe develop's File.get_site_url_prefix (same code), which validate_private_file_access above
+    # //// calls and frappe v15 lacks: every framework upload raised AttributeError. Drop it when the fleet's frappe has it.
+    if not hasattr(FrappeFile, "get_site_url_prefix"):
+
+        def get_site_url_prefix(self) -> str:
+            """This site's URL if file_url starts with it (it is stripped later), else an empty string."""
+            site_url = get_url()
+            return site_url if self.file_url.startswith(site_url + "/") else ""
+
+    def _link_type_changed(self) -> bool:
+        before = self.get_doc_before_save()
+        return bool(before) and (before.file_type == "Link") != (self.file_type == "Link")
 
     def _validate_content_link(self):
         """`content_doctype`/`content_docname` are the sole permission delegation
@@ -282,38 +349,6 @@ class File(FrappeFile):
         if self.name == ROOT_FOLDER:
             frappe.throw("Cannot delete the Drive root folder.", frappe.PermissionError)
         super().on_trash()
-
-    # //// Neoffice — added (maintenance#1823): a Drive row deleted as a document (the desk's File list, the undo of a
-    # //// WebDAV PUT) went through frappe's deletion of its bytes, whose delete_file() keeps only the last part of the
-    # //// path: for « private/files/Users/<x>/<folder>/devis.pdf » it removed « private/files/devis.pdf », a framework
-    # //// file of that name if there was one, and left the Drive's own bytes behind. In the tree on the site's disk, a
-    # //// Drive place (a path below the files folder) is the Drive's to clear, once the deletion is committed: a trashed
-    # //// row's bytes in its place in the trash, an Active row's at its url unless another row names that place. A
-    # //// deleted row's went with permanent_delete (after_delete clears its place in the trash), a folder's directory
-    # //// stays (frappe deletes an empty folder only), a link or a document without storage has none. Frappe's own
-    # //// files (« /private/files/<name> », « /files/<name> »), flat storage and S3 keep frappe's way.
-    def _delete_file_on_disk(self):
-        manager = self.manager
-        if manager.flat or manager.s3_enabled:
-            return super()._delete_file_on_disk()
-        entity = frappe._dict(name=self.name, file_url=self.file_url)
-        # a trashed row's bytes are in its place in the trash, whatever its url: an adopted upload's kept
-        # « /private/files/<name> » may since name a newer framework file, which frappe's way would delete
-        if self.status == STATUS_TRASHED and not self._not_in_disk():
-            if not self.is_folder:
-                frappe.db.after_commit.add(lambda: _quietly(manager.delete_from_trash, entity))
-            return
-        key = storage_key(self.file_url or "")
-        drive_place = (
-            key.startswith("private/files/") and posixpath.dirname(key.rstrip("/")) != "private/files"
-        )
-        if not drive_place:
-            return super()._delete_file_on_disk()
-        if self._not_in_disk() or self.is_folder or self.status == STATUS_REMOVED:
-            return
-        # //// Neoffice — `exact` (maintenance#1828): bytes are kept for a row naming this very place, not a variant of it
-        if not manager.named_by_another_row(key, self.name, exact=True):
-            frappe.db.after_commit.add(lambda: _quietly(manager.delete_file, entity))
 
     def after_delete(self):
         if self.status == STATUS_REMOVED and not self._not_in_disk():
@@ -405,11 +440,6 @@ class File(FrappeFile):
             if posixpath.basename(url) != re.sub(r"[/\\%?#]", "_", self.file_name or ""):
                 raise TypeError("Optimization of a copy stored under another name is not supported")
         return super().optimize_file()
-
-    def validate_private_file_access(self):
-        super().validate_private_file_access()
-        if not hasattr(FrappeFile, "_validate_private_file_access_in_every_spelling"):
-            self._refuse_drive_own_places()
 
     def _refuse_drive_own_places(self):
         if frappe.session.user == "Administrator" or not self.file_url:
@@ -761,8 +791,9 @@ class File(FrappeFile):
             and not self.is_folder
             and self.manager.named_by_another_row(self.file_url, self.name, exact=True)
         )
-        # //// Neoffice — where the bytes are, read before the row gives up its url (below)
-        stored = frappe._dict(name=self.name, file_url=self.file_url)
+        # //// Neoffice — where the bytes are, read before the row gives up its url (below); is_folder: upstream's
+        # //// delete_file removes a directory for its folder row only (#1084)
+        stored = frappe._dict(name=self.name, file_url=self.file_url, is_folder=self.is_folder)
         self.status = STATUS_REMOVED
         if self.is_folder:
             for child in self.get_children():
@@ -779,19 +810,30 @@ class File(FrappeFile):
             self.file_url = self.manager.get_trash_url(self)
             self.flags.drive_sets_url = True  # //// Neoffice — see validate()
         self.save()
-        # //// Neoffice — the bytes are deleted where they were (`stored`), not at the url the row now holds
-        if delete_blob and not keep_bytes:
-            self._delete_blob_after_commit(blob_is_trashed, stored)
+        # //// Neoffice — the bytes are deleted where they were (`stored`), not at the url the row now holds; kept
+        # //// (keep_bytes), only the row's own thumbnail goes, as upstream's in_use (#1084)
+        if delete_blob:
+            self._delete_blob_after_commit(blob_is_trashed, stored, keep_bytes=keep_bytes)
 
     # //// Neoffice — `entity` added (maintenance#1820): permanent_delete names where the bytes were before the row gave up
-    # //// its url; after_delete passes nothing, as upstream.
-    def _delete_blob_after_commit(self, blob_is_trashed: bool, entity: frappe._dict | None = None):
-        entity = entity or frappe._dict(name=self.name, file_url=self.file_url)
+    # //// its url; after_delete passes nothing, as upstream. `keep_bytes`: permanent_delete found another row naming them.
+    def _delete_blob_after_commit(
+        self, blob_is_trashed: bool, entity: frappe._dict | None = None, keep_bytes: bool = False
+    ):
+        # frappe stores identical uploads once, so other rows can hold this blob; a
+        # trashed blob sits at a trash path named after this row alone
+        # //// Neoffice — read where the bytes are (`entity`), not at the url the row holds now; see above
+        entity = entity or frappe._dict(name=self.name, file_url=self.file_url, is_folder=self.is_folder)
+        in_use = keep_bytes or (
+            not blob_is_trashed and stored_file_in_use(entity.file_url, other_than=self.name)
+        )
 
         def delete_blob():
             try:
                 if blob_is_trashed:
                     self.manager.delete_from_trash(entity)
+                elif in_use:
+                    self.manager.delete_thumbnail(entity.name)
                 else:
                     self.manager.delete_file(entity)
             except Exception:
@@ -801,6 +843,58 @@ class File(FrappeFile):
                 )
 
         frappe.db.after_commit.add(delete_blob)
+
+    def _delete_file_on_disk(self):
+        # //// Neoffice — the Drive's own places in the tree on the disk first (maintenance#1823, see the helper below)
+        if self._delete_drive_place_on_disk():
+            return
+        # Run when a row is purged. The framework only spares a row with this exact
+        # url and content hash, which misses a live row under another spelling.
+        if stored_file_in_use(self.file_url, other_than=self.name):
+            # FileV1 only: FileV2 has no such method, and leaves a shared file's thumbnail
+            if hasattr(self, "delete_file_data_content"):
+                self.delete_file_data_content(only_thumbnail=True)
+            return
+        return super()._delete_file_on_disk()
+
+    # //// Neoffice — added (maintenance#1823): a Drive row deleted as a document (the desk's File list, the undo of a
+    # //// WebDAV PUT) went through frappe's deletion of its bytes, whose delete_file() keeps only the last part of the
+    # //// path: for « private/files/Users/<x>/<folder>/devis.pdf » it removed « private/files/devis.pdf », a framework
+    # //// file of that name if there was one, and left the Drive's own bytes behind. In the tree on the site's disk, a
+    # //// Drive place (a path below the files folder) is the Drive's to clear, once the deletion is committed: a trashed
+    # //// row's bytes in its place in the trash, an Active row's at its url unless another row names that place. A
+    # //// deleted row's went with permanent_delete (after_delete clears its place in the trash), a folder's directory
+    # //// stays (frappe deletes an empty folder only), a link or a document without storage has none. Frappe's own
+    # //// files (« /private/files/<name> », « /files/<name> »), flat storage and S3 keep frappe's way.
+    def _delete_drive_place_on_disk(self) -> bool:
+        """Whether the row's bytes are the Drive's to clear (then cleared once the deletion is committed)."""
+        manager = self.manager
+        if manager.flat or manager.s3_enabled:
+            return False
+        entity = frappe._dict(name=self.name, file_url=self.file_url)
+        # a trashed row's bytes are in its place in the trash, whatever its url: an adopted upload's kept
+        # « /private/files/<name> » may since name a newer framework file, which frappe's way would delete
+        if self.status == STATUS_TRASHED and not self._not_in_disk():
+            if not self.is_folder:
+                frappe.db.after_commit.add(lambda: _quietly(manager.delete_from_trash, entity))
+            return True
+        key = storage_key(self.file_url or "")
+        drive_place = (
+            key.startswith("private/files/") and posixpath.dirname(key.rstrip("/")) != "private/files"
+        )
+        if not drive_place:
+            return False
+        if self._not_in_disk() or self.is_folder or self.status == STATUS_REMOVED:
+            return True
+        # `exact` (maintenance#1828): bytes are kept for a row naming this very place, not a variant of it; and, as
+        # upstream (#1084), for a live row naming it in another spelling. The row's own thumbnail goes either way.
+        if manager.named_by_another_row(key, self.name, exact=True) or stored_file_in_use(
+            self.file_url, other_than=self.name
+        ):
+            frappe.db.after_commit.add(lambda: _quietly(lambda e: manager.delete_thumbnail(e.name), entity))
+        else:
+            frappe.db.after_commit.add(lambda: _quietly(manager.delete_file, entity))
+        return True
 
     # Utils
     @property
@@ -816,7 +910,8 @@ class File(FrappeFile):
         copied across itself, or the whole subtree becomes unreadable.
         """
         if new:
-            self.file_url = new
+            self.file_url = str(new)
+            self.flags.drive_disk_rename = True
             self.flags.drive_sets_url = True  # //// Neoffice — see validate()
         manager = self.manager
         for child in self.get_children():

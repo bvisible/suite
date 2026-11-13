@@ -63,7 +63,7 @@ def storage_breakdown():
         "File",
         filters=filters,
         order_by="file_size desc",
-        fields=["name", "file_name", "owner", "file_size", "file_type"],
+        fields=["name", "file_name", "owner", "file_size", "file_type", "content_doctype", "content_docname"],
     )
     # //// Neoffice — the files a computer writes beside the person's (the Finder's ._<name>, …) are not offered as large
     # //// files: no list of the Drive shows them (list.py, SYSTEM_FILE_NAMES; maintenance#1598)
