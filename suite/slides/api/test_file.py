@@ -210,7 +210,9 @@ class TestMediaFileAccess(IntegrationTestCase):
                     file = frappe.get_doc("File", own.name)
                     file.file_type = file_type
                     file.file_url = url
-                    with self.assertRaises(frappe.ValidationError):
+                    # //// Neoffice — our rule on a Drive file's address answers first, with a PermissionError
+                    # //// (File.validate, maintenance#1828); upstream's ValidationError comes after it
+                    with self.assertRaises((frappe.ValidationError, frappe.PermissionError)):
                         file.save()
 
             for url in victim_urls:
@@ -253,19 +255,23 @@ class TestMediaFileAccess(IntegrationTestCase):
 
             # a row already holding a local url, which create_link refuses: it names a
             # web address, so it must not unlock the stored file at that address
-            link_row = frappe.get_doc(
-                {
-                    "doctype": "File",
-                    "file_name": frappe.generate_hash(8),
-                    "file_url": self.file.file_url,
-                    "file_type": "Link",
-                    "is_private": 1,
-                    "attached_to_doctype": "Presentation",
-                    "attached_to_name": template.name,
-                }
-            )
+            # //// Neoffice — `row`: the same values twice, see below
+            row = {
+                "doctype": "File",
+                "file_name": frappe.generate_hash(8),
+                "file_url": self.file.file_url,
+                "file_type": "Link",
+                "is_private": 1,
+                "attached_to_doctype": "Presentation",
+                "attached_to_name": template.name,
+            }
+            link_row = frappe.get_doc(row)
             link_row.flags.file_created = True
-            link_row.insert()
+            # //// Neoffice — the fork of frappe refuses such a row outright (its check on private files, before_save,
+            # //// maintenance#1738); one made before that check existed is written directly
+            with self.assertRaises(frappe.PermissionError):
+                link_row.insert()
+            frappe.get_doc(row).db_insert()
 
         with self.set_user("Guest"), self.assertRaises(Forbidden):
             validate_media_file(self.file.file_url, template.name)

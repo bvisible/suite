@@ -8,7 +8,13 @@ from tempfile import TemporaryDirectory
 from unittest.mock import Mock, PropertyMock, patch
 
 import frappe
-from frappe.core.doctype.file.file_v2 import FileV2
+
+# //// Neoffice — FileV2 (frappe's storage v2) exists in frappe develop only: on the fleet's frappe v15 this import
+# //// stopped the whole module, so none of its tests ran. The one test that needs it is skipped without it.
+try:
+    from frappe.core.doctype.file.file_v2 import FileV2
+except ImportError:
+    FileV2 = None
 from frappe.tests import IntegrationTestCase
 
 from suite.drive.overrides.file import File
@@ -360,6 +366,8 @@ class TestPermanentDeleteOfASharedBlob(IntegrationTestCase):
 
         self.assertTrue(stored.exists())
 
+    # //// Neoffice — see the import of FileV2
+    @unittest.skipIf(FileV2 is None, "frappe has no storage v2 (FileV2)")
     def test_purging_on_storage_v2_keeps_a_blob_a_live_file_still_uses(self):
         kept, deleted = self.make_twins()
         kept.db_set("file_url", kept.file_url.lstrip("/"))

@@ -1009,11 +1009,13 @@ class TestRowsOutOfTheTreeGiveUpTheirUrl(IntegrationTestCase):
         frappe.db.rollback()
         self.assertEqual(frappe.db.get_value("File", mine.name, "file_url"), mine.file_url)
         self.assertEqual(self.content(mine.name), b"mine")
-        # Administrator may, as for every check of the Drive
+        # not Administrator either since the upstream merge of 13.11 (#1084): only the Drive's flows repoint a row
+        # (File._validate_storage_fields), whoever calls a document API; the stricter rule is kept
         frappe.set_user("Administrator")
-        frappe.client.set_value("File", mine.name, "file_url", free)
-        self.assertEqual(frappe.db.get_value("File", mine.name, "file_url"), free)
+        with self.assertRaisesRegex(frappe.ValidationError, "Only Drive can change the URL"):
+            frappe.client.set_value("File", mine.name, "file_url", free)
         frappe.db.rollback()
+        self.assertEqual(frappe.db.get_value("File", mine.name, "file_url"), mine.file_url)
         # and the Drive's own flows still give addresses (a move, here)
         elsewhere = self.make_folder(OWNER, "Ailleurs-address")
         with self.set_user(OWNER):
@@ -1038,7 +1040,11 @@ class TestRowsOutOfTheTreeGiveUpTheirUrl(IntegrationTestCase):
         self.planted.append(self.manager.get_local_path(framework.file_url))
         self.addCleanup(lambda: frappe.db.delete("File", {"name": framework.name}) or frappe.db.commit())
         self.assertEqual(framework.file_url, f"/private/files/framework-{suffix}.txt")
-        with self.set_user(OWNER), self.assertRaisesRegex(frappe.ValidationError, "does not exist"):
+        # refused before the path is looked at since the upstream merge of 13.11: only the Drive repoints a row (#1084)
+        with (
+            self.set_user(OWNER),
+            self.assertRaisesRegex(frappe.ValidationError, "does not exist|Only Drive can change the URL"),
+        ):
             frappe.client.set_value(
                 "File", framework.name, "file_url", f"/private/files/payslip-{suffix}.pdf"
             )
@@ -1087,7 +1093,11 @@ class TestRowsOutOfTheTreeGiveUpTheirUrl(IntegrationTestCase):
         self.assertEqual(copy.file_url, logo.file_url)
         self.assertEqual(banner.file_url, f"/private/files/banner-{suffix}.png")
 
-        with self.set_user(OWNER), self.assertRaisesRegex(frappe.ValidationError, "does not exist"):
+        # refused before the path is looked at since the upstream merge of 13.11: only the Drive repoints a row (#1084)
+        with (
+            self.set_user(OWNER),
+            self.assertRaisesRegex(frappe.ValidationError, "does not exist|Only Drive can change the URL"),
+        ):
             frappe.client.set_value("File", logo.name, "file_url", f"/private/files/dossier-{suffix}")
         frappe.db.rollback()
         with self.set_user(OWNER), self.assertRaises(TypeError):

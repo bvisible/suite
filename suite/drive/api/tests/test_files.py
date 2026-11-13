@@ -709,7 +709,12 @@ class TestDriveFilesAPI(IntegrationTestCase):
         ]
         with self.set_user(OTHER_USER):
             for spelling in spellings:
-                with self.subTest(spelling=spelling), self.assertRaises(frappe.ValidationError):
+                # //// Neoffice — the fork of frappe resolves the path first and finds the file's holder: PermissionError
+                # //// before upstream's ValidationError (_validate_private_file_access_in_every_spelling, maintenance#1738)
+                with (
+                    self.subTest(spelling=spelling),
+                    self.assertRaises((frappe.ValidationError, frappe.PermissionError)),
+                ):
                     self.new_file_with_url(spelling)
 
     def test_new_file_cannot_take_a_fetch_url_no_row_holds(self):
@@ -736,27 +741,32 @@ class TestDriveFilesAPI(IntegrationTestCase):
                     with self.subTest(spelling=spelling), self.assertRaises(frappe.PermissionError):
                         self.new_file_with_url(spelling)
 
-    def test_user_with_a_drive_share_can_add_a_file_for_that_private_file(self):
+    # //// Neoffice — upstream lets a person a file is shared with in the Drive add a File row of their own for it
+    # //// (test_user_with_a_drive_share_can_add_a_file_for_that_private_file). The fork of frappe refuses it, as it did
+    # //// before this merge: its check asks frappe's rule on File, which a Drive share does not open, and a row of one's
+    # //// own would keep the bytes readable after the share is taken back. The stricter rule is kept (#1084, #1738).
+    def test_a_drive_share_does_not_let_a_user_add_a_file_for_that_private_file(self):
         with self.set_user(OWNER):
             shared = self.upload(b"shared with the member", "shared.txt")
             frappe.get_doc("File", shared.name).share(user=MEMBER, read=1)
         url = "/" + shared.file_url.lstrip("/")
 
-        with self.set_user(MEMBER):
-            added = self.new_file_with_url(url)
-            self.assertEqual(FileManager().get_file(added).read(), b"shared with the member")
-
-        with self.set_user(OTHER_USER), self.assertRaises(frappe.PermissionError):
-            self.new_file_with_url(url)
+        # //// Neoffice — the member is refused as anyone else (see above)
+        for user in (MEMBER, OTHER_USER):
+            with self.subTest(user=user), self.set_user(user), self.assertRaises(frappe.PermissionError):
+                self.new_file_with_url(url)
 
         # the same on an S3 site, where the url is the fetch url of the bucket key
         fetch_url = get_s3_url(f"{self.folder.name}/shared file.txt")
         frappe.db.set_value("File", shared.name, "file_url", fetch_url)
-        with self.set_user(MEMBER):
-            added = self.new_file_with_url(fetch_url)
-            self.assertEqual(storage_key(added.file_url), f"{self.folder.name}/shared file.txt")
-        with self.set_user(OTHER_USER), self.assertRaises(frappe.PermissionError):
-            self.new_file_with_url(fetch_url)
+        # //// Neoffice — the same refusal on S3 (see above)
+        for user in (MEMBER, OTHER_USER):
+            with (
+                self.subTest(user=user, url=fetch_url),
+                self.set_user(user),
+                self.assertRaises(frappe.PermissionError),
+            ):
+                self.new_file_with_url(fetch_url)
 
     def test_link_must_be_a_web_address(self):
         with self.set_user(OWNER):

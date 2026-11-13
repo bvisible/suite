@@ -252,7 +252,10 @@ class File(FrappeFile):
         `ignore_file_permissions` turns into a yes for everyone, so this asks Drive's."""
         # //// Neoffice — frappe's check first, as before upstream's replaced it (#1084): the fork of frappe compares the
         # //// url exactly and asks frappe's rule on File; the Drive's below adds every holder's. Both must let the user in.
-        super().validate_private_file_access()
+        # //// Not for a Link row: it names a web address, and frappe's check took another person's link to the same page
+        # //// (a private row of that url) for the holder of a private file. Upstream's below leaves links out the same way.
+        if self.file_type != "Link":
+            super().validate_private_file_access()
         if not self.file_url:
             return
         holders = files_using_stored_file(self.file_url, is_private=1)

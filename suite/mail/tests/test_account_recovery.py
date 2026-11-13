@@ -157,6 +157,9 @@ class TestMailAccountRecovery(IntegrationTestCase):
             frappe.set_user("Administrator")
             fresh = self._reset_key_for(person, now_datetime())
             frappe.set_user("Guest")
+            # a new request, a new response: upstream's update_password (merged 13.11) reads frappe's 410 on it, and
+            # the stale key's call above left that status on this process's response
+            frappe.local.response.pop("http_status_code", None)
             events.update_password(new_password=STRONG, key=fresh)
             mail_password.assert_called_once_with(person, new_password=STRONG)
 
