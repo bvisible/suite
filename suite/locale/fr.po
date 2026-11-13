@@ -33269,3 +33269,16 @@ msgstr "Activer l'aperçu de la caméra"
 #: suite/public/frontend/assets/Meeting-DHc2_oj_.js:209
 msgid "Your background looks mirrored to you, but others see it correctly."
 msgstr "Votre arrière-plan vous apparaît en miroir, mais les autres le voient correctement."
+
+#: suite/drive/overrides/file.py:145
+msgid "Move a Drive file from the Drive, not from the File form"
+msgstr "Déplacez un fichier du Drive depuis le Drive, et non depuis le formulaire « Fichier »."
+
+#: suite/drive/doctype/drive_user_invitation/drive_user_invitation.py:97
+msgid "Please open the link of your invitation e-mail to sign up, or ask for a new invitation."
+msgstr "Veuillez ouvrir le lien de votre e-mail d'invitation pour vous inscrire, ou demander une nouvelle invitation."
+
+#: suite/drive/doctype/drive_disk_settings/drive_disk_settings.py:60
+#, python-brace-format
+msgid "{0} must be a folder name inside the Drive, without « .. »"
+msgstr "{0} doit être le nom d'un dossier du Drive, sans « .. »"
