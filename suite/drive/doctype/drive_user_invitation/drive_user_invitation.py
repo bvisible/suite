@@ -5,7 +5,9 @@
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
 
-# //// Neoffice — urlencode and _ serve accept() (neoffice-maintenance#2296)
+# //// Neoffice — urlencode and _ serve accept() (neoffice-maintenance#2296); hashlib and hmac, get_invite_token
+import hashlib
+import hmac
 from urllib.parse import urlencode
 
 import frappe
@@ -52,9 +54,8 @@ class DriveUserInvitation(Document):
 
         # //// Neoffice — the link carries the key: it is built on the site's configured address, never on the
         # //// Host header of the request that made the invitation (neoffice-maintenance#2296).
-        link = frappe.utils.get_url(
-            f"/api/method/suite.drive.api.product.accept_invite?key={self.name}", allow_header_override=False
-        )
+        # //// Neoffice — and its token (get_invite_token, GHSA-xqwr-x9c5-vvf8)
+        link = get_invite_link(self.name)
         suite_email.send(
             "drive-invite",
             self.email,
@@ -67,7 +68,8 @@ class DriveUserInvitation(Document):
             },
         )
 
-    def accept(self, redirect=True):
+    # //// Neoffice — `token`: see get_invite_token (GHSA-xqwr-x9c5-vvf8)
+    def accept(self, redirect=True, token=None):
         if self.status not in ["Pending", "Automatic"]:
             frappe.throw("This key has already been used")
         if self.status == "Expired" or self.has_expired():
@@ -84,12 +86,23 @@ class DriveUserInvitation(Document):
             },
         )
 
+        # //// Neoffice — the sign-up request is made only for an address that has no account yet: an existing
+        # //// account signs in below instead (neoffice-maintenance#2296). And only from the e-mailed link: the key alone
+        # //// made a verified request for whoever held it (get_invite_token, GHSA-xqwr-x9c5-vvf8).
+        signs_up = not exists and not frappe.db.exists("User", self.email)
+        if signs_up and not (
+            isinstance(token, str) and hmac.compare_digest(token, get_invite_token(self.name))
+        ):
+            frappe.throw(
+                _("Please open the link of your invitation e-mail to sign up, or ask for a new invitation."),
+                frappe.PermissionError,
+            )
+
         if redirect:
             frappe.local.response["type"] = "redirect"
 
-        # //// Neoffice — the sign-up request is made only for an address that has no account yet: an existing
-        # //// account signs in below instead (neoffice-maintenance#2296).
-        if not exists and not frappe.db.exists("User", self.email):
+        # //// Neoffice — see `signs_up` above
+        if signs_up:
             # If the user does not have an account, redirect to sign up
             req = frappe.get_doc(
                 {
@@ -136,3 +149,27 @@ class DriveUserInvitation(Document):
             return False
         email = frappe.db.get_value("User", user, "email") or user
         return email.strip().lower() == self.email.strip().lower()
+
+
+# //// Neoffice — added (GHSA-xqwr-x9c5-vvf8 of frappe/drive, fixed there in 0.4.2): the key of an invitation does not
+# //// prove that one received it. Suite Admin reads every invitation, and a link passes from hand to hand: for an
+# //// address with no account, the key alone made a verified sign-up request (login_count 1), and whoever held it
+# //// created the account of that address with a password of their choosing. The e-mailed link carries an HMAC of the
+# //// key under the site's encryption key, which only the e-mail has. Same token as upstream's.
+def get_invite_token(key: str) -> str:
+    """The proof, carried by the e-mailed link only, that its holder received the invitation."""
+    from frappe.utils.password import get_encryption_key
+
+    message = f"Drive User Invitation {key}".encode()
+    return hmac.new(get_encryption_key().encode(), message, hashlib.sha256).hexdigest()
+
+
+# //// Neoffice — added, see get_invite_token: the link of the invitation e-mail and of a share's e-mail to an address
+# //// with no account, on the site's configured address, never the Host header of the request (#2296)
+def get_invite_link(key: str, redirect: str | None = None) -> str:
+    query = {"key": key, "token": get_invite_token(key)}
+    if redirect:
+        query["redirect"] = redirect
+    return frappe.utils.get_url(
+        "/api/method/suite.drive.api.product.accept_invite?" + urlencode(query), allow_header_override=False
+    )

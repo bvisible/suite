@@ -98,7 +98,9 @@ def create_office_file(file_type: str, title: str, parent: str = None) -> dict: 
     if manager.s3_enabled:
         manager.conn.upload_file(template_path, manager.bucket, get_s3_key(drive_file.file_url))
     else:
-        dest = manager.site_folder / key
+        # //// Neoffice — in the files folders or nowhere (place_in_tree, GHSA-73gm): a new document in a folder frappe's
+        # //// own API made, which has no address, landed at the top of the site's folder
+        dest = manager.place_in_tree(key)
         os.makedirs(os.path.dirname(dest), exist_ok=True)
         shutil.copyfile(template_path, dest)
 

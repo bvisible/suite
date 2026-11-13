@@ -42,6 +42,26 @@ class DriveDiskSettings(Document):
         self._validate_webdav_methods()
         # //// Neoffice — the S3 endpoint is a public storage service (neoffice-maintenance#2296), see below
         self._validate_endpoint_url()
+        # //// Neoffice — the Drive folder and the thumbnails' prefix are names inside the files folder (GHSA-73gm), below
+        self._validate_storage_prefixes()
+
+    # //// Neoffice — added (GHSA-73gm-29h2-x4jf of frappe/drive): the Drive folder and the thumbnails' prefix are joined
+    # //// to the site's private files for every upload, chunk and thumbnail. Suite Admin (a role of the client's admin)
+    # //// set them freely: « ../../x » or an absolute path put the chunks of an upload outside the files folders. Each
+    # //// is a relative path of plain names, for everyone.
+    def _validate_storage_prefixes(self):
+        for field in ("root_folder", "thumbnail_prefix"):
+            value = (self.get(field) or "").strip()
+            if not value:
+                continue
+            parts = value.rstrip("/").split("/")
+            if value.startswith("/") or "\\" in value or any(part in ("", ".", "..") for part in parts):
+                frappe.throw(
+                    frappe._("{0} must be a folder name inside the Drive, without « .. »").format(
+                        frappe._(self.meta.get_label(field))
+                    ),
+                    frappe.ValidationError,
+                )
 
     # //// Neoffice — added (neoffice-maintenance#2296): Suite Admin, a role of the client's own admin, set the endpoint
     # //// the Drive's S3 client calls with no check, and the server then sent signed requests to an address of its

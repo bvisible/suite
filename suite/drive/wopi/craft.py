@@ -134,7 +134,8 @@ def get_craft_editor_config(file_id: str, requested: str = "") -> dict:
     if not frappe.db.exists("File", file_id):
         return {"available": False, "reason": _("File not found")}
     file = frappe.get_doc("File", file_id)
-    if file.is_folder or not user_has_permission(file, "read"):
+    # //// Neoffice — nor a row whose bytes the Drive does not store, a link above all (endpoints.get_wopi_file, GHSA-73gm)
+    if file.is_folder or file._not_in_disk() or not user_has_permission(file, "read"):
         return {"available": False, "reason": _("File not found")}
 
     file_name = file.file_name or ""
@@ -238,7 +239,9 @@ def save_copy(file_id: str, file_name: str) -> dict:
         drive_file.flags.drive_sets_url = True  # //// Neoffice — the Drive gives the address (File.validate)
         drive_file.save(ignore_permissions=True)
     else:
-        destination = manager.site_folder / storage_key(drive_file.file_url)
+        # //// Neoffice — in the files folders or nowhere (place_in_tree, GHSA-73gm): a copy into a folder frappe's own
+        # //// API made, which has no address, landed at the top of the site's folder
+        destination = manager.place_in_tree(storage_key(drive_file.file_url))
         os.makedirs(os.path.dirname(destination), exist_ok=True)
         with open(destination, "wb") as handle:
             handle.write(content)

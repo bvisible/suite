@@ -122,10 +122,11 @@ def notify_share(entity_name, docperm_name):
             "document": _('{0} shared a document with you: "{1}"'),
         }[entity_type].format(author_full_name, entity.file_name)
         if not frappe.db.exists("User", docshare.user):
+            # //// Neoffice — the invitation's own link, with its token and on the site's address (GHSA-xqwr-x9c5-vvf8)
+            from suite.drive.doctype.drive_user_invitation.drive_user_invitation import get_invite_link
+
             key = frappe.get_value("Drive User Invitation", {"email": docshare.user})
-            link = frappe.utils.get_url(
-                f"/api/method/suite.drive.api.product.accept_invite?key={key}&redirect={link}"
-            )
+            link = get_invite_link(key, link)
         else:
             create_notification(docshare.owner, docshare.user, "Share", entity, message)
         # //// Neoffice — the link is made absolute inside send_share_email (« /drive/d/<id>/ » cannot be

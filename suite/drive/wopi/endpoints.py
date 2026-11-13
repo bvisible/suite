@@ -48,6 +48,11 @@ def get_wopi_file(file_id: str):
     file = frappe.get_doc("File", file_id)
     if file.is_folder:
         frappe.throw(_("Cannot open a folder in the editor"), frappe.ValidationError)
+    # //// Neoffice — only a file whose bytes the Drive stores opens in an editor (GHSA-73gm-29h2-x4jf of frappe/drive,
+    # //// whose 0.4.2 refuses the same rows): a Link row named « x.docx » was opened and saved, and PutFile wrote the
+    # //// body at the place its web address made under the site's folder. A document kept in the database has no bytes.
+    if file._not_in_disk():
+        frappe.throw(_("File not found"), frappe.DoesNotExistError)
     return file
 
 
@@ -97,7 +102,8 @@ def write_file_content(file, content: bytes) -> None:
         # //// FileManager.get_bucket(team) is gone, the bucket is now an attribute.
         manager.conn.put_object(Bucket=manager.bucket, Key=key, Body=content)
     else:
-        path = manager.site_folder / key
+        # //// Neoffice — in the files folders, at the entry its name makes, or nowhere (place_in_tree, GHSA-73gm)
+        path = manager.place_in_tree(key)
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "wb") as f:
             f.write(content)

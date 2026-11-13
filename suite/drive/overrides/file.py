@@ -130,6 +130,20 @@ class File(FrappeFile):
                 frappe.throw(
                     _("The address of a Drive file can only be changed by the Drive"), frappe.PermissionError
                 )
+        # //// Neoffice — where a saved row sits in the tree is the Drive's to change (GHSA-hvv9-wq9j-hccx of frappe/drive,
+        # //// whose 0.4.2 locks its storage fields): a document API (frappe.client.set_value, PUT /api/resource/File,
+        # //// frappe's move_file) set `folder` past move()'s checks (upload on the destination, the trash, a folder into
+        # //// itself) and gave the row the readers of another folder without `share`; `is_folder` made a file a folder.
+        # //// Only move() changes them (`drive_moves`). Administrator passes, as for our other rules here.
+        if (
+            not self.is_new()
+            and not self.flags.drive_moves
+            and frappe.session.user != "Administrator"
+            and (self.has_value_changed("folder") or self.has_value_changed("is_folder"))
+        ):
+            frappe.throw(
+                _("Move a Drive file from the Drive, not from the File form"), frappe.PermissionError
+            )
         if self.is_new() and not self.flags.file_created:
             return super().validate()
         # //// Neoffice — upstream applied the two Drive blob rules below to every File, including
@@ -664,6 +678,7 @@ class File(FrappeFile):
         # Sanctioned rename: move() owns the disk move below, so let validate
         # through even though file_name may change on a name collision.
         self.flags.drive_disk_rename = True
+        self.flags.drive_moves = True  # //// Neoffice — see validate()
 
         if new_parent != self.folder:
             old_folder_name = frappe.db.get_value("File", self.folder, "file_name")

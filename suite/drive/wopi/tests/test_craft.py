@@ -78,7 +78,8 @@ class TestWhatThePageIsToldToOpen(IntegrationTestCase):
         version="0.6.1",
         requested=None,
     ):
-        document = SimpleNamespace(file_name=file_name, is_folder=0)
+        # _not_in_disk: a file whose bytes the Drive stores (craft.get_craft_editor_config, GHSA-73gm)
+        document = SimpleNamespace(file_name=file_name, is_folder=0, _not_in_disk=lambda: False)
 
         def permission(doc, ptype, user=None):
             return readable if ptype == "read" else writable
@@ -203,7 +204,9 @@ class TestNoraIsForStaff(IntegrationTestCase):
         with (
             patch.object(craft.frappe.db, "exists", return_value=True),
             patch.object(
-                craft.frappe, "get_doc", return_value=SimpleNamespace(file_name="quote.docx", is_folder=0)
+                craft.frappe,
+                "get_doc",
+                return_value=SimpleNamespace(file_name="quote.docx", is_folder=0, _not_in_disk=lambda: False),
             ),
             patch("suite.drive.api.permissions.user_has_permission", return_value=True),
             patch.object(craft, "installed_version", return_value="0.7.0"),

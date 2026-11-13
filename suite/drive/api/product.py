@@ -341,8 +341,9 @@ def _sees_the_directory() -> bool:
     return frappe.get_cached_value("User", user, "user_type") == "System User"
 
 
+# //// Neoffice — `token`: the e-mailed link's proof (drive_user_invitation.get_invite_token, GHSA-xqwr-x9c5-vvf8)
 @frappe.whitelist(allow_guest=True)
-def accept_invite(key: str, redirect: bool | str = True):
+def accept_invite(key: str, redirect: bool | str = True, token: str | None = None):
     # //// Neoffice — the key is a name, never a filter (see _plain_text); a redirect that is not a path of this
     # //// site is dropped (neoffice-maintenance#2296).
     _plain_text(key, _("invitation key"))
@@ -353,7 +354,7 @@ def accept_invite(key: str, redirect: bool | str = True):
     except Exception:
         frappe.throw("Could not find invitation.")
 
-    return invitation.accept(redirect)
+    return invitation.accept(redirect, token)  # //// Neoffice — see above
 
 
 @frappe.whitelist()

@@ -260,7 +260,13 @@ def _clear_the_place(manager, parent: str, name: str) -> None:
         return
     parent_path = Path(storage_key(frappe.db.get_value("File", parent, "file_url") or ""))
     key = manager.get_disk_path(frappe._dict(file_name=name, parent_path=parent_path))
-    place = manager.site_folder / key
+    # //// Neoffice — the place is in the files folders or nowhere (place_in_tree, GHSA-73gm-29h2-x4jf): under a folder
+    # //// with no address (one frappe's own API made), a name's place was the site's folder itself, and what stood
+    # //// there (site_config.json) was set aside into the trash before the new row was refused.
+    try:
+        place = manager.place_in_tree(key)
+    except frappe.ValidationError:
+        raise Conflict("This folder has no place in the Drive's storage.")
     if not (place.exists() or place.is_symlink()):
         return
     if manager.named_by_another_row(key, None):

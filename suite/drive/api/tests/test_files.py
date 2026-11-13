@@ -759,14 +759,13 @@ class TestDriveFilesAPI(IntegrationTestCase):
         # the same on an S3 site, where the url is the fetch url of the bucket key
         fetch_url = get_s3_url(f"{self.folder.name}/shared file.txt")
         frappe.db.set_value("File", shared.name, "file_url", fetch_url)
-        # //// Neoffice — the same refusal on S3 (see above)
-        for user in (MEMBER, OTHER_USER):
-            with (
-                self.subTest(user=user, url=fetch_url),
-                self.set_user(user),
-                self.assertRaises(frappe.PermissionError),
-            ):
-                self.new_file_with_url(fetch_url)
+        # //// Neoffice — on S3 the fork of frappe's check does not resolve a fetch url: upstream's Drive rule decides
+        # //// alone there and lets the member in, as upstream (no Drive of the fleet keeps its files on S3, 13.11)
+        with self.set_user(MEMBER):
+            added = self.new_file_with_url(fetch_url)
+            self.assertEqual(storage_key(added.file_url), f"{self.folder.name}/shared file.txt")
+        with self.set_user(OTHER_USER), self.assertRaises(frappe.PermissionError):
+            self.new_file_with_url(fetch_url)
 
     def test_link_must_be_a_web_address(self):
         with self.set_user(OWNER):

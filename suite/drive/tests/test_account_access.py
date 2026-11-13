@@ -17,6 +17,7 @@ from frappe.tests.roles import as_role
 from frappe.utils import add_to_date, now_datetime
 
 from suite.drive.api import product
+from suite.drive.doctype.drive_user_invitation.drive_user_invitation import get_invite_token
 from suite.tests.utils import ensure_user
 
 EXISTING = "drive-invite-existing@example.test"
@@ -127,12 +128,14 @@ class TestDriveAccountAccess(IntegrationTestCase):
         email = f"drive-invite-new-{frappe.generate_hash(length=6)}@example.test"
         name = make_invitation(email, status="Automatic")
         frappe.set_user("Guest")
-        product.accept_invite(key=name, redirect="https://elsewhere.example/phish")
+        # the token of the e-mailed link (GHSA-xqwr-x9c5-vvf8, test_drive_advisories)
+        token = get_invite_token(name)
+        product.accept_invite(key=name, redirect="https://elsewhere.example/phish", token=token)
         query = parse_qs(urlparse(frappe.local.response["location"]).query)
         self.assertNotIn("redirect-to", query)
         self.assertEqual(query["e"], [email])
 
-        product.accept_invite(key=name, redirect="/drive/d/some-folder/")
+        product.accept_invite(key=name, redirect="/drive/d/some-folder/", token=token)
         query = parse_qs(urlparse(frappe.local.response["location"]).query)
         self.assertEqual(query["redirect-to"], ["/drive/d/some-folder/"])
         request = query["r"][0]
