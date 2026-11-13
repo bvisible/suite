@@ -33259,3 +33259,13 @@ msgstr "En attente de votre réponse."
 #, python-brace-format
 msgid "{0} answered:"
 msgstr "{0} a répondu :"
+
+#: frontend/src/neoffice/i18nRegistry.ts:435
+#: suite/public/frontend/assets/Meeting-DHc2_oj_.js:209
+msgid "Enable camera preview"
+msgstr "Activer l'aperçu de la caméra"
+
+#: frontend/src/neoffice/i18nRegistry.ts:1305
+#: suite/public/frontend/assets/Meeting-DHc2_oj_.js:209
+msgid "Your background looks mirrored to you, but others see it correctly."
+msgstr "Votre arrière-plan vous apparaît en miroir, mais les autres le voient correctement."
