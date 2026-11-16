@@ -1,1 +1,0 @@
-import{B as e}from"./files-BpdFkcFT.js";export{e as openEntity};
