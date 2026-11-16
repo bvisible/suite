@@ -305,7 +305,7 @@ def names_of(link) -> tuple[list[str], set[str]]:
 
 def names_in(text: str) -> tuple[list[str], set[str]]:
     """The names of `text` and its words in small letters (folded). A name is written with a capital where a
-    sentence does not begin (« Neoffice », « WinBiz », « FIDAG »), at least twice, and never in small letters; a word
+    sentence does not begin (« Neoffice », « WinBiz », « Acme »), at least twice, and never in small letters; a word
     that opens a heading is not one, nor a verb or a participle of a title (« Reprendre », « Hébergé »)."""
     lower, capital, seen = set(), [], {}
     for match in re.finditer(r"[^\W\d_][\w'\u2019-]*", text or ""):

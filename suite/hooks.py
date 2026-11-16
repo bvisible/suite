@@ -88,7 +88,7 @@ website_redirects = [
     # //// dropped it too (this list matches theirs), but it has come back before:
     # //// frappe/mail is a desk-first product that owns its domain root, whereas a
     # //// Neoffice instance serves a public website there (webshop / builder pages).
-    # //// The rule hijacked the root of dmis.ch and the site vitrine vanished behind
+    # //// The rule hijacked the root of a client's domain and the site vitrine vanished behind
     # //// the Suite SPA. If a merge ever brings it back, drop it again.
     {
         "source": "/auth/validate",
