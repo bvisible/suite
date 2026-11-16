@@ -152,14 +152,16 @@ import { Button, Combobox, ErrorMessage, Tooltip, createResource } from 'frappe-
 import LucideMail from '~icons/lucide/mail'
 import LucideUser from '~icons/lucide/user'
 
-import { SUITE_APPS, SUITE_LOGO } from '@/apps/registry'
+//// Neoffice — OFFERED_APPS in place of SUITE_APPS: the welcome shows the apps we offer (#1311).
+import { OFFERED_APPS, SUITE_LOGO } from '@/apps/registry'
 import { setupTheme, switchTheme, systemDark, themeMode } from '@/utils/setupTheme'
 import SetupProgressTrack from '@/shell/SetupProgressTrack.vue'
 import WorkspaceBrandingForm from '@/shell/WorkspaceBrandingForm.vue'
 import InviteStep from '@/shell/InviteStep.vue'
 import { detectTimezone, useTimezones } from '@/shell/useTimezones'
 
-const apps = SUITE_APPS
+//// Neoffice — was `SUITE_APPS`: Writer, Slides and Sheets are not offered (#1311).
+const apps = OFFERED_APPS
 const suiteLogo = SUITE_LOGO
 
 type Step = 'welcome' | 'workspace' | 'invite' | 'ready'

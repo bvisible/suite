@@ -65,8 +65,9 @@ import { Avatar, Dropdown, toast } from 'frappe-ui'
 import { CircleUser, LogOut } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 
-//// Neoffice — SUITE_LOGO too: the hub's mark in the cockpit's module switcher (surfaceApp below).
-import { SUITE_APPS, SUITE_LOGO } from '@/apps/registry'
+//// Neoffice — SUITE_LOGO too: the hub's mark in the cockpit's module switcher (surfaceApp below);
+//// OFFERED_APPS: the tiles are the offered apps, Writer, Slides and Sheets left out (#1311).
+import { OFFERED_APPS, SUITE_APPS, SUITE_LOGO } from '@/apps/registry'
 import { useStartMeeting } from '@/apps/meet/composables/useStartMeeting'
 //// Neoffice — the shared cockpit rail (see the template).
 import NeoCockpitBridge from '@/shell/NeoCockpitBridge.vue'
@@ -80,7 +81,8 @@ import { useWorkspace } from '@/shell/useWorkspace'
 import { useRootStore } from '@/stores/root'
 import { setupTheme } from '@/utils/setupTheme'
 
-const apps = SUITE_APPS
+//// Neoffice — was `SUITE_APPS`: the launcher offers the offered apps only (#1311).
+const apps = OFFERED_APPS
 const router = useRouter()
 const root = useRootStore()
 const { fullName, imageURL } = useCurrentUser()

@@ -39,6 +39,10 @@ interface SuiteApp {
    * appears. Set it as each app gets its phone layout.
    */
   pwa?: boolean
+  // //// Neoffice: left out of the launcher, the app switcher and the setup screen (#1311): Writer, Slides and
+  // Sheets. Our Office documents are made from the Drive (New › Document, Spreadsheet, Presentation) and open in
+  // their Craft editor, so these three are not offered. Their code and their routes stay as upstream ships them. ////
+  hidden?: boolean
 }
 
 export interface SuiteAppSwitcherItem {
@@ -56,10 +60,11 @@ export const SUITE_APPS: SuiteApp[] = [
   { id: 'drive', name: 'Drive', prefix: '/drive', logo: NEOFFICE_APP_ICONS.drive },
   // //// Neoffice: Slides/Writer/Sheets tiles create an Office file (opened in
   // its Craft editor) in the Drive (pptx/docx/xlsx) instead of opening the native editors.
-  // The native SPAs stay reachable at their /slides /writer /sheets URLs. ////
-  { id: 'slides', name: 'Slides', prefix: '/slides', logo: NEOFFICE_APP_ICONS.slides, createsOffice: 'pptx' },
-  { id: 'writer', name: 'Writer', prefix: '/writer', logo: NEOFFICE_APP_ICONS.writer, createsOffice: 'docx' },
-  { id: 'sheets', name: 'Sheets', prefix: '/sheets', logo: NEOFFICE_APP_ICONS.sheets, createsOffice: 'xlsx' },
+  // The native SPAs stay reachable at their /slides /writer /sheets URLs. Not offered
+  // since 16.11 (`hidden`, #1311): the Drive's own New menu makes the same files. ////
+  { id: 'slides', name: 'Slides', prefix: '/slides', logo: NEOFFICE_APP_ICONS.slides, createsOffice: 'pptx', hidden: true },
+  { id: 'writer', name: 'Writer', prefix: '/writer', logo: NEOFFICE_APP_ICONS.writer, createsOffice: 'docx', hidden: true },
+  { id: 'sheets', name: 'Sheets', prefix: '/sheets', logo: NEOFFICE_APP_ICONS.sheets, createsOffice: 'xlsx', hidden: true },
   { id: 'meet', name: 'Meet', prefix: '/meet', logo: NEOFFICE_APP_ICONS.meet },
   // //// Neoffice: the Mail tile opens our frappe_webmail — the DESK page
   // /app/webmail (the maintained path; the website route /webmail stays stuck
@@ -69,12 +74,17 @@ export const SUITE_APPS: SuiteApp[] = [
   { id: 'calendar', name: 'Calendar', prefix: '/calendar', logo: NEOFFICE_APP_ICONS.calendar, pwa: true },
 ]
 
+// //// Neoffice: what the launcher, the app switcher and the setup screen offer: every app but the hidden ones
+// (#1311). The router still mounts every app of SUITE_APPS. ////
+export const OFFERED_APPS = SUITE_APPS.filter((app) => !app.hidden)
+
 /** Whether the suite PWA's manifest and install offer belong on this app's routes. */
 export function isInstallableApp(appId: unknown): boolean {
   return !!SUITE_APPS.find((app) => app.id === appId)?.pwa
 }
 
-const SUITE_APP_SWITCHER_ITEMS: SuiteAppSwitcherItem[] = SUITE_APPS.map((app) => ({
+//// Neoffice — was `SUITE_APPS.map`: the switcher offers the offered apps only (OFFERED_APPS, #1311).
+const SUITE_APP_SWITCHER_ITEMS: SuiteAppSwitcherItem[] = OFFERED_APPS.map((app) => ({
   name: app.id,
   title: app.name,
   route: app.prefix,
