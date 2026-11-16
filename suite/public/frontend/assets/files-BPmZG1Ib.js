@@ -1,1 +1,0 @@
-import{B as e}from"./files-BkRR2Sj1.js";export{e as openEntity};

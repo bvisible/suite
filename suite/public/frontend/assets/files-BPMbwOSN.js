@@ -1,0 +1,1 @@
+import{B as e}from"./files-CbaOkOQD.js";export{e as openEntity};
