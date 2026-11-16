@@ -350,7 +350,7 @@ Also regenerated, never hand-edited:
 |---|---|
 | `frontend/pnpm-lock.yaml` | +10481 lines. Ours: we build with pnpm, upstream with yarn. Regenerate, never merge by hand. |
 | `suite/locale/fr.po`, `suite/locale/main.pot` | +38131 lines — the French translation (`b17825727`, 1367 strings after the merge, Sonnet). Regenerate with `bench generate-pot-file` / `update-po-files`; **never** create `translations/*.csv` (PO wins at runtime). |
-| `.github/workflows/{tests,fork-markers,upstream-preview}.yml` | ours, added — fleet CI wave 2. `build-frontend.yml` is upstream's, modified. |
+| `.github/workflows/{tests,fork-markers}.yml` | ours, added — fleet CI wave 2 (`upstream-preview.yml` retired until the next upstream merge, maintenance#263). `build-frontend.yml` is upstream's, modified. |
 
 ---
 
