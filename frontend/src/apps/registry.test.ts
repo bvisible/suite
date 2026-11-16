@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import { jmapUser, systemUser } from '@/boot/session'
 //// Neoffice — OFFERED_APPS and SUITE_APPS for the tests of #1311 below.
-import { OFFERED_APPS, SUITE_APPS, getAppSwitcherItems, getPhoneAppSwitcherItems } from './registry'
+import { OFFERED_APPS, SUITE_APPS, getAppSwitcherItems, getPhoneAppSwitcherItems, isOffered } from './registry'
 
 const names = (currentApp: string) => getPhoneAppSwitcherItems(currentApp).map((app) => app.name)
 
@@ -53,6 +53,12 @@ describe('the apps we offer', () => {
 		}
 		expect(offered).toEqual(expect.arrayContaining(['drive', 'meet', 'mail', 'calendar']))
 		expect(switcher).toEqual(expect.arrayContaining(['frappe', 'drive', 'meet', 'mail', 'calendar']))
+	})
+
+	//// Neoffice — added test (#1311): the Drive asks isOffered before it offers their own files.
+	it('tells the Drive not to offer their own files (New menu, Documents and Presentations views)', () => {
+		for (const id of ['writer', 'slides', 'sheets']) expect(isOffered(id)).toBe(false)
+		for (const id of ['drive', 'meet', 'mail', 'calendar']) expect(isOffered(id)).toBe(true)
 	})
 
 	it('keeps their code and routes: the registry the router reads still has them', () => {

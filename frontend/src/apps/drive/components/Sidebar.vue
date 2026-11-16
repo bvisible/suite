@@ -19,6 +19,8 @@ import FrappeDriveLogo from '@/apps/drive/components/FrappeDriveLogo.vue'
 import StorageBar from './StorageBar.vue'
 import { Sidebar, SidebarCollapseToggle, SidebarHeader, SidebarItem, SidebarSection } from 'frappe-ui'
 import { notifCount, apps } from '@/apps/drive/resources/permissions'
+//// Neoffice — isOffered: the Documents and Presentations views list Writer's and Slides' files (#1311)
+import { isOffered } from '@/apps/registry'
 import { rootInfo } from '@/apps/drive/resources/files'
 import { dynamicList, isApple } from '@/apps/drive/utils/files'
 
@@ -210,13 +212,16 @@ const sidebarItems = computed(() => {
           to: { name: 'drive-Documents' },
           icon: LucideFileText,
           isActive: active('drive-Documents'),
+          // //// Neoffice — Writer's documents: listed only where Writer is offered (#1311).
+          cond: isOffered('writer'),
         },
         {
           label: 'Presentations',
           to: { name: 'drive-Presentations' },
           icon: LucideGalleryVerticalEnd,
           isActive: active('drive-Presentations'),
-          cond: apps.data?.find?.((k) => k.name === 'slides'),
+          // //// Neoffice — was without isOffered: Slides' presentations, listed only where Slides is offered (#1311).
+          cond: isOffered('slides') && apps.data?.find?.((k) => k.name === 'slides'),
         },
       ]),
     },

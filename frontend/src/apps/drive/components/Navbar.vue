@@ -105,6 +105,8 @@ import LucideX from '~icons/lucide/x'
 import { entitiesDownload } from '@/apps/drive/utils/download'
 import { getRecents, getTrash, getFavourites, toggleFav, rootInfo } from '@/apps/drive/resources/files'
 import { apps } from '@/apps/drive/resources/permissions'
+//// Neoffice — isOffered: Writer, Slides and Sheets are not offered, nor their entries below (#1311).
+import { isOffered } from '@/apps/registry'
 import { useRoute } from 'vue-router'
 import {
   newExternal,
@@ -395,6 +397,8 @@ const newEntityOptions = computed(() => [
         label: __('Document'),
         icon: LucideFilePlus2,
         onClick: () => newExternal('Document'),
+        // //// Neoffice — a Writer document: offered only where Writer is (isOffered, #1311); NeoDoc makes ours.
+        cond: isOffered('writer'),
       },
       // //// Neoffice: blank Office files (Craft editors), port of the
       // standalone drive's Word/Excel/PowerPoint entries. ////
@@ -423,14 +427,16 @@ const newEntityOptions = computed(() => [
         label: __('Presentation'),
         icon: LucideGalleryVerticalEnd,
         onClick: () => newExternal('Presentation'),
-        cond: isPrivate.value && apps.data?.find?.((k) => k.name === 'slides'),
+        // //// Neoffice — was without isOffered: a Slides presentation, offered only where Slides is (#1311).
+        cond: isOffered('slides') && isPrivate.value && apps.data?.find?.((k) => k.name === 'slides'),
       },
       {
         // //// Neoffice — __() wrap (see the group above).
         label: __('Spreadsheet'),
         icon: LucideSheet,
         onClick: () => newExternal('Spreadsheet'),
-        cond: isPrivate.value && apps.data?.find?.((k) => k.name === 'sheets'),
+        // //// Neoffice — was without isOffered: a Sheets spreadsheet, offered only where Sheets is (#1311).
+        cond: isOffered('sheets') && isPrivate.value && apps.data?.find?.((k) => k.name === 'sheets'),
       },
       {
         // //// Neoffice — __() wrap (see the group above).

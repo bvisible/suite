@@ -78,6 +78,10 @@ export const SUITE_APPS: SuiteApp[] = [
 // (#1311). The router still mounts every app of SUITE_APPS. ////
 export const OFFERED_APPS = SUITE_APPS.filter((app) => !app.hidden)
 
+// //// Neoffice: whether an app is offered; the Drive asks it before it offers to make or list that app's own files
+// (its New menu's Document, Presentation and Spreadsheet, its Documents and Presentations views), #1311. ////
+export const isOffered = (appId: string): boolean => OFFERED_APPS.some((app) => app.id === appId)
+
 /** Whether the suite PWA's manifest and install offer belong on this app's routes. */
 export function isInstallableApp(appId: unknown): boolean {
   return !!SUITE_APPS.find((app) => app.id === appId)?.pwa

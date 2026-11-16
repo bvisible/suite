@@ -38,6 +38,8 @@ import { notifCount } from '@/apps/drive/resources/permissions'
 import { base2BlockSize, formatSize } from '@/apps/drive/utils/format'
 //// Neoffice — "Home" and "Shared" are the two tabs of one page (shareView), see navigate() below
 import { shareView } from '@/apps/drive/data/prefs'
+//// Neoffice — isOffered: the Documents and Presentations views list Writer's and Slides' files (#1311)
+import { isOffered } from '@/apps/registry'
 
 const router = useRouter()
 const failed = ref(false)
@@ -115,8 +117,9 @@ const contextNav = computed(() => {
     items: [
       { label: __('Attachments'), icon: 'lucide-paperclip', route: '/drive/attachments', active: rootName === 'drive-Attachments' },
       { label: __('Favourites'), icon: 'lucide-star', route: '/drive/favourites', active: rootName === 'drive-Favourites' },
-      { label: __('Documents'), icon: 'lucide-file-text', route: '/drive/documents', active: rootName === 'drive-Documents' },
-      { label: __('Presentations'), icon: 'lucide-gallery-vertical-end', route: '/drive/presentations', active: rootName === 'drive-Presentations' },
+      //// Neoffice — Writer's documents and Slides' presentations: listed only where those apps are offered (#1311).
+      ...(isOffered('writer') ? [{ label: __('Documents'), icon: 'lucide-file-text', route: '/drive/documents', active: rootName === 'drive-Documents' }] : []),
+      ...(isOffered('slides') ? [{ label: __('Presentations'), icon: 'lucide-gallery-vertical-end', route: '/drive/presentations', active: rootName === 'drive-Presentations' }] : []),
     ],
   })
   return sections
