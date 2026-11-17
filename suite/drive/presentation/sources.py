@@ -7,6 +7,7 @@
 # //// A page of prices is never read: a price stays with the person who answers for the link.
 from __future__ import annotations
 
+import fcntl
 import hashlib
 import os
 import re
@@ -144,7 +145,21 @@ def refresh_all() -> None:
                 frappe.log_error(f"Presentation sources: {root} could not be read", frappe.get_traceback())
 
 
+# //// Neoffice — maintenance#2633: two links naming the same site made together started two jobs on the same index
+# //// file; the second one waited 5 s for the first one's write and failed with « database is locked », and was not
+# //// retried. One reading of a site at a time: a job that finds the site being read leaves it to that job, which
+# //// writes the very pages it would have written, and gives the index as it stands.
 def refresh(root: str, language: str = "fr") -> dict:
+    """Reads the pages of `root` from its site's sitemap, unless another job is reading it right now."""
+    with open(index_path(root) + ".lock", "w") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return state(root) or {}
+        return _read_site(root, language)
+
+
+def _read_site(root: str, language: str) -> dict:
     """Reads the pages of `root` from its site's sitemap; a page whose `lastmod` did not move is kept as it was."""
     pages = site_pages(root, language)
     path = index_path(root)

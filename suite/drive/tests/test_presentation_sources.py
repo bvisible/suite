@@ -101,8 +101,9 @@ class TestSite(FrappeTestCase):
 
     def tearDown(self):
         path = sources.index_path(ROOT)
-        if os.path.exists(path):
-            os.remove(path)
+        for name in (path, path + ".lock"):
+            if os.path.exists(name):
+                os.remove(name)
 
     def test_a_site_is_read_in_the_links_language_without_its_prices_and_answers_a_question(self):
         fetched = []
@@ -167,8 +168,9 @@ class TestSite(FrappeTestCase):
             urls = [p["url"] for p in sources.search(link, "Comment créer une facture ?")]
             self.assertEqual(len(urls), len(set(urls)))  # one place per page
         finally:
-            if os.path.exists(sources.index_path(root)):
-                os.remove(sources.index_path(root))
+            for name in (sources.index_path(root), sources.index_path(root) + ".lock"):
+                if os.path.exists(name):
+                    os.remove(name)
 
     def test_a_page_that_did_not_change_is_not_fetched_again(self):
         with patch.object(sources, "_get", side_effect=fake_get([])):
@@ -177,6 +179,29 @@ class TestSite(FrappeTestCase):
         with patch.object(sources, "_get", side_effect=fake_get(fetched)):
             state = sources.refresh(ROOT, "fr")
         self.assertEqual(fetched, ["https://www.example-firm.ch/sitemap.xml"])
+        self.assertEqual(state["pages"], 2)
+
+    def test_a_site_being_read_is_left_to_the_job_that_reads_it(self):
+        """maintenance#2633: two links naming the same site, made together, ran two readings of one index; the second
+        failed on « database is locked ». Here the second starts while the first is between two pages."""
+        fetched, second = [], []
+        get = fake_get(fetched)
+
+        def get_then_read_again(url):
+            if url == "https://example-firm.ch/fr/hebergement" and not second:
+                try:
+                    second.append(sources.refresh(ROOT, "fr"))
+                except Exception as error:  # the old failure, kept to be shown by the assertion below
+                    second.append(error)
+            return get(url)
+
+        with patch.object(sources, "_get", side_effect=get_then_read_again):
+            state = sources.refresh(ROOT, "fr")
+        self.assertEqual(len(second), 1)
+        self.assertIsInstance(second[0], dict, second[0])
+        self.assertEqual(
+            fetched.count("https://www.example-firm.ch/sitemap.xml"), 1
+        )  # read by the first job only
         self.assertEqual(state["pages"], 2)
 
 
@@ -218,8 +243,9 @@ class TestMeaning(FrappeTestCase):
         }
 
     def tearDown(self):
-        if os.path.exists(sources.index_path(self.ROOT)):
-            os.remove(sources.index_path(self.ROOT))
+        for name in (sources.index_path(self.ROOT), sources.index_path(self.ROOT) + ".lock"):
+            if os.path.exists(name):
+                os.remove(name)
 
     def get(self, url):
         if url.endswith("/sitemap.xml"):
