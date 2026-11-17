@@ -4,6 +4,7 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
 from uuid import uuid7
 
 import frappe
@@ -50,6 +51,11 @@ class ParticipantIdentity(Document):
         self.name = f"{self.account}|{self.id}"
 
     def load_from_db(self) -> ParticipantIdentity:
+        # //// Neoffice — the desk asks for a document named "new" before it draws a new form (formview
+        # //// fetch_and_render, then render_new_doc); a name without "|" is no Participant Identity: DoesNotExistError,
+        # //// which getdoc answers as "not found", instead of a ValueError and a 500 (maintenance#2805).
+        if "|" not in (self.name or ""):
+            raise frappe.DoesNotExistError
         account, id = self.name.split("|")
         identity = get_participant_identity(account, id)
         return super(Document, self).__init__(identity)

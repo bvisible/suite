@@ -5,6 +5,7 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
 import json
 from datetime import datetime
 from typing import Literal
@@ -344,6 +345,11 @@ def _get_total_cache_key(account: str) -> str:
 def parse_calendar_event_name(name: str) -> tuple[str, str]:
     """Splits a Calendar Event name `account|id` into its bare `account` and `id`."""
 
+    # //// Neoffice — the desk asks for a document named "new" before it draws a new form (formview
+    # //// fetch_and_render, then render_new_doc); a name without "|" is no Calendar Event: DoesNotExistError,
+    # //// which getdoc answers as "not found", instead of a ValueError and a 500 (maintenance#2805).
+    if "|" not in (name or ""):
+        raise frappe.DoesNotExistError
     account, id = name.split("|")
     return account, id
 

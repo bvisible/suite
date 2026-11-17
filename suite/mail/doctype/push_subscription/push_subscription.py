@@ -4,6 +4,7 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
 import base64
 import json
 from contextlib import suppress
@@ -63,6 +64,11 @@ class PushSubscription(Document):
         self.name = f"{self.user}|{self.id}"
 
     def load_from_db(self) -> PushSubscription:
+        # //// Neoffice — the desk asks for a document named "new" before it draws a new form (formview
+        # //// fetch_and_render, then render_new_doc); a name without "|" is no Push Subscription: DoesNotExistError,
+        # //// which getdoc answers as "not found", instead of a ValueError and a 500 (maintenance#2805).
+        if "|" not in (self.name or ""):
+            raise frappe.DoesNotExistError
         user, id = self.name.split("|")
         subscription = get_push_subscription(user, id)
         return super(Document, self).__init__(subscription)
