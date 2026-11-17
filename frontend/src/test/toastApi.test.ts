@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 
 // Reaches past the alias on purpose: every other test resolves `frappe-ui` to the stub in
 // recorder/frappeUi.ts, which carries no toast at all.
-import { toast } from '../../../node_modules/frappe-ui/src/components/Toast/toast'
+//// Neoffice — the frontend's own node_modules (neoffice-maintenance#2366): this fork installs frappe-ui in frontend/
+//// (pnpm), not at the repository's root as upstream does, so the root path did not load in CI.
+import { toast } from '../../node_modules/frappe-ui/src/components/Toast/toast'
 
 /**
  * The toast surface mail's and calendar's helpers depend on.

@@ -1,6 +1,10 @@
 //// Neoffice — added file (no upstream equivalent): which files the file page gives the whole frame (File.vue).
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import { opensInEditor } from "@/apps/drive/utils/files"
+
+// files.ts reaches the drive's toasts, which read frappe-ui's toast at load: the test stub of frappe-ui has none
+// (neoffice-maintenance#2366)
+vi.mock("@/apps/drive/utils/toasts", () => ({ toast: () => {} }))
 
 describe("opensInEditor", () => {
   it("is true for an Office file and for a PDF, by type or by name", () => {

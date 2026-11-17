@@ -4,6 +4,9 @@ import { ref } from 'vue'
 const server = vi.hoisted(() => ({ answer: null as ((options: any) => any) | null }))
 
 vi.mock('frappe-ui', () => ({
+	//// Neoffice — the store reaches mediaUploads.js (helpers.ts), which makes a FileUploadHandler when it loads: without
+	//// it in the mock the file did not load at all (neoffice-maintenance#2366)
+	FileUploadHandler: class {},
 	createResource: () => ({}),
 	call: vi.fn(),
 	frappeRequest: (options: any) =>

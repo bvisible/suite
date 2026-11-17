@@ -160,7 +160,10 @@ describe('the second step of a burst', () => {
 		formatSelectedText('fontSize', 50)
 
 		expect(parse).not.toHaveBeenCalled()
-		expect(parseHTML).not.toHaveBeenCalled()
+		//// Neoffice — was not.toHaveBeenCalled(): in this fork the measuring div of each box passes through the slides'
+		//// sanitizer (stores/element.js, createMeasuringDiv), and DOMPurify parses the HTML it cleans: one parse per box
+		//// measured, nothing else (neoffice-maintenance#2366)
+		expect(parseHTML).toHaveBeenCalledTimes(2)
 		expect(append).toHaveBeenCalledTimes(2)
 		expect(element('a').left).toBe(355)
 	})

@@ -16,6 +16,9 @@ const holds = new Map<string, Promise<void>>()
 const servedFor = (name: string) => docs.get(name) ?? served
 
 vi.mock('frappe-ui', () => ({
+	//// Neoffice — the store reaches mediaUploads.js (helpers.ts), which makes a FileUploadHandler when it loads: without
+	//// it in the mock the file did not load at all (neoffice-maintenance#2366)
+	FileUploadHandler: class {},
 	createResource: () => ({}),
 	call: vi.fn(),
 	frappeRequest: async (options: any) => {
