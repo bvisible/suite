@@ -36,6 +36,14 @@
       <LucideInfo class="size-4 shrink-0" />
       {{ __('You can read this document but not change it.') }}
     </div>
+    <!-- An imported document (.xls, .csv, .doc…) is never written: say where a save goes before the person makes one -->
+    <div
+      v-else-if="session.imported"
+      class="flex items-center gap-2 border-b border-outline-gray-2 bg-surface-gray-1 px-3 py-1.5 text-p-sm text-ink-gray-7"
+    >
+      <LucideInfo class="size-4 shrink-0" />
+      {{ __('Saving keeps this file as it is and makes {0} next to it.', [session.save_as]) }}
+    </div>
 
     <iframe
       ref="frame"
@@ -69,6 +77,7 @@ import LucideAlertCircle from '~icons/lucide/alert-circle'
 import LucideInfo from '~icons/lucide/info'
 import LucideLoaderCircle from '~icons/lucide/loader-circle'
 import { offerNora } from '@/apps/drive/utils/craftNora'
+import { extensionOf as extension, saveTarget } from '@/apps/drive/utils/craftSave'
 
 const props = defineProps({
   // What `suite.drive.wopi.craft.get_craft_editor_config` answered for this file.
@@ -130,7 +139,11 @@ class Conflict extends Error {}
 // One line, with its string right after `__(`: the extractor of the translation catalogs misses the others.
 const conflictMessage = __('Someone else saved a new version of this document since you opened it. You can keep yours as a copy next to it, or replace theirs with yours.')
 
-const extension = (name) => (name.includes('.') ? name.split('.').pop().toLowerCase() : '')
+// The new file an imported document was saved as (saveImported), which the page opens once the saves the editor handed
+// over meanwhile (a second Save while the first one was on its way) are written into it, never into a second new file;
+// and whether the page has moved to it.
+let savedImport = null
+let movedToImport = false
 
 function waitForEditor() {
   clearTimeout(readyTimer)
@@ -187,6 +200,8 @@ async function renewToken() {
   const fresh = await call('suite.drive.wopi.craft.get_craft_editor_config', {
     file_id: props.previewEntity.name,
     requested: session.editor,
+    // An imported document is asked for as the page first asked for it (MSOfficePreview.vue).
+    imports: session.imported ? 1 : 0,
   })
   if (!fresh?.available) throw new Error(__('The editing session has expired. Reload the page.'))
   session.access_token = fresh.access_token
@@ -215,10 +230,10 @@ async function overwrite(bytes, { force = false } = {}) {
   baseVersion = response.headers.get('X-Neoffice-Content-Version') || baseVersion
 }
 
-// Save As with the same type: a new document next to this one, and the editor moves to it.
-async function saveCopy(name, bytes) {
-  const query = new URLSearchParams({ file_id: props.previewEntity.name, file_name: name })
-  const response = await fetch(`/api/method/suite.drive.wopi.craft.save_copy?${query}`, {
+// A new document next to this one, sent to `method` of craft.py with the session: `{ file_id, file_name }` of it.
+async function storeNew(method, fields, bytes) {
+  const query = new URLSearchParams({ file_id: props.previewEntity.name, ...fields })
+  const response = await fetch(`/api/method/suite.drive.wopi.craft.${method}?${query}`, {
     method: 'POST',
     body: bytes,
     headers: { 'Content-Type': 'application/octet-stream', 'X-Frappe-CSRF-Token': window.csrf_token },
@@ -228,11 +243,40 @@ async function saveCopy(name, bytes) {
     const reasons = body._server_messages ? JSON.parse(body._server_messages).map((m) => JSON.parse(m).message) : []
     throw new Error(reasons[0] || (await failure(response)))
   }
-  const copy = body.message
-  // Stored: leaving the page is not losing anything.
+  return body.message
+}
+
+// The page shows the new document: stored, leaving this one is not losing anything.
+function moveTo(stored) {
   dirty.value = false
-  toast.success(__('Saved as {0}', [copy.file_name]))
-  router.push({ name: 'drive-File', params: { entityName: copy.file_id } })
+  toast.success(__('Saved as {0}', [stored.file_name]))
+  router.push({ name: 'drive-File', params: { entityName: stored.file_id } })
+}
+
+// Save As with the same type: a new document next to this one, and the editor moves to it.
+async function saveCopy(name, bytes) {
+  moveTo(await storeNew('save_copy', { file_name: name }, bytes))
+}
+
+// An imported document (.xls, .csv, .doc…) saved in the editor's own type: a new file next to the original, which
+// stays as it was; the server names it (`save_as`, made free in the folder). The page then opens the new file, whose
+// saves write it in place like any other document of the type.
+async function saveImported(bytes) {
+  savedImport = await storeNew('save_import', {}, bytes)
+}
+
+// A later save of the imported document, in the editor's type: the new file is written in place, through its own
+// session (the token of this page reads the original only).
+async function saveIntoImport(bytes) {
+  const target = await call('suite.drive.wopi.craft.get_craft_editor_config', { file_id: savedImport.file_id })
+  if (!target?.available || !target.can_write) throw new Error(__('You do not have permission to change this document.'))
+  const response = await fetch(`${target.wopi_src}/contents?access_token=${encodeURIComponent(target.access_token)}`, {
+    method: 'POST',
+    body: bytes,
+    credentials: 'omit',
+    headers: { 'Content-Type': 'application/octet-stream' },
+  })
+  if (!response.ok) throw new Error(await failure(response))
 }
 
 // An export (PDF, a picture…) is not the document: the browser downloads it.
@@ -250,28 +294,50 @@ function exportFile(name, bytes) {
 // The name of a copy kept next to the document ("Quote (copy).docx").
 const copyName = (name) => `${__('{0} (copy)', [name.replace(/\.[^.]+$/, '')])}.${extension(name)}`
 
+// Where each save goes: utils/craftSave.js (saveTarget).
 async function store(name, bytes, saveAs) {
-  // PdfCraft says when the user asked for Save As (it keeps the document's name); the others carry the new name.
-  if (saveAs) return saveCopy(copyName(name), bytes)
-  if (name.toLowerCase() === session.file_name.toLowerCase()) return overwrite(bytes)
-  if (extension(name) === extension(session.file_name)) return saveCopy(name, bytes)
-  exportFile(name, bytes)
+  switch (saveTarget(session, name, saveAs)) {
+    case 'import':
+      return savedImport ? saveIntoImport(bytes) : saveImported(bytes)
+    case 'kept':
+      throw new Error(
+        __('To keep your changes, use File › Save As: they are saved as {0} next to this document, which stays as it is.', [session.save_as])
+      )
+    case 'copy':
+      return saveCopy(saveAs ? copyName(name) : name, bytes)
+    case 'overwrite':
+      return overwrite(bytes)
+    default:
+      exportFile(name, bytes)
+  }
 }
 
 function save(name, bytes, saveAs = false) {
-  saving = saving.then(async () => {
+  // Each step says whether what it was handed is stored (or downloaded): the page only leaves a document whose last
+  // save went through.
+  const queued = (saving = saving.then(async () => {
     try {
       await store(name, bytes, saveAs)
       post('saved', { name, ok: true })
+      return true
     } catch (e) {
       if (e instanceof Conflict) {
         conflict.value = { name, bytes }
         post('saved', { name, ok: false, error: __('Someone else changed this document since you opened it.') })
-        return
+        return false
       }
       const reason = e.message || __('The document could not be saved.')
       post('saved', { name, ok: false, error: reason })
       toast.error(reason)
+      return false
+    }
+  }))
+  // A saved import opens once no other save is on its way to it and the last one went through: one that failed keeps
+  // the page, and its next Save goes into the new file (saveIntoImport).
+  queued.then((stored) => {
+    if (stored && savedImport && !movedToImport && saving === queued) {
+      movedToImport = true
+      moveTo(savedImport)
     }
   })
 }

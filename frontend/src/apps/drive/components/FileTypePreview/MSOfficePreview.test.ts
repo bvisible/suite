@@ -9,14 +9,17 @@ import MSOfficePreview from "./MSOfficePreview.vue"
 
 const { entitiesDownload, server } = vi.hoisted(() => ({
 	entitiesDownload: vi.fn(),
-	// What the next call of `get_craft_editor_config` does.
-	server: { answer: null as unknown, fails: false },
+	// What the next call of `get_craft_editor_config` does, and what the page asked it.
+	server: { answer: null as unknown, fails: false, asked: null as unknown },
 }))
 
 vi.mock("frappe-ui", async (importOriginal) => ({
 	...(await importOriginal<Record<string, unknown>>()),
 	createResource: (options: { onSuccess: (data: unknown) => void; onError: () => void }) => ({
-		submit: () => (server.fails ? options.onError() : options.onSuccess(server.answer)),
+		submit: (params: unknown) => {
+			server.asked = params
+			return server.fails ? options.onError() : options.onSuccess(server.answer)
+		},
 	}),
 }))
 vi.mock("@/apps/drive/utils/download.js", () => ({ entitiesDownload }))
@@ -34,12 +37,12 @@ vi.mock("@/apps/drive/components/FileTypePreview/CraftEditor.vue", async () => {
 
 const entity = { name: "a-file-id", title: "sheet.xlsx", file_type: "Spreadsheet" }
 
-async function open(answer: unknown, fails = false) {
+async function open(answer: unknown, fails = false, props: Record<string, unknown> = {}) {
 	server.answer = answer
 	server.fails = fails
 	const root = document.createElement("div")
 	document.body.appendChild(root)
-	const app = createApp(MSOfficePreview, { previewEntity: entity })
+	const app = createApp(MSOfficePreview, { previewEntity: entity, ...props })
 	app.config.globalProperties.__ = (text: string) => text
 	app.mount(root)
 	await nextTick()
@@ -95,6 +98,24 @@ describe("the Office preview", () => {
 		expect(fetchSpy).not.toHaveBeenCalled()
 		expect(button(root, "View anyway")).toBeTruthy()
 		expect(button(root, "Download")).toBeTruthy()
+		app.unmount()
+	})
+
+	it("asks for the types an editor imports, which it saves as a new file", async () => {
+		const { app } = await open({ available: true, editor: "sheet", imported: true, save_as: "sheet.xlsx" })
+		expect(server.asked).toEqual({ file_id: "a-file-id", imports: 1 })
+		app.unmount()
+	})
+
+	it("hands a type no editor opens back to a page that previews it otherwise, with no viewer of its own", async () => {
+		const handedBack = vi.fn()
+		const { root, app } = await open({ available: false, reason: "File type not supported" }, false, {
+			handsBack: true,
+			onNoEditor: handedBack,
+		})
+		expect(handedBack).toHaveBeenCalledTimes(1)
+		expect(root.textContent).not.toContain("Are you sure you want to preview?")
+		expect(button(root, "View anyway")).toBeUndefined()
 		app.unmount()
 	})
 })

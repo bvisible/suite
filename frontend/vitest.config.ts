@@ -30,6 +30,8 @@ export default defineConfig({
 			"~icons/lucide/trash": path.resolve(__dirname, "src/test/icon-stub.ts"),
 			//// Neoffice — the Office preview's spinner (MSOfficePreview.test.ts).
 			"~icons/lucide/loader-circle": path.resolve(__dirname, "src/test/icon-stub.ts"),
+			//// Neoffice — the file page's "cannot open" card (FileRender.test.ts).
+			"~icons/lucide/alert-circle": path.resolve(__dirname, "src/test/icon-stub.ts"),
 		},
 	},
 	test: {

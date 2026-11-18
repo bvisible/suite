@@ -14,6 +14,8 @@ editors, is gone (maintenance#1570).
 
 from __future__ import annotations
 
+import contextlib
+import hashlib
 import os
 import re
 
@@ -22,8 +24,16 @@ from frappe import _
 
 # //// Neoffice — one call per document open.
 from frappe.rate_limiter import rate_limit
+from frappe.utils import cint
 
-from suite.drive.utils import create_drive_file, get_file_type, get_new_file_name
+from suite.drive.utils import (
+    STATUS_ACTIVE,
+    apply_file_size_delta,
+    create_drive_file,
+    free_file_name,
+    get_file_type,
+    hold_folder_names,
+)
 from suite.drive.utils.files import FileManager, get_s3_key, get_s3_url, storage_key
 
 from .token import generate_wopi_token
@@ -36,15 +46,30 @@ from .token import generate_wopi_token
 # //// something anybody does) while a loop hammering one document, which mints a token per call, runs out at once.
 EDITOR_RATE = {"key": "file_id", "limit": 20, "seconds": 60}
 
-# Editor -> the folder of its build under suite/public/craft/, and the extensions it opens AND writes
-# back in the same format. A format an editor can only read would come back under another name: that
-# is a copy, not an edit in place.
+# Editor -> the folder of its build under suite/public/craft/; `extensions`, the types it opens AND writes back in the
+# same format (edited in place); `imports`, the types it opens and saves only as its own type, the first of `extensions`:
+# a new file next to the original, which stays as it was (save_import). What each build takes, read from its bridge:
+#   - GridCraft imports .xls, .xlsb and .ods (a workbook titled `<stem> (imported).xlsx`) and reads .csv and .tsv as
+#     data; framed by a page, its Save is always an .xlsx (`file.saveBytes`), named `<stem> (imported).xlsx` or
+#     `<stem>.xlsx`.
+#   - WordCraft imports .doc (its Save comes back as `<stem>.docx`); it also reads .odt and .rtf, whose Save it writes in
+#     their own type under their own name, and whose Save As comes back as `<stem>.docx` (CraftEditor.vue keeps the
+#     original and says to use Save As).
+#   - DeckCraft's bridge takes nothing but its own packages, PdfCraft nothing but a PDF.
 EDITORS = {
-    "word": {"folder": "wordcraft", "extensions": ("docx",)},
-    "sheet": {"folder": "gridcraft", "extensions": ("xlsx",)},
-    "deck": {"folder": "deckcraft", "extensions": ("pptx",)},
-    "pdf": {"folder": "pdfcraft", "extensions": ("pdf",)},
+    "word": {"folder": "wordcraft", "extensions": ("docx",), "imports": ("doc", "odt", "rtf")},
+    "sheet": {
+        "folder": "gridcraft",
+        "extensions": ("xlsx",),
+        "imports": ("xls", "xlsb", "ods", "csv", "tsv"),
+    },
+    "deck": {"folder": "deckcraft", "extensions": ("pptx",), "imports": ()},
+    "pdf": {"folder": "pdfcraft", "extensions": ("pdf",), "imports": ()},
 }
+
+# How an Office package begins: a ZIP archive, or an OLE container when it is saved with a password (an encrypted
+# .docx). A save of an import is stored only if it is one: the new file is of the editor's type, never another.
+PACKAGE_SIGNATURES = (b"PK\x03\x04", b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1")
 
 # What the Drive opens in an editor on its own: every type an editor writes back, the PDF editor included (a PDF
 # opens in it directly, as a document opens in its own editor; the preview upstream has is the fallback of a site without
@@ -95,6 +120,33 @@ def editor_for(file_name: str, requested: str | None = None) -> str | None:
     return None
 
 
+def importer_for(file_name: str, requested: str | None = None) -> str | None:
+    """The editor that imports ``file_name``: it opens it and saves it as its own type only (EDITORS, `imports`)."""
+    extension = extension_of(file_name)
+    for editor in (requested,) if requested else DEFAULT_EDITORS:
+        if editor in EDITORS and extension in EDITORS[editor]["imports"]:
+            return editor
+    return None
+
+
+# The longest name a new file of the editors gets: a File's name holds 140 characters, and a taken one gets ` (n)` added.
+MAX_NEW_NAME = 130
+
+
+def fit_name(file_name: str) -> str:
+    """``file_name`` cut to MAX_NEW_NAME characters, its extension kept."""
+    if len(file_name) <= MAX_NEW_NAME:
+        return file_name
+    stem, extension = os.path.splitext(file_name)
+    return stem[: MAX_NEW_NAME - len(extension)] + extension
+
+
+def native_name(file_name: str, editor: str) -> str:
+    """The name an import is saved under: its own, in the editor's type (``Budget.xls`` -> ``Budget.xlsx``)."""
+    stem = file_name.rsplit(".", 1)[0] if "." in file_name else file_name
+    return fit_name(clean_file_name(f"{stem}.{EDITORS[editor]['extensions'][0]}"))
+
+
 def nora_for_the_person() -> bool:
     """Whether the editor gets Nora's pane: the site has Nora, and the person is staff (a System User).
 
@@ -115,11 +167,26 @@ def get_installed_editors() -> dict:
     return {editor: version for editor in EDITORS if (version := installed_version(editor))}
 
 
+@frappe.whitelist()
+def opened_extensions() -> dict:
+    """Which file extension opens in which editor on this site, ``{"docx": "word", "doc": "word", "csv": "sheet", …}``:
+    the types the editors this site has a build of write back and the ones they import alike, in lower case and without
+    the dot. What another app offers to open in the Drive (NeoMail's « Open in … » on an attachment) is read here; the
+    Drive page opens an import only when it asks for imports (get_craft_editor_config)."""
+    installed = get_installed_editors()
+    return {
+        extension: editor
+        for editor in DEFAULT_EDITORS
+        if editor in installed
+        for extension in (*EDITORS[editor]["extensions"], *EDITORS[editor]["imports"])
+    }
+
+
 # `requested` is `str = ""`, not `str | None`: v15's whitelist argument coercion breaks on union
 # types for values sent over HTTP (same note as editor.create_office_file). Empty = the default editor.
 @frappe.whitelist(allow_guest=True)
 @rate_limit(key=EDITOR_RATE["key"], limit=EDITOR_RATE["limit"], seconds=EDITOR_RATE["seconds"])
-def get_craft_editor_config(file_id: str, requested: str = "") -> dict:
+def get_craft_editor_config(file_id: str, requested: str = "", imports: int = 0) -> dict:
     """What the Drive page needs to open ``file_id`` in a Craft editor, or why it cannot.
 
     ``available`` is false, with a ``reason``, when the file cannot be read, when no editor opens its
@@ -128,6 +195,14 @@ def get_craft_editor_config(file_id: str, requested: str = "") -> dict:
     never sends it to an outside service). A file the caller cannot read answers exactly like a
     missing one. ``requested`` names an editor to use instead of the default one for the type
     (``pdf``: the PDF editor, which the Drive does not open on its own).
+
+    ``imports``: the caller also opens a type an editor imports (EDITORS, `imports`), which only a page that knows how
+    to save it asks for (CraftEditor.vue: a new native file through save_import); any other caller (Neodesk's window,
+    which writes in place) is told the type is not supported, as before. The answer then says ``imported: true`` and
+    ``save_as``, the name the save takes before it is made free in the folder; its token never writes, the original
+    stays as it was, and ``can_write`` says whether the person may add a file to the original's folder. An import
+    whose editor this site has no build of is not supported either, never « not installed »: the page shows the type
+    as it did before the editors imported it.
     """
     from suite.drive.api.permissions import user_has_permission
 
@@ -140,15 +215,30 @@ def get_craft_editor_config(file_id: str, requested: str = "") -> dict:
 
     file_name = file.file_name or ""
     editor = editor_for(file_name, requested or None)
+    imported = False
+    if not editor and cint(imports):
+        editor = importer_for(file_name, requested or None)
+        imported = bool(editor)
     if not editor:
         return {"available": False, "reason": _("File type not supported")}
     version = installed_version(editor)
+    if not version and imported:
+        return {"available": False, "reason": _("File type not supported")}
     if not version:
         return {"available": False, "editor": editor, "reason": _("The editor is not installed on this site")}
 
-    can_write = bool(user_has_permission(file, "write"))
-    token = generate_wopi_token(file_id, can_write=can_write)
-    return {
+    if imported:
+        # The person adds the native file next to the original (save_import asks for the same right), never writes it.
+        can_write = (
+            frappe.session.user != "Guest"
+            and bool(file.folder)
+            and bool(user_has_permission(file.folder, "upload"))
+        )
+        token = generate_wopi_token(file_id, can_write=False)
+    else:
+        can_write = bool(user_has_permission(file, "write"))
+        token = generate_wopi_token(file_id, can_write=can_write)
+    answer = {
         "available": True,
         "editor": editor,
         "base_url": f"{ASSETS_URL}{EDITORS[editor]['folder']}/",
@@ -166,6 +256,9 @@ def get_craft_editor_config(file_id: str, requested: str = "") -> dict:
         # The locale the editor shows numbers in (`?locale=`, see editor_locale).
         "locale": editor_locale(),
     }
+    if imported:
+        answer.update({"imported": True, "save_as": native_name(file_name, editor)})
+    return answer
 
 
 def editor_locale() -> str:
@@ -213,15 +306,79 @@ def save_copy(file_id: str, file_name: str) -> dict:
     if not title or extension_of(title) != extension or extension not in MIME_TYPES:
         frappe.throw(_("A copy keeps the type of the document"), frappe.ValidationError)
 
+    content = request_body()
+    drive_file = store_new_file(title, parent, MIME_TYPES[extension], content)
+    return {"file_id": drive_file.name, "file_name": drive_file.file_name}
+
+
+@frappe.whitelist(methods=["POST"])
+def save_import(file_id: str) -> dict:
+    """Store the body of the request as the document ``file_id`` was imported into: a new file next to it, of the type
+    of the editor that imports it (EDITORS, `imports`), named after it (``Budget.xls`` -> ``Budget.xlsx``, or the first
+    free ``Budget (n).xlsx``). The original is never written. Its name, its folder and the type come from the original,
+    never from the request; the body must be an Office package (PACKAGE_SIGNATURES).
+
+    Who may: whoever reads the original and may add a file to its folder (the right upload_file asks for). The new
+    file is the person's own and private, as an upload of theirs, and counts against their quota.
+    """
+    from suite.drive.api.permissions import user_has_permission
+
+    if not frappe.db.exists("File", file_id) or not user_has_permission(file_id, "read"):
+        frappe.throw(_("File not found"), frappe.DoesNotExistError)
+    source = frappe.db.get_value("File", file_id, ["file_name", "folder", "is_folder"], as_dict=True)
+    if source.is_folder:
+        frappe.throw(_("File not found"), frappe.DoesNotExistError)
+    editor = importer_for(source.file_name or "")
+    if not editor:
+        frappe.throw(_("No editor imports this type of document"), frappe.ValidationError)
+
+    parent = source.folder
+    if not parent or not user_has_permission(parent, "upload"):
+        frappe.throw(_("Cannot access folder due to insufficient permissions"), frappe.PermissionError)
+
+    content = request_body()
+    if not content.startswith(PACKAGE_SIGNATURES):
+        frappe.throw(_("The document is not of the editor's type"), frappe.ValidationError)
+    native = EDITORS[editor]["extensions"][0]
+    drive_file = store_new_file(native_name(source.file_name, editor), parent, MIME_TYPES[native], content)
+    return {"file_id": drive_file.name, "file_name": drive_file.file_name}
+
+
+def request_body() -> bytes:
+    """The document a save sends: not empty, and not larger than MAX_COPY_BYTES."""
     content = frappe.request.get_data()
     if not content:
         frappe.throw(_("The document is empty"), frappe.ValidationError)
     if len(content) > MAX_COPY_BYTES:
         frappe.throw(_("The document is too large"), frappe.ValidationError)
+    return content
 
-    title = get_new_file_name(title, parent)
-    mime_type = MIME_TYPES[extension]
+
+def store_new_file(title: str, parent: str, mime_type: str, content: bytes):
+    """Store ``content`` in ``parent`` as a new private file of the session's person, named ``title`` or the first free
+    ``title (n).ext``, on the rules of the Drive's own upload (api/files.py, upload_file): a folder in the trash, or
+    inside one, takes nothing; the name is given out while this request holds the folder's names, free in the folder
+    and on the disk; the bytes count against the person's quota, under their storage lock; the folders' sizes grow; the
+    pages that show the folder hear of it. The caller checked the right to upload in ``parent``. Commits."""
+    from suite.drive.api.files import _free_on_disk
+    from suite.drive.api.storage import acquire_owner_storage_lock, validate_quota
+    from suite.drive.utils.api import prettify_file
+
+    folder, seen = parent, set()
+    while folder and folder not in seen:
+        seen.add(folder)
+        status, folder = frappe.db.get_value("File", folder, ["status", "folder"]) or (None, None)
+        if status != STATUS_ACTIVE:
+            frappe.throw(_("This folder is in the trash"), frappe.ValidationError)
+
+    # Nothing of this request is written yet: the commit hold_folder_names makes shows it the names the requests that
+    # held them before made, and comes before the storage lock, which a commit would release (upload_file).
+    hold_folder_names(parent, commit=True)
+    acquire_owner_storage_lock(frappe.session.user)
+    validate_quota(incoming_size=len(content))
+
     manager = FileManager()
+    title = _free_on_disk(free_file_name(fit_name(title), parent, locking=False), parent, manager)
     drive_file = create_drive_file(
         title,
         parent,
@@ -230,21 +387,60 @@ def save_copy(file_id: str, file_name: str) -> dict:
         mime_type,
         len(content),
     )
+    # The WebDAV's ETag and checksums are built from it (webdav/properties.py), as for an upload.
+    drive_file.db_set("content_hash", hashlib.sha256(content).hexdigest(), update_modified=False)
 
-    # Same placement as create_office_file: not manager.upload_file, which renames and assumes the
-    # destination folder exists.
-    if manager.s3_enabled:
-        manager.conn.put_object(Bucket=manager.bucket, Key=get_s3_key(drive_file.file_url), Body=content)
-        drive_file.file_url = get_s3_url(get_s3_key(drive_file.file_url))
-        drive_file.flags.drive_sets_url = True  # //// Neoffice — the Drive gives the address (File.validate)
-        drive_file.save(ignore_permissions=True)
-    else:
-        # //// Neoffice — in the files folders or nowhere (place_in_tree, GHSA-73gm): a copy into a folder frappe's own
-        # //// API made, which has no address, landed at the top of the site's folder
-        destination = manager.place_in_tree(storage_key(drive_file.file_url))
-        os.makedirs(os.path.dirname(destination), exist_ok=True)
-        with open(destination, "wb") as handle:
-            handle.write(content)
+    # Same placement as create_office_file: not manager.upload_file, which moves a file staged on the disk and assumes
+    # the destination folder exists. The bytes are placed before the commit: a failure before it takes them away again,
+    # never leaving bytes no row names (which would also push the next save of the name to `title (1)`).
+    placed_key, placed_path = None, None
 
-    frappe.db.commit()
-    return {"file_id": drive_file.name, "file_name": title}
+    def discard():
+        if placed_path is not None:
+            placed_path.unlink(missing_ok=True)
+        if placed_key is not None:
+            with contextlib.suppress(Exception):
+                manager.conn.delete_object(Bucket=manager.bucket, Key=placed_key)
+
+    try:
+        if manager.s3_enabled:
+            key = get_s3_key(drive_file.file_url)
+            manager.conn.put_object(Bucket=manager.bucket, Key=key, Body=content)
+            placed_key = key
+            drive_file.file_url = get_s3_url(key)
+            drive_file.flags.drive_sets_url = (
+                True  # //// Neoffice — the Drive gives the address (File.validate)
+            )
+            drive_file.save(ignore_permissions=True)
+        else:
+            # //// Neoffice — in the files folders or nowhere (place_in_tree, GHSA-73gm): a copy into a folder frappe's own
+            # //// API made, which has no address, landed at the top of the site's folder
+            destination = manager.place_in_tree(storage_key(drive_file.file_url))
+            os.makedirs(os.path.dirname(destination), exist_ok=True)
+            # "xb": never over bytes already there (_free_on_disk gave a free place; a request racing past it fails here,
+            # and the bytes it found are not taken away)
+            with open(destination, "xb") as handle:
+                placed_path = destination
+                handle.write(content)
+        apply_file_size_delta(parent, len(content))
+    except Exception:
+        discard()
+        frappe.db.rollback()
+        raise
+    try:
+        frappe.db.commit()
+    except Exception:
+        frappe.db.rollback()
+        # What failed may come after the commit (its callbacks: a lock that had expired): the row then names the bytes,
+        # which stay. Only a commit that did not happen takes them away.
+        if not frappe.db.exists("File", drive_file.name):
+            discard()
+            raise
+        frappe.log_error(
+            "Drive: a new file was stored, a callback of its commit failed", frappe.get_traceback()
+        )
+
+    added = {"file": prettify_file(drive_file.as_dict())}
+    frappe.publish_realtime("list-add", added, doctype="File", docname=parent)
+    frappe.publish_realtime("list-add", added, user=frappe.session.user)
+    return drive_file

@@ -33282,3 +33282,21 @@ msgstr "Veuillez ouvrir le lien de votre e-mail d'invitation pour vous inscrire,
 #, python-brace-format
 msgid "{0} must be a folder name inside the Drive, without « .. »"
 msgstr "{0} doit être le nom d'un dossier du Drive, sans « .. »"
+
+#: suite/drive/wopi/craft.py:333
+msgid "No editor imports this type of document"
+msgstr "Aucun éditeur ne peut ouvrir ce type de document"
+
+#: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue:45
+#, python-brace-format
+msgid "Saving keeps this file as it is and makes {0} next to it."
+msgstr "L’enregistrement laisse ce fichier tel quel et crée {0} à côté de lui."
+
+#: suite/drive/wopi/craft.py:341
+msgid "The document is not of the editor's type"
+msgstr "Le document n’est pas du type attendu par l’éditeur"
+
+#: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue:304
+#, python-brace-format
+msgid "To keep your changes, use File › Save As: they are saved as {0} next to this document, which stays as it is."
+msgstr "Pour conserver vos modifications, utilisez Fichier › Enregistrer sous : elles sont enregistrées sous {0} à côté de ce document, qui reste tel quel."

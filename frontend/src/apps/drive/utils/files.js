@@ -88,11 +88,22 @@ export function isOfficeBinary(entity) {
   return OFFICE_BINARY_EXT.test(name)
 }
 
+// //// Neoffice: the types a Craft editor imports (suite/drive/wopi/craft.py, EDITORS `imports`): it opens them and
+// saves a new file of its own type next to them (CraftEditor.vue). By name: the Drive may file a .csv as "Text", and
+// files a .xlsb, .tsv or .rtf under no type it previews at all, so the page asks the editors first (FileRender.vue). ////
+const EDITOR_IMPORT_EXT = /\.(xls|xlsb|ods|csv|tsv|doc|odt|rtf)$/i
+export function importsInEditor(entity) {
+  if (!entity || entity.is_folder) return false
+  return EDITOR_IMPORT_EXT.test(entity.file_name || entity.title || '')
+}
+
 // //// Neoffice: a PDF opens in the PDF editor (PdfWithEditor.vue), so the file page gives it the whole frame
 // too, as it does an Office file; the editor frame is full-bleed, never inside the padded preview. ////
 const PDF_EXT = /\.pdf$/i
 export function opensInEditor(entity) {
   if (isOfficeBinary(entity)) return true
+  //// Neoffice — and so does a type an editor imports (importsInEditor)
+  if (importsInEditor(entity)) return true
   if (!entity || entity.is_folder) return false
   return entity.mime_type === 'application/pdf' || PDF_EXT.test(entity.file_name || entity.title || '')
 }

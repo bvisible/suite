@@ -10,11 +10,21 @@
     </span>
     <Button class="w-full" variant="solid" @click="download"> Download </Button>
   </div>
-  <component :is="previewComponent" v-else :preview-entity="previewEntity" />
+  <!-- //// Neoffice — `hands-back` and `@no-editor`: a type a Craft editor imports is asked of the editors first (editorFirst). //// -->
+  <component
+    :is="previewComponent"
+    v-else
+    :preview-entity="previewEntity"
+    v-bind="editorFirst ? { handsBack: true } : {}"
+    @no-editor="editorFirst = false"
+  />
 </template>
 <script setup>
 import { Button } from 'frappe-ui'
-import { computed, defineAsyncComponent } from 'vue'
+//// Neoffice — ref: editorFirst below
+import { computed, defineAsyncComponent, ref } from 'vue'
+//// Neoffice — the types a Craft editor imports (editorFirst below)
+import { importsInEditor } from '@/apps/drive/utils/files'
 
 const MSOfficePreview = defineAsyncComponent(() => import('@/apps/drive/components/FileTypePreview/MSOfficePreview.vue'))
 const ImagePreview = defineAsyncComponent(() => import('@/apps/drive/components/FileTypePreview/ImagePreview.vue'))
@@ -42,7 +52,9 @@ const props = defineProps({
 if (!diskSettings.data) diskSettings.fetch()
 const error = computed(() => {
   const limit = diskSettings.data?.preview_size || 100
-  if (!Object.keys(RENDERS).includes(props.previewEntity.file_type))
+  //// Neoffice — `!editorFirst.value && !fallback.value`: a type no preview of the Drive takes (.xlsb, .tsv, .rtf) may
+  //// open in an editor, and a .csv or .tsv falls back to the text preview (fallback below)
+  if (!editorFirst.value && !fallback.value)
     return 'Previews are not supported for this file type. Would you like to download it instead?'
   else if (props.previewEntity.file_size > limit * 1024 * 1024)
     return 'This is too large to preview - would you like to download instead?'
@@ -72,5 +84,22 @@ const EXCEPTIONS = {
 const getType = (k) => {
   return EXCEPTIONS[k.mime_type] || k.file_type
 }
-const previewComponent = computed(() => RENDERS[getType(props.previewEntity)])
+//// Neoffice — a type a Craft editor imports (utils/files.js, importsInEditor) that the Drive previews elsewhere (a .csv
+//// filed as "Text", its type read as plain text) or not at all (.xlsb, .tsv, .rtf: "Unknown") goes to the Office preview
+//// first, which asks the server (get_craft_editor_config) and opens the editor; when no editor of this site takes it, the
+//// preview hands it back (`no-editor`) and the page shows what it shows without the editors (`fallback`). A .csv or .tsv
+//// is data in text whatever type the Drive filed it under (a .csv is often "Spreadsheet"): it falls back to the text
+//// preview, never to the Office preview's outside viewer. The other types the Office preview has anyway (.xls, .doc…)
+//// stay there, and keep its own viewer when no editor takes them.
+const TEXT_DATA = /\.(csv|tsv)$/i
+const isTextData = (entity) => TEXT_DATA.test(entity.file_name || entity.title || '')
+const fallback = computed(() => {
+  if (isTextData(props.previewEntity)) return TextPreview
+  return Object.keys(RENDERS).includes(props.previewEntity.file_type) ? RENDERS[getType(props.previewEntity)] : null
+})
+const editorFirst = ref(
+  importsInEditor(props.previewEntity) &&
+    (isTextData(props.previewEntity) || RENDERS[getType(props.previewEntity)] !== MSOfficePreview)
+)
+const previewComponent = computed(() => (editorFirst.value ? MSOfficePreview : fallback.value))
 </script>

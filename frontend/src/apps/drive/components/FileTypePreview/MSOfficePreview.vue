@@ -3,11 +3,16 @@
        NeoSlides and NeoPDF (the PDF editor). They are browser builds served by this site, so the document never
        leaves it. Collabora Online, which this page used before them, is gone (maintenance#1570).
        Three other outcomes, none of which sends a document anywhere on its own:
-       - the type has no editor (.doc, .odt…): upstream's Microsoft viewer below, behind its consent card;
+       - the type has no editor (.ppt, .odp…; //// .doc, .xls, .csv… are imported since): upstream's Microsoft viewer
+         below, behind its consent card, or, for a page that previews it otherwise (`handsBack`), back to that page;
        - this site has no build of the editor, or the question failed: say so and offer the file;
        - still asking: a spinner. //// -->
   <CraftEditor v-if="craftConfig" :config="craftConfig" :preview-entity="previewEntity" />
-  <div v-else-if="state === 'probing'" class="w-full h-full flex flex-col items-center justify-center gap-3">
+  <!-- //// Neoffice — `|| handsBack`: a type handed back stays a spinner until the page shows its own preview. //// -->
+  <div
+    v-else-if="state === 'probing' || (state === 'viewer' && handsBack)"
+    class="w-full h-full flex flex-col items-center justify-center gap-3"
+  >
     <!-- //// Neoffice — only a spinner: nothing is started any more, the editor is a page of this site. //// -->
     <LucideLoaderCircle class="size-7 animate-spin text-ink-gray-6" />
   </div>
@@ -74,7 +79,12 @@ import LucideLoaderCircle from '~icons/lucide/loader-circle'
 import { entitiesDownload } from '@/apps/drive/utils/download'
 const props = defineProps({
   previewEntity: Object,
+  //// Neoffice — the page previews the type otherwise (a .csv as text, FileRender.vue): when no editor opens it, this
+  //// says so (`no-editor`) and shows no viewer of its own.
+  handsBack: Boolean,
 })
+//// Neoffice — see handsBack
+const emit = defineEmits(['no-editor'])
 
 //// Neoffice — what the server said about this document's editor (get_craft_editor_config):
 //// `probing` while asking; `editor` when one opens it (craftConfig holds its session);
@@ -92,8 +102,9 @@ const craftProbe = createResource({
     } else if (data?.editor) {
       state.value = 'unavailable'
     } else {
-      //// Neoffice — no editor opens this type (.doc, .odt…): upstream's viewer, behind its consent card.
+      //// Neoffice — no editor opens this type (.ppt, .odp…): upstream's viewer, behind its consent card, or the page's own preview (handsBack).
       state.value = 'viewer'
+      emit('no-editor')
     }
   },
   onError() {
@@ -105,7 +116,9 @@ const craftProbe = createResource({
 function probe() {
   //// Neoffice — asked when the preview opens and again from "Try again".
   state.value = 'probing'
-  craftProbe.submit({ file_id: props.previewEntity.name })
+  //// Neoffice — `imports`: this page also opens a type an editor imports (.xls, .csv, .doc…), which CraftEditor saves
+  //// as a new file of the editor's type next to it.
+  craftProbe.submit({ file_id: props.previewEntity.name, imports: 1 })
 }
 
 //// Neoffice — the editor is asked for as soon as the preview opens.
