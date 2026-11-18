@@ -122,8 +122,12 @@ def _ref_doc_access(entity, user):
     write, read gives read, public files are readable by anyone."""
     public = not frappe.db.get_value("File", entity.name, "is_private")
     write = read = False
-    if frappe.db.exists(entity.attached_to_doctype, entity.attached_to_name):
-        ref = frappe.get_doc(entity.attached_to_doctype, entity.attached_to_name)
+    doctype, name = entity.attached_to_doctype, entity.attached_to_name
+    # //// Neoffice — frappe.db.exists answers yes whenever the name is the doctype's own (it takes the pair for a
+    # //// Single): a file attached under such a pair to a doctype that is no Single made get_doc raise « not found »,
+    # //// and with it the person's whole Drive search (neoffice-maintenance#2960). Such a reference gives no access.
+    if frappe.db.exists(doctype, name) and (doctype != name or frappe.get_meta(doctype).issingle):
+        ref = frappe.get_doc(doctype, name)
         write = bool(frappe.has_permission(ref.doctype, "write", doc=ref, user=user))
         read = write or bool(frappe.has_permission(ref.doctype, "read", doc=ref, user=user))
     return {
