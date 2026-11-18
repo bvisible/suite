@@ -3,6 +3,7 @@
 from __future__ import annotations
 import frappe
 from frappe.model.document import Document
+from frappe.utils import cint  # //// Neoffice — for the public-file read in user_has_permission (#2863)
 
 from suite.drive.utils import (
     APP_FOLDERS,
@@ -350,6 +351,19 @@ def user_has_permission(doc, ptype, user=None):
         return True
     if ptype == "create":
         return can_create_in_folder(doc.get("folder"), user)
+    # //// Neoffice — a public file (is_private = 0), not a folder, is read by every signed-in account, as frappe's own
+    # //// File check grants it (frappe/core/doctype/file/file.py, has_permission) and as this app's list already shows
+    # //// it (utils/overrides.file_permission_criterion: `is_private == 0`); its content is served to anyone at its URL.
+    # //// Without this the desk listed a public file and refused its form (neoffice-maintenance#2863). Drive's own
+    # //// uploads are private (api/files.py) and keep Drive's access; a folder keeps it too, and so does Guest. A doc
+    # //// that does not say it is public is read as private, so a partial dict never opens anything here.
+    if (
+        ptype in ("read", "select")
+        and user != "Guest"
+        and cint(doc.get("is_private", 1)) == 0
+        and not cint(doc.get("is_folder", 1))
+    ):
+        return True
     if ptype not in PERMISSION_TYPES:
         # Should ideally deflect to Framework
         ptype = "write"
