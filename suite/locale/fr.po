@@ -33300,3 +33300,7 @@ msgstr "Le document n’est pas du type attendu par l’éditeur"
 #, python-brace-format
 msgid "To keep your changes, use File › Save As: they are saved as {0} next to this document, which stays as it is."
 msgstr "Pour conserver vos modifications, utilisez Fichier › Enregistrer sous : elles sont enregistrées sous {0} à côté de ce document, qui reste tel quel."
+
+#: frontend/src/apps/drive/components/FileTypePreview/CraftEditor.vue:393
+msgid "The editor could not open this document. You can download it."
+msgstr "L'éditeur n'a pas pu ouvrir ce document. Vous pouvez le télécharger avec le bouton ci-dessous."

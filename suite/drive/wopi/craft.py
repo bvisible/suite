@@ -340,8 +340,61 @@ def save_import(file_id: str) -> dict:
     if not content.startswith(PACKAGE_SIGNATURES):
         frappe.throw(_("The document is not of the editor's type"), frappe.ValidationError)
     native = EDITORS[editor]["extensions"][0]
-    drive_file = store_new_file(native_name(source.file_name, editor), parent, MIME_TYPES[native], content)
+
+    # //// Neoffice — which file this save made from `file_id`, in the same transaction (saved_from reads it).
+    def record(drive_file):
+        if frappe.db.table_exists(SAVED_IMPORT):
+            frappe.get_doc(
+                {
+                    "doctype": SAVED_IMPORT,
+                    "original": file_id,
+                    "saved_file": drive_file.name,
+                    "editor": editor,
+                }
+            ).insert(ignore_permissions=True)
+
+    drive_file = store_new_file(
+        native_name(source.file_name, editor), parent, MIME_TYPES[native], content, then=record
+    )
     return {"file_id": drive_file.name, "file_name": drive_file.file_name}
+
+
+# The record of a save of an import (save_import): the original and the file the save made.
+SAVED_IMPORT = "Drive Saved Import"
+
+
+def saved_from(file_id: str) -> list[str]:
+    """The files a save of the imported document ``file_id`` made (save_import), newest first: the ids of those that are
+    still Active, in no folder in the trash, and that the session's person may write. Not a web method: NeoMail's server
+    reads it to reopen, for an attachment it copied into the Drive before, the file its person saved from that copy."""
+    from suite.drive.api.permissions import user_has_permission
+
+    if not file_id or not isinstance(file_id, str) or not frappe.db.table_exists(SAVED_IMPORT):
+        return []
+    saved = frappe.get_all(
+        SAVED_IMPORT, filters={"original": file_id}, pluck="saved_file", order_by="creation desc, name desc"
+    )
+    if not saved:
+        return []
+    active = set(
+        frappe.get_all("File", filters={"name": ["in", saved], "status": STATUS_ACTIVE}, pluck="name")
+    )
+    return [
+        name
+        for name in saved
+        if name in active and in_active_tree(name) and user_has_permission(name, "write")
+    ]
+
+
+def in_active_tree(name: str) -> bool:
+    """Whether the entry ``name`` and every folder above it are Active (none in the trash)."""
+    entry, seen = name, set()
+    while entry and entry not in seen:
+        seen.add(entry)
+        status, entry = frappe.db.get_value("File", entry, ["status", "folder"]) or (None, None)
+        if status != STATUS_ACTIVE:
+            return False
+    return True
 
 
 def request_body() -> bytes:
@@ -354,22 +407,19 @@ def request_body() -> bytes:
     return content
 
 
-def store_new_file(title: str, parent: str, mime_type: str, content: bytes):
+def store_new_file(title: str, parent: str, mime_type: str, content: bytes, then=None):
     """Store ``content`` in ``parent`` as a new private file of the session's person, named ``title`` or the first free
     ``title (n).ext``, on the rules of the Drive's own upload (api/files.py, upload_file): a folder in the trash, or
     inside one, takes nothing; the name is given out while this request holds the folder's names, free in the folder
     and on the disk; the bytes count against the person's quota, under their storage lock; the folders' sizes grow; the
-    pages that show the folder hear of it. The caller checked the right to upload in ``parent``. Commits."""
+    pages that show the folder hear of it. ``then(drive_file)``, when given, writes what goes with the file in the same
+    transaction (a failure there stores nothing). The caller checked the right to upload in ``parent``. Commits."""
     from suite.drive.api.files import _free_on_disk
     from suite.drive.api.storage import acquire_owner_storage_lock, validate_quota
     from suite.drive.utils.api import prettify_file
 
-    folder, seen = parent, set()
-    while folder and folder not in seen:
-        seen.add(folder)
-        status, folder = frappe.db.get_value("File", folder, ["status", "folder"]) or (None, None)
-        if status != STATUS_ACTIVE:
-            frappe.throw(_("This folder is in the trash"), frappe.ValidationError)
+    if not in_active_tree(parent):
+        frappe.throw(_("This folder is in the trash"), frappe.ValidationError)
 
     # Nothing of this request is written yet: the commit hold_folder_names makes shows it the names the requests that
     # held them before made, and comes before the storage lock, which a commit would release (upload_file).
@@ -423,6 +473,8 @@ def store_new_file(title: str, parent: str, mime_type: str, content: bytes):
                 placed_path = destination
                 handle.write(content)
         apply_file_size_delta(parent, len(content))
+        if then is not None:
+            then(drive_file)
     except Exception:
         discard()
         frappe.db.rollback()

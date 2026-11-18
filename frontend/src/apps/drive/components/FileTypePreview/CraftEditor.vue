@@ -144,6 +144,8 @@ const conflictMessage = __('Someone else saved a new version of this document si
 // and whether the page has moved to it.
 let savedImport = null
 let movedToImport = false
+// The editor could not open the file (`openFailed`): what it holds is its own empty document, never saved over the file.
+let notOpened = false
 
 function waitForEditor() {
   clearTimeout(readyTimer)
@@ -317,6 +319,7 @@ function save(name, bytes, saveAs = false) {
   // save went through.
   const queued = (saving = saving.then(async () => {
     try {
+      if (notOpened) throw new Error(__('The editor could not open this document. You can download it.'))
       await store(name, bytes, saveAs)
       post('saved', { name, ok: true })
       return true
@@ -385,6 +388,15 @@ function onMessage(event) {
       loading.value = false
       error.value = data.error || __('The editor could not start.')
       break
+    // The editor could not read the file this page sent it (its reader refused it, `wordcraft:openFailed`): say so and
+    // offer the file, rather than leave the editor's empty document on the page.
+    case 'openFailed':
+      clearTimeout(readyTimer)
+      notOpened = true
+      loading.value = false
+      error.value = __('The editor could not open this document. You can download it.')
+      console.warn(`${prefix}: ${data.name}: ${data.error}`)
+      break
   }
 }
 
@@ -413,6 +425,7 @@ function onKeydown(event) {
 }
 
 function reload() {
+  notOpened = false
   error.value = null
   loading.value = true
   dirty.value = false

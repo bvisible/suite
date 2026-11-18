@@ -425,6 +425,9 @@ class TestAnImportIsSavedAsANewFile(IntegrationTestCase):
         super().setUpClass()
         for email in (OWNER, COLLEAGUE):
             _drive_user(email)
+        # a copy of a site that predates the doctype gets it (a site that installs the app has it)
+        if not frappe.db.table_exists(craft.SAVED_IMPORT):
+            frappe.reload_doc("drive", "doctype", "drive_saved_import")
         frappe.db.commit()
 
     def setUp(self):
@@ -435,6 +438,8 @@ class TestAnImportIsSavedAsANewFile(IntegrationTestCase):
             self.skipTest("the Drive keeps its files in a tree on this site's disk only there")
         self.suffix = frappe.generate_hash(length=8)
         self.made = []
+        # where each file made here keeps its bytes, for a row a test deleted itself
+        self.places = {}
         self.addCleanup(self.remove_made)
         with self.set_user(OWNER):
             home = get_user_folder(OWNER).name
@@ -452,6 +457,7 @@ class TestAnImportIsSavedAsANewFile(IntegrationTestCase):
         with patch.object(craft.frappe, "publish_realtime"):
             name = craft.store_new_file(name, self.folder, mime_type, content).name
         self.made.append(name)
+        self.places[name] = frappe.db.get_value("File", name, "file_url")
         return name
 
     def remove_made(self):
@@ -464,13 +470,16 @@ class TestAnImportIsSavedAsANewFile(IntegrationTestCase):
             )
             if row and not row.is_folder and row.file_size:
                 apply_file_size_delta(row.folder, -row.file_size)
-            if row and row.file_url:
-                place = self.manager.site_folder / storage_key(row.file_url)
-                if row.is_folder and place.is_dir():
+            url = row.file_url if row else self.places.get(name)
+            if url:
+                place = self.manager.site_folder / storage_key(url)
+                if row and row.is_folder and place.is_dir():
                     place.rmdir()
                 elif place.is_file():
                     place.unlink()
             frappe.db.delete("Drive Permission", {"entity": name})
+            for field in ("original", "saved_file"):
+                frappe.db.delete(craft.SAVED_IMPORT, {field: name})
             frappe.db.delete("File", {"name": name})
         frappe.db.commit()
 
@@ -484,6 +493,7 @@ class TestAnImportIsSavedAsANewFile(IntegrationTestCase):
         ):
             answer = SAVE_IMPORT(file_id or self.original)
         self.made.append(answer["file_id"])
+        self.places[answer["file_id"]] = frappe.db.get_value("File", answer["file_id"], "file_url")
         return answer
 
     def bytes_of(self, name):
@@ -611,6 +621,90 @@ class TestAnImportIsSavedAsANewFile(IntegrationTestCase):
         ):
             self.save(OWNER)
         self.assertEqual(self.names_in_folder(), {f"Budget {self.suffix}.xls"})
+
+    def test_what_was_saved_from_an_import_is_found_newest_first_by_whoever_may_write_it(self):
+        first = self.save(OWNER)["file_id"]
+        second = self.save(OWNER, body=XLSX_BODY + b" again")["file_id"]
+        self.assertEqual(
+            frappe.db.get_value(craft.SAVED_IMPORT, {"saved_file": first}, ["original", "editor"]),
+            (self.original, "sheet"),
+        )
+        with self.set_user(OWNER):
+            self.assertEqual(craft.saved_from(self.original), [second, first])
+            # nothing was saved from the saved files themselves, nor from a name that is no file
+            self.assertEqual(craft.saved_from(first), [])
+            self.assertEqual(craft.saved_from("no-such-file"), [])
+        # a colleague who may read them but not write them gets none; one who may write them gets both
+        _grant(self.folder, COLLEAGUE, read=1)
+        with self.set_user(COLLEAGUE):
+            self.assertEqual(craft.saved_from(self.original), [])
+        frappe.db.set_value("Drive Permission", {"entity": self.folder, "user": COLLEAGUE}, "write", 1)
+        with self.set_user(COLLEAGUE):
+            self.assertEqual(craft.saved_from(self.original), [second, first])
+        # a file in the bin is not one, nor is any file under a folder in the bin
+        frappe.db.set_value("File", second, "status", "Trashed", update_modified=False)
+        with self.set_user(OWNER):
+            self.assertEqual(craft.saved_from(self.original), [first])
+        frappe.db.set_value("File", self.folder, "status", "Trashed", update_modified=False)
+        frappe.db.commit()
+        self.addCleanup(frappe.db.commit)
+        self.addCleanup(frappe.db.set_value, "File", self.folder, "status", "Active", update_modified=False)
+        with self.set_user(OWNER):
+            self.assertEqual(craft.saved_from(self.original), [])
+
+    def test_a_file_a_record_names_is_deleted_for_good_and_takes_its_record_with_it(self):
+        """The nightly purge deletes a removed file (api/scripts.py, clear_deleted_files): the record of a save, which names
+        it, never blocks the delete (hooks.ignore_links_on_delete) and goes with it (File.after_delete)."""
+        saved = self.save(OWNER)["file_id"]
+        again = self.save(OWNER)["file_id"]
+
+        def purge(name):
+            # as the bin leaves it: Removed, its size taken off its folders
+            size, folder = frappe.db.get_value("File", name, ["file_size", "folder"])
+            apply_file_size_delta(folder, -size)
+            frappe.db.set_value("File", name, "status", "Removed", update_modified=False)
+            frappe.get_doc("File", name).delete(ignore_permissions=True)
+            self.assertFalse(frappe.db.exists("File", name))
+
+        purge(saved)
+        self.assertFalse(frappe.db.exists(craft.SAVED_IMPORT, {"saved_file": saved}))
+        self.assertTrue(
+            frappe.db.exists(craft.SAVED_IMPORT, {"saved_file": again}), "the other save is still recorded"
+        )
+        # the original gone, the record of the other save goes with it
+        purge(self.original)
+        self.assertFalse(frappe.db.exists(craft.SAVED_IMPORT, {"saved_file": again}))
+        frappe.db.commit()
+
+    def test_a_record_that_cannot_be_written_stores_nothing(self):
+        folder_size = frappe.db.get_value("File", self.folder, "file_size")
+        real_get_doc = craft.frappe.get_doc
+
+        def refuse_the_record(*args, **kwargs):
+            if args and isinstance(args[0], dict) and args[0].get("doctype") == craft.SAVED_IMPORT:
+                raise frappe.ValidationError("the record could not be written")
+            return real_get_doc(*args, **kwargs)
+
+        with (
+            patch.object(craft.frappe, "get_doc", side_effect=refuse_the_record),
+            self.assertRaises(frappe.ValidationError),
+        ):
+            self.save(OWNER)
+        self.assertEqual(self.names_in_folder(), {f"Budget {self.suffix}.xls"})
+        self.assertEqual(frappe.db.get_value("File", self.folder, "file_size"), folder_size)
+        folder_url = frappe.db.get_value("File", self.folder, "file_url")
+        self.assertFalse(
+            (self.manager.site_folder / storage_key(folder_url) / f"Budget {self.suffix}.xlsx").exists()
+        )
+
+    def test_a_site_without_the_record_s_table_still_saves_and_finds_nothing(self):
+        # A site whose migrate has not made the table yet: as if the record had another name.
+        with patch.object(craft, "SAVED_IMPORT", "Drive Saved Import Not Migrated"):
+            answer = self.save(OWNER)
+            with self.set_user(OWNER):
+                self.assertEqual(craft.saved_from(self.original), [])
+        self.assertTrue(frappe.db.exists("File", answer["file_id"]))
+        self.assertFalse(frappe.db.exists(craft.SAVED_IMPORT, {"saved_file": answer["file_id"]}))
 
     def test_the_editor_s_token_for_an_import_reads_and_never_writes(self):
         with (

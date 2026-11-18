@@ -153,6 +153,14 @@ link, the address and first name, the SHA-256 of the code for this link (never t
 often it was used. Module `Drive`, random names; `Suite User` reads, the team's method and the visitor's guest method
 write. At a merge: keep the file whole. Nothing upstream collides with it.
 
+#### `suite/drive/doctype/drive_saved_import/drive_saved_import.json`
+**Entirely ours — a new DocType, no upstream equivalent.** `Drive Saved Import`: a save of an imported document (an
+.xls, .csv, .doc… opened in a Craft editor and saved as a new .xlsx or .docx next to it, `suite/drive/wopi/craft.py`
+`save_import`) keeps the original, the file it made and the editor, in the same transaction as the file. `craft.saved_from`
+reads it: NeoMail reopens the file its person saved from the copy of an attachment rather than another file of the same
+name. Module `Drive`, random names, written by the server only (`in_create`); `System Manager` reads. At a merge: keep the
+file whole. Nothing upstream collides with it.
+
 #### `suite/drive/wopi/craft_editors.json`
 **Entirely ours — no upstream equivalent.** The list of the Craft editors' browser builds (NeoWrite, NeoSheet,
 NeoSlides, NeoPDF: Neoffice's forks of storytold's Craft apps) that `suite/drive/wopi/craft_install.py` installs

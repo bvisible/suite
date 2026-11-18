@@ -487,6 +487,8 @@ ignore_links_on_delete = [
     "Drive Entity Activity Log",
     "Drive DAV Property",
     "Drive DAV Lock",
+    # //// Neoffice — the saves of an imported document (wopi/craft.py, save_import): File.after_delete clears them too
+    "Drive Saved Import",
     # mail
     "Mail Account Request",
     "JMAP Account",

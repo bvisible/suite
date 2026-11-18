@@ -1,6 +1,7 @@
 # //// Neoffice — Python 3.12 graft (upstream targets 3.14, where PEP 649 makes
 # //// annotations lazy): without it `"X" | None` raises TypeError. Drop it at 3.14.
 from __future__ import annotations
+
 import posixpath
 import re  # //// Neoffice — optimize_file below (maintenance#1828)
 import shutil
@@ -33,12 +34,12 @@ from suite.drive.utils import (
     WRITER_CONTENT_DOCTYPE,
     generate_upward_path,
     get_new_file_name,
-    get_user_folder,
-    # //// Neoffice — the names of a folder are given out one request at a time to a move and a rename too (maintenance#1820)
-    hold_folder_names,
     # //// Neoffice — the principals themselves, without the link one, in place of principal_list
     # //// (neoffice-maintenance#2296, content_query_conditions)
     get_principals,
+    get_user_folder,
+    # //// Neoffice — the names of a folder are given out one request at a time to a move and a rename too (maintenance#1820)
+    hold_folder_names,
     update_file_size,
     validate_filename,
 )
@@ -381,6 +382,11 @@ class File(FrappeFile):
         frappe.db.delete("Drive Entity Activity Log", {"entity": self.name})
         frappe.db.delete("Drive DAV Property", {"entity": self.name})
         frappe.db.delete("Drive DAV Lock", {"entity": self.name})
+        # //// Neoffice — the saves of an imported document that name this file (wopi/craft.py, save_import), as original or
+        # //// as the file a save made; on a site whose migrate has not made the table yet, there are none
+        if frappe.db.table_exists("Drive Saved Import"):
+            frappe.db.delete("Drive Saved Import", {"original": self.name})
+            frappe.db.delete("Drive Saved Import", {"saved_file": self.name})
 
         if (
             self.content_doctype

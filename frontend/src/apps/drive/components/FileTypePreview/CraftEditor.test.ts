@@ -15,7 +15,7 @@ const { routerPush, call, toast } = vi.hoisted(() => ({
 vi.mock("frappe-ui", async () => {
 	const { defineComponent, h } = await import("vue")
 	return {
-		Button: defineComponent({ render: () => h("button") }),
+		Button: defineComponent({ setup: (_props, { slots }) => () => h("button", slots.default?.()) }),
 		Dialog: defineComponent({ render: () => null }),
 		call,
 		toast,
@@ -154,6 +154,36 @@ describe("a save of an imported document", () => {
 		expect(requests.filter((r) => r.url.startsWith("/wopi/files/new-id/contents"))).toHaveLength(2)
 		expect(routerPush).toHaveBeenCalledTimes(1)
 		expect(routerPush).toHaveBeenCalledWith({ name: "drive-File", params: { entityName: "new-id" } })
+		app.unmount()
+	})
+
+	it("says so, and offers the file, when the editor could not open what the page sent it", async () => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+		const { app, frame } = await mount({ ...imported, editor: "word", file_name: "Rapport.doc", save_as: "Rapport.docx" })
+		window.dispatchEvent(
+			new MessageEvent("message", {
+				data: { type: "wordcraft:openFailed", name: "Rapport.doc", error: "not a Word document" },
+				origin: window.location.origin,
+				source: frame.contentWindow,
+			})
+		)
+		await settle()
+		const page = document.body.textContent || ""
+		expect(page).toContain("The editor could not open this document. You can download it.")
+		expect([...document.querySelectorAll("button")].some((b) => b.textContent?.includes("Download"))).toBe(true)
+		expect(warn).toHaveBeenCalled()
+		// what the editor then holds is its own empty document: a save of it writes nothing
+		window.dispatchEvent(
+			new MessageEvent("message", {
+				data: { type: "wordcraft:save", name: "Rapport.docx", bytes: new ArrayBuffer(4), saveAs: true },
+				origin: window.location.origin,
+				source: frame.contentWindow,
+			})
+		)
+		await settle()
+		expect(requests).toEqual([])
+		expect(posted.find((m) => m.type === "wordcraft:saved")?.ok).toBe(false)
+		warn.mockRestore()
 		app.unmount()
 	})
 

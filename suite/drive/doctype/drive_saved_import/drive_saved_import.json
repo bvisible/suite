@@ -1,0 +1,62 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-11-18 22:00:00.000000",
+ "description": "A file a save of an imported document made (an .xls, .csv, .doc… opened in an editor and saved as .xlsx or .docx), and the file it was imported from.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "original",
+  "saved_file",
+  "editor"
+ ],
+ "fields": [
+  {
+   "fieldname": "original",
+   "fieldtype": "Link",
+   "label": "Original",
+   "options": "File",
+   "reqd": 1,
+   "in_list_view": 1,
+   "search_index": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "saved_file",
+   "fieldtype": "Link",
+   "label": "Saved File",
+   "options": "File",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "editor",
+   "fieldtype": "Data",
+   "label": "Editor",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-11-18 22:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Drive",
+ "name": "Drive Saved Import",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager"
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
