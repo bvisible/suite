@@ -167,12 +167,12 @@ def get_installed_editors() -> dict:
     return {editor: version for editor in EDITORS if (version := installed_version(editor))}
 
 
-@frappe.whitelist()
 def opened_extensions() -> dict:
     """Which file extension opens in which editor on this site, ``{"docx": "word", "doc": "word", "csv": "sheet", …}``:
     the types the editors this site has a build of write back and the ones they import alike, in lower case and without
-    the dot. What another app offers to open in the Drive (NeoMail's « Open in … » on an attachment) is read here; the
-    Drive page opens an import only when it asks for imports (get_craft_editor_config)."""
+    the dot. What another app offers to open in the Drive (NeoMail's « Open in … » on an attachment) is read here, in
+    Python: not a web method (a page asks get_craft_editor_config of its file). The Drive page opens an import only when
+    it asks for imports (get_craft_editor_config)."""
     installed = get_installed_editors()
     return {
         extension: editor
