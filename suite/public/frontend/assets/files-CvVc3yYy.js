@@ -1,0 +1,1 @@
+import{b as e}from"./files-DSAIRKN4.js";export{e as translate};
