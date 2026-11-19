@@ -1,13 +1,13 @@
 {
   "wordcraft": {
-    "version": "0.18.1+c145b20",
-    "url": "https://github.com/bvisible/wordcraft/releases/download/web-0.18.1-c145b20/wordcraft-web-0.18.1.zip",
-    "sha256": "e98f452a7f3947cc6685220733f89d327716c997ad88480f713286bf5d50bd93"
+    "version": "0.18.1+7d66f0b",
+    "url": "https://github.com/bvisible/wordcraft/releases/download/web-0.18.1-7d66f0b/wordcraft-web-0.18.1.zip",
+    "sha256": "54ddc7a20aa159b3ee1dbcedb1ec5b01e55fc0d66e1033f2f722a94fd7bd3f44"
   },
   "gridcraft": {
-    "version": "0.19.1+eedb910",
-    "url": "https://github.com/bvisible/gridcraft/releases/download/web-0.19.1-eedb910/gridcraft-web-0.19.1.zip",
-    "sha256": "014ce8c941923de5cce63bcc6f07de4ad49eba608992900b65786e6eafb0c775"
+    "version": "0.19.1+45a6693",
+    "url": "https://github.com/bvisible/gridcraft/releases/download/web-0.19.1-45a6693/gridcraft-web-0.19.1.zip",
+    "sha256": "24e0a065b906d7930bbc3915b619fa6d4a12c5f32723f20799791b157ae9c28f"
   },
   "deckcraft": {
     "version": "0.18.1+d432ab2",
@@ -15,13 +15,13 @@
     "sha256": "584917f615eefcc6e595d1c1f04cc4ec8251d18563e107bc9665b1ddd23111ae"
   },
   "pdfcraft": {
-    "version": "0.21.1+f88f782",
-    "url": "https://github.com/bvisible/pdfcraft/releases/download/web-0.21.1-f88f782/pdfcraft-web-0.21.1.zip",
-    "sha256": "07cf499e428ec4c6ee13d931b6b739556865b477606b0234c654432bf281b94f"
+    "version": "0.21.1+4614e03",
+    "url": "https://github.com/bvisible/pdfcraft/releases/download/web-0.21.1-4614e03/pdfcraft-web-0.21.1.zip",
+    "sha256": "1543174d4d7fa4b7f53522303ea2598401cf207d0215c4d35fc8e68badb9b08b"
   },
   "mailcraft": {
-    "version": "0.13.0+7c545b8",
-    "url": "https://github.com/bvisible/mailcraft/releases/download/web-0.13.0-7c545b8/mailcraft-web-0.13.0.zip",
-    "sha256": "2c7864d29b434d56455670eb21f3c8f901dcb51a1ae7bc79f5090e98b7c666be"
+    "version": "0.13.0+96aef26",
+    "url": "https://github.com/bvisible/mailcraft/releases/download/web-0.13.0-96aef26/mailcraft-web-0.13.0.zip",
+    "sha256": "8e8b01cb36ef5922a5e140ea715276cb0c2c54201cb9284da72418be7a09cd9d"
   }
 }
