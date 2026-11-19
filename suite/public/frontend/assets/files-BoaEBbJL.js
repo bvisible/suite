@@ -1,0 +1,1 @@
+import{V as e}from"./files-CwvQrFLp.js";export{e as openEntity};
