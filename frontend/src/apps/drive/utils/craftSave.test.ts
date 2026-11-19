@@ -1,6 +1,6 @@
 //// Neoffice — added file (no upstream equivalent): where a file a Craft editor hands the Drive page goes (craftSave.js).
 import { describe, expect, it } from "vitest"
-import { saveTarget } from "@/apps/drive/utils/craftSave"
+import { savedUnderItsOwnName, saveTarget } from "@/apps/drive/utils/craftSave"
 
 const native = { editor: "sheet", file_name: "Budget.xlsx" }
 const sheetImport = { editor: "sheet", file_name: "Export.csv", imported: true, save_as: "Export.xlsx" }
@@ -32,5 +32,16 @@ describe("where a save goes", () => {
 		// GridCraft's CSV of a CSV bears the original's name: an export the person asked for, never written over it
 		expect(saveTarget(sheetImport, "Export.csv")).toBe("export")
 		expect(saveTarget(workbookImport, "Budget (imported).pdf")).toBe("export")
+	})
+})
+
+describe("savedUnderItsOwnName", () => {
+	const session = (file_name: string, editor = "word") => ({ editor, file_name, imported: true, save_as: "x" })
+	it("is NeoDoc's .odt and .rtf, not its .doc, not another editor's import, not a document it writes in place", () => {
+		expect(savedUnderItsOwnName(session("Note.odt"))).toBe(true)
+		expect(savedUnderItsOwnName(session("NOTE.RTF"))).toBe(true)
+		expect(savedUnderItsOwnName(session("Note.doc"))).toBe(false)
+		expect(savedUnderItsOwnName(session("Budget.ods", "sheet"))).toBe(false)
+		expect(savedUnderItsOwnName({ editor: "word", file_name: "Note.odt" })).toBe(false)
 	})
 })

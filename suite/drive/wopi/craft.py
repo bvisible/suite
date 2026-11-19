@@ -52,9 +52,10 @@ EDITOR_RATE = {"key": "file_id", "limit": 20, "seconds": 60}
 #   - GridCraft imports .xls, .xlsb and .ods (a workbook titled `<stem> (imported).xlsx`) and reads .csv and .tsv as
 #     data; framed by a page, its Save is always an .xlsx (`file.saveBytes`), named `<stem> (imported).xlsx` or
 #     `<stem>.xlsx`.
-#   - WordCraft imports .doc (its Save comes back as `<stem>.docx`); it also reads .odt and .rtf, whose Save it writes in
-#     their own type under their own name, and whose Save As comes back as `<stem>.docx` (CraftEditor.vue keeps the
-#     original and says to use Save As).
+#   - WordCraft imports .doc (its Save comes back as `<stem>.docx`); it also reads .odt and .rtf: told the file is an import
+#     (`imported` of `wordcraft:open`, CraftEditor.vue), a build that says `savesImports` makes `<stem>.docx` on Save too;
+#     an earlier one writes them in their own type under their own name, and only its Save As comes back as `<stem>.docx`
+#     (the page keeps the original and says to use Save As).
 #   - DeckCraft's bridge takes nothing but its own packages, PdfCraft nothing but a PDF.
 EDITORS = {
     "word": {"folder": "wordcraft", "extensions": ("docx",), "imports": ("doc", "odt", "rtf")},

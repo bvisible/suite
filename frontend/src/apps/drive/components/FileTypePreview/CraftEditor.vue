@@ -42,7 +42,7 @@
       class="flex items-center gap-2 border-b border-outline-gray-2 bg-surface-gray-1 px-3 py-1.5 text-p-sm text-ink-gray-7"
     >
       <LucideInfo class="size-4 shrink-0" />
-      {{ __('Saving keeps this file as it is and makes {0} next to it.', [session.save_as]) }}
+      {{ importNotice }}
     </div>
 
     <iframe
@@ -52,6 +52,7 @@
       :title="session.file_name"
       class="w-full grow border-0"
       allow="clipboard-read; clipboard-write; fullscreen; microphone"
+      :inert="notOpened || undefined"
     />
 
     <!-- Someone saved the document since it was opened here: nothing was written, the user chooses -->
@@ -77,7 +78,7 @@ import LucideAlertCircle from '~icons/lucide/alert-circle'
 import LucideInfo from '~icons/lucide/info'
 import LucideLoaderCircle from '~icons/lucide/loader-circle'
 import { offerNora } from '@/apps/drive/utils/craftNora'
-import { extensionOf as extension, saveTarget } from '@/apps/drive/utils/craftSave'
+import { extensionOf as extension, savedUnderItsOwnName, saveTarget } from '@/apps/drive/utils/craftSave'
 
 const props = defineProps({
   // What `suite.drive.wopi.craft.get_craft_editor_config` answered for this file.
@@ -144,8 +145,23 @@ const conflictMessage = __('Someone else saved a new version of this document si
 // and whether the page has moved to it.
 let savedImport = null
 let movedToImport = false
-// The editor could not open the file (`openFailed`): what it holds is its own empty document, never saved over the file.
-let notOpened = false
+// The editor could not open the file (`openFailed`): what it holds is its own empty document, never saved over the file,
+// and it takes no key behind the card (the frame is inert).
+const notOpened = ref(false)
+// The file went to the editor: a `failed` from now on is about that file, not about the editor starting.
+let fileSent = false
+// The editor makes its own type on Save of an import it is told about (`savesImports` of its `ready`, NeoWrite): a build
+// that does not say so writes an .odt or .rtf back as it came, which the page refuses (`kept`).
+const savesImports = ref(false)
+
+const saveAsNotice = () => __('To keep your changes, use File › Save As: they are saved as {0} next to this document, which stays as it is.', [session.save_as])
+
+// The line above an imported document: where its save goes, or how to get there when a Save does not make the new file.
+const importNotice = computed(() =>
+  savedUnderItsOwnName(session) && !savesImports.value
+    ? saveAsNotice()
+    : __('Saving keeps this file as it is and makes {0} next to it.', [session.save_as])
+)
 
 function waitForEditor() {
   clearTimeout(readyTimer)
@@ -186,12 +202,16 @@ async function openDocument() {
     if (!response.ok) throw new Error(await failure(response))
     baseVersion = response.headers.get('X-Neoffice-Content-Version') || ''
     const bytes = await response.arrayBuffer()
+    fileSent = true
     // `id`: the Drive file this is, which the editor tells Nora with each message (the server reads it again).
-    post('open', { name: session.file_name, bytes, id: props.previewEntity.name }, [bytes])
+    // `imported`: this file stays as it is, a Save makes the editor's own type next to it (NeoWrite's .odt and .rtf).
+    post('open', { name: session.file_name, bytes, id: props.previewEntity.name, ...(session.imported ? { imported: true } : {}) }, [bytes])
     loading.value = false
     emit('loaded')
     frame.value?.contentWindow?.focus()
   } catch (e) {
+    // The editor is still on its own empty document: out of reach behind the card, as for a file it could not open.
+    notOpened.value = true
     loading.value = false
     error.value = e.message || __('Unable to load editor')
   }
@@ -302,9 +322,7 @@ async function store(name, bytes, saveAs) {
     case 'import':
       return savedImport ? saveIntoImport(bytes) : saveImported(bytes)
     case 'kept':
-      throw new Error(
-        __('To keep your changes, use File › Save As: they are saved as {0} next to this document, which stays as it is.', [session.save_as])
-      )
+      throw new Error(saveAsNotice())
     case 'copy':
       return saveCopy(saveAs ? copyName(name) : name, bytes)
     case 'overwrite':
@@ -319,7 +337,7 @@ function save(name, bytes, saveAs = false) {
   // save went through.
   const queued = (saving = saving.then(async () => {
     try {
-      if (notOpened) throw new Error(__('The editor could not open this document. You can download it.'))
+      if (notOpened.value) throw new Error(__('The editor could not open this document. You can download it.'))
       await store(name, bytes, saveAs)
       post('saved', { name, ok: true })
       return true
@@ -375,15 +393,21 @@ function onMessage(event) {
   switch (data.type.slice(prefix.length + 1)) {
     case 'ready':
       clearTimeout(readyTimer)
+      savesImports.value = data.savesImports === true
       openDocument()
       break
     case 'dirty':
-      dirty.value = !!data.dirty
+      dirty.value = !!data.dirty && !notOpened.value
       break
     case 'save':
       save(data.name, data.bytes, data.saveAs === true)
       break
     case 'failed':
+      // NeoPrés says `failed` about the file it was sent, with a technical sentence: the same as `openFailed` for the page.
+      if (fileSent) {
+        fileDidNotOpen(session.file_name, data.error)
+        break
+      }
       clearTimeout(readyTimer)
       loading.value = false
       error.value = data.error || __('The editor could not start.')
@@ -391,13 +415,18 @@ function onMessage(event) {
     // The editor could not read the file this page sent it (its reader refused it, `wordcraft:openFailed`): say so and
     // offer the file, rather than leave the editor's empty document on the page.
     case 'openFailed':
-      clearTimeout(readyTimer)
-      notOpened = true
-      loading.value = false
-      error.value = __('The editor could not open this document. You can download it.')
-      console.warn(`${prefix}: ${data.name}: ${data.error}`)
+      fileDidNotOpen(data.name, data.error)
       break
   }
+}
+
+function fileDidNotOpen(name, reason) {
+  clearTimeout(readyTimer)
+  notOpened.value = true
+  dirty.value = false
+  loading.value = false
+  error.value = __('The editor could not open this document. You can download it.')
+  console.warn(`${prefix}: ${name}: ${reason}`)
 }
 
 // Cmd/Ctrl+S with the keyboard on the Drive page (after a click on its own chrome, the editor having lost the focus)
@@ -406,6 +435,8 @@ function onMessage(event) {
 function onKeydown(event) {
   if (!(event.metaKey || event.ctrlKey) || event.altKey || event.key.toLowerCase() !== 's') return
   event.preventDefault()
+  // Nothing to save behind the card of a file that did not open.
+  if (notOpened.value) return
   const canvas = frame.value?.contentDocument?.querySelector('canvas')
   if (!canvas) return
   canvas.focus()
@@ -425,7 +456,9 @@ function onKeydown(event) {
 }
 
 function reload() {
-  notOpened = false
+  notOpened.value = false
+  fileSent = false
+  savesImports.value = false
   error.value = null
   loading.value = true
   dirty.value = false

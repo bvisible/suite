@@ -67,6 +67,8 @@ beforeEach(() => {
 				return answer({ message: { file_id: "new-id", file_name: "Budget.xlsx" } })
 			}
 			if (url.startsWith("/wopi/files/new-id/contents")) return new Response("", { status: wopiStatus })
+			// the file the page hands the editor once it is ready
+			if (url.startsWith("/wopi/files/original-id/contents") && !init.method) return new Response(new ArrayBuffer(4))
 			throw new Error(`unexpected request ${init.method} ${url}`)
 		})
 	)
@@ -107,6 +109,13 @@ function editorSaves(frame: HTMLIFrameElement, name: string, saveAs?: boolean) {
 			origin: window.location.origin,
 			source: frame.contentWindow,
 		})
+	)
+}
+
+// A message from the editor in the frame.
+function editorSays(frame: HTMLIFrameElement, type: string, fields: Record<string, unknown> = {}) {
+	window.dispatchEvent(
+		new MessageEvent("message", { data: { type, ...fields }, origin: window.location.origin, source: frame.contentWindow })
 	)
 }
 
@@ -187,6 +196,73 @@ describe("a save of an imported document", () => {
 		app.unmount()
 	})
 
+	it("keeps nothing of the editor's empty document once the file did not open: no dirty state, no key, no focus", async () => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+		const { app, frame } = await mount()
+		const dispatched = vi.fn()
+		const canvas = frame.contentDocument?.createElement("canvas") as HTMLCanvasElement
+		canvas.addEventListener("keydown", dispatched)
+		frame.contentDocument?.appendChild(canvas)
+		const commandS = () => window.dispatchEvent(new KeyboardEvent("keydown", { key: "s", metaKey: true, cancelable: true }))
+		commandS()
+		expect(dispatched).toHaveBeenCalledTimes(1)
+		editorSays(frame, "gridcraft:dirty", { dirty: true })
+		editorSays(frame, "gridcraft:openFailed", { name: "Budget.xls", error: "not a workbook" })
+		await settle()
+		expect(document.body.textContent).toContain("The editor could not open this document. You can download it.")
+		// the page's own keys and the editor's frame stay away from the empty workbook behind the card
+		expect(frame.hasAttribute("inert")).toBe(true)
+		editorSays(frame, "gridcraft:dirty", { dirty: true })
+		commandS()
+		await settle()
+		expect(dispatched).toHaveBeenCalledTimes(1)
+		expect((app._instance?.exposed?.dirty as { value: boolean }).value).toBe(false)
+		warn.mockRestore()
+		app.unmount()
+	})
+
+	it("treats an editor that says `failed` about the file it was sent like one that could not open it (NeoPrés)", async () => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+		const { app, frame } = await mount({ ...imported, editor: "deck", imported: false, file_name: "Casse.pptx", save_as: undefined })
+		editorSays(frame, "deckcraft:ready", { version: "0.18.1" })
+		await settle()
+		expect(posted.find((m) => m.type === "deckcraft:open")?.name).toBe("Casse.pptx")
+		editorSays(frame, "deckcraft:failed", { error: "Couldn't open Casse.pptx: not a presentation" })
+		await settle()
+		const page = document.body.textContent || ""
+		expect(page).toContain("The editor could not open this document. You can download it.")
+		expect(page).not.toContain("Couldn't open Casse.pptx")
+		expect(frame.hasAttribute("inert")).toBe(true)
+		editorSays(frame, "deckcraft:save", { name: "Casse.pptx", bytes: new ArrayBuffer(4) })
+		await settle()
+		expect(requests.some((r) => r.method === "POST")).toBe(false)
+		warn.mockRestore()
+		app.unmount()
+	})
+
+	it("keeps the editor's empty document out of reach too when the page could not read the file", async () => {
+		vi.stubGlobal("fetch", vi.fn(async () => new Response("", { status: 500 })))
+		const { app, frame } = await mount()
+		editorSays(frame, "gridcraft:ready", { version: "0.19.1" })
+		await settle()
+		expect(document.body.textContent).toContain("The server answered 500.")
+		expect(frame.hasAttribute("inert")).toBe(true)
+		expect(posted.some((m) => m.type === "gridcraft:open")).toBe(false)
+		editorSays(frame, "gridcraft:save", { name: "Budget.xlsx", bytes: new ArrayBuffer(4) })
+		await settle()
+		expect(posted.find((m) => m.type === "gridcraft:saved")?.ok).toBe(false)
+		app.unmount()
+	})
+
+	it("still says why when an editor could not start, before any file was sent", async () => {
+		const { app, frame } = await mount()
+		editorSays(frame, "gridcraft:failed", { error: "No WebGL here" })
+		await settle()
+		expect(document.body.textContent).toContain("No WebGL here")
+		expect(frame.hasAttribute("inert")).toBe(false)
+		app.unmount()
+	})
+
 	it("of an .odt in its own type under its own name is refused, and nothing is written", async () => {
 		const { app, frame } = await mount({ ...imported, editor: "word", file_name: "Lettre.odt", save_as: "Lettre.docx" })
 		window.dispatchEvent(
@@ -203,5 +279,50 @@ describe("a save of an imported document", () => {
 		expect(String(saved?.error)).toContain("Lettre.docx")
 		expect(routerPush).not.toHaveBeenCalled()
 		app.unmount()
+	})
+})
+
+describe("the line above an imported document", () => {
+	const odt = { ...imported, editor: "word", file_name: "Note interne.odt", save_as: "Note interne.docx" }
+	const saveAsLine =
+		"To keep your changes, use File › Save As: they are saved as Note interne.docx next to this document, which stays as it is."
+	const saveLine = "Saving keeps this file as it is and makes Note interne.docx next to it."
+
+	it("points an .odt or .rtf to Save As from the start, as a Save does not make the new file", async () => {
+		for (const file_name of ["Note interne.odt", "Note interne.rtf"]) {
+			const { app, frame } = await mount({ ...odt, file_name })
+			editorSays(frame, "wordcraft:ready", { version: "0.18.1" })
+			await settle()
+			expect(document.body.textContent).toContain(saveAsLine)
+			expect(document.body.textContent).not.toContain(saveLine)
+			app.unmount()
+			document.body.innerHTML = ""
+		}
+	})
+
+	it("says a Save makes the new file when the editor says it can (`savesImports`), and tells it the file is an import", async () => {
+		const { app, frame } = await mount(odt)
+		editorSays(frame, "wordcraft:ready", { version: "0.18.2", savesImports: true })
+		await settle()
+		expect(posted.find((m) => m.type === "wordcraft:open")?.imported).toBe(true)
+		expect(document.body.textContent).toContain(saveLine)
+		expect(document.body.textContent).not.toContain(saveAsLine)
+		// and that save is the import: a new file next to the original
+		editorSays(frame, "wordcraft:save", { name: "Note interne.docx", bytes: new ArrayBuffer(4), saveAs: true })
+		await settle()
+		expect(requests.filter((r) => r.url.includes("save_import"))).toHaveLength(1)
+		releaseImport()
+		await settle()
+		app.unmount()
+	})
+
+	it("is the plain one for what a Save does turn into the editor's type", async () => {
+		const { app } = await mount()
+		expect(document.body.textContent).toContain("Saving keeps this file as it is and makes Budget.xlsx next to it.")
+		app.unmount()
+		document.body.innerHTML = ""
+		const doc = await mount({ ...odt, file_name: "Rapport.doc", save_as: "Rapport.docx" })
+		expect(document.body.textContent).toContain("Saving keeps this file as it is and makes Rapport.docx next to it.")
+		doc.app.unmount()
 	})
 })
