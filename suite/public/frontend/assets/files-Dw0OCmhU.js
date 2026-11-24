@@ -1,0 +1,1 @@
+import{b as e}from"./files-OhGLnbo5.js";export{e as translate};
