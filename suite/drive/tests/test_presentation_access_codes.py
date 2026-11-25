@@ -41,7 +41,9 @@ class TestAccessCodes(FrappeTestCase):
         cls.entry = _file(
             "index.html", folder=cls.folder.name, content="<html><body><p>Slide</p></body></html>"
         )
-        _user(STAFF, "System User", ("Suite User",))
+        # a member of the staff holds a desk role: with Suite User alone (no desk access) the account is a portal one,
+        # and a Neoffice instance takes Suite User from it (neoffice_theme users.keep_desk_roles_off_portal_accounts)
+        _user(STAFF, "System User", ("Desk User", "Suite User"))
         _user(PORTAL, "Website User")
 
     @classmethod

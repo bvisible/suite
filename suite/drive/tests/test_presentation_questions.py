@@ -134,7 +134,9 @@ class TestQuestions(FrappeTestCase):
         home = frappe.db.get_value("File", {"is_home_folder": 1}) or "Home"
         cls.folder = _file(f"{PREFIX}-deck", folder=home, is_folder=1)
         cls.entry = _file("index.html", folder=cls.folder.name, content=DECK)
-        _user(STAFF, "System User", ("Suite User",))
+        # a member of the staff holds a desk role: with Suite User alone (no desk access) the account is a portal one,
+        # and a Neoffice instance takes Suite User from it (neoffice_theme users.keep_desk_roles_off_portal_accounts)
+        _user(STAFF, "System User", ("Desk User", "Suite User"))
         _user(PORTAL, "Website User")
 
     @classmethod
