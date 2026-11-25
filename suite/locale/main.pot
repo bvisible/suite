@@ -17580,6 +17580,11 @@ msgstr ""
 msgid "Open {0} and enter the access code {1}. It is valid until {2}."
 msgstr ""
 
+#: suite/drive/doctype/presentation_link/presentation_link.js
+#, python-brace-format
+msgid "Your presentation opens in one click: {0} (valid until {1})."
+msgstr ""
+
 #. Option for the 'Status' (Select) field in DocType 'Presentation Link'
 #: suite/drive/doctype/presentation_link/presentation_link.json:133
 msgid "Opened"

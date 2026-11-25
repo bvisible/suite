@@ -469,7 +469,15 @@ def new_access_code(name: str, email: str, first_name: str | None = None):
         if link.status == "Draft":
             link.status = "Sent"
         link.save()
-    return {"code": code, "email": email, "valid_until": str(until), "url": f"{link.url}#code"}
+    # //// Neoffice — the personal link (Jérémy, 25.11: « le lien avec le code déjà dedans, au nom du client »): it opens the
+    # //// presentation in one click for this person; the page takes the code out of the address at once (viewer.js).
+    return {
+        "code": code,
+        "email": email,
+        "valid_until": str(until),
+        "url": f"{link.url}#code",
+        "personal_url": f"{link.url}#c={code}",
+    }
 
 
 @frappe.whitelist(methods=["POST"])

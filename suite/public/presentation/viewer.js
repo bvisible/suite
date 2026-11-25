@@ -156,7 +156,8 @@
 	}
 
 	// The code given with the link (Jérémy, 09.11): no e-mail, no code to wait for. The link may end in #code, which
-	// opens the page on it. The code is never in the address: it would stay in the browser's history.
+	// opens the page on it. The personal link (25.11, « le lien avec le code déjà dedans ») ends in #c=<code>: the page
+	// takes the code out of the address and of this entry of the history before anything else, then enters with it.
 	const accessForm = $("np-access-form");
 	function showAccess(on) {
 		if (!accessForm) return;
@@ -189,10 +190,18 @@
 		});
 		if (window.location.hash === "#code") showAccess(true);
 	}
+	const personal = /^#c=([A-Za-z0-9-]{4,16})$/.exec(window.location.hash || "");
+	if (personal) history.replaceState(null, "", window.location.pathname + window.location.search);
+	if (personal && accessForm && !preview) {
+		showAccess(true);
+		accessForm.code.value = personal[1];
+		if (accessForm.requestSubmit) accessForm.requestSubmit();
+		else accessForm.dispatchEvent(new Event("submit", { cancelable: true }));
+	}
 
 	// A browser where the code was given lately opens straight away ----------------------------------------------------
 	const known = store();
-	if (!preview && known.email && known.remember) {
+	if (!preview && !personal && known.email && known.remember) {
 		call("resume", { token: config.token, email: known.email, remember: known.remember, browser_id: browserId() })
 			.then((result) => { if (result.ok) { email = known.email; open(result, true); } })
 			.catch(() => {});

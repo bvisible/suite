@@ -176,9 +176,12 @@ function give_access_code(frm) {
 	dialog.show();
 }
 
+// The personal link (25.11, « le lien avec le code déjà dedans, au nom du client ») opens the presentation in one click for
+// this person: it is what the team copies into its message; the code alone stays for a person who types it.
 function show_access_code(given) {
 	const until = frappe.datetime.str_to_user(given.valid_until).split(" ")[0];
-	const sentence = __("Open {0} and enter the access code {1}. It is valid until {2}.", [given.url, given.code, until]);
+	const personal = given.personal_url || given.url;
+	const sentence = __("Your presentation opens in one click: {0} (valid until {1}).", [personal, until]);
 	const dialog = new frappe.ui.Dialog({
 		title: __("The Code for {0}", [given.email]),
 		fields: [
@@ -192,13 +195,13 @@ function show_access_code(given) {
 				</div>`,
 			},
 		],
-		primary_action_label: __("Copy the Sentence"),
+		primary_action_label: __("Copy the Link"),
 		primary_action() {
-			frappe.utils.copy_to_clipboard(sentence);
+			frappe.utils.copy_to_clipboard(personal);
 		},
-		secondary_action_label: __("Copy the Code"),
+		secondary_action_label: __("Copy the Sentence"),
 		secondary_action() {
-			frappe.utils.copy_to_clipboard(given.code);
+			frappe.utils.copy_to_clipboard(sentence);
 		},
 	});
 	dialog.show();

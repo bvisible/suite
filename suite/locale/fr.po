@@ -33143,6 +33143,11 @@ msgstr "J'ai un code d'accès"
 msgid "Open {0} and enter the access code {1}. It is valid until {2}."
 msgstr "Ouvrez {0} et entrez le code d'accès {1}. Il est valable jusqu'au {2}."
 
+#: suite/drive/doctype/presentation_link/presentation_link.js
+#, python-brace-format
+msgid "Your presentation opens in one click: {0} (valid until {1})."
+msgstr "Votre présentation s'ouvre en un clic : {0} (valable jusqu'au {1})."
+
 #. Name of a DocType
 #: suite/drive/doctype/presentation_access_code/presentation_access_code.json:82
 msgid "Presentation Access Code"

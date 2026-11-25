@@ -105,6 +105,17 @@ class TestAccessCodes(FrappeTestCase):
         link = frappe.get_doc("Presentation Link", self.link.name)
         self.assertIn("laurent@firm-example.ch", link.recipients)
 
+    def test_the_personal_link_carries_the_code_and_opens_the_presentation_with_it(self):
+        # //// Neoffice — the one-click link of 25.11 (« le lien avec le code déjà dedans, au nom du client »)
+        given = self.give()
+        self.assertEqual(given["personal_url"], f"{self.link.url}#c={given['code']}")
+        code = given["personal_url"].rsplit("#c=", 1)[1]
+        with as_role("Guest"):
+            result = api.enter_with_code(self.link.token, code, "browser-3")
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["email"], "laurent@firm-example.ch")
+        self.assertEqual(self.sent, [])
+
     def test_a_wrong_an_expired_or_another_links_code_opens_nothing(self):
         given = self.give()
         other = self.new_link()
